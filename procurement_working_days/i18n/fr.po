@@ -1,0 +1,67 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* procurement_working_days
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-12-22 11:19+0000\n"
+"PO-Revision-Date: 2014-12-22 11:19+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: procurement_working_days
+#: model:ir.model,name:procurement_working_days.model_res_company
+msgid "Companies"
+msgstr "Sociétés"
+
+#. module: procurement_working_days
+#: field:res.company,calendar_id:0
+msgid "Company default calendar"
+msgstr "Calendrier par défaut"
+
+#. module: procurement_working_days
+#: model:ir.model,name:procurement_working_days.model_res_partner
+msgid "Partner"
+msgstr "Partenaire"
+
+#. module: procurement_working_days
+#: model:ir.model,name:procurement_working_days.model_procurement_order
+msgid "Procurement"
+msgstr "Approvisionnement"
+
+#. module: procurement_working_days
+#: field:res.partner,resource_id:0
+msgid "Supplier resource"
+msgstr "Ressource du fournisseur"
+
+#. module: procurement_working_days
+#: help:res.company,calendar_id:0
+msgid "The default calendar of the company to define working days. This calendar is used for locations outside warehouses or for warehouses without a calendar defined. If undefined here the default calendar will consider working days being Monday to Friday."
+msgstr "Le calendrier par défaut de la société pour définir les jours ouvrés. Ce calendrier est utilisé pour les emplacements en dehors des entrepôts ou pour les entrepôts sans calendrier défini. Si aucun calendrier n'est défini ici, le calendrier par défaut sera utilisé, et considérera les jours ouvrés du lundi au vendredi."
+
+#. module: procurement_working_days
+#: help:stock.warehouse,resource_id:0
+msgid "The resource is used to define the working days of the warehouse. If undefined the system will fall back to the default company calendar."
+msgstr "La ressource est utilisée pour définir les jours ouvrés de l'entrepôt. Si elle n'est pas définie, le système utilisera le calendrier par défaut de la société."
+
+#. module: procurement_working_days
+#: help:res.partner,resource_id:0
+msgid "The supplier resource is used to define the working days of the supplier when calculating lead times. If undefined here the system will consider working days of the supplier being Monday to Friday."
+msgstr "La ressource du fournisseur est utilisée pour définir les jours ouvrés du fournisseur lors du calcul des temps d'approvisionnement. Si elle n'est pas définie, le système considérera que les jours ouvrés du fournisseur sont du lundi au vendredi."
+
+#. module: procurement_working_days
+#: model:ir.model,name:procurement_working_days.model_stock_warehouse
+msgid "Warehouse"
+msgstr "Entrepôt"
+
+#. module: procurement_working_days
+#: field:stock.warehouse,resource_id:0
+msgid "Warehouse resource"
+msgstr "Ressource de l'entrepôt"
+
