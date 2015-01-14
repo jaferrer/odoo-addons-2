@@ -1,0 +1,58 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* stock_auto_move
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-01-14 13:49+0000\n"
+"PO-Revision-Date: 2015-01-14 14:52+0100\n"
+"Last-Translator: Nicolas PIGANEAU <nicolas.piganeau@ndp-systemes.fr>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 1.7.3\n"
+
+#. module: stock_auto_move
+#: field:procurement.rule,auto_move:0 field:stock.move,auto_move:0
+msgid "Automatic move"
+msgstr "Mouvement automatique"
+
+#. module: stock_auto_move
+#: help:procurement.rule,auto_move:0
+msgid "If this option is selected, the generated move will be automatically processed as soon as the products are available. This can be useful for situations with chained moves where we do not want an operator action."
+msgstr "Si cette option est sélectionnée, le mouvement généré sera traité automatiquement dès que les articles seront disponible. Cela peut être utile dans des situations avec des mouvements chainés où l'on ne souhaite pas d'action de l'opérateur."
+
+#. module: stock_auto_move
+#: help:stock.move,auto_move:0
+msgid "If this option is selected, the move will be automatically processed as soon as the products are available."
+msgstr "Si cette option est sélectionnée, le mouvement sera traité automatiquement dès que les articles seront disponible"
+
+#. module: stock_auto_move
+#: model:stock.location,name:stock_auto_move.stock_location_a
+msgid "Location 1"
+msgstr "Emplacement 1"
+
+#. module: stock_auto_move
+#: model:stock.location,name:stock_auto_move.stock_location_b
+msgid "Location 2"
+msgstr "Emplacement 2"
+
+#. module: stock_auto_move
+#: model:ir.model,name:stock_auto_move.model_procurement_order
+msgid "Procurement"
+msgstr "Approvisionnement"
+
+#. module: stock_auto_move
+#: model:ir.model,name:stock_auto_move.model_procurement_rule
+msgid "Procurement Rule"
+msgstr "Règle d'approvisionnement"
+
+#. module: stock_auto_move
+#: model:ir.model,name:stock_auto_move.model_stock_move
+msgid "Stock Move"
+msgstr "Mouvement de stock"
