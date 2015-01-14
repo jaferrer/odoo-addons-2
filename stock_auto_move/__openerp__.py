@@ -37,9 +37,10 @@ Automatic moves are triggered by previous move when the move is chained or by th
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'stock_auto_move_view.xml',
+    ],
+    'demo': [
         'stock_auto_move_demo.xml',
     ],
-    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
