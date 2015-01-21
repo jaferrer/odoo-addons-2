@@ -72,7 +72,7 @@ class TestStockAutoMove(common.TransactionCase):
 
     def test_20_procurement_auto_move(self):
         """Check that move generated with procurement rule have auto_move set."""
-        self.product_a1232.route_ids = [(4, self.ref("purchase.route_warehouse0_buy"))]
+        self.product_a1232.route_ids = [(4, self.ref("stock_auto_move.test_route"))]
         proc = self.env["procurement.order"].create({
             'name': 'Test Procurement with auto_move',
             'date_planned': '2015-02-02 00:00:00',
