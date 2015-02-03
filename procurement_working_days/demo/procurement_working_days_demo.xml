@@ -42,14 +42,14 @@
         <!-- #### Procurements ###### -->
         <record id="stock_location_a" model="stock.location">
             <field name="name">Location A</field>
-            <field name="location_id" ref="stock.stock_location_locations"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
             <field name="active">1</field>
             <field name="usage">internal</field>
         </record>
 
         <record id="stock_location_b" model="stock.location">
             <field name="name">Location B</field>
-            <field name="location_id" ref="stock.stock_location_locations"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
             <field name="active">1</field>
             <field name="usage">internal</field>
         </record>
