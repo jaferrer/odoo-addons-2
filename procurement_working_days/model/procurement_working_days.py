@@ -114,6 +114,26 @@ class res_partner_with_calendar(models.Model):
                                        "days of the supplier being Monday to Friday.")
 
 
+class procurement_working_days_location(models.Model):
+    _inherit = 'stock.location'
+
+    @api.model
+    def get_warehouse(self, location):
+        """
+            Returns warehouse id of warehouse that contains location
+            :param location: browse record (stock.location)
+
+            Overridden here to have an implementation that checks at all levels of location tree.
+        """
+        wh_views = {w.view_location_id.id: w for w in self.env['stock.warehouse'].search([])}
+        loc = location
+        while loc:
+            if loc.id in wh_views.keys():
+                return wh_views[loc.id].id
+            loc = loc.location_id
+        return False
+
+
 class procurement_working_days(models.Model):
     _inherit = "procurement.order"
 
