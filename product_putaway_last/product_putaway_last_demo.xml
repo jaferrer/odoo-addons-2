@@ -41,7 +41,6 @@
         <!-- ### Pickings ### -->
         <record id="picking_to_stock" model="stock.picking">
             <field name="move_type">direct</field>
-            <field name="invoice_state">none</field>
             <field name="priority">1</field>
             <field name="picking_type_id" ref="stock.picking_type_internal"/>
         </record>
