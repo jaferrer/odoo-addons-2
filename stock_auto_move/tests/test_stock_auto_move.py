@@ -27,6 +27,7 @@ class TestStockAutoMove(common.TransactionCase):
         self.location_shelf = self.browse_ref("stock.stock_location_components")
         self.location_1 = self.browse_ref("stock_auto_move.stock_location_a")
         self.location_2 = self.browse_ref("stock_auto_move.stock_location_b")
+        self.location_3 = self.browse_ref("stock_auto_move.stock_location_c")
         self.product_uom_unit_id = self.ref("product.product_uom_unit")
 
     def test_10_auto_move(self):
@@ -89,3 +90,24 @@ class TestStockAutoMove(common.TransactionCase):
         for move in proc.move_ids:
             self.assertEqual(move.auto_move, True)
             self.assertEqual(move.state, 'confirmed')
+
+    def test_30_push_rule_auto(self):
+        """Checks that push rule with auto set leads to an auto_move."""
+        self.product_a1232.route_ids = [(4, self.ref("stock_auto_move.test_route"))]
+        move3 = self.env["stock.move"].create({
+            'name': "Supply source location for test",
+            'product_id': self.product_a1232.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 7,
+            'location_id': self.location_shelf.id,
+            'location_dest_id': self.location_3.id,
+            'auto_move': False,
+        })
+        move3.action_confirm()
+        move3.action_done()
+        quants_in_3 = self.env['stock.quant'].search([('product_id','=',self.product_a1232.id),
+                                                      ('location_id','=',self.location_3.id)])
+        quants_in_1 = self.env['stock.quant'].search([('product_id','=',self.product_a1232.id),
+                                                      ('location_id','=',self.location_1.id)])
+        self.assertEqual(len(quants_in_3), 0)
+        self.assertGreater(len(quants_in_1), 0)

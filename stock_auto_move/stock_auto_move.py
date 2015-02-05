@@ -54,3 +54,14 @@ class stock_auto_move_procurement(models.Model):
         res.update({'auto_move': procurement.rule_id.auto_move})
         return res
 
+
+class stock_auto_move_location_path(models.Model):
+    _inherit = 'stock.location.path'
+
+    @api.model
+    def _prepare_push_apply(self, rule, move):
+        res = super(stock_auto_move_location_path, self)._prepare_push_apply(rule, move)
+        res.update({
+            'auto_move': (rule.auto == 'auto')
+        })
+        return res
