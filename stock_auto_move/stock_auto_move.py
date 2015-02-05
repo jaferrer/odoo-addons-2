@@ -30,6 +30,9 @@ class stock_auto_move_move(models.Model):
         super(stock_auto_move_move, self).action_assign()
         for move in self:
             if move.state == 'assigned' and move.auto_move:
+                if not move.linked_move_operation_ids and move.picking_id:
+                    # To get packages transferred at once if quants are in package
+                    move.picking_id.do_prepare_partial()
                 move.action_done()
 
 
