@@ -24,7 +24,7 @@ class TestProductPutawayWhereNeeded(common.TransactionCase):
     def setUp(self):
         super(TestProductPutawayWhereNeeded, self).setUp()
         self.picking1 = self.browse_ref("product_putaway_dispatch.picking_to_stock")
-        # self.picking2 = self.browse_ref("product_putaway_dispatch.picking_to_stock_2")
+        self.picking2 = self.browse_ref("product_putaway_dispatch.picking_pack")
         self.product_a1232 = self.browse_ref("product.product_product_6")
         self.location_shelf = self.browse_ref("stock.stock_location_components")
         self.location_stock = self.browse_ref("product_putaway_dispatch.stock_location_stock")
