@@ -36,10 +36,10 @@ This button only appears if the original destination location has its putaway st
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'product_dispatch_view.xml'
+        'product_putaway_dispatch_view.xml'
     ],
     'demo': [
-        'product_dispatch_demo.xml'
+        'product_putaway_dispatch_demo.xml'
     ],
     'test': [],
     'installable': True,

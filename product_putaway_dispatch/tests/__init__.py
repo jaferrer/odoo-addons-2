@@ -17,4 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import product_dispatch
+import test_product_putaway_dispatch

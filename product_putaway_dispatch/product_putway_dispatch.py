@@ -19,19 +19,19 @@
 
 from openerp import fields, models, api, _, exceptions
 
-class product_dispatch_strategy(models.Model):
+class product_putaway_dispatch_strategy(models.Model):
     _inherit = 'product.putaway'
 
     @api.cr_uid_context
     def _get_putaway_options(self, cr, uid, context=None):
-        res = super(product_dispatch_strategy, self)._get_putaway_options(cr, uid, context)
-        res.append(('where_needed',_("Where Needed")))
+        res = super(product_putaway_dispatch_strategy, self)._get_putaway_options(cr, uid, context)
+        res.append(('dispatch',_("Dispatch where needed")))
         return res
 
     method = fields.Selection(_get_putaway_options, "Method", required=True)
 
 
-class product_dispatch_transfer_details(models.TransientModel):
+class product_putaway_dispatch_transfer_details(models.TransientModel):
     _inherit = 'stock.transfer_details'
 
     @api.multi
