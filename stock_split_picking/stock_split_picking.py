@@ -25,3 +25,15 @@ class stock_split_only_transfer_details(models.TransientModel):
     @api.one
     def do_split_only(self):
         self.with_context(do_only_split=True).do_detailed_transfer()
+
+
+class stock_split_picking(models.Model):
+    _inherit = 'stock.picking'
+
+    @api.one
+    def action_split_from_ui(self):
+        """ called when button 'done' is pushed in the barcode scanner UI """
+        #write qty_done into field product_qty for every package_operation before doing the transfer
+        for operation in self.pack_operation_ids:
+            operation.write({'product_qty': operation.qty_done})
+        self.do_split()

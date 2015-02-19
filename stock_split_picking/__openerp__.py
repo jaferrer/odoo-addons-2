@@ -34,6 +34,9 @@ current operation.
     'data': [
         'stock_split_picking.xml'
     ],
+    'qweb': [
+        'static/src/xml/stock_split_picking.xml'
+    ],
     'demo': [],
     'test': [],
     'installable': True,

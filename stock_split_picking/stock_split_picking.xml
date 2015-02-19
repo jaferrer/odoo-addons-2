@@ -19,6 +19,11 @@
             </field>
         </record>
 
+        <template id="assets_split_picking" inherit_id="web.assets_backend" name="Split operation">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/stock_split_picking/static/src/js/stock_split_picking.js"></script>
+            </xpath>
+        </template>
 
     </data>
 </openerp>
