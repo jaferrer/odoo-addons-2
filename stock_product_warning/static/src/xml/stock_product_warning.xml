@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+   <!-- <t t-extend="PickingEditorWidget">
+        <t t_jquery='t[t-esc="row.cols.product"]' t-operation="after">
+            <t t-if="row.cols.procurement_warning" ><span> [W] </span></t>
+        </t>
+    </t>-->
+</templates>
