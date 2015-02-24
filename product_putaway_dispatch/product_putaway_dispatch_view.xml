@@ -9,7 +9,9 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <group string="Products To Move" position="inside">
-                    <button type="object" name="action_dispatch" string="Dispatch"/>
+                    <field name="hide_dispatch_button" invisible="1"/>
+                    <button type="object" name="action_dispatch" string="Dispatch" attrs="{'invisible':
+                         [('hide_dispatch_button','=',True)]}"/>
                 </group>
             </field>
         </record>

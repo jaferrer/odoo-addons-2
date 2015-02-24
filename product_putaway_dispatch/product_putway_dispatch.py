@@ -34,6 +34,13 @@ class product_putaway_dispatch_strategy(models.Model):
 class product_putaway_dispatch_transfer_details(models.TransientModel):
     _inherit = 'stock.transfer_details'
 
+    hide_dispatch_button = fields.Boolean("Hide Dispatch Button", compute="_compute_hide_dispatch_button")
+
+    @api.depends('picking_destination_location_id.putaway_strategy_id')
+    def _compute_hide_dispatch_button(self):
+        for rec in self:
+            rec.hide_dispatch_button = (rec.picking_destination_location_id.putaway_strategy_id.method != 'dispatch')
+
     @api.multi
     def action_dispatch(self):
         for transfer in self:
