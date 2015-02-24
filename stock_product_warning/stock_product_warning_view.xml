@@ -10,7 +10,7 @@
             <field name="arch" type="xml">
                 <field name="product_id" position="after">
                     <field name="procurement_warning" invisible="1"/>
-                    <button type="object" name="wizard_view" string="This product has a procurement warning set"
+                    <button type="object" name="noop" string="This product has a procurement warning set"
                             icon="STOCK_DIALOG_WARNING" attrs="{'invisible': [('procurement_warning','=',False)]}"/>
                 </field>
             </field>
@@ -31,6 +31,11 @@
             </field>
         </record>
 
+        <template id="assets_product_warning" inherit_id="web.assets_backend" name="Product procurement warning">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/stock_product_warning/static/src/js/stock_product_warning.js"></script>
+            </xpath>
+        </template>
 
     </data>
 </openerp>

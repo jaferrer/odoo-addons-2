@@ -34,6 +34,10 @@ as warehouse barcode UI.
     'data': [
         'stock_product_warning_view.xml'
     ],
+    'qweb': [
+        'static/src/xml/stock_product_warning.xml'
+    ],
+
     'demo': [],
     'test': [],
     'installable': True,

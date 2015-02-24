@@ -26,6 +26,11 @@ class stock_product_warning_product(models.Model):
                                                                      "the transfer pop-up of stock operations linked "
                                                                      "to this product")
 
+class stock_product_packop_line(models.Model):
+    _inherit = 'stock.pack.operation'
+
+    procurement_warning = fields.Boolean("Procurement Warning", related="product_id.procurement_warning")
+
 
 class stock_product_transfer_detail_items(models.TransientModel):
     _inherit = 'stock.transfer_details_items'

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<templates>
-    <t t-extend="PickingEditorWidget">
-        <t t-jquery='button:contains(" Create backorder ")' t-operation="after">
-            <button type="button" class='btn btn-default js_pick_split'> Split only </button>
-        </t>
-    </t>
-</templates>
