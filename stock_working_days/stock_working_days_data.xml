@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+
         <record model="resource.calendar" id="default_calendar">
             <field name="name">Default Calendar</field>
         </record>

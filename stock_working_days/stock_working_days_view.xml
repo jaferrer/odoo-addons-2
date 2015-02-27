@@ -2,18 +2,6 @@
 <openerp>
     <data>
 
-        <record model="ir.ui.view" id="res_partner_with_calendar_view_form">
-            <field name="name">res.partner.with.calendar.view.form</field>
-            <field name="model">res.partner</field>
-            <field name="inherit_id" ref="base.view_partner_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <field name="ref" position="after">
-                    <field name="resource_id" attrs="{'invisible': [('supplier','=',False)]}"/>
-                </field>
-            </field>
-        </record>
-
         <record model="ir.ui.view" id="stock_warehouse_with_calendar_view_form">
             <field name="name">stock.warehouse.with.calendar.view.form</field>
             <field name="model">stock.warehouse</field>
