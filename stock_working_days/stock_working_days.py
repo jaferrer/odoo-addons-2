@@ -18,10 +18,12 @@
 #
 
 from datetime import datetime
+from dateutil.relativedelta import relativedelta, weekdays
 
 from openerp import fields, models, api, _
 from openerp.exceptions import except_orm
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+
 
 ###################################################################################################
 # TODO: This should be removed as soon as https://github.com/odoo/odoo/pull/4030 is pulled upstream
@@ -88,6 +90,7 @@ class resource_calendar_bugfix(models.Model):
         return intervals
 ###################################################################################################
 
+
 class res_company_with_calendar(models.Model):
     _inherit = "res.company"
 
@@ -124,6 +127,22 @@ class stock_working_days_location(models.Model):
                 return wh_views[loc.id].id
             loc = loc.location_id
         return False
+
+
+class days_of_week_tags(models.Model):
+    _name = 'resource.day_of_week'
+    _description = "Days of the week"
+
+    name = fields.Char("Day of the week", index=True, required=True)
+    code = fields.Integer("# day of the week", index=True, required=True)
+
+
+class fixed_days_procurement_rule(models.Model):
+    _inherit = 'procurement.rule'
+
+    days_of_week = fields.Many2many('resource.day_of_week', string="Days of week",
+                                    help="Set here the days of the week on which this rule must be trigerred. Leave "
+                                         "empty for moves that can be performed on any day of the week.")
 
 
 class procurement_working_days(models.Model):
@@ -185,6 +204,16 @@ class procurement_working_days(models.Model):
                                                      proc_date,
                                                      resource_id,
                                                      calendar_id)
+        # Check if this is to be done only on some days of the week
+        day_codes = [d.code for d in procurement.rule_id.days_of_week]
+        if len(day_codes) != 0:
+            dates = []
+            for dow in day_codes:
+                if newdate + relativedelta(weekday=weekdays[dow]) == newdate:
+                    dates=[newdate]
+                    break
+                dates.append(newdate + relativedelta(weekday=weekdays[dow](-1)))
+            newdate = max(dates)
         if newdate:
             vals.update({'date': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                          'date_expected': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT)})

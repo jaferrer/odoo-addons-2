@@ -115,3 +115,54 @@ class TestStockWorkingDays(common.TransactionCase):
         for move in proc.move_ids:
             self.assertEqual(move.date[0:10], '2014-12-29')
             self.assertEqual(move.date_expected[0:10], '2014-12-29')
+
+    def test_40_schedule_authorized_days_of_week(self):
+        """Schedule test with authorized days of the week."""
+        company = self.browse_ref('base.main_company')
+        company.calendar_id = self.browse_ref('stock_working_days.demo_calendar_1')
+        proc_env = self.env["procurement.order"]
+        proc = proc_env.create({
+            'name': 'Test Stock Schedule',
+            'date_planned': '2015-02-02 00:00:00',
+            'product_id': self.ref('stock_working_days.product_test_product'),
+            'product_qty': 1,
+            'product_uom': self.ref('product.product_uom_unit'),
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock_working_days.stock_location_b'),
+            'route_ids': [(4,self.ref('stock_working_days.test_route_dow'))],
+        })
+        proc.run()
+        proc.check()
+        # Rule "A => B" has been applied
+        a_to_b_rule = self.browse_ref('stock_working_days.procurement_rule_a_to_b_dow')
+        self.assertEqual(proc.rule_id, a_to_b_rule)
+        # Moves have been created
+        self.assertGreater(len(proc.move_ids), 0)
+        # Move date and date expected are correctly set for each move
+        for move in proc.move_ids:
+            self.assertEqual(move.date[0:10], '2015-01-08')
+            self.assertEqual(move.date_expected[0:10], '2015-01-08')
+
+        # Check again if we are already on an authorized day
+        proc2 = proc_env.create({
+            'name': 'Test Stock Schedule',
+            'date_planned': '2015-02-04 00:00:00',
+            'product_id': self.ref('stock_working_days.product_test_product'),
+            'product_qty': 1,
+            'product_uom': self.ref('product.product_uom_unit'),
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock_working_days.stock_location_b'),
+            'route_ids': [(4,self.ref('stock_working_days.test_route_dow'))],
+        })
+        proc2.run()
+        proc2.check()
+        # Rule "A => B" has been applied
+        a_to_b_rule = self.browse_ref('stock_working_days.procurement_rule_a_to_b_dow')
+        self.assertEqual(proc2.rule_id, a_to_b_rule)
+        # Moves have been created
+        self.assertGreater(len(proc2.move_ids), 0)
+        # Move date and date expected are correctly set for each move
+        for move in proc2.move_ids:
+            self.assertEqual(move.date[0:10], '2015-01-14')
+            self.assertEqual(move.date_expected[0:10], '2015-01-14')
+

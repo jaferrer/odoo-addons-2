@@ -34,6 +34,10 @@ given a resource, then the system falls back to a company default calendar.
 When a procurement needs to be scheduled by stock move, it counts only opened days defined by the
 applicable calendar.
 
+This module also enables that procurement rules of type "move" be triggered only on fixed days of the week. This is
+particularly useful for scheduling chained moves where some activities are only performed on certain days (e.g.
+transport between 2 warehouses only done twice a week on mondays and thursdays).
+
 Notes:
 ------
 

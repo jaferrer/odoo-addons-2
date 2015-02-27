@@ -46,5 +46,41 @@
             <field name="calendar_id" ref="default_calendar"/>
         </record>
 
+        <record model="resource.day_of_week" id="monday">
+            <field name="name">Monday</field>
+            <field name="code" eval="0"/>
+        </record>
+
+        <record model="resource.day_of_week" id="tuesday">
+            <field name="name">Tuesday</field>
+            <field name="code" eval="1"/>
+        </record>
+
+        <record model="resource.day_of_week" id="wednesday">
+            <field name="name">Wednesday</field>
+            <field name="code" eval="2"/>
+        </record>
+
+        <record model="resource.day_of_week" id="thursday">
+            <field name="name">Thursday</field>
+            <field name="code" eval="3"/>
+        </record>
+
+        <record model="resource.day_of_week" id="friday">
+            <field name="name">Friday</field>
+            <field name="code" eval="4"/>
+        </record>
+
+        <record model="resource.day_of_week" id="saturday">
+            <field name="name">Saturday</field>
+            <field name="code" eval="5"/>
+        </record>
+
+        <record model="resource.day_of_week" id="sunday">
+            <field name="name">Sunday</field>
+            <field name="code" eval="6"/>
+        </record>
+
+
     </data>
 </openerp>
