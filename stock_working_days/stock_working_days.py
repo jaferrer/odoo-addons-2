@@ -140,8 +140,8 @@ class days_of_week_tags(models.Model):
 class fixed_days_procurement_rule(models.Model):
     _inherit = 'procurement.rule'
 
-    days_of_week = fields.Many2many('resource.day_of_week', string="Days of week",
-                                    help="Set here the days of the week on which this rule must be trigerred. Leave "
+    days_of_week = fields.Many2many('resource.day_of_week', string="Fixed days of week",
+                                    help="Set here the days of the week on which this rule can be trigerred. Leave "
                                          "empty for moves that can be performed on any day of the week.")
 
 

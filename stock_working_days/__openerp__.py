@@ -51,6 +51,7 @@ Notes:
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'security/ir.model.access.csv',
         'stock_working_days_data.xml',
         'stock_working_days_view.xml',
     ],

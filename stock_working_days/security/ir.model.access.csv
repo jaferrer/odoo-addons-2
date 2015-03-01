@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_resource_day_of_week,access_resource_day_of_week,model_resource_day_of_week,,1,0,0,0

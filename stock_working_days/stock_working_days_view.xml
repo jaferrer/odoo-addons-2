@@ -33,9 +33,10 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <data>
-                    <field name="delay" position="after">
-                        <field name="days_of_week" widget="many2many_tags" options="{'nocreate': True}"/>
-                    </field>
+                    <group string="Moving Options" position="inside">
+                        <field name="days_of_week" widget="many2many_tags" groups="stock.group_adv_location"
+                               options="{'no_create': True, 'no_open': True}"/>
+                    </group>
                 </data>
             </field>
         </record>
