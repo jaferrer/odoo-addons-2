@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="procurement.time.frame" id="day">
+            <field name="name">Day</field>
+            <field name="days" eval="1"/>
+        </record>
+
+        <record model="procurement.time.frame" id="week">
+            <field name="name">Week</field>
+            <field name="weeks" eval="1"/>
+        </record>
+
+        <record model="procurement.time.frame" id="fortnight">
+            <field name="name">Fortnight</field>
+            <field name="weeks" eval="2"/>
+        </record>
+
+        <record model="procurement.time.frame" id="month">
+            <field name="name">Month</field>
+            <field name="months" eval="1"/>
+        </record>
+
+    </data>
+</openerp>
