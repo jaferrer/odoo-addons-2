@@ -18,9 +18,9 @@
 #
 
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
+from dateutil.relativedelta import relativedelta, MO, SU
 
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
 from openerp import fields, models, api, _
 
 
@@ -48,7 +48,7 @@ class purchase_order_with_period(models.Model):
         for rec in self:
             if rec.partner_id and rec.partner_id.order_group_period:
                 date_order = datetime.strptime(rec.date_order, DEFAULT_SERVER_DATETIME_FORMAT)
-                date_order_max = date_order + rec.partner_id.order_group_period.get_relativedelta()[0]
+                ds, date_order_max = rec.partner_id.order_group_period.get_start_end_dates(date_order)
                 rec.date_order_max = date_order_max.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
             else:
                 rec.date_order_max = False
@@ -58,50 +58,45 @@ class procurement_time_frame(models.Model):
     _name = 'procurement.time.frame'
 
     name = fields.Char(required=True)
-    days = fields.Integer("Number of days")
-    weeks = fields.Integer("Number of weeks")
-    months = fields.Integer("Number of months")
-    years = fields.Integer("Number of years")
+    nb = fields.Integer("Number")
+    period_type = fields.Selection([('days',"Day(s)"),('weeks',"Week(s)"),('months',"Month(s)"),('years',"Year(s)")])
 
-    @api.one
-    def get_relativedelta(self):
-        """Returns a relativedelta object corresponding to the time frame"""
-        return relativedelta(days=self.days, weeks=self.weeks, months=self.months, years=self.years)
+    def get_start_end_dates(self, date):
+        """Returns the start and end dates of the time frame including date.
+
+        @param self: object pointer,
+        @param date: datetime object,
+        @return: A tuple of datetime objects."""
+        if self.period_type == 'days':
+            doy = date.timetuple().tm_yday
+            date_start = date + relativedelta(days=-((doy - 1) % self.nb), hour=0, minute=0, second=0)
+            date_end = date_start + relativedelta(days=self.nb, hour=23, minute=59, second=59)
+        elif self.period_type == 'weeks':
+            woy = date.isocalendar()[1]
+            date_start = date + relativedelta(weeks=-((woy - 1) % self.nb) - 1, days=1, weekday=MO,
+                                              hour=0, minute=0, second=0)
+            date_end = date_start + relativedelta(weeks=self.nb - 1, weekday=SU, hour=23, minute=59, second=59)
+        elif self.period_type == 'months':
+            month = date.month
+            date_start = date + relativedelta(months=-((month - 1) % self.nb), day=1, hour=0, minute=0, second=1)
+            date_end = date_start + relativedelta(months=self.nb - 1, day=31, hour=23, minute=59, second=59)
+        elif self.period_type == 'years':
+            year = date.year
+            date_start = date + relativedelta(years=-((year - 1) % self.nb), month=1, day=1, hour=0, minute=0, second=1)
+            date_end = date_start + relativedelta(years=self.nb - 1, month=12, day=31, hour=23, minute=59, second=59)
+        # print "Date: %s, date_start: %s, date_end: %s, period_type: %s, nb: %s" % (date, date_start, date_end, self.period_type, self.nb)
+        return date_start, date_end
 
 
 class procurement_order_group_by_period(models.Model):
     _inherit = 'procurement.order'
 
-    @api.one
-    def _improve_order_date(self, date, partner):
-        """Returns the improved order_date for the PO to be created so as to fit in between the existing PO."""
-        delta = partner.order_group_period.get_relativedelta()[0]
-        date_order_max = date + delta
-        date_order = date
-        domain = [('partner_id', '=', partner.id), ('state', '=', 'draft'),
-                  ('picking_type_id', '=', self.rule_id.picking_type_id.id),
-                  ('location_id', '=', self.location_id.id),
-                  ('company_id', '=', self.company_id.id),
-                  ('dest_address_id', '=', self.partner_dest_id.id)]
-        po_in_date_max = self.env['purchase.order'].search(domain + [('date_order_max', '>', date_order_max.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                                                    ('date_order', '<=', date_order_max.strftime(DEFAULT_SERVER_DATETIME_FORMAT))], order='date_order')
-        po_in_date = self.env['purchase.order'].search(domain + [('date_order_max', '>', date_order.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                                                    ('date_order', '<=', date_order.strftime(DEFAULT_SERVER_DATETIME_FORMAT))], order='date_order_max DESC')
-        if po_in_date_max:
-            date_order_max = po_in_date_max[0].date_order
-            date_order = date_order_max - delta
-            po_in_date2 = self.env['purchase.order'].search(domain + [('date_order_max', '>', date_order.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                                                    ('date_order', '<=', date_order.strftime(DEFAULT_SERVER_DATETIME_FORMAT))], order='date_order_max DESC')
-            if po_in_date2:
-                date_order = po_in_date2[0].date_order_max
-        elif po_in_date:
-            date_order = po_in_date[0].date_order_max
-        return date_order
-
     @api.multi
     def make_po(self):
-        """ Resolve the purchase from procurement, which may result in a new PO creation, a new PO line creation or a quantity change on existing PO line.
-        Note that some operations (as the PO creation) are made as SUPERUSER because the current user may not have rights to do it (mto product launched by a sale for example)
+        """ Resolve the purchase from procurement, which may result in a new PO creation, a new PO line creation or a
+        quantity change on existing PO line.
+        Note that some operations (as the PO creation) are made as SUPERUSER because the current user may not have
+        rights to do it (mto product launched by a sale for example)
         Overridden here to take into account the supplier order grouping time frame.
 
         @return: dictionary giving for each procurement its related resolving PO line.
@@ -129,13 +124,13 @@ class procurement_order_group_by_period(models.Model):
                                         ('location_id', '=', procurement.location_id.id),
                                         ('company_id', '=', procurement.company_id.id),
                                         ('dest_address_id', '=', procurement.partner_dest_id.id),
-                                        ('date_order_max', '>', purchase_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+                                        ('date_order_max', '>=', purchase_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
                                         ('date_order', '<=', purchase_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT))])
                 if available_draft_po_ids:
                     po_rec = available_draft_po_ids[0]
                     # look for any other PO line in the selected PO with same product and UoM to sum quantities instead
                     # of creating a new po line
-                    available_po_line_ids = po_line_obj.search([('order_id', '=', po_id),
+                    available_po_line_ids = po_line_obj.search([('order_id', '=', po_rec.id),
                                                                 ('product_id', '=', line_vals['product_id']),
                                                                 ('product_uom', '=', line_vals['product_uom'])])
                     if available_po_line_ids:
@@ -152,11 +147,12 @@ class procurement_order_group_by_period(models.Model):
                         po_line_id = po_line_obj.sudo().create(line_vals).id
                         linked_po_ids.append(procurement)
                 else:
-                    date_order = procurement._improve_order_date(purchase_date, partner)[0]
+                    date_order, date_end = partner.order_group_period.get_start_end_dates(purchase_date)
                     name = seq_obj.next_by_code('purchase.order') or _('PO: %s') % procurement.name
                     po_vals = {
                         'name': name,
-                        'origin': procurement.origin,
+                        'origin': "%s - %s" % (date_order.strftime(DEFAULT_SERVER_DATE_FORMAT),
+                                               date_end.strftime(DEFAULT_SERVER_DATE_FORMAT)),
                         'partner_id': partner.id,
                         'location_id': procurement.location_id.id,
                         'picking_type_id': procurement.rule_id.picking_type_id.id,

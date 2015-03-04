@@ -40,8 +40,9 @@ Depending on this time frame, the purchase order lines are grouped into one purc
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'security/ir.model.access.csv',
         'purchase_group_by_period_view.xml',
-        'purchase_group_by_period_data.xml'
+        'purchase_group_by_period_data.xml',
     ],
     'demo': [],
     'test': [],

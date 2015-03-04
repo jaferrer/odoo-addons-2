@@ -4,22 +4,32 @@
 
         <record model="procurement.time.frame" id="day">
             <field name="name">Day</field>
-            <field name="days" eval="1"/>
+            <field name="nb" eval="1"/>
+            <field name="period_type">days</field>
         </record>
 
         <record model="procurement.time.frame" id="week">
             <field name="name">Week</field>
-            <field name="weeks" eval="1"/>
+            <field name="nb" eval="1"/>
+            <field name="period_type">weeks</field>
         </record>
 
         <record model="procurement.time.frame" id="fortnight">
             <field name="name">Fortnight</field>
-            <field name="weeks" eval="2"/>
+            <field name="nb" eval="2"/>
+            <field name="period_type">weeks</field>
         </record>
 
         <record model="procurement.time.frame" id="month">
             <field name="name">Month</field>
-            <field name="months" eval="1"/>
+            <field name="nb" eval="1"/>
+            <field name="period_type">months</field>
+        </record>
+
+        <record model="procurement.time.frame" id="year">
+            <field name="name">Year</field>
+            <field name="nb" eval="1"/>
+            <field name="period_type">years</field>
         </record>
 
     </data>
