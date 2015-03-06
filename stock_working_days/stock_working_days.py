@@ -155,7 +155,7 @@ class procurement_working_days(models.Model):
         :param int days: number of days to schedule. Negative if backwards
         :param datetime day_date: date to start scheduling from
         :param record resource: resource to calculate specific leaves. If false, only general leaves are counted
-        :param record calendar: calendar to schedul on
+        :param record calendar: calendar to schedule on
         :rtype datetime
         """
         if calendar:
