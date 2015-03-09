@@ -158,6 +158,8 @@ class procurement_working_days(models.Model):
         :param record calendar: calendar to schedul on
         :rtype datetime
         """
+        if days == 0:
+            return day_date
         if calendar:
             newdate = calendar.schedule_days_get_date(days, day_date=day_date,
                                                       resource_id=resource and resource.id or False,
