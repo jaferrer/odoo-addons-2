@@ -29,9 +29,7 @@ def run_procure_orderpoint_async(session, model_name, ids):
     compute_orederpoint_wizard = session.pool[model_name]
     res = compute_orederpoint_wizard._procure_calculation_orderpoint(session.cr, session.uid, ids,
                                                                      context=session.context)
-    log = res.get('log',"")
-    log += "Scheduler ended compute_all job."
-    return log
+    return "Scheduler ended compute_orderpoint job."
 
 
 class procurement_compute_async(models.TransientModel):
