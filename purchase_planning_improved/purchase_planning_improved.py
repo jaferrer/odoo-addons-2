@@ -33,7 +33,15 @@ class procurement_order_purchase_planning_improved(models.Model):
             if proc.state not in ['done', 'cancel'] and proc.rule_id and proc.rule_id.action == 'buy':
                 schedule_date = self._get_purchase_schedule_date(proc, proc.company_id)
                 order_date = self._get_purchase_order_date(proc, proc.company_id, schedule_date)
-                proc.purchase_line_id.date_required = schedule_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+                date_planned = proc.purchase_line_id.date_planned
+                if proc.purchase_id.state in ['draft','sent','bid']:
+                    # If the purchase line is not confirmed yet, try to set planned date to schedule_date
+                    if order_date > datetime.now():
+                        date_planned = schedule_date.strftime(DEFAULT_SERVER_DATE_FORMAT)
+                proc.purchase_line_id.write({
+                    'date_required': schedule_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
+                    'date_planned': date_planned,
+                })
                 if datetime.strptime(proc.purchase_id.date_order, DEFAULT_SERVER_DATETIME_FORMAT) > order_date:
                     proc.purchase_id.date_order = order_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
         super(procurement_order_purchase_planning_improved, self).action_reschedule()
@@ -62,4 +70,5 @@ class purchase_order_line_planning_improved(models.Model):
         super(purchase_order_line_planning_improved, self).write(vals)
         if vals.get('date_planned'):
             for line in self:
-                line.move_ids.date_expected = fields.date.date_to_datetime(line, vals.get('date_planned'))
+                if line.move_ids:
+                    line.move_ids.date_expected = vals.get('date_planned')
