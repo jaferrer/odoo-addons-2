@@ -25,7 +25,7 @@
             <field name="arch" type="xml">
                 <data>
                     <field name="date" position="attributes">
-                        <attribute name="attrs"/>
+                        <attribute name="attrs">{'readonly': ['|',('state','in',['done','cancel']),('procurement_id','!=',False)]}</attribute>
                     </field>
                 </data>
             </field>
