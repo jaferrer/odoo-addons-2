@@ -23,7 +23,7 @@ The improved planning is a standardization of planning management in Odoo based 
 
 Improved planning applied to stock
 ----------------------------------
-In the stock modules, the application of the improved planning concepts is the following:
+In the stock module, the application of the improved planning concepts is the following:
 
 - Tasks are stock moves to be executed.
 - Tasks links are links between stock moves made by the procurement rules (make-to-stock)
@@ -41,5 +41,5 @@ In the stock modules, the application of the improved planning concepts is the f
 Notes
 -----
 - This module interfaces with the other planning improved modules such as purchase and mrp.
-- This modules depends on stock_working_days module since no decent planning can be done without taking into account
+- This module depends on stock_working_days module since no decent planning can be done without taking into account
   the working days.
