@@ -32,6 +32,46 @@ class res_partner_with_calendar(models.Model):
                                        "days of the supplier being Monday to Friday.")
 
 
+class purchase_order_line_working_days(models.Model):
+    _inherit = 'purchase.order.line'
+
+    @api.model
+    def _get_date_planned(self, supplier_info, date_order_str):
+        """Return the datetime value to use as Schedule Date (``date_planned``) for
+           PO Lines that correspond to the given product.supplierinfo,
+           when ordered at `date_order_str`.
+           Overridden here to calculate with working days.
+
+           :param browse_record | False supplier_info: product.supplierinfo, used to
+               determine delivery delay (if False, default delay = 0)
+           :param str date_order_str: date of order field, as a string in
+               DEFAULT_SERVER_DATETIME_FORMAT
+           :rtype: datetime
+           :return: desired Schedule Date for the PO line
+        """
+        order_date = datetime.strptime(date_order_str, DEFAULT_SERVER_DATETIME_FORMAT)
+        # We add one day to supplier dalay because day scheduling counts the first day
+        supplier_delay = int(supplier_info.delay) + 1 if supplier_info else 0
+        if supplier_delay == 0:
+            return order_date
+
+        calendar_id = False
+        supplier_id = supplier_info.name
+        resource_id = supplier_id and supplier_id.resource_id or False
+        if resource_id:
+            calendar_id = supplier_id.resource_id.calendar_id
+        if not calendar_id:
+            calendar_id = self.env.ref("stock_working_days.default_calendar")
+
+        newdate = calendar_id.schedule_days_get_date(supplier_delay, day_date=order_date,
+                                                      resource_id=resource_id and resource_id.id or False,
+                                                      compute_leaves=True)
+        # For some reason call with new api returns a list of 1 date instead of the date
+        if isinstance(newdate, (list, tuple)):
+            newdate = newdate[0]
+        return newdate
+
+
 class purchase_working_days(models.Model):
     _inherit = "procurement.order"
 

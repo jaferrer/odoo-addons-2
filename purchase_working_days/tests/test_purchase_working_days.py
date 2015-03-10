@@ -17,6 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from datetime import datetime
+
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp.tests import common
 
 class TestPurchaseWorkingDays(common.TransactionCase):
@@ -99,8 +102,8 @@ class TestPurchaseWorkingDays(common.TransactionCase):
             'name': "Supplier leave",
             'resource_id': resource_s.id,
             'calendar_id': self.ref('stock_working_days.demo_calendar_1'),
-            'date_from': "2014-12-15",
-            'date_to': "2015-01-10",
+            'date_from': "2014-12-15 00:00:00",
+            'date_to': "2015-01-10 23:00:00",
         })
         supplier_id.resource_id = resource_s.id
         proc = proc_env.create({
@@ -127,3 +130,35 @@ class TestPurchaseWorkingDays(common.TransactionCase):
         self.assertEqual(rfq.minimum_planned_date[0:10], '2015-01-30')
         # RFQ order date
         self.assertEqual(rfq.date_order[0:10],'2014-12-08')
+
+    def test_40_pol_date_planned(self):
+        """Check correct date_planned in manual purchase_order_line creation."""
+        # Note: Forward calculation starts from this morning 00:00, so it counts the first day
+        # No calendar
+        supplier_info = self.browse_ref("purchase_working_days.product_supplier_info_test")
+        date1 = self.env['purchase.order.line']._get_date_planned(supplier_info, "2015-01-21 22:00:00")
+        self.assertEqual(date1.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[0:10], "2015-01-30")
+        # With default company calendar
+        company = self.browse_ref('base.main_company')
+        company.calendar_id = self.browse_ref('stock_working_days.demo_calendar_1')
+        date2 = self.env['purchase.order.line']._get_date_planned(supplier_info, "2015-01-15 22:00:00")
+        self.assertEqual(date2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[0:10], "2015-01-26")
+        # With supplier calendar
+        resource_env = self.env["resource.resource"]
+        leave_env = self.env["resource.calendar.leaves"]
+        supplier_id = self.browse_ref('purchase_working_days.test_supplier')
+        resource_s = resource_env.create({
+            'name': "Supplier resource",
+            'calendar_id': self.ref('stock_working_days.demo_calendar_1')
+        })
+        leave_s = leave_env.create({
+            'name': "Supplier leave",
+            'resource_id': resource_s.id,
+            'calendar_id': self.ref('stock_working_days.demo_calendar_1'),
+            'date_from': "2014-12-15",
+            'date_to': "2015-01-10",
+        })
+        supplier_id.resource_id = resource_s.id
+        date3 = self.env['purchase.order.line']._get_date_planned(supplier_info, "2014-12-08 12:00:00")
+        self.assertEqual(date3.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[0:10], "2015-02-02")
+
