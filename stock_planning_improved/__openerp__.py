@@ -73,8 +73,12 @@ Notes
 
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
-    'demo': [],
+    'data': [
+        'stock_planning_improved_view.xml',
+    ],
+    'demo': [
+        'stock_planning_improved_demo.xml',
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,

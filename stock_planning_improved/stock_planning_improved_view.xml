@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="procurement_order_form_reschedule">
+            <field name="name">procurement.order.form.reschedule</field>
+            <field name="model">procurement.order</field>
+            <field name="inherit_id" ref="procurement.procurement_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <button name="check" position="after">
+                        <button name="action_reschedule" type="object" string="Reschedule Procurement"
+                                states="running"/>
+                    </button>
+                </data>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="stock_move_form_planning_improved">
+            <field name="name">stock.move.form.planning.improvec</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <field name="date" position="attributes">
+                        <attribute name="attrs"/>
+                    </field>
+                </data>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="stock_picking_form_planning_improved">
+            <field name="name">stock.picking.form.planning.improved</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <field name="date" position="after">
+                        <field name="date_due"/>
+                    </field>
+                </data>
+            </field>
+        </record>
+
+
+    </data>
+</openerp>
