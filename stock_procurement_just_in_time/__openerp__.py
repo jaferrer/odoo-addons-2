@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Warehouse',
-    'depends': ['stock','group_operators'],
+    'depends': ['stock','stock_planning_improved','group_operators'],
     'description': """
 Stock Procurement Just-In-Time
 ==============================
@@ -37,11 +37,20 @@ This calculation is done for each minimum stock rule, in the stock location defi
 by the outgoing stock moves in "Waiting availability" or "Available" statuses. This implies that the outgoing moves are
 confirmed beforehand, either by already confirmed manufacturing orders, by already confirmed sale orders or by a sales
 forecast module that creates confirmed moves to represent future sales.
+
+Notes
+-----
+- This module depends on stock_planning_improved and as such on stock_working_days, which means that all the scheduling
+  is made based on working days.
+- This module is best used when interfaced with purchase_procurement_just_in_time and/or mrp_procurement_just_in_time
+  modules which add information and warnings to the operator for how to reschedule the purchase orders and production
+  orders to manage just-in-time procurement.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
         'stock_procurement_jit_view.xml',
+        'stock_procurement_jit_demo.xml',
     ],
     'demo': [],
     'test': [],
