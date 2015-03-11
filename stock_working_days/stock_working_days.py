@@ -22,7 +22,7 @@ from dateutil.relativedelta import relativedelta, weekdays
 
 from openerp import fields, models, api, _
 from openerp.exceptions import except_orm
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
 
 
 ###################################################################################################
@@ -220,3 +220,24 @@ class procurement_working_days(models.Model):
             vals.update({'date': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                          'date_expected': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT)})
         return vals
+
+    @api.model
+    def _get_orderpoint_date_planned(self, orderpoint, start_date):
+        if orderpoint.location_id:
+            warehouse_id = self.env['stock.warehouse'].browse(
+                                                    orderpoint.location_id.get_warehouse(orderpoint.location_id))
+        else:
+            warehouse_id = orderpoint.warehouse_id
+        resource_id = warehouse_id and warehouse_id.resource_id or False
+        if resource_id:
+            calendar_id = warehouse_id.resource_id.calendar_id
+        else:
+            calendar_id = self.env.user.company_id.calendar_id
+        if not calendar_id:
+            calendar_id = self.env.ref("stock_working_days.default_calendar")
+        newdate = self._schedule_working_days(orderpoint.product_id.seller_delay or 0.0,
+                                                     start_date,
+                                                     resource_id,
+                                                     calendar_id)
+        return newdate.strftime(DEFAULT_SERVER_DATE_FORMAT)
+
