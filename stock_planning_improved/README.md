@@ -27,15 +27,15 @@ In the stock module, the application of the improved planning concepts is the fo
 
 - Tasks are stock moves to be executed.
 - Tasks links are links between stock moves made by the procurement rules (make-to-stock)
-- The due date of a move is the date of the procurement order. It is represented by the _date_ field of the stock move.
+- The due date of a move is the date of the procurement order. It is represented by the "date" field of the stock move.
 - The planned date of the move is the date at which we suppose the move will be performed. It is represented by the
-  _date expected_ field of the stock move.
-- If a procurement is rescheduled, the _date_ fields of its stock moves are also modified to reflect the new date. If
+  "date expected" field of the stock move.
+- If a procurement is rescheduled, the "date" fields of its stock moves are also modified to reflect the new date. If
   one of the move has previous moves (make-to-order configuration), the procurement date for the previous moves is also
   modified, which will modify the date of the previous moves in turn.
-- If a stock move is done at a given date and has a following move, the _date expected_ of the latter will be updated
+- If a stock move is done at a given date and has a following move, the "date expected" of the latter will be updated
   accordingly.
-- When _date_ and _date expected_ are updated, the delay taken between moves is the one of the procurement rule which
+- When "date" and "date expected" are updated, the delay taken between moves is the one of the procurement rule which
   generated the move.
 
 Notes
