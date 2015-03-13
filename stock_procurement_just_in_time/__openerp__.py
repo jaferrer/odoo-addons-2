@@ -50,9 +50,10 @@ Notes
     'data': [
         'security/ir.model.access.csv',
         'stock_procurement_jit_view.xml',
+    ],
+    'demo': [
         'stock_procurement_jit_demo.xml',
     ],
-    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
