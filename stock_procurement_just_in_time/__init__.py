@@ -17,4 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import stock_procurement_just_in_time
+from . import stock_procurement_jit
