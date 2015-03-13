@@ -47,28 +47,16 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
             moves = {}
             lines = {}
             managed_packages = []
-            for op in transfer.packop_ids:
-                # Check for manageable packs (i.e. with only one type of product)
-                # Add the quantities inside this pack to the quantity to dispatch
-                quants = self.env['stock.quant'].browse(op.package_id.get_content())
-                if not quants:
-                    continue
-                product_id = quants[0].product_id
-                if all([(q.product_id == product_id) for q in quants]):
-                    managed_packages.append(op.package_id)
-                    qty = sum([q.qty for q in quants])
-                    if product_id in lines:
-                        op.lines[product_id] += qty
-                    else:
-                        lines[product_id] = qty
+            # Prepare unpacking of all packs
+            transfer.packop_ids.prepare_unpack()
+            # Get quantities for operations
             for op in transfer.item_ids:
-                # Get quantities for operations
                 if op.product_id in lines:
                     lines[op.product_id] += op.quantity
                 else:
                     lines[op.product_id] = op.quantity
                 op.quantity = 0
-
+            # Get the outgoing moves of all child locations (needs) for each product
             for product_id, qty in lines.iteritems():
                 if not product_id in moves:
                     moves[product_id] = self.env['stock.move'].search(
@@ -78,38 +66,33 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
 
             for product_id, move_list in moves.iteritems():
                 op_items = transfer.item_ids.search([('product_id','=',product_id.id),('transfer_id','=',transfer.id)])
-                op_packs = transfer.packop_ids.search([('package_id','in',[p.id for p in managed_packages]),
-                                                       ('transfer_id','=',transfer.id)])
-                todo_packs = op_packs.sorted(key=lambda x:sum([q.qty for q in
-                                                        self.env['stock.quant'].browse(x.package_id.get_content())]),
-                                             reverse=True)
-                # if len(op_items) > 1:
-                #     raise exceptions.except_orm("Something's gone wrong","There should be only one line per product")
-                # op_orig = op_items[0]
+                # op_packs = transfer.packop_ids.search([('package_id','in',[p.id for p in managed_packages]),
+                #                                        ('transfer_id','=',transfer.id)])
+                # todo_packs = op_packs.sorted(key=lambda x:sum([q.qty for q in
+                #                                         self.env['stock.quant'].browse(x.package_id.get_content())]),
+                #                              reverse=True)
                 qty_todo = lines[product_id]
                 for move in move_list:
                     if qty_todo <= 0:
-                        # op_orig.unlink()
                         break
                     dest_id = move.location_id
                     qty = min(qty_todo, move.product_qty)
-                    for p in todo_packs:
-                        # Check if we can find a pack for this quantity to dispatch
-                        pack_qty = sum([q.qty for q in self.env['stock.quant'].browse(p.package_id.get_content())])
-                        if pack_qty < qty:
-                            p.destinationloc_id = dest_id
-                            qty_todo -= pack_qty
-                            qty -= pack_qty
-                            todo_packs = todo_packs - p
-
                     for op in op_items:
-                        # Dispatch products outside packs
-                        if dest_id == op.destinationloc_id:
+                        # Check if we already have a transfer line to the wanted location (dest_id)
+                        if op.destinationloc_id == dest_id:
+                            # If we do, we add the quantity to dispatch to this line
                             op.quantity += qty
                             qty_todo -= qty
                             break
                     else:
+                        # We did not find any line with the wanted location, so we split the first line to create one
                         new_op = op_items[0].copy(context=self.env.context)
+                        new_op.write({
+                            'quantity': qty,
+                            'packop_id': False,
+                            'destinationloc_id': dest_id.id,
+                            'result_package_id': False,
+                        })
                         new_op.quantity = qty
                         new_op.packop_id = False
                         new_op.destinationloc_id = dest_id
@@ -120,3 +103,30 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                     if op.quantity == 0:
                         op.unlink()
         return self.wizard_view()
+
+
+class product_putaway_dispatch_transfer_details_items(models.TransientModel):
+    _inherit = 'stock.transfer_details_items'
+
+    @api.multi
+    def prepare_unpack(self):
+        """Moves the line from the package to move list to the product to move list.
+        This is done with keeping source package and destination package to the items current pack."""
+        for line in self:
+            quants = self.env['stock.quant'].browse(line.package_id.get_content())
+            for quant in quants:
+                new_id = self.create({
+                    'transfer_id': line.transfer_id.id,
+                    'packop_id': False,
+                    'quantity': quant.qty,
+                    'product_id': quant.product_id.id,
+                    'product_uom_id': quant.product_id.uom_id.id,
+                    'package_id': quant.package_id.id,
+                    'lot_id': quant.lot_id.id,
+                    'sourceloc_id': line.sourceloc_id.id,
+                    'destinationloc_id': line.destinationloc_id.id,
+                    'result_package_id': quant.package_id.id,
+                    'date': line.date,
+                    'owner_id': quant.owner_id.id,
+                })
+            line.unlink()
