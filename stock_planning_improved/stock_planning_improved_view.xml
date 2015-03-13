@@ -24,6 +24,9 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <data>
+                    <field name="date" position="before">
+                        <field name="procurement_id" invisible="1"/>
+                    </field>
                     <field name="date" position="attributes">
                         <attribute name="attrs">{'readonly': ['|',('state','in',['done','cancel']),('procurement_id','!=',False)]}</attribute>
                     </field>
