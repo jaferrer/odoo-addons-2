@@ -4,6 +4,7 @@
         <record model="stock.config.settings" id="stock_config_settings_defaults">
             <field name="group_stock_multiple_locations">1</field>
             <field name="group_stock_adv_location">1</field>
+            <field name="group_stock_tracking_lot">1</field>
         </record>
         <function
             model="stock.config.settings"

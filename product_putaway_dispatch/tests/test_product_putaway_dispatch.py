@@ -84,7 +84,8 @@ class TestProductPutawayWhereNeeded(common.TransactionCase):
         quants_stock_2 = self.env["stock.quant"].search([('product_id','=',self.product_a1232.id),
                                                          ('location_id','=',self.location_bin_2.id)])
         self.assertGreaterEqual(len(quants_stock_1), 1)
-        self.assertEqual(pack.location_id, self.location_bin_1)
+        # Pack did not move
+        self.assertEqual(pack.location_id, self.location_shelf)
         self.assertGreaterEqual(len(quants_stock_2), 1)
         qty_1 = sum([q.qty for q in quants_stock_1])
         self.assertEqual(qty_1, 8)
