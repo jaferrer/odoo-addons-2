@@ -45,61 +45,54 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
     def action_dispatch(self):
         for transfer in self:
             moves = {}
-            lines = {}
-            managed_packages = []
+            products = []
             # Prepare unpacking of all packs
             transfer.packop_ids.prepare_unpack()
-            # Get quantities for operations
+            # Get the products list
             for op in transfer.item_ids:
-                if op.product_id in lines:
-                    lines[op.product_id] += op.quantity
-                else:
-                    lines[op.product_id] = op.quantity
-                op.quantity = 0
+                if not op.product_id in products:
+                    products.append(op.product_id)
             # Get the outgoing moves of all child locations (needs) for each product
-            for product_id, qty in lines.iteritems():
+            for product_id in products:
                 if not product_id in moves:
                     moves[product_id] = self.env['stock.move'].search(
                                                 [('location_id','child_of',transfer.picking_destination_location_id.id),
                                                  ('product_id','=',product_id.id),('state','=','confirmed')],
                                                 order="priority DESC, date")
-
+            # Iterate on each product
             for product_id, move_list in moves.iteritems():
                 op_items = transfer.item_ids.search([('product_id','=',product_id.id),('transfer_id','=',transfer.id)])
-                # op_packs = transfer.packop_ids.search([('package_id','in',[p.id for p in managed_packages]),
-                #                                        ('transfer_id','=',transfer.id)])
-                # todo_packs = op_packs.sorted(key=lambda x:sum([q.qty for q in
-                #                                         self.env['stock.quant'].browse(x.package_id.get_content())]),
-                #                              reverse=True)
-                qty_todo = lines[product_id]
-                for move in move_list:
-                    if qty_todo <= 0:
-                        break
-                    dest_id = move.location_id
-                    qty = min(qty_todo, move.product_qty)
-                    for op in op_items:
-                        # Check if we already have a transfer line to the wanted location (dest_id)
-                        if op.destinationloc_id == dest_id:
-                            # If we do, we add the quantity to dispatch to this line
-                            op.quantity += qty
-                            qty_todo -= qty
-                            break
-                    else:
-                        # We did not find any line with the wanted location, so we split the first line to create one
-                        new_op = op_items[0].copy(context=self.env.context)
-                        new_op.write({
-                            'quantity': qty,
-                            'packop_id': False,
-                            'destinationloc_id': dest_id.id,
-                            'result_package_id': False,
-                        })
-                        new_op.quantity = qty
-                        new_op.packop_id = False
-                        new_op.destinationloc_id = dest_id
-                        qty_todo -= qty
-                        op_items = op_items | new_op
+                # Iterate on each operation to keep packages, lots and owners intact
                 for op in op_items:
-                    # Cleaning of empty lines
+                    # We get the quantity to dispatch and set the quantity of the operation to 0
+                    qty_todo = op.quantity
+                    op.quantity = 0
+                    # We initialize a recordset holding all the lines split from op
+                    split_ops = op
+                    for move in move_list:
+                        if qty_todo <= 0:
+                            break
+                        dest_id = move.location_id
+                        qty = min(qty_todo, move.product_qty)
+                        # Check if we have already a line with the wanted destination location
+                        for target_op in split_ops:
+                            if target_op.destinationloc_id == dest_id:
+                                # If we do, we add the quantity to dispatch to this line
+                                target_op.quantity += qty
+                                break
+                        else:
+                            # We did not find any line with the wanted location/pack,
+                            # so we split the first line to create one
+                            new_op = op.copy(context=self.env.context)
+                            new_op.write({
+                                'quantity': qty,
+                                'packop_id': False,
+                                'destinationloc_id': dest_id.id,
+                                'result_package_id': False,
+                            })
+                            split_ops = split_ops | new_op
+                        qty_todo -= qty
+                    # We delete op if it has not been allocated some quantity in between
                     if op.quantity == 0:
                         op.unlink()
         return self.wizard_view()
