@@ -67,8 +67,9 @@ class purchase_order_line_planning_improved(models.Model):
     @api.multi
     def write(self, vals):
         """write method overridden here to propagate date_planned to the stock_moves of the receipt."""
-        super(purchase_order_line_planning_improved, self).write(vals)
+        result = super(purchase_order_line_planning_improved, self).write(vals)
         if vals.get('date_planned'):
             for line in self:
                 if line.move_ids:
-                    line.move_ids.date_expected = vals.get('date_planned')
+                    line.move_ids.write({'date_expected': vals.get('date_planned')})
+        return result

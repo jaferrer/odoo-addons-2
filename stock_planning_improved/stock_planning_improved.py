@@ -71,7 +71,7 @@ class stock_move_planning_improved(models.Model):
                 if proc:
                     proc.date_planned = vals.get('date')
                     proc.action_reschedule()
-        super(stock_move_planning_improved, self).write(vals)
+        return super(stock_move_planning_improved, self).write(vals)
 
 
 class stock_picking_planning_improved(models.Model):
