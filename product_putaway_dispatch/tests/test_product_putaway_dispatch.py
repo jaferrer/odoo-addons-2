@@ -40,6 +40,8 @@ class TestProductPutawayWhereNeeded(common.TransactionCase):
         """Test a simple dispatch without packs."""
         for move in self.need_moves:
             self.assertEqual(move.state, 'confirmed')
+        self.picking2.action_confirm()
+        self.picking2.action_done()
         self.picking1.action_confirm()
         self.picking1.action_assign()
         self.picking1.do_prepare_partial()
@@ -63,12 +65,16 @@ class TestProductPutawayWhereNeeded(common.TransactionCase):
         """Test dispatch with a package to be taken."""
         # Create a package of 3 items on shelf
         pack = self.env['stock.quant.package'].create({'location_id': self.location_shelf.id})
+        pack2 = self.env['stock.quant.package'].create({'location_id': self.location_shelf.id})
         self.picking2.action_confirm()
         self.picking2.action_assign()
         self.picking2.do_prepare_partial()
-        for pack_op in self.picking2.pack_operation_ids:
-            pack_op.result_package_id = pack
-            pack_op.in_date = "2015-02-01 00:00:00"
+        packop_0 = self.picking2.pack_operation_ids[0]
+        packop_1 = packop_0.copy({'product_qty': 13})
+        packop_2 = packop_0.copy({'product_qty': 4})
+        packop_0.product_qty = 3
+        packop_0.result_package_id = pack
+        packop_1.result_package_id = pack2
         self.picking2.do_transfer()
         # Go for the move itself
         self.picking1.action_confirm()
@@ -76,6 +82,8 @@ class TestProductPutawayWhereNeeded(common.TransactionCase):
         self.picking1.do_prepare_partial()
         wizard_id = self.picking1.do_enter_transfer_details()['res_id']
         wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        self.assertIn(pack, [p.package_id for p in wizard.packop_ids])
+        self.assertIn(pack2, [p.package_id for p in wizard.packop_ids])
         wizard.action_dispatch()
         wizard.do_detailed_transfer()
         self.assertEqual(self.picking1.state, 'done')
@@ -84,6 +92,10 @@ class TestProductPutawayWhereNeeded(common.TransactionCase):
         quants_stock_2 = self.env["stock.quant"].search([('product_id','=',self.product_a1232.id),
                                                          ('location_id','=',self.location_bin_2.id)])
         self.assertGreaterEqual(len(quants_stock_1), 1)
+        self.assertIn(pack.location_id, [self.location_bin_1, self.location_bin_2])
+        # Check that pack 2 has not been moved and that it is empty
+        self.assertNotIn(pack2.location_id, [self.location_bin_1, self.location_bin_2])
+        self.assertFalse(pack2.get_content())
         self.assertGreaterEqual(len(quants_stock_2), 1)
         qty_1 = sum([q.qty for q in quants_stock_1])
         self.assertEqual(qty_1, 8)

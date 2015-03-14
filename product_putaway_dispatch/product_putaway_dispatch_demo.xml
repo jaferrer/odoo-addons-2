@@ -39,6 +39,13 @@
             <field name="usage">internal</field>
         </record>
 
+        <record id="stock_location_transfer" model="stock.location">
+            <field name="name">Transfer location</field>
+            <field name="location_id" ref="stock_location_stock"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
         <!-- ### Needs ### -->
         <record id="need_in_bin_1" model="stock.move">
             <field name="name">Need in bin 1</field>
@@ -100,7 +107,7 @@
             <field name="picking_id" ref="picking_to_stock"/>
             <field name="product_id" ref="product.product_product_6"/>
             <field name="product_uom" ref="product.product_uom_unit"/>
-            <field name="location_id" ref="stock.stock_location_components"/>
+            <field name="location_id" ref="stock_location_transfer"/>
             <field name="location_dest_id" ref="stock_location_stock"/>
             <field name="product_uom_qty">20</field>
         </record>
@@ -117,8 +124,8 @@
             <field name="product_id" ref="product.product_product_6"/>
             <field name="product_uom" ref="product.product_uom_unit"/>
             <field name="location_id" ref="stock.stock_location_components"/>
-            <field name="location_dest_id" ref="stock.stock_location_components"/>
-            <field name="product_uom_qty">3</field>
+            <field name="location_dest_id" ref="stock_location_transfer"/>
+            <field name="product_uom_qty">20</field>
         </record>
 
     </data>
