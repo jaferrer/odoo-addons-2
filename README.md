@@ -73,7 +73,7 @@ This improved planning is implemented in the following modules:
 - purchase_planning_improved: a new "required_date" field is created to hold the due date and "date_planned" is used as
   the planned date.
   
-###Automatic Moves
+### Automatic Moves
 
 When dealing with complex logistic routes it is sometimes necessary to have moves automatically processed
 without the need of an action from the operator. This is particularly the case when the logistic schema 
@@ -82,7 +82,7 @@ separates different products on different routes.
 - stock_auto_move module adds the possibility to have move automatically processed as soon as the products are available
 in the move source location.
 
-###Grouping Purchase Orders Lines in Draft Purchase Orders (RFQ)
+### Grouping Purchase Orders Lines in Draft Purchase Orders (RFQ)
 
 In the standard Odoo implementation purchase order lines generated are grouped in one single RFQ for each supplier. 
 This module will instead generate a RFQ for the same supplier grouping only the purchase order lines in a given time 
@@ -90,7 +90,7 @@ frame set for this supplier (e.g. one for each week or each month, etc.).
 
 - purchase_group_by_period is best used with the procurement just-in-time modules Miscellaneous
 
-###Putaway Strategies
+### Putaway Strategies
 
 Putaway strategies are used when a product needs to be putaway in the stock so as to suggest a specific location (bin) 
 to the user.
@@ -99,7 +99,7 @@ to the user.
 - product_putaway_dispatch will dispatch the products of a stock operations to the different sub-locations 
   according to the outgoing moves in all the sub-locations.
 
-###Miscellaneous
+### Miscellaneous
 
 - group_operators adds new operators to the database for aggregation of data when using a "Group By" filter. Currently 
   adds the "first" and "last" operators which give the value of the first or the last grouped line.
