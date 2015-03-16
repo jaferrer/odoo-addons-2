@@ -99,7 +99,7 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                         if qty <= 0:
                             continue
                         pack_qty = sum([q.qty for q in self.env['stock.quant'].browse(op.package_id.get_content())])
-                        if pack_qty < qty:
+                        if pack_qty <= qty:
                             # We found a location, so we dispatch the pack to location and go for the next pack
                             op.destinationloc_id = location
                             location_qty[location] -= pack_qty
