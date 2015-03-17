@@ -51,12 +51,12 @@ class purchase_jit_config(models.TransientModel):
         config_parameters = self.env["ir.config_parameter"]
         for record in self:
             config_parameters.set_param("purchase_procurement_just_in_time.opmsg_min_late_delay",
-                                        record.opmsg_min_late_delay or 0)
+                                        record.opmsg_min_late_delay or "0")
 
     @api.multi
     def set_opmsg_min_early_delay(self):
         config_parameters = self.env["ir.config_parameter"]
         for record in self:
             config_parameters.set_param("purchase_procurement_just_in_time.opmsg_min_early_delay",
-                                        record.opmsg_min_early_delay or 7)
+                                        record.opmsg_min_early_delay or "7")
 
