@@ -28,12 +28,23 @@ class stock_auto_move_move(models.Model):
     @api.multi
     def action_assign(self):
         super(stock_auto_move_move, self).action_assign()
+        # picking_env = self.env['stock.picking']
+        # Transfer all pickings which have an auto move assigned
+        moves_ids = [m.id for m in self if m.state == 'assigned' and m.auto_move]
+        moves = self.browse(moves_ids)
+        picking_ids = {m.picking_id.id for m in moves}
+        todo_pickings = self.env['stock.picking'].browse(picking_ids)
+        # We create packing operations to keep packing if any
+        todo_pickings.do_prepare_partial()
+        moves.action_done()
+
+
+    @api.multi
+    def action_confirm(self):
         for move in self:
-            if move.state == 'assigned' and move.auto_move:
-                if not move.linked_move_operation_ids and move.picking_id:
-                    # To get packages transferred at once if quants are in package
-                    move.picking_id.do_prepare_partial()
-                move.action_done()
+            if move.auto_move and move.group_id != self.env.ref('stock_auto_move.automatic_group'):
+                move.group_id = self.env.ref('stock_auto_move.automatic_group')
+        return super(stock_auto_move_move, self).action_confirm()
 
 
 class stock_auto_move_procurement_rule(models.Model):
@@ -60,8 +71,9 @@ class stock_auto_move_location_path(models.Model):
 
     @api.model
     def _prepare_push_apply(self, rule, move):
+        """Set auto move to the new move created by push rule."""
         res = super(stock_auto_move_location_path, self)._prepare_push_apply(rule, move)
         res.update({
-            'auto_move': (rule.auto == 'auto')
+            'auto_move': (rule.auto == 'auto'),
         })
         return res
