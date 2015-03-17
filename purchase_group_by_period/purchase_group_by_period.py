@@ -143,7 +143,7 @@ class procurement_order_group_by_period(models.Model):
                         po_line_id = po_line.id
                         sum_po_line_ids.append(procurement)
                     else:
-                        line_vals.update(order_id=po_id)
+                        line_vals.update(order_id=po_rec.id)
                         po_line_id = po_line_obj.sudo().create(line_vals).id
                         linked_po_ids.append(procurement)
                 else:
