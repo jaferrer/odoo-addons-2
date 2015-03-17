@@ -71,5 +71,6 @@ class purchase_order_line_planning_improved(models.Model):
         if vals.get('date_planned'):
             for line in self:
                 if line.move_ids:
-                    line.move_ids.write({'date_expected': vals.get('date_planned')})
+                    date_expected = vals.get('date_planned')+" 00:00:00"
+                    line.move_ids.write({'date_expected': date_expected})
         return result
