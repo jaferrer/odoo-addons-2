@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <template id="assets_web_action_target_popup" inherit_id="web.assets_backend" name="Web Action Target Popup">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_action_top_button/static/src/js/web_action_top_button.js"></script>
+            </xpath>
+        </template>
+
+    </data>
+</openerp>
