@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="purchase_order_line_tree_jit">
+            <field name="name">purchase.order.line.tree.jit</field>
+            <field name="model">purchase.order.line</field>
+            <field name="priority" eval="15"/>
+            <field name="arch" type="xml">
+                <tree string="Purchase Order Lines" editable="top" create="false" delete="false">
+                    <field name="partner_id" string="Supplier"/>
+                    <field name="order_id" readonly="1"/>
+                    <field name="line_no" readonly="1"/>
+                    <button string="Edit" name="open_form_purchase_order_line" type="object" icon="gtk-edit"/>
+                    <field name="name" readonly="1" invisible="1"/>
+                    <field name="product_id" readonly="1"/>
+                    <field name="price_unit" readonly="1"/>
+                    <field name="product_qty"/>
+                    <field name="product_uom" readonly="1"/>
+                    <field name="price_subtotal" invisible="1"/>
+                    <field name="procurement_ids" invisible="1"/>
+                    <field name="date_required" attrs="{'readonly': [('procurement_ids','!=',False)]}"/>
+                    <field name="date_planned"/>
+                    <field name="ack_ref"/>
+                    <field name="date_ack"/>
+                    <field name="opmsg_text" readonly="1"/>
+                    <field name="state" invisible="1"/>
+                    <field name="invoiced" invisible="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="purchase_order_line_form_jit">
+            <field name="name">purchase.order.line.form.jit</field>
+            <field name="model">purchase.order.line</field>
+            <field name="inherit_id" ref="purchase.purchase_order_line_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <field name="product_id" position="before">
+                        <field name="line_no"/>
+                    </field>
+                    <field name="date_planned" position="before">
+                        <field name="date_required"/>
+                    </field>
+                </data>
+                    <notebook position="inside">
+                        <page string="Supplier Acknowledge">
+                            <group>
+                                <group>
+                                   <field name="ack_ref"/>
+                                </group>
+                                <group>
+                                   <field name="date_ack"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Procurements">
+                            <field name="procurement_ids"/>
+                        </page>
+                    </notebook>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="jit_act_window_purchase_order_lines">
+            <field name="name">Supplier Backlog</field>
+            <field name="res_model">purchase.order.line</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+         <menuitem id="menu_purchase_order_lines" name="Supplier Backlog" sequence="7"
+                  parent="purchase.menu_procurement_management" action="jit_act_window_purchase_order_lines"/>
+
+    </data>
+</openerp>

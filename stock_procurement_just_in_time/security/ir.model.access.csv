@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_levels_report_stock,access stock.levels.report stock_user,model_stock_levels_report,stock.group_stock_user,1,0,0,0
+access_stock_levels_requirements_stock,access stock.levels.requirements technical,model_stock_levels_requirements,base.group_no_one,1,0,0,0

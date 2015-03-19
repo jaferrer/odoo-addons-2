@@ -41,10 +41,8 @@
             <field name="arch" type="xml">
                 <tree editable="top">
                     <field name="name"/>
-                    <field name="days"/>
-                    <field name="weeks"/>
-                    <field name="months"/>
-                    <field name="years"/>
+                    <field name="nb"/>
+                    <field name="period_type"/>
                 </tree>
             </field>
         </record>
