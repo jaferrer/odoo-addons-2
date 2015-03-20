@@ -19,9 +19,10 @@
 
 from openerp import models
 
-class stock_levels_report(models.Model):
+class group_operators(models.TransientModel):
     _name = "group.operators"
     _auto = False
+    _log_access = True
 
     def init(self, cr):
         cr.execute("""
