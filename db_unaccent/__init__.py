@@ -19,10 +19,9 @@
 
 from openerp import models
 
-class db_unaccent(models.TransientModel):
+class db_unaccent(models.Model):
     _name = "db.unaccent"
     _auto = False
-    _log_access = True
 
     def init(self, cr):
         cr.execute("""

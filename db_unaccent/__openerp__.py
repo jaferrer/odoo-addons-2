@@ -38,7 +38,9 @@ unaccented searches to work.
 database.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv',
+    ],
     'demo': [],
     'test': [],
     'installable': True,
