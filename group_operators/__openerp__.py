@@ -43,7 +43,9 @@ This module removes and adds again the aggregate function in the database, so ma
 aggregate functions depend from this module so that they get updated.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv',
+    ],
     'demo': [],
     'test': [],
     'installable': True,
