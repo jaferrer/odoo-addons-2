@@ -79,6 +79,7 @@ class procurement_order_qty(models.Model):
                 try:
                     _logger.debug("Computing orderpoint %s (%s, %s)" % (op.id, op.product_id.name, op.location_id.name))
                     need = op.get_next_need()
+                    processed_needs = [need]
                     while need:
                         # We go the the next need (i.e. stock level forecast < minimum qty)
                         next_proc = need.get_next_proc()
@@ -102,6 +103,10 @@ class procurement_order_qty(models.Model):
                             proc.run()
                             _logger.debug("Created proc: %s, (%s, %s)" % (proc, proc.date_planned, proc.product_qty))
                         need = op.get_next_need()
+                        if need in processed_needs:
+                            break
+                        else:
+                            processed_needs.append(need)
                 except OperationalError:
                     if use_new_cursor:
                         orderpoint_ids = orderpoint_ids | op
