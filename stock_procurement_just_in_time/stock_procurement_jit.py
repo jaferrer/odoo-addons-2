@@ -136,7 +136,7 @@ class stock_warehouse_order_point_jit(models.Model):
         the location of the orderpoint."""
         need = self.env['stock.levels.requirements'].search([('product_id','=',self.product_id.id),
                                                              ('qty','<',self.product_min_qty),
-                                                             ('location_id','=',self.location_id.id),
+                                                             ('location_id','child_of',self.location_id.id),
                                                              ('move_type','=','out')], order='date', limit=1)
         return need
 
