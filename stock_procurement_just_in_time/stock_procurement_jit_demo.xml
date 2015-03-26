@@ -2,16 +2,23 @@
 <openerp>
     <data>
 
+        <record id="stock_location_view" model="stock.location">
+            <field name="name">View Location</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="active">1</field>
+            <field name="usage">view</field>
+        </record>
+
         <record id="stock_location_a" model="stock.location">
             <field name="name">Location A (JIT)</field>
-            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="location_id" ref="stock_location_view"/>
             <field name="active">1</field>
             <field name="usage">internal</field>
         </record>
 
         <record id="stock_location_b" model="stock.location">
             <field name="name">Location B (JIT)</field>
-            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="location_id" ref="stock_location_view"/>
             <field name="active">1</field>
             <field name="usage">internal</field>
         </record>
