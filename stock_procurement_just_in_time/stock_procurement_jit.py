@@ -127,11 +127,11 @@ class stock_warehouse_order_point_jit(models.Model):
     @api.one
     @api.returns('stock.levels.requirements')
     def get_next_need(self):
-        """Returns the next stock.level.requirements where the stock level is below minimumqty for the product and
+        """Returns the next stock.level.requirements where the stock level is below minimum qty for the product and
         the location of the orderpoint."""
         need = self.env['stock.levels.requirements'].search([('product_id','=',self.product_id.id),
                                                              ('qty','<',self.product_min_qty),
-                                                             ('location_id','child_of',self.location_id.id),
+                                                             ('location_id','=',self.location_id.id),
                                                              ('move_type','=','out')], order='date', limit=1)
         return need
 
@@ -147,8 +147,7 @@ class stock_levels_report(models.Model):
     product_categ_id = fields.Many2one("product.category", string="Product Category")
     location_id = fields.Many2one("stock.location", string="Location", index=True)
     other_location_id = fields.Many2one("stock.location", string="Origin/Destination")
-    move_type = fields.Selection([('existing','Existing'),('in','Incoming'),('out','Outcoming'),
-                                  ('planned',"Planned (In)")],
+    move_type = fields.Selection([('existing','Existing'),('in','Incoming'),('out','Outcoming')],
                                  string="Move type", index=True)
     date = fields.Datetime("Date", index=True)
     qty = fields.Float("Stock quantity", group_operator="last")
@@ -158,12 +157,27 @@ class stock_levels_report(models.Model):
         drop_view_if_exists(cr, "stock_levels_report")
         cr.execute("""
         create or replace view stock_levels_report as (
+            with recursive top_parent(id, top_parent_id) as (
+                    select
+                        sl.id, sl.id as top_parent_id
+                    from
+                        stock_location sl
+                        left join stock_location slp on sl.location_id = slp.id
+                    where
+                        sl.usage='internal' and (sl.location_id is null or slp.usage<>'internal')
+                union
+                    select
+                        sl.id, tp.top_parent_id
+                    from
+                        stock_location sl, top_parent tp
+                    where
+                        sl.usage='internal' and sl.location_id=tp.id
+            )
             select
                 row_number() over () as id,
                 foo.product_id,
                 pt.categ_id as product_categ_id,
-                foo.location_id,
-                foo.other_location_id,
+                tp.top_parent_id as location_id,
                 foo.move_type,
                 sum(foo.qty) over (partition by foo.location_id, foo.product_id order by date) as qty,
                 foo.date as date,
@@ -215,26 +229,10 @@ class stock_levels_report(models.Model):
                         and sm.state::text <> 'cancel'::text
                         and sm.state::text <> 'done'::text
                         and sm.state::text <> 'draft'::text
-                union
-                    select
-                        po.product_id as product_id,
-                        po.location_id as location_id,
-                        NULL as other_location_id,
-                        'planned'::text as move_type,
-                        po.date_planned as date,
-                        po.qty as qty
-                    from
-                        procurement_order po
-                        left join stock_location sl on po.location_id = sl.id
-                        left join stock_move sm on sm.procurement_id = po.id
-                    where
-                        (sl.usage = 'internal'::text or sl.usage = 'transit'::text)
-                        and po.state::text <> 'cancel'::text
-                        and po.state::text <> 'done'::text
-                        and (sm.id is NULL or sm.state::text = 'draft'::text)
                 ) foo
                 left join product_product pp on foo.product_id = pp.id
                 left join product_template pt on pp.product_tmpl_id = pt.id
+                left join top_parent tp on foo.location_id = tp.id
         )
         """)
 
@@ -262,12 +260,28 @@ class stock_levels_requirements(models.Model):
         drop_view_if_exists(cr, "stock_levels_requirements")
         cr.execute("""
         create or replace view stock_levels_requirements as (
+            with recursive top_parent(id, top_parent_id) as (
+                    select
+                        sl.id, sl.id as top_parent_id
+                    from
+                        stock_location sl
+                        left join stock_location slp on sl.location_id = slp.id
+                    where
+                        sl.usage='internal' and (sl.location_id is null or slp.usage<>'internal')
+                union
+                    select
+                        sl.id, tp.top_parent_id
+                    from
+                        stock_location sl, top_parent tp
+                    where
+                        sl.usage='internal' and sl.location_id=tp.id
+            )
             select
                 row_number() over () as id,
                 foo.proc_id,
                 foo.product_id,
                 pt.categ_id as product_categ_id,
-                foo.location_id,
+                tp.top_parent_id as location_id,
                 foo.other_location_id,
                 foo.move_type,
                 sum(foo.qty) over (partition by foo.location_id, foo.product_id order by date) as qty,
@@ -344,6 +358,7 @@ class stock_levels_requirements(models.Model):
                 ) foo
                 left join product_product pp on foo.product_id = pp.id
                 left join product_template pt on pp.product_tmpl_id = pt.id
+                left join top_parent tp on foo.location_id = tp.id
         )
         """)
 
