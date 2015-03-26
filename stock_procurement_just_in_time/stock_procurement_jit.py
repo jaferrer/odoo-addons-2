@@ -100,7 +100,8 @@ class procurement_order_qty(models.Model):
                             proc = proc_env.create(proc_vals)
                             proc.check()
                             proc.run()
-                            _logger.debug("Created proc: %s, (%s, %s)" % (proc, proc.date_planned, proc.product_qty))
+                            _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
+                                          (proc, proc.date_planned, proc.product_qty, op.product_id, op.location_id))
                         need = op.get_next_need()
                 except OperationalError:
                     if use_new_cursor:
@@ -282,7 +283,7 @@ class stock_levels_requirements(models.Model):
                 foo.proc_id,
                 foo.product_id,
                 pt.categ_id as product_categ_id,
-                tp.top_parent_id as location_id,
+                foo.location_id,
                 foo.other_location_id,
                 foo.move_type,
                 sum(foo.qty) over (partition by foo.location_id, foo.product_id order by date) as qty,
@@ -293,7 +294,7 @@ class stock_levels_requirements(models.Model):
                     select
                         NULL as proc_id,
                         sq.product_id as product_id,
-                        sq.location_id as location_id,
+                        tp.top_parent_id as location_id,
                         NULL as other_location_id,
                         'existing'::text as move_type,
                         max(sq.in_date) as date,
@@ -301,14 +302,15 @@ class stock_levels_requirements(models.Model):
                     from
                         stock_quant sq
                         left join stock_location sl on sq.location_id = sl.id
+                        left join top_parent tp on tp.id = sq.location_id
                     where
                         sl.usage = 'internal'::text or sl.usage = 'transit'::text
-                    group by sq.product_id, sq.location_id
+                    group by sq.product_id, tp.top_parent_id
                 union
                     select
                         sm.procurement_id as proc_id,
                         sm.product_id as product_id,
-                        sm.location_dest_id as location_id,
+                        tp.top_parent_id as location_id,
                         sm.location_id as other_location_id,
                         'in'::text as move_type,
                         sm.date as date,
@@ -316,6 +318,7 @@ class stock_levels_requirements(models.Model):
                     from
                         stock_move sm
                         left join stock_location sl on sm.location_dest_id = sl.id
+                        left join top_parent tp on tp.id = sm.location_dest_id
                     where
                         (sl.usage = 'internal'::text or sl.usage = 'transit'::text)
                         and sm.state::text <> 'cancel'::text
@@ -325,7 +328,7 @@ class stock_levels_requirements(models.Model):
                     select
                         NULL as proc_id,
                         sm.product_id as product_id,
-                        sm.location_id as location_id,
+                        tp.top_parent_id as location_id,
                         sm.location_dest_id as other_location_id,
                         'out'::text as move_type,
                         sm.date as date,
@@ -333,6 +336,7 @@ class stock_levels_requirements(models.Model):
                     from
                         stock_move sm
                         left join stock_location sl on sm.location_id = sl.id
+                        left join top_parent tp on tp.id = sm.location_id
                     where
                         (sl.usage = 'internal'::text or sl.usage = 'transit'::text)
                         and sm.state::text <> 'cancel'::text
