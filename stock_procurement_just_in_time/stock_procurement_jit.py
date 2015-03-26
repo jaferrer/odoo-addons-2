@@ -178,6 +178,7 @@ class stock_levels_report(models.Model):
                 foo.product_id,
                 pt.categ_id as product_categ_id,
                 tp.top_parent_id as location_id,
+                foo.other_location_id,
                 foo.move_type,
                 sum(foo.qty) over (partition by foo.location_id, foo.product_id order by date) as qty,
                 foo.date as date,
