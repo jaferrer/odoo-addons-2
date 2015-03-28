@@ -49,23 +49,15 @@ class stock_move_planning_improved(models.Model):
         return {}
 
     @api.multi
-    def action_done(self):
-        """ Process completely the moves given as ids and if all moves are done, it will finish the picking.
-        Overridden here not to modify date_expected.
-        """
-        dates = dict([(m.id, m.date) for m in self])
-        super(stock_move_planning_improved, self).action_done()
-        for move in self:
-            move.write({
-                'date': dates[move.id],
-                'date_expected': time.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-            })
-
-    @api.multi
     def write(self, vals):
         """Write function overridden to propagate date to previous procurement orders."""
         for move in self:
+            if vals.get('date') and vals.get('state') == 'done':
+                # If the call is made from action_done, don't change the (required) date, but only the date_expected
+                vals['date_expected'] = vals['date']
+                del vals['date']
             if vals.get('date') and move.procure_method == 'make_to_order':
+                # If the date is changed and moves are chained, propagate to the previous procurement if any
                 proc = self.env['procurement.order'].search([('move_dest_id','=',move.id),
                                                              ('state','not in',['done','cancel'])], limit=1)
                 if proc:
