@@ -69,17 +69,11 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
 
             # Iterate on each product
             for product_id, qty_todo in qty_to_dispatch.iteritems():
-                limit = 10
-                while True:
-                    # Get enough need moves to dispatch the whole qty_todo by iteration on limit so as not to get all
-                    # possible moves which can be very slow
-                    need_moves = self.env['stock.move'].search(
+                need_moves = self.env['stock.move'].search(
                                                 [('location_id','child_of',transfer.picking_destination_location_id.id),
                                                  ('product_id','=',product_id.id),('state','=','confirmed')],
-                                                order="priority DESC, date", limit=limit)
-                    if sum([m.product_qty for m in need_moves]) > qty_todo:
-                        break
-                    limit *= 10
+                                                order="priority DESC, date")
+                qty_todo = min(sum([m.product_qty for m in need_moves]), qty_todo)
                 location_qty = {}
                 qty_left = qty_todo
                 # Get the quantity to dispatch for each location and set it in location_qty dict
