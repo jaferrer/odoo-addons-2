@@ -18,10 +18,9 @@
 #
 
 from datetime import datetime
-import time
 
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
-from openerp import fields, models, api
+from openerp import fields, models, api, exceptions, _
 
 
 class procurement_order_planning_improved(models.Model):
@@ -90,3 +89,32 @@ class stock_picking_planning_improved(models.Model):
         dates = dict(cr.fetchall())
         for picking in self:
             picking.date_due = dates.get(picking.id, False)
+
+    @api.multi
+    def action_assign(self):
+        """ Check availability of picking moves.
+        This has the effect of changing the state and reserve quants on available moves, and may
+        also impact the state of the picking as it is computed based on move's states.
+        Overridden here to check only moves with available quants in source location.
+        @return: True
+        """
+        for pick in self:
+            if pick.state == 'draft':
+                pick.action_confirm()
+            #skip the moves that don't need to be checked
+            moves = pick.move_lines.filtered(lambda m:
+                                             m.state not in ('draft', 'cancel', 'done') and m.availability > 0.0)
+            if not moves:
+                raise exceptions.except_orm(_('Warning!'), _('Nothing to check the availability for.'))
+            moves.action_assign()
+        return True
+
+    @api.multi
+    def rereserve_pick(self):
+        """
+        This can be used to provide a button that rereserves taking into account the existing pack operations
+        Overridden here to check only moves with available quants in source location.
+        """
+        for pick in self:
+            self.rereserve_quants(pick, move_ids = [m.id for m in pick.move_lines
+                                                if m.state not in ('draft','cancel','done') and m.availability > 0.0])
