@@ -20,7 +20,7 @@
 from openerp import fields, models, api, exceptions, _
 
 class stock_picking_performance_improved(models.Model):
-    inherit = 'stock.picking'
+    _inherit = 'stock.picking'
 
     @api.multi
     def action_assign(self):
