@@ -29,6 +29,9 @@ Stock Split Picking
 ===================
 This module adds a button to the transfer wizard of a stock operation to create a backorder without validating the
 current operation.
+
+It also adds a "Save" button which saves the current transfer wizard lines to the picking's pack operations and reloads
+the wizard.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
