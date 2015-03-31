@@ -68,5 +68,5 @@ class stock_picking_performance_improved(models.Model):
         Overridden here to limit the number of moves to rereserve
         """
         for pick in self:
-            self.rereserve_quants(pick, move_ids = [m.id for m in pick.move_lines if m.reserved_quant_ids])
+            self.rereserve_quants(pick, move_ids = [m.id for m in pick.move_lines if m.availability > 0.0])
 
