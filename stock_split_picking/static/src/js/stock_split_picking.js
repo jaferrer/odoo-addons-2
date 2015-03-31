@@ -35,7 +35,6 @@ openerp.stock_split_picking = function(instance){
 
     instance.stock.PickingMainWidget.include({
         split_picking: function(){
-            console.log("Hey, I split !")
             var self = this;
             return new instance.web.Model('stock.picking')
                 .call('action_split_from_ui',[self.picking.id, {'default_picking_type_id': self.picking_type_id}])

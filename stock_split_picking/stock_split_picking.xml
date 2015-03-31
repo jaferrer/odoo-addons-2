@@ -11,11 +11,29 @@
                 <footer position="replace">
                     <footer>
                         <button name="do_detailed_transfer" string="_Apply" type="object" class="oe_highlight"/>
+                        <button name="save_transfer" string="Save" type="object"/>
                         <button name="do_split_only" string="Split only" type="object"/>
                         or
                         <button string="_Cancel" class="oe_link" special="cancel" />
                     </footer>
                 </footer>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="stock_picking_form_operations">
+            <field name="name">stock.picking.form.operations</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <page string="Operations" position="attributes">
+                    <attribute name="attrs"/>
+                </page>
+                <field name="pack_operation_ids" position="before">
+                    <button type="object" name="do_prepare_partial" string="Recompute Packing Operations"
+                            confirm="All existing packing operations will be removed and new one created from the stock moves.
+                            Are you sure you want to continue?"/>
+                </field>
             </field>
         </record>
 
