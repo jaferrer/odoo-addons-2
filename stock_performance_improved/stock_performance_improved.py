@@ -16,7 +16,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import time
 
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp import fields, models, api, exceptions, _
 
 class stock_picking_performance_improved(models.Model):
@@ -69,4 +71,29 @@ class stock_picking_performance_improved(models.Model):
         """
         for pick in self:
             self.rereserve_quants(pick, move_ids = [m.id for m in pick.move_lines if m.availability > 0.0])
+
+    @api.model
+    @api.returns('stock.picking')
+    def _create_backorder(self, picking, backorder_moves=[]):
+        """ Move all done lines into a new picking and keep this one as the backorder. This is the opposite of the
+        standard Odoo behaviour in order to gain speed when there are many moves.
+        :param picking: A browse record of the picking from which to create a backorder
+        :param backorder_moves: Unused
+        :rtype : the id of the picking in which the done lines where put
+        """
+        done_moves = picking.move_lines.filtered(lambda m: m.state in ['done', 'cancel'])
+        if done_moves:
+            done_picking = picking.copy({
+                'name': '/',
+                'move_lines': [],
+                'pack_operation_ids': [],
+                'backorder_id': picking.backorder_id.id,
+                'date_done': time.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+            })
+            done_moves.write({'picking_id': done_picking.id})
+            picking.pack_operation_ids.write({'picking_id': done_picking.id})
+            picking.message_post(body=_("New picking <em>%s</em> <b>created</b>.") % (done_picking.name))
+            picking.write({'backorder_id': done_picking.id})
+            return done_picking
+        return False
 

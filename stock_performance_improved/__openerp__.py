@@ -50,7 +50,8 @@ This module changes the assignment logic so as to successively:
 
 Transfer Improvements
 ---------------------
-TODO
+With this module, backorders are created by extracting the done lines instead of extracting the others. Therefore, the
+backorder picking is always the original picking.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
