@@ -26,6 +26,8 @@
     'depends': ['stock'],
     'description': """
 This module is a temporary fix before https://github.com/odoo/odoo/pull/4637 is pulled upstream.
+
+It also tries to improve speed by fetching stock locations only when necessary.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
