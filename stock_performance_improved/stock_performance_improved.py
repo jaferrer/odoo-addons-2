@@ -95,5 +95,4 @@ class stock_picking_performance_improved(models.Model):
             picking.message_post(body=_("New picking <em>%s</em> <b>created</b>.") % (done_picking.name))
             picking.write({'backorder_id': done_picking.id})
             return done_picking
-        return False
-
+        return self.env['stock.picking']
