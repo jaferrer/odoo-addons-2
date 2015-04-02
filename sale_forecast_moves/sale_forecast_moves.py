@@ -71,14 +71,17 @@ class sale_forecast_moves_wizard(models.TransientModel):
                     DATE = NOW+relativedelta(weeks=+i)
 
                     move_of_week = self.env['stock.move'].search([('product_id','=',produit_id.id),
-                                                    ('name','=','Mouvement de prevision pour la semaine n.%d' % (i+1)),
+                                                    ('week','=',(i+1)),
                                                     ('prevision_move','=',True)])
 
                     if move_of_week:
-                        move_of_week.product_uom_qty = number_of_sales
-                        move_of_week.product_uom = produit_id.uom_id.id
-                        move_of_week.date = DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
-                        move_of_week.date_expected = DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+                        move_of_week.write({
+                            'product_uom_qty': number_of_sales,
+                            'product_uom': produit_id.uom_id.id,
+                            'date': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                            'date_expected': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                        })
+
 
                     else:
                         self.env['stock.move'].create({
@@ -92,12 +95,12 @@ class sale_forecast_moves_wizard(models.TransientModel):
                         'location_id': self.env.ref('stock.stock_location_stock').id,
                         'location_dest_id': self.env.ref('stock.stock_location_customers').id,
                         'prevision_move': True,
-                        'ID': (i+1),
+                        'week': (i+1),
                         })
 
             list_of_expired_moves = self.env['stock.move'].search([('product_id','=',produit_id.id),
                                                                     ('prevision_move','=',True),
-                                                                    ('ID','>',self.forecast_weeks)])
+                                                                    ('week','>',self.forecast_weeks)])
 
             list_of_expired_moves.unlink()
 
@@ -110,4 +113,4 @@ class stock_move_etendu(models.Model):
     _inherit = "stock.move"
 
     prevision_move = fields.Boolean('Mouvement de prevision')
-    ID = fields.Integer('ID')
+    week = fields.Integer('week')
