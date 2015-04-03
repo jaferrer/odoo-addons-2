@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="stock_location_path_form_propagate">
+            <field name="name">stock.location.path.form.propagate</field>
+            <field name="model">stock.location.path</field>
+            <field name="inherit_id" ref="stock.stock_location_path_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <group position="inside">
+                    <field name="group_propagation_option"/>
+                </group>
+            </field>
+        </record>
+
+    </data>
+</openerp>
