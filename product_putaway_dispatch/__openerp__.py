@@ -31,6 +31,9 @@ This modules adds a new button "Dispatch" to the transfer dialog of a stock oper
 products according to their needs in the different children locations of the original destination location. The operator
 has the opportunity to modify the dispatch that has been done this way before validating the transfer.
 
+If no need is found in any of the child locations, the product is sent back to the source location so as to unreserve
+it.
+
 This button only appears if the original destination location has its putaway strategy set to a strategy of type
 "Dispatch". Strategies of type "Dispatch" need only to be defined once and can be applied to several locations.
 """,

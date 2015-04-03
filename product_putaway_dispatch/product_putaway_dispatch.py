@@ -114,17 +114,17 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                 # Iterate on each bulk product operations to dispatch them
                 for op in op_items:
                     # We get the quantity to dispatch and set the quantity of the operation to 0
-                    qty_todo = op.quantity
+                    op_qty_todo = op.quantity
                     op.quantity = 0
                     # We initialize a recordset holding all the lines split from op
                     split_ops = op
 
                     for location, qty_loc in location_qty.iteritems():
-                        if qty_todo <= 0:
+                        if op_qty_todo <= 0:
                             break
                         if qty_loc <= 0:
                             continue
-                        qty = min(qty_todo, qty_loc)
+                        qty = min(op_qty_todo, qty_loc)
                         # Check if we have already a line with the wanted destination location
                         for target_op in split_ops:
                             if target_op.destinationloc_id == location:
@@ -142,10 +142,19 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                             })
                             split_ops = split_ops | new_op
                         location_qty[location] -= qty
-                        qty_todo -= qty
+                        op_qty_todo -= qty
+                    # We send back to the source location undispatched moves
+                    if op_qty_todo > 0.0:
+                        unneede_op = op.copy({
+                            'destinationloc_id': op.sourceloc_id.id,
+                            'quantity': op_qty_todo,
+                            'packop_id': False,
+                            'result_package_id': False,
+                        })
                     # We delete op if it has not been allocated some quantity in between
-                    if op.quantity == 0:
+                    if op.quantity <= 0.0:
                         op.unlink()
+
         return self.wizard_view()
 
 
