@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="stock.config.settings" id="stock_config_settings_defaults">
+            <field name="group_stock_multiple_locations">1</field>
+            <field name="group_stock_adv_location">1</field>
+        </record>
+        <function
+            model="stock.config.settings"
+            name="execute"
+            eval="[[ref('stock_config_settings_defaults')]]" />
+
+        <record id="stock_location_a" model="stock.location">
+            <field name="name">Location 1 push propagate</field>
+            <field name="location_id" ref="stock.stock_location_locations"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
+        <record id="stock_location_b" model="stock.location">
+            <field name="name">Location 2 push propagate</field>
+            <field name="location_id" ref="stock.stock_location_locations"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
+        <record model="stock.location.route" id="test_route">
+            <field name="name">Test route push propagate</field>
+            <field name="active">1</field>
+            <field name="sequence">20</field>
+            <field name="product_categ_selectable"/>
+            <field name="product_selectable">1</field>
+            <field name="company_id"/>
+        </record>
+
+        <record model="stock.location.path" id="propagate_location_path">
+            <field name="name">Test push route 1=2 propagate</field>
+            <field name="location_from_id" ref="stock_location_a"/>
+            <field name="location_dest_id" ref="stock_location_b"/>
+            <field name="picking_type_id" ref="stock.picking_type_internal"/>
+            <field name="route_id" ref="test_route"/>
+            <field name="auto">manual</field>
+        </record>
+
+    </data>
+</openerp>

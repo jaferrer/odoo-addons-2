@@ -18,32 +18,30 @@
 #
 
 {
-    'name': 'Product Dispatch',
+    'name': 'Database Unaccented Searches',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': '',
-    'depends': ['stock'],
+    'category': 'Technical Settings',
+    'depends': [],
     'description': """
-Product Dispatch
-================
-This modules adds a new button "Dispatch" to the transfer dialog of a stock operation. This buttons dispatches the
-products according to their needs in the different children locations of the original destination location. The operator
-has the opportunity to modify the dispatch that has been done this way before validating the transfer.
+Database Unaccented Searches
+============================
+This module just creates the extension "unaccent" in the database to allow unaccented searches.
 
-If no need is found in any of the child locations, the product is sent back to the source location so as to unreserve
-it.
+Notes:
+------
 
-This button only appears if the original destination location has its putaway strategy set to a strategy of type
-"Dispatch". Strategies of type "Dispatch" need only to be defined once and can be applied to several locations.
+- You also need to start Odoo with the --unaccent option or set unaccent = True in the config file for
+unaccented searches to work.
+- Uninstalling the module does not reset accented search. You need to manually call "DROP EXTENSION 'unaccent';" on the
+database.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'product_putaway_dispatch_view.xml'
+        'security/ir.model.access.csv',
     ],
-    'demo': [
-        'product_putaway_dispatch_demo.xml'
-    ],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

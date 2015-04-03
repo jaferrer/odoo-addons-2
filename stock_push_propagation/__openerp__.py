@@ -18,31 +18,27 @@
 #
 
 {
-    'name': 'Product Dispatch',
+    'name': 'Choose Propagation for Push Rules',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': '',
+    'category': 'Warehouse',
     'depends': ['stock'],
     'description': """
-Product Dispatch
-================
-This modules adds a new button "Dispatch" to the transfer dialog of a stock operation. This buttons dispatches the
-products according to their needs in the different children locations of the original destination location. The operator
-has the opportunity to modify the dispatch that has been done this way before validating the transfer.
+Choose Propagation for Push Rules
+=================================
+With the standard Odoo implementation, procurement groups are propagated to the resulting moves when applying a push
+rule.
 
-If no need is found in any of the child locations, the product is sent back to the source location so as to unreserve
-it.
-
-This button only appears if the original destination location has its putaway strategy set to a strategy of type
-"Dispatch". Strategies of type "Dispatch" need only to be defined once and can be applied to several locations.
+This module enables the user to define whether the procurement group should be propagate when applying a push rule or
+not.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'product_putaway_dispatch_view.xml'
+        'stock_push_propagation_view.xml',
     ],
     'demo': [
-        'product_putaway_dispatch_demo.xml'
+        'stock_push_propagation_demo.xml',
     ],
     'test': [],
     'installable': True,
