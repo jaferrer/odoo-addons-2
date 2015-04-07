@@ -58,9 +58,8 @@ class stock_picking_performance_improved(models.Model):
                     qty_left -= move.product_qty
                     if qty_left <= 0:
                         break
-            if not to_assign_moves:
-                raise exceptions.except_orm(_('Warning!'), _('Nothing to check the availability for.'))
-            to_assign_moves.action_assign()
+            if to_assign_moves:
+                to_assign_moves.action_assign()
         return True
 
     @api.multi
@@ -81,18 +80,24 @@ class stock_picking_performance_improved(models.Model):
         :param backorder_moves: Unused
         :rtype : the id of the picking in which the done lines where put
         """
-        done_moves = picking.move_lines.filtered(lambda m: m.state in ['done', 'cancel'])
+        if self.env.context.get('do_only_split', False):
+            done_moves = self.env['stock.move'].browse(self.env.context.get('split', []))
+        else:
+            done_moves = picking.move_lines.filtered(lambda m: m.state in ['done', 'cancel'])
         if done_moves:
-            done_picking = picking.copy({
-                'name': '/',
-                'move_lines': [],
-                'pack_operation_ids': [],
-                'backorder_id': picking.backorder_id.id,
-                'date_done': time.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-            })
-            done_moves.write({'picking_id': done_picking.id})
-            picking.pack_operation_ids.write({'picking_id': done_picking.id})
+            if done_moves != picking.move_lines:
+                done_picking = picking.copy({
+                    'name': '/',
+                    'move_lines': [],
+                    'pack_operation_ids': [],
+                    'backorder_id': picking.backorder_id.id,
+                    'date_done': time.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                })
+                done_moves.write({'picking_id': done_picking.id})
+                picking.pack_operation_ids.write({'picking_id': done_picking.id})
+                picking.write({'backorder_id': done_picking.id})
+            else:
+                done_picking = picking
             picking.message_post(body=_("New picking <em>%s</em> <b>created</b>.") % (done_picking.name))
-            picking.write({'backorder_id': done_picking.id})
             return done_picking
         return self.env['stock.picking']
