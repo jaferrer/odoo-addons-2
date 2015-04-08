@@ -18,7 +18,7 @@
 #
 from dateutil.relativedelta import relativedelta
 
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 from openerp import fields, models, api
 
@@ -64,6 +64,9 @@ class sale_forecast_moves_wizard(models.TransientModel):
             number_of_sales = sum([m.product_qty for m in list_of_moves]) / 4
 
 
+            #print list_of_moves
+            #print number_of_sales
+
 
             if number_of_sales != 0:
                 for i in range(self.forecast_weeks):
@@ -86,7 +89,7 @@ class sale_forecast_moves_wizard(models.TransientModel):
                     else:
                         self.env['stock.move'].create({
                         'name': "Mouvement de prevision pour la semaine n.%d" % (i+1),
-                        'invoice_control': 'none',
+                        #'invoice_control': 'none',
                         'product_id': produit_id.id,
                         'product_uom_qty': number_of_sales,
                         'product_uom': produit_id.uom_id.id,

@@ -17,24 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Sales Forecast Moves',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Sale',
-    'depends': ['sale_stock'],
-    'description': """
-Sales Forecast Moves
-====================
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['sale_forecast_moves.xml'],
-    'demo': ['sale_forecast_demo.xml'],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
-
+import test_sale_forecast
