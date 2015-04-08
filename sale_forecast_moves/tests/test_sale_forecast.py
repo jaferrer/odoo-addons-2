@@ -106,45 +106,9 @@ class TestSaleForecast(common.TransactionCase):
                                                    ('week','=',(i+1))])
 
             self.assertTrue(pmove)
-
             self.assertEqual(pmove.product_uom_qty, 21.75)
-
-            string1 = ''
-            i=0
-
-            for c in pmove.date:
-                i+=1
-                if i <= 10:
-                    string1 += c
-
-            string2=''
-            i=0
-
-            for c in DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT):
-                i+=1
-                if i <= 10:
-                    string2 += c
-
-            self.assertEqual(string1, string2)
-
-
-            string1 = ''
-            i=0
-
-            for c in pmove.date_expected:
-                i+=1
-                if i <= 10:
-                    string1 += c
-
-            string2=''
-            i=0
-
-            for c in DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT):
-                i+=1
-                if i <= 10:
-                    string2 += c
-
-            self.assertEqual(string1, string2)
+            self.assertEqual(pmove.date[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
+            self.assertEqual(pmove.date_expected[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
 
 
 
@@ -170,51 +134,12 @@ class TestSaleForecast(common.TransactionCase):
             if i < 2:
                 self.assertTrue(pmove)
                 self.assertEqual(pmove.product_uom_qty, 21.75)
-
-
-                string1 = ''
-                i=0
-
-                for c in pmove.date:
-                    i+=1
-                    if i <= 10:
-                        string1 += c
-
-                string2=''
-                i=0
-
-                for c in DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT):
-                    i+=1
-                    if i <= 10:
-                        string2 += c
-
-                self.assertEqual(string1, string2)
-
-
-                string1 = ''
-                i=0
-
-                for c in pmove.date_expected:
-                    i+=1
-                    if i <= 10:
-                        string1 += c
-
-                string2=''
-                i=0
-
-                for c in DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT):
-                    i+=1
-                    if i <= 10:
-                        string2 += c
-
-                self.assertEqual(string1, string2)
+                self.assertEqual(pmove.date[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
+                self.assertEqual(pmove.date_expected[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
 
 
             else:
                 self.assertFalse(pmove)
-
-
-
 
 
 
@@ -239,45 +164,9 @@ class TestSaleForecast(common.TransactionCase):
                                                    ('week','=',(i+1))])
 
             self.assertTrue(pmove)
-
-
             self.assertEqual(pmove.product_uom_qty, 21.75)
-
-            string1 = ''
-            i=0
-
-            for c in pmove.date:
-                i+=1
-                if i <= 10:
-                    string1 += c
-
-            string2=''
-            i=0
-
-            for c in DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT):
-                i+=1
-                if i <= 10:
-                    string2 += c
-
-            self.assertEqual(string1, string2)
-
-            string1 = ''
-            i=0
-
-            for c in pmove.date_expected:
-                i+=1
-                if i <= 10:
-                    string1 += c
-
-            string2=''
-            i=0
-
-            for c in DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT):
-                i+=1
-                if i <= 10:
-                    string2 += c
-
-            self.assertEqual(string1, string2)
+            self.assertEqual(pmove.date[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
+            self.assertEqual(pmove.date_expected[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
 
 
 
