@@ -34,24 +34,8 @@ However, there are other situations where the stock is kept to minimum but the f
 advance. This is typically the case of an industrial company with a long term planning applying just-in-time
 procurement.
 
-This module applies performance improvements for the second situation. Be aware that installing this module if you are
-in the first situation might degrade performance instead of improving it.
-
-Quants driven assignment
-------------------------
-In the case where stock are kept minimum, future procurements can create thousands of stock moves waiting for
-availability which can lead to very slow assignments of quants to moves since all stock moves are checked each time,
-even if there is only a few quants are made available.
-
-This module changes the assignment logic so as to successively:
-
-- Count the amount of each product in available quants
-- Assign enough moves with this quantity and then stop
-
-Transfer Improvements
----------------------
-With this module, backorders are created by extracting the done lines instead of extracting the others. Therefore, the
-backorder picking is always the original picking.
+This module applies performance improvements by assigning stock moves to a stock picking at latest, that is only when
+it can be reserved.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
