@@ -139,7 +139,9 @@ class stock_move(models.Model):
         """
         prereservations = self.env['stock.prereservation'].search([('move_id','in',self.ids)])
         prereserved_moves = prereservations.mapped(lambda p: p.move_id)
-        super(stock_move, prereserved_moves)._picking_assign(procurement_group, location_from, location_to)
+        if prereserved_moves:
+            return super(stock_move, prereserved_moves)._picking_assign(procurement_group, location_from, location_to)
+        return True
 
     @api.multi
     def action_assign(self):
