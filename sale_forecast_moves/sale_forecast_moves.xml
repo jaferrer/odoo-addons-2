@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<openerp>
+    <data>
+        <record id="sale_forcast_moves_wizard" model="ir.ui.view">
+            <field name="name">Forecast moves</field>
+            <field name="model">sale.forecast.moves.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Parameters">
+                    <group>
+                        <field name="forecast_weeks"/>
+                    </group>
+                    <footer>
+                        <button name="forecast_moves" string="Forecast moves" type="object" class="oe_highlight"  />
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <act_window id="launch_forecast_moves_wizard"
+            name="Launch forecast moves Wizard"
+            src_model="stock.move"
+            res_model="sale.forecast.moves.wizard"
+            view_mode="form"
+            target="new"
+            key2="client_action_multi"/>
+
+        <menuitem id="menu_forecast_moves" name="Forecast moves" action="launch_forecast_moves_wizard"
+                  parent="stock.menu_action_move_form2" sequence="10"/>
+
+
+        <record model="ir.ui.view" id="stock_move_form_etendu">
+            <field name="name">stock.move.form.etendu</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="prevision_move"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</openerp>
