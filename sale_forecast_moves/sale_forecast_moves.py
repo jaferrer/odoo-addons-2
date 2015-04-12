@@ -19,6 +19,8 @@
 from dateutil.relativedelta import relativedelta
 from psycopg2 import OperationalError
 
+from openerp.addons.connector.session import ConnectorSession
+from openerp.addons.connector.queue.job import job
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp import fields, models, api
 import openerp
@@ -43,6 +45,15 @@ import openerp
 # Exemple: odoo/addons/stock/wizard => orderpoint_procurement (Le pop-up qui s'ouvre lorsqu'on clique sur
 # "Entrepot/Schedulers/Compute minimum stock rules only"
 
+
+@job
+def run_forecast_moves(session, model_name, ids):
+    """Launch all schedulers"""
+    compute_forecast_wizard = session.pool[model_name]
+    compute_forecast_wizard._calculate_forecast_moves(session.cr, session.uid, ids, context=session.context)
+    return "Scheduler ended sale forecast calculation."
+
+
 class sale_forecast_moves_wizard(models.TransientModel):
     _name = "sale.forecast.moves.wizard"
 
@@ -50,6 +61,12 @@ class sale_forecast_moves_wizard(models.TransientModel):
 
     @api.multi
     def forecast_moves(self):
+        session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+        job_uuid = run_forecast_moves.delay(session, 'sale.forecast.moves.wizard', self.ids)
+        return {'type': 'ir.actions.act_window_close'}
+
+    @api.multi
+    def _calculate_forecast_moves(self):
         cr = openerp.registry(self.env.cr.dbname).cursor()
         new_env = api.Environment(cr, self.env.user.id, self.env.context)
 
@@ -109,7 +126,6 @@ class sale_forecast_moves_wizard(models.TransientModel):
             new_env.cr.commit()
         new_env.cr.commit()
         new_env.cr.close()
-        return {'type': 'ir.actions.act_window_close'}
 
 
 class stock_move_etendu(models.Model):

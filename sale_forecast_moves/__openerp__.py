@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Sale',
-    'depends': ['sale_stock'],
+    'depends': ['sale_stock','connector'],
     'description': """
 Sales Forecast Moves
 ====================
