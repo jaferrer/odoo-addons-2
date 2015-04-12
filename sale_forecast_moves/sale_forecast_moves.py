@@ -17,10 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 from dateutil.relativedelta import relativedelta
+from psycopg2 import OperationalError
 
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
-
 from openerp import fields, models, api
+import openerp
 
 # modèle des mouvements de stock: stock.move
 # 0. Créer un pop-up pour entrer le nombre de semaines sur lequel mettre des prévisions.
@@ -49,66 +50,65 @@ class sale_forecast_moves_wizard(models.TransientModel):
 
     @api.multi
     def forecast_moves(self):
+        cr = openerp.registry(self.env.cr.dbname).cursor()
+        new_env = api.Environment(cr, self.env.user.id, self.env.context)
 
         LIMIT = fields.datetime.now()+relativedelta(days=-28)
         NOW = fields.datetime.now()
+        this = self.with_env(new_env)
 
-        for produit_id in self.env['product.product'].search([('type','=','product')]):
-            list_of_moves = self.env['stock.move'].search([('state','=','done'),
-                                                    ('location_id','=',self.env.ref('stock.stock_location_stock').id),
-                                                    ('product_id','=',produit_id.id),
-                                                    ('date','>',LIMIT.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                                                    ('prevision_move','=',False)])
+        produits = this.env['product.product'].search([('type','=','product')])
+        while produits:
+            chunk_produits = produits[:100]
+            produits = produits - chunk_produits
+            for produit_id in chunk_produits:
+                try:
+                    list_of_moves = this.env['stock.move'].search([('state','=','done'),
+                                                            ('location_id','=',this.env.ref('stock.stock_location_stock').id),
+                                                            ('product_id','=',produit_id.id),
+                                                            ('date','>',LIMIT.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+                                                            ('prevision_move','=',False)])
 
+                    number_of_sales = sum([m.product_qty for m in list_of_moves]) / 4
 
-            number_of_sales = sum([m.product_qty for m in list_of_moves]) / 4
-
-
-            #print list_of_moves
-            #print number_of_sales
-
-
-            if number_of_sales != 0:
-                for i in range(self.forecast_weeks):
-
-                    DATE = NOW+relativedelta(weeks=+i)
-
-                    move_of_week = self.env['stock.move'].search([('product_id','=',produit_id.id),
-                                                    ('week','=',(i+1)),
-                                                    ('prevision_move','=',True)])
-
-                    if move_of_week:
-                        move_of_week.write({
-                            'product_uom_qty': number_of_sales,
-                            'product_uom': produit_id.uom_id.id,
-                            'date': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                            'date_expected': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                        })
-
-
-                    else:
-                        self.env['stock.move'].create({
-                        'name': "Mouvement de prevision pour la semaine n.%d" % (i+1),
-                        #'invoice_control': 'none',
-                        'product_id': produit_id.id,
-                        'product_uom_qty': number_of_sales,
-                        'product_uom': produit_id.uom_id.id,
-                        'date': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                        'date_expected': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                        'location_id': self.env.ref('stock.stock_location_stock').id,
-                        'location_dest_id': self.env.ref('stock.stock_location_customers').id,
-                        'prevision_move': True,
-                        'week': (i+1),
-                        })
-
-            list_of_expired_moves = self.env['stock.move'].search([('product_id','=',produit_id.id),
-                                                                    ('prevision_move','=',True),
-                                                                    ('week','>',self.forecast_weeks)])
-
-            list_of_expired_moves.unlink()
-
-
-
+                    if number_of_sales != 0:
+                        for i in range(this.forecast_weeks):
+                            DATE = NOW+relativedelta(weeks=+i)
+                            move_of_week = this.env['stock.move'].search([('product_id','=',produit_id.id),
+                                                            ('week','=',(i+1)),
+                                                            ('prevision_move','=',True)])
+                            if move_of_week:
+                                move_of_week.write({
+                                    'product_uom_qty': number_of_sales,
+                                    'product_uom': produit_id.uom_id.id,
+                                    'date': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                                    'date_expected': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                                })
+                            else:
+                                this.env['stock.move'].create({
+                                'name': "Mouvement de prevision pour la semaine n.%d" % (i+1),
+                                #'invoice_control': 'none',
+                                'product_id': produit_id.id,
+                                'product_uom_qty': number_of_sales,
+                                'product_uom': produit_id.uom_id.id,
+                                'date': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                                'date_expected': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                                'location_id': this.env.ref('stock.stock_location_stock').id,
+                                'location_dest_id': this.env.ref('stock.stock_location_customers').id,
+                                'prevision_move': True,
+                                'week': (i+1),
+                                })
+                    list_of_expired_moves = this.env['stock.move'].search([('product_id','=',produit_id.id),
+                                                                            ('prevision_move','=',True),
+                                                                            ('week','>',this.forecast_weeks)])
+                    list_of_expired_moves.unlink()
+                except OperationalError:
+                    produits = produits | chunk_produits
+                    new_env.cr.rollback()
+                    continue
+            new_env.cr.commit()
+        new_env.cr.commit()
+        new_env.cr.close()
         return {'type': 'ir.actions.act_window_close'}
 
 
