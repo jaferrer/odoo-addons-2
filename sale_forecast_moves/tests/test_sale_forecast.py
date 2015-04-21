@@ -89,45 +89,32 @@ class TestSaleForecast(common.TransactionCase):
         popup1 = self.env['sale.forecast.moves.wizard'].create({
             'forecast_weeks': 4,
         })
-        popup1.forecast_moves()
+        popup1._calculate_forecast_moves()
 
         prev_moves = self.env['stock.move'].search([('prevision_move','=',True),
                                                     ('product_id','=',self.ref('sale_forecast_moves.produit_de_test'))])
-
         self.assertEqual(len(prev_moves), 4)
 
-
         for i in range(len(prev_moves)):
-
             DATE2 = NOW+relativedelta(weeks=+i)
-
             pmove = self.env['stock.move'].search([('prevision_move','=',True),
                                                    ('product_id','=',self.ref('sale_forecast_moves.produit_de_test')),
                                                    ('week','=',(i+1))])
-
             self.assertTrue(pmove)
             self.assertEqual(pmove.product_uom_qty, 21.75)
             self.assertEqual(pmove.date[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
             self.assertEqual(pmove.date_expected[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
 
-
-
-
         popup2 = self.env['sale.forecast.moves.wizard'].create({
             'forecast_weeks': 2,
         })
-        popup2.forecast_moves()
-
+        popup2._calculate_forecast_moves()
         prev_moves = self.env['stock.move'].search([('prevision_move','=',True),
                                                     ('product_id','=',self.ref('sale_forecast_moves.produit_de_test'))])
-
         self.assertEqual(len(prev_moves), 2)
 
-
         for i in range(4):
-
             DATE2 = NOW+relativedelta(weeks=+i)
-
             pmove = self.env['stock.move'].search([('prevision_move','=',True),
                                                    ('product_id','=',self.ref('sale_forecast_moves.produit_de_test')),
                                                    ('week','=',(i+1))])
@@ -136,56 +123,38 @@ class TestSaleForecast(common.TransactionCase):
                 self.assertEqual(pmove.product_uom_qty, 21.75)
                 self.assertEqual(pmove.date[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
                 self.assertEqual(pmove.date_expected[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
-
-
             else:
                 self.assertFalse(pmove)
-
-
-
 
         popup3 = self.env['sale.forecast.moves.wizard'].create({
             'forecast_weeks': 5,
         })
-        popup3.forecast_moves()
-
+        popup3._calculate_forecast_moves()
         prev_moves = self.env['stock.move'].search([('prevision_move','=',True),
                                                     ('product_id','=',self.ref('sale_forecast_moves.produit_de_test'))])
-
         self.assertEqual(len(prev_moves), 5)
 
-
         for i in range(len(prev_moves)):
-
             DATE2 = NOW+relativedelta(weeks=+i)
-
             pmove = self.env['stock.move'].search([('prevision_move','=',True),
                                                    ('product_id','=',self.ref('sale_forecast_moves.produit_de_test')),
                                                    ('week','=',(i+1))])
-
             self.assertTrue(pmove)
             self.assertEqual(pmove.product_uom_qty, 21.75)
             self.assertEqual(pmove.date[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
             self.assertEqual(pmove.date_expected[:10], DATE2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10])
 
-
-
         popup4 = self.env['sale.forecast.moves.wizard'].create({
             'forecast_weeks': 0,
         })
-        popup4.forecast_moves()
-
+        popup4._calculate_forecast_moves()
         prev_moves = self.env['stock.move'].search([('prevision_move','=',True),
                                                     ('product_id','=',self.ref('sale_forecast_moves.produit_de_test'))])
-
         self.assertEqual(len(prev_moves), 0)
 
-
         for i in range(5):
-
             pmove = self.env['stock.move'].search([('prevision_move','=',True),
                                                    ('product_id','=',self.ref('sale_forecast_moves.produit_de_test')),
                                                    ('week','=',(i+1))])
-
             self.assertFalse(pmove)
 
