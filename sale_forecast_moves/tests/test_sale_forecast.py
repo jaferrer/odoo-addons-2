@@ -89,7 +89,7 @@ class TestSaleForecast(common.TransactionCase):
         popup1 = self.env['sale.forecast.moves.wizard'].create({
             'forecast_weeks': 4,
         })
-        popup1._calculate_forecast_moves()
+        popup1._calculate_forecast_moves(use_new_cursor=False)
 
         prev_moves = self.env['stock.move'].search([('prevision_move','=',True),
                                                     ('product_id','=',self.ref('sale_forecast_moves.produit_de_test'))])
@@ -108,7 +108,7 @@ class TestSaleForecast(common.TransactionCase):
         popup2 = self.env['sale.forecast.moves.wizard'].create({
             'forecast_weeks': 2,
         })
-        popup2._calculate_forecast_moves()
+        popup2._calculate_forecast_moves(use_new_cursor=False)
         prev_moves = self.env['stock.move'].search([('prevision_move','=',True),
                                                     ('product_id','=',self.ref('sale_forecast_moves.produit_de_test'))])
         self.assertEqual(len(prev_moves), 2)
@@ -129,7 +129,7 @@ class TestSaleForecast(common.TransactionCase):
         popup3 = self.env['sale.forecast.moves.wizard'].create({
             'forecast_weeks': 5,
         })
-        popup3._calculate_forecast_moves()
+        popup3._calculate_forecast_moves(use_new_cursor=False)
         prev_moves = self.env['stock.move'].search([('prevision_move','=',True),
                                                     ('product_id','=',self.ref('sale_forecast_moves.produit_de_test'))])
         self.assertEqual(len(prev_moves), 5)
@@ -147,7 +147,7 @@ class TestSaleForecast(common.TransactionCase):
         popup4 = self.env['sale.forecast.moves.wizard'].create({
             'forecast_weeks': 0,
         })
-        popup4._calculate_forecast_moves()
+        popup4._calculate_forecast_moves(use_new_cursor=False)
         prev_moves = self.env['stock.move'].search([('prevision_move','=',True),
                                                     ('product_id','=',self.ref('sale_forecast_moves.produit_de_test'))])
         self.assertEqual(len(prev_moves), 0)

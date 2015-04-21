@@ -66,13 +66,17 @@ class sale_forecast_moves_wizard(models.TransientModel):
         return {'type': 'ir.actions.act_window_close'}
 
     @api.multi
-    def _calculate_forecast_moves(self):
-        cr = openerp.registry(self.env.cr.dbname).cursor()
-        new_env = api.Environment(cr, self.env.user.id, self.env.context)
+    def _calculate_forecast_moves(self, use_new_cursor=True):
+        if use_new_cursor:
+            cr = openerp.registry(self.env.cr.dbname).cursor()
+            new_env = api.Environment(cr, self.env.user.id, self.env.context)
+        else:
+            new_env = self.env
+        this = self.with_env(new_env)
 
+        weeks = self.forecast_weeks
         LIMIT = fields.datetime.now()+relativedelta(days=-28)
         NOW = fields.datetime.now()
-        this = self.with_env(new_env)
 
         produits = this.env['product.product'].search([('type','=','product')])
         while produits:
@@ -81,15 +85,14 @@ class sale_forecast_moves_wizard(models.TransientModel):
             for produit_id in chunk_produits:
                 try:
                     list_of_moves = this.env['stock.move'].search([('state','=','done'),
-                                                            ('location_id','=',this.env.ref('stock.stock_location_stock').id),
+                                                            ('location_id','=',new_env.ref('stock.stock_location_stock').id),
                                                             ('product_id','=',produit_id.id),
                                                             ('date','>',LIMIT.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
                                                             ('prevision_move','=',False)])
 
                     number_of_sales = sum([m.product_qty for m in list_of_moves]) / 4
-
                     if number_of_sales != 0:
-                        for i in range(this.forecast_weeks):
+                        for i in range(weeks):
                             DATE = NOW+relativedelta(weeks=+i)
                             move_of_week = this.env['stock.move'].search([('product_id','=',produit_id.id),
                                                             ('week','=',(i+1)),
@@ -110,22 +113,28 @@ class sale_forecast_moves_wizard(models.TransientModel):
                                 'product_uom': produit_id.uom_id.id,
                                 'date': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                                 'date_expected': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                                'location_id': this.env.ref('stock.stock_location_stock').id,
-                                'location_dest_id': this.env.ref('stock.stock_location_customers').id,
+                                'location_id': new_env.ref('stock.stock_location_stock').id,
+                                'location_dest_id': new_env.ref('stock.stock_location_customers').id,
                                 'prevision_move': True,
                                 'week': (i+1),
                                 })
                     list_of_expired_moves = this.env['stock.move'].search([('product_id','=',produit_id.id),
                                                                             ('prevision_move','=',True),
-                                                                            ('week','>',this.forecast_weeks)])
+                                                                            ('week','>',weeks)])
                     list_of_expired_moves.unlink()
                 except OperationalError:
-                    produits = produits | chunk_produits
-                    new_env.cr.rollback()
-                    continue
+                    if use_new_cursor:
+                        produits = produits | chunk_produits
+                        new_env.cr.rollback()
+                        continue
+                    else:
+                        raise
+            if use_new_cursor:
+                new_env.cr.commit()
+        if use_new_cursor:
             new_env.cr.commit()
-        new_env.cr.commit()
-        new_env.cr.close()
+            new_env.cr.close()
+        return
 
 
 class stock_move_etendu(models.Model):
