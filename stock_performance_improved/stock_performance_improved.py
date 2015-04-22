@@ -45,42 +45,6 @@ class stock_picking_performance_improved(models.Model):
         self._assign_moves_to_picking()
         return super(stock_picking_performance_improved, self).action_assign()
 
-    #     """ Check availability of picking moves.
-    #     This has the effect of changing the state and reserve quants on available moves, and may
-    #     also impact the state of the picking as it is computed based on move's states.
-    #     Overridden here to improve performance when there are a great number of moves
-    #     @return: True
-    #     """
-    #     for pick in self:
-    #         # First confirm the picking if it is not already
-    #         if pick.state == 'draft':
-    #             self.action_confirm()
-    #         # We get all quants in the picking's source location that are not reserved yet
-    #         quants = self.env['stock.quant'].search([('location_id','child_of',pick.location_id.id),
-    #                                                  ('reservation_id','=',False)])
-    #         # We create a dict with the quantities of each product to reserve
-    #         product_qties = {}
-    #         for quant in quants:
-    #             if quant.product_id in product_qties:
-    #                 product_qties[quant.product_id] += quant.qty
-    #             else:
-    #                 product_qties[quant.product_id] = quant.qty
-    #         # We iterate on each product and quantities to reserve to get the moves to assign
-    #         to_assign_moves = self.env['stock.move']
-    #         for product, qty_todo in product_qties.iteritems():
-    #             # Filter moves on the product
-    #             moves = pick.move_lines.filtered(lambda m: m.product_id == product)
-    #             # Get only the needed number of moves to assign the qty to do and add them to to_assign_moves.
-    #             qty_left = qty_todo
-    #             for move in moves:
-    #                 to_assign_moves = to_assign_moves | move
-    #                 qty_left -= move.product_qty
-    #                 if qty_left <= 0:
-    #                     break
-    #         if to_assign_moves:
-    #             to_assign_moves.action_assign()
-    #     return True
-
     @api.multi
     def rereserve_pick(self):
         """
@@ -89,40 +53,6 @@ class stock_picking_performance_improved(models.Model):
         """
         self._assign_moves_to_picking()
         super(stock_picking_performance_improved, self).rereserve_pick()
-
-    #     for pick in self:
-    #         self.rereserve_quants(pick, move_ids = [m.id for m in pick.move_lines if m.availability > 0.0])
-    #
-    # @api.model
-    # @api.returns('stock.picking')
-    # def _create_backorder(self, picking, backorder_moves=[]):
-    #     """ Move all done lines into a new picking and keep this one as the backorder. This is the opposite of the
-    #     standard Odoo behaviour in order to gain speed when there are many moves.
-    #     :param picking: A browse record of the picking from which to create a backorder
-    #     :param backorder_moves: Unused
-    #     :rtype : the id of the picking in which the done lines where put
-    #     """
-    #     if self.env.context.get('do_only_split', False):
-    #         done_moves = self.env['stock.move'].browse(self.env.context.get('split', []))
-    #     else:
-    #         done_moves = picking.move_lines.filtered(lambda m: m.state in ['done', 'cancel'])
-    #     if done_moves:
-    #         if done_moves != picking.move_lines:
-    #             done_picking = picking.copy({
-    #                 'name': '/',
-    #                 'move_lines': [],
-    #                 'pack_operation_ids': [],
-    #                 'backorder_id': picking.backorder_id.id,
-    #                 'date_done': time.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-    #             })
-    #             done_moves.write({'picking_id': done_picking.id})
-    #             picking.pack_operation_ids.write({'picking_id': done_picking.id})
-    #             picking.write({'backorder_id': done_picking.id})
-    #         else:
-    #             done_picking = picking
-    #         picking.message_post(body=_("New picking <em>%s</em> <b>created</b>.") % (done_picking.name))
-    #         return done_picking
-    #     return self.env['stock.picking']
 
 
 class stock_move(models.Model):
@@ -198,24 +128,35 @@ class stock_prereservation(models.Model):
                             select sq.reservation_id from stock_quant sq where sq.reservation_id is not null)
                         and sm.picking_type_id is not null
                 union
-                    select
-                    mq.move_id,
-                    mq.picking_id
-                from
-                    move_qties mq
+                    select distinct
+                        sm.id as move_id,
+                        sm.picking_id as picking_id
+                    from
+                        stock_move sm
+                        left join stock_move smp on smp.move_dest_id = sm.id
+                        left join stock_move sms on sm.split_from = sms.id
+                        left join stock_move smps on smps.move_dest_id = sms.id
                     where
-                        mq.qty <= (
-                            select
-                                sum(qty)
-                            from
-                                stock_quant sq
-                            where
-                                sq.reservation_id is null
-                                and sq.location_id = mq.location_id
-                                and sq.product_id = mq.product_id)
-
+                        sm.state = 'waiting'
+                        and sm.picking_type_id is not null
+                        and smp.state = 'done' or smps.state = 'done'
+                union
+                    select
+                        mq.move_id,
+                        mq.picking_id
+                    from
+                        move_qties mq
+                        where
+                            mq.qty <= (
+                                select
+                                    sum(qty)
+                                from
+                                    stock_quant sq
+                                where
+                                    sq.reservation_id is null
+                                    and sq.location_id = mq.location_id
+                                    and sq.product_id = mq.product_id)
             ) foo
-
         )
         """)
 
