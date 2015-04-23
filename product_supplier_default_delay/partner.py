@@ -21,4 +21,4 @@ from openerp import fields, models, api
 
 class Partner(models.Model):
     _inherit = 'res.partner'
-    default_supply_delay = fields.Float(digits=(6, 2), help="Default supply delay", default=1)
+    default_supply_delay = fields.Integer(help="Default supply delay", default=1)
