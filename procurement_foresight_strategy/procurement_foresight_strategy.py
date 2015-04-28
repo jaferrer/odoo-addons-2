@@ -24,13 +24,13 @@ from openerp import fields, models, api, _
 class stock_warehouse (models.Model):
     _inherit = "stock.warehouse.orderpoint"
     fill_strategy = fields.Selection([('max',"Maximal quantity"),('duration','Foresight duration')],string="Procurement strategy",
-                                     help="Alert choice for a new procurement order",default="duration")
+                                     help="Alert choice for a new procurement order",default="max")
     fill_duration = fields.Integer(string="Foresight duration", help="Number of days" )
-    product_max_qty_operator = fields.Float(string='Maximum Quantity', required=True,
+    product_max_qty_operator = fields.Float(string='Maximum Quantity',
             digits_compute=dp.get_precision('Product Unit of Measure'),
             help="When the virtual stock goes below the Min Quantity, Odoo generates "\
             "a procurement to bring the forecasted quantity to the Quantity specified as Max Quantity.")
-    product_max_qty = fields.Float(compute='_get_max_qty')
+    product_max_qty = fields.Float(compute='_get_max_qty', inverse="_set_max_quantity")
 
     @api.one
     @api.depends('product_max_qty_operator', 'fill_strategy', 'fill_duration')
@@ -53,3 +53,8 @@ class stock_warehouse (models.Model):
                 if search_end_date >= move_date:
                     count += move.product_uom_qty
             self.product_max_qty = count
+
+    @api.one
+    def _set_max_quantity(self):
+        self.product_max_qty_operator = self.product_max_qty
+

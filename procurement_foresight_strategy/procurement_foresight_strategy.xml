@@ -11,13 +11,10 @@
                       <field name="fill_strategy" widget="radio"/>
                       <field name="fill_duration"/>
                   </field>
-                  <field name="product_max_qty" position="replace">
-                      <field name="product_max_qty_operator"/>
-                  </field>
                   <field name="fill_duration" position="attributes">
                      <attribute name="attrs">{'invisible': [('fill_strategy','!=','duration')]}</attribute>
                   </field>
-                  <field name="product_max_qty_operator" position="attributes">
+                  <field name="product_max_qty" position="attributes">
                       <attribute name="attrs">{'invisible': [('fill_strategy','!=','max')]}</attribute>
                   </field>
               </field>

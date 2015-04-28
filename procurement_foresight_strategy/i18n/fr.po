@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 8.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-04-23 09:43+0000\n"
-"PO-Revision-Date: 2015-04-23 11:46+0100\n"
+"PO-Revision-Date: 2015-04-28 14:32+0100\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -39,7 +39,7 @@ msgid ""
 msgstr ""
 "\n"
 "Stratégie de prévision pour les approvisionnements\n"
-"==============================\n"
+"==================================================\n"
 "Ce module autorise deux stratégies pour les demandes d'approvisionnement.\n"
 "La stratégie de la quantité maximale les calcule en fonction d'une quantité maximale demandée à l'opérateur.\n"
 "La stratégie de prévoyance calcule cette quantité maximale en fonction des mouvements de stock déjà prévus pendant la durée de couverture demandée à l'opérateur.\n"
@@ -60,11 +60,6 @@ msgid "Foresight duration"
 msgstr "Durée de couverture"
 
 #. module: procurement_foresight_strategy
-#: help:stock.warehouse.orderpoint,product_max_qty_operator:0
-msgid "When the virtual stock goes below the Min Quantity, Odoo generates a procurement to bring the forecasted quantity to the Quantity specified as Max Quantity."
-msgstr "Quand le stock virtuel descend en dessous de la quantité minimale, Odoo génère une demande d'approvisionnement pour ramener la quantité prévue à la quantité maximale."
-
-#. module: procurement_foresight_strategy
 #: help:stock.warehouse.orderpoint,fill_duration:0
 msgid "Number of days"
 msgstr "Nombre de jours"
@@ -75,7 +70,12 @@ msgid "Procurement strategy"
 msgstr "Stratégie d'approvisionnement"
 
 #. module: procurement_foresight_strategy
-#: field:stock.warehouse.orderpoint,product_max_qty_operator:0
+#: help:stock.warehouse.orderpoint,product_max_qty:0
+msgid "When the virtual stock goes below the Min Quantity, Odoo generates a procurement to bring the forecasted quantity to the Quantity specified as Max Quantity."
+msgstr "Quand le stock virtuel descend en dessous de la quantité minimale, Odoo génère une demande d'approvisionnement pour ramener la quantité prévue à la quantité maximale."
+
+#. module: procurement_foresight_strategy
+#: field:stock.warehouse.orderpoint,product_max_qty:0
 msgid "Maximum Quantity"
 msgstr "Quantité Maximale"
 
@@ -83,3 +83,4 @@ msgstr "Quantité Maximale"
 #: field:stock.warehouse.orderpoint,fill_duration:0
 msgid "Foresight duration"
 msgstr "Durée de couverture"
+
