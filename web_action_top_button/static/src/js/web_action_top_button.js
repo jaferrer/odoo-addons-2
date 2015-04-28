@@ -1,5 +1,7 @@
 openerp.web_action_top_button = function(instance){
 
+    var _t = instance.web._t;
+
     instance.web.Sidebar.include({
 
         init: function(parent) {

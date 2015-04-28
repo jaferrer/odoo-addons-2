@@ -30,8 +30,7 @@ class stock_auto_move_move(models.Model):
         super(stock_auto_move_move, self).action_assign()
         # picking_env = self.env['stock.picking']
         # Transfer all pickings which have an auto move assigned
-        moves_ids = [m.id for m in self if m.state == 'assigned' and m.auto_move]
-        moves = self.browse(moves_ids)
+        moves = self.filtered(lambda m: m.state == 'assigned' and m.auto_move)
         picking_ids = {m.picking_id.id for m in moves}
         todo_pickings = self.env['stock.picking'].browse(picking_ids)
         # We create packing operations to keep packing if any

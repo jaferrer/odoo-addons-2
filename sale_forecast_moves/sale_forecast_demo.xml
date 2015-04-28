@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="product.product" id="produit_de_test">
+            <field name="name">Produit de test</field>
+            <field name="type">product</field>
+            <field name="uom_id" ref="product.product_uom_unit"/>
+        </record>
+
+    </data>
+</openerp>

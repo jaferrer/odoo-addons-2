@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,30 +18,21 @@
 #
 
 {
-    'name': 'Stock Performance Improved',
+    'name': 'No Auto-Subscription of Partners',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['stock'],
+    'category': 'Usability',
+    'depends': ['mail'],
     'description': """
-Stock Performance Improved
-==========================
-Odoo is naturally optimized for situations where the stock is plenty and moves made on request with a relatively short
-notice. This is typically the case of a retail store or a logistics company.
+No Auto-Subscription of Partners
+================================
+Automatically remove partners that are not users from automatic subscription to objects.
 
-However, there are other situations where the stock is kept to minimum but the forecast moves are known well in
-advance. This is typically the case of an industrial company with a long term planning applying just-in-time
-procurement.
-
-This module applies performance improvements by assigning stock moves to a stock picking at latest, that is only when
-it can be reserved.
+This tyically prevents customers from being automatically subscribed to their quotes, invoices, etc.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'security/ir.model.access.csv',
-        'stock_performance_improved_view.xml',
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,

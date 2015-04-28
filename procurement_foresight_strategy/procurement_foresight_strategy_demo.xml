@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="stock.config.settings" id="stock_config_settings_defaults">
+            <field name="group_stock_multiple_locations">1</field>
+        </record>
+        <function
+            model="stock.config.settings"
+            name="execute"
+            eval="[[ref('stock_config_settings_defaults')]]" />
+
+        <!-- #### Product ###### -->
+
+        <record id="test_product" model="product.product">
+            <field name="name">Test Product (Foresight strategy)</field>
+            <field name="default_code">TPS</field>
+            <field name="type">product</field>
+        </record>
+
+        <!-- ### Outgoing moves ### -->
+        <record id="outgoing_1" model="stock.move">
+            <field name="name">Outgoing 1</field>
+            <field name="picking_id"/>
+            <field name="product_id" ref="test_product"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="location_dest_id" ref="stock.stock_location_customers"/>
+            <field name="product_uom_qty">7</field>
+            <field name="state">confirmed</field>
+            <field name="date">2015-02-20 13:52:00</field>
+        </record>
+
+        <record id="outgoing_2" model="stock.move">
+            <field name="name">Outgoing 2</field>
+            <field name="picking_id"/>
+            <field name="product_id" ref="test_product"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="location_dest_id" ref="stock.stock_location_customers"/>
+            <field name="product_uom_qty">5</field>
+            <field name="state">waiting</field>
+            <field name="date">2015-02-20 13:53:00</field>
+        </record>
+
+        <record id="outgoing_3" model="stock.move">
+            <field name="name">Outgoing 2</field>
+            <field name="picking_id"/>
+            <field name="product_id" ref="test_product"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="location_dest_id" ref="stock.stock_location_customers"/>
+            <field name="product_uom_qty">10</field>
+            <field name="state">confirmed</field>
+            <field name="date">2015-02-20 13:54:00</field>
+        </record>
+
+    </data>
+</openerp>

@@ -105,7 +105,7 @@ class procurement_order_qty(models.Model):
                         need = op.get_next_need()
                 except OperationalError:
                     if use_new_cursor:
-                        orderpoint_ids = orderpoint_ids | op
+                        orderpoint_ids = orderpoint_ids | orderpoints
                         new_env.cr.rollback()
                         continue
                     else:
