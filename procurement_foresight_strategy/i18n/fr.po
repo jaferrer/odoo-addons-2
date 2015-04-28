@@ -1,0 +1,86 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* procurement_foresight_strategy
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-04-23 09:43+0000\n"
+"PO-Revision-Date: 2015-04-28 14:32+0100\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 1.7.5\n"
+
+#. module: procurement_foresight_strategy
+#: model:ir.model,name:procurement_foresight_strategy.model_stock_warehouse_orderpoint
+msgid "Minimum Inventory Rule"
+msgstr "Règle de stock minimum"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_procurement_foresight_strategy
+msgid "Procurement foresight strategy"
+msgstr "Stratégie de prévoyance pour les approvisionnements"
+
+#. module: base
+#: model:ir.module.module,description:base.module_procurement_foresight_strategy
+msgid ""
+"\n"
+"Procurement Foresight Strategy\n"
+"==============================\n"
+"This modules gives two possibilities for procurement orders.\n"
+"Max quantity strategy makes procurements orders according to a maximum quantity.\n"
+"Foresight strategy calculates this maximum quantity according to the scheduled stock moves during the period given by the user\n"
+msgstr ""
+"\n"
+"Stratégie de prévision pour les approvisionnements\n"
+"==================================================\n"
+"Ce module autorise deux stratégies pour les demandes d'approvisionnement.\n"
+"La stratégie de la quantité maximale les calcule en fonction d'une quantité maximale demandée à l'opérateur.\n"
+"La stratégie de prévoyance calcule cette quantité maximale en fonction des mouvements de stock déjà prévus pendant la durée de couverture demandée à l'opérateur.\n"
+
+#. module: procurement_foresight_strategy
+#: help:stock.warehouse.orderpoint,fill_strategy:0
+msgid "Alert choice for a new procurement order"
+msgstr "Choix du mode de déclenchement pour une nouvelle demande d'approvisionnement"
+
+#. module: procurement_foresight_strategy
+#: selection:stock.warehouse.orderpoint,fill_strategy:0
+msgid "Maximal quantity"
+msgstr "Quantité maximale"
+
+#. module: procurement_foresight_strategy
+#: selection:stock.warehouse.orderpoint,fill_strategy:0
+msgid "Foresight duration"
+msgstr "Durée de couverture"
+
+#. module: procurement_foresight_strategy
+#: help:stock.warehouse.orderpoint,fill_duration:0
+msgid "Number of days"
+msgstr "Nombre de jours"
+
+#. module: procurement_foresight_strategy
+#: field:stock.warehouse.orderpoint,fill_strategy:0
+msgid "Procurement strategy"
+msgstr "Stratégie d'approvisionnement"
+
+#. module: procurement_foresight_strategy
+#: help:stock.warehouse.orderpoint,product_max_qty:0
+msgid "When the virtual stock goes below the Min Quantity, Odoo generates a procurement to bring the forecasted quantity to the Quantity specified as Max Quantity."
+msgstr "Quand le stock virtuel descend en dessous de la quantité minimale, Odoo génère une demande d'approvisionnement pour ramener la quantité prévue à la quantité maximale."
+
+#. module: procurement_foresight_strategy
+#: field:stock.warehouse.orderpoint,product_max_qty:0
+msgid "Maximum Quantity"
+msgstr "Quantité Maximale"
+
+#. module: procurement_foresight_strategy
+#: field:stock.warehouse.orderpoint,fill_duration:0
+msgid "Foresight duration"
+msgstr "Durée de couverture"
+
