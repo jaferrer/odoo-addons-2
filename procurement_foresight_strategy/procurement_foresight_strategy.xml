@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+   <openerp>
+      <data>
+          <record model="ir.ui.view" id="sirail_stock_warehouse_orderpoint_form">
+              <field name="name">sirail.stock.warehouse.orderpoint.form</field>
+              <field name="model">stock.warehouse.orderpoint</field>
+              <field name="inherit_id" ref="stock.view_warehouse_orderpoint_form"/>
+              <field name="priority" eval="16"/>
+              <field name="arch" type="xml">
+                  <field name="product_min_qty" position="after">
+                      <field name="fill_strategy" widget="radio"/>
+                      <field name="fill_duration"/>
+                  </field>
+                  <field name="product_max_qty" position="replace">
+                      <field name="product_max_qty_operator"/>
+                  </field>
+                  <field name="fill_duration" position="attributes">
+                     <attribute name="attrs">{'invisible': [('fill_strategy','!=','duration')]}</attribute>
+                  </field>
+                  <field name="product_max_qty_operator" position="attributes">
+                      <attribute name="attrs">{'invisible': [('fill_strategy','!=','max')]}</attribute>
+                  </field>
+              </field>
+          </record>
+      </data>
+   </openerp>
