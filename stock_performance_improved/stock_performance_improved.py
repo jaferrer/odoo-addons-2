@@ -83,7 +83,6 @@ class stock_move(models.Model):
         Overridden here to also assign a picking if it is not done yet.
         """
         moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
-        # TODO Check here the problem with waiting moves not being assigned a picking
         moves_no_pick.action_confirm()
         super(stock_move, self).action_assign()
 
