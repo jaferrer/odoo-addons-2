@@ -40,6 +40,7 @@ it can be reserved.
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
+        'stock_performance_improved_view.xml',
     ],
     'demo': [],
     'test': [],

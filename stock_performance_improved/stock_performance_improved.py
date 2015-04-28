@@ -25,13 +25,15 @@ class stock_picking_performance_improved(models.Model):
     _inherit = 'stock.picking'
 
     @api.model
-    def _assign_moves_to_picking(self):
+    def assign_moves_to_picking(self):
         """Assign prereserved moves that do not belong to a picking yet to a picking by reconfirming them.
         """
         prereservations = self.env['stock.prereservation'].search([('picking_id','=',False)])
-        # todo_move_ids = [p.move_id for p in prereservations]
         todo_moves = prereservations.mapped(lambda p: p.move_id)
+        to_assign_moves = todo_moves.filtered(lambda m: m.state == 'assigned')
         todo_moves.action_confirm()
+        # We reassign moves that were assigned beforehand because action_confirmed changed the state
+        to_assign_moves.action_assign()
 
     @api.multi
     def action_assign(self):
@@ -42,7 +44,7 @@ class stock_picking_performance_improved(models.Model):
         Overridden here to assign prereserved moves to pickings beforehand.
         :return: True
         """
-        self._assign_moves_to_picking()
+        self.assign_moves_to_picking()
         return super(stock_picking_performance_improved, self).action_assign()
 
     @api.multi
@@ -51,7 +53,7 @@ class stock_picking_performance_improved(models.Model):
         This can be used to provide a button that rereserves taking into account the existing pack operations
         Overridden here to assign prereserved moves to pickings beforehand
         """
-        self._assign_moves_to_picking()
+        self.assign_moves_to_picking()
         super(stock_picking_performance_improved, self).rereserve_pick()
 
 
@@ -81,6 +83,7 @@ class stock_move(models.Model):
         Overridden here to also assign a picking if it is not done yet.
         """
         moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
+        # TODO Check here the problem with waiting moves not being assigned a picking
         moves_no_pick.action_confirm()
         super(stock_move, self).action_assign()
 
