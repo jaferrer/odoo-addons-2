@@ -18,12 +18,14 @@
 
 
 import openerp.addons.decimal_precision as dp
-from datetime import timedelta, date
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
+from datetime import datetime
+
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp import fields, models, api, _
 
 class stock_warehouse (models.Model):
     _inherit = "stock.warehouse.orderpoint"
+
     fill_strategy = fields.Selection([('max',"Maximal quantity"),('duration','Foresight duration')],
                                      string="Procurement strategy", help="Alert choice for a new procurement order",
                                      default="max")
@@ -40,13 +42,21 @@ class stock_warehouse (models.Model):
         if self.fill_strategy == 'max':
             self.product_max_qty = self.product_max_qty_operator
         else:
-            date_today = date.today()
-            time_delta = timedelta(self.fill_duration)
-            search_end_date = date.strptime(date_today + time_delta, DEFAULT_SERVER_DATE_FORMAT)
+            warehouse_id = self.env['stock.warehouse'].browse(self.location_id.get_warehouse(self.location_id))
+            resource_id = warehouse_id and warehouse_id.resource_id or False
+            if resource_id:
+                calendar_id = warehouse_id.resource_id.calendar_id
+            else:
+                calendar_id = self.env.user.company_id.calendar_id
+            if not calendar_id:
+                calendar_id = self.env.ref("stock_working_days.default_calendar")
+            search_end_date = self.env['procurement.order']._schedule_working_days(self.fill_duration, datetime.now(),
+                                                                                   resource_id, calendar_id)
+
             moves = self.env['stock.move'].search([('product_id', '=', self.product_id.id),
                                                    ('location_id', '=', self.location_id.id),
                                                    ('state', 'in', ['confirmed', 'waiting']),
-                                                   ('date','<=',search_end_date)])
+                                                ('date','<=',search_end_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT))])
             self.product_max_qty = sum([m.product_qty for m in moves])
 
     @api.one

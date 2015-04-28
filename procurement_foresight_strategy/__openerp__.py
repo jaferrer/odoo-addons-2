@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Product',
-    'depends': ['purchase','base','product','stock'],
+    'depends': ['stock','stock_working_days'],
     'description': """
 Procurement Foresight Strategy
 ==============================
@@ -34,7 +34,9 @@ Foresight strategy calculates this maximum quantity according to the scheduled s
     'website': 'http://www.ndp-systemes.fr',
     'data': [
              'procurement_foresight_strategy.xml'],
-    'demo': [],
+    'demo': [
+        'procurement_foresight_strategy_demo.xml',
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,
