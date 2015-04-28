@@ -19,12 +19,14 @@
 
 import openerp.addons.decimal_precision as dp
 from datetime import timedelta, date
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp import fields, models, api, _
 
 class stock_warehouse (models.Model):
     _inherit = "stock.warehouse.orderpoint"
-    fill_strategy = fields.Selection([('max',"Maximal quantity"),('duration','Foresight duration')],string="Procurement strategy",
-                                     help="Alert choice for a new procurement order",default="max")
+    fill_strategy = fields.Selection([('max',"Maximal quantity"),('duration','Foresight duration')],
+                                     string="Procurement strategy", help="Alert choice for a new procurement order",
+                                     default="max")
     fill_duration = fields.Integer(string="Foresight duration", help="Number of days" )
     product_max_qty_operator = fields.Float(string='Maximum Quantity',
             digits_compute=dp.get_precision('Product Unit of Measure'),
@@ -38,21 +40,14 @@ class stock_warehouse (models.Model):
         if self.fill_strategy == 'max':
             self.product_max_qty = self.product_max_qty_operator
         else:
-            def convert_date(odoo_date):
-                day = int(odoo_date[8:10])
-                month = int(odoo_date[5:7])
-                year = int(odoo_date[:4])
-                return(date(year, month, day))
-            moves = self.env['stock.move'].search([('product_id', '=', self.product_id.id), ('location_id', '=', self.location_id.id), ('state', 'in', ['confirmed', 'waiting'])])
             date_today = date.today()
             time_delta = timedelta(self.fill_duration)
-            search_end_date = date_today + time_delta
-            count = 0
-            for move in moves:
-                move_date = convert_date(move.date_expected)
-                if search_end_date >= move_date:
-                    count += move.product_uom_qty
-            self.product_max_qty = count
+            search_end_date = date.strptime(date_today + time_delta, DEFAULT_SERVER_DATE_FORMAT)
+            moves = self.env['stock.move'].search([('product_id', '=', self.product_id.id),
+                                                   ('location_id', '=', self.location_id.id),
+                                                   ('state', 'in', ['confirmed', 'waiting']),
+                                                   ('date','<=',search_end_date)])
+            self.product_max_qty = sum([m.product_qty for m in moves])
 
     @api.one
     def _set_max_quantity(self):
