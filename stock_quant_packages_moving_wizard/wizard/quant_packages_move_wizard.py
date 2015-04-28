@@ -1,4 +1,9 @@
 # -*- coding: utf8 -*-
+
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in root directory
+##############################################################################
+
 #
 # Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
@@ -27,6 +32,12 @@ class StockQuantPackageMove(models.TransientModel):
         comodel_name='stock.quant.package.move_items', inverse_name='move_id',
         string='Packs')
 
+    global_dest_loc = fields.Many2one(
+        comodel_name='stock.location', string='Destination Location',
+        required=True)
+
+    picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type')
+
     def default_get(self, cr, uid, fields, context=None):
         res = super(StockQuantPackageMove, self).default_get(
             cr, uid, fields, context=context)
@@ -48,15 +59,11 @@ class StockQuantPackageMove(models.TransientModel):
 
     @api.one
     def do_detailed_transfer(self):
-        for item in self.pack_move_items:
-            if item.dest_loc is not item.source_loc:
-                for quant in item.package.quant_ids:
-                    quant.move_to(item.dest_loc)
-                for package in item.package.children_ids:
-                    for quant in package.quant_ids:
-                        quant.move_to(item.dest_loc)
+        quants = self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc).mapped(lambda x: x.package.quant_ids)
+        quants.move_to(self.global_dest_loc, self.picking_type_id)
+        quants2 = (self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc)).mapped(lambda x: x.package.children_ids.quant_ids)
+        quants2.move_to(self.global_dest_loc, self.picking_type_id)
         return True
-
 
 class StockQuantPackageMoveItems(models.TransientModel):
     _name = 'stock.quant.package.move_items'
@@ -68,10 +75,9 @@ class StockQuantPackageMoveItems(models.TransientModel):
         comodel_name='stock.quant.package', string='Quant package',
         domain=[('parent_id', '=', False), ('location_id', '!=', False)])
     source_loc = fields.Many2one(
-        comodel_name='stock.location', string='Source Location', required=True)
+        comodel_name='stock.location', string='Source Location')
     dest_loc = fields.Many2one(
-        comodel_name='stock.location', string='Destination Location',
-        required=True)
+        comodel_name='stock.location', string='Destination Location')
 
     @api.one
     @api.onchange('package')

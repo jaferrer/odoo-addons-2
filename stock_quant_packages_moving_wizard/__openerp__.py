@@ -1,4 +1,22 @@
 # -*- coding: utf8 -*-
+
+##############################################################################
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published
+#    by the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see http://www.gnu.org/licenses/.
+#
+##############################################################################
+
 #
 # Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
@@ -18,7 +36,7 @@
 #
 
 {
-    'name': 'Product Warning on Stock Operations',
+    'name': 'Quants and packaging moving wizards',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
@@ -27,6 +45,11 @@
     "depends": [
         "stock",
     ],
+    'description': """
+Quants and packaging moving wizards
+===================================
+This module gives two possibilities to deplace quants. In one hand, you can do it by selecting them directly from "quants" menu, and in the other hand, by moving packages from "package" menu.
+""",
     "website": "http://www.ndp-systemes.fr",
     "contributors": [
         "Oihane Crucelaegui <oihanecrucelaegi@avanzosc.es>",
@@ -35,8 +58,8 @@
     ],
     "data": [
         "wizard/quant_move_wizard_view.xml",
-        "wizard/quants_move_wizard_view.xml",
         "wizard/quant_packages_move_wizard_view.xml",
+        "models/stock_move.xml",
     ],
     "installable": True,
 }

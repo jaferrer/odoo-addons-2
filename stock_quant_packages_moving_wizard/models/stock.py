@@ -1,4 +1,9 @@
 # -*- coding: utf8 -*-
+
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in root directory
+##############################################################################
+
 #
 # Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
@@ -23,19 +28,22 @@ from openerp import models, fields, api
 class StockQuant(models.Model):
     _inherit = 'stock.quant'
 
-    @api.one
-    def move_to(self, dest_location):
-        move_obj = self.env['stock.move']
-        new_move = move_obj.create({
-            'name': 'Move %s to %s' % (self.product_id.name,
-                                       dest_location.name),
-            'product_id': self.product_id.id,
-            'location_id': self.location_id.id,
-            'location_dest_id': dest_location.id,
-            'product_uom_qty': self.qty,
-            'product_uom': self.product_id.uom_id.id,
-            'date_expected': fields.Datetime.now(),
-            'date': fields.Datetime.now(),
-            'quant_ids': [(4, self.id)]
-        })
-        new_move.action_done()
+    @api.multi
+    def move_to(self, dest_location, picking_type_id):
+        move_recordset = self.env['stock.move']
+        for item in self:
+            new_move = self.env['stock.move'].create({
+                'name': 'Move %s to %s' % (item.product_id.name, dest_location.name),
+                'product_id': item.product_id.id,
+                'location_id': item.location_id.id,
+                'location_dest_id': dest_location.id,
+                'product_uom_qty': item.qty,
+                'product_uom': item.product_id.uom_id.id,
+                'date_expected': fields.Datetime.now(),
+                'date': fields.Datetime.now(),
+                'quant_ids': [(4, item.id)],
+                'picking_type_id': picking_type_id.id
+            })
+            move_recordset = move_recordset | new_move
+        move_recordset.action_done()
+        return move_recordset

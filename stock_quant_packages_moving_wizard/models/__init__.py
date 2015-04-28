@@ -1,4 +1,9 @@
 # -*- coding: utf8 -*-
+
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in root directory
+##############################################################################
+
 #
 # Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #

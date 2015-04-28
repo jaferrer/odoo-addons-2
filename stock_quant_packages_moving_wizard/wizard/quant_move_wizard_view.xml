@@ -9,14 +9,15 @@
                     <group>
                         <field name="global_dest_loc" string="Destination Location"/>
                     </group>
+                    <group>
+                        <field name="picking_type_id"/>
+                    </group>
                     <group groups="stock.group_tracking_lot">
                         <field name="pack_move_items"
                             nolabel="1">
                             <tree editable="bottom">
                                 <field name="quant" />
                                 <field name="source_loc" />
-                                <field name="dest_loc" />
-                                <field name="dest_loc2"/>
                             </tree>
                         </field>
                     </group>

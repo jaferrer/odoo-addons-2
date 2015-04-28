@@ -1,4 +1,9 @@
 # -*- coding: utf8 -*-
+
+##############################################################################
+# For copyright and license notices, see __openerp__.py file in root directory
+##############################################################################
+
 #
 # Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
@@ -31,6 +36,8 @@ class StockQuantMove(models.TransientModel):
         comodel_name='stock.location', string='Destination Location',
         required=True)
 
+    picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type')
+
     def default_get(self, cr, uid, fields, context=None):
         res = super(StockQuantMove, self).default_get(
             cr, uid, fields, context=context)
@@ -52,8 +59,8 @@ class StockQuantMove(models.TransientModel):
 
     @api.one
     def do_transfer(self):
-        for item in self.pack_move_items:
-            item.quant.move_to(item.dest_loc)
+        quants = self.pack_move_items.mapped(lambda x: x.quant)
+        quants.move_to(self.global_dest_loc, self.picking_type_id)
         return True
 
 
@@ -68,21 +75,10 @@ class StockQuantMoveItems(models.TransientModel):
         domain=[('package_id', '=', False)])
     source_loc = fields.Many2one(
         comodel_name='stock.location', string='Source Location', required=True)
-    # dest_loc = fields.Many2one(
-    #     comodel_name='stock.location', string='Destination Location',
-    #     required=True)
     dest_loc = fields.Many2one(
-        comodel_name='stock.location', string='Destination Location',
-        # compute='get_location'
-    )
+        comodel_name='stock.location', string='Destination Location')
 
     @api.one
     @api.onchange('quant')
     def onchange_quant(self):
         self.source_loc = self.quant.location_id
-
-    # @api.one
-    # @api.depends('self.move_id.global_dest_loc')
-    # def get_location(self):
-    #     corresponding_stock_quant_move = self.env['stock.quant.move'].search=([(self.move_id, 'in', 'pack_move_items')])
-    #     self.dest_loc = corresponding_stock_quant_move[0].global_dest_loc
