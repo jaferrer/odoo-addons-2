@@ -27,7 +27,7 @@ from openerp import fields, models, api, _
 class purchase_order_line_jit(models.Model):
     _inherit = 'purchase.order.line'
 
-    line_no = fields.Char("Line no.", help="Line number in the purchase order.")
+    line_no = fields.Integer("Line no.")
     ack_ref = fields.Char("Acknowledge Reference", help="Reference of the supplier's last reply to confirm the delivery"
                                                         " at the planned date")
     date_ack = fields.Date("Last Acknowledge Date",
@@ -81,6 +81,25 @@ class purchase_order_line_jit(models.Model):
             'res_id': self.id,
             'context': {}
         }
+
+
+    @api.model
+    def create(self, vals):
+        conflict = False
+        maximum = 0
+        if not vals.get('line_no', False):
+            list_line_no = [l.line_no for l in self.env['purchase.order'].browse(vals['order_id']).order_line]
+            if conflict:
+                theo_value = max(list_line_no) + 10
+            else:
+                theo_value = 10*(1 + len(self.env['purchase.order'].browse(vals['order_id']).order_line))
+                if list_line_no != []:
+                    maximum = max(list_line_no)
+                if maximum >= theo_value:
+                    conflict = True
+                    theo_value = max(list_line_no) + 10
+            vals['line_no'] = theo_value
+        return super(purchase_order_line_jit, self).create(vals)
 
 
 class procurement_order_purchase_jit(models.Model):
