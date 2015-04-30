@@ -29,14 +29,7 @@ class procurement_working_days(models.Model):
     @api.model
     def _get_date_planned(self, procurement):
         """Returns the planned date for the production.order to be made from this procurement."""
-        calendar_id, resource_id = procurement._get_move_calendar()
+        location = procurement.location_id or procurement.warehouse_id.view_location_id
         format_date_planned = datetime.strptime(procurement.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
-        date_planned = procurement._schedule_working_days(-procurement.product_id.produce_delay or 0.0,
-                                                          format_date_planned,
-                                                          resource_id,
-                                                          calendar_id)
-        date_planned = procurement._schedule_working_days(-procurement.company_id.manufacturing_lead,
-                                                          date_planned,
-                                                          resource_id,
-                                                          calendar_id)
-        return date_planned
+        days = procurement.product_id.produce_delay + procurement.company_id.manufacturing_lead
+        return location.schedule_working_days(-days, format_date_planned)
