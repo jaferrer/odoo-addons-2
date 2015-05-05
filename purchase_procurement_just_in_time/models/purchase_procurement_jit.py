@@ -27,7 +27,6 @@ def is_number(string):
     list = ['0','1','2','3','4','5','6','7','8','9']
     for letter in string:
         if letter not in list:
-            print(letter, 'not in list')
             return False
     return True
 
@@ -104,18 +103,14 @@ class purchase_order_line_jit(models.Model):
             for item in list:
                 if is_number(item):
                     list_line_no += [int(item)]
-                    print('list line no', list_line_no)
             if not conflict:
                 theo_value = 10*(1 + len(self.env['purchase.order'].browse(vals['order_id']).order_line))
                 if list_line_no != []:
                     maximum = max(list_line_no)
                 if maximum >= theo_value or theo_value in list_line_no:
                     conflict = True
-                    print('conflict', conflict)
                     theo_value = max(list_line_no) + 10
-                    print('theo value', theo_value)
             if conflict:
-                print('conflict', conflict)
                 theo_value = max(list_line_no) + 10
             vals['line_no'] = str(theo_value)
         return super(purchase_order_line_jit, self).create(vals)
