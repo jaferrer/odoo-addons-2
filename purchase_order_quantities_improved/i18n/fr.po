@@ -1,0 +1,70 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* purchase_order_quantities_improved
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-04 12:52+0000\n"
+"PO-Revision-Date: 2015-05-04 14:53+0100\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 1.7.5\n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_purchase_order_quantities_improved
+msgid "Improvement of purchase order quantities calculation"
+msgstr "Amélioration du processus de calcul des quantités à commander"
+
+#. module: base
+#: model:ir.module.module,description:base.module_purchase_order_quantities_improved
+msgid ""
+"\n"
+"Improvement of purchase order quantities calculation\n"
+"====================================================\n"
+"This module calculates the order quantities of each purchase order line in an improved way.\n"
+"It considers all the procurement orders related to a purchase order line, calculates the global need, and sets the purchase quantity to a value which is higher or equal to the minimum purchase order of this product, for the supplier considered.\n"
+"Furthermore, it sets the purchase quantity to a multiple of the number of articles contained in the standard packaging.\n"
+msgstr ""
+"\n"
+"Amélioration du processus de calcul des quantités à commander\n"
+"=============================================================\n"
+"Ce module améliore le processus de calcul des quantités à commander pour chaque ligne de demande d'achat.\n"
+"Il prend en compte toutes les demandes d'approvisionnement liées à une ligne d'achat, calcule le besoin global, et entre une quantité à commander qui est supérieure ou égale à la quantité minimale d'achat, pour l'article et le fournisseur considérés.\n"
+"De plus, il commande toujours une quantité multiple du nombre d'articles contenus dans le conditionnement standard.\n"
+
+#. module: purchase_order_quantities_improved
+#: model:ir.model,name:purchase_order_quantities_improved.model_product_supplierinfo
+msgid "Information about a product supplier"
+msgstr "Information sur le fournisseur de l'article"
+
+#. module: purchase_order_quantities_improved
+#: field:product.supplierinfo,packaging_qty:0
+msgid "Packaging qty"
+msgstr "Quantité du conditionnement standard"
+
+#. module: purchase_order_quantities_improved
+#: view:product.supplierinfo:0
+msgid "Packaging quantity"
+msgstr "Quantité du conditionnement standard"
+
+#. module: purchase_order_quantities_improved
+#: model:ir.model,name:purchase_order_quantities_improved.model_procurement_order
+msgid "Procurement"
+msgstr "Approvisionnement"
+
+#. module: purchase_order_quantities_improved
+#: model:ir.model,name:purchase_order_quantities_improved.model_purchase_order_line
+msgid "Purchase Order Line"
+msgstr "Ligne de commande d'achat"
+
+#. module: purchase_order_quantities_improved
+#: help:product.supplierinfo,packaging_qty:0
+msgid "Quantity in the standard packaging"
+msgstr "Quantité du conditionnement standard"
