@@ -23,11 +23,10 @@ from dateutil.relativedelta import relativedelta
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp import fields, models, api, _
 
-
 class purchase_order_line_jit(models.Model):
     _inherit = 'purchase.order.line'
 
-    line_no = fields.Char("Line no.", help="Line number in the purchase order.")
+    line_no = fields.Char("Line no.")
     ack_ref = fields.Char("Acknowledge Reference", help="Reference of the supplier's last reply to confirm the delivery"
                                                         " at the planned date")
     date_ack = fields.Date("Last Acknowledge Date",
@@ -76,11 +75,31 @@ class purchase_order_line_jit(models.Model):
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'purchase.order.line',
-            'name': _("Purchase Order Line: %s") % self.line_no,
+            'name': _("Purchase Order Line: %s") % int(self.line_no),
             'views': [(False, "form")],
             'res_id': self.id,
             'context': {}
         }
+
+
+    @api.model
+    def create(self, vals):
+        maximum = 0
+        if not vals.get('line_no', False):
+            list_line_no = []
+            order = self.env['purchase.order'].browse(vals['order_id'])
+            for item in [l.line_no for l in order.order_line]:
+                try:
+                    list_line_no.append(int(item))
+                except ValueError:
+                    pass
+            theo_value = 10*(1 + len(self.env['purchase.order'].browse(vals['order_id']).order_line))
+            if list_line_no != []:
+                maximum = max(list_line_no)
+            if maximum >= theo_value or theo_value in list_line_no:
+                theo_value = maximum + 10
+            vals['line_no'] = str(theo_value)
+        return super(purchase_order_line_jit, self).create(vals)
 
 
 class procurement_order_purchase_jit(models.Model):
