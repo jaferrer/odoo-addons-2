@@ -48,7 +48,7 @@ class purchase_line(models.Model):
             self.ensure_one()
             global_need = sum([item.product_qty for item in self.procurement_ids]) + vals['product_qty'] - self.product_qty
             global_need = max(self.product_id.seller_qty, global_need)
-            packaging_number = self.product_id.seller_ids.packaging_qty
+            packaging_number = self.product_id.seller_ids[0].packaging_qty
             if packaging_number == 0:
                 packaging_number = 1
             if global_need % packaging_number != 0:
@@ -61,8 +61,8 @@ class purchase_line(models.Model):
         if self.env.context.get('recalculate'):
             global_need = vals['product_qty']
             product = self.env['product.product'].browse(vals['product_id'])
-            minimum_quantity = product.seller_ids.min_qty
-            packaging_number = product.seller_ids.packaging_qty
+            minimum_quantity = product.seller_ids[0].min_qty
+            packaging_number = product.seller_ids[0].packaging_qty
             global_need = max(minimum_quantity, global_need)
             if packaging_number == 0:
                 packaging_number = 1
