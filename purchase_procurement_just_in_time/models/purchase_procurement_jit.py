@@ -23,14 +23,6 @@ from dateutil.relativedelta import relativedelta
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp import fields, models, api, _
 
-def is_number(string):
-    list = ['0','1','2','3','4','5','6','7','8','9']
-    for letter in string:
-        if letter not in list:
-            return False
-    return True
-
-
 class purchase_order_line_jit(models.Model):
     _inherit = 'purchase.order.line'
 
@@ -92,7 +84,6 @@ class purchase_order_line_jit(models.Model):
 
     @api.model
     def create(self, vals):
-        conflict = False
         maximum = 0
         if not vals.get('line_no', False):
             list_line_no = []
@@ -100,18 +91,16 @@ class purchase_order_line_jit(models.Model):
             order = self.env['purchase.order'].browse(vals['order_id'])
             for line in order.order_line:
                 list += [line.line_no]
-            for item in list:
-                if is_number(item):
-                    list_line_no += [int(item)]
-            if not conflict:
-                theo_value = 10*(1 + len(self.env['purchase.order'].browse(vals['order_id']).order_line))
-                if list_line_no != []:
-                    maximum = max(list_line_no)
-                if maximum >= theo_value or theo_value in list_line_no:
-                    conflict = True
-                    theo_value = max(list_line_no) + 10
-            if conflict:
-                theo_value = max(list_line_no) + 10
+            for item in [l.line_no for l in order.order_line]:
+                try:
+                    list_line_no.append(int(item))
+                except ValueError:
+                    pass
+            theo_value = 10*(1 + len(self.env['purchase.order'].browse(vals['order_id']).order_line))
+            if list_line_no != []:
+                maximum = max(list_line_no)
+            if maximum >= theo_value or theo_value in list_line_no:
+                theo_value = maximum + 10
             vals['line_no'] = str(theo_value)
         return super(purchase_order_line_jit, self).create(vals)
 
