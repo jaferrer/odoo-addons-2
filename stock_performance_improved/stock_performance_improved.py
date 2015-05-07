@@ -73,9 +73,40 @@ class stock_move(models.Model):
         prereserved_moves = prereservations.mapped(lambda p: p.move_id)
         outgoing_moves = self.filtered(lambda m: m.picking_type_id.code == 'outgoing')
         todo_moves = outgoing_moves | prereserved_moves
+        # Only assign prereserved or outgoing moves to pickings
         if todo_moves:
-            return super(stock_move, todo_moves)._picking_assign(procurement_group, location_from, location_to)
-        return True
+            # Use a SQL query as doing with the ORM will split it in different queries with id IN (,,)
+            # In the next version, the locations on the picking should be stored again.
+            query = """
+                SELECT stock_picking.id FROM stock_picking, stock_move
+                WHERE
+                    stock_picking.state in ('draft','waiting','confirmed','partially_available','assigned') AND
+                    stock_move.picking_id = stock_picking.id AND
+                    stock_move.location_id = %s AND
+                    stock_move.location_dest_id = %s AND
+            """
+            params = (location_from, location_to)
+            if not procurement_group:
+                query += "stock_picking.group_id IS NULL LIMIT 1"
+            else:
+                query += "stock_picking.group_id = %s LIMIT 1"
+                params += (procurement_group,)
+            self.env.cr.execute(query, params)
+            [pick_id] = self.env.cr.fetchone() or [None]
+            if not pick_id:
+                move = self[0]
+                values = {
+                    'origin': move.origin,
+                    'company_id': move.company_id and move.company_id.id or False,
+                    'move_type': move.group_id and move.group_id.move_type or 'direct',
+                    'partner_id': move.partner_id.id or False,
+                    'picking_type_id': move.picking_type_id and move.picking_type_id.id or False,
+                }
+                pick = self.env['stock.picking'].create(values)
+                pick_id = pick.id
+            return self.write({'picking_id': pick_id})
+        else:
+            return True
 
     @api.multi
     def action_assign(self):
