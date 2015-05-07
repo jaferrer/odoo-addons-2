@@ -87,10 +87,7 @@ class purchase_order_line_jit(models.Model):
         maximum = 0
         if not vals.get('line_no', False):
             list_line_no = []
-            list=[]
             order = self.env['purchase.order'].browse(vals['order_id'])
-            for line in order.order_line:
-                list += [line.line_no]
             for item in [l.line_no for l in order.order_line]:
                 try:
                     list_line_no.append(int(item))
