@@ -210,3 +210,36 @@ class procurement_working_days(models.Model):
         newdate = location.schedule_working_days(orderpoint.product_id.seller_delay or 0.0, start_date)
         return newdate.strftime(DEFAULT_SERVER_DATE_FORMAT)
 
+
+class stock_location_path_working_days(models.Model):
+    _inherit = 'stock.location.path'
+
+    @api.model
+    def _prepare_push_apply(self, rule, move):
+        res = super(stock_location_path_working_days, self)._prepare_push_apply(rule, move)
+        date = datetime.strptime(move.date_expected, DEFAULT_SERVER_DATETIME_FORMAT)
+        newdate = move.location_dest_id.schedule_working_days(rule.delay + 1 or 0, date)
+        res.update({
+            'date': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+            'date_expected': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+        })
+        return res
+
+    @api.model
+    def _apply(self, rule, move):
+        if rule.auto == 'transparent':
+            date = datetime.strptime(move.date_expected, DEFAULT_SERVER_DATETIME_FORMAT)
+            newdate = move.location_dest_id.schedule_working_days(rule.delay + 1 or 0, date)
+            old_dest_location = move.location_dest_id.id
+            move.write({
+                'date': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                'date_expected': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                'location_dest_id': rule.location_dest_id.id
+            })
+            #avoid looping if a push rule is not well configured
+            if rule.location_dest_id.id != old_dest_location:
+                #call again push_apply to see if a next step is defined
+                self.env['stock.move']._push_apply(move)
+        else:
+            super(stock_location_path_working_days, self)._apply(rule, move)
+

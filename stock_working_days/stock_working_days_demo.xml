@@ -54,6 +54,13 @@
             <field name="usage">internal</field>
         </record>
 
+        <record id="stock_location_c" model="stock.location">
+            <field name="name">Location C</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
         <record model="stock.location.route" id="test_route">
             <field name="name">Test route</field>
             <field name="active">1</field>
@@ -83,6 +90,16 @@
             <field name="procure_method">make_to_stock</field>
             <field name="delay">5</field>
             <field name="location_src_id" ref="stock_location_a"/>
+        </record>
+
+        <record model="stock.location.path" id="stock_location_path_c_to_b">
+            <field name="name">C => B pushed</field>
+            <field name="location_from_id" ref="stock_location_c"/>
+            <field name="location_dest_id" ref="stock_location_b"/>
+            <field name="picking_type_id" ref="stock.picking_type_internal"/>
+            <field name="auto">manual</field>
+            <field name="delay">5</field>
+            <field name="route_id" ref="test_route"/>
         </record>
 
         <record model="stock.location.route" id="test_route_dow">
