@@ -79,8 +79,10 @@ class purchase_order_line_working_days(models.Model):
         """
         order_date = datetime.strptime(date_order_str, DEFAULT_SERVER_DATETIME_FORMAT)
         # We add one day to supplier dalay because day scheduling counts the first day
-        supplier_delay = int(supplier_info.delay) + 1 if supplier_info else 0
-        return supplier_info.name.schedule_working_days(supplier_delay, order_date)
+        if supplier_info:
+            return supplier_info.name.schedule_working_days(int(supplier_info.delay) + 1, order_date)
+        else:
+            return order_date
 
 
 class purchase_working_days(models.Model):
