@@ -32,10 +32,9 @@ class procurement_order_planning_improved(models.Model):
         """Reschedules the moves associated to this procurement."""
         for proc in self:
             if proc.state not in ['done', 'cancel'] and proc.rule_id and proc.rule_id.action == 'move':
-                calendar_id, resource_id = proc._get_move_calendar()
+                location = proc.location_id or proc.warehouse_id.location_id
                 proc_date = datetime.strptime(proc.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
-                newdate = proc._schedule_working_days(-proc.rule_id.delay or 0, proc_date, resource_id, calendar_id)
-                proc.move_ids.date = newdate
+                proc.move_ids.write({'date': location.schedule_working_days(-proc.rule_id.delay or 0, proc_date)})
 
 
 class stock_move_planning_improved(models.Model):

@@ -42,17 +42,7 @@ class stock_warehouse (models.Model):
         if self.fill_strategy == 'max':
             self.product_max_qty = self.product_max_qty_operator
         else:
-            warehouse_id = self.env['stock.warehouse'].browse(self.location_id.get_warehouse(self.location_id))
-            resource_id = warehouse_id and warehouse_id.resource_id or False
-            if resource_id:
-                calendar_id = warehouse_id.resource_id.calendar_id
-            else:
-                calendar_id = self.env.user.company_id.calendar_id
-            if not calendar_id:
-                calendar_id = self.env.ref("stock_working_days.default_calendar")
-            search_end_date = self.env['procurement.order']._schedule_working_days(self.fill_duration, datetime.now(),
-                                                                                   resource_id, calendar_id)
-
+            search_end_date = self.location_id.schedule_working_days(self.fill_duration, datetime.now())
             moves = self.env['stock.move'].search([('product_id', '=', self.product_id.id),
                                                    ('location_id', '=', self.location_id.id),
                                                    ('state', 'in', ['confirmed', 'waiting']),

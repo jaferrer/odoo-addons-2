@@ -31,6 +31,34 @@ class res_partner_with_calendar(models.Model):
                                        "calculating lead times. If undefined here the system will consider working "
                                        "days of the supplier being Monday to Friday.")
 
+    @api.multi
+    def schedule_working_days(self, nb_days, day_date):
+        """Returns the date that is nb_days working days after day_date in the context of the current supplier.
+
+        :param nb_days: int: The number of working days to add to day_date. If nb_days is negative, counting is done
+                             backwards.
+        :param day_date: datetime: The starting date for the scheduling calculation.
+        :return: The scheduled date nb_days after (or before) day_date.
+        :rtype : datetime
+        """
+        self.ensure_one()
+        if nb_days == 0:
+            return day_date
+
+        calendar = False
+        resource = self.resource_id
+        if resource:
+            calendar = resource.calendar_id
+        if not calendar:
+            calendar = self.env.ref("stock_working_days.default_calendar")
+
+        newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date,
+                                                  resource_id=resource and resource.id or False,
+                                                  compute_leaves=True)
+        if isinstance(newdate, (list, tuple)):
+            newdate = newdate[0]
+        return newdate
+
 
 class purchase_order_line_working_days(models.Model):
     _inherit = 'purchase.order.line'
@@ -52,42 +80,11 @@ class purchase_order_line_working_days(models.Model):
         order_date = datetime.strptime(date_order_str, DEFAULT_SERVER_DATETIME_FORMAT)
         # We add one day to supplier dalay because day scheduling counts the first day
         supplier_delay = int(supplier_info.delay) + 1 if supplier_info else 0
-        if supplier_delay == 0:
-            return order_date
-
-        calendar_id = False
-        supplier_id = supplier_info.name
-        resource_id = supplier_id and supplier_id.resource_id or False
-        if resource_id:
-            calendar_id = supplier_id.resource_id.calendar_id
-        if not calendar_id:
-            calendar_id = self.env.ref("stock_working_days.default_calendar")
-
-        newdate = calendar_id.schedule_days_get_date(supplier_delay, day_date=order_date,
-                                                      resource_id=resource_id and resource_id.id or False,
-                                                      compute_leaves=True)
-        # For some reason call with new api returns a list of 1 date instead of the date
-        if isinstance(newdate, (list, tuple)):
-            newdate = newdate[0]
-        return newdate
+        return supplier_info.name.schedule_working_days(supplier_delay, order_date)
 
 
 class purchase_working_days(models.Model):
     _inherit = "procurement.order"
-
-    def _get_supplier_calendar(self):
-        """Returns the applicable (calendar, resource) tuple to use for calculating supplier lead times.
-        The applicable calendar is the calendar of the resource defined for this supplier or the module's default
-        calendar which considers workings days as being Monday to Friday.
-        The applicable resource if the supplier's resource if defined."""
-        calendar_id = False
-        supplier_id = self._get_product_supplier(self)
-        resource_id = supplier_id and supplier_id.resource_id or False
-        if resource_id:
-            calendar_id = supplier_id.resource_id.calendar_id
-        if not calendar_id:
-            calendar_id = self.env.ref("stock_working_days.default_calendar")
-        return calendar_id, resource_id
 
     @api.model
     def _get_purchase_schedule_date(self, procurement, company):
@@ -101,9 +98,9 @@ class purchase_working_days(models.Model):
            :rtype: datetime
            :return: the desired Schedule Date for the PO lines
         """
-        calendar_id, resource_id = procurement._get_move_calendar()
         proc_date = datetime.strptime(procurement.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
-        schedule_date = procurement._schedule_working_days(-company.po_lead, proc_date, resource_id, calendar_id)
+        location = procurement.location_id or procurement.warehouse_id.view_location_id
+        schedule_date = location.schedule_working_days(-company.po_lead, proc_date)
         return schedule_date
 
     @api.model
@@ -118,9 +115,9 @@ class purchase_working_days(models.Model):
            :rtype: datetime
            :return: the desired Order Date for the PO
         """
-        calendar_id, resource_id = procurement._get_supplier_calendar()
         seller_delay = int(procurement.product_id.seller_delay)
-        order_date = procurement._schedule_working_days(-seller_delay, schedule_date, resource_id, calendar_id)
+        partner = procurement.product_id.seller_id
+        order_date = partner.schedule_working_days(-seller_delay, schedule_date)
         return order_date
 
 

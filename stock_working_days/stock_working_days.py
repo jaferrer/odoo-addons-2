@@ -128,6 +128,34 @@ class stock_working_days_location(models.Model):
             loc = loc.location_id
         return False
 
+    @api.multi
+    def schedule_working_days(self, nb_days, day_date):
+        """Returns the date that is nb_days working days after day_date in the context of the current location.
+
+        :param nb_days: int: The number of working days to add to day_date. If nb_days is negative, counting is done
+                             backwards.
+        :param day_date: datetime: The starting date for the scheduling calculation.
+        :return: The scheduled date nb_days after (or before) day_date.
+        :rtype : datetime
+        """
+        self.ensure_one()
+        if nb_days == 0:
+            return day_date
+        warehouse = self.env['stock.warehouse'].browse(self.get_warehouse(self))
+        resource = warehouse and warehouse.resource_id or False
+        if resource:
+            calendar = resource.calendar_id
+        else:
+            calendar = self.env.user.company_id.calendar_id
+        if not calendar:
+            calendar = self.env.ref("stock_working_days.default_calendar")
+        newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date,
+                                                  resource_id=resource and resource.id or False,
+                                                  compute_leaves=True)
+        if isinstance(newdate, (list, tuple)):
+            newdate = newdate[0]
+        return newdate
+
 
 class days_of_week_tags(models.Model):
     _name = 'resource.day_of_week'
@@ -149,48 +177,6 @@ class procurement_working_days(models.Model):
     _inherit = "procurement.order"
 
     @api.model
-    def _schedule_working_days(self, days, day_date, resource, calendar):
-        """Wrapper to call resource.calendar.schedule_days_get_date.
-
-        :param int days: number of days to schedule. Negative if backwards
-        :param datetime day_date: date to start scheduling from
-        :param record resource: resource to calculate specific leaves. If false, only general leaves are counted
-        :param record calendar: calendar to schedule on
-        :rtype datetime
-        """
-        if days == 0:
-            return day_date
-        if calendar:
-            newdate = calendar.schedule_days_get_date(days, day_date=day_date,
-                                                      resource_id=resource and resource.id or False,
-                                                      compute_leaves=True)
-        else:
-            raise except_orm(_("No calendar found!"),_("No calendar has been found to compute scheduling."))
-        # For some reason call with new api returns a list of 1 date instead of the date
-        if isinstance(newdate, (list, tuple)):
-            newdate = newdate[0]
-        return newdate
-
-    def _get_move_calendar(self):
-        """Returns the applicable (calendar, resource) tuple to use for stock move delay.
-        The applicable calendar is the calendar of the warehouse resource if the location is in a warehouse and this
-        warehouse has a resource, otherwise the company default calendar if it exists or the module's default calendar
-        which considers workings days as being Monday to Friday.
-        The applicable resource is the warehouse's resource if defined."""
-        if self.location_id:
-            warehouse_id = self.env['stock.warehouse'].browse(self.location_id.get_warehouse(self.location_id))
-        else:
-            warehouse_id = self.warehouse_id
-        resource_id = warehouse_id and warehouse_id.resource_id or False
-        if resource_id:
-            calendar_id = warehouse_id.resource_id.calendar_id
-        else:
-            calendar_id = self.env.user.company_id.calendar_id
-        if not calendar_id:
-            calendar_id = self.env.ref("stock_working_days.default_calendar")
-        return calendar_id, resource_id
-
-    @api.model
     def _run_move_create(self, procurement):
         ''' Returns a dictionary of values that will be used to create a stock move from a procurement.
         This function assumes that the given procurement has a rule (action == 'move') set on it.
@@ -200,12 +186,9 @@ class procurement_working_days(models.Model):
         :rtype: dictionary
         '''
         vals = super(procurement_working_days, self)._run_move_create(procurement)
-        calendar_id, resource_id = procurement._get_move_calendar()
         proc_date = datetime.strptime(procurement.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
-        newdate = procurement._schedule_working_days(-procurement.rule_id.delay or 0,
-                                                     proc_date,
-                                                     resource_id,
-                                                     calendar_id)
+        location = procurement.location_id or procurement.warehouse_id.view_location_id
+        newdate = location.schedule_working_days(-procurement.rule_id.delay or 0, proc_date)
         # Check if this is to be done only on some days of the week
         day_codes = [d.code for d in procurement.rule_id.days_of_week]
         if len(day_codes) != 0:
@@ -223,21 +206,7 @@ class procurement_working_days(models.Model):
 
     @api.model
     def _get_orderpoint_date_planned(self, orderpoint, start_date):
-        if orderpoint.location_id:
-            warehouse_id = self.env['stock.warehouse'].browse(
-                                                    orderpoint.location_id.get_warehouse(orderpoint.location_id))
-        else:
-            warehouse_id = orderpoint.warehouse_id
-        resource_id = warehouse_id and warehouse_id.resource_id or False
-        if resource_id:
-            calendar_id = warehouse_id.resource_id.calendar_id
-        else:
-            calendar_id = self.env.user.company_id.calendar_id
-        if not calendar_id:
-            calendar_id = self.env.ref("stock_working_days.default_calendar")
-        newdate = self._schedule_working_days(orderpoint.product_id.seller_delay or 0.0,
-                                                     start_date,
-                                                     resource_id,
-                                                     calendar_id)
+        location = orderpoint.location_id or orderpoint.warehouse_id.view_location_id
+        newdate = location.schedule_working_days(orderpoint.product_id.seller_delay or 0.0, start_date)
         return newdate.strftime(DEFAULT_SERVER_DATE_FORMAT)
 
