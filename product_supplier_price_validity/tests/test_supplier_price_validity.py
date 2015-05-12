@@ -117,6 +117,8 @@ class TestSupplierPriceValidity(common.TransactionCase):
 
         supplier1 = self.browse_ref('product_supplier_price_validity.supplier1')
         self.assertTrue(supplier1)
+        supplierinfo1 = self.browse_ref('product_supplier_price_validity.supplierinfo1')
+        self.assertTrue(supplierinfo1)
         product1 = self.browse_ref('product_supplier_price_validity.product1')
         self.assertTrue(product1)
         product1.route_ids = [(4, self.ref("purchase.route_warehouse0_buy"))]
@@ -151,6 +153,10 @@ class TestSupplierPriceValidity(common.TransactionCase):
             self.assertEqual(purchase_order_line.price_unit, result)
             purchase_order_line.order_id.unlink()
 
+        def test_active(number, value, date_today):
+            supplierinfo2 = supplierinfo1.with_context({'date': date_today})
+            self.assertEqual(supplierinfo2.pricelist_ids[number].is_active(), value)
+
         test(1.0, 14)
         test(9.0, 14)
         test(10.0, 12)
@@ -164,6 +170,19 @@ class TestSupplierPriceValidity(common.TransactionCase):
         test(9999.0, 8)
         test(10000.0, 5)
         test(10001.0, 5)
+
+        date_today = '2015-05-04 15:00:00'
+
+        test_active(0, True, date_today)
+        test_active(1, False, date_today)
+        test_active(2, True, date_today)
+        test_active(3, False, date_today)
+        test_active(4, False, date_today)
+        test_active(5, True, date_today)
+        test_active(6, True, date_today)
+        test_active(7, False, date_today)
+        test_active(8, False, date_today)
+        test_active(9, True, date_today)
 
         procurement_order_1.date_planned = "2017-05-04 15:00:00"
 
@@ -180,3 +199,16 @@ class TestSupplierPriceValidity(common.TransactionCase):
         test(9999.0, 8)
         test(10000.0, 5)
         test(10001.0, 5)
+
+        date_today = '2017-05-04 15:00:00'
+
+        test_active(0, False, date_today)
+        test_active(1, True, date_today)
+        test_active(2, False, date_today)
+        test_active(3, True, date_today)
+        test_active(4, True, date_today)
+        test_active(5, False, date_today)
+        test_active(6, True, date_today)
+        test_active(7, False, date_today)
+        test_active(8, False, date_today)
+        test_active(9, True, date_today)
