@@ -31,24 +31,29 @@ class product_supplierinfo_improved (models.Model):
 class pricelist_partnerinfo_improved (models.Model):
     _inherit = "pricelist.partnerinfo"
     validity_date = fields.Date("Validity date", help="Validity date from that date")
-    active = fields.Boolean("True if this rule is used", compute="_is_active")
+    # active = fields.Boolean("True if this rule is used", compute="_is_active")
     _order = 'min_quantity asc, validity_date asc'
 
-    @api.one
-    def _is_active(self):
+    @api.multi
+    def is_active(self):
+        self.ensure_one()
         context = self.env.context or {}
         reference_date = context.get('date') or time.strftime('%Y-%m-%d')
-        active_item = self
-        for item in self.suppinfo_id.pricelist_ids:
-            if item.validity_date <= reference_date or not item.validity_date:
-                if item.min_quantity != active_item.min_quantity:
-                    active_item.active = True
-                    active_item = item
-                    pass
-                else:
-                    if item.validity_date:
-                        active_item = item
-        active_item.active = True
+        active = True
+        list_line2 = self.suppinfo_id.pricelist_ids
+        list_line = []
+        for item in list_line2:
+            if item.min_quantity == self.min_quantity:
+                list_line += [item]
+        if self.validity_date and self.validity_date > reference_date:
+                active = False
+        for item in list_line:
+            if item.validity_date and item.validity_date > self.validity_date and item.validity_date <= reference_date:
+                active = False
+                break
+        return active
+
+
 
 class product_pricelist_improved(models.Model):
     _inherit="product.pricelist"
@@ -58,7 +63,11 @@ class product_pricelist_improved(models.Model):
         results = super(product_pricelist_improved, self)._price_rule_get_multi(pricelist, products_by_qty_by_partner)
         context = self.env.context or {}
         date = context.get('date') or time.strftime('%Y-%m-%d')
+        price = False
+        price_uom_id = False
+        qty_uom_id = False
         for product_id in results.keys():
+            rule_id = results[product_id][1]
             product = self.env['product.product'].browse(product_id)
             rule = self.env['product.pricelist.item'].browse((results[product_id])[1])
             product_uom_obj = self.env['product.uom']
@@ -66,7 +75,7 @@ class product_pricelist_improved(models.Model):
                 for product2, qty, partner in products_by_qty_by_partner:
                     if product2 == product:
                         results[product.id] = 0.0
-                        rule_id = False
+                        # rule_id = False
                         price = False
                         qty_uom_id = context.get('uom') or product.uom_id.id
                         price_uom_id = product.uom_id.id
@@ -101,8 +110,10 @@ class product_pricelist_improved(models.Model):
                                 else:
                                     break
                             price = good_pricelist.price
-                price = product_uom_obj._compute_price(price_uom_id, price, qty_uom_id)
-                results[product.id] = (price, rule_id)
+                        break
+                if price_uom_id and qty_uom_id and rule_id:
+                    price = product_uom_obj._compute_price(price_uom_id, price, qty_uom_id)
+                    results[product.id] = (price, rule_id)
         return results
 
 class procurement_order(models.Model):
