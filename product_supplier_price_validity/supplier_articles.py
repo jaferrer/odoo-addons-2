@@ -46,7 +46,7 @@ class pricelist_partnerinfo_improved (models.Model):
             if item.min_quantity == self.min_quantity:
                 list_line += [item]
         if self.validity_date and self.validity_date > reference_date:
-                active = False
+            return False
         for item in list_line:
             if item.validity_date and item.validity_date > self.validity_date and item.validity_date <= reference_date:
                 active = False
@@ -63,10 +63,10 @@ class product_pricelist_improved(models.Model):
         results = super(product_pricelist_improved, self)._price_rule_get_multi(pricelist, products_by_qty_by_partner)
         context = self.env.context or {}
         date = context.get('date') or time.strftime('%Y-%m-%d')
-        price = False
-        price_uom_id = False
-        qty_uom_id = False
         for product_id in results.keys():
+            price = False
+            price_uom_id = False
+            qty_uom_id = False
             rule_id = results[product_id][1]
             product = self.env['product.product'].browse(product_id)
             rule = self.env['product.pricelist.item'].browse((results[product_id])[1])
