@@ -34,13 +34,12 @@ class pricelist_partnerinfo_improved (models.Model):
     active = fields.Boolean("True if this rule is used", compute="_is_active")
     _order = 'min_quantity asc, validity_date asc'
 
-    @api.multi
+    @api.one
     def _is_active(self):
         context = self.env.context or {}
         reference_date = context.get('date') or time.strftime('%Y-%m-%d')
-        active_item = self[0]
-        for item in self[0].suppinfo_id.pricelist_ids:
-            item.active = False
+        active_item = self
+        for item in self.suppinfo_id.pricelist_ids:
             if item.validity_date <= reference_date or not item.validity_date:
                 if item.min_quantity != active_item.min_quantity:
                     active_item.active = True
@@ -64,20 +63,20 @@ class product_pricelist_improved(models.Model):
             rule = self.env['product.pricelist.item'].browse((results[product_id])[1])
             product_uom_obj = self.env['product.uom']
             if rule.base == -2:
-                for product, qty, partner in products_by_qty_by_partner:
-                    results[product.id] = 0.0
-                    rule_id = False
-                    price = False
-                    qty_uom_id = context.get('uom') or product.uom_id.id
-                    price_uom_id = product.uom_id.id
-                    if qty_uom_id != product.uom_id.id:
-                        try:
-                            qty_in_product_uom = product_uom_obj._compute_qty(
-                                context['uom'], qty, product.uom_id.id or product.uos_id.id)
-                        except except_orm:
-                            # Ignored - incompatible UoM in context, use default product UoM
-                            pass
-                    if rule.base == -2:
+                for product2, qty, partner in products_by_qty_by_partner:
+                    if product2 == product:
+                        results[product.id] = 0.0
+                        rule_id = False
+                        price = False
+                        qty_uom_id = context.get('uom') or product.uom_id.id
+                        price_uom_id = product.uom_id.id
+                        if qty_uom_id != product.uom_id.id:
+                            try:
+                                qty_in_product_uom = product_uom_obj._compute_qty(
+                                    context['uom'], qty, product.uom_id.id or product.uos_id.id)
+                            except except_orm:
+                                # Ignored - incompatible UoM in context, use default product UoM
+                                pass
                         seller = False
                         for seller_id in product.seller_ids:
                             if (not partner) or (seller_id.name.id != partner):
