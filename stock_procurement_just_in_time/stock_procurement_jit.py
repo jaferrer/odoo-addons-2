@@ -199,7 +199,7 @@ class stock_levels_report(models.Model):
                     where
                         sl.usage = 'internal'::text or sl.usage = 'transit'::text
                     group by sq.product_id, sq.location_id
-                union
+                union all
                     select
                         sm.product_id as product_id,
                         sm.location_dest_id as location_id,
@@ -215,7 +215,7 @@ class stock_levels_report(models.Model):
                         and sm.state::text <> 'cancel'::text
                         and sm.state::text <> 'done'::text
                         and sm.state::text <> 'draft'::text
-                union
+                union all
                     select
                         sm.product_id as product_id,
                         sm.location_id as location_id,
@@ -306,7 +306,7 @@ class stock_levels_requirements(models.Model):
                     where
                         sl.usage = 'internal'::text or sl.usage = 'transit'::text
                     group by sq.product_id, tp.top_parent_id
-                union
+                union all
                     select
                         sm.procurement_id as proc_id,
                         sm.product_id as product_id,
@@ -324,7 +324,7 @@ class stock_levels_requirements(models.Model):
                         and sm.state::text <> 'cancel'::text
                         and sm.state::text <> 'done'::text
                         and sm.state::text <> 'draft'::text
-                union
+                union all
                     select
                         NULL as proc_id,
                         sm.product_id as product_id,
@@ -342,7 +342,7 @@ class stock_levels_requirements(models.Model):
                         and sm.state::text <> 'cancel'::text
                         and sm.state::text <> 'done'::text
                         and sm.state::text <> 'draft'::text
-                union
+                union all
                     select
                         po.id as proc_id,
                         po.product_id as product_id,
