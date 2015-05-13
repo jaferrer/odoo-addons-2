@@ -117,10 +117,12 @@ class sale_forecast_moves_wizard(models.TransientModel):
                                 'location_dest_id': new_env.ref('stock.stock_location_customers').id,
                                 'prevision_move': True,
                                 'week': (i+1),
+                                'state': 'confirmed',
                                 })
                     list_of_expired_moves = this.env['stock.move'].search([('product_id','=',produit_id.id),
                                                                             ('prevision_move','=',True),
                                                                             ('week','>',weeks)])
+                    list_of_expired_moves.write({'state': 'draft'})
                     list_of_expired_moves.unlink()
                 except OperationalError:
                     if use_new_cursor:
