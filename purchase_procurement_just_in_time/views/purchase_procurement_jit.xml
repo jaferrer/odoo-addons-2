@@ -7,7 +7,9 @@
             <field name="model">purchase.order.line</field>
             <field name="priority" eval="15"/>
             <field name="arch" type="xml">
-                <tree string="Purchase Order Lines" editable="top" create="false" delete="false">
+                <tree string="Purchase Order Lines" editable="top" create="false" delete="false"
+                      colors="red:opmsg_type=='late';orange:opmsg_type=='early'">
+                    <field name="opmsg_type" invisible="1"/>
                     <field name="partner_id" string="Supplier"/>
                     <field name="order_id" readonly="1"/>
                     <field name="line_no" readonly="1"/>
