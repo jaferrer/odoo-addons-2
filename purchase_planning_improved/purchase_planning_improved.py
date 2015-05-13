@@ -54,7 +54,7 @@ class purchase_order_line_planning_improved(models.Model):
                                      "procurement, then this date is the date of the procurement.")
 
     @api.multi
-    @api.depends('procurement_ids','procurement_ids.date_planned','date_required')
+    @api.depends('procurement_ids','procurement_ids.date_planned','date_planned')
     def _compute_date_required(self):
         for rec in self:
             if rec.procurement_ids:
