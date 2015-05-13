@@ -1,0 +1,111 @@
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<openerp>
+    <data>
+
+        <!--allows the system to deal with different uom-->
+
+        <record model="stock.config.settings" id="stock_config_settings_defaults">
+            <field name="group_uom">1</field>
+        </record>
+        <function
+            model="stock.config.settings"
+            name="execute"
+            eval="[[ref('stock_config_settings_defaults')]]" />
+
+        <!--supplier-->
+
+        <record id="supplier1" model="res.partner">
+            <field name="name">Supplier 1 (Order Quantity Improved)</field>
+        </record>
+
+        <!--uom-->
+
+        <record id="purchase_uom" model="product.uom">
+            <field name="name">Purchase UOM (Order Quantity Improved)</field>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="12"/>
+            <field name="rounding" eval="0.01"/>
+            <field name="category_id" ref="product.product_uom_categ_unit"/>
+        </record>
+
+        <record id="procurement_uom" model="product.uom">
+            <field name="name">Procurement UOM (Order Quantity Improved)</field>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="2"/>
+            <field name="rounding" eval="0.01"/>
+            <field name="category_id" ref="product.product_uom_categ_unit"/>
+        </record>
+
+        <!--products-->
+
+        <record id="product1" model="product.product">
+            <field name="name">Test Product 1 (Order Quantity Improved)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record id="product2" model="product.product">
+            <field name="name">Test Product 2 (Order Quantity Improved)</field>
+            <field name="type">product</field>
+            <field name="uom_po_id" ref="purchase_uom"/>
+        </record>
+
+        <!--supplierinfo-->
+
+        <record id="supplierinfo1" model="product.supplierinfo">
+            <field name="name" ref="supplier1"/>
+            <field name="packaging_qty" eval="12"/>
+            <field name="min_qty" eval="36"/>
+            <field name="product_tmpl_id" ref="product1_product_template"/>
+        </record>
+
+        <record id="supplierinfo2" model="product.supplierinfo">
+            <field name="name" ref="supplier1"/>
+            <field name="packaging_qty" eval="2"/>
+            <field name="min_qty" eval="3"/>
+            <field name="product_tmpl_id" ref="product2_product_template"/>
+        </record>
+
+        <!--Procurement orders-->
+
+        <record id="procurement_order_1" model="procurement.order">
+            <field name="name">Procurement order 1</field>
+            <field name="product_id" ref="product1"/>
+            <field name="product_qty" eval="7"/>
+            <field name="warehouse_id" ref="stock.warehouse0"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="date_planned">2015-05-04 15:00:00</field>
+            <field name="product_uom" eval="1"/>
+        </record>
+
+        <record id="procurement_order_2" model="procurement.order">
+            <field name="name">Procurement order 2</field>
+            <field name="product_id" ref="product1"/>
+            <field name="product_qty" eval="40"/>
+            <field name="warehouse_id" ref="stock.warehouse0"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="date_planned">2015-05-04 15:00:00</field>
+            <field name="product_uom" eval="1"/>
+        </record>
+
+        <record id="procurement_order_3" model="procurement.order">
+            <field name="name">Procurement order 3</field>
+            <field name="product_id" ref="product1"/>
+            <field name="product_qty" eval="7"/>
+            <field name="warehouse_id" ref="stock.warehouse0"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="date_planned">2015-05-04 15:00:00</field>
+            <field name="product_uom" eval="1"/>
+        </record>
+
+        <record id="procurement_order_4" model="procurement.order">
+            <field name="name">Procurement order 4</field>
+            <field name="product_id" ref="product2"/>
+            <field name="product_qty" eval="3"/>
+            <field name="warehouse_id" ref="stock.warehouse0"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="date_planned">2015-05-04 15:00:00</field>
+            <field name="product_uom" ref="procurement_uom"/>
+        </record>
+
+    </data>
+</openerp>

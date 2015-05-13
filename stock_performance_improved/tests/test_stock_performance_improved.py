@@ -25,7 +25,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
 
     def setUp(self):
         super(TestStockPerformanceImproved, self).setUp()
-        self.product_a1232 = self.browse_ref("product.product_product_6")
+        self.product = self.browse_ref("product.product_product_27")
         self.location_stock = self.browse_ref("stock.stock_location_stock")
         self.location_shelf = self.browse_ref("stock.stock_location_components")
         self.location_shelf2 = self.browse_ref("stock.stock_location_14")
@@ -37,7 +37,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
         """Basic checks of picking assignment."""
         move = self.env['stock.move'].create({
             'name': "Test Performance Improved",
-            'product_id': self.product_a1232.id,
+            'product_id': self.product.id,
             'product_uom': self.product_uom_unit_id,
             'product_uom_qty': 12,
             'location_id': self.location_shelf.id,
@@ -49,7 +49,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
 
         move2 = self.env['stock.move'].create({
             'name': "Test Performance Improved",
-            'product_id': self.product_a1232.id,
+            'product_id': self.product.id,
             'product_uom': self.product_uom_unit_id,
             'product_uom_qty': 10,
             'location_id': self.location_shelf2.id,
@@ -68,7 +68,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
         """Test of linked moves."""
         move2 = self.env['stock.move'].create({
             'name': "Test Performance Improved",
-            'product_id': self.product_a1232.id,
+            'product_id': self.product.id,
             'product_uom': self.product_uom_unit_id,
             'product_uom_qty': 8,
             'location_id': self.location_shelf2.id,
@@ -77,7 +77,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
         })
         move = self.env['stock.move'].create({
             'name': "Test Performance Improved",
-            'product_id': self.product_a1232.id,
+            'product_id': self.product.id,
             'product_uom': self.product_uom_unit_id,
             'product_uom_qty': 8,
             'location_id': self.location_shelf.id,
@@ -92,3 +92,61 @@ class TestStockPerformanceImproved(common.TransactionCase):
         move.action_assign()
         move.action_done()
         self.assertTrue(move2.picking_id, "Move should have been assigned a picking when previous is done")
+
+    def test_30_check_picking(self):
+        """Check if the moves are assigned to the correct picking."""
+        move = self.env['stock.move'].create({
+            'name': "Test Performance Improved",
+            'product_id': self.product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 13,
+            'location_id': self.location_shelf.id,
+            'location_dest_id': self.location_shelf2.id,
+            'picking_type_id': self.picking_type_id,
+        })
+        move.action_confirm()
+        picking = move.picking_id
+        self.assertTrue(picking, "Move should have been assigned a picking.")
+        self.assertEqual(picking.state, 'confirmed')
+        move2 = self.env['stock.move'].create({
+            'name': "Test Performance Improved",
+            'product_id': self.product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 9,
+            'location_id': self.location_shelf.id,
+            'location_dest_id': self.location_shelf2.id,
+            'picking_type_id': self.picking_type_id,
+        })
+        move2.action_confirm()
+        self.assertEqual(move2.picking_id, picking, "Move should have been assigned the existing confirmed picking")
+        self.assertEqual(picking.state, 'confirmed')
+        picking.action_assign()
+        self.assertEqual(picking.state, 'assigned')
+        move3 = self.env['stock.move'].create({
+            'name': "Test Performance Improved",
+            'product_id': self.product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 4,
+            'location_id': self.location_shelf.id,
+            'location_dest_id': self.location_shelf2.id,
+            'picking_type_id': self.picking_type_id,
+        })
+        move3.action_confirm()
+        self.assertEqual(move3.picking_id, picking, "Move should have been assigned the existing assigned picking")
+        picking.do_transfer()
+        self.assertEqual(picking.state, 'done')
+        for m in [move, move2, move3]:
+            self.assertEqual(m.state, 'done')
+        move4 = self.env['stock.move'].create({
+            'name': "Test Performance Improved",
+            'product_id': self.product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 5,
+            'location_id': self.location_shelf.id,
+            'location_dest_id': self.location_shelf2.id,
+            'picking_type_id': self.picking_type_id,
+        })
+        move4.action_confirm()
+        self.assertTrue(move4.picking_id)
+        self.assertNotEqual(move4.picking_id, picking, "Move should have been assigned a new picking")
+

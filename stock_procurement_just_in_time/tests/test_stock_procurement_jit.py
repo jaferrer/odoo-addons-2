@@ -52,6 +52,9 @@ class TestStockProcurementJIT(common.TransactionCase):
 
     def test_20_procurement_jit_reschedule(self):
         """Check jit with rescheduling of confirmed procurement."""
+        # Check that procurement_jit is not installed, otherwise this test is useless
+        if self.env['ir.module.module'].search([('name','=','procurement_jit'),('state','=','installed')]):
+            self.skipTest("Procurement JIT module is installed")
         proc_env = self.env['procurement.order']
         proc0 = proc_env.create({
             'name': "Procurement 1",
@@ -149,12 +152,13 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[0], proc0)
         self.assertEqual(procs[0].date_planned, "2015-03-15 09:59:59")
         self.assertEqual(procs[0].product_qty, 4)
-        self.assertEqual(procs[0].state, 'confirmed')
+        if self.env['ir.module.module'].search([('name','=','procurement_jit'),('state','=','installed')]):
+            self.assertEqual(procs[0].state, 'running')
+        else:
+            self.assertEqual(procs[0].state, 'confirmed')
         self.assertEqual(procs[1].date_planned, "2015-03-20 09:59:59")
         self.assertEqual(procs[1].product_qty, 6)
         self.assertEqual(procs[1].state, 'running')
         self.assertEqual(procs[2].date_planned, "2015-03-25 09:59:59")
         self.assertEqual(procs[2].product_qty, 14)
         self.assertEqual(procs[2].state, 'running')
-
-

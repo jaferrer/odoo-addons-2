@@ -166,3 +166,21 @@ class TestStockWorkingDays(common.TransactionCase):
             self.assertEqual(move.date[0:10], '2015-01-14')
             self.assertEqual(move.date_expected[0:10], '2015-01-14')
 
+    def test_50_stock_location_path(self):
+        """Test push rules scheduling."""
+        move = self.env['stock.move'].create({
+            'name': "Test Performance Improved",
+            'product_id': self.ref('stock_working_days.product_test_product'),
+            'product_uom': self.ref('product.product_uom_unit'),
+            'product_uom_qty': 13,
+            'location_id': self.ref('stock.stock_location_stock'),
+            'location_dest_id': self.ref('stock_working_days.stock_location_c'),
+            'picking_type_id': self.ref('stock.picking_type_internal'),
+            'date_expected': '2015-02-02 00:00:00',
+        })
+        move.action_confirm()
+        self.assertTrue(move.move_dest_id)
+        new_move = move.move_dest_id
+        self.assertEqual(new_move.date[:10], "2015-02-09")
+        self.assertEqual(new_move.date_expected[:10], "2015-02-09")
+
