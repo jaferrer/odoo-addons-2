@@ -74,7 +74,7 @@
             <field name="warehouse_id" ref="stock.warehouse0"/>
             <field name="location_id" ref="stock.stock_location_stock"/>
             <field name="date_planned">2015-05-04 15:00:00</field>
-            <field name="product_uom" eval="1"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
         </record>
 
         <record id="procurement_order_2" model="procurement.order">
@@ -84,7 +84,7 @@
             <field name="warehouse_id" ref="stock.warehouse0"/>
             <field name="location_id" ref="stock.stock_location_stock"/>
             <field name="date_planned">2015-05-04 15:00:00</field>
-            <field name="product_uom" eval="1"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
         </record>
 
         <record id="procurement_order_3" model="procurement.order">
@@ -94,7 +94,7 @@
             <field name="warehouse_id" ref="stock.warehouse0"/>
             <field name="location_id" ref="stock.stock_location_stock"/>
             <field name="date_planned">2015-05-04 15:00:00</field>
-            <field name="product_uom" eval="1"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
         </record>
 
         <record id="procurement_order_4" model="procurement.order">
