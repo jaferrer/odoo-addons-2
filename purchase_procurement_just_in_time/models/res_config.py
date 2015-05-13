@@ -27,7 +27,7 @@ class purchase_jit_config(models.TransientModel):
                                           help="Minimum delay to create an operational message specifying that the "
                                                "purchase order line is late. If the planned date is less than this "
                                                "number of days beyond the required date, no message will be displayed."
-                                               "\nDefaults to 0 days.")
+                                               "\nDefaults to 1 day.")
     opmsg_min_early_delay = fields.Integer("Delay to be early (in days)",
                                           help="Minimum delay to create an operational message specifying that the "
                                                "purchase order line is early. If the planned date is less than this "
@@ -37,7 +37,7 @@ class purchase_jit_config(models.TransientModel):
     @api.multi
     def get_default_opmsg_min_late_delay(self):
         opmsg_min_late_delay = self.env['ir.config_parameter'].get_param(
-                                                   "purchase_procurement_just_in_time.opmsg_min_late_delay", default=0)
+                                                   "purchase_procurement_just_in_time.opmsg_min_late_delay", default=1)
         return {'opmsg_min_late_delay': int(opmsg_min_late_delay)}
 
     @api.multi
@@ -51,7 +51,7 @@ class purchase_jit_config(models.TransientModel):
         config_parameters = self.env["ir.config_parameter"]
         for record in self:
             config_parameters.set_param("purchase_procurement_just_in_time.opmsg_min_late_delay",
-                                        record.opmsg_min_late_delay or "0")
+                                        record.opmsg_min_late_delay or "1")
 
     @api.multi
     def set_opmsg_min_early_delay(self):
