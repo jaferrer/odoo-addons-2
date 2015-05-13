@@ -8,13 +8,13 @@
             <field name="inherit_id" ref="base.view_partner_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-             <notebook>
-                <page name="sales_purchases" position="inside">
-                   <field name="total_purchase"/>
-                </page>
-             </notebook>
+                <xpath expr="//page[@name='sales_purchases']/group" position="inside">
+                    <group string="Supplier Stats">
+                        <field name="total_purchase"/>
+                        <field name="total_sale_supplier"/>
+                    </group>
+                </xpath>
             </field>
         </record>
-
     </data>
 </openerp>

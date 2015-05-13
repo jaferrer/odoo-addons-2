@@ -30,7 +30,6 @@ Modules pour les configurations purchase_suppler_stats.
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         # 'security/ir.model.access.csv',
-        'model/purchase_supplier_stats.py',
         'views/purchase_supplier_stats.xml',
     ],
     'demo': [],

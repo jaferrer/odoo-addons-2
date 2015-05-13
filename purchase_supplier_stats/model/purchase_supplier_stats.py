@@ -23,15 +23,20 @@ class res_partner_purchase_supplier_stat (models.Model):
     _inherit = 'res.partner'
 
     total_purchase = fields.Float("Total des factures",compute="_calcule_total_facture",help="Total des factures achats pour un fournisseur")
+    total_sale_supplier = fields.Float("Total des ventes",compute="_calcul_total_vente_article", help="Total des ventes")
+    total_purchase_order = fields.Float("Total des commandes en cours",help="commande en cours")
 
     @api.multi
     def _calcule_total_facture(self):
         for rec in self:
-            compte_total_facture = rec.env['account.invoce.line'].search([('invoce_id.type','=','in_invoce'),
-                                                                              ('invoce_id.partner.id.','=',rec.id),])
+            compte_total_facture = rec.env['account.invoice.line'].search([('invoice_id.state','in',['open','paid']),
+                                                                            ('invoice_id.type','=','in_invoice'),
+                                                                            ('invoice_id.partner_id','=',rec.id),])
 
-            compte_total_avoir = rec.env['account.invoce.line'].search([('invoce_id.type','=','in_refund'),
-                                                                              ('invoce_id.partner.id.','=',rec.id),])
+            compte_total_avoir = rec.env['account.invoice.line'].search([('invoice_id.state','in',['open','paid']),
+                                                                            ('invoice_id.type','=','in_refund'),
+                                                                            ('invoice_id.partner_id','=',rec.id),])
+
             total_facture = 0
             total_avoir = 0
 
@@ -43,3 +48,40 @@ class res_partner_purchase_supplier_stat (models.Model):
 
             rec.total_purchase = total_facture - total_avoir
 
+
+    def _calcul_total_vente_article(self):
+        for rec in self:
+            total_vente_article = rec.env['account.invoice.line'].search([('invoice_id.type','=','out_invoice'),
+                                                                          ('invoice_id.state','in',['open','paid']),
+                                                                          ('product_id.product_tmpl_id.seller_id','=',rec.id),])
+
+            total_vente_article_avoir = rec.env['account.invoice.line'].search([('invoice_id.type','=','out_refund'),
+                                                                                ('invoice_id.state','in',['open','paid']),
+                                                                            ('product_id.product_tmpl_id.seller_id','=',rec.id),])
+            print total_vente_article
+
+            total_vente_article
+            total_facture = 0
+            total_avoir = 0
+
+            for ligne_facture in total_vente_article:
+                total_facture += ligne_facture.price_subtotal
+
+            for ligne_avoir in total_vente_article_avoir:
+                total_avoir += ligne_avoir.price_subtotal
+
+            rec.total_sale_supplier = total_facture - total_avoir
+
+
+    def _calcul_total_commande(self):
+        for rec in self:
+            total_commandes = rec.env['purchase.order.line'].search([('order_id.state','in',['approved','picking_in_progress',
+                                                                                             'picking_done','except_picking','except_invoice']),
+                                                                          ('partner_id','=',rec.id),])
+
+            total_commande = 0
+
+            for ligne_commande in total_commandes:
+                total_commande += ligne_commande.price_subtotal
+
+            rec.total_purchase_order = total_commande
