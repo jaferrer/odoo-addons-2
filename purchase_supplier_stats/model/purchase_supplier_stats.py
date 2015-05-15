@@ -75,7 +75,7 @@ class res_partner_purchase_supplier_stat (models.Model):
 
     def _calcul_total_commande(self):
         for rec in self:
-            total_commandes = rec.env['purchase.order.line'].search([('order_id.state','in',['approved','picking_in_progress',
+            total_commandes = rec.env['purchase.order.line'].search([('order_id.state','in',['approved','picking_in_progress','confirmed',
                                                                                              'picking_done','except_picking','except_invoice']),
                                                                           ('partner_id','=',rec.id),])
 
@@ -85,3 +85,9 @@ class res_partner_purchase_supplier_stat (models.Model):
                 total_commande += ligne_commande.price_subtotal
 
             rec.total_purchase_order = total_commande
+
+
+
+
+
+
