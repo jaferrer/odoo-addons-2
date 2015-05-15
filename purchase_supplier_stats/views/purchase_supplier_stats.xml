@@ -12,6 +12,7 @@
                     <group string="Supplier Stats">
                         <field name="total_purchase"/>
                         <field name="total_sale_supplier"/>
+                        <field name="total_purchase_order"/>
                     </group>
                 </xpath>
             </field>

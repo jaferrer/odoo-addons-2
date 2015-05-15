@@ -24,7 +24,7 @@ class res_partner_purchase_supplier_stat (models.Model):
 
     total_purchase = fields.Float("Total des factures",compute="_calcule_total_facture",help="Total des factures achats pour un fournisseur")
     total_sale_supplier = fields.Float("Total des ventes",compute="_calcul_total_vente_article", help="Total des ventes")
-    total_purchase_order = fields.Float("Total des commandes en cours",help="commande en cours")
+    total_purchase_order = fields.Float("Total des commandes en cours",compute="_calcul_total_commande",help="commande en cours")
 
     @api.multi
     def _calcule_total_facture(self):
