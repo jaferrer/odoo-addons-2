@@ -16,20 +16,19 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-{'name': 'Purchase_supplier_stats',
+{'name': 'Purchase Supplier Stats',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'purchase',
     'depends': ['base','purchase'],
     'description': """
-ENTREPOT
-=============
-Modules pour les configurations purchase_suppler_stats.
+Purchase Supplier Stats
+=======================
+This module adds supplier stats to the partner form.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        # 'security/ir.model.access.csv',
         'views/purchase_supplier_stats.xml',
     ],
     'demo': [],
