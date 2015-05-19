@@ -194,3 +194,10 @@ class stock_prereservation(models.Model):
         """)
 
 
+class stock_transfer_details(models.TransientModel):
+    _inherit = 'stock.transfer_details'
+
+    @api.one
+    def do_detailed_transfer(self):
+        super(stock_transfer_details, self.with_context(no_recompute=True)).do_detailed_transfer()
+

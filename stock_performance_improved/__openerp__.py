@@ -36,6 +36,8 @@ procurement.
 
 This module applies performance improvements by assigning stock moves to a stock picking at latest, that is only when
 it can be reserved.
+
+This module also reimplements the do_detailed_transfer function of the stock transfer wizard.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
