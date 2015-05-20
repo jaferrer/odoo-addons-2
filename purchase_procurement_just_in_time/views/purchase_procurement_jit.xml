@@ -7,7 +7,9 @@
             <field name="model">purchase.order.line</field>
             <field name="priority" eval="15"/>
             <field name="arch" type="xml">
-                <tree string="Purchase Order Lines" editable="top" create="false" delete="false">
+                <tree string="Purchase Order Lines" editable="top" create="false" delete="false"
+                      colors="red:opmsg_type=='late';orange:opmsg_type=='early'">
+                    <field name="opmsg_type" invisible="1"/>
                     <field name="partner_id" string="Supplier"/>
                     <field name="order_id" readonly="1"/>
                     <field name="line_no" readonly="1"/>
@@ -37,7 +39,7 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <data>
-                    <field name="product_id" position="before">
+                    <field name="name" position="after">
                         <field name="line_no"/>
                     </field>
                     <field name="date_planned" position="before">
@@ -61,6 +63,21 @@
                     </notebook>
             </field>
         </record>
+
+        <record model="ir.ui.view" id="sirail_purchase_line_vue_formulaire">
+            <field name="name">sirail.purchase.order.formulaire</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                 <data>
+                    <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="before">
+                        <field name="line_no"/>
+                    </xpath>
+                 </data>
+            </field>
+        </record>
+
 
         <record model="ir.actions.act_window" id="jit_act_window_purchase_order_lines">
             <field name="name">Supplier Backlog</field>
