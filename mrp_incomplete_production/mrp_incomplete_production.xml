@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="mrp_production_form_improved2">
+              <field name="name">mrp.production.form.improved2</field>
+              <field name="model">mrp.production</field>
+              <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+              <field name="priority" eval="16"/>
+              <field name="arch" type="xml">
+                      <button name="466" position="attributes">
+                          <attribute name="states">confirmed,ready,in_production</attribute>
+                      </button>
+              </field>
+         </record>
+
+    </data>
+</openerp>
