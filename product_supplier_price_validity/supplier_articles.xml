@@ -2,26 +2,26 @@
 <openerp>
       <data>
           <!--ajout d'un champ dans la vue hérité product.product_supplierinfo_form_view-->
-          <record model="ir.ui.view" id="product_supplierinfo_form_improved">
-              <field name="name">product.supplierinfo.form.improved</field>
-              <field name="model">product.supplierinfo</field>
-              <field name="inherit_id" ref="product.product_supplierinfo_form_view"/>
-              <field name="priority" eval="16"/>
-              <field name="arch" type="xml">
-                  <field name="delay" position="after">
-                      <field name="validity_date_2"/>
-                  </field>
-                  <p position="after">
-                      <p groups="product.group_purchase_pricelist" class="oe_grey">If the validity date field is filled, the rule is used only if the order date is later than it. If it is empty, the rule is considered as valuable since always.</p>
-                      <p groups="product.group_purchase_pricelist" class="oe_grey">Each active rule is green colored.</p>
-                  </p>
-                  <tree string="Pricelist" position="attributes">
-                      <attribute name="colors">green:is_active()</attribute>
-                  </tree>
-                  <field name="min_quantity" position="before">
-                      <field name="validity_date"/>
-                  </field>
-              </field>
-          </record>
+          <!--<record model="ir.ui.view" id="product_supplierinfo_form_improved">-->
+              <!--<field name="name">product.supplierinfo.form.improved</field>-->
+              <!--<field name="model">product.supplierinfo</field>-->
+              <!--<field name="inherit_id" ref="product.product_supplierinfo_form_view"/>-->
+              <!--<field name="priority" eval="16"/>-->
+              <!--<field name="arch" type="xml">-->
+                  <!--<field name="delay" position="after">-->
+                      <!--<field name="validity_date_2"/>-->
+                  <!--</field>-->
+                  <!--<p position="after">-->
+                      <!--<p groups="product.group_purchase_pricelist" class="oe_grey">If the validity date field is filled, the rule is used only if the order date is later than it. If it is empty, the rule is considered as valuable since always.</p>-->
+                      <!--<p groups="product.group_purchase_pricelist" class="oe_grey">Each active rule is green colored.</p>-->
+                  <!--</p>-->
+                  <!--<tree string="Pricelist" position="attributes">-->
+                      <!--<attribute name="colors">green:is_active()</attribute>-->
+                  <!--</tree>-->
+                  <!--<field name="min_quantity" position="before">-->
+                      <!--<field name="validity_date"/>-->
+                  <!--</field>-->
+              <!--</field>-->
+          <!--</record>-->
       </data>
    </openerp>

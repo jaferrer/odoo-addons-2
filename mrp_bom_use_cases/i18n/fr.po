@@ -1,0 +1,52 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* mrp_bom_use_cases
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-26 14:47+0000\n"
+"PO-Revision-Date: 2015-05-26 14:47+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_mrp_bom_use_cases
+msgid "Database Unaccented Searches"
+msgstr "\n"
+
+#. module: base
+#: model:ir.module.module,description:base.module_mrp_bom_use_cases
+msgid ""
+"\n"
+"Product Use Cases in BoMs\n"
+"===========================\n"
+"This modules adds a tree view available on a product to find recursively all the use cases of the component product\n"
+"inside BoMs.\n"
+"For a given product, this view shows all BoMs in which this product appear as a component. If the product of the"
+"parent BoM is itself a component of another BoM, it is also displayed as a tree view.\n"
+msgstr ""
+"\n"
+"\n"
+
+
+#. module: mrp_bom_use_cases
+#: model:ir.actions.act_window,name:mrp_bom_use_cases.act_window_mrp_bom_inverted
+msgid "Cas d'emploi"
+msgstr "Cas d'emploi"
+
+#. module: mrp_bom_use_cases
+#: field:mrp.bom.line,product_father_id:0
+msgid "Produit père"
+msgstr "Produit père"
+
+#. module: mrp_bom_use_cases
+#: model:ir.model,name:mrp_bom_use_cases.model_mrp_bom_line
+msgid "mrp.bom.line"
+msgstr "mrp.bom.line"
+
