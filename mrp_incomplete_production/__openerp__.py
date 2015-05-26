@@ -38,7 +38,7 @@ It also creates another MO, with the products needed but not available at the co
              'mrp_incomplete_production.xml'
     ],
     'demo': [
-        # 'test_mrp_incomplete_production.xml'
+        'test_mrp_incomplete_production.xml'
     ],
     'test': [],
     'installable': True,

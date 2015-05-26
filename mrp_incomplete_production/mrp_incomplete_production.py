@@ -25,54 +25,56 @@ from openerp.osv import osv
 from datetime import *
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
-class mrp_production(models.Model):
+class mrp_production2(models.Model):
     _inherit = "mrp.production"
-    # not_child_of_not_complete_production = fields.Boolean(default=True)
 
-    def force_production(self, cr, uid, ids, *args):
-        """ Assigns products.
-        @param *args: Arguments
-        @return: True
-        """
-        move_obj = self.pool.get('stock.move')
-        for order in self.browse(cr, uid, ids):
-            # move_obj.force_assign(cr, uid, [x.id for x in order.move_lines])
-            production = self.pool.get('mrp.production')
-            if production.test_ready(cr, uid, [order.id]):
-                workflow.trg_validate(uid, 'mrp.production', order.id, 'moves_ready', cr)
-            else:
-                # if len([x for x in production.move_lines if x.state == 'assigned']) == 0:
-                #     raise osv.except_osv(_('Error!'),_("Unable to adapt the initial balance (negative value)."))
-                # else:
-                print('Achtnug! Certains produits ne sont pas disponibles')
-                workflow.trg_validate(uid, 'mrp.production', order.id, 'moves_ready', cr)
-        return True
+    backorder_id = fields.Many2one('mrp.production', string="Parent Manufacturing Order")
+    child_location_source_id = fields.Many2one('stock.location', string="Children Source Location", help="If this field is empty, potential children of this Manufacturing Order will have the same source locations as their parent. If it is filled, the children will have this location as source locations.")
+    child_location_destination_id = fields.Many2one('stock.location', string="Children Destination Location", help="If this field is empty, potential children of this Manufacturing Order will have the same destination locations as their parent. If it is filled, the children will have this location as destination locations.")
+
+    # def force_production(self, cr, uid, ids, *args):
+    #     """ Assigns products.
+    #     @param *args: Arguments
+    #     @return: True
+    #     """
+    #     move_obj = self.pool.get('stock.move')
+    #     for order in self.browse(cr, uid, ids):
+    #         # move_obj.force_assign(cr, uid, [x.id for x in order.move_lines])
+    #         production = self.pool.get('mrp.production')
+    #         if production.test_ready(cr, uid, [order.id]):
+    #             workflow.trg_validate(uid, 'mrp.production', order.id, 'moves_ready', cr)
+    #         else:
+    #             # if len([x for x in production.move_lines if x.state == 'assigned']) == 0:
+    #             #     raise osv.except_osv(_('Error!'),_("Unable to adapt the initial balance (negative value)."))
+    #             # else:
+    #             print('Achtnug! Certains produits ne sont pas disponibles')
+    #             workflow.trg_validate(uid, 'mrp.production', order.id, 'moves_ready', cr)
+    #     return True
 
 
 
 
 
     def _calculate_qty(self, cr, uid, production, product_qty=0.0, context=None):
-        print 'calcul des quantites'
-        #qd validation OF reliquat, pas bon calcul. ex : consume_lines = []
-        consume_lines = super(mrp_production, self)._calculate_qty(cr, uid, production)
+        consume_lines = super(mrp_production2, self)._calculate_qty(cr, uid, production)
         print 'consume', consume_lines
         print 'moves :'
         for item in production.move_lines:
-            print item.product_id.name, item.product_qty
+            print item.product_id.name, item.product_qty, item.state, item.product_id.type
+            if item.product_id.id not in [x['product_id'] for x in consume_lines]:
+                consume_lines += [{'lot_id': False, 'product_id': item.product_id.id, 'product_qty': item.product_qty}]
+                # quel lot veut-on mettre ?
+        print 'new_consume', consume_lines
+        print 'calcul des quantites'
         list_to_remove = []
         for item in consume_lines:
             local_product_id = item['product_id']
-            print 'nouveau produit courant', self.pool.get('product.product').browse(cr, uid, local_product_id, context=context).name
+            # print 'nouveau produit courant', self.pool.get('product.product').browse(cr, uid, local_product_id, context=context).name
             total = sum([x.product_qty for x in production.move_lines if x.product_id.id == local_product_id and x.state == 'assigned'])
-            # print 'total', total
             if total != 0:
-                # print 'on laisse le move'
                 item['product_qty'] = total
             else:
                 list_to_remove += [item]
-                # print('on retire le move')
-                # print ''
         for move in list_to_remove:
             consume_lines.remove(move)
         if len(consume_lines) == 0:
@@ -91,10 +93,13 @@ class mrp_production(models.Model):
     def action_produce(self, cr, uid, production_id, production_qty, production_mode, wiz=False, context=None):
         print('===============new action_produce================')
         production = self.pool.get('mrp.production').browse(cr, uid, production_id, context=context)
-        result = super(mrp_production, self).action_produce(cr, uid, production_id, production_qty, production_mode, wiz=False, context=None)
+        list_cancelled_moves1 = []
+        for item in production.move_lines2:
+            list_cancelled_moves1 += [item]
+        result = super(mrp_production2, self).action_produce(cr, uid, production_id, production_qty, production_mode, wiz=False, context=None)
         list_cancelled_moves = []
         for move in production.move_lines2:
-            if move.state == 'cancel':
+            if move.state == 'cancel' and move not in list_cancelled_moves1:
                 list_cancelled_moves += [move]
         print 'cancelled', list_cancelled_moves
         if len(list_cancelled_moves)!= 0:
@@ -115,20 +120,26 @@ class mrp_production(models.Model):
 
 
 
-            # éviter les rest of rest of rest of...
-            # name = production.name
-            # if "Rest" in name:
-            #     if
+            if production.child_location_source_id:
+                location1 = production.child_location_source_id
+            else:
+                location1 = production.location_src_id
+            if production.child_location_destination_id:
+                location2 = production.child_location_destination_id
+            else:
+                location2 = production.location_dest_id
             production_data = {
-                'name': 'Rest of ' + production.name,
                 'product_id': production.product_id.id,
                 'product_qty': production.product_qty,
                 'product_uom': production.product_uom.id,
-                'location_src_id': production.location_dest_id.id,
-                'location_dest_id': production.location_dest_id.id,
+                'location_src_id': location1.id,
+                'location_dest_id': location2.id,
                 'date_planned': datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                 'bom_id': production.bom_id.id,
                 'company_id': production.company_id.id,
+                'backorder_id': production.id,
+                'child_location_source_id': production.child_location_source_id.id,
+                'child_location_destination_id': production.child_location_destination_id.id,
             }
             production.state = 'done'
             new_production_id = self.create(cr, openerp.SUPERUSER_ID, production_data)
@@ -160,5 +171,35 @@ class mrp_production(models.Model):
                 print new_production.product_lines
                 move.state='draft'
                 move.action_confirm()
-
+            print('=============================================================')
         return result
+
+    @api.multi
+    def button_update(self):
+        self.ensure_one()
+        try:
+            if not self.backorder_id:
+                self._action_compute_lines()
+                self.update_moves()
+        except AttributeError:
+            print('youpi')
+
+    # def action_production_end(self, cr, uid, ids, context=None):
+    #     print('===============wooooooow================')
+    #     result = super(mrp_production2, self).action_production_end(cr, uid, ids)
+    #     return result
+
+    # @api.multi
+    # def check_availability_and_produce(self):
+    #     number_moves_assigned = len([x for x in self.move_lines if x.state == 'assigned'])
+    #     number_moves = len([x for x in self.move_lines])
+    #     print('===============================================================')
+    #     if number_moves == 0:
+    #         print('no articles needed!')
+    #         raise osv.except_osv(_('Error!'),_("Yon cannot produce if no product is needed."))
+    #     if number_moves_assigned == 0:
+    #         print('no article available!')
+    #         raise osv.except_osv(_('Error!'),_("Yon cannot produce if no product is available."))
+    #     if number_moves_assigned != 0 and number_moves_assigned != number_moves:
+    #         print('all articles are not available !')
+    #         # self.action_produce()
