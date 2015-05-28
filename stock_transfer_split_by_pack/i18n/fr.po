@@ -1,0 +1,102 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_transfer_split_by_pack
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-28 14:40+0000\n"
+"PO-Revision-Date: 2015-05-28 14:40+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_transfer_split_by_pack
+msgid "Stock Transfer Split by Pack"
+msgstr ""
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_transfer_split_by_pack
+msgid ""
+"\n"
+"Stock Transfer Split by Pack\n"
+"==============================\n
+"This module will add a "Split in Pack" button in the stock transfer view next to the native "Split" button. This button\n"
+"will open a pop-up window asking for a quantity and if we should create packs. The amount of the line will then be split\n"
+"in multiple lines of the selected quantity and a pack will be created for these lines if the options was selected. The\n"
+"remaining quantity, if any, will stay in the original line.
+"\n"
+This module is largely inspired from Akretion & Odoo Community Association (OCA) stock_transfer_split_multi module.\n"
+msgstr ""
+"\n"
+"\n"
+#. module: stock_transfer_split_by_pack
+#: view:stock.transfer.split_by_pack:0
+msgid "Cancel"
+msgstr "Cancel"
+
+#. module: stock_transfer_split_by_pack
+#: field:stock.transfer.split_by_pack,create_pack:0
+msgid "Create a pack for each line"
+msgstr "Create a pack for each line"
+
+#. module: stock_transfer_split_by_pack
+#: field:stock.transfer.split_by_pack,create_uid:0
+msgid "Created by"
+msgstr "Created by"
+
+#. module: stock_transfer_split_by_pack
+#: field:stock.transfer.split_by_pack,create_date:0
+msgid "Created on"
+msgstr "Created on"
+
+#. module: stock_transfer_split_by_pack
+#: field:stock.transfer.split_by_pack,id:0
+msgid "ID"
+msgstr "ID"
+
+#. module: stock_transfer_split_by_pack
+#: field:stock.transfer.split_by_pack,write_uid:0
+msgid "Last Updated by"
+msgstr "Last Updated by"
+
+#. module: stock_transfer_split_by_pack
+#: field:stock.transfer.split_by_pack,write_date:0
+msgid "Last Updated on"
+msgstr "Last Updated on"
+
+#. module: stock_transfer_split_by_pack
+#: field:stock.transfer.split_by_pack,pack_qty:0
+msgid "Quantity to set on each line"
+msgstr "Quantity to set on each line"
+
+#. module: stock_transfer_split_by_pack
+#: view:stock.transfer_details:0
+msgid "Split By Pack"
+msgstr "Split By Pack"
+
+#. module: stock_transfer_split_by_pack
+#: view:stock.transfer.split_by_pack:0
+msgid "Split Line"
+msgstr "Split Line"
+
+#. module: stock_transfer_split_by_pack
+#: model:ir.actions.act_window,name:stock_transfer_split_by_pack.stock_transfer_split_by_pack_action
+msgid "Split by Configurable Quantity"
+msgstr "Split by Configurable Quantity"
+
+#. module: stock_transfer_split_by_pack
+#: model:ir.model,name:stock_transfer_split_by_pack.model_stock_transfer_split_by_pack
+msgid "Split by pack wizard"
+msgstr "Split by pack wizard"
+
+#. module: stock_transfer_split_by_pack
+#: view:stock.transfer.split_by_pack:0
+msgid "or"
+msgstr "or"
+

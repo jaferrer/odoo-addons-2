@@ -1,0 +1,57 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_push_propagation
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-28 13:47+0000\n"
+"PO-Revision-Date: 2015-05-28 13:47+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_push_propagation
+msgid "Choose Propagation for Push Rules"
+msgstr ""
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_push_propagation
+msgid ""
+"\n"
+"Choose Propagation for Push Rules\n"
+"==================================\n"
+"With the standard Odoo implementation, procurement groups are propagated to the resulting moves when applying a push\n"
+"rule.\n"
+"\n"
+"This module enables the user to define whether the procurement group should be propagate when applying a push rule or\n"
+"not.\n"
+msgstr ""
+"\n"
+"\n"
+
+#. module: stock_push_propagation
+#: selection:stock.location.path,group_propagation_option:0
+msgid "Leave Empty"
+msgstr "Leave Empty"
+
+#. module: stock_push_propagation
+#: selection:stock.location.path,group_propagation_option:0
+msgid "Propagate"
+msgstr "Propagate"
+
+#. module: stock_push_propagation
+#: field:stock.location.path,group_propagation_option:0
+msgid "Propagation of Procurement Group"
+msgstr "Propagation of Procurement Group"
+
+#. module: stock_push_propagation
+#: model:ir.model,name:stock_push_propagation.model_stock_location_path
+msgid "Pushed Flows"
+msgstr "Flux poussés"
+

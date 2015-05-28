@@ -20,7 +20,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_group_operators
 msgid "Extra Group Operators"
-msgstr "kdwjfhgsikhgzs<oef"
+msgstr ""
 
 #. module: base
 #: model:ir.module.module,description:base.module_group_operators

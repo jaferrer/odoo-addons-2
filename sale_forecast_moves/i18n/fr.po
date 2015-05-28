@@ -1,0 +1,108 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* sale_forecast_moves
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-28 07:53+0000\n"
+"PO-Revision-Date: 2015-05-28 07:53+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_sale_forecast_moves
+msgid "Sales Forecast Moves"
+msgstr ""
+
+#. module: base
+#: model:ir.module.module,description:base.module_sale_forecast_moves
+msgid ""
+"\n"
+"Sales Forecast Moves\n"
+"====================\n
+msgstr ""
+"\n"
+"\n"
+
+#. module: sale_forecast_moves
+#: view:sale.forecast.moves.wizard:0
+msgid "Cancel"
+msgstr "Cancel"
+
+#. module: sale_forecast_moves
+#: field:sale.forecast.moves.wizard,create_uid:0
+msgid "Created by"
+msgstr "Created by"
+
+#. module: sale_forecast_moves
+#: field:sale.forecast.moves.wizard,create_date:0
+msgid "Created on"
+msgstr "Created on"
+
+#. module: sale_forecast_moves
+#: model:ir.ui.menu,name:sale_forecast_moves.menu_forecast_moves
+#: view:sale.forecast.moves.wizard:0
+msgid "Forecast moves"
+msgstr "Forecast moves"
+
+#. module: sale_forecast_moves
+#: field:sale.forecast.moves.wizard,id:0
+msgid "ID"
+msgstr "ID"
+
+#. module: sale_forecast_moves
+#: field:sale.forecast.moves.wizard,write_uid:0
+msgid "Last Updated by"
+msgstr "Last Updated by"
+
+#. module: sale_forecast_moves
+#: field:sale.forecast.moves.wizard,write_date:0
+msgid "Last Updated on"
+msgstr "Last Updated on"
+
+#. module: sale_forecast_moves
+#: model:ir.actions.act_window,name:sale_forecast_moves.launch_forecast_moves_wizard
+msgid "Launch forecast moves Wizard"
+msgstr "Launch forecast moves Wizard"
+
+#. module: sale_forecast_moves
+#: field:stock.move,prevision_move:0
+msgid "Mouvement de prevision"
+msgstr "Mouvement de prevision"
+
+#. module: sale_forecast_moves
+#: field:sale.forecast.moves.wizard,forecast_weeks:0
+msgid "Number of weeks on which to make previsions"
+msgstr "Number of weeks on which to make previsions"
+
+#. module: sale_forecast_moves
+#: view:sale.forecast.moves.wizard:0
+msgid "Parameters"
+msgstr "Parameters"
+
+#. module: sale_forecast_moves
+#: model:ir.model,name:sale_forecast_moves.model_stock_move
+msgid "Stock Move"
+msgstr "Mouvement de stock"
+
+#. module: sale_forecast_moves
+#: view:sale.forecast.moves.wizard:0
+msgid "or"
+msgstr "or"
+
+#. module: sale_forecast_moves
+#: model:ir.model,name:sale_forecast_moves.model_sale_forecast_moves_wizard
+msgid "sale.forecast.moves.wizard"
+msgstr "sale.forecast.moves.wizard"
+
+#. module: sale_forecast_moves
+#: field:stock.move,week:0
+msgid "week"
+msgstr "week"
+

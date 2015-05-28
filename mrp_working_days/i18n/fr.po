@@ -1,0 +1,49 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* mrp_working_days
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-27 07:19+0000\n"
+"PO-Revision-Date: 2015-05-27 07:19+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_mrp_working_days
+msgid "Database Unaccented Searches"
+msgstr ""
+
+#. module: base
+#: model:ir.module.module,description:base.module_mrp_working_days
+msgid ""
+"\n"
+"MRP Scheduling on Working Days\n"
+"===============================\n"
+"This modules enables scheduling of production orders on working days defined by resources and associated calendars.\n"
+"Each warehouse can have its own resource and associated calendar representing its opening days. If a warehouse is not\n"
+"given a resource, then the system falls back to a company default calendar.\n"
+"When a procurement needs to be scheduled by production, it counts only opened days defined by the applicable calendar.\n"
+"Notes:\n"
+"------\n"
+"- When no applicable calendar is found, the module's default calendar is used which sets working days from Monday to\n"
+"Friday. This default calendar can be changed by authorized users.\n"
+"- For a given procurement, the applicable warehouse is the warehouse of the location of the procurement. It falls back\n"
+"on the warehouse of the procurement itself only if no location is defined. This is to handle correctly\n"
+"inter-warehouse procurement with chained moves where the warehouse of the procurement is the warehouse of the end of\n"
+"the chain.\n"
+msgstr ""
+"\n"
+"\n"
+
+#. module: mrp_working_days
+#: model:ir.model,name:mrp_working_days.model_procurement_order
+msgid "Procurement"
+msgstr "Approvisionnement"
+

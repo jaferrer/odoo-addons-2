@@ -1,0 +1,40 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-28 15:29+0000\n"
+"PO-Revision-Date: 2015-05-28 15:29+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_web_action_target_popup
+msgid "Popup Target for Actions"
+msgstr "x1"
+
+#. module: base
+#: model:ir.module.module,description:base.module_module_web_action_target_popup
+msgid ""
+"\n"
+"Popup Target for Actions\n"
+"=========================\n"
+"This module adds a new target "popup" for actions alongside "new" and "current". This new "popup" target opens the\n"
+"action in a new window but does not close the previous action window if this was already a pop-up window.\n"
+"\n"
+"Usage: set target="popup" in actions opened from an action that has a target "new".\n"
+"\n"
+"Notes:\n"
+"\n"
+"- Calling an action with target="popup" from the main window has the same effect as calling it with target="new"\n"
+"- For the moment, this only works for one level depth, i.e. for a popup window opened in another popup window.\n"
+msgstr ""
+"\n"
+"\n"
+
