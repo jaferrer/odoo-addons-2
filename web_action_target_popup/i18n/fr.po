@@ -17,10 +17,10 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_web_action_target_popup
 msgid "Popup Target for Actions"
-msgstr "x1"
+msgstr ""
 
 #. module: base
-#: model:ir.module.module,description:base.module_module_web_action_target_popup
+#: model:ir.module.module,description:base.module_web_action_target_popup
 msgid ""
 "\n"
 "Popup Target for Actions\n"
