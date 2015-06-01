@@ -28,20 +28,20 @@ class TestOrderUpdate(common.TransactionCase):
 
     def test_10_order_quantity_calculation(self):
         company = self.browse_ref('base.main_company')
-        product_to_manufacture1 = self.browse_ref('manufacturing_order_update.product_to_manufacture1')
+        product_to_manufacture1 = self.browse_ref('mrp_manufacturing_order_update.product_to_manufacture1')
         unit = self.browse_ref('product.product_uom_unit')
         location1 = self.browse_ref('stock.stock_location_stock')
-        bom1 = self.browse_ref('manufacturing_order_update.bom1')
+        bom1 = self.browse_ref('mrp_manufacturing_order_update.bom1')
         self.assertTrue(bom1.bom_line_ids)
-        line1 = self.browse_ref('manufacturing_order_update.line1')
-        line2 = self.browse_ref('manufacturing_order_update.line2')
-        line3 = self.browse_ref('manufacturing_order_update.line3')
-        line4 = self.browse_ref('manufacturing_order_update.line4')
-        line5 = self.browse_ref('manufacturing_order_update.line5')
-        line6 = self.browse_ref('manufacturing_order_update.line6')
-        product1 = self.browse_ref('manufacturing_order_update.product1')
-        product2 = self.browse_ref('manufacturing_order_update.product2')
-        product3 = self.browse_ref('manufacturing_order_update.product3')
+        line1 = self.browse_ref('mrp_manufacturing_order_update.line1')
+        line2 = self.browse_ref('mrp_manufacturing_order_update.line2')
+        line3 = self.browse_ref('mrp_manufacturing_order_update.line3')
+        line4 = self.browse_ref('mrp_manufacturing_order_update.line4')
+        line5 = self.browse_ref('mrp_manufacturing_order_update.line5')
+        line6 = self.browse_ref('mrp_manufacturing_order_update.line6')
+        product1 = self.browse_ref('mrp_manufacturing_order_update.product1')
+        product2 = self.browse_ref('mrp_manufacturing_order_update.product2')
+        product3 = self.browse_ref('mrp_manufacturing_order_update.product3')
 
         mrp_production1 = self.env['mrp.production'].create({
             'name': 'mrp_production1',
