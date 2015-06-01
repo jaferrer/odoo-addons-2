@@ -8,28 +8,56 @@
               <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
               <field name="priority" eval="16"/>
               <field name="arch" type="xml">
-                  <button name="466" position="attributes">
-                      <attribute name="states">confirmed,ready,in_production</attribute>
-                      <!--<attribute name="name">check_availability_and_produce</attribute>-->
-                      <!--<attribute name="type">object</attribute>-->
-                      <!--<field name="action">act_mrp_product_produce</field>-->
+                  <header position="inside">
+                      <field name="one_available" invisible="1"/>
+                      <field name="left_products" invisible="1"/>
+                  </header>
+                  <button name="%(mrp.act_mrp_product_produce)d" position="replace">
+                      <button name="%(mrp.act_mrp_product_produce)d" string="Produce" type="action" class="oe_highlight" attrs="{'invisible':[('one_available', '=', False)]}"/>
                   </button>
                   <field name="location_dest_id" position="after">
-                      <field name="child_location_source_id"/>
-                      <field name="child_location_destination_id"/>
+                      <field name="child_location_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                   </field>
+                  <xpath expr="//sheet/group" position="inside">
+                      <group>
+                          <field name="backorder_id" attrs="{'invisible': [('backorder_id', '=', False)]}"/>
+                          <field name="child_order_id" attrs="{'invisible': [('child_order_id', '=', False)]}"/>
+                      </group>
+                  </xpath>
+                  <page string="Consumed Products" position="inside">
+                      <group string="Not consumed Products" attrs="{'invisible': [('left_products', '=', False)]}">
+                          <field name="child_move_ids" nolabel="1"/>
+                      </group>
+                  </page>
               </field>
-         </record>
+        </record>
 
-        <!--<record id="prod_act_done2" model="workflow.activity">-->
-            <!--<field name="name">mrp.production.produce2</field>-->
-            <!--<field name="model">mrp.production</field>-->
-            <!--<field name="wkf_id" ref="mrp.wkf_prod"/>-->
-            <!--<field name="inherit_id" ref="mrp.prod_act_done"/>-->
-            <!--<field name="kind" position="after">-->
-                <!--<field name="action">check_availability()</field>-->
-            <!--</field>-->
-        <!--</record>-->
+        <record model="ir.ui.view" id="view_mrp_product_produce_wizard2">
+            <field name="name">MRP Product Produce 2</field>
+            <field name="model">mrp.product.produce</field>
+            <field name="inherit_id" ref="mrp.view_mrp_product_produce_wizard"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="lot_id" position="after">
+                    <field name="production_all_available" invisible="1"/>
+                    <field name="child_src_loc_id" attrs="{'invisible': [('production_all_available', '=', True)]}"/>
+                    <field name="child_dest_loc_id" attrs="{'invisible': [('production_all_available', '=', True)]}"/>
+                    <field name="child_production_product_id" attrs="{'invisible': [('production_all_available', '=', True)]}"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_procurement_rule_form2">
+            <field name="name">procurement.rule.form2</field>
+            <field name="model">procurement.rule</field>
+            <field name="inherit_id" ref="procurement.view_procurement_rule_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="action" position="after">
+                    <field name="child_loc_id" attrs="{'invisible': [('action', '!=', 'manufacture')]}"/>
+                </field>
+            </field>
+        </record>
 
     </data>
 </openerp>

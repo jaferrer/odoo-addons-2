@@ -25,47 +25,148 @@ from openerp.osv import osv
 from datetime import *
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
+
+
+
+class procurement_rule2(models.Model):
+    _inherit = 'procurement.rule'
+
+    child_loc_id = fields.Many2one('stock.location', string="Child location", help="Source and destination locations of the automatically generated manufacturing order")
+
+class procurement_order2(models.Model):
+    _inherit = 'procurement.order'
+
+    def _prepare_mo_vals(self, cr, uid, procurement, context=None):
+        result = super(procurement_order2, self)._prepare_mo_vals(cr, uid, procurement, context=None)
+        if procurement.rule_id.child_loc_id.id:
+            result['child_location_id'] = procurement.rule_id.child_loc_id.id
+        return result
+
+
+class product_produce(models.Model):
+    _inherit = 'mrp.product.produce'
+
+    def _get_default_production_id(self):
+        order=False
+        c = self.env.context
+        if c and c.get("active_id"):
+            order = self.env['mrp.production'].browse(c.get("active_id"))
+        return order
+
+    def _get_default_src_location(self):
+        order=False
+        c = self.env.context
+        if c and c.get("active_id"):
+            order = self.env['mrp.production'].browse(c.get("active_id"))
+        if order:
+            if order.child_location_id:
+                return order.child_location_id
+            else:
+                return order.location_src_id
+        else:
+            return False
+
+    def _get_default_dest_location(self):
+        order=False
+        c = self.env.context
+        if c and c.get("active_id"):
+            order = self.env['mrp.production'].browse(c.get("active_id"))
+        if order:
+            if order.child_location_id:
+                return order.child_location_id
+            else:
+                return order.location_dest_id
+        else:
+            return False
+
+    def _get_default_product_id(self):
+        order=False
+        c = self.env.context
+        if c and c.get("active_id"):
+            order = self.env['mrp.production'].browse(c.get("active_id"))
+        if order:
+            return order.product_id
+        return order
+
+    def _get_default_availability(self):
+        order=False
+        c = self.env.context
+        if c and c.get("active_id"):
+            order = self.env['mrp.production'].browse(c.get("active_id"))
+        if order:
+            for move in order.move_lines:
+                if move.state != 'assigned':
+                    return False
+        return True
+
+    production_id = fields.Many2one('mrp.production', string="Related Manufacturing Order", default=_get_default_production_id, readonly=True)
+    child_production_product_id = fields.Many2one('product.product', default=_get_default_product_id, string='Product of the child Manufacturing Order')
+    child_src_loc_id = fields.Many2one('stock.location', string="Child source location", default=_get_default_src_location, help="If this field is empty, the child of this Manufacturing Order will have the same source location as his parent. If it is filled, the child will have this location as source location.")
+    child_dest_loc_id = fields.Many2one('stock.location', string="Child destination location", default=_get_default_dest_location, help="If this field is empty, the child of this Manufacturing Order will have the same destination location as his parent. If it is filled, the child will have this location as destination location.")
+    production_all_available = fields.Boolean(string='True if the raw material of the related Manufacturing Order is entirely available', default=_get_default_availability, readonly=True)
+    product_different = fields.Boolean(string="True if the child product is different from the parent one", compute="is_product_different")
+
+    @api.one
+    @api.depends('child_production_product_id')
+    def is_product_different(self):
+        order=False
+        c = self.env.context
+        if c and c.get("active_id"):
+            order = self.env['mrp.production'].browse(c.get("active_id"))
+        self.product_different = False
+        if order and order.product_id != self.child_production_product_id:
+            self.product_different = True
+
+
+
+class product_line2(models.Model):
+    _inherit = 'mrp.production.product.line'
+    parent_production_id = fields.Many2one('mrp.production', string="This Manufacturing Order has generated a child with this move as raw material", readonly=True)
+
 class mrp_production2(models.Model):
     _inherit = "mrp.production"
 
-    backorder_id = fields.Many2one('mrp.production', string="Parent Manufacturing Order")
-    child_location_source_id = fields.Many2one('stock.location', string="Children Source Location", help="If this field is empty, potential children of this Manufacturing Order will have the same source locations as their parent. If it is filled, the children will have this location as source locations.")
-    child_location_destination_id = fields.Many2one('stock.location', string="Children Destination Location", help="If this field is empty, potential children of this Manufacturing Order will have the same destination locations as their parent. If it is filled, the children will have this location as destination locations.")
+    backorder_id = fields.Many2one('mrp.production', string="Parent Manufacturing Order", readonly=True)
+    child_location_id = fields.Many2one('stock.location', string="Children Location", help="If this field is empty, potential children of this Manufacturing Order will have the same source and destination locations as their parent. If it is filled, the children will have this location as source and destination locations.")
+    child_order_id = fields.Many2one('mrp.production', string="Child Manufacturing Order", compute="get_child_order_id", readonly=True, store=False)
+    child_move_ids = fields.One2many('mrp.production.product.line', 'parent_production_id', string="Not consumed products", readonly=True)
+    one_available = fields.Boolean(string="True if one product is available", compute="get_availability", readonly=True, store=False)
+    left_products = fields.Boolean(string="True if child_move_ids is not empty", compute="get_child_moves", readonly=True, store=False)
 
-    # def force_production(self, cr, uid, ids, *args):
-    #     """ Assigns products.
-    #     @param *args: Arguments
-    #     @return: True
-    #     """
-    #     move_obj = self.pool.get('stock.move')
-    #     for order in self.browse(cr, uid, ids):
-    #         # move_obj.force_assign(cr, uid, [x.id for x in order.move_lines])
-    #         production = self.pool.get('mrp.production')
-    #         if production.test_ready(cr, uid, [order.id]):
-    #             workflow.trg_validate(uid, 'mrp.production', order.id, 'moves_ready', cr)
-    #         else:
-    #             # if len([x for x in production.move_lines if x.state == 'assigned']) == 0:
-    #             #     raise osv.except_osv(_('Error!'),_("Unable to adapt the initial balance (negative value)."))
-    #             # else:
-    #             print('Achtnug! Certains produits ne sont pas disponibles')
-    #             workflow.trg_validate(uid, 'mrp.production', order.id, 'moves_ready', cr)
-    #     return True
+    @api.one
+    def get_child_order_id(self):
+        self.child_order_id = False
+        list_ids = self.env['mrp.production'].search([('backorder_id', '=', self.id)])
+        if len(list_ids) == 1:
+            self.child_order_id = list_ids[0]
 
+    @api.one
+    def get_availability(self):
+        self.one_available = False
+        if self.move_lines:
+            for move in self.move_lines:
+                if move.state == 'assigned':
+                    self.one_available = True
+                    break
 
-
-
+    @api.one
+    def get_child_moves(self):
+        self.left_products = True
+        if not self.child_move_ids:
+            self.left_products = False
 
     def _calculate_qty(self, cr, uid, production, product_qty=0.0, context=None):
         consume_lines = super(mrp_production2, self)._calculate_qty(cr, uid, production)
-        print 'consume', consume_lines
-        print 'moves :'
+        # print 'consume', consume_lines
+        # print 'moves :'
         for item in production.move_lines:
-            print item.product_id.name, item.product_qty, item.state, item.product_id.type
+            # print item.product_id.name, item.product_qty, item.state, item.product_id.type
             if item.product_id.id not in [x['product_id'] for x in consume_lines]:
+                # attention : numéro de lot !
                 consume_lines += [{'lot_id': False, 'product_id': item.product_id.id, 'product_qty': item.product_qty}]
                 # quel lot veut-on mettre ?
-        print 'new_consume', consume_lines
-        print 'calcul des quantites'
+        # print 'new_consume', consume_lines
+        # print 'calcul des quantites'
         list_to_remove = []
         for item in consume_lines:
             local_product_id = item['product_id']
@@ -77,8 +178,8 @@ class mrp_production2(models.Model):
                 list_to_remove += [item]
         for move in list_to_remove:
             consume_lines.remove(move)
-        if len(consume_lines) == 0:
-            raise osv.except_osv(_('Error!'),_("Yon cannot produce if no product is available."))
+        # if len(consume_lines) == 0:
+        #     raise osv.except_osv(_('Error!'),_("Yon cannot produce if no product is available."))
         return consume_lines
 
 
@@ -87,92 +188,74 @@ class mrp_production2(models.Model):
 
 
 
-
-
+    @api.one
+    def get_locations_product(self):
+        produce = self.env['mrp.product.produce'].search([('production_id', '=', self.id)])
+        # print produce
+        result = []
+        result += [produce.child_production_product_id]
+        result += [produce.child_src_loc_id]
+        result += [produce.child_dest_loc_id]
+        result += [produce.product_different]
+        # print 'result', result
+        return result
 
     def action_produce(self, cr, uid, production_id, production_qty, production_mode, wiz=False, context=None):
-        print('===============new action_produce================')
         production = self.pool.get('mrp.production').browse(cr, uid, production_id, context=context)
+        # print('===============action_produce================ for MO: ', production.name)
         list_cancelled_moves1 = []
         for item in production.move_lines2:
             list_cancelled_moves1 += [item]
+        # print('cancelled', list_cancelled_moves1)
         result = super(mrp_production2, self).action_produce(cr, uid, production_id, production_qty, production_mode, wiz=False, context=None)
         list_cancelled_moves = []
         for move in production.move_lines2:
             if move.state == 'cancel' and move not in list_cancelled_moves1:
                 list_cancelled_moves += [move]
-        print 'cancelled', list_cancelled_moves
+        # print('cancelled2', list_cancelled_moves)
         if len(list_cancelled_moves)!= 0:
-            # empty_bom_data = {
-            #     'name': "empty_bom",
-            #     'type': "normal",
-            #     'product_tmpl_id': production.bom_id.product_tmpl_id.id,
-            #     'product_id': production.bom_id.product_id.id,
-            #     'product_qty': production.bom_id.product_qty,
-            #     'product_uom': production.bom_id.product_uom.id,
-            #     'product_efficiency': production.bom_id.product_efficiency
-            # }
-            # # new bom for this product : à reprendre pour mettre juste les produits dont on a besoin pour l'OF reliquat (?)
-            # empty_bom = self.pool.get('mrp.bom').create(cr, openerp.SUPERUSER_ID, empty_bom_data)
-
-
-
-
-
-
-            if production.child_location_source_id:
-                location1 = production.child_location_source_id
-            else:
-                location1 = production.location_src_id
-            if production.child_location_destination_id:
-                location2 = production.child_location_destination_id
-            else:
-                location2 = production.location_dest_id
+            items = production.get_locations_product()[0]
+            # print 'items', items
             production_data = {
-                'product_id': production.product_id.id,
+                'product_id': items[0].id,
                 'product_qty': production.product_qty,
                 'product_uom': production.product_uom.id,
-                'location_src_id': location1.id,
-                'location_dest_id': location2.id,
+                'location_src_id': items[1].id,
+                'location_dest_id': items[2].id,
                 'date_planned': datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                 'bom_id': production.bom_id.id,
                 'company_id': production.company_id.id,
                 'backorder_id': production.id,
-                'child_location_source_id': production.child_location_source_id.id,
-                'child_location_destination_id': production.child_location_destination_id.id,
             }
             production.state = 'done'
             new_production_id = self.create(cr, openerp.SUPERUSER_ID, production_data)
-            print production_data
-            print new_production_id
+            # print production_data
+            # print new_production_id
             new_production = self.pool.get('mrp.production').browse(cr, uid, new_production_id, context=context)
-            print new_production
+            # print new_production
+            if items[3]:
+                new_production._make_production_produce_line(new_production)
             for item in list_cancelled_moves:
-                new_production.move_lines = new_production.move_lines + item
-                item.name = new_production.name
-                item.origin = new_production.name
-                item.state='draft'
-                item.action_confirm()
-                print item.product_id.name, item.product_qty, item.state
-            new_production.state = 'confirmed'
-            for move in new_production.move_lines2:
-                new_production_line_data = {
-                    'name': new_production.name,
-                    'product_id': move.product_id.id,
-                    'product_qty': move.product_qty,
-                    'product_uom': move.product_uom.id,
-                    'product_uos_qty': move.product_uos_qty,
-                    'product_uos': move.product_uos.id,
-                    'production_id': new_production.id,
+                # print 'new item', item.product_id.name, item.product_qty
+                product_line_data = {
+                    'name': production.name,
+                    'product_id': item.product_id.id,
+                    'product_qty': item.product_qty,
+                    'product_uom': item.product_uom.id,
+                    'product_uos_qty': item.product_uos_qty,
+                    'product_uos': item.product_uos.id,
+                    'parent_production_id': production.id,
                 }
-                new_production_line_id = self.pool.get('mrp.production.product.line').create(cr, openerp.SUPERUSER_ID, new_production_line_data)
-                new_production_line = self.pool.get('mrp.production.product.line').browse(cr, uid, new_production_line_id, context=context)
-                print 'new line', new_production_line.product_id.name, new_production_line.product_qty
-                print new_production.product_lines
-                move.state='draft'
-                move.action_confirm()
-            print('=============================================================')
+                new_product_line_id = self.pool.get('mrp.production.product.line').create(cr, openerp.SUPERUSER_ID, product_line_data)
+                new_production_line = self.pool.get('mrp.production.product.line').browse(cr, uid, new_product_line_id, context=context)
+                new_production.product_lines = new_production.product_lines +  new_production_line
+
+            new_production.update_moves()
+            new_production.state = 'confirmed'
+        # print('=====================================step_workflow=================================')
+        self.step_workflow(cr, uid, [production_id], context)
         return result
+
 
     @api.multi
     def button_update(self):
@@ -182,24 +265,4 @@ class mrp_production2(models.Model):
                 self._action_compute_lines()
                 self.update_moves()
         except AttributeError:
-            print('youpi')
-
-    # def action_production_end(self, cr, uid, ids, context=None):
-    #     print('===============wooooooow================')
-    #     result = super(mrp_production2, self).action_production_end(cr, uid, ids)
-    #     return result
-
-    # @api.multi
-    # def check_availability_and_produce(self):
-    #     number_moves_assigned = len([x for x in self.move_lines if x.state == 'assigned'])
-    #     number_moves = len([x for x in self.move_lines])
-    #     print('===============================================================')
-    #     if number_moves == 0:
-    #         print('no articles needed!')
-    #         raise osv.except_osv(_('Error!'),_("Yon cannot produce if no product is needed."))
-    #     if number_moves_assigned == 0:
-    #         print('no article available!')
-    #         raise osv.except_osv(_('Error!'),_("Yon cannot produce if no product is available."))
-    #     if number_moves_assigned != 0 and number_moves_assigned != number_moves:
-    #         print('all articles are not available !')
-    #         # self.action_produce()
+            print('button update skipped')

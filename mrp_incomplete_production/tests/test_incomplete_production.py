@@ -28,32 +28,18 @@ class TestIncompleteProduction(common.TransactionCase):
 
     def test_10_incomplete_production(self):
         company = self.browse_ref('base.main_company')
-        self.assertTrue(company)
-        product_to_manufacture1 = self.browse_ref('manufacturing_order_update.product_to_manufacture1')
-        self.assertTrue(product_to_manufacture1)
+        product_to_manufacture1 = self.browse_ref('mrp_incomplete_production.product_to_manufacture1')
         unit = self.browse_ref('product.product_uom_unit')
-        self.assertTrue(unit)
         location1 = self.browse_ref('stock.stock_location_stock')
-        self.assertTrue(location1)
         location2 = self.browse_ref('stock.location_dispatch_zone')
-        self.assertTrue(location2)
         location3 = self.browse_ref('stock.location_order')
-        self.assertTrue(location3)
-        product1 = self.browse_ref('manufacturing_order_update.product1')
-        self.assertTrue(product1)
-        product2 = self.browse_ref('manufacturing_order_update.product2')
-        self.assertTrue(product2)
-        product3 = self.browse_ref('manufacturing_order_update.product3')
-        self.assertTrue(product3)
-        bom1 = self.browse_ref('manufacturing_order_update.bom1')
-        self.assertTrue(bom1)
-        self.assertTrue(bom1.bom_line_ids)
-        line1 = self.browse_ref('manufacturing_order_update.line1')
-        self.assertTrue(line1)
-        line2 = self.browse_ref('manufacturing_order_update.line2')
-        self.assertTrue(line2)
-        line3 = self.browse_ref('manufacturing_order_update.line3')
-        self.assertTrue(line3)
+        product1 = self.browse_ref('mrp_incomplete_production.product1')
+        product2 = self.browse_ref('mrp_incomplete_production.product2')
+        product3 = self.browse_ref('mrp_incomplete_production.product3')
+        bom1 = self.browse_ref('mrp_incomplete_production.bom1')
+        line1 = self.browse_ref('mrp_incomplete_production.line1')
+        line2 = self.browse_ref('mrp_incomplete_production.line2')
+        line3 = self.browse_ref('mrp_incomplete_production.line3')
 
         mrp_production1 = self.env['mrp.production'].create({
             'name': 'mrp_production1',
@@ -69,6 +55,7 @@ class TestIncompleteProduction(common.TransactionCase):
 
         self.assertTrue(mrp_production1)
         mrp_production1.action_confirm()
+        self.assertEquals(len(mrp_production1.move_lines), 3)
 
         for move in mrp_production1.move_lines:
             if move.product_qty == 5:
@@ -82,6 +69,42 @@ class TestIncompleteProduction(common.TransactionCase):
         self.assertTrue(move2)
         self.assertTrue(move3)
 
+        # test with one move available: move1
         move1.force_assign()
-
         self.assertEquals(move1.state, 'assigned')
+
+        mrp_product_produce1_data = {
+            'production_id': mrp_production1.id,
+            'consume_lines': mrp_production1._calculate_qty(mrp_production1, product_qty=0.0, context=None),
+            'mode': lambda *x: 'consume_produce',
+        }
+        mrp_product_produce1 = self.env['mrp.product.produce'].create(mrp_product_produce1_data)
+        # 3 fonctions de défaut déjà appelées à la création ?
+        print mrp_product_produce1
+
+        # mrp_production1.action_produce(mrp_production1.id, 1.0, 'consume_produce', wiz=False, context=None)
+        # # mrp_production1.signal_workflow('act_mrp_product_produce')
+        # print('================================================test==========================================================')
+        # self.assertEquals(len(mrp_production1.move_lines2), 1)
+        # self.assertEquals(mrp_production1.move_lines2.product_id, product1)
+        # self.assertEquals(mrp_production1.move_lines2.product_qty, 5.0)
+        # self.assertTrue(mrp_production1.state == 'done')
+        #
+        # self.assertTrue(mrp_production1.child_order_id)
+        # child1 = mrp_production1.child_order_id
+        # self.assertEquals(len(child1), 1)
+        #
+        # self.assertTrue(child1.backorder_id)
+        # self.assertEquals(len(child1), 1)
+        # print child1
+        # for item in child1.move_lines:
+        #     print item.product_id.name, item.product_qty
+        # print [x.product_id.name for x in child1.move_lines]
+        #
+        # self.assertEquals(len(child1.move_lines), 2)
+        # self.assertTrue(product2 in [x.product_id for x in child1.move_lines])
+        # self.assertTrue(product3 in [x.product_id for x in child1.move_lines])
+
+        # for item in
+
+

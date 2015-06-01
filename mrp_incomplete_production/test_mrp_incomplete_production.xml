@@ -4,30 +4,30 @@
 
         <!--products-->
         <record id="product_to_manufacture1" model="product.product">
-            <field name="name">Test Product to manufacture 1 (Order Update)</field>
+            <field name="name">Test Product to manufacture 1 (Incomplete Production)</field>
             <field name="type">product</field>
         </record>
 
 
         <record id="product1" model="product.product">
-            <field name="name">Test Product 1 (Order Update)</field>
+            <field name="name">Test Product 1 (Incomplete Production)</field>
             <field name="type">product</field>
         </record>
 
         <record id="product2" model="product.product">
-            <field name="name">Test Product 2 (Order Update)</field>
+            <field name="name">Test Product 2 (Incomplete Production)</field>
             <field name="type">product</field>
         </record>
 
         <record id="product3" model="product.product">
-            <field name="name">Test Product 3 (Order Update)</field>
+            <field name="name">Test Product 3 (Incomplete Production)</field>
             <field name="type">product</field>
         </record>
 
         <!--bom & bom lines-->
 
         <record id="bom1" model="mrp.bom">
-            <field name="name">Test BOM 1 (Order Update)</field>
+            <field name="name">Test BOM 1 (Incomplete Production)</field>
             <field name="type">normal</field>
             <field name="product_tmpl_id" ref="product_to_manufacture1_product_template"/>
             <field name="product_id" ref="product_to_manufacture1"/>
