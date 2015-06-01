@@ -28,34 +28,20 @@ class TestOrderUpdate(common.TransactionCase):
 
     def test_10_order_quantity_calculation(self):
         company = self.browse_ref('base.main_company')
-        self.assertTrue(company)
-        product_to_manufacture1 = self.browse_ref('mrp_manufacturing_order_update.product_to_manufacture1')
-        self.assertTrue(product_to_manufacture1)
+        product_to_manufacture1 = self.browse_ref('manufacturing_order_update.product_to_manufacture1')
         unit = self.browse_ref('product.product_uom_unit')
-        self.assertTrue(unit)
         location1 = self.browse_ref('stock.stock_location_stock')
-        self.assertTrue(location1)
-        bom1 = self.browse_ref('mrp_manufacturing_order_update.bom1')
-        self.assertTrue(bom1)
+        bom1 = self.browse_ref('manufacturing_order_update.bom1')
         self.assertTrue(bom1.bom_line_ids)
-        line1 = self.browse_ref('mrp_manufacturing_order_update.line1')
-        self.assertTrue(line1)
-        line2 = self.browse_ref('mrp_manufacturing_order_update.line2')
-        self.assertTrue(line2)
-        line3 = self.browse_ref('mrp_manufacturing_order_update.line3')
-        self.assertTrue(line3)
-        line4 = self.browse_ref('mrp_manufacturing_order_update.line4')
-        self.assertTrue(line4)
-        line5 = self.browse_ref('mrp_manufacturing_order_update.line5')
-        self.assertTrue(line5)
-        line6 = self.browse_ref('mrp_manufacturing_order_update.line6')
-        self.assertTrue(line6)
-        product1 = self.browse_ref('mrp_manufacturing_order_update.product1')
-        self.assertTrue(product1)
-        product2 = self.browse_ref('mrp_manufacturing_order_update.product2')
-        self.assertTrue(product2)
-        product3 = self.browse_ref('mrp_manufacturing_order_update.product3')
-        self.assertTrue(product3)
+        line1 = self.browse_ref('manufacturing_order_update.line1')
+        line2 = self.browse_ref('manufacturing_order_update.line2')
+        line3 = self.browse_ref('manufacturing_order_update.line3')
+        line4 = self.browse_ref('manufacturing_order_update.line4')
+        line5 = self.browse_ref('manufacturing_order_update.line5')
+        line6 = self.browse_ref('manufacturing_order_update.line6')
+        product1 = self.browse_ref('manufacturing_order_update.product1')
+        product2 = self.browse_ref('manufacturing_order_update.product2')
+        product3 = self.browse_ref('manufacturing_order_update.product3')
 
         mrp_production1 = self.env['mrp.production'].create({
             'name': 'mrp_production1',
@@ -69,7 +55,6 @@ class TestOrderUpdate(common.TransactionCase):
             'company_id': company.id,
         })
 
-        self.assertTrue(mrp_production1)
         mrp_production1.action_confirm()
 
         mrp_production2 = self.env['mrp.production'].create({
@@ -84,7 +69,6 @@ class TestOrderUpdate(common.TransactionCase):
             'company_id': company.id,
         })
 
-        self.assertTrue(mrp_production2)
         mrp_production2.action_confirm()
         self.assertTrue(mrp_production2.product_lines)
 
@@ -94,7 +78,7 @@ class TestOrderUpdate(common.TransactionCase):
             self.assertTrue(product in [x.product_id for x in mrp_production.product_lines])
             needed_qty = sum([y.product_qty for y in mrp_production.product_lines if y.product_id == product])
             ordered_qty = sum([z.product_qty for z in mrp_production.move_lines if z.product_id == product and z.state != 'cancel'])
-            self.assertEquals(needed_qty, ordered_qty)
+            self.assertEqual(needed_qty, ordered_qty)
 
         def test_quantities(mrp_production):
             list_products_needed = []
@@ -104,14 +88,12 @@ class TestOrderUpdate(common.TransactionCase):
             for product in list_products_needed:
                 test_quantity(product, mrp_production)
             for item in mrp_production.move_lines:
-                self.assertTrue(item.product_id in list_products_needed)
+                self.assertIn(item.product_id, list_products_needed)
 
         # test of function button_update
 
         def test_update(list_qty_to_change, list_line_to_delete, list_line_to_add):
             for item in list_qty_to_change:
-                product = item[0].product_id
-                total_qty = item[1] + sum([x.product_qty for x in item[0].bom_id.bom_line_ids if x.product_id == product and x.id != item[0].id])
                 item[0].product_qty = item[1]
             for item in list_line_to_delete:
                 item.unlink()
