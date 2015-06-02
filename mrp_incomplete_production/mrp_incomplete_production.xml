@@ -9,12 +9,8 @@
               <field name="priority" eval="16"/>
               <field name="arch" type="xml">
                   <header position="inside">
-                      <field name="one_available" invisible="1"/>
                       <field name="left_products" invisible="1"/>
                   </header>
-                  <button name="%(mrp.act_mrp_product_produce)d" position="replace">
-                      <button name="%(mrp.act_mrp_product_produce)d" string="Produce" type="action" class="oe_highlight" attrs="{'invisible':[('one_available', '=', False)]}"/>
-                  </button>
                   <field name="location_dest_id" position="after">
                       <field name="child_location_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                   </field>
@@ -43,6 +39,7 @@
                     <field name="child_src_loc_id" attrs="{'invisible': [('production_all_available', '=', True)]}"/>
                     <field name="child_dest_loc_id" attrs="{'invisible': [('production_all_available', '=', True)]}"/>
                     <field name="child_production_product_id" attrs="{'invisible': [('production_all_available', '=', True)]}"/>
+                    <field name="product_different" invisible="1"/>
                 </field>
             </field>
         </record>

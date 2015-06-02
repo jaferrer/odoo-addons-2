@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Product',
-    'depends': ['mrp','product', 'stock', 'manufacturing_order_update'],
+    'depends': ['mrp','product', 'stock', 'mrp_manufacturing_order_update'],
     'description': """
 Partial productions
 ===================

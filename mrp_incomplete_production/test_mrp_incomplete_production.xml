@@ -3,11 +3,11 @@
     <data>
 
         <!--products-->
+
         <record id="product_to_manufacture1" model="product.product">
             <field name="name">Test Product to manufacture 1 (Incomplete Production)</field>
             <field name="type">product</field>
         </record>
-
 
         <record id="product1" model="product.product">
             <field name="name">Test Product 1 (Incomplete Production)</field>
@@ -63,6 +63,23 @@
             <field name="bom_id" ref="bom1"/>
         </record>
 
+        <!--Procurement Rule & Order-->
+
+        <record id="rule1" model="procurement.rule">
+            <field name="name">Rule 1 (Incomplete Production)</field>
+            <field name="action">manufacture</field>
+            <field name="child_loc_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <record id="procurement1" model="procurement.order">
+            <field name="name">Procurement Order 1 (Incomplete Production)</field>
+            <field name="product_id" ref="product_to_manufacture1"/>
+            <field name="product_qty" eval="1.0"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="warehouse_id" ref="stock.warehouse0"/>
+            <field name="location_id" ref="stock.location_dispatch_zone"/>
+            <field name="rule_id" ref="rule1"/>
+        </record>
 
     </data>
 </openerp>
