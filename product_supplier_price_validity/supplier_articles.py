@@ -17,9 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import time
-from datetime import timedelta, date
-from datetime import datetime
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
+
 from openerp.exceptions import except_orm
 from openerp import fields, models, api, _
 
@@ -30,9 +28,15 @@ class product_supplierinfo_improved (models.Model):
 
 class pricelist_partnerinfo_improved (models.Model):
     _inherit = "pricelist.partnerinfo"
-    validity_date = fields.Date("Validity date", help="Validity date from that date")
-    # active = fields.Boolean("True if this rule is used", compute="_is_active")
     _order = 'min_quantity asc, validity_date asc'
+
+    validity_date = fields.Date("Validity date", help="Validity date from that date")
+    active = fields.Boolean("True if this rule is used", compute="_is_active")
+
+    @api.multi
+    def _is_active(self):
+        for rec in self:
+            rec.active = rec.is_active()
 
     @api.multi
     def is_active(self):
