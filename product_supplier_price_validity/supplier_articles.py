@@ -31,12 +31,12 @@ class pricelist_partnerinfo_improved (models.Model):
     _order = 'min_quantity asc, validity_date asc'
 
     validity_date = fields.Date("Validity date", help="Validity date from that date")
-    active = fields.Boolean("True if this rule is used", compute="_is_active")
+    active_line = fields.Boolean("True if this rule is used", compute="_is_active_line")
 
     @api.multi
-    def _is_active(self):
+    def _is_active_line(self):
         for rec in self:
-            rec.active = rec.is_active()
+            rec.active_line = rec.is_active()
 
     @api.multi
     def is_active(self):

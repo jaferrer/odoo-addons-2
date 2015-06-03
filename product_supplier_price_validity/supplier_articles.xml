@@ -20,7 +20,7 @@
                   </tree>
                   <field name="min_quantity" position="before">
                       <field name="validity_date"/>
-                      <field name="active" invisible="1"/>
+                      <field name="active_line" invisible="1"/>
                   </field>
               </field>
           </record>
