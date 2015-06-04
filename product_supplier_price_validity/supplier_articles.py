@@ -31,7 +31,6 @@ class product_supplierinfo_improved (models.Model):
 class pricelist_partnerinfo_improved (models.Model):
     _inherit = "pricelist.partnerinfo"
     validity_date = fields.Date("Validity date", help="Validity date from that date")
-    # active = fields.Boolean("True if this rule is used", compute="_is_active")
     _order = 'min_quantity asc, validity_date asc'
 
     @api.multi
