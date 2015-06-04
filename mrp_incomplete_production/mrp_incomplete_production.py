@@ -37,7 +37,7 @@ class procurement_order2(models.Model):
             result['child_location_id'] = procurement.rule_id.child_loc_id.id
         return result
 
-class product_produce(models.Model):
+class product_produce(models.TransientModel):
     _inherit = 'mrp.product.produce'
 
     def _get_default_production_id(self):
