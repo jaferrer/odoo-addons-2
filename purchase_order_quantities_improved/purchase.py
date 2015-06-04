@@ -23,50 +23,41 @@ class supplier(models.Model):
     _inherit = 'product.supplierinfo'
     packaging_qty = fields.Float(help="Quantity in the standard packaging", default=1)
 
-class procurement_order(models.Model):
+class procurement_order_improved(models.Model):
     _inherit = 'procurement.order'
 
-    @api.multi
-    def make_po(self):
-	    return super(procurement_order, self.with_context(recalculate=True)).make_po()
+    @api.model
+    def _calc_new_qty_price(self, procurement, po_line=None, cancel=False):
+        (qty, price) = super(procurement_order_improved, self)._calc_new_qty_price(procurement, po_line, cancel)
+        list_supplierinfo_ids = self.env['product.supplierinfo'].search([('name', '=', po_line.order_id.partner_id.id),
+                                                ('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id)])
+        supplierinfo_id = list_supplierinfo_ids[0]
+        packaging_number = supplierinfo_id.packaging_qty
+        if packaging_number == 0:
+            packaging_number = 1
+        qty = max(qty, supplierinfo_id.min_qty)
+        if qty % packaging_number != 0:
+            qty = (qty//packaging_number+1)*packaging_number
+        pricelist_id = po_line.order_id.partner_id.property_product_pricelist_purchase
+        price = pricelist_id.with_context(uom = procurement.product_uom.id).price_get(procurement.product_id.id, qty,
+                                                                        po_line.order_id.partner_id.id)[pricelist_id.id]
+        return qty, price
 
     @api.model
     def _get_po_line_values_from_proc(self, procurement, partner, company, schedule_date):
-        result = super(procurement_order, self)._get_po_line_values_from_proc(procurement, partner, company, schedule_date)
-        uom_obj = self.env['product.uom']
-        uom_id = procurement.product_id.uom_po_id.id
-        qty = uom_obj._compute_qty(procurement.product_uom.id, procurement.product_qty, uom_id)
+        result = super(procurement_order_improved, self)._get_po_line_values_from_proc(procurement,
+                                                                                       partner, company, schedule_date)
+        list_supplierinfo_ids = self.env['product.supplierinfo'].search([('name', '=', partner.id),
+                                                ('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id)])
+        supplierinfo_id = list_supplierinfo_ids[0]
+        packaging_number = supplierinfo_id.packaging_qty
+        if packaging_number == 0:
+            packaging_number = 1
+        qty = max(result['product_qty'], supplierinfo_id.min_qty)
+        if qty % packaging_number != 0:
+            qty = (qty//packaging_number+1)*packaging_number
         result['product_qty'] = qty
+        pricelist_id = partner.property_product_pricelist_purchase
+        result['price_unit'] = pricelist_id.with_context(uom = procurement.product_uom.id).\
+                                                price_get(procurement.product_id.id, qty, partner.id)[pricelist_id.id]
         return result
-
-class purchase_line(models.Model):
-    _inherit = 'purchase.order.line'
-
-    @api.multi
-    def write(self, vals):
-        if self.env.context.get('recalculate') and self.product_qty:
-            self.ensure_one()
-            global_need = sum([item.product_qty for item in self.procurement_ids]) + vals['product_qty'] - self.product_qty
-            global_need = max(self.product_id.seller_qty, global_need)
-            packaging_number = self.product_id.seller_ids[0].packaging_qty
-            if packaging_number == 0:
-                packaging_number = 1
-            if global_need % packaging_number != 0:
-                global_need = (global_need//packaging_number+1)*packaging_number
-            vals['product_qty'] = global_need
-        return super(purchase_line, self).write(vals)
-
-    @api.model
-    def create(self, vals):
-        if self.env.context.get('recalculate'):
-            global_need = vals['product_qty']
-            product = self.env['product.product'].browse(vals['product_id'])
-            minimum_quantity = product.seller_ids[0].min_qty
-            packaging_number = product.seller_ids[0].packaging_qty
-            global_need = max(minimum_quantity, global_need)
-            if packaging_number == 0:
-                packaging_number = 1
-            if global_need % packaging_number != 0:
-                global_need = (global_need//packaging_number+1)*packaging_number
-            vals['product_qty'] = global_need
-        return super(purchase_line, self).create(vals)
