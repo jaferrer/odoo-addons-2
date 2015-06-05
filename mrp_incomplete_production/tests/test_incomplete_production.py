@@ -55,7 +55,7 @@ class TestIncompleteProduction(common.TransactionCase):
             'company_id': self.company.id,
         })
         self.assertTrue(mrp_production1)
-        mrp_production1.action_confirm()
+        mrp_production1.signal_workflow('button_confirm')
         self.assertEquals(len(mrp_production1.move_lines), 3)
         for move in mrp_production1.move_lines:
             if move.product_qty == 5:
@@ -70,7 +70,7 @@ class TestIncompleteProduction(common.TransactionCase):
         return mrp_production1, move1, move2, move3
 
     def test_10_incomplete_production(self):
-        """Test with one move available: move1     # => MEttre les doc des fonctions entre 3 guillemets."""
+        """Test with one move available: move1"""
         mrp_production1, move1, move2, move3 = self.production_check()
         move1.force_assign()
         self.assertEquals(move1.state, 'assigned')
@@ -195,7 +195,7 @@ class TestIncompleteProduction(common.TransactionCase):
         self.assertEqual(mrp_production2.state, 'ready')
         mrp_product_produce2_data = {
             'production_id': mrp_production2.id,
-            'consume_lines': [(0, 0, vals) for vals in mrp_production2._calculate_qty(mrp_production1)]
+            'consume_lines': [(0, 0, vals) for vals in mrp_production2._calculate_qty(mrp_production2)]
         }
         mrp_product_produce2 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production2.id}).\
                                                                             create(mrp_product_produce2_data)
@@ -213,7 +213,7 @@ class TestIncompleteProduction(common.TransactionCase):
         self.assertEqual(mrp_production3.state, 'ready')
         mrp_product_produce3_data = {
             'production_id': mrp_production3.id,
-            'consume_lines': [(0, 0, vals) for vals in mrp_production3._calculate_qty(mrp_production1)]
+            'consume_lines': [(0, 0, vals) for vals in mrp_production3._calculate_qty(mrp_production3)]
         }
         mrp_product_produce3 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production3.id}).\
                                                                             create(mrp_product_produce3_data)
