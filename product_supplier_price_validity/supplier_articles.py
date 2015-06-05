@@ -21,6 +21,7 @@ import time
 from openerp.exceptions import except_orm
 from openerp import fields, models, api, _
 
+
 class product_supplierinfo_improved (models.Model):
     _inherit = "product.supplierinfo"
     validity_date_2 = fields.Date("Validity date", help="Price list validity end date. Does not have any affect on the price calculation.")
@@ -56,7 +57,6 @@ class pricelist_partnerinfo_improved (models.Model):
                 active = False
                 break
         return active
-
 
 
 class product_pricelist_improved(models.Model):
@@ -119,6 +119,7 @@ class product_pricelist_improved(models.Model):
                     price = product_uom_obj._compute_price(price_uom_id, price, qty_uom_id)
                     results[product.id] = (price, rule_id)
         return results
+
 
 class procurement_order(models.Model):
     _inherit = 'procurement.order'

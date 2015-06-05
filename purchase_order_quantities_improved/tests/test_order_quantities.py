@@ -25,95 +25,63 @@ class TestOrderQuantities(common.TransactionCase):
         super(TestOrderQuantities, self).setUp()
 
     def test_10_order_quantity_calculation(self):
-        """testing function create under the minimal quantity, then function write under and over the minimal quantity.
+        """Testing function create under the minimal quantity, then function write under and over the minimal quantity.
         """
-        procurement_order_1 = self.env['procurement.order'].create({
-            'name': "Procurement Order 1",
-            'product_id': self.ref('purchase_order_quantities_improved.product1'),
-            'product_qty': 7,
-            'warehouse_id': self.ref('stock.warehouse0'),
-            'location_id': self.ref('stock.stock_location_stock'),
-            'date_planned': "2015-05-04 15:00:00",
-            'product_uom': self.ref('product.product_uom_unit'),
-        })
+        procurement_order_1 = self.browse_ref('purchase_order_quantities_improved.procurement_order_1')
+        procurement_order_2 = self.browse_ref('purchase_order_quantities_improved.procurement_order_2')
+        procurement_order_3 = self.browse_ref('purchase_order_quantities_improved.procurement_order_3')
+
         procurement_order_1.run()
         self.assertEqual(procurement_order_1.state, u'running')
-        purchase_order_line = self.env['purchase.order.line'].search(
-                                                            [('product_id', '=', procurement_order_1.product_id.id)])
+        purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=',
+                                                                       procurement_order_1.product_id.id)])
         self.assertTrue(purchase_order_line)
+        self.assertEqual(len(purchase_order_line), 1)
         # po_qty should be 36
         self.assertEqual(purchase_order_line.product_qty, 36)
 
-        procurement_order_3 = self.env['procurement.order'].create({
-            'name': "Procurement Order 3",
-            'product_id': self.ref('purchase_order_quantities_improved.product1'),
-            'product_qty': 7,
-            'warehouse_id': self.ref('stock.warehouse0'),
-            'location_id': self.ref('stock.stock_location_stock'),
-            'date_planned': "2015-05-04 15:00:00",
-            'product_uom': self.ref('product.product_uom_unit'),
-        })
         procurement_order_3.run()
         self.assertEqual(procurement_order_3.state, u'running')
-        purchase_order_line = self.env['purchase.order.line'].search(
-                                                            [('product_id', '=', procurement_order_1.product_id.id)])
+        purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=',
+                                                                       procurement_order_1.product_id.id)])
         self.assertTrue(purchase_order_line)
         # po_qty should be 36
         self.assertEqual(purchase_order_line.product_qty, 36)
 
-        procurement_order_2 = self.env['procurement.order'].create({
-            'name': "Procurement Order 2",
-            'product_id': self.ref('purchase_order_quantities_improved.product1'),
-            'product_qty': 40,
-            'warehouse_id': self.ref('stock.warehouse0'),
-            'location_id': self.ref('stock.stock_location_stock'),
-            'date_planned': "2015-05-04 15:00:00",
-            'product_uom': self.ref('product.product_uom_unit'),
-        })
         procurement_order_2.run()
         self.assertEqual(procurement_order_2.state, u'running')
-        purchase_order_line = self.env['purchase.order.line'].search(
-                                                            [('product_id', '=', procurement_order_2.product_id.id)])
+        purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=',
+                                                                       procurement_order_2.product_id.id)])
         self.assertTrue(purchase_order_line)
         # po_qty should be 60
         self.assertEqual(purchase_order_line.product_qty, 60)
 
     def test_20_order_quantity_calculation(self):
-        """testing function create over the maximal quantity."""
+        """Testing function create over the maximal quantity."""
 
-        procurement_order_2 = self.env['procurement.order'].create({
-            'name': "Procurement Order 2",
-            'product_id': self.ref('purchase_order_quantities_improved.product1'),
-            'product_qty': 40,
-            'warehouse_id': self.ref('stock.warehouse0'),
-            'location_id': self.ref('stock.stock_location_stock'),
-            'date_planned': "2015-05-04 15:00:00",
-            'product_uom': self.ref('product.product_uom_unit'),
-        })
+        procurement_order_2 = self.browse_ref('purchase_order_quantities_improved.procurement_order_2')
         procurement_order_2.run()
-        purchase_order_line = self.env['purchase.order.line'].search(
-                                                            [('product_id', '=', procurement_order_2.product_id.id)])
+        purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=',
+                                                                       procurement_order_2.product_id.id)])
         # po_qty should be 48
         self.assertEqual(purchase_order_line.product_qty, 48)
 
     def test_30_order_quantity_calculation(self):
-        """Testing how different uom are working together"""
+        """testing how different uom are working together"""
 
         procurement_order_4 = self.browse_ref('purchase_order_quantities_improved.procurement_order_4')
         procurement_order_4.run()
         self.assertEqual(procurement_order_4.state, u'running')
-        purchase_order_line = self.env['purchase.order.line'].search(
-                                                            [('product_id', '=', procurement_order_4.product_id.id)])
+        purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=',
+                                                                       procurement_order_4.product_id.id)])
         self.assertTrue(purchase_order_line)
         # po_qty should be 4
         self.assertEqual(purchase_order_line.product_qty, 4)
 
     def test_40_order_quantity_calculation(self):
         """Testing modified functions create and write.
-        When the po is created by the operator, those two functions should not overwrite it
-        when creation a procurement order line, product_qty can not be under the product_min_qty: useless to test
-        this situation
-        """
+        When the po is created by the operator, those two functions should not overwrite it when creation a
+        procurement order line, product_qty can not be under the product_min_qty: useless to test this situation"""
 
         supplier1 = self.browse_ref('purchase_order_quantities_improved.supplier1')
         self.assertTrue(supplier1)
@@ -145,5 +113,6 @@ class TestOrderQuantities(common.TransactionCase):
         self.assertEqual(purchase_order_line_1.product_qty, 3.5)
 
         purchase_order_line_1.product_qty = 5.5
+
         # po_qty should be still 5.5 (testing function write, which should not be modified at that time
         self.assertEqual(purchase_order_line_1.product_qty, 5.5)
