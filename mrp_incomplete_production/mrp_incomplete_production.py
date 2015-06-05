@@ -16,16 +16,18 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from datetime import datetime
 
 from openerp import fields, models, api
-from datetime import *
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+
 
 class procurement_rule2(models.Model):
     _inherit = 'procurement.rule'
 
     child_loc_id = fields.Many2one('stock.location', string="Child location", help="Source and destination locations of"
                                                                     " the automatically generated manufacturing order")
+
 
 class procurement_order2(models.Model):
     _inherit = 'procurement.order'
@@ -36,6 +38,7 @@ class procurement_order2(models.Model):
         if procurement.rule_id.child_loc_id.id:
             result['child_location_id'] = procurement.rule_id.child_loc_id.id
         return result
+
 
 class product_produce(models.TransientModel):
     _inherit = 'mrp.product.produce'
@@ -106,13 +109,13 @@ class product_produce(models.TransientModel):
             " this Manufacturing Order will have the same destination location as his parent. If it is filled, the "
             "child will have this location as destination location.")
     production_all_available = fields.Boolean(string='True if the raw material of the related Manufacturing Order is '
-                                                'entirely available', default=_get_default_availability, readonly=True)
+                                              'entirely available', default=_get_default_availability, readonly=True)
     product_different = fields.Boolean(string="True if the child product is different from the parent one",
-                                       compute="is_product_different")
+                                       compute="_is_product_different")
 
     @api.one
     @api.depends('child_production_product_id')
-    def is_product_different(self):
+    def _is_product_different(self):
         order=False
         c = self.env.context
         if c and c.get("active_id"):
@@ -121,10 +124,13 @@ class product_produce(models.TransientModel):
         if order and order.product_id != self.child_production_product_id:
             self.product_different = True
 
+
 class product_line2(models.Model):
     _inherit = 'mrp.production.product.line'
+
     parent_production_id = fields.Many2one('mrp.production',
                 string="This Manufacturing Order has generated a child with this move as raw material", readonly=True)
+
 
 class mrp_production2(models.Model):
     _inherit = "mrp.production"
@@ -134,25 +140,24 @@ class mrp_production2(models.Model):
         help="If this field is empty, potential children of this Manufacturing Order will have the same source and "
              "destination locations as their parent. If it is filled, the children will have this location as source "
              "and destination locations.")
-    child_order_id = fields.Many2one('mrp.production', string="Child Manufacturing Order", compute="get_child_order_id",
-                                     readonly=True, store=False)
+    child_order_id = fields.Many2one('mrp.production', string="Child Manufacturing Order",
+                                     compute="_get_child_order_id", readonly=True, store=False)
     child_move_ids = fields.One2many('mrp.production.product.line', 'parent_production_id',
                                      string="Not consumed products", readonly=True)
-    left_products = fields.Boolean(string="True if child_move_ids is not empty", compute="get_child_moves",
+    left_products = fields.Boolean(string="True if child_move_ids is not empty", compute="_get_child_moves",
                                    readonly=True, store=False)
 
     @api.one
-    def get_child_order_id(self):
-        self.child_order_id = False
+    def _get_child_order_id(self):
+        child_order_id = False
         list_ids = self.env['mrp.production'].search([('backorder_id', '=', self.id)])
-        if len(list_ids) == 1:
-            self.child_order_id = list_ids[0]
+        if len(list_ids) >= 1:
+            child_order_id = list_ids[0]
+        self.child_order_id = child_order_id
 
     @api.one
-    def get_child_moves(self):
-        self.left_products = True
-        if not self.child_move_ids:
-            self.left_products = False
+    def _get_child_moves(self):
+        self.left_products = bool(self.child_move_ids)
 
     @api.model
     def _calculate_qty(self, production, product_qty=0.0):
@@ -181,7 +186,7 @@ class mrp_production2(models.Model):
         for move in production.move_lines2:
             if move.state == 'cancel' and move not in list_cancelled_moves1:
                 list_cancelled_moves += [move]
-        if len(list_cancelled_moves)!= 0:
+        if len(list_cancelled_moves) != 0:
             production_data = {
                 'product_id': wiz.child_production_product_id.id,
                 'product_qty': production.product_qty,
@@ -215,16 +220,9 @@ class mrp_production2(models.Model):
     @api.multi
     def button_update(self):
         self.ensure_one()
-        try:
-            if not self.backorder_id:
-                self._action_compute_lines()
-                self.update_moves()
-        except: pass
-
-    @api.multi
-    def action_ready(self):
-        result = super(mrp_production2, self).action_ready()
-        return result
+        if not self.backorder_id:
+            self._action_compute_lines()
+            self.update_moves()
 
     @api.multi
     def action_assign(self):
