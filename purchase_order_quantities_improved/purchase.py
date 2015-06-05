@@ -23,6 +23,7 @@ class supplier(models.Model):
     _inherit = 'product.supplierinfo'
     packaging_qty = fields.Float(help="Quantity in the standard packaging", default=1)
 
+
 class procurement_order_improved(models.Model):
     _inherit = 'procurement.order'
 
@@ -31,16 +32,16 @@ class procurement_order_improved(models.Model):
         (qty, price) = super(procurement_order_improved, self)._calc_new_qty_price(procurement, po_line, cancel)
         list_supplierinfo_ids = self.env['product.supplierinfo'].search([('name', '=', po_line.order_id.partner_id.id),
                                                 ('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id)])
-        supplierinfo_id = list_supplierinfo_ids[0]
-        packaging_number = supplierinfo_id.packaging_qty
+        supplierinfo = list_supplierinfo_ids[0]
+        packaging_number = supplierinfo.packaging_qty
         if packaging_number == 0:
             packaging_number = 1
-        qty = max(qty, supplierinfo_id.min_qty)
+        qty = max(qty, supplierinfo.min_qty)
         if qty % packaging_number != 0:
             qty = (qty//packaging_number+1)*packaging_number
-        pricelist_id = po_line.order_id.partner_id.property_product_pricelist_purchase
-        price = pricelist_id.with_context(uom = procurement.product_uom.id).price_get(procurement.product_id.id, qty,
-                                                                        po_line.order_id.partner_id.id)[pricelist_id.id]
+        pricelist = po_line.order_id.partner_id.property_product_pricelist_purchase
+        price = pricelist.with_context(uom=procurement.product_uom.id).price_get(procurement.product_id.id, qty,
+                                                                        po_line.order_id.partner_id.id)[pricelist.id]
         return qty, price
 
     @api.model
@@ -49,15 +50,15 @@ class procurement_order_improved(models.Model):
                                                                                        partner, company, schedule_date)
         list_supplierinfo_ids = self.env['product.supplierinfo'].search([('name', '=', partner.id),
                                                 ('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id)])
-        supplierinfo_id = list_supplierinfo_ids[0]
-        packaging_number = supplierinfo_id.packaging_qty
+        supplierinfo = list_supplierinfo_ids[0]
+        packaging_number = supplierinfo.packaging_qty
         if packaging_number == 0:
             packaging_number = 1
-        qty = max(result['product_qty'], supplierinfo_id.min_qty)
+        qty = max(result['product_qty'], supplierinfo.min_qty)
         if qty % packaging_number != 0:
             qty = (qty//packaging_number+1)*packaging_number
         result['product_qty'] = qty
-        pricelist_id = partner.property_product_pricelist_purchase
-        result['price_unit'] = pricelist_id.with_context(uom = procurement.product_uom.id).\
-                                                price_get(procurement.product_id.id, qty, partner.id)[pricelist_id.id]
+        pricelist = partner.property_product_pricelist_purchase
+        result['price_unit'] = pricelist.with_context(uom=procurement.product_uom.id).\
+                                                price_get(procurement.product_id.id, qty, partner.id)[pricelist.id]
         return result
