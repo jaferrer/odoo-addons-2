@@ -18,17 +18,17 @@
 #
 
 {
-    'name': 'Partial productions',
+    'name': 'Partial Productions',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Product',
     'depends': ['mrp','product', 'stock', 'mrp_manufacturing_order_update'],
     'description': """
-Partial productions
+Partial Productions
 ===================
-This module allows to mark as done a manufactoring order (MO) even if all the products needed are not available.
-If no one is available, it returns an error message.
+This module allows to mark as done a manufacturing order (MO) even if all the products needed are not available.
+If none are available, it returns an error message.
 If all the products are available, it does not change anything.
 If the products are partially available, it marks the MO as done, and consumes only the available products.
 It also creates another MO, with the products needed but not available at the conclusion of the first MO.

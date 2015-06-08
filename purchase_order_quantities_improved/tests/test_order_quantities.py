@@ -57,8 +57,7 @@ class TestOrderQuantities(common.TransactionCase):
         self.assertEqual(purchase_order_line.product_qty, 60)
 
     def test_20_order_quantity_calculation(self):
-
-        #testing function create over the maximal quantity
+        """Testing function create over the maximal quantity."""
 
         procurement_order_2 = self.browse_ref('purchase_order_quantities_improved.procurement_order_2')
         procurement_order_2.run()
@@ -68,8 +67,7 @@ class TestOrderQuantities(common.TransactionCase):
         self.assertEqual(purchase_order_line.product_qty, 48)
 
     def test_30_order_quantity_calculation(self):
-
-        #testing how different uom are working together
+        """testing how different uom are working together"""
 
         procurement_order_4 = self.browse_ref('purchase_order_quantities_improved.procurement_order_4')
         procurement_order_4.run()
@@ -81,10 +79,9 @@ class TestOrderQuantities(common.TransactionCase):
         self.assertEqual(purchase_order_line.product_qty, 4)
 
     def test_40_order_quantity_calculation(self):
-
-        # testing modified functions create and write: when the po is created by the operator, those two functions
-        # should not overwrite it when creation a procurement order line, product_qty can not be under the
-        # product_min_qty: useless to test this situation
+        """Testing modified functions create and write.
+        When the po is created by the operator, those two functions should not overwrite it when creation a
+        procurement order line, product_qty can not be under the product_min_qty: useless to test this situation"""
 
         supplier1 = self.browse_ref('purchase_order_quantities_improved.supplier1')
         self.assertTrue(supplier1)
