@@ -16,40 +16,45 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import openerp.addons.decimal_precision as dp
-from datetime import datetime
+from openerp import fields, models, api
 
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
-from openerp import fields, models, api, _
 
-class stock_warehouse (models.Model):
+class StockWarehouse(models.Model):
     _inherit = "stock.warehouse.orderpoint"
 
-    fill_strategy = fields.Selection([('max',"Maximal quantity"),('duration','Foresight duration')],
+    fill_strategy = fields.Selection([('max', "Maximal quantity"), ('duration', 'Foresight duration')],
                                      string="Procurement strategy", help="Alert choice for a new procurement order",
                                      default="max")
-    fill_duration = fields.Integer(string="Foresight duration", help="Number of days" )
-    product_max_qty_operator = fields.Float(string='Maximum Quantity',
-            digits_compute=dp.get_precision('Product Unit of Measure'),
-            help="When the virtual stock goes below the Min Quantity, Odoo generates "\
-            "a procurement to bring the forecasted quantity to the Quantity specified as Max Quantity.")
-    product_max_qty = fields.Float(compute='_get_max_qty', inverse="_set_max_quantity")
+    fill_duration = fields.Integer(string="Foresight duration", help="Number of days")
+    product_max_qty_operator = fields.Float(
+        string='Maximum Quantity',
+        digits_compute=dp.get_precision('Product Unit of Measure'),
+        help="When the virtual stock goes below the Min Quantity, Odoo generates "
+        "a procurement to bring the forecasted quantity to the Quantity specified as Max Quantity.")
+    product_max_qty = fields.Float(compute='_compute_product_max_qty', inverse="_set_max_quantity")
 
     @api.one
     @api.depends('product_max_qty_operator', 'fill_strategy', 'fill_duration')
-    def _get_max_qty(self):
-        if self.fill_strategy == 'max':
-            self.product_max_qty = self.product_max_qty_operator
-        else:
-            search_end_date = self.location_id.schedule_working_days(self.fill_duration + 1, datetime.now())
-            moves = self.env['stock.move'].search([('product_id', '=', self.product_id.id),
-                                                   ('location_id', '=', self.location_id.id),
-                                                   ('state', 'in', ['confirmed', 'waiting']),
-                                                ('date','<=',search_end_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT))])
-            self.product_max_qty = sum([m.product_qty for m in moves])
+    def _compute_product_max_qty(self):
+        self.product_max_qty = self.get_max_qty(fields.Datetime.now())
 
     @api.one
     def _set_max_quantity(self):
         self.product_max_qty_operator = self.product_max_qty
 
+    def get_max_qty(self, date):
+        """Returns the orderpoint maximum quantity for the given date.
+
+        :param date: datetime string at which we want to calculate the maximum quantity
+        """
+        if self.fill_strategy == 'max':
+            return self.product_max_qty_operator
+        else:
+            search_end_date = self.location_id.schedule_working_days(self.fill_duration + 1,
+                                                                     fields.Datetime.from_string(date))
+            moves = self.env['stock.move'].search([('product_id', '=', self.product_id.id),
+                                                   ('location_id', '=', self.location_id.id),
+                                                   ('state', 'in', ['confirmed', 'waiting']),
+                                                   ('date', '<=', fields.Datetime.to_string(search_end_date))])
+            return sum([m.product_qty for m in moves])
