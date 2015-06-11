@@ -34,7 +34,7 @@ class sirail_production_bom_line (models.Model):
             if parent_product:
                 parent_ids.append(parent_product.id)
             elif parent_product_tmpl:
-                products = self.env['product.product'].search([('product_tmpl_id','=',parent_product_tmpl)])
+                products = self.env['product.product'].search([('product_tmpl_id','=',parent_product_tmpl.id)])
                 parent_ids += products.ids
             parent_lines = self.search([('product_id','in',parent_ids)])
             rec.father_line_ids = [(6, 0, [p.id for p in parent_lines])]
