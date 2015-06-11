@@ -30,6 +30,9 @@ class procurement_order_improved(models.Model):
     @api.model
     def _calc_new_qty_price(self, procurement, po_line=None, cancel=False):
         (qty, price) = super(procurement_order_improved, self)._calc_new_qty_price(procurement, po_line, cancel)
+        if not po_line:
+            po_line = procurement.purchase_line_id
+
         list_supplierinfo_ids = self.env['product.supplierinfo'].search([('name', '=', po_line.order_id.partner_id.id),
                                                 ('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id)])
         supplierinfo = list_supplierinfo_ids[0]
