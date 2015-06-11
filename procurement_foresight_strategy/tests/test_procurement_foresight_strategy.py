@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp.tests import common
@@ -44,5 +44,5 @@ class TestProcurementForesightStrategy(common.TransactionCase):
             'fill_strategy': "duration",
             'fill_duration': 5,
         })
-        max_qty = orderpoint.get_max_qty("2015-02-20 12:34:56")
+        max_qty = orderpoint.get_max_qty(datetime.strptime("2015-02-20 12:34:56", DEFAULT_SERVER_DATETIME_FORMAT))
         self.assertEqual(max_qty, 12)
