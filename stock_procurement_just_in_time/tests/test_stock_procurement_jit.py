@@ -58,7 +58,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         proc_env = self.env['procurement.order']
         proc0 = proc_env.create({
             'name': "Procurement 1",
-            'date_planned': '2015-03-19 00:00:00',
+            'date_planned': '2015-03-19 18:00:00',
             'product_id': self.test_product.id,
             'product_qty': 5,
             'product_uom': self.product_uom_unit_id,
@@ -162,3 +162,47 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[2].date_planned, "2015-03-25 09:59:59")
         self.assertEqual(procs[2].product_qty, 14)
         self.assertEqual(procs[2].state, 'running')
+
+    def test_50_procurement_jit_oversupply(self):
+        """Test redistribution of procurements when the location is over supplied."""
+        proc_env = self.env['procurement.order']
+        # First let's start with the basic procurement scenario
+        self.test_10_procurement_jit_basic()
+        move_need2 = self.browse_ref('stock_procurement_just_in_time.need2')
+        move_need2.date = "2015-03-27 11:00:00"
+        # We create a new move in order to have a need at the end
+        new_move = move_need2.copy({'date': "2015-03-30 11:10:00"})
+        new_move.action_confirm()
+        proc_env._procure_orderpoint_confirm()
+        procs = proc_env.search([('location_id','=',self.location_b.id),('product_id','=',self.test_product.id)])
+        procs = procs.sorted(lambda x: x.date_planned)
+        self.assertEqual(len(procs), 4)
+        for proc in procs:
+            self.assertEqual(proc.state, 'running')
+        self.assertEqual(procs[0].date_planned, "2015-03-15 09:59:59")
+        self.assertEqual(procs[0].product_qty, 8)
+        self.assertEqual(procs[1].date_planned, "2015-03-25 09:59:59")
+        self.assertEqual(procs[1].product_qty, 12)
+        self.assertEqual(procs[2].date_planned, "2015-03-27 10:59:59")
+        self.assertEqual(procs[2].product_qty, 6)
+        self.assertEqual(procs[3].date_planned, "2015-03-30 11:09:59")
+        self.assertEqual(procs[3].product_qty, 6)
+
+    def test_60_procurement_jit_removal(self):
+        """Test removal of unecessary procurements at the end."""
+        proc_env = self.env['procurement.order']
+        # First let's start with the basic procurement scenario
+        self.test_10_procurement_jit_basic()
+        move_need2 = self.browse_ref('stock_procurement_just_in_time.need2')
+        move_need2.action_cancel()
+        proc_env._procure_orderpoint_confirm()
+        procs = proc_env.search([('location_id','=',self.location_b.id),('product_id','=',self.test_product.id)])
+        procs = procs.sorted(lambda x: x.date_planned)
+        self.assertEqual(len(procs), 2)
+        for proc in procs:
+            self.assertEqual(proc.state, 'running')
+        self.assertEqual(procs[0].date_planned, "2015-03-15 09:59:59")
+        self.assertEqual(procs[0].product_qty, 8)
+        self.assertEqual(procs[1].date_planned, "2015-03-25 09:59:59")
+        self.assertEqual(procs[1].product_qty, 12)
+
