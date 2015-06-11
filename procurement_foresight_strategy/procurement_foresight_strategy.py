@@ -16,6 +16,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from datetime import datetime
+
 import openerp.addons.decimal_precision as dp
 from openerp import fields, models, api
 
@@ -37,7 +39,7 @@ class StockWarehouse(models.Model):
     @api.one
     @api.depends('product_max_qty_operator', 'fill_strategy', 'fill_duration')
     def _compute_product_max_qty(self):
-        self.product_max_qty = self.get_max_qty(fields.Datetime.now())
+        self.product_max_qty = self.get_max_qty(datetime.now())
 
     @api.one
     def _set_max_quantity(self):
@@ -46,13 +48,12 @@ class StockWarehouse(models.Model):
     def get_max_qty(self, date):
         """Returns the orderpoint maximum quantity for the given date.
 
-        :param date: datetime string at which we want to calculate the maximum quantity
+        :param date: datetime at which we want to calculate the maximum quantity
         """
         if self.fill_strategy == 'max':
             return self.product_max_qty_operator
         else:
-            search_end_date = self.location_id.schedule_working_days(self.fill_duration + 1,
-                                                                     fields.Datetime.from_string(date))
+            search_end_date = self.location_id.schedule_working_days(self.fill_duration + 1, date)
             moves = self.env['stock.move'].search([('product_id', '=', self.product_id.id),
                                                    ('location_id', '=', self.location_id.id),
                                                    ('state', 'in', ['confirmed', 'waiting']),
