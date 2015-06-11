@@ -88,47 +88,5 @@
             <field name="product_tmpl_id" ref="product2_product_template"/>
         </record>
 
-        <!--Procurement orders-->
-
-        <record id="procurement_order_1" model="procurement.order">
-            <field name="name">Procurement order 1</field>
-            <field name="product_id" ref="product1"/>
-            <field name="product_qty" eval="7"/>
-            <field name="warehouse_id" ref="stock.warehouse0"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-            <field name="date_planned">2015-05-04 15:00:00</field>
-            <field name="product_uom" ref="product.product_uom_unit"/>
-        </record>
-
-        <record id="procurement_order_2" model="procurement.order">
-            <field name="name">Procurement order 2</field>
-            <field name="product_id" ref="product1"/>
-            <field name="product_qty" eval="40"/>
-            <field name="warehouse_id" ref="stock.warehouse0"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-            <field name="date_planned">2015-05-04 15:00:00</field>
-            <field name="product_uom" ref="product.product_uom_unit"/>
-        </record>
-
-        <record id="procurement_order_3" model="procurement.order">
-            <field name="name">Procurement order 3</field>
-            <field name="product_id" ref="product1"/>
-            <field name="product_qty" eval="7"/>
-            <field name="warehouse_id" ref="stock.warehouse0"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-            <field name="date_planned">2015-05-04 15:00:00</field>
-            <field name="product_uom" ref="product.product_uom_unit"/>
-        </record>
-
-        <record id="procurement_order_4" model="procurement.order">
-            <field name="name">Procurement order 4</field>
-            <field name="product_id" ref="product2"/>
-            <field name="product_qty" eval="3"/>
-            <field name="warehouse_id" ref="stock.warehouse0"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-            <field name="date_planned">2015-05-04 15:00:00</field>
-            <field name="product_uom" ref="product.product_uom_unit"/>
-        </record>
-
     </data>
 </openerp>

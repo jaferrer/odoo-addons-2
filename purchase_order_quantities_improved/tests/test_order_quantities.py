@@ -19,6 +19,7 @@
 
 from openerp.tests import common
 
+
 class TestOrderQuantities(common.TransactionCase):
 
     def setUp(self):
@@ -27,10 +28,15 @@ class TestOrderQuantities(common.TransactionCase):
     def test_10_order_quantity_calculation(self):
         """Testing function create under the minimal quantity, then function write under and over the minimal quantity.
         """
-        procurement_order_1 = self.browse_ref('purchase_order_quantities_improved.procurement_order_1')
-        procurement_order_2 = self.browse_ref('purchase_order_quantities_improved.procurement_order_2')
-        procurement_order_3 = self.browse_ref('purchase_order_quantities_improved.procurement_order_3')
-
+        procurement_order_1 = self.env['procurement.order'].create({
+            'name': "Procurement Order 1",
+            'product_id': self.ref('purchase_order_quantities_improved.product1'),
+            'product_qty': 7,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock.stock_location_stock'),
+            'date_planned': "2015-05-04 15:00:00",
+            'product_uom': self.ref('product.product_uom_unit')
+        })
         procurement_order_1.run()
         self.assertEqual(procurement_order_1.state, u'running')
         purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=',
@@ -40,6 +46,15 @@ class TestOrderQuantities(common.TransactionCase):
         # po_qty should be 36
         self.assertEqual(purchase_order_line.product_qty, 36)
 
+        procurement_order_3 = self.env['procurement.order'].create({
+            'name': "Procurement Order 3",
+            'product_id': self.ref('purchase_order_quantities_improved.product1'),
+            'product_qty': 7,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock.stock_location_stock'),
+            'date_planned': "2015-05-04 15:00:00",
+            'product_uom': self.ref('product.product_uom_unit')
+        })
         procurement_order_3.run()
         self.assertEqual(procurement_order_3.state, u'running')
         purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=',
@@ -48,6 +63,15 @@ class TestOrderQuantities(common.TransactionCase):
         # po_qty should be 36
         self.assertEqual(purchase_order_line.product_qty, 36)
 
+        procurement_order_2 = self.env['procurement.order'].create({
+            'name': "Procurement Order 2",
+            'product_id': self.ref('purchase_order_quantities_improved.product1'),
+            'product_qty': 40,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock.stock_location_stock'),
+            'date_planned': "2015-05-04 15:00:00",
+            'product_uom': self.ref('product.product_uom_unit')
+        })
         procurement_order_2.run()
         self.assertEqual(procurement_order_2.state, u'running')
         purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=',
@@ -57,9 +81,17 @@ class TestOrderQuantities(common.TransactionCase):
         self.assertEqual(purchase_order_line.product_qty, 60)
 
     def test_20_order_quantity_calculation(self):
-        """Testing function create over the maximal quantity."""
-
-        procurement_order_2 = self.browse_ref('purchase_order_quantities_improved.procurement_order_2')
+        """Testing function create over the maximal quantity.
+        """
+        procurement_order_2 = self.env['procurement.order'].create({
+            'name': "Procurement Order 2",
+            'product_id': self.ref('purchase_order_quantities_improved.product1'),
+            'product_qty': 40,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock.stock_location_stock'),
+            'date_planned': "2015-05-04 15:00:00",
+            'product_uom': self.ref('product.product_uom_unit')
+        })
         procurement_order_2.run()
         purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=',
                                                                        procurement_order_2.product_id.id)])
@@ -67,9 +99,17 @@ class TestOrderQuantities(common.TransactionCase):
         self.assertEqual(purchase_order_line.product_qty, 48)
 
     def test_30_order_quantity_calculation(self):
-        """testing how different uom are working together"""
-
-        procurement_order_4 = self.browse_ref('purchase_order_quantities_improved.procurement_order_4')
+        """testing how different uom are working together
+        """
+        procurement_order_4 = self.env['procurement.order'].create({
+            'name': "Procurement Order 4",
+            'product_id': self.ref('purchase_order_quantities_improved.product2'),
+            'product_qty': 3,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock.stock_location_stock'),
+            'date_planned': "2015-05-04 15:00:00",
+            'product_uom': self.ref('product.product_uom_unit')
+        })
         procurement_order_4.run()
         self.assertEqual(procurement_order_4.state, u'running')
         purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=',
