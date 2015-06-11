@@ -175,8 +175,6 @@ class TestStockProcurementJIT(common.TransactionCase):
         proc_env._procure_orderpoint_confirm()
         procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
-        for proc in procs:
-            print "Proc id: %s, qty: %s, date: %s" % (proc.id, proc.qty, proc.date_planned)
         self.assertEqual(len(procs), 4)
         for proc in procs:
             self.assertEqual(proc.state, 'running')
