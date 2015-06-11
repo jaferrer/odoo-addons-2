@@ -239,7 +239,7 @@ class StockWarehouseOrderPointJit(models.Model):
                                                           ('date_planned', '<=', fields.Datetime.to_string(timestamp)),
                                                           ('date_planned', '>', last_outgoing.date)],
                                                          order='qty DESC')
-
+            _logger.debug("Removing not needed procurements: %s", procs.ids)
             procs.cancel()
             procs.unlink()
 
@@ -282,7 +282,9 @@ class StockLevelsReport(models.Model):
                         sl.usage='internal' and sl.location_id=tp.id
             )
             select
-                row_number() over () as id,
+                foo.product_id::text || '-'
+                    || foo.location_id::text || '-'
+                    || coalesce(foo.move_id::text, 'existing') as id,
                 foo.product_id,
                 pt.categ_id as product_categ_id,
                 tp.top_parent_id as location_id,
@@ -299,7 +301,8 @@ class StockLevelsReport(models.Model):
                         NULL as other_location_id,
                         'existing'::text as move_type,
                         max(sq.in_date) as date,
-                        sum(sq.qty) as qty
+                        sum(sq.qty) as qty,
+                        NULL as move_id
                     from
                         stock_quant sq
                         left join stock_location sl on sq.location_id = sl.id
@@ -313,7 +316,8 @@ class StockLevelsReport(models.Model):
                         sm.location_id as other_location_id,
                         'in'::text as move_type,
                         sm.date_expected as date,
-                        sm.product_qty as qty
+                        sm.product_qty as qty,
+                        sm.id as move_id
                     from
                         stock_move sm
                         left join stock_location sl on sm.location_dest_id = sl.id
@@ -329,7 +333,8 @@ class StockLevelsReport(models.Model):
                         sm.location_dest_id as other_location_id,
                         'out'::text as move_type,
                         sm.date_expected as date,
-                        -sm.product_qty as qty
+                        -sm.product_qty as qty,
+                        sm.id as move_id
                     from
                         stock_move sm
                         left join stock_location sl on sm.location_id = sl.id
@@ -352,7 +357,6 @@ class StockLevelsRequirements(models.Model):
     _order = "date"
     _auto = False
 
-    id = fields.Integer("ID", readonly=True)
     proc_id = fields.Many2one("procurement.order", string="Procurement")
     product_id = fields.Many2one("product.product", string="Product", index=True)
     product_categ_id = fields.Many2one("product.category", string="Product Category")
@@ -386,7 +390,9 @@ class StockLevelsRequirements(models.Model):
                         sl.usage='internal' and sl.location_id=tp.id
             )
             select
-                row_number() over () as id,
+                foo.product_id::text || '-'
+                    || foo.location_id::text || '-'
+                    || coalesce(foo.move_id::text, foo.proc_id::text, 'existing') as id,
                 foo.proc_id,
                 foo.product_id,
                 pt.categ_id as product_categ_id,
@@ -405,7 +411,8 @@ class StockLevelsRequirements(models.Model):
                         NULL as other_location_id,
                         'existing'::text as move_type,
                         max(sq.in_date) as date,
-                        sum(sq.qty) as qty
+                        sum(sq.qty) as qty,
+                        NULL as move_id
                     from
                         stock_quant sq
                         left join stock_location sl on sq.location_id = sl.id
@@ -421,7 +428,8 @@ class StockLevelsRequirements(models.Model):
                         sm.location_id as other_location_id,
                         'in'::text as move_type,
                         coalesce(po.date_planned, sm.date) as date,
-                        sm.product_qty as qty
+                        sm.product_qty as qty,
+                        sm.id as move_id
                     from
                         stock_move sm
                         left join procurement_order po on sm.procurement_id = po.id
@@ -440,7 +448,8 @@ class StockLevelsRequirements(models.Model):
                         sm.location_dest_id as other_location_id,
                         'out'::text as move_type,
                         coalesce(po.date_planned, sm.date) as date,
-                        -sm.product_qty as qty
+                        -sm.product_qty as qty,
+                        sm.id as move_id
                     from
                         stock_move sm
                         left join procurement_order po on sm.procurement_id = po.id
@@ -459,7 +468,8 @@ class StockLevelsRequirements(models.Model):
                         NULL as other_location_id,
                         'planned'::text as move_type,
                         po.date_planned as date,
-                        po.qty as qty
+                        po.qty as qty,
+                        NULL as move_id
                     from
                         procurement_order po
                         left join stock_location sl on po.location_id = sl.id
