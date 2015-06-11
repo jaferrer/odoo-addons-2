@@ -17,9 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime
-
 from openerp.tests import common
+
 
 class TestStockProcurementJIT(common.TransactionCase):
 
@@ -37,7 +36,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         proc_env = self.env['procurement.order']
         proc_env._procure_orderpoint_confirm()
         # Let's have a look to the procurements created in B
-        procs = proc_env.search([('location_id','=',self.location_b.id),('product_id','=',self.test_product.id)])
+        procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
         self.assertEqual(len(procs), 3)
         # They should all be running
@@ -53,7 +52,7 @@ class TestStockProcurementJIT(common.TransactionCase):
     def test_20_procurement_jit_reschedule(self):
         """Check jit with rescheduling of confirmed procurement."""
         # Check that procurement_jit is not installed, otherwise this test is useless
-        if self.env['ir.module.module'].search([('name','=','procurement_jit'),('state','=','installed')]):
+        if self.env['ir.module.module'].search([('name', '=', 'procurement_jit'), ('state', '=', 'installed')]):
             self.skipTest("Procurement JIT module is installed")
         proc_env = self.env['procurement.order']
         proc0 = proc_env.create({
@@ -66,7 +65,7 @@ class TestStockProcurementJIT(common.TransactionCase):
             'location_id': self.location_b.id
         })
         proc_env._procure_orderpoint_confirm()
-        procs = proc_env.search([('location_id','=',self.location_b.id),('product_id','=',self.test_product.id)])
+        procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
         self.assertEqual(len(procs), 3)
         self.assertEqual(procs[0], proc0)
@@ -106,7 +105,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         proc1.run()
         self.assertEqual(proc1.move_ids[0].date[0:10], "2015-03-23")
         proc_env._procure_orderpoint_confirm()
-        procs = proc_env.search([('location_id','=',self.location_b.id),('product_id','=',self.test_product.id)])
+        procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
         # They should all be running
         for proc in procs:
@@ -146,13 +145,13 @@ class TestStockProcurementJIT(common.TransactionCase):
         })
         move.action_confirm()
         proc_env._procure_orderpoint_confirm()
-        procs = proc_env.search([('location_id','=',self.location_b.id),('product_id','=',self.test_product.id)])
+        procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
         self.assertEqual(len(procs), 3)
         self.assertEqual(procs[0], proc0)
         self.assertEqual(procs[0].date_planned, "2015-03-15 09:59:59")
         self.assertEqual(procs[0].product_qty, 4)
-        if self.env['ir.module.module'].search([('name','=','procurement_jit'),('state','=','installed')]):
+        if self.env['ir.module.module'].search([('name', '=', 'procurement_jit'), ('state', '=', 'installed')]):
             self.assertEqual(procs[0].state, 'running')
         else:
             self.assertEqual(procs[0].state, 'confirmed')
@@ -174,8 +173,10 @@ class TestStockProcurementJIT(common.TransactionCase):
         new_move = move_need2.copy({'date': "2015-03-30 11:10:00"})
         new_move.action_confirm()
         proc_env._procure_orderpoint_confirm()
-        procs = proc_env.search([('location_id','=',self.location_b.id),('product_id','=',self.test_product.id)])
+        procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
+        for proc in procs:
+            print "Proc id: %s, qty: %s, date: %s" % (proc.id, proc.qty, proc.date_planned)
         self.assertEqual(len(procs), 4)
         for proc in procs:
             self.assertEqual(proc.state, 'running')
@@ -196,7 +197,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         move_need2 = self.browse_ref('stock_procurement_just_in_time.need2')
         move_need2.action_cancel()
         proc_env._procure_orderpoint_confirm()
-        procs = proc_env.search([('location_id','=',self.location_b.id),('product_id','=',self.test_product.id)])
+        procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
         self.assertEqual(len(procs), 2)
         for proc in procs:
@@ -205,4 +206,3 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[1].date_planned, "2015-03-25 09:59:59")
         self.assertEqual(procs[1].product_qty, 12)
-
