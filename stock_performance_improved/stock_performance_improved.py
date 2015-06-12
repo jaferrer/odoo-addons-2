@@ -123,7 +123,6 @@ class stock_prereservation(models.Model):
     _description = "Stock Pre-Reservation"
     _auto = False
 
-    id = fields.Integer(readonly=True)
     move_id = fields.Many2one('stock.move', readonly=True, index=True)
     picking_id = fields.Many2one('stock.picking', readonly=True, index=True)
 
@@ -147,7 +146,7 @@ class stock_prereservation(models.Model):
                     select reservation_id from stock_quant where reservation_id is not null)
             )
             select
-                row_number() over () as id,
+                foo.move_id as id,
                 foo.move_id,
                 foo.picking_id
             from (
