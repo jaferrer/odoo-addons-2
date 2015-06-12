@@ -54,6 +54,7 @@ class procurement_order_purchase_planning_improved(models.Model):
         res.update({
             'date_required': schedule_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
         })
+        res['po_date'] = res['date_required']
         return res
 
 
