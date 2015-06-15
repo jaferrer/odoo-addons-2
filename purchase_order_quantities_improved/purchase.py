@@ -29,24 +29,22 @@ class procurement_order_improved(models.Model):
 
     @api.model
     def _calc_new_qty_price(self, procurement, po_line=None, cancel=False):
-        if po_line or procurement.purchase_line_id:
-            if not po_line:
-                po_line = procurement.purchase_line_id
-            (qty, price) = super(procurement_order_improved, self)._calc_new_qty_price(procurement, po_line, cancel)
-            list_supplierinfo_ids = self.env['product.supplierinfo'].search([('name', '=', po_line.order_id.partner_id.id),
-                                                    ('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id)])
-            supplierinfo = list_supplierinfo_ids[0]
-            packaging_number = supplierinfo.packaging_qty
-            if packaging_number == 0:
-                packaging_number = 1
-            qty = max(qty, supplierinfo.min_qty)
-            if qty % packaging_number != 0:
-                qty = (qty//packaging_number+1)*packaging_number
-            pricelist = po_line.order_id.partner_id.property_product_pricelist_purchase
-            price = pricelist.with_context(uom=procurement.product_uom.id).price_get(procurement.product_id.id, qty,
-                                                                            po_line.order_id.partner_id.id)[pricelist.id]
-            return qty, price
-        return False
+        if not po_line:
+            po_line = procurement.purchase_line_id
+        (qty, price) = super(procurement_order_improved, self)._calc_new_qty_price(procurement, po_line, cancel)
+        list_supplierinfo_ids = self.env['product.supplierinfo'].search([('name', '=', po_line.order_id.partner_id.id),
+                                                ('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id)])
+        supplierinfo = list_supplierinfo_ids[0]
+        packaging_number = supplierinfo.packaging_qty
+        if packaging_number == 0:
+            packaging_number = 1
+        qty = max(qty, supplierinfo.min_qty)
+        if qty % packaging_number != 0:
+            qty = (qty//packaging_number+1)*packaging_number
+        pricelist = po_line.order_id.partner_id.property_product_pricelist_purchase
+        price = pricelist.with_context(uom=procurement.product_uom.id).price_get(procurement.product_id.id, qty,
+                                                                        po_line.order_id.partner_id.id)[pricelist.id]
+        return qty, price
 
     @api.model
     def _get_po_line_values_from_proc(self, procurement, partner, company, schedule_date):
