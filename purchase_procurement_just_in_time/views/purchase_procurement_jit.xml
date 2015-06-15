@@ -10,7 +10,7 @@
                 <tree string="Purchase Order Lines" editable="top" create="false" delete="false">
                     <field name="partner_id" string="Supplier"/>
                     <field name="order_id" readonly="1"/>
-                    <field name="po_date"/>
+                    <field name="requested_date"/>
                     <field name="line_no" readonly="1"/>
                     <button string="Edit" name="open_form_purchase_order_line" type="object" icon="gtk-edit"/>
                     <field name="name" readonly="1" invisible="1"/>
@@ -99,7 +99,7 @@
                         <field name="name" readonly="1"/>
                     </field>
                     <field name="date_planned" position="before">
-                        <field name="po_date"/>
+                        <field name="requested_date"/>
                     </field>
                     <field name="date_planned" position="attributes">
                         <attribute name="attrs">{'readonly': [('state','=','done')]}</attribute>
@@ -135,7 +135,7 @@
                         <field name="line_no"/>
                     </xpath>
                     <field name="date_required" position="replace">
-                        <field name="po_date"/>
+                        <field name="requested_date"/>
                     </field>
                 </data>
             </field>

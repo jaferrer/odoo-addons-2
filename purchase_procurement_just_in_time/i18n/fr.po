@@ -258,9 +258,9 @@ msgid "Operational Messages"
 msgstr "Operational Messages"
 
 #. module: purchase_procurement_just_in_time
-#: help:purchase.order.line,po_date:0
-msgid "Order date of the corresponding purchase order"
-msgstr "Date de commande de l'ordre d'achat correspondant"
+#: help:purchase.order.line,requested_date:0
+msgid "The line was required to the supplier at that date"
+msgstr "Date à laquelle la ligne a été demandée initialement au fournisseur"
 
 #. module: purchase_procurement_just_in_time
 #: model:ir.model,name:purchase_procurement_just_in_time.model_partial_reception
@@ -329,7 +329,7 @@ msgid "Reference of the supplier's last reply to confirm the delivery at the pla
 msgstr "Reference of the supplier's last reply to confirm the delivery at the planned date"
 
 #. module: purchase_procurement_just_in_time
-#: field:purchase.order.line,po_date:0
+#: field:purchase.order.line,requested_date:0
 msgid "Requested date"
 msgstr "Date demandée"
 

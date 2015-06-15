@@ -64,16 +64,6 @@ class purchase_order_line_jit(models.Model):
     to_delete = fields.Boolean('True if all the procurements of the purchase order line are canceled')
     father_line_id = fields.Many2one('purchase.order.line', string="Very first line splited")
     children_number = fields.Integer(string="Number of children", default=0)
-    po_date = fields.Date("Requested date", help="Order date of the corresponding purchase order",
-                          default=fields.Date.context_today, states={'sent':[('readonly',True)],
-                                                                  'bid':[('readonly',True)],
-                                                                  'confirmed':[('readonly',True)],
-                                                                  'approved':[('readonly',True)],
-                                                                  'except_picking':[('readonly',True)],
-                                                                  'except_invoice':[('readonly',True)],
-                                                                  'done':[('readonly',True)],
-                                                                  'cancel':[('readonly',True)],
-                                                                  })
 
     @api.depends('date_planned','date_required')
     def _compute_opmsg(self):
