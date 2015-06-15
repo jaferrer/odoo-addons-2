@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,37 +18,27 @@
 #
 
 {
-    'name': 'Stock Performance Improved',
+    'name': 'Update manufacturing orders',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['stock'],
+    'category': 'Product',
+    'depends': ['mrp','product', 'stock'],
     'description': """
-Stock Performance Improved
-==========================
-Odoo is naturally optimized for situations where the stock is plenty and moves made on request with a relatively short
-notice. This is typically the case of a retail store or a logistics company.
-
-However, there are other situations where the stock is kept to minimum but the forecast moves are known well in
-advance. This is typically the case of an industrial company with a long term planning applying just-in-time
-procurement.
-
-This module applies performance improvements by assigning stock moves to a stock picking at latest, that is only when
-it can be reserved.
-
-This module also reimplements the do_detailed_transfer function of the stock transfer wizard.
+Update manufacturing orders
+===========================
+This module allows to change manually the list of scheduled products, and to generate the necessary stock moves to match the scheduled needs for this manufacturing order.
+It also allows to update a manufacturing order after a modification of the BOM used. In this case, it does not take account of the possible changes in the list of scheduled products before the update.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/ir.model.access.csv',
-        'stock_performance_improved_view.xml',
+             'manufacturing_order_update.xml'],
+    'demo': [
+        'test_manufacturing_order_update.xml'
     ],
-    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
 }
-

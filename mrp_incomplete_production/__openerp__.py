@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,37 +18,31 @@
 #
 
 {
-    'name': 'Stock Performance Improved',
+    'name': 'Partial Productions',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['stock'],
+    'category': 'Product',
+    'depends': ['mrp','product', 'stock', 'mrp_manufacturing_order_update'],
     'description': """
-Stock Performance Improved
-==========================
-Odoo is naturally optimized for situations where the stock is plenty and moves made on request with a relatively short
-notice. This is typically the case of a retail store or a logistics company.
-
-However, there are other situations where the stock is kept to minimum but the forecast moves are known well in
-advance. This is typically the case of an industrial company with a long term planning applying just-in-time
-procurement.
-
-This module applies performance improvements by assigning stock moves to a stock picking at latest, that is only when
-it can be reserved.
-
-This module also reimplements the do_detailed_transfer function of the stock transfer wizard.
+Partial Productions
+===================
+This module allows to mark as done a manufacturing order (MO) even if all the products needed are not available.
+If none are available, it returns an error message.
+If all the products are available, it does not change anything.
+If the products are partially available, it marks the MO as done, and consumes only the available products.
+It also creates another MO, with the products needed but not available at the conclusion of the first MO.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/ir.model.access.csv',
-        'stock_performance_improved_view.xml',
+             'mrp_incomplete_production.xml'
     ],
-    'demo': [],
+    'demo': [
+        'test_mrp_incomplete_production.xml'
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
 }
-

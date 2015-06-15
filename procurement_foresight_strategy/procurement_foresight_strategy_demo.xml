@@ -27,7 +27,7 @@
             <field name="location_dest_id" ref="stock.stock_location_customers"/>
             <field name="product_uom_qty">7</field>
             <field name="state">confirmed</field>
-            <field name="date">2015-02-20 13:52:00</field>
+            <field name="date">2015-02-23 13:52:00</field>
         </record>
 
         <record id="outgoing_2" model="stock.move">
@@ -39,7 +39,7 @@
             <field name="location_dest_id" ref="stock.stock_location_customers"/>
             <field name="product_uom_qty">5</field>
             <field name="state">waiting</field>
-            <field name="date">2015-02-20 13:53:00</field>
+            <field name="date">2015-02-25 09:14:00</field>
         </record>
 
         <record id="outgoing_3" model="stock.move">
@@ -51,7 +51,7 @@
             <field name="location_dest_id" ref="stock.stock_location_customers"/>
             <field name="product_uom_qty">10</field>
             <field name="state">confirmed</field>
-            <field name="date">2015-02-20 13:54:00</field>
+            <field name="date">2015-02-28 18:47:00</field>
         </record>
 
     </data>

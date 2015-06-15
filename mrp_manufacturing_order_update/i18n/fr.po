@@ -1,0 +1,48 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* manufacturing_order_update
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-20 09:14+0000\n"
+"PO-Revision-Date: 2015-05-20 16:21+0100\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 1.7.5\n"
+"Language: fr\n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_manufacturing_order_update
+msgid "Update manufacturing orders"
+msgstr "Amélioration du processus de calcul des quantités à commander"
+
+#. module: base
+#: model:ir.module.module,description:base.module_manufacturing_order_update
+msgid ""
+"\n"
+"Update manufacturing orders\n"
+"===========================\n"
+"This module allows to change manually the list of scheduled products, and to generate the necessary stock moves to match the scheduled needs for this manufacturing order.\n"
+"It also allows to update a manufacturing order after a modification of the BOM used. In this case, it does not take account of the possible changes in the list of scheduled products before the update.\n"
+msgstr ""
+"\n"
+"Mise à jour des ordres de fabrication\n"
+"=====================================\n"
+"Ce module permet de changer manuellement la liste des articles prévus, et de générer les mouvements de stock nécessaires pour correspondre aux besoins prévisionnels pour cet ordre de fabrication.\n"
+"Il permet également de mettre à jour un ordre de fabrication après modification de la nomenclature utilisée. Dans ce cas là, il ne tient pas compte des possibles changements dans la liste des articles prévus, s'ils ont été effectués avant la mise à jour.\n"
+
+#. module: manufacturing_order_update
+#: view:mrp.production:0
+msgid "(update)"
+msgstr "(mettre à jour)"
+
+#. module: manufacturing_order_update
+#: model:ir.model,name:manufacturing_order_update.model_mrp_production
+msgid "Manufacturing Order"
+msgstr "Ordre de fabrication"
