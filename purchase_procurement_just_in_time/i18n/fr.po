@@ -1,0 +1,398 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* purchase_procurement_just_in_time
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-06-12 15:53+0000\n"
+"PO-Revision-Date: 2015-06-12 18:12+0100\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 1.7.5\n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_purchase_procurement_just_in_time
+msgid "Purchase Just-In-Time Extension"
+msgstr "Purchase Just-In-Time Extension"
+
+#. module: base
+#: model:ir.module.module,description:base.module_purchase_procurement_just_in_time
+msgid ""
+"\n"
+"Purchase Just-In-Time Extension\n"
+"===============================\n"
+"Just-In-Time (JIT) is an inventory strategy companies employ to increase efficiency and decrease waste by receiving\n"
+"goods only as they are needed in the production process, thereby reducing inventory costs.\n"
+"\n"
+"When JIT procurement is enabled through the stock_procurement_just_in_time module, draft POs are created by the\n"
+"scheduler with its required date set just as needed. While this is good to reduce inventory to the minimum, it requires\n"
+"purchasing officers to be particularly responsive to changes of schedule. This implies being able to contact suppliers\n"
+"to modify scheduling of already placed orders and to register the new promised date.\n"
+"\n"
+"This modules implements a supplier backlog which enable purchase officers to see all the purchase order lines at\n"
+"once, whichever purchase order they come from. The supplier backlog provides the following operational messages on\n"
+"purchase order lines:\n"
+"\n"
+"- \"LATE by n days\": The order line planned date is behind the required date by n days. This message appears only when n\n"
+"  is above a configurable preset value.\n"
+"- \"EARLY by n days\": The order line planned date is ahead of the required date by n days. This message appears only when\n"
+"  n is above a configurable preset value.\n"
+"- \"REDUCE QTY to n [UoM]\": One of the procurement order which generated the purchase order line has been cancelled. The\n"
+"  qty ordered in this line is to be reduced to the quantity given.\n"
+"\n"
+"Notes\n"
+"-----\n"
+"- This module depends on purchase_planning_improved and as such on purchase_working_days, which means that all the\n"
+"  scheduling is made based on working days.\n"
+"\n"
+msgstr ""
+"\n"
+"Purchase Just-In-Time Extension\n"
+"===============================\n"
+"Just-In-Time (JIT) is an inventory strategy companies employ to increase efficiency and decrease waste by receiving\n"
+"goods only as they are needed in the production process, thereby reducing inventory costs.\n"
+"\n"
+"When JIT procurement is enabled through the stock_procurement_just_in_time module, draft POs are created by the\n"
+"scheduler with its required date set just as needed. While this is good to reduce inventory to the minimum, it requires\n"
+"purchasing officers to be particularly responsive to changes of schedule. This implies being able to contact suppliers\n"
+"to modify scheduling of already placed orders and to register the new promised date.\n"
+"\n"
+"This modules implements a supplier backlog which enable purchase officers to see all the purchase order lines at\n"
+"once, whichever purchase order they come from. The supplier backlog provides the following operational messages on\n"
+"purchase order lines:\n"
+"\n"
+"- \"LATE by n days\": The order line planned date is behind the required date by n days. This message appears only when n\n"
+"  is above a configurable preset value.\n"
+"- \"EARLY by n days\": The order line planned date is ahead of the required date by n days. This message appears only when\n"
+"  n is above a configurable preset value.\n"
+"- \"REDUCE QTY to n [UoM]\": One of the procurement order which generated the purchase order line has been cancelled. The\n"
+"  qty ordered in this line is to be reduced to the quantity given.\n"
+"\n"
+"Notes\n"
+"-----\n"
+"- This module depends on purchase_planning_improved and as such on purchase_working_days, which means that all the\n"
+"  scheduling is made based on working days.\n"
+"\n"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,ack_ref:0
+msgid "Acknowledge Reference"
+msgstr "Référence de l'accusé de réception"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:116
+#, python-format
+msgid "CANCEL LINE"
+msgstr "ANNULER LA LIGNE"
+
+#. module: purchase_procurement_just_in_time
+#: view:split.line:0
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: purchase_procurement_just_in_time
+#: view:split.line:0
+msgid "Confirm"
+msgstr "Confirmer"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "Confirmed lines"
+msgstr "Lignes confirmées"
+
+#. module: purchase_procurement_just_in_time
+#: field:split.line,create_uid:0
+msgid "Created by"
+msgstr "Created by"
+
+#. module: purchase_procurement_just_in_time
+#: field:split.line,create_date:0
+msgid "Created on"
+msgstr "Created on"
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.order.line,first_date_planned:0
+msgid "Date prévue par le premier accusé de réception du fournisseur"
+msgstr "Date prévue par le premier accusé de réception du fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,opmsg_min_early_delay:0
+msgid "Delay to be early (in days)"
+msgstr "Delay to be early (in days)"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,opmsg_min_late_delay:0
+msgid "Delay to be late (in days)"
+msgstr "Delay to be late (in days)"
+
+#. module: purchase_procurement_just_in_time
+#: field:split.line,line_id:0
+msgid "Direct parent line in purchase order"
+msgstr "Ligne parente directe dans l'ordre d'achat"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:108
+#, python-format
+msgid "EARLY by %i day(s)"
+msgstr "EARLY by %i day(s)"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "Edit"
+msgstr "Edit"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:239
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:310
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:313
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:315
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:318
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:330
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:332
+#, python-format
+msgid "Error!"
+msgstr "Erreur !"
+
+#. module: purchase_procurement_just_in_time
+#: field:split.line,id:0
+msgid "ID"
+msgstr "ID"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:239
+#, python-format
+msgid "Impossible to cancel moves at state done."
+msgstr "Impossible d'annuler des mouvements de stock à l'état terminé."
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:330
+#, python-format
+msgid "Impossible to split a move in state done"
+msgstr "Impossible de séparer en deux un mouvement de stock à l'état terminé."
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:313
+#, python-format
+msgid "Impossible to split a negative or null quantity"
+msgstr "La quantité ne peut pas être négative ou nulle"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:315
+#, python-format
+msgid "Impossible to split line which is not in state draft or confirmed"
+msgstr "Impossible de séparer en deux une ligne qui n'est ni à l'état brouillon ni à l'état confirmé."
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.config.settings:0
+msgid "Just-In-Time"
+msgstr "Just-In-Time"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:110
+#, python-format
+msgid "LATE by %i day(s)"
+msgstr "LATE by %i day(s)"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,date_ack:0
+msgid "Last Acknowledge Date"
+msgstr "Date du dernier accusé de réception"
+
+#. module: purchase_procurement_just_in_time
+#: field:split.line,write_uid:0
+msgid "Last Updated by"
+msgstr "Last Updated by"
+
+#. module: purchase_procurement_just_in_time
+#: field:split.line,write_date:0
+msgid "Last Updated on"
+msgstr "Last Updated on"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,line_no:0
+msgid "Line no."
+msgstr "Line no."
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.config.settings,opmsg_min_early_delay:0
+msgid ""
+"Minimum delay to create an operational message specifying that the purchase order line is early. If the planned date is less than this number of days beyond the required date, no message will be displayed.\n"
+"Defaults to 7 days."
+msgstr ""
+"Minimum delay to create an operational message specifying that the purchase order line is early. If the planned date is less than this number of days beyond the required date, no message will be displayed.\n"
+"Defaults to 7 days."
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.config.settings,opmsg_min_late_delay:0
+msgid ""
+"Minimum delay to create an operational message specifying that the purchase order line is late. If the planned date is less than this number of days beyond the required date, no message will be displayed.\n"
+"Defaults to 0 days."
+msgstr ""
+"Minimum delay to create an operational message specifying that the purchase order line is late. If the planned date is less than this number of days beyond the required date, no message will be displayed.\n"
+"Defaults to 0 days."
+
+#. module: purchase_procurement_just_in_time
+#: field:split.line,qty:0
+msgid "New quantity of direct parent line"
+msgstr "Nouvelle quantité de la ligne parente directe"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,opmsg_reduce_qty:0
+msgid "New target quantity after procurement cancellation"
+msgstr "Nouvelle quantité idéale après annulation d'une demande d'approvisionnement"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "Notes"
+msgstr "Notes"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,children_number:0
+msgid "Number of children"
+msgstr "Nombre d'enfants"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.config.settings:0
+msgid "Operational Messages"
+msgstr "Operational Messages"
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.order.line,requested_date:0
+msgid "The line was required to the supplier at that date"
+msgstr "Date à laquelle la ligne a été demandée initialement au fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.model,name:purchase_procurement_just_in_time.model_partial_reception
+msgid "Partial Reception"
+msgstr "Réception partielle"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:318
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:332
+#, python-format
+msgid "Please choose a lower quantity to split"
+msgstr "Impossible de séparer : choisissez une quantité plus faible"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:310
+#, python-format
+msgid "Please split lines one by one"
+msgstr "Séparez les lignes une par une"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,first_date_planned:0
+msgid "Première date prévue"
+msgstr "Première date prévue"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.model,name:purchase_procurement_just_in_time.model_procurement_order
+msgid "Procurement"
+msgstr "Approvisionnement"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "Procurements"
+msgstr "Procurements"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.model,name:purchase_procurement_just_in_time.model_purchase_order
+msgid "Purchase Order"
+msgstr "Bon de commande"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.model,name:purchase_procurement_just_in_time.model_purchase_order_line
+msgid "Purchase Order Line"
+msgstr "Ligne de commande d'achat"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:118
+#, python-format
+msgid "Purchase Order Line: %s"
+msgstr "Purchase Order Line: %s"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "Purchase Order Lines"
+msgstr "Lignes d'ordre d'achat"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:104
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:106
+#, python-format
+msgid "REDUCE QTY to %.1f %s "
+msgstr "REDUCE QTY to %.1f %s "
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.order.line,ack_ref:0
+msgid "Reference of the supplier's last reply to confirm the delivery at the planned date"
+msgstr "Reference of the supplier's last reply to confirm the delivery at the planned date"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,requested_date:0
+msgid "Requested date"
+msgstr "Date demandée"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.actions.act_window,name:purchase_procurement_just_in_time.act_split_line
+#: model:ir.model,name:purchase_procurement_just_in_time.model_split_line
+#: view:purchase.order.line:0
+msgid "Split Line"
+msgstr "Séparer la ligne"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "Supplier"
+msgstr "Fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "Supplier Acknowledge"
+msgstr "Accusé de réception du fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.actions.act_window,name:purchase_procurement_just_in_time.jit_act_window_purchase_order_lines
+#: model:ir.ui.menu,name:purchase_procurement_just_in_time.menu_purchase_order_lines
+msgid "Supplier Backlog"
+msgstr "Backlog Fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: model:product.template,name:purchase_procurement_just_in_time.product1_product_template
+msgid "Test Product 1 (Purchase Procurement JIT)"
+msgstr "Test Product 1 (Purchase Procurement JIT)"
+
+#. module: purchase_procurement_just_in_time
+#: model:product.template,name:purchase_procurement_just_in_time.product2_product_template
+msgid "Test Product 2 (Purchase Procurement JIT)"
+msgstr "Test Product 2 (Purchase Procurement JIT)"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,to_delete:0
+msgid "True if all the procurements of the purchase order line are canceled"
+msgstr "Vrai si toutes les demandes d'approvisionnement correspondant à la ligne d'achat sont annulées"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,father_line_id:0
+msgid "Very first line splited"
+msgstr "Toute première ligne séparée en deux"
+
+#. module: purchase_procurement_just_in_time
+#: view:split.line:0
+msgid "or"
+msgstr "or"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.model,name:purchase_procurement_just_in_time.model_purchase_config_settings
+msgid "purchase.config.settings"
+msgstr "purchase.config.settings"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "{'readonly': [('state','=','done')]}"
+msgstr "{'readonly': [('state','=','done')]}"

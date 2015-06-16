@@ -65,14 +65,15 @@ class stock_move(models.Model):
         """Assigns these moves that share the same procurement.group, location_from and location_to to a stock picking.
 
         Overridden here to assign only if the move is prereserved.
-        :param procurement_group: The procurement.group of the moves
+        :<param procurement_group: The procurement.group of the moves
         :param location_from: The source location of the moves
         :param location_to: The destination lcoation of the moves
         """
         prereservations = self.env['stock.prereservation'].search([('move_id','in',self.ids)])
         prereserved_moves = prereservations.mapped(lambda p: p.move_id)
         outgoing_moves = self.filtered(lambda m: m.picking_type_id.code == 'outgoing')
-        todo_moves = outgoing_moves | prereserved_moves
+        incoming_moves = self.filtered(lambda m: m.picking_type_id.code == 'incoming')
+        todo_moves = outgoing_moves | prereserved_moves | incoming_moves
         # Only assign prereserved or outgoing moves to pickings
         if todo_moves:
             # Use a SQL query as doing with the ORM will split it in different queries with id IN (,,)
@@ -123,7 +124,6 @@ class stock_prereservation(models.Model):
     _description = "Stock Pre-Reservation"
     _auto = False
 
-    id = fields.Integer(readonly=True)
     move_id = fields.Many2one('stock.move', readonly=True, index=True)
     picking_id = fields.Many2one('stock.picking', readonly=True, index=True)
 
@@ -147,7 +147,7 @@ class stock_prereservation(models.Model):
                     select reservation_id from stock_quant where reservation_id is not null)
             )
             select
-                row_number() over () as id,
+                foo.move_id as id,
                 foo.move_id,
                 foo.picking_id
             from (

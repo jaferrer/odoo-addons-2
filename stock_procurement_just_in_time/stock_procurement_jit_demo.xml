@@ -55,7 +55,7 @@
         </record>
 
         <!-- ######## Order Point #######-->
-        <record model="stock.warehouse.orderpoint">
+        <record model="stock.warehouse.orderpoint" id="warehouse_orderpoint1">
             <field name="name">Orderpoint in B (JIT)</field>
             <field name="product_id" ref="product_test_product"/>
             <field name="warehouse_id" ref="stock.warehouse0"/>
