@@ -39,6 +39,11 @@ msgstr ""
 "Il prend en compte toutes les demandes d'approvisionnement liées à une ligne d'achat, calcule le besoin global, et entre une quantité à commander qui est supérieure ou égale à la quantité minimale d'achat, pour l'article et le fournisseur considérés.\n"
 "De plus, il commande toujours une quantité multiple du nombre d'articles contenus dans le conditionnement standard.\n"
 
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,ack_ref:0
+msgid "Acknowledge Reference"
+msgstr "Référence de l'accusé de réception"
+
 #. module: purchase_order_quantities_improved
 #: model:ir.model,name:purchase_order_quantities_improved.model_product_supplierinfo
 msgid "Information about a product supplier"

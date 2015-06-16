@@ -427,10 +427,12 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertIn(m2, line.move_ids)
         self.assertIn(m3, line.move_ids)
 
+        m4 = False
         test_increasing_line_qty(line, 109, 4, [[m1,7], [m2,40], [m3,50]])
         for move in line.move_ids:
             if move not in [m1,m3,m3]:
                 m4 = move
+        self.assertTrue(m4)
 
         test_procurement_id([[m1, self.procurement_order_1], [m2, self.procurement_order_2], [m3, procurement_order_3], [m4, False]])
         test_increasing_line_qty(line, 110, 4, [[m1,7], [m2,40], [m3,50], [m4,13]])
