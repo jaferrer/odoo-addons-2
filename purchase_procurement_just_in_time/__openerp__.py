@@ -57,7 +57,7 @@ Notes
         'views/res_config_view.xml',
         'views/purchase_procurement_jit.xml',
     ],
-    'demo': [],
+    'demo': ['test_purchase_procurement_jit.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,

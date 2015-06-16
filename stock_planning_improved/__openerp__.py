@@ -53,7 +53,7 @@ Improved planning applied to stock
 In the stock module, the application of the improved planning concepts is the following:
 
 - Tasks are stock moves to be executed.
-- Tasks links are links between stock moves made by the procurement rules (make-to-stock)
+- Tasks links are links between stock moves made by the procurement rules (make-to-order)
 - The due date of a move is the date of the procurement order. It is represented by the "date" field of the stock move.
 - The planned date of the move is the date at which we suppose the move will be performed. It is represented by the
   "date expected" field of the stock move.

@@ -54,7 +54,7 @@ Improved planning applied to purchase
 In the purchase module, the application of the improved planning concepts is the following:
 
 - Tasks are purchase order lines and stock moves associated to goods receipts.
-- Tasks links are links between purchase order lines dans stock moves made by the procurement rules (buy)
+- Tasks links are links between purchase order lines and stock moves made by the procurement rules (buy)
 - Purchase order lines are given a new field date called "date_required" which is the due date of the purchase order
   line.
 - The "date_planned" field is the planned date of the receipt which is the date confirmed by the supplier.
