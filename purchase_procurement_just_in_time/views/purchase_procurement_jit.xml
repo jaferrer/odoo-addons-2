@@ -8,7 +8,7 @@
             <field name="priority" eval="15"/>
             <field name="arch" type="xml">
                 <tree string="Purchase Order Lines" editable="top" create="false" delete="false"
-                      colors="red:opmsg_type=='late';orange:opmsg_type=='early'">
+                      colors="red:opmsg_type=='late';orange:opmsg_type=='early';purple:opmsg_type in ['to_cancel','reduce'];grey:state in ['cancel','done'];blue:state=='draft'">
                     <field name="opmsg_type" invisible="1"/>
                     <field name="partner_id" string="Supplier"/>
                     <field name="order_id" readonly="1"/>
@@ -32,6 +32,7 @@
                     <field name="opmsg_text" readonly="1"/>
                     <field name="state" invisible="1"/>
                     <field name="invoiced" invisible="1"/>
+                    <field name="state"/>
                 </tree>
             </field>
         </record>
@@ -133,6 +134,9 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <data>
+                    <button name="wkf_send_rfq" position="before">
+                        <button name="renumerate_lines" string="Reset line numbers" type="object" attrs="{'invisible': [('state', 'in', ['cancel','done'])]}"/>
+                    </button>
                     <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="before">
                         <field name="line_no"/>
                     </xpath>
@@ -142,7 +146,6 @@
                 </data>
             </field>
         </record>
-
 
         <record model="ir.actions.act_window" id="jit_act_window_purchase_order_lines">
             <field name="name">Supplier Backlog</field>

@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 8.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-06-12 15:53+0000\n"
-"PO-Revision-Date: 2015-06-12 18:12+0100\n"
+"PO-Revision-Date: 2015-06-17 16:35+0100\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -141,7 +141,7 @@ msgstr "Ligne parente directe dans l'ordre d'achat"
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:108
 #, python-format
 msgid "EARLY by %i day(s)"
-msgstr "EARLY by %i day(s)"
+msgstr "EN AVANCE de %i jour(s)"
 
 #. module: purchase_procurement_just_in_time
 #: view:purchase.order.line:0
@@ -198,7 +198,7 @@ msgstr "Just-In-Time"
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:110
 #, python-format
 msgid "LATE by %i day(s)"
-msgstr "LATE by %i day(s)"
+msgstr "EN RETARD de %i jour(s)"
 
 #. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,date_ack:0
@@ -327,7 +327,7 @@ msgstr "Lignes d'ordre d'achat"
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:106
 #, python-format
 msgid "REDUCE QTY to %.1f %s "
-msgstr "REDUCE QTY to %.1f %s "
+msgstr "REDUIRE LA QTE à %.1f %s "
 
 #. module: purchase_procurement_just_in_time
 #: help:purchase.order.line,ack_ref:0
@@ -338,6 +338,11 @@ msgstr "Reference of the supplier's last reply to confirm the delivery at the pl
 #: field:purchase.order.line,requested_date:0
 msgid "Requested date"
 msgstr "Date demandée"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order:0
+msgid "Reset line numbers"
+msgstr "Numéroter les lignes"
 
 #. module: purchase_procurement_just_in_time
 #: model:ir.actions.act_window,name:purchase_procurement_just_in_time.act_split_line
