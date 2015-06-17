@@ -410,7 +410,22 @@ class StockLevelsRequirements(models.Model):
                         tp.top_parent_id as location_id,
                         NULL as other_location_id,
                         'existing'::text as move_type,
-                        max(sq.in_date) as date,
+                        least(
+                            (select min(date)
+                            from
+                                stock_move
+                            where
+                                state::text <> 'cancel'::text
+                                and state::text <> 'done'::text
+                                and state::text <> 'draft'::text),
+                            (select min(po.date_planned)
+                            from
+                                procurement_order po left join stock_move sm2 on sm2.procurement_id = po.id
+                            where
+                                po.state::text <> 'cancel'::text
+                                and po.state::text <> 'done'::text
+                                and (sm2.id is NULL or sm2.state::text = 'draft'::text))
+                        ) as date,
                         sum(sq.qty) as qty,
                         NULL as move_id
                     from
