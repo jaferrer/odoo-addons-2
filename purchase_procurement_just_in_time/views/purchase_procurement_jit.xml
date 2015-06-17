@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+        <!-- creation de la vue graph sécifique supplier Backlog-->
+         <record model="ir.ui.view" id="sirail_stock_levels_report_graph">
+            <field name="name">Resultat</field>
+            <field name="model">stock.levels.report</field>
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <graph type="pivot">
+                    <field name="date" interval="week" type="row"/>
+                    <field name="move_qty" type="measure"/>
+                    <field name="qty" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <!--action de fenetre qui appelle la vue graphe sirail_stock_levels_report_graph -->
+        <record model="ir.actions.act_window" id="sirail_act_windows_vue_graphique">
+            <field name="name">Resultat</field>
+            <field name="res_model">stock.levels.report</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="sirail_stock_levels_report_graph"/>
+            <field name="view_mode">graph,tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+            <!-- <field name="search_view_id" ref=""/> -->
+        </record>
+
 
         <record model="ir.ui.view" id="purchase_order_line_tree_jit">
             <field name="name">purchase.order.line.tree.jit</field>
@@ -18,14 +45,16 @@
                     <field name="name" readonly="1" invisible="1"/>
                     <field name="product_id" readonly="1"/>
                     <field name="price_unit" readonly="1"/>
+                    <button string="Edit" type="action" name="%(sirail_act_windows_vue_graphique)d" icon="gtk-edit"
+                            context="{'search_default_location_id': location_id}" />
                     <field name="product_qty"/>
                     <field name="remaining_qty"/>
+                    <field name="location_id" invisible="1"/>
                     <field name="opmsg_reduce_qty" invisible="1"/>
                     <field name="to_delete" invisible="1"/>
                     <field name="product_uom" readonly="1"/>
                     <field name="price_subtotal" invisible="1"/>
-                    <field name="procurement_ids" invisible="1"/>
-                    <field name="date_required" attrs="{'readonly': [('procurement_ids','!=',False)]}"/>
+                    <field name="date_required" readonly="1"/>
                     <field name="date_planned"/>
                     <field name="ack_ref"/>
                     <field name="date_ack"/>

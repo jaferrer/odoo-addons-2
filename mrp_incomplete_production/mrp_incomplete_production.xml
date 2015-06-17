@@ -2,31 +2,31 @@
 <openerp>
     <data>
 
-        <record model="ir.ui.view" id="mrp_production_form_improved2">
-              <field name="name">mrp.production.form.improved2</field>
-              <field name="model">mrp.production</field>
-              <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
-              <field name="priority" eval="16"/>
-              <field name="arch" type="xml">
-                  <header position="inside">
-                      <field name="left_products" invisible="1"/>
-                  </header>
-                  <field name="location_dest_id" position="after">
-                      <field name="child_location_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                  </field>
-                  <xpath expr="//sheet/group" position="inside">
-                      <group>
-                          <field name="backorder_id" attrs="{'invisible': [('backorder_id', '=', False)]}"/>
-                          <field name="child_order_id" attrs="{'invisible': [('child_order_id', '=', False)]}"/>
-                      </group>
-                  </xpath>
-                  <page string="Consumed Products" position="inside">
-                      <group string="Not consumed Products" attrs="{'invisible': [('left_products', '=', False)]}">
-                          <field name="child_move_ids" nolabel="1"/>
-                      </group>
-                  </page>
-              </field>
-        </record>
+        <!--<record model="ir.ui.view" id="mrp_production_form_improved2">-->
+              <!--<field name="name">mrp.production.form.improved2</field>-->
+              <!--<field name="model">mrp.production</field>-->
+              <!--<field name="inherit_id" ref="mrp.mrp_production_form_view"/>-->
+              <!--<field name="priority" eval="16"/>-->
+              <!--<field name="arch" type="xml">-->
+                  <!--<header position="inside">-->
+                      <!--<field name="left_products" invisible="1"/>-->
+                  <!--</header>-->
+                  <!--<field name="location_dest_id" position="after">-->
+                      <!--<field name="child_location_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>-->
+                  <!--</field>-->
+                  <!--<xpath expr="//sheet/group" position="inside">-->
+                      <!--<group>-->
+                          <!--<field name="backorder_id" attrs="{'invisible': [('backorder_id', '=', False)]}"/>-->
+                          <!--<field name="child_order_id" attrs="{'invisible': [('child_order_id', '=', False)]}"/>-->
+                      <!--</group>-->
+                  <!--</xpath>-->
+                  <!--<page string="Consumed Products" position="inside">-->
+                      <!--<group string="Not consumed Products" attrs="{'invisible': [('left_products', '=', False)]}">-->
+                          <!--<field name="child_move_ids" nolabel="1"/>-->
+                      <!--</group>-->
+                  <!--</page>-->
+              <!--</field>-->
+        <!--</record>-->
 
         <record model="ir.ui.view" id="view_mrp_product_produce_wizard2">
             <field name="name">MRP Product Produce 2</field>
