@@ -76,6 +76,7 @@ class PurchaseOrderLineJustInTime(models.Model):
     father_line_id = fields.Many2one('purchase.order.line', string="Very first line splited", readonly=True)
     children_line_ids = fields.One2many('purchase.order.line', 'father_line_id', string="Children lines")
     children_number = fields.Integer(string="Number of children", readonly=True, compute='_compute_children_number')
+    location_id = fields.Many2one(related='order_id.location_id')
 
     @api.depends('date_planned', 'date_required')
     def _compute_opmsg(self):
@@ -132,6 +133,7 @@ class PurchaseOrderLineJustInTime(models.Model):
             'res_id': self.id,
             'context': {}
         }
+
 
     @api.depends('move_ids.product_qty')
     def _get_remaining_qty(self):
