@@ -53,15 +53,23 @@ class stock_transfer_split_by_pack(models.TransientModel):
                 trf_line.quantity = pack_qty
                 if self[0].create_pack:
                     trf_line.put_in_pack()
-            return action
 
+
+class stock_transfer_split_by_pack2(models.TransientModel):
+    _inherit = "stock.transfer_details_items"
+
+#
     @api.multi
-    def cancel(self):
-        """We have to re-call the wizard when the user clicks on Cancel"""
-        self.ensure_one()
-        assert self.env.context.get('active_model') == \
-            'stock.transfer_details_items', 'Wrong underlying model'
-        trf_line = self.env['stock.transfer_details_items'].browse(
-            self.env.context['active_id'])
-        action = trf_line.transfer_id.wizard_view()
-        return action
+    def split_by_pack2(self):
+
+        return {
+            'name': _('Split by Configurable'),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'stock.transfer.split_by_pack',
+            'target': 'popup',
+            'views': [(False, 'form')],
+
+            'context': self.env.context,
+    }
