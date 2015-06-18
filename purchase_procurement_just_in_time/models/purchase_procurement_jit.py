@@ -69,7 +69,6 @@ class PurchaseOrderJustInTime(models.Model):
         assert len(result.keys()) == 1, "Error: multiple children purchase orders in do_merge result"
         assert isinstance(result.keys()[0], int), "Error, type is not integer: wrong value for id"
         children_po = self.env['purchase.order'].browse(result.keys()[0])
-        print children_po
         children_po.renumerate_lines()
         return result
 

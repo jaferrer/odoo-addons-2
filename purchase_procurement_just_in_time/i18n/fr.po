@@ -87,6 +87,11 @@ msgid "Acknowledge Reference"
 msgstr "Référence de l'accusé de réception"
 
 #. module: purchase_procurement_just_in_time
+#: view:purchase.order:0
+msgid "Are you sure you want to recompute all the line Numbers?"
+msgstr "Êtes-vous sûr de vouloir recalculer tous les numéros des lignes ?"
+
+#. module: purchase_procurement_just_in_time
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:116
 #, python-format
 msgid "CANCEL LINE"

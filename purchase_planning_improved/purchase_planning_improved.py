@@ -43,7 +43,7 @@ class procurement_order_purchase_planning_improved(models.Model):
                 })
                 if datetime.strptime(proc.purchase_id.date_order, DEFAULT_SERVER_DATETIME_FORMAT) > order_date:
                     proc.purchase_id.date_order = order_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
-                proc.purchase_line_id.set_dates(proc.purchase_line_id.date_required)
+                proc.purchase_line_id.set_move_dates(proc.purchase_line_id.date_required)
         super(procurement_order_purchase_planning_improved, self).action_reschedule()
 
     @api.model
@@ -75,13 +75,11 @@ class purchase_order_line_planning_improved(models.Model):
                                                                   })
 
     @api.multi
-    def set_dates(self, date_required):
+    def set_moves_dates(self, date_required):
         self.ensure_one()
         if self.move_ids:
             for move in [m for m in self.move_ids if m.state not in ['draft', 'cancel']]:
                 move.date = date_required
-        print self.move_ids
-
 
     @api.multi
     @api.depends('procurement_ids','procurement_ids.date_planned','date_planned')
