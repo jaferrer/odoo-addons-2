@@ -55,6 +55,24 @@ class PurchaseOrderJustInTime(models.Model):
         todo_moves.action_confirm()
         todo_moves.force_assign()
 
+    @api.multi
+    def renumerate_lines(self):
+        for rec in self:
+            number = 10
+            for line in rec.order_line:
+                line.line_no = str(number)
+                number += 10
+
+    @api.multi
+    def do_merge(self):
+        result = super(PurchaseOrderJustInTime, self).do_merge()
+        assert len(result.keys()) == 1, "Error: multiple children purchase orders in do_merge result"
+        assert isinstance(result.keys()[0], int), "Error, type is not integer: wrong value for id"
+        children_po = self.env['purchase.order'].browse(result.keys()[0])
+        children_po.renumerate_lines()
+        return result
+
+
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
@@ -64,8 +82,8 @@ class PurchaseOrderLineJustInTime(models.Model):
                                                         " at the planned date")
     date_ack = fields.Date("Last Acknowledge Date",
                            helps="Last date at which the supplier confirmed the delivery at the planned date.")
-    opmsg_type = fields.Selection([('no_msg', "Ok"), ('late', "LATE"), ('early', "EARLY")], compute="_compute_opmsg",
-                                  string="Message Type")
+    opmsg_type = fields.Selection([('no_msg', "Ok"), ('late', "LATE"), ('early', "EARLY"), ('reduce', "REDUCE"),
+                        ('to_cancel', "CANCEL")], compute="_compute_opmsg", string="Message Type")
     opmsg_delay = fields.Integer("Message Delay", compute="_compute_opmsg")
     opmsg_reduce_qty = fields.Float("New target quantity after procurement cancellation", readonly=True, default=False)
     opmsg_text = fields.Char("Operational message", compute="_compute_opmsg_text", help="This field holds the "
@@ -76,12 +94,13 @@ class PurchaseOrderLineJustInTime(models.Model):
     father_line_id = fields.Many2one('purchase.order.line', string="Very first line splited", readonly=True)
     children_line_ids = fields.One2many('purchase.order.line', 'father_line_id', string="Children lines")
     children_number = fields.Integer(string="Number of children", readonly=True, compute='_compute_children_number')
+    location_id = fields.Many2one(related='order_id.location_id')
 
-    @api.depends('date_planned', 'date_required')
+    @api.depends('date_planned', 'date_required', 'to_delete', 'product_qty', 'opmsg_reduce_qty')
     def _compute_opmsg(self):
 
         """
-        Sets parameters date_planned and date_required.
+        Sets parameters date_planned, date_required, and opmsg_type.
         """
 
         for rec in self:
@@ -102,6 +121,10 @@ class PurchaseOrderLineJustInTime(models.Model):
                     if delta.days >= min_early_days:
                         rec.opmsg_type = 'early'
                         rec.opmsg_delay = delta.days
+            if rec.to_delete and rec.product_qty != 0:
+                rec.opmsg_type = 'to_cancel'
+            if not rec.to_delete and rec.opmsg_reduce_qty and rec.opmsg_reduce_qty < rec.product_qty:
+                rec.opmsg_type = 'reduce'
 
     @api.depends('opmsg_type', 'opmsg_delay', 'opmsg_reduce_qty', 'product_qty', 'to_delete', 'state')
     def _compute_opmsg_text(self):
@@ -132,6 +155,7 @@ class PurchaseOrderLineJustInTime(models.Model):
             'res_id': self.id,
             'context': {}
         }
+
 
     @api.depends('move_ids.product_qty')
     def _get_remaining_qty(self):

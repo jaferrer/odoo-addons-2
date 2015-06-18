@@ -1,0 +1,181 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_procurement_just_in_time
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-28 12:13+0000\n"
+"PO-Revision-Date: 2015-05-28 12:13+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_procurement_just_in_time
+msgid "Stock Procurement Just-In-Time"
+msgstr ""
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_procurement_just_in_time
+msgid ""
+"\n"
+"Stock Procurement Just-In-Time\n"
+"===============================\n"
+"Just-In-Time (JIT) is an inventory strategy companies employ to increase efficiency and decrease waste by receiving\n"
+"goods only as they are needed in the production process, thereby reducing inventory costs.\n"
+"\n"
+"This modules implements a new calculation method for minimum stock rules that creates procurements for products just\n"
+"before they are needed instead of creating them at earliest.\n"
+"\n"
+"This calculation is done for each minimum stock rule, in the stock location defined by the rule. The needs are defined\n"
+"by the outgoing stock moves in "Waiting availability" or "Available" statuses. This implies that the outgoing moves are\n"
+"confirmed beforehand, either by already confirmed manufacturing orders, by already confirmed sale orders or by a sales\n"
+"forecast module that creates confirmed moves to represent future sales.\n"
+"\n"
+"Notes\n"
+"------\n"
+"- This module depends on stock_planning_improved and as such on stock_working_days, which means that all the scheduling\n"
+"  is made based on working days.\n"
+"- This module is best used when interfaced with purchase_procurement_just_in_time and/or mrp_procurement_just_in_time\n"
+"  modules which add information and warnings to the operator for how to reschedule the purchase orders and production\n"
+"  orders to manage just-in-time procurement."\n"
+msgstr ""
+"\n"
+"\n"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.levels.report:0
+msgid "Category"
+msgstr "Category"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.levels.report,date:0
+#: field:stock.levels.requirements,date:0
+msgid "Date"
+msgstr "Date"
+
+#. module: stock_procurement_just_in_time
+#: view:product.product:0
+msgid "Evolution"
+msgstr "Evolution"
+
+#. module: stock_procurement_just_in_time
+#: selection:stock.levels.report,move_type:0
+#: selection:stock.levels.requirements,move_type:0
+msgid "Existing"
+msgstr "Existing"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.levels.report:0
+msgid "Group by..."
+msgstr "Group by..."
+
+#. module: stock_procurement_just_in_time
+#: field:stock.levels.report,id:0
+#: field:stock.levels.requirements,id:0
+msgid "ID"
+msgstr "ID"
+
+#. module: stock_procurement_just_in_time
+#: selection:stock.levels.report,move_type:0
+#: selection:stock.levels.requirements,move_type:0
+msgid "Incoming"
+msgstr "Incoming"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.levels.report:0
+#: field:stock.levels.report,location_id:0
+#: field:stock.levels.requirements,location_id:0
+msgid "Location"
+msgstr "Location"
+
+#. module: stock_procurement_just_in_time
+#: model:ir.model,name:stock_procurement_just_in_time.model_stock_warehouse_orderpoint
+msgid "Minimum Inventory Rule"
+msgstr "Règle de stock minimum"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.levels.report,move_type:0
+#: field:stock.levels.requirements,move_type:0
+msgid "Move type"
+msgstr "Move type"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.levels.report,move_qty:0
+#: field:stock.levels.requirements,move_qty:0
+msgid "Moved quantity"
+msgstr "Moved quantity"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.levels.report,other_location_id:0
+#: field:stock.levels.requirements,other_location_id:0
+msgid "Origin/Destination"
+msgstr "Origin/Destination"
+
+#. module: stock_procurement_just_in_time
+#: selection:stock.levels.report,move_type:0
+#: selection:stock.levels.requirements,move_type:0
+msgid "Outcoming"
+msgstr "Outcoming"
+
+#. module: stock_procurement_just_in_time
+#: selection:stock.levels.requirements,move_type:0
+msgid "Planned (In)"
+msgstr "Planned (In)"
+
+#. module: stock_procurement_just_in_time
+#: model:ir.model,name:stock_procurement_just_in_time.model_procurement_order
+#: field:stock.levels.requirements,proc_id:0
+msgid "Procurement"
+msgstr "Approvisionnement"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.levels.report:0
+#: field:stock.levels.report,product_id:0
+#: field:stock.levels.requirements,product_id:0
+msgid "Product"
+msgstr "Product"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.levels.report,product_categ_id:0
+#: field:stock.levels.requirements,product_categ_id:0
+msgid "Product Category"
+msgstr "Product Category"
+
+#. module: stock_procurement_just_in_time
+#: field:procurement.order,qty:0
+msgid "Quantity"
+msgstr "Quantity"
+
+#. module: stock_procurement_just_in_time
+#: help:procurement.order,qty:0
+msgid "Quantity in the default UoM of the product"
+msgstr "Quantity in the default UoM of the product"
+
+#. module: stock_procurement_just_in_time
+#: view:product.product:0
+msgid "Stock"
+msgstr "Stock"
+
+#. module: stock_procurement_just_in_time
+#: model:ir.actions.act_window,name:stock_procurement_just_in_time.act_window_stock_levels_report
+#: model:ir.model,name:stock_procurement_just_in_time.model_stock_levels_report
+msgid "Stock Levels Report"
+msgstr "Stock Levels Report"
+
+#. module: stock_procurement_just_in_time
+#: model:ir.model,name:stock_procurement_just_in_time.model_stock_levels_requirements
+msgid "Stock Levels Requirements"
+msgstr "Stock Levels Requirements"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.levels.report,qty:0
+#: field:stock.levels.requirements,qty:0
+msgid "Stock quantity"
+msgstr "Stock quantity"
+
