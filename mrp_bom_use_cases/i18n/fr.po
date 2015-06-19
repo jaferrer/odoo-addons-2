@@ -17,8 +17,8 @@ msgstr ""
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_mrp_bom_use_cases
-msgid "Database Unaccented Searches"
-msgstr "\n"
+msgid "Product Use Cases in BoMs"
+msgstr "Cas d'emploi des articles"
 
 #. module: base
 #: model:ir.module.module,description:base.module_mrp_bom_use_cases
@@ -33,17 +33,23 @@ msgid ""
 "parent BoM is itself a component of another BoM, it is also displayed as a tree view.\n"
 msgstr ""
 "\n"
-"\n"
-
+"Cas d'emploi des articles\n"
+"=========================\n"
+"Ce module ajoute une vue arborescente disponible sur un article pour trouver de manière récursive tous les cas \n"
+"d'emploi de cet article en tant que composant de nomenclature.\n"
+"n\"
+"Pour un article donné, cette vue montrera toutes les nomenclatures dans lesquelles cet article apparait comme \n"
+"composant. Su l'article de la nomenclature mère est lui-même un composant d'une autre nomenclature, cette dernière \n"
+"est également affichée de manière arborescente.\n"
 
 #. module: mrp_bom_use_cases
 #: model:ir.actions.act_window,name:mrp_bom_use_cases.act_window_mrp_bom_inverted
-msgid "Cas d'emploi"
+msgid "Product Use Cases in BoMs"
 msgstr "Cas d'emploi"
 
 #. module: mrp_bom_use_cases
 #: field:mrp.bom.line,product_father_id:0
-msgid "Produit père"
+msgid "Father Product"
 msgstr "Produit père"
 
 #. module: mrp_bom_use_cases

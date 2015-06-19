@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_db_unaccent
 msgid "Database Unaccented Searches"
-msgstr ""
+msgstr "Recherches sans accents"
 
 #. module: base
 #: model:ir.module.module,description:base.module_db_unaccent
@@ -26,16 +26,24 @@ msgid ""
 "\n"
 "Database Unaccented Searches\n"
 "============================\n"
-"This module just creates the extension "unaccent" in the database to allow unaccented searches.\n"
+"This module just creates the extension \"unaccent\" in the database to allow unaccented searches.\n"
 "Notes:\n"
 "------\n"
 "- You also need to start Odoo with the --unaccent option or set unaccent = True in the config file for\n"
 "unaccented searches to work.\n"
-"- Uninstalling the module does not reset accented search. You need to manually call "DROP EXTENSION 'unaccent';" on the\n"
+"- Uninstalling the module does not reset accented search. You need to manually call \"DROP EXTENSION 'unaccent';\" on the\n"
 "database.\n"
 msgstr ""
 "\n"
-""
+"Recherches sans accents\n"
+"=======================\n"
+"Ce module crée simplement l'extension \"unaccent\" dans la base pour autoriser les recherches non accentuées.\n"
+"Notes:\n"
+"------\n"
+"- Vous devez démarrer Odoo avec l'option --unaccent ou définir l'option unaccent = True dans le fichier de \n"
+"configuration pour que les recherches non accentuées fonctionnent.\n"
+"- Désinstaller ce module ne suffit pas pour désactiver les recherches non accentuées. Vous devez executer la commande\n"
+"\"DROP EXTENSION 'unaccent';\" manuellement sur la base de donnée.\n"
 
 
 
