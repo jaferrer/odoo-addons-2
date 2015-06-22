@@ -21,7 +21,7 @@ from openerp import fields, models, api
 class sirail_production_bom_line (models.Model):
     _inherit = "mrp.bom.line"
 
-    product_father_id = fields.Many2one('product.product', string=u"Produit père")
+    product_father_id = fields.Many2one('product.product', string="Father Product")
     father_line_ids = fields.Many2many('mrp.bom.line', compute="_get_father_bom_lines")
 
     @api.multi

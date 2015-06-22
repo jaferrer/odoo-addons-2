@@ -43,6 +43,7 @@ class procurement_order_purchase_planning_improved(models.Model):
                 })
                 if datetime.strptime(proc.purchase_id.date_order, DEFAULT_SERVER_DATETIME_FORMAT) > order_date:
                     proc.purchase_id.date_order = order_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+                proc.purchase_line_id.set_moves_dates(proc.purchase_line_id.date_required)
         super(procurement_order_purchase_planning_improved, self).action_reschedule()
 
     @api.model
@@ -51,9 +52,8 @@ class procurement_order_purchase_planning_improved(models.Model):
         res = super(procurement_order_purchase_planning_improved, self)._get_po_line_values_from_proc(
                                                                         procurement, partner, company, schedule_date)
         res.update({
-            'date_required': schedule_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
+            'requested_date': schedule_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
         })
-        res['requested_date'] = res['date_required']
         return res
 
 
@@ -73,6 +73,12 @@ class purchase_order_line_planning_improved(models.Model):
                                                                   'done':[('readonly',True)],
                                                                   'cancel':[('readonly',True)],
                                                                   })
+
+    @api.multi
+    def set_moves_dates(self, date_required):
+        for rec in self:
+            for move in [m for m in rec.move_ids if m.state not in ['draft', 'cancel']]:
+                move.date = date_required
 
     @api.multi
     @api.depends('procurement_ids','procurement_ids.date_planned','date_planned')
@@ -96,6 +102,9 @@ class purchase_order_line_planning_improved(models.Model):
         if vals.get('date_planned'):
             for line in self:
                 if line.move_ids:
-                    date_expected = vals.get('date_planned')+" 00:00:00"
-                    line.move_ids.write({'date_expected': date_expected})
+                    date = vals.get('date_planned')+" 00:00:00"
+                    if line.procurement_ids:
+                        line.move_ids.write({'date_expected': date})
+                    else:
+                        line.move_ids.write({'date_expected': date, 'date': date})
         return result

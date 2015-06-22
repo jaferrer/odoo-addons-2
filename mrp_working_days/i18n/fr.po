@@ -17,8 +17,8 @@ msgstr ""
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_mrp_working_days
-msgid "Database Unaccented Searches"
-msgstr ""
+msgid "MRP Scheduling on Working Days"
+msgstr "Planification en jours ouvrés de la production"
 
 #. module: base
 #: model:ir.module.module,description:base.module_mrp_working_days
@@ -45,7 +45,28 @@ msgid ""
 "n\"
 msgstr ""
 "\n"
-"\n"
+"Planification en jours ouvrés de la production\n"
+"==============================================\n"
+"Ce module permet la planification des ordres de production sur les jours ouvrés définis par des ressources et leurs \n"
+"calendriers associés.\n"
+"n\"
+"Chaque entrepôt peut avoir sa propre ressource et son calendrier associé représentant ses jours d'ouverture. Si un \n"
+"entrepôt n'a pas de ressource alors le système prendra le calendrier par défaut de l'entreprise.\n"
+"Lorsqu'un ordre de fabrication doit être planifié par la production, il ne compte que les jours ouvrés défini dans \n"
+"calendrier applicable dans le calcul des délais.\n"
+"n\"
+"Notes:\n"
+"------\n"
+"n\"
+"- Lorsqu'aucun calendrier n'est trouvé, le calendrier par défaut du module est utilisé. Ce calendrier définit les \n"
+"jours ouvrés comme étant du lundi au vendredi. Ce calendrier par défaut peut être modifié par les utilisateurs \n"
+"autorisés.\n"
+"n\"
+"- Pour une demande d'approvisionnement donnée, l'entrepôt applicable est l'entrepôt de l'emplacement de la demande \n"
+"d'approvisionnement. L'entrepôt de la demande d'approvisionnement n'est pris en compte uniquement si celle-ci n'a \n "
+"pas d'emplacement défini. Ce fonctionnement permet de gérer correctement les approvisionnement inter-entrepôts avec \n"
+"des mouvements chainés, où l'entrepôt de la demande d'approvisionnement est l'entrepôt du bout de la chaine."
+"n\"
 
 #. module: mrp_working_days
 #: model:ir.model,name:mrp_working_days.model_procurement_order
