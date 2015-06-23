@@ -17,7 +17,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_fix_barcode_scanner
 msgid "Fix barcode scanner interface"
-msgstr ""
+msgstr "Correctif pour l'interface code barre"
 
 #. module: base
 #: model:ir.module.module,description:base.module_fix_barcode_scanner
@@ -28,4 +28,6 @@ msgid ""
 "It also tries to improve speed by fetching stock locations only when necessary.\n"
 msgstr ""
 "\n"
+"Ce module est un correctif temporaire avant que https://github.com/odoo/odoo/pull/4637 soit résolu.\n"
 "\n"
+"Il essaie également d'améliorer la vitesse en ne cherchant les emplacements de stock uniquement lorsque nécessaire.\n"

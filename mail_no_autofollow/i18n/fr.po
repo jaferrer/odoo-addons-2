@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_mail_no_autofollow
 msgid "No Auto-Subscription of Partners"
-msgstr ""
+msgstr "Pas d'abonnement automatique des partenaires"
 
 #. module: base
 #: model:ir.module.module,description:base.module_mail_no_autofollow
@@ -31,17 +31,21 @@ msgid ""
 "This tyically prevents customers from being automatically subscribed to their quotes, invoices, etc.\n"
 msgstr ""
 "\n"
-"\n"
+"Pas d'abonnement automatique des partenaires\n"
+"============================================\n"
+"Retire de l'abonnement automatique les partenaires qui ne sont pas des utilisateurs.\n"
+"n\"
+"Ceci empêche en particulier les clients d'être abonnés automatiquement à leurs commandes, factures, etc.\n"
 
 #. module: mail_no_autofollow
 #: field:mail.thread,create_uid:0
 msgid "Created by"
-msgstr "Created by"
+msgstr "Créé par"
 
 #. module: mail_no_autofollow
 #: field:mail.thread,create_date:0
 msgid "Created on"
-msgstr "Created on"
+msgstr "Créé le"
 
 #. module: mail_no_autofollow
 #: model:ir.model,name:mail_no_autofollow.model_mail_thread
@@ -51,12 +55,12 @@ msgstr "Discussion par courriel"
 #. module: mail_no_autofollow
 #: field:mail.thread,write_uid:0
 msgid "Last Updated by"
-msgstr "Last Updated by"
+msgstr "Mis à jour par"
 
 #. module: mail_no_autofollow
 #: field:mail.thread,write_date:0
 msgid "Last Updated on"
-msgstr "Last Updated on"
+msgstr "Mis à jour le"
 
 
 
