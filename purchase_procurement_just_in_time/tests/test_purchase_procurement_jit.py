@@ -28,9 +28,36 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.product2 = self.browse_ref('purchase_procurement_just_in_time.product2')
         self.supplierinfo1 = self.browse_ref('purchase_procurement_just_in_time.supplierinfo1')
         self.supplierinfo2 = self.browse_ref('purchase_procurement_just_in_time.supplierinfo2')
-        self.procurement_order_1 = self.browse_ref('purchase_procurement_just_in_time.procurement_order_1')
-        self.procurement_order_2 = self.browse_ref('purchase_procurement_just_in_time.procurement_order_2')
-        self.procurement_order_4 = self.browse_ref('purchase_procurement_just_in_time.procurement_order_4')
+
+        self.procurement_order_1 = self.env['procurement.order'].create({
+            'name': 'Procurement order 1 (Purchase Procurement JIT)',
+            'product_id': self.product1.id,
+            'product_qty': 7,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock.stock_location_stock'),
+            'date_planned': '2015-05-04 15:00:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+        })
+
+        self.procurement_order_2 = self.env['procurement.order'].create({
+            'name': 'Procurement order 2 (Purchase Procurement JIT)',
+            'product_id': self.product1.id,
+            'product_qty': 40,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock.stock_location_stock'),
+            'date_planned': '2015-05-04 15:00:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+        })
+
+        self.procurement_order_4 = self.env['procurement.order'].create({
+            'name': 'Procurement order 4 (Purchase Procurement JIT)',
+            'product_id': self.product2.id,
+            'product_qty': 10,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock.stock_location_stock'),
+            'date_planned': '2015-05-04 15:00:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+        })
 
     def test_10_purchase_procurement_jit(self):
 
@@ -208,7 +235,17 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
 
         self.procurement_order_1.run()
         self.procurement_order_2.run()
-        procurement_order_3 = self.browse_ref('purchase_procurement_just_in_time.procurement_order_3')
+
+        procurement_order_3 = self.env['procurement.order'].create({
+            'name': 'Procurement order 3 (Purchase Procurement JIT)',
+            'product_id': self.product1.id,
+            'product_qty': 50,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock.stock_location_stock'),
+            'date_planned': '2015-05-04 15:00:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+        })
+
         procurement_order_3.run()
         self.assertEqual(self.procurement_order_1.purchase_id, self.procurement_order_2.purchase_id, procurement_order_3.purchase_id)
         purchase_order_1 = self.procurement_order_1.purchase_id
@@ -224,6 +261,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(purchase_order_1.order_line), 1)
         self.assertIn(line, purchase_order_1.order_line)
         self.assertEqual(len(line.move_ids), 3)
+        [m1, m2, m3] = [False] * 3
         for move in line.move_ids:
             if move.product_qty == 7:
                 m1 = move
@@ -247,7 +285,17 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
 
         self.procurement_order_1.run()
         self.procurement_order_2.run()
-        procurement_order_3 = self.browse_ref('purchase_procurement_just_in_time.procurement_order_3')
+
+        procurement_order_3 = self.env['procurement.order'].create({
+            'name': 'Procurement order 3 (Purchase Procurement JIT)',
+            'product_id': self.product1.id,
+            'product_qty': 50,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.ref('stock.stock_location_stock'),
+            'date_planned': '2015-05-04 15:00:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+        })
+
         procurement_order_3.run()
         self.assertEqual(self.procurement_order_1.purchase_id, self.procurement_order_2.purchase_id, procurement_order_3.purchase_id)
         purchase_order_1 = self.procurement_order_1.purchase_id
@@ -263,6 +311,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(purchase_order_1.order_line), 1)
         self.assertIn(line, purchase_order_1.order_line)
         self.assertEqual(len(line.move_ids), 3)
+        [m1, m2, m3] = [False] * 3
         for move in line.move_ids:
             if move.product_qty == 7:
                 m1 = move
