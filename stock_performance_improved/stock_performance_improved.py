@@ -131,7 +131,22 @@ class stock_prereservation(models.Model):
         drop_view_if_exists(cr, "stock_prereservation")
         cr.execute("""
         create or replace view stock_prereservation as (
-            with move_qties as (
+            with recursive top_parent(loc_id, top_parent_id) as (
+                    select
+                        sl.id as loc_id, sl.id as top_parent_id
+                    from
+                        stock_location sl
+                        left join stock_location slp on sl.location_id = slp.id
+                    where
+                        sl.usage='internal'
+                union
+                    select
+                        sl.id as loc_id, tp.top_parent_id
+                    from
+                        stock_location sl, top_parent tp
+                    where
+                        sl.usage='internal' and sl.location_id=tp.loc_id
+            ), move_qties as (
                 select
                     sm.id as move_id,
                     sm.picking_id,
@@ -160,7 +175,7 @@ class stock_prereservation(models.Model):
                         sm.id in (
                             select sq.reservation_id from stock_quant sq where sq.reservation_id is not null)
                         and sm.picking_type_id is not null
-                union
+                union all
                     select distinct
                         sm.id as move_id,
                         sm.picking_id as picking_id
@@ -172,14 +187,14 @@ class stock_prereservation(models.Model):
                     where
                         sm.state = 'waiting'
                         and sm.picking_type_id is not null
-                        and smp.state = 'done' or smps.state = 'done'
-                union
+                        and (smp.state = 'done' or smps.state = 'done')
+                union all
                     select
                         mq.move_id,
                         mq.picking_id
                     from
                         move_qties mq
-                        where
+                    where
                             mq.qty <= (
                                 select
                                     sum(qty)
@@ -187,7 +202,9 @@ class stock_prereservation(models.Model):
                                     stock_quant sq
                                 where
                                     sq.reservation_id is null
-                                    and sq.location_id = mq.location_id
+                                    and sq.location_id in (
+                                        select loc_id from top_parent where top_parent_id=mq.location_id
+                                    )
                                     and sq.product_id = mq.product_id)
             ) foo
         )

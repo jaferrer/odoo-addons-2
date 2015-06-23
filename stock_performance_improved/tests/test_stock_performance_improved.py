@@ -59,6 +59,19 @@ class TestStockPerformanceImproved(common.TransactionCase):
         move2.action_confirm()
         self.assertFalse(move2.picking_id, "Move should not have been assigned a picking.")
 
+        # Test of assignment with quant in sublocation
+        move3 = self.env['stock.move'].create({
+            'name': "Test Performance Improved",
+            'product_id': self.product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 3,
+            'location_id': self.location_stock.id,
+            'location_dest_id': self.location_inv.id,
+            'picking_type_id': self.picking_type_id,
+        })
+        move3.action_confirm()
+        self.assertTrue(move3.picking_id, "Move should have been assigned a picking.")
+
         move.action_assign()
         move.action_done()
         move2.action_confirm()
