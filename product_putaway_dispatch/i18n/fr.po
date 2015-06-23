@@ -17,7 +17,7 @@ msgstr ""
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_product_putaway_dispatch
-msgid "Database Unaccented Searches"
+msgid "Product Dispatch"
 msgstr ""
 
 #. module: base
@@ -26,7 +26,7 @@ msgid ""
 "\n"
 "Product Dispatch\n"
 "================\n"
-"This modules adds a new button "Dispatch" to the transfer dialog of a stock operation. This buttons dispatche"s the\n"
+"This modules adds a new button \"Dispatch\" to the transfer dialog of a stock operation. This buttons dispatches the\n"
 "products according to their needs in the different children locations of the original destination location. The operator\n"
 "has the opportunity to modify the dispatch that has been done this way before validating the transfer.\n"
 "n\"
@@ -34,7 +34,7 @@ msgid ""
 "it.\n"
 "n\"
 "This button only appears if the original destination location has its putaway strategy set to a strategy of type\n"
-"Dispatch". Strategies of type "Dispatch" need only to be defined once and can be applied to several locations.\n"
+"Dispatch. Strategies of type \"Dispatch\" need only to be defined once and can be applied to several locations.\n"
 msgstr ""
 "\n"
 "\n"

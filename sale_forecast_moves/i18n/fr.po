@@ -25,7 +25,7 @@ msgstr ""
 msgid ""
 "\n"
 "Sales Forecast Moves\n"
-"====================\n
+"====================\n"
 msgstr ""
 "\n"
 "\n"
