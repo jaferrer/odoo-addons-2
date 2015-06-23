@@ -26,10 +26,10 @@ msgid ""
 "\n"
 "Asynchronous Scheduler for Stock\n"
 "=================================\n"
-"Asynchronous Scheduler reimplements the procurement scheduler using the 'OCA/connector' framework to be able to monitor\n
-"the scheduler running in the background.\n
+"Asynchronous Scheduler reimplements the procurement scheduler using the 'OCA/connector' framework to be able to monitor\n"
+"the scheduler running in the background.\n"
 "n\"
-"This module brings the implementation of the scheduler part linked with the stock module.\n
+"This module brings the implementation of the scheduler part linked with the stock module.\n"
 msgstr ""
 "\n"
 "\n"

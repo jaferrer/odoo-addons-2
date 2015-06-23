@@ -39,8 +39,6 @@ msgstr ""
 "\n"
 "\n"
 
-
-
 #. module: stock_performance_improved
 #: field:stock.prereservation,id:0
 msgid "ID"

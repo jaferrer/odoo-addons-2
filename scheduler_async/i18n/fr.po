@@ -25,7 +25,7 @@ msgstr ""
 msgid ""
 "\n"
 "Asynchronous Scheduler\n"
-"======================\n
+"======================\n"
 "This module reimplements the procurement scheduler using the 'OCA/connector' framework to be able to monitor the\n"
 "scheduler running in the background.\n"
 msgstr ""
