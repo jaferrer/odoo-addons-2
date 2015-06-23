@@ -481,15 +481,3 @@ class SplitLine(models.TransientModel):
                 if move.purchase_line_id and move.state != 'assigned':
                     move.action_assign()
             self.line_id.order_id.set_order_line_status(self.line_id.state)
-
-
-class StockPackOperation(models.Model):
-
-    _inherit = "stock.pack.operation"
-
-    @api.model
-    def _get_remaining_prod_quantities(self, operation):
-        result = super(StockPackOperation, self)._get_remaining_prod_quantities(operation)
-        if not operation.package_id or operation.product_id:
-            result = {}
-        return result
