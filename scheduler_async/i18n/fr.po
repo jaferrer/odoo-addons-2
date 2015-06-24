@@ -32,8 +32,8 @@ msgstr ""
 "\n"
 "Planificateur asynchrone\n"
 "========================\n"
-"Ce module rÈimplÈmente le planificateur des approvisionnement avec le framework 'OCA/connector ce qui permet de \n"
-"surveiller les t‚ches du planificateur qui tournent en arriËre plan.\n"
+"Ce module r√©impl√©mente le planificateur des approvisionnement avec le framework 'OCA/connector ce qui permet de \n"
+"surveiller les t√¢ches du planificateur qui tournent en arri√®re plan.\n"
 
 #. module: scheduler_async
 #: model:ir.model,name:scheduler_async.model_procurement_order_compute_all
