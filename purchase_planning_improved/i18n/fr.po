@@ -115,7 +115,7 @@ msgstr ""
 "-----\n"
 "- Ce module dépend du module stock_planning_improved et s'interface avec les autres modules de planning amélioré \n"
 "  tels que celui de la production.\n"
-"- Ce module dépend également du module pruchase_working_days car un planning digne de ce nom doit impérativement \n"
+"- Ce module dépend également du module purchase_working_days car un planning digne de ce nom doit impérativement \n"
 "  prendre en compte les jours ouvrés.\n"
 "n\"
 
