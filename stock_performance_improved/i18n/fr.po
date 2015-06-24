@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_stock_performance_improved
 msgid "Stock Performance Improved"
-msgstr ""
+msgstr "Performances améliorées du module stock"
 
 #. module: base
 #: model:ir.module.module,description:base.module_stock_performance_improved
@@ -37,7 +37,17 @@ msgid ""
 "it can be reserved.\n"
 msgstr ""
 "\n"
-"\n"
+"Performances améliorées du module stock\n"
+"=======================================\n"
+"Odoo est naturellement optimisé pour les situations où le stock est pléthorique et les mouvements réalisés avec un \n"
+"préavis relativement court. Il s'agit du cas typique d'un magasin au détail ou d'une entreprise logistique.\n"
+"n\"
+"Cependant, il existe d'autres situations où le stock est maintenu au minimum, mais les mouvements prévus sont \n"
+"connus très longtemps à l'avance. Il s'agit, par exemple, du cas d'une entreprise industrielle avec un planning à \n"
+"long terme et appliquant les approvisionnements juste-à-temps.\n"
+"n\"
+"Ce module apporte des améliorations de performance en assignant les mouvements aux opérations au plus tard, \n"
+"c'est-à-dire au seulement lorsqu'il peut être réservé.\n"
 
 #. module: stock_performance_improved
 #: field:stock.prereservation,id:0
@@ -47,7 +57,7 @@ msgstr "ID"
 #. module: stock_performance_improved
 #: field:stock.prereservation,move_id:0
 msgid "Move id"
-msgstr "Move id"
+msgstr "ID du mouvement"
 
 #. module: stock_performance_improved
 #: model:ir.model,name:stock_performance_improved.model_stock_picking
@@ -57,12 +67,12 @@ msgstr "Opération de manutention"
 #. module: stock_performance_improved
 #: field:stock.prereservation,picking_id:0
 msgid "Picking id"
-msgstr "Picking id"
+msgstr "Id de l'opération"
 
 #. module: stock_performance_improved
 #: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_process_prereservations
 msgid "Process Prereservations"
-msgstr "Process Prereservations"
+msgstr "Traiter les pré-réservations"
 
 #. module: stock_performance_improved
 #: model:ir.model,name:stock_performance_improved.model_stock_move
@@ -72,5 +82,5 @@ msgstr "Mouvement de stock"
 #. module: stock_performance_improved
 #: model:ir.model,name:stock_performance_improved.model_stock_prereservation
 msgid "Stock Pre-Reservation"
-msgstr "Stock Pre-Reservation"
+msgstr "Pré-réservations de stock"
 
