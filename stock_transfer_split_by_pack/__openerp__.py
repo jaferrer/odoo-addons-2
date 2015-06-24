@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Warehouse',
-    'depends': ['stock'],
+    'depends': ['stock','web_action_target_popup'],
     'description': """
 Stock Transfer Split by Pack
 ============================
