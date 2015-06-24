@@ -8,9 +8,8 @@
             <field name="inherit_id" ref="stock.view_stock_enter_transfer_details" />
             <field name="arch" type="xml">
                 <button name="split_quantities" type="object" position="after">
-                    <button name="split_by_pack2" type="object" string="Split By Pack" icon="STOCK_CUT"/>
+                    <button name="open_split_dialog" type="object" string="Split By Pack" icon="STOCK_CUT"/>
                 </button>
-
             </field>
         </record>
 

@@ -21,7 +21,8 @@ from openerp import fields, models, api, _
 from openerp.exceptions import Warning
 import openerp.addons.decimal_precision as dp
 
-class stock_transfer_split_by_pack(models.TransientModel):
+
+class StockTransferSplitByPack(models.TransientModel):
     _name = 'stock.transfer.split_by_pack'
     _description = "Split by pack wizard"
 
@@ -46,7 +47,6 @@ class stock_transfer_split_by_pack(models.TransientModel):
                 new_line = trf_line.copy({'quantity': pack_qty, 'packop_id': False})
                 if self[0].create_pack:
                     new_line.put_in_pack()
-            action = trf_line.transfer_id.wizard_view()
             if remaining_qty:
                 trf_line.quantity = remaining_qty
             else:
@@ -55,21 +55,18 @@ class stock_transfer_split_by_pack(models.TransientModel):
                     trf_line.put_in_pack()
 
 
-class stock_transfer_split_by_pack2(models.TransientModel):
+class StockTransferDetailsItems(models.TransientModel):
     _inherit = "stock.transfer_details_items"
 
-#
     @api.multi
-    def split_by_pack2(self):
-
+    def open_split_dialog(self):
         return {
-            'name': _('Split by Configurable'),
+            'name': _('Split by Pack'),
             'type': 'ir.actions.act_window',
             'view_type': 'form',
             'view_mode': 'form',
             'res_model': 'stock.transfer.split_by_pack',
             'target': 'popup',
             'views': [(False, 'form')],
-
             'context': self.env.context,
-    }
+        }
