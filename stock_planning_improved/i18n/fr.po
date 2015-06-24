@@ -133,12 +133,12 @@ msgstr ""
 #. module: stock_planning_improved
 #: help:stock.picking,date_due:0
 msgid "Date before which the first moves of this picking must be made so as not to be late on schedule."
-msgstr "Date before which the first moves of this picking must be made so as not to be late on schedule."
+msgstr "Date avant laquelle le premier mouvements doit être réalisé pour ne pas être en retard sur le planning."
 
 #. module: stock_planning_improved
 #: field:stock.picking,date_due:0
 msgid "Due Date"
-msgstr "Due Date"
+msgstr "Date de besoin"
 
 #. module: stock_planning_improved
 #: model:ir.model,name:stock_planning_improved.model_stock_picking
@@ -153,7 +153,7 @@ msgstr "Approvisionnement"
 #. module: stock_planning_improved
 #: view:procurement.order:0
 msgid "Reschedule Procurement"
-msgstr "Reschedule Procurement"
+msgstr "Replanifier l'approvisionnement"
 
 #. module: stock_planning_improved
 #: model:ir.model,name:stock_planning_improved.model_stock_move
