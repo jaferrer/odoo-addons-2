@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_product_putaway_dispatch
 msgid "Product Dispatch"
-msgstr ""
+msgstr "Répartition d'articles"
 
 #. module: base
 #: model:ir.module.module,description:base.module_product_putaway_dispatch
@@ -37,12 +37,22 @@ msgid ""
 "Dispatch. Strategies of type \"Dispatch\" need only to be defined once and can be applied to several locations.\n"
 msgstr ""
 "\n"
-"\n"
+"Répartition d'articles\n"
+"======================\n"
+"Ce module ajoute un bouton \"Dispatcher\" à la fenêtre de trasnfert d'une opération de stock. Ce bouton répartit les\n"
+"articles en fonction des besoins dans les différents emplacements enfants de l'emplacement de destination initial.\n"
+"L'opérateur a la possibilité de modifier la répartition ainsi proposée avant de valider le transfert.\n"
+"n\"
+"Si aucun besoin n'est trouvé, le produit est renvoyé à l'emplacement initial pour le déreserver.\n"
+"n\"
+"Ce bouton n'apparait que si l'emplacement de destination de l'opération a sa stratégie de rangement définie comme \n"
+"étant de type \"Répartition\". Une seule stratégie de rangement de type \"Réparatition\" a besoin d'être définie, \n"
+"elle peut ensuite être utilisée sur plusieurs emplacements.\n"
 
 #. module: product_putaway_dispatch
 #: view:stock.transfer_details:0
 msgid "Dispatch"
-msgstr "Dispatch"
+msgstr "Répartir"
 
 #. module: product_putaway_dispatch
 #: model:ir.model,name:product_putaway_dispatch.model_stock_transfer_details
@@ -63,4 +73,3 @@ msgstr "Articles à déplacer"
 #: model:ir.model,name:product_putaway_dispatch.model_product_putaway
 msgid "Put Away Strategy"
 msgstr "Stratégie de rangement"
-

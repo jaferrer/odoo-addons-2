@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_purchase_group_by_period
 msgid "Group Purchase Lines By Period"
-msgstr ""
+msgstr "Grouper les lignes d'achat par période"
 
 #. module: base
 #: model:ir.module.module,description:base.module_purchase_group_by_period
@@ -38,23 +38,34 @@ msgid ""
 "Depending on this time frame, the purchase order lines are grouped into one purchase order per time frame.\n"
 msgstr ""
 "\n"
+"Grouper les lignes d'achat par période\n"
+"======================================\n"
+"Lorsque ce module est installé, les lignes d'achat générées à partir des demandes d'approvisionnement sont \n"
+"regroupées dans différentes commandes d'achat en fonction de leur date, au lieu d'être toutes ajoutées à la \n"
+"commande brouillon trouvée pour le même fournisseur et à la même adresse."
 "\n"
-
+"Pour chaque fournisseur, une période de regroupement est sélectionnées. Ces périodes peuvent être exprimées en:\n"
+"- Jours\n"
+"- Semaine(s)\n"
+"- Mois\n"
+"- Année(s)\n"
+"n\"
+"En fonction de cette période de regroupement les lignes d'achat sont regroupées en une commande par période.\n"
 
 #. module: purchase_group_by_period
 #: field:procurement.time.frame,create_uid:0
 msgid "Created by"
-msgstr "Created by"
+msgstr "Créé par"
 
 #. module: purchase_group_by_period
 #: field:procurement.time.frame,create_date:0
 msgid "Created on"
-msgstr "Created on"
+msgstr "Créé le"
 
 #. module: purchase_group_by_period
 #: selection:procurement.time.frame,period_type:0
 msgid "Day(s)"
-msgstr "Day(s)"
+msgstr "Jour(s)"
 
 #. module: purchase_group_by_period
 #: field:procurement.time.frame,id:0
@@ -64,37 +75,37 @@ msgstr "ID"
 #. module: purchase_group_by_period
 #: field:procurement.time.frame,write_uid:0
 msgid "Last Updated by"
-msgstr "Last Updated by"
+msgstr "Mis à jour par"
 
 #. module: purchase_group_by_period
 #: field:procurement.time.frame,write_date:0
 msgid "Last Updated on"
-msgstr "Last Updated on"
+msgstr "Mis à jour le"
 
 #. module: purchase_group_by_period
 #: field:purchase.order,date_order_max:0
 msgid "Maximum order date"
-msgstr "Maximum order date"
+msgstr "Date maximale de la commande"
 
 #. module: purchase_group_by_period
 #: selection:procurement.time.frame,period_type:0
 msgid "Month(s)"
-msgstr "Month(s)"
+msgstr "Mois"
 
 #. module: purchase_group_by_period
 #: field:procurement.time.frame,name:0
 msgid "Name"
-msgstr "Name"
+msgstr "Nom"
 
 #. module: purchase_group_by_period
 #: field:procurement.time.frame,nb:0
 msgid "Number"
-msgstr "Number"
+msgstr "Nombre"
 
 #. module: purchase_group_by_period
 #: field:res.partner,order_group_period:0
 msgid "Order grouping period"
-msgstr "Order grouping period"
+msgstr "Regroupement des commandes"
 
 #. module: purchase_group_by_period
 #: model:ir.model,name:purchase_group_by_period.model_res_partner
@@ -104,7 +115,7 @@ msgstr "Partenaire"
 #. module: purchase_group_by_period
 #: field:procurement.time.frame,period_type:0
 msgid "Period type"
-msgstr "Period type"
+msgstr "Type de période"
 
 #. module: purchase_group_by_period
 #: model:ir.model,name:purchase_group_by_period.model_procurement_order
@@ -119,28 +130,28 @@ msgstr "Bon de commande"
 #. module: purchase_group_by_period
 #: help:res.partner,order_group_period:0
 msgid "Select here the time frame by which orders line placed to this supplier should be grouped by PO. This is value should be set to the typical delay between two orders to this supplier."
-msgstr "Select here the time frame by which orders line placed to this supplier should be grouped by PO. This is value should be set to the typical delay between two orders to this supplier."
+msgstr "Sélectionnez ici la période de regroupement en commande d'achat pour les lignes d'achat de ce fournisseur. Cette valeur doit être définie égale à la durée habituelle entre deux commandes vers ce fournisseur."
 
 #. module: purchase_group_by_period
 #: help:purchase.order,date_order_max:0
 msgid "This is the latest date an order line inside this PO must be ordered. PO lines with an order date beyond this date must be grouped in a later PO. This date is set according to the supplier order_group_period and to this PO order date."
-msgstr "This is the latest date an order line inside this PO must be ordered. PO lines with an order date beyond this date must be grouped in a later PO. This date is set according to the supplier order_group_period and to this PO order date."
+msgstr "Date la plus tardive d'une ligne de commande pour être intégrée dans cette commande. Les lignes d'achat avec une date de commande postérieure à cette date devront être regroupées dans une autre commande. Cette date est calculée à partir de la période de regroupement du fournisseur et de la date de cette commande."
 
 #. module: purchase_group_by_period
 #: model:ir.actions.act_window,name:purchase_group_by_period.act_window_procurement_time_frames
 #: model:ir.ui.menu,name:purchase_group_by_period.menu_procurement_time_frames
 msgid "Time Frames"
-msgstr "Time Frames"
+msgstr "Périodes de regroupement"
 
 #. module: purchase_group_by_period
 #: selection:procurement.time.frame,period_type:0
 msgid "Week(s)"
-msgstr "Week(s)"
+msgstr "Semaine(s)"
 
 #. module: purchase_group_by_period
 #: selection:procurement.time.frame,period_type:0
 msgid "Year(s)"
-msgstr "Year(s)"
+msgstr "Année(s)"
 
 #. module: purchase_group_by_period
 #: model:ir.model,name:purchase_group_by_period.model_procurement_time_frame

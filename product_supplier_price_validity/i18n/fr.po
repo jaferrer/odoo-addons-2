@@ -20,7 +20,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_product_supplier_price_validity
 msgid "Validity Dates for Supplier Prices"
-msgstr "Amélioration du processus de calcul des quantités à commander"
+msgstr "Dates de validité pour les prix fournisseur"
 
 #. module: base
 #: model:ir.module.module,description:base.module_product_supplier_price_validity
