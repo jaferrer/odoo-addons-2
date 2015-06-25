@@ -57,5 +57,6 @@ class StockWarehouse(models.Model):
             moves = self.env['stock.move'].search([('product_id', '=', self.product_id.id),
                                                    ('location_id', '=', self.location_id.id),
                                                    ('state', 'in', ['confirmed', 'waiting']),
-                                                   ('date', '<=', fields.Datetime.to_string(search_end_date))])
+                                                   ('date', '<=', fields.Datetime.to_string(search_end_date)),
+                                                   ('date', '>', fields.Datetime.to_string(date))])
             return sum([m.product_qty for m in moves])

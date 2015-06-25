@@ -28,6 +28,7 @@ class TestProcurementForesightStrategy(common.TransactionCase):
         super(TestProcurementForesightStrategy, self).setUp()
         self.product_test = self.browse_ref("procurement_foresight_strategy.test_product")
         self.location_stock = self.browse_ref("stock.stock_location_stock")
+        self.out_move_0 = self.browse_ref("procurement_foresight_strategy.outgoing_0")
         self.out_move_1 = self.browse_ref("procurement_foresight_strategy.outgoing_1")
         self.out_move_2 = self.browse_ref("procurement_foresight_strategy.outgoing_2")
         self.out_move_3 = self.browse_ref("procurement_foresight_strategy.outgoing_3")
