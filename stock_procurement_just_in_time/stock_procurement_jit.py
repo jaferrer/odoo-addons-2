@@ -200,7 +200,12 @@ class StockWarehouseOrderPointJit(models.Model):
             if float_compare(reste, 0.0, precision_rounding=orderpoint.product_uom.rounding) > 0:
                 qty += orderpoint.qty_multiple - reste
             qty = float_round(qty, precision_rounding=orderpoint.product_uom.rounding)
+
             proc_vals = proc_obj._prepare_orderpoint_procurement(orderpoint, qty)
+            proc_date = fields.Datetime.from_string(need.date) + relativedelta(seconds=-1)
+            proc_vals.update({
+                'date_planned': fields.Datetime.to_string(proc_date)
+            })
             proc = proc_obj.create(proc_vals)
             proc.run()
             _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
