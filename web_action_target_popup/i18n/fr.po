@@ -17,7 +17,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_web_action_target_popup
 msgid "Popup Target for Actions"
-msgstr ""
+msgstr "Popups successifs pour les actions"
 
 #. module: base
 #: model:ir.module.module,description:base.module_web_action_target_popup
@@ -36,5 +36,16 @@ msgid ""
 "- For the moment, this only works for one level depth, i.e. for a popup window opened in another popup window.\n"
 msgstr ""
 "\n"
+"Popups successifs pour les actions\n"
+"==================================\n"
+"Ce module ajout la possibilité de définir le champ \"target\" d'une action comme étant \"popup\" et non pas \n"
+"seulement \"new\" ou \"current\". Cette nouvelle possibilité ouvre l'action dans une nouvelle fenêtre mais ne ferme \n"
+"pas l'action de fenêtre précédente si celle-ci était déjà dans une fenêtre popup.\n"
 "\n"
-
+"Utilisation: définissez target=\"popup\" pour les action ouvertes à partir d'une action qui a target \"new\".\"
+"\n"
+"Notes:\n"
+"------\n"
+"- Appeler une action avec target=\"popup\" depuis la fenêtre principale donne le même résultat que l'appeler avec \n"
+"  target=\"new\".\n"
+"- Pour le moment, cela ne fonctionne que sur un niveau, c'est-à-dire pour un popup ouvert depuis un autre popup.\n"
