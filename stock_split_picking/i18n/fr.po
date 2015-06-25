@@ -15,6 +15,32 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_split_picking
+msgid "Stock Split Picking"
+msgstr "Division d'opérations de stock"
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_split_picking
+msgid ""
+"\n"
+"Stock Split Picking\n"
+"===================\n"
+"This module adds a button to the transfer wizard of a stock operation to create a backorder without validating the\n"
+"current operation.\n"
+"\n"
+"It also adds a \"Save\" button which saves the current transfer wizard lines to the picking's pack operations and reloads\n"
+"the wizard.\n"
+msgstr ""
+"\n"
+"Division d'opérations de stock\n"
+"==============================\n"
+"Ce module ajoute un bouton \"Préparer uniquement\" à la fenêtre de transfert d'une opération de stock pour créer un \n"
+"reliquat sans valider le transfert en cours.\n"
+"\n"
+"Il ajoute également un bouton \"Sauvegarder\" qui permet d'enregistrer les lignes dans les opérations de colisage \n"
+"de l'opération de stock.\n"
+
 #. module: stock_split_picking
 #: model:ir.model,name:stock_split_picking.model_stock_transfer_details
 msgid "Picking wizard"
@@ -37,6 +63,11 @@ msgstr "_Annuler"
 
 #. module: stock_split_picking
 #: view:stock.transfer_details:0
+msgid "Save"
+msgstr "Sauvegarder"
+
+#. module: stock_split_picking
+#: view:stock.transfer_details:0
 msgid "or"
-msgstr "or"
+msgstr "ou"
 
