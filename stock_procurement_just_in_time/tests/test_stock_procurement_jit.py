@@ -115,7 +115,13 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertIn(proc1, [procs[0], procs[1]])
         self.assertEqual(proc0.date_planned, "2015-03-15 09:59:59")
         self.assertEqual(proc0.product_qty, 3)
+        for move in proc0.move_ids:
+            self.assertEqual(move.date[:10], "2015-03-09")
+            self.assertEqual(move.date_expected[:10], "2015-03-09")
         self.assertEqual(proc1.date_planned, "2015-03-15 09:59:59")
+        for move in proc1.move_ids:
+            self.assertEqual(move.date[:10], "2015-03-09")
+            self.assertEqual(move.date_expected[:10], "2015-03-09")
         self.assertEqual(proc1.product_qty, 3)
         self.assertEqual(procs[2].date_planned, "2015-03-20 09:59:59")
         self.assertEqual(procs[2].product_qty, 8)
