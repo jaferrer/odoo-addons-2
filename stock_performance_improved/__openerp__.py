@@ -44,7 +44,9 @@ This module also reimplements the do_detailed_transfer function of the stock tra
         'security/ir.model.access.csv',
         'stock_performance_improved_view.xml',
     ],
-    'demo': [],
+    'demo': [
+        'stock_performance_improved_demo.xml',
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,
