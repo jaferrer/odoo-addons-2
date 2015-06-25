@@ -34,7 +34,11 @@ class procurement_order_planning_improved(models.Model):
             if proc.state not in ['done', 'cancel'] and proc.rule_id and proc.rule_id.action == 'move':
                 location = proc.location_id or proc.warehouse_id.location_id
                 proc_date = datetime.strptime(proc.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
-                proc.move_ids.write({'date': location.schedule_working_days(-proc.rule_id.delay or 0, proc_date)})
+                newdate = location.schedule_working_days(-proc.rule_id.delay or 0, proc_date)
+                vals = {'date': newdate}
+                if self.env.context.get('reschedule_planned_date'):
+                    vals.update({'date_expected': newdate})
+                proc.move_ids.write(vals)
 
 
 class stock_move_planning_improved(models.Model):
