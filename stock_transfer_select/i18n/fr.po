@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_stock_transfer_select
 msgid "Stock Transfer Select"
-msgstr ""
+msgstr "Sélection des lignes à transférer"
 
 #. module: base
 #: model:ir.module.module,description:base.module_stock_transfer_select
@@ -31,35 +31,39 @@ msgid ""
 "process only a few. In this case, it avoids to press on the trash bin icon of hundreds of lines.\n"
 msgstr ""
 "\n"
-"\n"
+"Sélection des lignes à transférer\n"
+"=================================\n"
+"Ce module ajoute un assistant dans la fenêtre de transfert permettant de sélectionner les lignes d'opérations de \n"
+"colisage à traiter. Cela est particulièrement utile dans les situations où il y a des centaines de lignes \n"
+"d'articles disponibles dans une opération mais que nous ne voulons en traiter que quelques unes. Dans ce cas, cela \n"
+"permet d'éviter d'avoir à cliquer sur l'icone de suppression des centaines de fois.\n"
 
 #. module: stock_transfer_select
 #: model:ir.actions.server,name:stock_transfer_select.delete_return
 msgid "Delete Lines"
-msgstr ""
+msgstr "Supprimer les lignes"
 
 #. module: stock_transfer_select
 #: model:ir.actions.server,name:stock_transfer_select.keep_return
 msgid "Keep Lines"
-msgstr ""
+msgstr "Garder les lignes"
 
 #. module: stock_transfer_select
 #: model:ir.model,name:stock_transfer_select.model_stock_transfer_details
 msgid "Picking wizard"
-msgstr ""
+msgstr "Assistant d'opération"
 
 #. module: stock_transfer_select
 #: model:ir.model,name:stock_transfer_select.model_stock_transfer_details_items
 msgid "Picking wizard items"
-msgstr ""
+msgstr "Lignes d'assistant d'opération"
 
 #. module: stock_transfer_select
 #: view:stock.transfer_details:0
 msgid "Products To Move"
-msgstr ""
+msgstr "Articles à déplacer"
 
 #. module: stock_transfer_select
 #: view:stock.transfer_details:0
 msgid "Select Operations"
-msgstr ""
-
+msgstr "Sélectionner les opérations"
