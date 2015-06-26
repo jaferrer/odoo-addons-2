@@ -39,7 +39,7 @@ class PurchaseOrderJustInTime(models.Model):
         """
 
         self.ensure_one()
-        todo_moves = []
+        todo_moves = self.env['stock.move']
         if not group_id:
             group = self.env['procurement.group'].create({'name': order.name, 'partner_id': order.partner_id.id})
             group_id = group.id
@@ -51,7 +51,7 @@ class PurchaseOrderJustInTime(models.Model):
             if order_line.product_id.type in ('product', 'consu'):
                 for vals in self._prepare_order_line_move(order, order_line, picking_id, group_id):
                     move = self.env['stock.move'].create(vals)
-                    todo_moves.append(move)
+                    todo_moves |= move
         todo_moves.action_confirm()
         todo_moves.force_assign()
 

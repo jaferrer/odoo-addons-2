@@ -37,13 +37,13 @@ msgstr ""
 "\n"
 "Recherches sans accents\n"
 "=======================\n"
-"Ce module crée simplement l'extension \"unaccent\" dans la base pour autoriser les recherches non accentuées.\n"
+"Ce module crÃ©e simplement l'extension \"unaccent\" dans la base pour autoriser les recherches non accentuÃ©es.\n"
 "Notes:\n"
 "------\n"
-"- Vous devez démarrer Odoo avec l'option --unaccent ou définir l'option unaccent = True dans le fichier de \n"
-"configuration pour que les recherches non accentuées fonctionnent.\n"
-"- Désinstaller ce module ne suffit pas pour désactiver les recherches non accentuées. Vous devez executer la commande\n"
-"\"DROP EXTENSION 'unaccent';\" manuellement sur la base de donnée.\n"
+"- Vous devez dÃ©marrer Odoo avec l'option --unaccent ou dÃ©finir l'option unaccent = True dans le fichier de \n"
+"configuration pour que les recherches non accentuÃ©es fonctionnent.\n"
+"- DÃ©sinstaller ce module ne suffit pas pour dÃ©sactiver les recherches non accentuÃ©es. Vous devez executer la commande\n"
+"\"DROP EXTENSION 'unaccent';\" manuellement sur la base de donnÃ©e.\n"
 
 
 

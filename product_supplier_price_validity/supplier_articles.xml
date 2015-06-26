@@ -16,7 +16,7 @@
                       <p groups="product.group_purchase_pricelist" class="oe_grey">Each active rule is green colored.</p>
                   </p>
                   <tree string="Pricelist" position="attributes">
-                      <attribute name="colors">green:active</attribute>
+                      <attribute name="colors">green:active_line</attribute>
                   </tree>
                   <field name="min_quantity" position="before">
                       <field name="validity_date"/>

@@ -55,7 +55,7 @@ class ProcurementOrderQuantity(models.Model):
             new_date = fields.Datetime.from_string(need.date) + relativedelta(seconds=-1)
             proc.date_planned = fields.Datetime.to_string(new_date)
             _logger.debug("Rescheduled proc: %s, new date: %s" % (proc, proc.date_planned))
-        self.action_reschedule()
+        self.with_context(reschedule_planned_date=True).action_reschedule()
 
     @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False):
@@ -176,7 +176,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 if stock_level.qty > op.get_max_qty(stock_date):
                     # We have too much of products: so we reschedule the procurement at end date
                     proc.date_planned = fields.Datetime.to_string(date_end + relativedelta(seconds=-1))
-                    proc.action_reschedule()
+                    proc.with_context(reschedule_planned_date=True).action_reschedule()
                     # Then we reschedule back to the next need if any
                     need = op.get_next_need()
                     if need and fields.Datetime.from_string(need.date) < date_end:
@@ -200,7 +200,12 @@ class StockWarehouseOrderPointJit(models.Model):
             if float_compare(reste, 0.0, precision_rounding=orderpoint.product_uom.rounding) > 0:
                 qty += orderpoint.qty_multiple - reste
             qty = float_round(qty, precision_rounding=orderpoint.product_uom.rounding)
+
             proc_vals = proc_obj._prepare_orderpoint_procurement(orderpoint, qty)
+            proc_date = fields.Datetime.from_string(need.date) + relativedelta(seconds=-1)
+            proc_vals.update({
+                'date_planned': fields.Datetime.to_string(proc_date)
+            })
             proc = proc_obj.create(proc_vals)
             proc.run()
             _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %

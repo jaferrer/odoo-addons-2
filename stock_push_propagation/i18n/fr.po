@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_stock_push_propagation
 msgid "Choose Propagation for Push Rules"
-msgstr ""
+msgstr "Propagation des règles de flux poussés"
 
 #. module: base
 #: model:ir.module.module,description:base.module_stock_push_propagation
@@ -33,25 +33,30 @@ msgid ""
 "not.\n"
 msgstr ""
 "\n"
+"Propagation des règles de flux poussés\n"
+"======================================\n"
+"Avec l'implémentation standard d'Odoo, les groupes d'approvisionnement sont automatiquement propagés au mouvement \n"
+"suivant lorsque l'on applique une règle de flux poussé.\n"
 "\n"
+"Ce module permet à l'utilisateur de choisir si le groupe doit être propagé ou non lors de l'application d'une règle \n"
+"de flux poussé.\n"
 
 #. module: stock_push_propagation
 #: selection:stock.location.path,group_propagation_option:0
 msgid "Leave Empty"
-msgstr "Leave Empty"
+msgstr "Laisser vide"
 
 #. module: stock_push_propagation
 #: selection:stock.location.path,group_propagation_option:0
 msgid "Propagate"
-msgstr "Propagate"
+msgstr "Propager"
 
 #. module: stock_push_propagation
 #: field:stock.location.path,group_propagation_option:0
 msgid "Propagation of Procurement Group"
-msgstr "Propagation of Procurement Group"
+msgstr "Propagation du groupe d'approvisionnement"
 
 #. module: stock_push_propagation
 #: model:ir.model,name:stock_push_propagation.model_stock_location_path
 msgid "Pushed Flows"
 msgstr "Flux poussés"
-

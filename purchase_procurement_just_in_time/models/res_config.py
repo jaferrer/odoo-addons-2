@@ -31,7 +31,7 @@ class purchase_jit_config(models.TransientModel):
     opmsg_min_early_delay = fields.Integer("Delay to be early (in days)",
                                           help="Minimum delay to create an operational message specifying that the "
                                                "purchase order line is early. If the planned date is less than this "
-                                               "number of days beyond the required date, no message will be displayed."
+                                               "number of days before the required date, no message will be displayed."
                                                "\nDefaults to 7 days.")
 
     @api.multi

@@ -18,14 +18,14 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_stock_procurement_just_in_time
 msgid "Stock Procurement Just-In-Time"
-msgstr ""
+msgstr "Approvisionnements en juste-à-temps"
 
 #. module: base
 #: model:ir.module.module,description:base.module_stock_procurement_just_in_time
 msgid ""
 "\n"
 "Stock Procurement Just-In-Time\n"
-"===============================\n"
+"==============================\n"
 "Just-In-Time (JIT) is an inventory strategy companies employ to increase efficiency and decrease waste by receiving\n"
 "goods only as they are needed in the production process, thereby reducing inventory costs.\n"
 "\n"
@@ -33,25 +33,46 @@ msgid ""
 "before they are needed instead of creating them at earliest.\n"
 "\n"
 "This calculation is done for each minimum stock rule, in the stock location defined by the rule. The needs are defined\n"
-"by the outgoing stock moves in "Waiting availability" or "Available" statuses. This implies that the outgoing moves are\n"
+"by the outgoing stock moves in \"Waiting availability\" or \"Available\" statuses. This implies that the outgoing moves are\n"
 "confirmed beforehand, either by already confirmed manufacturing orders, by already confirmed sale orders or by a sales\n"
 "forecast module that creates confirmed moves to represent future sales.\n"
 "\n"
 "Notes\n"
-"------\n"
+"-----\n"
 "- This module depends on stock_planning_improved and as such on stock_working_days, which means that all the scheduling\n"
 "  is made based on working days.\n"
 "- This module is best used when interfaced with purchase_procurement_just_in_time and/or mrp_procurement_just_in_time\n"
 "  modules which add information and warnings to the operator for how to reschedule the purchase orders and production\n"
-"  orders to manage just-in-time procurement."\n"
+"  orders to manage just-in-time procurement.\n"
 msgstr ""
 "\n"
+"Approvisionnements en juste-à-temps\n"
+"===================================\n"
+"Le Juste-à-temps (JIT en anglais) est une stratégie de gestion des stocks utilisée par les entreprises pour \n"
+"augmenter l'efficacité et limiter les rebuts en ne recevant les marchandises que lorsqu'elles sont demandées dans \n"
+"le processus de fabrication, réduisant de cette façon les coûts de stocks.\n"
 "\n"
+"Ce module implémente une nouvelle méthode de calcul pour les règles de stock minimum qui crée les demandes \n"
+"d'approvisionnement pour les articles juste avant leur besoin au lieu de les créer au plus tôt.\n"
+"\n"
+"Le calcul est fait pour chaque règle de stock minimum, dans l'emplacement défini par la règle. Les besoins sont \n"
+"définis par les mouvements de stocks sortant de cet emplacement à l'état \"En attente de disponibilite\" ou \n"
+"\"En attente d'un autre mouvements\". Ceci implique que les mouvements sortants soient confirmés au préalable, soit \n"
+"manuellement, soit par des ordres de fabrication validés ou des ventes validées ou des mouvements de prévisions \n"
+"validés dans pour représenter les ventes futures estimées.\n"
+"\n"
+"Notes\n"
+"-----\n"
+"- Ce module dépends de stock_planning_improved et donc de stock_working_days, ce qui signifie que toute la \n"
+"  planification est faite en jours ouvrés.\n"
+"- Ce module est plus utile lorsqu'il est interfacé avec les modules purchase_procurement_just_in_time et/ou \n"
+"  mrp_procurement_just_in_time qui donneront à l'opérateur des informations et avertissements supplémentaires sur \n"
+"  façon de replanifier les achats et les ordres de production pour gérer le juste-à-temps.\n"
 
 #. module: stock_procurement_just_in_time
 #: view:stock.levels.report:0
 msgid "Category"
-msgstr "Category"
+msgstr "Categorie"
 
 #. module: stock_procurement_just_in_time
 #: field:stock.levels.report,date:0
@@ -68,12 +89,12 @@ msgstr "Evolution"
 #: selection:stock.levels.report,move_type:0
 #: selection:stock.levels.requirements,move_type:0
 msgid "Existing"
-msgstr "Existing"
+msgstr "Existant"
 
 #. module: stock_procurement_just_in_time
 #: view:stock.levels.report:0
 msgid "Group by..."
-msgstr "Group by..."
+msgstr "Grouper par..."
 
 #. module: stock_procurement_just_in_time
 #: field:stock.levels.report,id:0
@@ -85,14 +106,14 @@ msgstr "ID"
 #: selection:stock.levels.report,move_type:0
 #: selection:stock.levels.requirements,move_type:0
 msgid "Incoming"
-msgstr "Incoming"
+msgstr "Entrant"
 
 #. module: stock_procurement_just_in_time
 #: view:stock.levels.report:0
 #: field:stock.levels.report,location_id:0
 #: field:stock.levels.requirements,location_id:0
 msgid "Location"
-msgstr "Location"
+msgstr "Emplacement"
 
 #. module: stock_procurement_just_in_time
 #: model:ir.model,name:stock_procurement_just_in_time.model_stock_warehouse_orderpoint
@@ -103,30 +124,30 @@ msgstr "Règle de stock minimum"
 #: field:stock.levels.report,move_type:0
 #: field:stock.levels.requirements,move_type:0
 msgid "Move type"
-msgstr "Move type"
+msgstr "Type de mouvement"
 
 #. module: stock_procurement_just_in_time
 #: field:stock.levels.report,move_qty:0
 #: field:stock.levels.requirements,move_qty:0
 msgid "Moved quantity"
-msgstr "Moved quantity"
+msgstr "Quantité déplacée"
 
 #. module: stock_procurement_just_in_time
 #: field:stock.levels.report,other_location_id:0
 #: field:stock.levels.requirements,other_location_id:0
 msgid "Origin/Destination"
-msgstr "Origin/Destination"
+msgstr "Origine/Destination"
 
 #. module: stock_procurement_just_in_time
 #: selection:stock.levels.report,move_type:0
 #: selection:stock.levels.requirements,move_type:0
 msgid "Outcoming"
-msgstr "Outcoming"
+msgstr "Sortant"
 
 #. module: stock_procurement_just_in_time
 #: selection:stock.levels.requirements,move_type:0
 msgid "Planned (In)"
-msgstr "Planned (In)"
+msgstr "Planifié (Entrant)"
 
 #. module: stock_procurement_just_in_time
 #: model:ir.model,name:stock_procurement_just_in_time.model_procurement_order
@@ -139,23 +160,23 @@ msgstr "Approvisionnement"
 #: field:stock.levels.report,product_id:0
 #: field:stock.levels.requirements,product_id:0
 msgid "Product"
-msgstr "Product"
+msgstr "Article"
 
 #. module: stock_procurement_just_in_time
 #: field:stock.levels.report,product_categ_id:0
 #: field:stock.levels.requirements,product_categ_id:0
 msgid "Product Category"
-msgstr "Product Category"
+msgstr "Catégorie d'article"
 
 #. module: stock_procurement_just_in_time
 #: field:procurement.order,qty:0
 msgid "Quantity"
-msgstr "Quantity"
+msgstr "Quantité"
 
 #. module: stock_procurement_just_in_time
 #: help:procurement.order,qty:0
 msgid "Quantity in the default UoM of the product"
-msgstr "Quantity in the default UoM of the product"
+msgstr "Quantité dans l'unité par défaut de l'article"
 
 #. module: stock_procurement_just_in_time
 #: view:product.product:0
@@ -166,16 +187,15 @@ msgstr "Stock"
 #: model:ir.actions.act_window,name:stock_procurement_just_in_time.act_window_stock_levels_report
 #: model:ir.model,name:stock_procurement_just_in_time.model_stock_levels_report
 msgid "Stock Levels Report"
-msgstr "Stock Levels Report"
+msgstr "Rapport des niveaux de stock"
 
 #. module: stock_procurement_just_in_time
 #: model:ir.model,name:stock_procurement_just_in_time.model_stock_levels_requirements
 msgid "Stock Levels Requirements"
-msgstr "Stock Levels Requirements"
+msgstr "Besoins en niveaux de stock"
 
 #. module: stock_procurement_just_in_time
 #: field:stock.levels.report,qty:0
 #: field:stock.levels.requirements,qty:0
 msgid "Stock quantity"
-msgstr "Stock quantity"
-
+msgstr "Quantité en stock"

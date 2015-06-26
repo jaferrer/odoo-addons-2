@@ -17,10 +17,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime
-import time
-
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp import fields, models, api
 
 
@@ -33,8 +29,12 @@ class procurement_order_planning_improved(models.Model):
         for proc in self:
             if proc.state not in ['done', 'cancel'] and proc.rule_id and proc.rule_id.action == 'move':
                 location = proc.location_id or proc.warehouse_id.location_id
-                proc_date = datetime.strptime(proc.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
-                proc.move_ids.write({'date': location.schedule_working_days(-proc.rule_id.delay or 0, proc_date)})
+                proc_date = fields.Datetime.from_string(proc.date_planned)
+                newdate = location.schedule_working_days(-proc.rule_id.delay or 0, proc_date)
+                vals = {'date': fields.Datetime.to_string(newdate)}
+                if self.env.context.get('reschedule_planned_date'):
+                    vals.update({'date_expected': fields.Datetime.to_string(newdate)})
+                proc.move_ids.write(vals)
 
 
 class stock_move_planning_improved(models.Model):

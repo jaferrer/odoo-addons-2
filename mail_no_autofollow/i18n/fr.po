@@ -35,17 +35,17 @@ msgstr ""
 "============================================\n"
 "Retire de l'abonnement automatique les partenaires qui ne sont pas des utilisateurs.\n"
 "n\"
-"Ceci empêche en particulier les clients d'être abonnés automatiquement à leurs commandes, factures, etc.\n"
+"Ceci empÃªche en particulier les clients d'Ãªtre abonnÃ©s automatiquement Ã  leurs commandes, factures, etc.\n"
 
 #. module: mail_no_autofollow
 #: field:mail.thread,create_uid:0
 msgid "Created by"
-msgstr "Créé par"
+msgstr "CrÃ©Ã© par"
 
 #. module: mail_no_autofollow
 #: field:mail.thread,create_date:0
 msgid "Created on"
-msgstr "Créé le"
+msgstr "CrÃ©Ã© le"
 
 #. module: mail_no_autofollow
 #: model:ir.model,name:mail_no_autofollow.model_mail_thread
@@ -55,12 +55,12 @@ msgstr "Discussion par courriel"
 #. module: mail_no_autofollow
 #: field:mail.thread,write_uid:0
 msgid "Last Updated by"
-msgstr "Mis à jour par"
+msgstr "Mis Ã  jour par"
 
 #. module: mail_no_autofollow
 #: field:mail.thread,write_date:0
 msgid "Last Updated on"
-msgstr "Mis à jour le"
+msgstr "Mis Ã  jour le"
 
 
 
