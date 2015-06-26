@@ -42,7 +42,7 @@ class procurement_order_purchase_planning_improved(models.Model):
                     'date_planned': date_planned,
                 })
                 if proc.purchase_id and fields.Datetime.from_string(proc.purchase_id.date_order) > order_date:
-                    proc.purchase_id.date_order = order_date
+                    proc.purchase_id.date_order = fields.Datetime.to_string(order_date)
                 proc.purchase_line_id.set_moves_dates(proc.purchase_line_id.date_required)
         super(procurement_order_purchase_planning_improved, self).action_reschedule()
 
