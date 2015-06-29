@@ -34,10 +34,9 @@ However, there are other situations where the stock is kept to minimum but the f
 advance. This is typically the case of an industrial company with a long term planning applying just-in-time
 procurement.
 
-This module applies performance improvements by assigning stock moves to a stock picking at latest, that is only when
-it can be reserved.
-
-This module also reimplements the do_detailed_transfer function of the stock transfer wizard.
+This module applies performance improvements by giving the possibility to assign stock moves to a stock picking at
+latest, that is only when it can be reserved. This is done by setting the defer_picking_assign parameter to True in a
+stock picking. It can also be definied in procurement rules so that the resulting moves have this parameter set.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
