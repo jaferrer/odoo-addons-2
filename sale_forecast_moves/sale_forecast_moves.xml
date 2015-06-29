@@ -28,7 +28,7 @@
             key2="client_action_multi"/>
 
         <menuitem id="menu_forecast_moves" name="Forecast moves" action="launch_forecast_moves_wizard"
-                  parent="stock.menu_traceability" sequence="10"/>
+                  parent="stock.menu_stock_sched" sequence="5"/>
 
 
         <record model="ir.ui.view" id="stock_move_form_etendu">

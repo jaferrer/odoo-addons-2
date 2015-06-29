@@ -50,7 +50,7 @@ msgstr "Créé le"
 #: model:ir.ui.menu,name:sale_forecast_moves.menu_forecast_moves
 #: view:sale.forecast.moves.wizard:0
 msgid "Forecast moves"
-msgstr "Mouvements prévisionnels"
+msgstr "Calculer les mouvements prévisionnels"
 
 #. module: sale_forecast_moves
 #: field:sale.forecast.moves.wizard,id:0
