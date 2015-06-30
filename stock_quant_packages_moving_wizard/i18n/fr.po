@@ -17,6 +17,24 @@ msgstr ""
 "Language: fr\n"
 "X-Generator: Poedit 1.7.5\n"
 
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_quant_packages_moving_wizard
+msgid "Quants and packaging moving wizards"
+msgstr "Assistants de déplacement de quants"
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_quant_packages_moving_wizard
+msgid ""
+"\n"
+"Quants and packaging moving wizards\n"
+"===================================\n"
+"This module gives two possibilities to deplace quants. In one hand, you can do it by selecting them directly from \"quants\" menu, and in the other hand, by moving packages from \"package\" menu.\n"
+msgstr ""
+"\n"
+"Assistants de déplacement de quants\n"
+"===================================\n"
+"Ce module donne deux possibilités pour déplacer les quants. Soit en les sélectionnant directement depuis la vue \"Quants\", soit en sélectionnant un colis dans la vue \"Colis\".\n"
+
 #. module: stock_quant_packages_moving_wizard
 #: field:stock.quant.move,create_uid:0
 #: field:stock.quant.move_items,create_uid:0
@@ -131,17 +149,17 @@ msgstr "Détails du transfert"
 #. module: stock_quant_packages_moving_wizard
 #: view:stock.quant.move:0 view:stock.quant.package.move:0
 msgid "_Apply"
-msgstr "_Apply"
+msgstr "Appliquer"
 
 #. module: stock_quant_packages_moving_wizard
 #: view:stock.quant.move:0 view:stock.quant.package.move:0
 msgid "_Cancel"
-msgstr "_Cancel"
+msgstr "Annuler"
 
 #. module: stock_quant_packages_moving_wizard
 #: view:stock.quant.move:0 view:stock.quant.package.move:0
 msgid "or"
-msgstr "or"
+msgstr "ou"
 
 #. module: stock_quant_packages_moving_wizard
 #: model:ir.model,name:stock_quant_packages_moving_wizard.model_stock_quant_move

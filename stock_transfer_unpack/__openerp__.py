@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,30 +18,22 @@
 #
 
 {
-    'name': 'Stock Transfer Split by Pack',
+    'name': 'Stock Transfer Unpack',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Warehouse',
-    'depends': ['stock','web_action_target_popup'],
+    'depends': ['stock'],
     'description': """
-Stock Transfer Split by Pack
-============================
-This module will add a "Split in Pack" button in the stock transfer view next to the native "Split" button. This button
-will open a pop-up window asking for a quantity and if we should create packs. The amount of the line will then be split
-in multiple lines of the selected quantity and a pack will be created for these lines if the options was selected. The
-remaining quantity, if any, will stay in the original line.
-
-This module is largely inspired from Akretion & Odoo Community Association (OCA) stock_transfer_split_multi module.
+Stock Transfer Unpack
+=====================
+This module adds a button in the transfer window of a stock operation in front of each pack so as to unpack it.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/stock_transfer_split_by_pack.xml',
-        'views/stock_transfer_details.xml',
+        'stock_transfer_unpack_view.xml'
     ],
-    'demo': [
-        'stock_transfer_split_by_pack_demo.xml',
-    ],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

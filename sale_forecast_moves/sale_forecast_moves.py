@@ -25,26 +25,6 @@ from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp import fields, models, api
 import openerp
 
-# modèle des mouvements de stock: stock.move
-# 0. Créer un pop-up pour entrer le nombre de semaines sur lequel mettre des prévisions.
-# - Créer un modèle de type model.TransientModel => ça crée un modèle non persistent
-# - Dans ce modèle mettre un champ Integer pour récupérer le nombre de semaines
-# - Créer une vue pour ce pop-up (sans oublier le bouton de validation => type=object, name=le_nom_de_la_fonction
-# => La fonction de calcul est dans la classe du pop-up
-# - Créer l'action de fenêtre pour le pop-up avec 'target = new' (voir la doc dans tutorial/building a module/wizard
-# - Créer un menu pour ouvrir l'action de fenêtre
-# 1. Déterminer le nombre de ventes par semaine: additionner les mouvements de stock de sortie sur les 28 derniers jours
-# sur l'article concerné et diviser par 4
-# => Utiliser la fonction search
-# => liste_de_moves = self.env['stock.move'].search([('date','<',blabla),('product_id','=',produit_id.id),('state','=','done')])
-# 2. Créer un mouvement par semaine sur une durée définie par l'utilisateur (pop-up à créer)
-# => self.env['stock.move'].create({'product_id': produit_id.id, 'product_uom_qty': 3, })
-#
-# 3. Créer une fonction qui supprimer les mouvements de prévision lorsqu'ils sont dans le passé
-#
-# Exemple: odoo/addons/stock/wizard => orderpoint_procurement (Le pop-up qui s'ouvre lorsqu'on clique sur
-# "Entrepot/Schedulers/Compute minimum stock rules only"
-
 
 @job
 def run_forecast_moves(session, model_name, ids):
@@ -54,7 +34,7 @@ def run_forecast_moves(session, model_name, ids):
     return "Scheduler ended sale forecast calculation."
 
 
-class sale_forecast_moves_wizard(models.TransientModel):
+class SaleForecastMovesWizard(models.TransientModel):
     _name = "sale.forecast.moves.wizard"
 
     forecast_weeks = fields.Integer("Number of weeks on which to make previsions")
@@ -62,7 +42,7 @@ class sale_forecast_moves_wizard(models.TransientModel):
     @api.multi
     def forecast_moves(self):
         session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-        job_uuid = run_forecast_moves.delay(session, 'sale.forecast.moves.wizard', self.ids)
+        run_forecast_moves.delay(session, 'sale.forecast.moves.wizard', self.ids)
         return {'type': 'ir.actions.act_window_close'}
 
     @api.multi
@@ -75,53 +55,54 @@ class sale_forecast_moves_wizard(models.TransientModel):
         this = self.with_env(new_env)
 
         weeks = self.forecast_weeks
-        LIMIT = fields.datetime.now()+relativedelta(days=-28)
-        NOW = fields.datetime.now()
+        limit = fields.datetime.now()+relativedelta(days=-28)
+        now = fields.datetime.now()
 
-        produits = this.env['product.product'].search([('type','=','product')])
+        produits = this.env['product.product'].search([('type', '=', 'product')])
         while produits:
             chunk_produits = produits[:100]
             produits = produits - chunk_produits
             for produit_id in chunk_produits:
                 try:
-                    list_of_moves = this.env['stock.move'].search([('state','=','done'),
-                                                            ('location_id','=',new_env.ref('stock.stock_location_stock').id),
-                                                            ('product_id','=',produit_id.id),
-                                                            ('date','>',LIMIT.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
-                                                            ('prevision_move','=',False)])
+                    list_of_moves = this.env['stock.move'].search(
+                        [('state', '=', 'done'), ('location_id', '=', new_env.ref('stock.stock_location_stock').id),
+                         ('product_id', '=', produit_id.id),
+                         ('date', '>', limit.strftime(DEFAULT_SERVER_DATETIME_FORMAT)),
+                         ('prevision_move', '=', False)]
+                    )
 
                     number_of_sales = sum([m.product_qty for m in list_of_moves]) / 4
                     if number_of_sales != 0:
                         for i in range(weeks):
-                            DATE = NOW+relativedelta(weeks=+i)
-                            move_of_week = this.env['stock.move'].search([('product_id','=',produit_id.id),
-                                                            ('week','=',(i+1)),
-                                                            ('prevision_move','=',True)])
+                            date = now + relativedelta(weeks=+i)
+                            move_of_week = this.env['stock.move'].search(
+                                [('product_id', '=', produit_id.id), ('week', '=', (i + 1)),
+                                 ('prevision_move', '=', True)]
+                            )
                             if move_of_week:
                                 move_of_week.write({
                                     'product_uom_qty': number_of_sales,
                                     'product_uom': produit_id.uom_id.id,
-                                    'date': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                                    'date_expected': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                                    'date': date.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                                    'date_expected': date.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                                 })
                             else:
                                 this.env['stock.move'].create({
-                                'name': "Mouvement de prevision pour la semaine n.%d" % (i+1),
-                                #'invoice_control': 'none',
-                                'product_id': produit_id.id,
-                                'product_uom_qty': number_of_sales,
-                                'product_uom': produit_id.uom_id.id,
-                                'date': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                                'date_expected': DATE.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                                'location_id': new_env.ref('stock.stock_location_stock').id,
-                                'location_dest_id': new_env.ref('stock.stock_location_customers').id,
-                                'prevision_move': True,
-                                'week': (i+1),
-                                'state': 'confirmed',
+                                    'name': "Mouvement de prevision pour la semaine n.%d" % (i+1),
+                                    'product_id': produit_id.id,
+                                    'product_uom_qty': number_of_sales,
+                                    'product_uom': produit_id.uom_id.id,
+                                    'date': date.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                                    'date_expected': date.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                                    'location_id': new_env.ref('stock.stock_location_stock').id,
+                                    'location_dest_id': new_env.ref('stock.stock_location_customers').id,
+                                    'prevision_move': True,
+                                    'week': (i+1),
+                                    'state': 'confirmed',
                                 })
-                    list_of_expired_moves = this.env['stock.move'].search([('product_id','=',produit_id.id),
-                                                                            ('prevision_move','=',True),
-                                                                            ('week','>',weeks)])
+                    list_of_expired_moves = this.env['stock.move'].search(
+                        [('product_id', '=', produit_id.id), ('prevision_move', '=', True), ('week', '>', weeks)]
+                    )
                     list_of_expired_moves.write({'state': 'draft'})
                     list_of_expired_moves.unlink()
                 except OperationalError:
@@ -139,8 +120,8 @@ class sale_forecast_moves_wizard(models.TransientModel):
         return
 
 
-class stock_move_etendu(models.Model):
+class StockMoveExtended(models.Model):
     _inherit = "stock.move"
 
-    prevision_move = fields.Boolean('Mouvement de prevision')
-    week = fields.Integer('week')
+    prevision_move = fields.Boolean('Forecast Move')
+    week = fields.Integer('Week')

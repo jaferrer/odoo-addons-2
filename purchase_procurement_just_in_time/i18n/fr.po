@@ -20,7 +20,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_purchase_procurement_just_in_time
 msgid "Purchase Just-In-Time Extension"
-msgstr "Purchase Just-In-Time Extension"
+msgstr "Extension Juste-à-temps pour les achats"
 
 #. module: base
 #: model:ir.module.module,description:base.module_purchase_procurement_just_in_time
@@ -54,31 +54,33 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Purchase Just-In-Time Extension\n"
-"===============================\n"
-"Just-In-Time (JIT) is an inventory strategy companies employ to increase efficiency and decrease waste by receiving\n"
-"goods only as they are needed in the production process, thereby reducing inventory costs.\n"
+"Extension Juste-à-temps pour les achats\n"
+"=======================================\n"
+"Le Juste-à-temps (JIT en anglais) est une stratégie de gestion des stocks utilisée par les entreprises pour \n"
+"augmenter l'efficacité et limiter les rebuts en ne recevant les marchandises que lorsqu'elles sont demandées dans \n"
+"le processus de fabrication, réduisant de cette façon les coûts de stocks.\n"
 "\n"
-"When JIT procurement is enabled through the stock_procurement_just_in_time module, draft POs are created by the\n"
-"scheduler with its required date set just as needed. While this is good to reduce inventory to the minimum, it requires\n"
-"purchasing officers to be particularly responsive to changes of schedule. This implies being able to contact suppliers\n"
-"to modify scheduling of already placed orders and to register the new promised date.\n"
+"Lorsque l'approvisionnement Juste-à-temps est activé à travers le module stock_procurement_just_in_time, les \n"
+"commandes d'achats sont créées par le planificateur avec leur date définie au juste besoin. Alors que cela est \n"
+"une amélioration certaine pour la réduction des stocks, cela nécessite également que les acheteurs soient \n"
+"particulièrement réactifs aux changements de planning. Cela suppose qu'ils soient capables de contacter les \n"
+"fournisseurs pour modifier le planning de commandes déjà passées et d'enregistrer la nouvelle date promise.\n"
 "\n"
-"This modules implements a supplier backlog which enable purchase officers to see all the purchase order lines at\n"
-"once, whichever purchase order they come from. The supplier backlog provides the following operational messages on\n"
-"purchase order lines:\n"
+"Ce module implémente un journal des commandes (Backlog fournisseurs) qui permet aux acheteurs de voir toutes les \n"
+"lignes de commandes d'un coup, quelque soit la commande à laquelle elles sont rattachées. Le journal des commandes \n"
+"propose les messages opérationnels suivant sur les lignes de commandes :\n"
 "\n"
-"- \"LATE by n days\": The order line planned date is behind the required date by n days. This message appears only when n\n"
-"  is above a configurable preset value.\n"
-"- \"EARLY by n days\": The order line planned date is ahead of the required date by n days. This message appears only when\n"
-"  n is above a configurable preset value.\n"
-"- \"REDUCE QTY to n [UoM]\": One of the procurement order which generated the purchase order line has been cancelled. The\n"
-"  qty ordered in this line is to be reduced to the quantity given.\n"
+"- \"EN RETARD de n jour(s)\" : La date prévue de la ligne de commande est postérieure à la date de besoin de n \n"
+"  jour(s). Ce message n'apparait que lorsque le nombre de jours est supérieur à une valeur configurée.\n"
+"- \"EN AVANCE de n jour(s)\" : La date prévue de la ligne de commande est antérieure à la date de besoin de n \n"
+"  jour(s). Ce message n'apparait que lorsque le nombre de jours est supérieur à une valeur configurée.\n"
+"- \"REDUIRE LA QTE à n unités\" : L'une des demandes d'approvisionnement à l'origine de cette lignes a été annulée. \n"
+"  La quantité à commander doit être réduite à la quantité donnée."
 "\n"
 "Notes\n"
 "-----\n"
-"- This module depends on purchase_planning_improved and as such on purchase_working_days, which means that all the\n"
-"  scheduling is made based on working days.\n"
+"- Ce module dépends de purchase_planning_improved et donc de purchase_working_days, ce qui signifie que toute la \n"
+"  planification est faite en jours ouvrés.\n"
 "\n"
 
 #. module: purchase_procurement_just_in_time
@@ -115,12 +117,12 @@ msgstr "Lignes confirmées"
 #. module: purchase_procurement_just_in_time
 #: field:split.line,create_uid:0
 msgid "Created by"
-msgstr "Created by"
+msgstr "Créé par"
 
 #. module: purchase_procurement_just_in_time
 #: field:split.line,create_date:0
 msgid "Created on"
-msgstr "Created on"
+msgstr "Créé le"
 
 #. module: purchase_procurement_just_in_time
 #: help:purchase.order.line,first_date_planned:0
@@ -130,12 +132,12 @@ msgstr "Date prévue par le premier accusé de réception du fournisseur"
 #. module: purchase_procurement_just_in_time
 #: field:purchase.config.settings,opmsg_min_early_delay:0
 msgid "Delay to be early (in days)"
-msgstr "Delay to be early (in days)"
+msgstr "Durée pour être en avance (en jours)"
 
 #. module: purchase_procurement_just_in_time
 #: field:purchase.config.settings,opmsg_min_late_delay:0
 msgid "Delay to be late (in days)"
-msgstr "Delay to be late (in days)"
+msgstr "Durée pour être en retard (en jours)"
 
 #. module: purchase_procurement_just_in_time
 #: field:split.line,line_id:0
@@ -151,7 +153,7 @@ msgstr "EN AVANCE de %i jour(s)"
 #. module: purchase_procurement_just_in_time
 #: view:purchase.order.line:0
 msgid "Edit"
-msgstr "Edit"
+msgstr "Modifier"
 
 #. module: purchase_procurement_just_in_time
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:239
@@ -197,7 +199,7 @@ msgstr "Impossible de séparer en deux une ligne qui n'est ni à l'état brouill
 #. module: purchase_procurement_just_in_time
 #: view:purchase.config.settings:0
 msgid "Just-In-Time"
-msgstr "Just-In-Time"
+msgstr "Juste-à-temps"
 
 #. module: purchase_procurement_just_in_time
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:110
@@ -213,35 +215,35 @@ msgstr "Date du dernier accusé de réception"
 #. module: purchase_procurement_just_in_time
 #: field:split.line,write_uid:0
 msgid "Last Updated by"
-msgstr "Last Updated by"
+msgstr "Modifié par"
 
 #. module: purchase_procurement_just_in_time
 #: field:split.line,write_date:0
 msgid "Last Updated on"
-msgstr "Last Updated on"
+msgstr "Modifié le"
 
 #. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,line_no:0
 msgid "Line no."
-msgstr "Line no."
+msgstr "N° de ligne"
 
 #. module: purchase_procurement_just_in_time
 #: help:purchase.config.settings,opmsg_min_early_delay:0
 msgid ""
-"Minimum delay to create an operational message specifying that the purchase order line is early. If the planned date is less than this number of days beyond the required date, no message will be displayed.\n"
+"Minimum delay to create an operational message specifying that the purchase order line is early. If the planned date is less than this number of days before the required date, no message will be displayed.\n"
 "Defaults to 7 days."
 msgstr ""
-"Minimum delay to create an operational message specifying that the purchase order line is early. If the planned date is less than this number of days beyond the required date, no message will be displayed.\n"
-"Defaults to 7 days."
+"Durée minimale pour créer un message opérationnel spécifiant que la ligne est en avance. Si la date prévue est antérieure à la date de besoin de moins de ce nombre de jours, aucun message ne sera affiché."
+"Vaut 7 jours par défaut."
 
 #. module: purchase_procurement_just_in_time
 #: help:purchase.config.settings,opmsg_min_late_delay:0
 msgid ""
 "Minimum delay to create an operational message specifying that the purchase order line is late. If the planned date is less than this number of days beyond the required date, no message will be displayed.\n"
-"Defaults to 0 days."
+"Defaults to 1 day."
 msgstr ""
-"Minimum delay to create an operational message specifying that the purchase order line is late. If the planned date is less than this number of days beyond the required date, no message will be displayed.\n"
-"Defaults to 0 days."
+"Durée minimale pour créer un message opérationnel spécifiant que la ligne est en retard. Si la date prévue est postérieure à la date de besoin de moins de ce nombre de jours, aucun message ne sera affiché."
+"Vaut 1 jour par défaut."
 
 #. module: purchase_procurement_just_in_time
 #: field:split.line,qty:0
@@ -266,7 +268,7 @@ msgstr "Nombre d'enfants"
 #. module: purchase_procurement_just_in_time
 #: view:purchase.config.settings:0
 msgid "Operational Messages"
-msgstr "Operational Messages"
+msgstr "Message opérationnel"
 
 #. module: purchase_procurement_just_in_time
 #: help:purchase.order.line,requested_date:0
@@ -304,7 +306,7 @@ msgstr "Approvisionnement"
 #. module: purchase_procurement_just_in_time
 #: view:purchase.order.line:0
 msgid "Procurements"
-msgstr "Procurements"
+msgstr "Approvisionnements"
 
 #. module: purchase_procurement_just_in_time
 #: model:ir.model,name:purchase_procurement_just_in_time.model_purchase_order
@@ -320,12 +322,12 @@ msgstr "Ligne de commande d'achat"
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:118
 #, python-format
 msgid "Purchase Order Line: %s"
-msgstr "Purchase Order Line: %s"
+msgstr "Ligne de commande d'achat: %s"
 
 #. module: purchase_procurement_just_in_time
 #: view:purchase.order.line:0
 msgid "Purchase Order Lines"
-msgstr "Lignes d'ordre d'achat"
+msgstr "Lignes de comamndes d'achat"
 
 #. module: purchase_procurement_just_in_time
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:104
@@ -337,7 +339,7 @@ msgstr "REDUIRE LA QTE à %.1f %s "
 #. module: purchase_procurement_just_in_time
 #: help:purchase.order.line,ack_ref:0
 msgid "Reference of the supplier's last reply to confirm the delivery at the planned date"
-msgstr "Reference of the supplier's last reply to confirm the delivery at the planned date"
+msgstr "Référence de la dernière réponse du fournisseur pour confirmer la date prévue"
 
 #. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,requested_date:0
@@ -395,7 +397,7 @@ msgstr "Toute première ligne séparée en deux"
 #. module: purchase_procurement_just_in_time
 #: view:split.line:0
 msgid "or"
-msgstr "or"
+msgstr "ou"
 
 #. module: purchase_procurement_just_in_time
 #: model:ir.model,name:purchase_procurement_just_in_time.model_purchase_config_settings

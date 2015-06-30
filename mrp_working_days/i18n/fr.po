@@ -65,7 +65,7 @@ msgstr ""
 "- Pour une demande d'approvisionnement donnée, l'entrepôt applicable est l'entrepôt de l'emplacement de la demande \n"
 "d'approvisionnement. L'entrepôt de la demande d'approvisionnement n'est pris en compte uniquement si celle-ci n'a \n "
 "pas d'emplacement défini. Ce fonctionnement permet de gérer correctement les approvisionnement inter-entrepôts avec \n"
-"des mouvements chainés, où l'entrepôt de la demande d'approvisionnement est l'entrepôt du bout de la chaine."
+"des mouvements chainés, où l'entrepôt de la demande d'approvisionnement est l'entrepôt du bout de la chaine.\n"
 "n\"
 
 #. module: mrp_working_days

@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_stock_product_warning
 msgid "Product Warning on Stock Operations"
-msgstr ""
+msgstr "Avertissement sur les opérations de stock"
 
 #. module: base
 #: model:ir.module.module,description:base.module_stock_product_warning
@@ -30,14 +30,15 @@ msgid ""
 "as warehouse barcode UI.\n"
 msgstr ""
 "\n"
-"\n"
-
-
+"Avertissement sur les opérations de stock\n"
+"=========================================\n"
+"Ce module ajoute un drapeau d'avertissement sur les articles qui peut être activé pour afficher un avertissement\n"
+"dans la fenêtre de transfert d'une opération de stock ou dans l'interface code barre de l'entrepôt.\n"
 
 #. module: stock_product_warning
 #: help:product.template,procurement_warning:0
 msgid "Check this box to display a warning signal in the transfer pop-up of stock operations linked to this product"
-msgstr "Check this box to display a warning signal in the transfer pop-up of stock operations linked to this product"
+msgstr "Cochez cette case pour afficher un avertissement dans la fenêtre de transfert des opérations de stock associées à cet article."
 
 #. module: stock_product_warning
 #: model:ir.model,name:stock_product_warning.model_stock_pack_operation
@@ -52,20 +53,19 @@ msgstr "Eléments d'assistant d'opération"
 #. module: stock_product_warning
 #: field:product.template,procurement_warning:0
 msgid "Procurement Warning"
-msgstr "Procurement Warning"
+msgstr "Avertissement sur l'approvisionnement"
 
 #. module: stock_product_warning
 #: view:product.template:0
 msgid "Procurement warning"
-msgstr "Procurement warning"
+msgstr "Avertissement sur l'approvisionnement"
 
 #. module: stock_product_warning
 #: model:ir.model,name:stock_product_warning.model_product_template
 msgid "Product Template"
-msgstr "Product Template"
+msgstr "Modèle d'article"
 
 #. module: stock_product_warning
 #: view:stock.transfer_details:0
 msgid "This product has a procurement warning set"
-msgstr "This product has a procurement warning set"
-
+msgstr "Cet article fait l'objet d'un avertissement"

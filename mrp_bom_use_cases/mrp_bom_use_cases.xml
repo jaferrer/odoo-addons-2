@@ -21,7 +21,7 @@
         </record>
 
         <record id="act_window_mrp_bom_inverted" model="ir.actions.act_window">
-            <field name="name">Cas d'emploi</field>
+            <field name="name">Product Use Cases in BoMs</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">mrp.bom.line</field>
             <field name="domain">[('product_id', 'in', active_ids)]</field>

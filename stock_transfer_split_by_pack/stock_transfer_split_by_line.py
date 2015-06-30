@@ -21,7 +21,8 @@ from openerp import fields, models, api, _
 from openerp.exceptions import Warning
 import openerp.addons.decimal_precision as dp
 
-class stock_transfer_split_by_pack(models.TransientModel):
+
+class StockTransferSplitByPack(models.TransientModel):
     _name = 'stock.transfer.split_by_pack'
     _description = "Split by pack wizard"
 
@@ -46,22 +47,26 @@ class stock_transfer_split_by_pack(models.TransientModel):
                 new_line = trf_line.copy({'quantity': pack_qty, 'packop_id': False})
                 if self[0].create_pack:
                     new_line.put_in_pack()
-            action = trf_line.transfer_id.wizard_view()
             if remaining_qty:
                 trf_line.quantity = remaining_qty
             else:
                 trf_line.quantity = pack_qty
                 if self[0].create_pack:
                     trf_line.put_in_pack()
-            return action
+
+
+class StockTransferDetailsItems(models.TransientModel):
+    _inherit = "stock.transfer_details_items"
 
     @api.multi
-    def cancel(self):
-        """We have to re-call the wizard when the user clicks on Cancel"""
-        self.ensure_one()
-        assert self.env.context.get('active_model') == \
-            'stock.transfer_details_items', 'Wrong underlying model'
-        trf_line = self.env['stock.transfer_details_items'].browse(
-            self.env.context['active_id'])
-        action = trf_line.transfer_id.wizard_view()
-        return action
+    def open_split_dialog(self):
+        return {
+            'name': _('Split by Pack'),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'stock.transfer.split_by_pack',
+            'target': 'popup',
+            'views': [(False, 'form')],
+            'context': self.env.context,
+        }

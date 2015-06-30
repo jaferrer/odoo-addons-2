@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_sale_forecast_moves
 msgid "Sales Forecast Moves"
-msgstr ""
+msgstr "Mouvements prévisionnels de ventes"
 
 #. module: base
 #: model:ir.module.module,description:base.module_sale_forecast_moves
@@ -28,28 +28,29 @@ msgid ""
 "====================\n"
 msgstr ""
 "\n"
-"\n"
+"Mouvements prévisionnels de vente\n"
+"=================================\n"
 
 #. module: sale_forecast_moves
 #: view:sale.forecast.moves.wizard:0
 msgid "Cancel"
-msgstr "Cancel"
+msgstr "Annuler"
 
 #. module: sale_forecast_moves
 #: field:sale.forecast.moves.wizard,create_uid:0
 msgid "Created by"
-msgstr "Created by"
+msgstr "Créé par"
 
 #. module: sale_forecast_moves
 #: field:sale.forecast.moves.wizard,create_date:0
 msgid "Created on"
-msgstr "Created on"
+msgstr "Créé le"
 
 #. module: sale_forecast_moves
 #: model:ir.ui.menu,name:sale_forecast_moves.menu_forecast_moves
 #: view:sale.forecast.moves.wizard:0
 msgid "Forecast moves"
-msgstr "Forecast moves"
+msgstr "Calculer les mouvements prévisionnels"
 
 #. module: sale_forecast_moves
 #: field:sale.forecast.moves.wizard,id:0
@@ -59,32 +60,32 @@ msgstr "ID"
 #. module: sale_forecast_moves
 #: field:sale.forecast.moves.wizard,write_uid:0
 msgid "Last Updated by"
-msgstr "Last Updated by"
+msgstr "Modifié le"
 
 #. module: sale_forecast_moves
 #: field:sale.forecast.moves.wizard,write_date:0
 msgid "Last Updated on"
-msgstr "Last Updated on"
+msgstr "Modifié par"
 
 #. module: sale_forecast_moves
 #: model:ir.actions.act_window,name:sale_forecast_moves.launch_forecast_moves_wizard
 msgid "Launch forecast moves Wizard"
-msgstr "Launch forecast moves Wizard"
+msgstr "Calculer les mouvements prévisionnels"
 
 #. module: sale_forecast_moves
 #: field:stock.move,prevision_move:0
-msgid "Mouvement de prevision"
-msgstr "Mouvement de prevision"
+msgid "Forecast Move"
+msgstr "Mouvement prévisionnel"
 
 #. module: sale_forecast_moves
 #: field:sale.forecast.moves.wizard,forecast_weeks:0
 msgid "Number of weeks on which to make previsions"
-msgstr "Number of weeks on which to make previsions"
+msgstr "Nombre de semaines de prévision à créer"
 
 #. module: sale_forecast_moves
 #: view:sale.forecast.moves.wizard:0
 msgid "Parameters"
-msgstr "Parameters"
+msgstr "Paramètres"
 
 #. module: sale_forecast_moves
 #: model:ir.model,name:sale_forecast_moves.model_stock_move
@@ -94,7 +95,7 @@ msgstr "Mouvement de stock"
 #. module: sale_forecast_moves
 #: view:sale.forecast.moves.wizard:0
 msgid "or"
-msgstr "or"
+msgstr "ou"
 
 #. module: sale_forecast_moves
 #: model:ir.model,name:sale_forecast_moves.model_sale_forecast_moves_wizard
@@ -103,6 +104,6 @@ msgstr "sale.forecast.moves.wizard"
 
 #. module: sale_forecast_moves
 #: field:stock.move,week:0
-msgid "week"
-msgstr "week"
+msgid "Week"
+msgstr "Semaine"
 

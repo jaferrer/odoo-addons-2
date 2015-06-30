@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_product_putaway_last
 msgid "Last Bin Putaway Strategy"
-msgstr ""
+msgstr "Stratégie de rangement au dernier emplacement"
 
 #. module: base
 #: model:ir.module.module,description:base.module_product_putaway_last
@@ -32,11 +32,15 @@ msgid ""
 "This strategy need only to be defined once and can be applied to several locations.\n"
 msgstr ""
 "\n"
-"\n"
-
+"Stratégie de rangement au dernier emplacement\n"
+"=============================================\n"
+"Dans une arborescence d'emplacements où l'emplacement parent représente un stock et les emplacements enfants des \n"
+"alvéoles, ce module implémente une nouvelle stratégie de rangement qui propose l'alvéole où l'article considéré a \n"
+"été rangé la fois précédente dans ce stock."
+"n\"
+"Cette stratégie n'a besoin de n'être définie qu'une seule fois et pourra être appliquée à plusieurs emplacements.\n"
 
 #. module: product_putaway_last
 #: model:ir.model,name:product_putaway_last.model_product_putaway
 msgid "Put Away Strategy"
 msgstr "Stratégie de rangement"
-

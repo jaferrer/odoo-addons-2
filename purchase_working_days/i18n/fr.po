@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_purchase_working_days
 msgid "Purchase Schedule on Working Days"
-msgstr ""
+msgstr "Planification des achats en jours ouvrés"
 
 #. module: base
 #: model:ir.module.module,description:base.module_purchase_working_days
@@ -41,8 +41,24 @@ msgid ""
 "  is intended so that RFQ schedule dates always end up on our opening days.\n"
 msgstr ""
 "\n"
-"\n"
-
+"Planification des achats en jours ouvrés\n"
+"========================================\n"
+"Ce module active la planification des commandes d'achats en jours ouvrés définis par des ressources et leurs \n"
+"calendriers associés.\n"
+"n\"
+"Des ressources peuvent être définies pour les fournisseurs. Lorsque c'est le cas, le délai de livraison du \n"
+"fournisseur est calculé en ne comptant que les jours travaillés par le fournisseur.\n"
+"n\"
+"Notes:\n"
+"------\n"
+"n\"
+"- Lorsqu'aucun calendrier n'est trouvé, le calendrier par défaut du module est utilisé. Ce calendrier définit les \n"
+"  jours ouvrés comme étant du lundi au vendredi. Ce calendrier par défaut peut être modifié par les utilisateurs \n"
+"  autorisés.\n"
+"n\"
+"- La marge de sécurité des achats (po_lead) est calculée en utilisant la resource de notre entrepôt et non pas \n"
+"  celle du fournisseur. Ceci afin que les livraisons des commandes soient toujours sur un jour travaillé de notre \n"
+"  entrepôt.\n"
 
 #. module: purchase_working_days
 #: model:ir.model,name:purchase_working_days.model_res_partner
@@ -62,10 +78,9 @@ msgstr "Ligne de commande d'achat"
 #. module: purchase_working_days
 #: field:res.partner,resource_id:0
 msgid "Supplier resource"
-msgstr "Supplier resource"
+msgstr "Ressource du fournisseur"
 
 #. module: purchase_working_days
 #: help:res.partner,resource_id:0
 msgid "The supplier resource is used to define the working days of the supplier when calculating lead times. If undefined here the system will consider working days of the supplier being Monday to Friday."
-msgstr "The supplier resource is used to define the working days of the supplier when calculating lead times. If undefined here the system will consider working days of the supplier being Monday to Friday."
-
+msgstr "La resource du fournisseur est utilisée pour déterminer les jours travaillés de celui-ci lors du calcul des temps de livraison. Si la ressource n'est pas définie, le système considérera que les jours travaillés sont du lundi au vendredi."

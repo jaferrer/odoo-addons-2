@@ -17,14 +17,14 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_web_action_top_button
 msgid "Action Top Buttons For Views"
-msgstr ""
+msgstr "Boutons d'action en tête de page"
 
 #. module: base
 #: model:ir.module.module,description:base.module_web_action_top_button
 msgid ""
 "\n"
 "Action Top Buttons For Views\n"
-"=========================\n"
+"============================\n"
 "This module enables action buttons to be put directly next to \"Print\" and \"More\" instead of having them necessarily\n"
 "inside those menus.\n"
 "\n"
@@ -32,4 +32,10 @@ msgid ""
 "directly displayed.\n"
 msgstr ""
 "\n"
+"Boutons d'action en tête de page\n"
+"================================\n"
+"Ce module permet aux boutons d'action d'être placés directelement à côté des boutons \"Imprimer\" et \n"
+"\"Autres options\" au lieu de les avoir nécessairement à l'intérieur de ces menus.\n"
 "\n"
+"Utilisation: définissez le champ usage de l'action à 'top_button' et ajoutez l'action au menu \"Imprimer\" ou \n"
+"\"Autres options\" à l'aide d'un ir.values pour avoir le bouton affiché directement.\n"

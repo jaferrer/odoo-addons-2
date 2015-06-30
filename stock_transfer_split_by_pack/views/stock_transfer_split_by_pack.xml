@@ -14,19 +14,10 @@
                     <footer>
                         <button name="split_by_pack" type="object" string="Split Line" class="oe_highlight"/>
                         or
-                        <button name="cancel" type="object" string="Cancel" class="oe_link"/>
+                        <button special="cancel" string="_Cancel" class="oe_link"/>
                     </footer>
                 </form>
             </field>
         </record>
-
-        <record id="stock_transfer_split_by_pack_action" model="ir.actions.act_window">
-            <field name="name">Split by Configurable Quantity</field>
-            <field name="res_model">stock.transfer.split_by_pack</field>
-            <field name="view_mode">form</field>
-            <field name="target">new</field>
-        </record>
-
-
     </data>
 </openerp>

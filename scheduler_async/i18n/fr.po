@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_scheduler_async
 msgid "Asynchronous Scheduler"
-msgstr ""
+msgstr "Planificateur asynchrone"
 
 #. module: base
 #: model:ir.module.module,description:base.module_scheduler_async
@@ -30,7 +30,10 @@ msgid ""
 "scheduler running in the background.\n"
 msgstr ""
 "\n"
-"\n"
+"Planificateur asynchrone\n"
+"========================\n"
+"Ce module réimplémente le planificateur des approvisionnement avec le framework 'OCA/connector ce qui permet de \n"
+"surveiller les tâches du planificateur qui tournent en arrière plan.\n"
 
 #. module: scheduler_async
 #: model:ir.model,name:scheduler_async.model_procurement_order_compute_all

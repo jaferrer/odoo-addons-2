@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_stock_planning_improved
 msgid "Stock Planning Improved"
-msgstr ""
+msgstr "Planning amélioré pour les stocks"
 
 #. module: base
 #: model:ir.module.module,description:base.module_stock_planning_improved
@@ -73,17 +73,72 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
+"Planning amélioré pour les stocks\n"
+"=================================\n"
+"\n"
+"Ce module implémente le planning amélioré pour les stocks.\n"
+"n\"
+"Concept du planning amélioré\n"
+"----------------------------\n"
+"Le planning amélioré est une standardisation de la gestion des plannings dans Odoo en suivant les concepts suivants :\n"
+"n\"
+"- Un planning est constitué de plusieurs tâches liées entre elles. Chaque tâche ne peut être réalisée que lorsque \n"
+"  l'ensemble des tâches précédentes est réalisé.\n"
+"- Chaque tâche possède deux dates :\n"
+"\n"
+"    - Une date de besoin qui est la date limite avant laquelle la tâche doit être réalisée. La date objective n'est \n"
+"      modifiée que lors des replanifications majeures. Elle est calculée récursivement, tâche par tâche, de droite à \n"
+"      gauche à partir de la tâche la plus à droite du planning (qui est généralemnet la date à laquelle l'article a \n"
+"      été promis au client).\n"
+"    - Une date prévue qui est la meilleure estimation de la réalisation de la tâche étant donnée les informations \n"
+"      dont nous disposons aujourd'hui. La date prévue devrait être mise à jour à chaque fois que nous disposons de \n"
+"      nouvelles informations, et ne devrait jamais être dans le passé (en effet, puisque la tâche n'est toujours \n"
+"      pas réalisée aujourd'hui, nous savons au moins qu'elle ne pourra être réalisée à un moment à partir de \n"
+"      maintenant, mais pas avant). Elle est calculée récursivement, tâche par tâche, de gauche à droite, à partir \n"
+"      de la tâche actuellement en cours de réalisation.\n"
+"- Lorsqu'une tâche est terminée, la date de réalisation de la tâche et la date prévue sont les mêmes, mais la date \n"
+"  de besoin reste inchangée.\n"
+"- La seul moyen pertinent de mesurer si le projet est en retard ou en avance est de comparer pour chaque tâche la \n"
+"  date de besoin et la date prévue.\n"
+"- Comparer la date prévue avec la date du jour donne une indication sur la bonne tenue du planning, mais pas sur \n"
+"  le fait de savoir si l'on est en avance ou en retard.\n"
+"n\"
+"Planning amélioré appliqué aux stocks\n"
+"-------------------------------------\n"
+"Dans le module stock, l'application des concepts du planning amélioré est la suivante :\n"
+"\n"
+"- Les tâches sont des mouvements de stock à réaliser.\n"
+"- Les liens entre les tâches correspondent aux liens entre les mouvements de stock chainés créés par les \n"
+"  approvisionnements.\n"
+"- La date de besoin d'un mouvement est la date de la demande d'approvisionnement correspondante. Elle est \n"
+"  représentée par le champ \"date\" du mouvement.\n"
+"- La date prévue est la date à laquelle nous prévoyons que le mouvement sera réalisé. Elle est représentée par le \n"
+"  champ \"date_expected\" du mouvement.\n"
+"- Si une demande d'approvisionnement est replanifiée, les champs \"date\" de ses mouvements de stocks sont \n"
+"  également modifiés pour refléter la nouvelle date. Si l'un des mouvements a des mouvements précédents \n"
+"  (configuration production-à-la-demande), la date de la demande d'approvisionnement pour les mouvements précédents \n"
+"  est également modifiée, ce qui modifiera la date des mouvements précedents ensuite.\n"
+"- Si un mouvement de stock est terminé à une date donnée et qu'il a un mouvement chainé ensuite, la date prévue de \n"
+"  ce dernier sera mise à jour.\n"
+"- Lorsque la date de besoin et la date prévue sont mises à jour, le délai entre les mouvements pris en compte est \n"
+"  celui défini dans la règle de réapprovisionnement à l'origine du mouvement.\n"
+"\n"
+"Notes\n"
+"-----\n"
+"- Ce module s'interface avec les autres modules de planning amélioré tels que ceux de la production et des achats.\n"
+"- Ce module dépend également du module stock_working_days car un planning digne de ce nom doit impérativement \n"
+"  prendre en compte les jours ouvrés.\n"
 "\n"
 
 #. module: stock_planning_improved
 #: help:stock.picking,date_due:0
 msgid "Date before which the first moves of this picking must be made so as not to be late on schedule."
-msgstr "Date before which the first moves of this picking must be made so as not to be late on schedule."
+msgstr "Date avant laquelle le premier mouvements doit être réalisé pour ne pas être en retard sur le planning."
 
 #. module: stock_planning_improved
 #: field:stock.picking,date_due:0
 msgid "Due Date"
-msgstr "Due Date"
+msgstr "Date de besoin"
 
 #. module: stock_planning_improved
 #: model:ir.model,name:stock_planning_improved.model_stock_picking
@@ -98,7 +153,7 @@ msgstr "Approvisionnement"
 #. module: stock_planning_improved
 #: view:procurement.order:0
 msgid "Reschedule Procurement"
-msgstr "Reschedule Procurement"
+msgstr "Replanifier l'approvisionnement"
 
 #. module: stock_planning_improved
 #: model:ir.model,name:stock_planning_improved.model_stock_move

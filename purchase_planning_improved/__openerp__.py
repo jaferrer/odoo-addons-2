@@ -27,7 +27,7 @@
     'description': """
 Purchase Planning Improved
 ==========================
-This modules implement the improved planning to the purchase module.
+This module implement the improved planning to the purchase module.
 
 Improved planning concept
 -------------------------
