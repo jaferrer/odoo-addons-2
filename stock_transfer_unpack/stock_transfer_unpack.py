@@ -20,7 +20,7 @@
 from openerp import fields, models, api
 
 
-class StockTransferDetailsItems(models.Model):
+class StockTransferDetailsItems(models.TransientModel):
     _inherit = "stock.transfer_details_items"
 
     @api.multi
