@@ -18,7 +18,6 @@
 #
 
 from openerp import models, fields, api
-from datetime import timedelta
 
 
 class ManufacturingOrderPlanningImproved(models.Model):
