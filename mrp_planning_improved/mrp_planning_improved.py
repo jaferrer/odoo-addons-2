@@ -46,19 +46,22 @@ class ManufacturingOrderPlanningImproved(models.Model):
         result = super(ManufacturingOrderPlanningImproved, self).write(vals)
         if vals.get('date_planned'):
             for rec in self:
-                for move in rec.move_created_ids:
-                    move.date_expected = vals['date_planned']
+                rec.move_created_ids.write({'date_expected': vals['date_planned']})
         return result
 
     @api.multi
     def action_reschedule(self):
         for rec in self:
+            values = {}
             if rec.taken_into_account:
-                rec.move_lines.write({'date': min(rec.date_planned, rec.date_required)})
+                values['date'] = min(rec.date_planned, rec.date_required)
             else:
-                rec.move_lines.write({'date': rec.date_required})
+                values['date'] = rec.date_required
             if self.env.context.get('reschedule_planned_date'):
-                rec.move_lines.write({'date_expected': rec.date_required})
+                values['date_expected'] = rec.date_required
+            rec.move_lines.write(values)
+
+
 
 
 class ProcurementOrderPlanningImproved(models.Model):
@@ -83,12 +86,9 @@ class ProcurementOrderPlanningImproved(models.Model):
                             if move.date != proc.date_planned:
                                 move.date = proc.date_planned
                     # Updating the date_required of the corresponding manufacturing order
-                    proc.production_id.date_required = fields.Datetime.from_string(proc.date_planned)\
-                                                                       - timedelta(proc.company_id.manufacturing_lead)
+                    proc.production_id.date_required = self.env['procurement.order']._get_date_planned(proc)
                     # Updating the date_planned of the corresponding manufacturing order
                     if self.env.context.get('reschedule_planned_date') and not proc.production_id.taken_into_account:
-                        if proc.production_id.date_planned != fields.Datetime.from_string(proc.date_planned)\
-                                                                       - timedelta(proc.company_id.manufacturing_lead):
-                            proc.production_id.date_planned = fields.Datetime.from_string(proc.date_planned)\
-                                                               - timedelta(proc.company_id.manufacturing_lead)
+                        if proc.production_id.date_planned != self.env['procurement.order']._get_date_planned(proc):
+                            proc.production_id.date_planned = self.env['procurement.order']._get_date_planned(proc)
         super(ProcurementOrderPlanningImproved, self).action_reschedule()

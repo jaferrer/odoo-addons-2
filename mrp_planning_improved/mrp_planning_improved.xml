@@ -20,7 +20,7 @@
                         <field name="date_required"/>
                         <field name="taken_into_account"/>
                     </field>
-                    <field name="allow_reorder" position="after">
+                    <field name="priority" position="before">
                         <field name="procurement_id"/>
                     </field>
                 </data>
