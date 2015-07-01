@@ -18,16 +18,21 @@
 #
 
 from openerp import models, fields, api
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 
 class ManufacturingOrderPlanningImproved(models.Model):
-    _inherit='mrp.production'
+    _inherit = 'mrp.production'
 
-    date_planned = fields.Datetime(readonly=False, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
-    date_required = fields.Datetime(string="Date required", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
-    taken_into_account = fields.Boolean(string="Taken into account", help="True if the manufacturing order has benn taken into account", states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
-    procurement_id = fields.Many2one('procurement.order', string="Corresponding procurement order", compute='_compute_procurement_id', readonly=True)
+    date_planned = fields.Datetime(readonly=False,
+                                   states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
+    date_required = fields.Datetime(string="Date required",
+                                    states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
+    taken_into_account = fields.Boolean(string="Taken into account",
+                                        help="True if the manufacturing order has been taken into account",
+                                        states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
+    procurement_id = fields.Many2one('procurement.order', string="Corresponding procurement order",
+                                     compute='_compute_procurement_id', readonly=True)
 
     @api.multi
     def _compute_procurement_id(self):
@@ -57,7 +62,7 @@ class ManufacturingOrderPlanningImproved(models.Model):
 
 
 class ProcurementOrderPlanningImproved(models.Model):
-    _inherit='procurement.order'
+    _inherit = 'procurement.order'
 
     @api.model
     def _prepare_mo_vals(self, procurement):
