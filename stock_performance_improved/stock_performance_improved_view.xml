@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+<!--stock.view_picking_form-->
+        <!-- creer les bouton dans le menu option -->
+        <record model="ir.actions.server" id="ir_actions_server_process_prereservations_bouton">
+            <field name="name">Process Prereservations</field>
+            <field name="model_id" ref="stock.view_picking_form"/>
+            <field name="code">
+self.assign_moves_to_picking(cr, uid, context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_process_prereservation_bouton">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">stock.picking</field>
+            <field name="name">Process Prereservations</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_process_prereservations_bouton)"/>
+        </record>
+
+
+
 
         <record model="ir.actions.server" id="ir_actions_server_process_prereservations">
             <field name="name">Process Prereservations</field>
