@@ -23,11 +23,13 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Production',
-    'depends': ['mrp', 'stock_planning_improved', 'stock', 'purchase_planning_improved', 'mrp_planning_improved', 'mrp_operations'],
+    'depends': ['mrp', 'stock_planning_improved', 'stock', 'purchase_planning_improved', 'mrp_planning_improved',
+                'mrp_operations'],
     'description': """
 Work Orders Planning Improved
 =============================
-When delaying it a manufacturing order, this module changes automatically the start time of all the work centers linked to it.
+When delaying it a manufacturing order, this module changes automatically the start time of all the work centers
+linked to it.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [

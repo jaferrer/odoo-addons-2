@@ -19,14 +19,15 @@
 
 from openerp import models, api
 
+
 class MrpOperationPlanningImproved(models.Model):
     _inherit = 'mrp.production'
 
     @api.multi
-    def write(self, vals):
+    def write(self, vals, update=True, mini=True):
         if vals.get('date_planned'):
             for rec in self:
-                if rec.workcenter_lines and vals['date_planned'] > rec.date_planned:
+                if rec.workcenter_lines:
                     rec._compute_planned_workcenter()
-        res = super(MrpOperationPlanningImproved, self).write(vals)
+        res = super(MrpOperationPlanningImproved, self).write(vals, update=update, mini=mini)
         return res
