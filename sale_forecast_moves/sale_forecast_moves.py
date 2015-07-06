@@ -22,7 +22,7 @@ from psycopg2 import OperationalError
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
-from openerp import fields, models, api
+from openerp import fields, models, api, _, exceptions
 import openerp
 
 
@@ -55,6 +55,8 @@ class SaleForecastMovesWizard(models.TransientModel):
         this = self.with_env(new_env)
 
         weeks = self.forecast_weeks
+        if weeks <= 0:
+            raise exceptions.except_orm(_('Erreur!'), _("Veuillez choisir une autre valeur pour le nombre de semaines"))
         limit = fields.datetime.now()+relativedelta(days=-28)
         now = fields.datetime.now()
 
