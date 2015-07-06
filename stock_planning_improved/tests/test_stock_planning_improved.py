@@ -17,9 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime
 
+from openerp import fields
 from openerp.tests import common
+
 
 class TestStockPlanningImproved(common.TransactionCase):
 
@@ -56,7 +57,7 @@ class TestStockPlanningImproved(common.TransactionCase):
             self.assertEqual(move.date[0:10], '2015-01-28')
             self.assertEqual(move.date_expected[0:10], '2015-01-28')
         # Check the procurement created by the first move
-        proc2 = proc_env.search([('move_dest_id','=',proc.move_ids[0].id)])
+        proc2 = proc_env.search([('move_dest_id', '=', proc.move_ids[0].id)])
         self.assertEqual(proc2.date_planned[0:10], '2015-01-28')
         proc2.run()
         proc2.check()
@@ -81,8 +82,7 @@ class TestStockPlanningImproved(common.TransactionCase):
             self.assertEqual(move.date_expected[0:10], '2015-01-21')
 
         # Testing propagation of date_expected (and not of date)
-        before = proc2.move_ids[0].date_expected
-        proc2.move_ids[0].date_expected = after = "2015-01-23 19:00:00"
+        proc2.move_ids[0].date_expected = "2015-01-23 19:00:00"
         self.assertEqual(proc2.move_dest_id.date_expected[0:10], "2015-01-30")
         self.assertEqual(proc2.move_dest_id.date[0:10], "2015-02-05")
 
@@ -127,14 +127,12 @@ class TestStockPlanningImproved(common.TransactionCase):
             self.assertEqual(move.state, "assigned")
             move.action_done()
             self.assertEqual(move.state, "done")
-            self.assertEqual(move.date[0:10], '2015-01-26')
-            self.assertEqual(move.date_expected[0:10], datetime.today().strftime("%Y-%m-%d"))
+            self.assertEqual(move.date[0:10], fields.Date.today())
+            self.assertEqual(move.date_expected[0:10], fields.Date.today())
 
         # Let's reschedule the procurement and check that nothing happens
         proc.date_planned = '2015-02-15 10:00:00'
         proc.action_reschedule()
         for move in proc.move_ids:
-            self.assertEqual(move.date[0:10], '2015-01-26')
-            self.assertEqual(move.date_expected[0:10], datetime.today().strftime("%Y-%m-%d"))
-
-
+            self.assertEqual(move.date[0:10], fields.Date.today())
+            self.assertEqual(move.date_expected[0:10], fields.Date.today())
