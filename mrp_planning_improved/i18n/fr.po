@@ -57,7 +57,7 @@ msgstr "Approvisionnement"
 
 #. module: mrp_planning_improved
 #: view:mrp.production:0
-msgid "Reschedule manufacturing order"
+msgid "Reschedule Manufacturing Order"
 msgstr "Planifier l'ordre de fabrication"
 
 #. module: mrp_planning_improved

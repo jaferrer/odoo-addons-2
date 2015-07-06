@@ -40,6 +40,18 @@ class ManufacturingOrderPlanningImproved(models.Model):
             if list_procurements and len(list_procurements) == 1:
                 rec.procurement_id = list_procurements[0]
 
+    @api.model
+    def _make_production_produce_line(self, production):
+        """Overridden here so that the date of the produce stock move is the date of end of the production."""
+        move_id = super(ManufacturingOrderPlanningImproved, self)._make_production_produce_line(production)
+        date_move = fields.Datetime.to_string(production.location_dest_id.schedule_working_days(
+            production.product_id.produce_delay + 1,
+            fields.Datetime.from_string(production.date_planned)
+        ))
+        move = self.env['stock.move'].browse(move_id)
+        move.write({'date_expected': date_move, 'date': date_move})
+        return move_id
+
     @api.multi
     def write(self, vals):
         result = super(ManufacturingOrderPlanningImproved, self).write(vals)
@@ -61,16 +73,13 @@ class ManufacturingOrderPlanningImproved(models.Model):
             rec.move_lines.write(values)
 
 
-
-
 class ProcurementOrderPlanningImproved(models.Model):
     _inherit = 'procurement.order'
 
     @api.model
     def _prepare_mo_vals(self, procurement):
         result = super(ProcurementOrderPlanningImproved, self)._prepare_mo_vals(procurement)
-        if result.get('date_planned'):
-            result['date_required'] = result['date_planned']
+        result['date_required'] = result.get('date_planned', False)
         return result
 
     @api.multi
@@ -79,15 +88,16 @@ class ProcurementOrderPlanningImproved(models.Model):
         for proc in self:
             if proc.state not in ['done', 'cancel'] and proc.rule_id and proc.rule_id.action == 'manufacture':
                 if proc.production_id:
+                    prod_start_date = self.env['procurement.order']._get_date_planned(proc)
+                    prod_end_date = proc.production_id.location_dest_id.schedule_working_days(
+                        -proc.company_id.manufacturing_lead,
+                        fields.Datetime.from_string(proc.date_planned)
+                    )
                     # Updating the dates of the created moves of the corresponding manufacturing order
-                    if proc.production_id.move_created_ids:
-                        for move in proc.production_id.move_created_ids:
-                            if move.date != proc.date_planned:
-                                move.date = proc.date_planned
+                    proc.production_id.move_created_ids.write({'date': prod_end_date})
                     # Updating the date_required of the corresponding manufacturing order
-                    proc.production_id.date_required = self.env['procurement.order']._get_date_planned(proc)
+                    proc.production_id.date_required = prod_start_date
                     # Updating the date_planned of the corresponding manufacturing order
                     if self.env.context.get('reschedule_planned_date') and not proc.production_id.taken_into_account:
-                        if proc.production_id.date_planned != self.env['procurement.order']._get_date_planned(proc):
-                            proc.production_id.date_planned = self.env['procurement.order']._get_date_planned(proc)
+                        proc.production_id.date_planned = prod_start_date
         super(ProcurementOrderPlanningImproved, self).action_reschedule()

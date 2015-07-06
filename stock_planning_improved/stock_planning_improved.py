@@ -47,14 +47,21 @@ class stock_move_planning_improved(models.Model):
         """Remove link between date and date_expected since they are totally independent."""
         return {}
 
+    @api.model
+    def create(self, vals):
+        if (not 'date_expected' in vals) and ('date' in vals):
+            vals['date_expected'] = vals['date']
+        return super(stock_move_planning_improved, self).create(vals)
+
     @api.multi
     def write(self, vals):
         """Write function overridden to propagate date to previous procurement orders."""
         for move in self:
             if vals.get('date') and vals.get('state') == 'done':
-                # If the call is made from action_done, don't change the (required) date, but only the date_expected
+                # If the call is made from action_done, set the date_expected to the done date
                 vals['date_expected'] = vals['date']
-                del vals['date']
+                # We would have preferred to keep the date to the initial need, but stock calculations are made on date
+                # del vals['date']
             if vals.get('date') and move.procure_method == 'make_to_order':
                 # If the date is changed and moves are chained, propagate to the previous procurement if any
                 proc = self.env['procurement.order'].search([('move_dest_id','=',move.id),

@@ -11,7 +11,8 @@
             <field name="arch" type="xml">
                 <data>
                     <button name="force_production" position="before">
-                        <button name="action_reschedule" string="Reschedule manufacturing order" type="object" attrs="{'invisible':[('state','in',['cancel','done'])]}"/>
+                        <button name="action_reschedule" string="Reschedule Manufacturing Order" type="object"
+                                attrs="{'invisible':[('state','in',['cancel','done'])]}"/>
                     </button>
                     <field name="date_planned" position="attributes">
                         <attribute name="attrs">{'readonly':[('taken_into_account','=',False)]}</attribute>
