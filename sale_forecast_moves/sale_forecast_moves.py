@@ -55,7 +55,7 @@ class SaleForecastMovesWizard(models.TransientModel):
         this = self.with_env(new_env)
 
         weeks = self.forecast_weeks
-        if weeks <= 0:
+        if weeks < 0:
             raise exceptions.except_orm(_('Erreur!'), _("Veuillez choisir une autre valeur pour le nombre de semaines"))
         limit = fields.datetime.now()+relativedelta(days=-28)
         now = fields.datetime.now()
