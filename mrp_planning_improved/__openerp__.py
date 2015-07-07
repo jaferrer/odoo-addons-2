@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Production',
-    'depends': ['mrp', 'stock_planning_improved', 'stock', 'purchase_planning_improved', 'mrp_working_days'],
+    'depends': ['mrp', 'stock_planning_improved', 'mrp_working_days'],
     'description': """
 Production Planning Improved
 ============================
