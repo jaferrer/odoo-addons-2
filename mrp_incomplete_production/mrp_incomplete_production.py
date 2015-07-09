@@ -181,7 +181,7 @@ class mrp_production2(models.Model):
         list_cancelled_moves1 = []
         for item in production.move_lines2:
             list_cancelled_moves1 += [item]
-        result = super(mrp_production2, self).action_produce(production_id, production_qty, production_mode, wiz=wiz)
+        result = super(mrp_production2, self.with_context(cancel_procurement=True)).action_produce(production_id, production_qty, production_mode, wiz=wiz)
         list_cancelled_moves = []
         for move in production.move_lines2:
             if move.state == 'cancel' and move not in list_cancelled_moves1:
