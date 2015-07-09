@@ -25,5 +25,4 @@ class ProcurementManagementProcurementOrder(models.Model):
     @api.multi
     def run_multi(self):
         for rec in self:
-            print 'run'
             rec.run()
