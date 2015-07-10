@@ -112,11 +112,7 @@ class procurement_order_group_by_period(models.Model):
         for procurement in self:
             partner = self._get_product_supplier(procurement)
             if not partner or not partner.order_group_period:
-                result = super(procurement_order_group_by_period, self).make_po()
-                order = self.env['purchase.order.line'].browse(result[self.id]).order_id
-                order.write({'incoterm_id': order.partner_id.incoterm_id.id,
-                             'livraison_id': order.partner_id.livraison_id.id})
-                return result
+                return super(procurement_order_group_by_period, self).make_po()
             else:
                 schedule_date = self._get_purchase_schedule_date(procurement, company)
                 purchase_date = self._get_purchase_order_date(procurement, company, schedule_date)
@@ -170,8 +166,6 @@ class procurement_order_group_by_period(models.Model):
                                            partner.property_account_position.id or False,
                         'payment_term_id': partner.property_supplier_payment_term.id or False,
                         'dest_address_id': procurement.partner_dest_id.id,
-                        'incoterm_id': partner.incoterm_id.id,
-                        'livraison_id': partner.livraison_id.id,
                     }
                     po_id = self.create_procurement_purchase_order(procurement, po_vals, line_vals)
                     po_line_id = self.env['purchase.order'].browse(po_id).order_line[0].id
