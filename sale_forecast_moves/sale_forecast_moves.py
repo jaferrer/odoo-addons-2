@@ -42,7 +42,8 @@ class SaleForecastMovesWizard(models.TransientModel):
     @api.multi
     def forecast_moves(self):
         session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-        run_forecast_moves.delay(session, 'sale.forecast.moves.wizard', self.ids)
+        run_forecast_moves.delay(session, 'sale.forecast.moves.wizard', self.ids,
+                                 description="Calculate Forecast Moves")
         return {'type': 'ir.actions.act_window_close'}
 
     @api.multi
