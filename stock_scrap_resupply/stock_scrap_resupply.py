@@ -23,6 +23,7 @@ from openerp import fields, models, api
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
+    @api.multi
     def action_scrap(self, quantity, location_id, restrict_lot_id=False, restrict_partner_id=False):
         """Move the scrap/damaged product into scrap location.
 
