@@ -38,26 +38,27 @@
                     <field name="opmsg_type" invisible="1"/>
                     <field name="partner_id" string="Supplier"/>
                     <field name="order_id" readonly="1"/>
-                    <field name="requested_date"/>
                     <field name="line_no" readonly="1"/>
                     <button string="Edit" name="open_form_purchase_order_line" type="object" icon="gtk-edit"/>
-                    <field name="name" readonly="1" invisible="1"/>
+                    <field name="date_order"/>
+                    <field name="name" invisible="1"/>
                     <field name="product_id" readonly="1"/>
-                    <field name="price_unit" readonly="1"/>
                     <button string="Stock Evolution" type="action" name="%(sirail_act_windows_vue_graphique)d" icon="terp-stock_zoom"
-                            context="{'search_default_location_id': location_id, 'search_default_product_id': product_id}" />
+                            context="{'search_default_location_id': location_id, 'search_default_product_id': product_id}"/>
                     <field name="product_qty"/>
                     <field name="remaining_qty"/>
-                    <field name="location_id" invisible="1"/>
-                    <field name="opmsg_reduce_qty" invisible="1"/>
-                    <field name="to_delete" invisible="1"/>
                     <field name="product_uom" readonly="1"/>
-                    <field name="price_subtotal" invisible="1"/>
                     <field name="date_required" readonly="1"/>
+                    <field name="requested_date"/>
                     <field name="date_planned"/>
                     <field name="ack_ref"/>
                     <field name="date_ack"/>
                     <field name="opmsg_text" readonly="1"/>
+                    <field name="price_unit" readonly="1"/>
+                    <field name="location_id" invisible="1"/>
+                    <field name="opmsg_reduce_qty" invisible="1"/>
+                    <field name="to_delete" invisible="1"/>
+                    <field name="price_subtotal" invisible="1"/>
                     <field name="state" invisible="1"/>
                     <field name="invoiced" invisible="1"/>
                     <field name="state"/>

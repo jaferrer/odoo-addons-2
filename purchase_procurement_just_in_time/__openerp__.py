@@ -19,6 +19,7 @@
 
 {
     'name': 'Purchase Just-In-Time Extension',
+    'sequence': 1,
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
