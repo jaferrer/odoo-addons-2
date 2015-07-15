@@ -1,0 +1,81 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* mrp_planning_improved
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-06-29 16:01+0000\n"
+"PO-Revision-Date: 2015-06-29 18:09+0100\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 1.7.5\n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_mrp_planning_improved
+msgid "Production Planning Improved"
+msgstr "Amélioration de la planification de la production"
+
+#. module: base
+#: model:ir.module.module,description:base.module_mrp_planning_improved
+msgid ""
+"\n"
+"Production Planning Improved\n"
+"============================\n"
+"Creation of a new field for manufacturing order, date required, and a new button: reschedule manufacturing order. This allows the user to manage manufacturing planning as he does with stock and purchase planning.\n"
+msgstr ""
+"\n"
+"Amélioration de la planification de la production\n"
+"=================================================\n"
+"Création d'un nouveau champ pour les ordres de fabrication, date demandée, et d'un nouveau bouton : planifier l'ordre de fabrication. Cela permet à l'utilisateur de gérer la planification de la production d'une manière analogue à celle des achats.\n"
+
+#. module: mrp_planning_improved
+#: field:mrp.production,date_required:0
+msgid "Date required"
+msgstr "Date demandée"
+
+#. module: mrp_planning_improved
+#: view:procurement.order:0
+msgid "Extra Information"
+msgstr "Informations supplémentaires"
+
+#. module: mrp_planning_improved
+#: model:ir.model,name:mrp_planning_improved.model_mrp_production
+msgid "Manufacturing Order"
+msgstr "Ordre de fabrication"
+
+#. module: mrp_planning_improved
+#: model:ir.model,name:mrp_planning_improved.model_procurement_order
+msgid "Procurement"
+msgstr "Approvisionnement"
+
+#. module: mrp_planning_improved
+#: view:mrp.production:0
+msgid "Reschedule Manufacturing Order"
+msgstr "Planifier l'ordre de fabrication"
+
+#. module: mrp_planning_improved
+#: field:mrp.production,taken_into_account:0
+msgid "Taken into account"
+msgstr "Pris en compte"
+
+#. module: mrp_planning_improved
+#: help:mrp.production,taken_into_account:0
+msgid "True if the manufacturing order has benn taken into account"
+msgstr "Vrai si l'ordre de fabrication a été concrètement pris en charge par l'utilisateur"
+
+#. module: mrp_planning_improved
+#: field:mrp.production,procurement_id:0
+msgid "Corresponding procurement order"
+msgstr "Demande d'approvisionnement correspondante"
+
+#. module: mrp_planning_improved
+#: view:mrp.production:0
+msgid "{'readonly':[('taken_into_account','=',False)]}"
+msgstr "{'readonly':[('taken_into_account','=',False)]}"

@@ -18,38 +18,26 @@
 #
 
 {
-    'name': 'Stock Performance Improved',
+    'name': 'Procurement Management',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
+    'category': '',
     'depends': ['stock'],
     'description': """
-Stock Performance Improved
-==========================
-Odoo is naturally optimized for situations where the stock is plenty and moves made on request with a relatively short
-notice. This is typically the case of a retail store or a logistics company.
-
-However, there are other situations where the stock is kept to minimum but the forecast moves are known well in
-advance. This is typically the case of an industrial company with a long term planning applying just-in-time
-procurement.
-
-This module applies performance improvements by giving the possibility to assign stock moves to a stock picking at
-latest, that is only when it can be reserved. This is done by setting the defer_picking_assign parameter to True in a
-stock picking. It can also be definied in procurement rules so that the resulting moves have this parameter set.
+Procurement Management
+======================
+This modules allows to manage procurements in an improved way. It is now possible to run several procurements at one
+time, group the procurements by location, and see the moves existing before and after the procurement.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/ir.model.access.csv',
-        'stock_performance_improved_view.xml',
+        'procurement_management.xml'
     ],
-    'demo': [
-        'stock_performance_improved_demo.xml',
-    ],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
 }
-

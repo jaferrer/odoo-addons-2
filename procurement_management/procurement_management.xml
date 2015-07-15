@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.actions.server" id="ir_actions_server_run_procurements">
+            <field name="name">Run procurements</field>
+            <field name="model_id" ref="procurement.model_procurement_order"/>
+            <field name="code">
+self.run(cr, uid, context.get('active_ids'), context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_run_procurements">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">procurement.order</field>
+            <field name="name">Run procurements</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_run_procurements)"/>
+        </record>
+
+        <record model="ir.ui.view" id="procurement_management_procurement_order_search">
+            <field name="name">procurement.management.procurement.order.search</field>
+            <field name="model">procurement.order</field>
+            <field name="inherit_id" ref="procurement.view_procurement_filter"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <group string="Group By" position="inside">
+                    <filter string="Location" domain="[]" context="{'group_by':'location_id'}"/>
+                </group>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="procurement_management_procurement_order_form">
+            <field name="name">procurement.management.procurement.order.form</field>
+            <field name="model">procurement.order</field>
+            <field name="inherit_id" ref="procurement.procurement_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="Upstream and Downstream Moves">
+                        <group>
+                        <field name="move_dest_id"/>
+                        <field name="move_ids"/>
+                        </group>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+    </data>
+</openerp>

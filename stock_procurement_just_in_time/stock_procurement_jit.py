@@ -218,7 +218,7 @@ class StockWarehouseOrderPointJit(models.Model):
         last_schedule = self.env['stock.levels.requirements'].search([('product_id', '=', self.product_id.id),
                                                                       ('location_id', '=', self.location_id.id)],
                                                                      order='date DESC', limit=1)
-        res = last_schedule and fields.Datetime.from_string(last_schedule.date) or False
+        res = last_schedule.date and fields.Datetime.from_string(last_schedule.date) or False
         return res
 
     @api.multi

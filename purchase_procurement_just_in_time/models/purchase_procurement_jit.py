@@ -382,6 +382,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     if total_need == 0:
                         procurement.purchase_line_id.to_delete = True
                     procurement.purchase_line_id.product_qty = qty
+        else:
+            result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
         # Checking what should be cancelled
         qty = False
         if procurement.purchase_line_id and procurement.purchase_line_id.order_id.state != 'draft':
