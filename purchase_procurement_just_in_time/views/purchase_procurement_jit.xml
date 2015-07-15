@@ -195,7 +195,7 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <filter name="hide_cancelled" position="after">
-                    <filter name="confirmed_lines" string="Confirmed lines" domain="[('state', '=', 'confirmed')]"/>
+                    <filter name="confirmed_lines" string="Confirmed but not received lines" domain="[('state', '=', 'confirmed'), ('remaining_qty', '>', 0.0)]"/>
                 </filter>
             </field>
         </record>
