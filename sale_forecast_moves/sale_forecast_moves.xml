@@ -51,6 +51,8 @@
             <field name="arch" type="xml">
                 <search string="Stock Moves" position="inside">
                     <filter name="forecast_moves" string="Forecast Moves" domain="[('prevision_move', '=', True)]"/>
+                    <filter name="no_forecast_moves" string="Regular Moves" domain="[('prevision_move', '=', False)]"/>
+                    <separator/>
                 </search>
             </field>
         </record>

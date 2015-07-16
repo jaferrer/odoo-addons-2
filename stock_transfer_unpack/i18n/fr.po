@@ -1,0 +1,46 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_transfer_unpack
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-06-30 12:47+0000\n"
+"PO-Revision-Date: 2015-06-30 12:47+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_transfer_unpack
+msgid "Stock Transfer Unpack"
+msgstr "Dépaquetage de colis"
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_transfer_unpack
+msgid ""
+"\n"
+"Stock Transfer Unpack\n"
+"=====================\n"
+"This module adds a button in the transfer window of a stock operation in front of each pack so as to unpack it.\n"
+msgstr ""
+"\n"
+"Dépaquetage de colis\n"
+"====================\n"
+"Ce module ajoute un bouton dans la fenêtre de transfer d'une opéraiton de stock en face de chaque colis afin de \n"
+"pouvoir le dépaqueter\n"
+
+#. module: stock_transfer_unpack
+#: model:ir.model,name:stock_transfer_unpack.model_stock_transfer_details_items
+msgid "Picking wizard items"
+msgstr "Eléments d'assistant d'opération"
+
+#. module: stock_transfer_unpack
+#: view:stock.transfer_details:0
+msgid "Unpack"
+msgstr "Dépaqueter"
+

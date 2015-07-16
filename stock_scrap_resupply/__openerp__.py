@@ -17,4 +17,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import mrp_operation_planning_improved
+{
+    'name': 'Stock Scrap Resupply',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Warehouse',
+    'depends': ['stock'],
+    'description': """
+Stock Scrap Resupply
+====================
+This module recreates a procurement for scrapped products when they are scrapped from chained moves.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [],
+    'demo': [
+        'stock_scrap_resupply_demo.xml',
+    ],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

@@ -42,7 +42,8 @@ class SaleForecastMovesWizard(models.TransientModel):
     @api.multi
     def forecast_moves(self):
         session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-        run_forecast_moves.delay(session, 'sale.forecast.moves.wizard', self.ids)
+        run_forecast_moves.delay(session, 'sale.forecast.moves.wizard', self.ids,
+                                 description="Calculate Forecast Moves")
         return {'type': 'ir.actions.act_window_close'}
 
     @api.multi
@@ -55,7 +56,7 @@ class SaleForecastMovesWizard(models.TransientModel):
         this = self.with_env(new_env)
 
         weeks = self.forecast_weeks
-        if weeks <= 0:
+        if weeks < 0:
             raise exceptions.except_orm(_('Erreur!'), _("Veuillez choisir une autre valeur pour le nombre de semaines"))
         limit = fields.datetime.now()+relativedelta(days=-28)
         now = fields.datetime.now()

@@ -17,28 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Work Orders Planning Improved',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Production',
-    'depends': ['mrp', 'stock_planning_improved', 'stock', 'purchase_planning_improved', 'mrp_planning_improved',
-                'mrp_operations'],
-    'description': """
-Work Orders Planning Improved
-=============================
-When delaying it a manufacturing order, this module changes automatically the start time of all the work centers
-linked to it.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'mrp_operation_planning_improved.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from . import stock_transfer_unpack
