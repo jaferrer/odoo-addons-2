@@ -154,7 +154,7 @@ class PurchaseOrderLineJustInTime(models.Model):
                 [('product_tmpl_id', '=', rec.product_id.product_tmpl_id.id), ('name', '=', rec.partner_id.id)]
             )
             if list_supinfos:
-                rec.fourniture = list_supinfos[0].product_code
+                rec.supplier_code = list_supinfos[0].product_code
 
     @api.multi
     def open_form_purchase_order_line(self):
