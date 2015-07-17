@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--Modification of form view of model mrp.production-->
+        <record model="ir.ui.view" id="production_planning_improved_purchase_order_form_view">
+            <field name="name">production.planning.improved.purchase.order.form.view</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <button name="force_production" position="before">
+                        <button name="action_reschedule" string="Reschedule Manufacturing Order" type="object"
+                                attrs="{'invisible':[('state','in',['cancel','done'])]}"/>
+                    </button>
+                    <field name="date_planned" position="attributes">
+                        <attribute name="attrs">{'readonly':[('taken_into_account','=',False)]}</attribute>
+                    </field>
+                    <field name="date_planned" position="after">
+                        <field name="date_required"/>
+                        <field name="taken_into_account"/>
+                    </field>
+                    <field name="priority" position="before">
+                        <field name="procurement_id"/>
+                    </field>
+                </data>
+            </field>
+        </record>
+
+        <!--Modification of tree view of model mrp.production-->
+        <record model="ir.ui.view" id="production_planning_improved_purchase_order_tree_view">
+            <field name="name">production.planning.improved.purchase.order.tree.view</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="date_planned" position="after">
+                    <field name="date_required"/>
+                    <field name="taken_into_account"/>
+                </field>
+            </field>
+        </record>
+
+        <!--Modification of form view of model procurement.order-->
+        <record model="ir.ui.view" id="mrp_planning_improved_procurement_form_view">
+            <field name="name">mrp.planning.improved.procurement.form.view</field>
+            <field name="model">procurement.order</field>
+            <field name="inherit_id" ref="procurement.procurement_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <page string="Extra Information" position="inside">
+                    <field name="move_ids"/>
+                </page>
+            </field>
+        </record>
+
+    </data>
+</openerp>

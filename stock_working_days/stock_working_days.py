@@ -100,6 +100,30 @@ class res_company_with_calendar(models.Model):
                                        "for warehouses without a calendar defined. If undefined here the default "
                                        "calendar will consider working days being Monday to Friday.")
 
+    @api.multi
+    def schedule_working_days(self, nb_days, day_date):
+        """Returns the date that is nb_days working days after day_date in the context of the current company.
+
+        :param nb_days: int: The number of working days to add to day_date. If nb_days is negative, counting is done
+                             backwards.
+        :param day_date: datetime: The starting date for the scheduling calculation.
+        :return: The scheduled date nb_days after (or before) day_date.
+        :rtype : datetime
+        """
+        self.ensure_one()
+        assert isinstance(day_date, datetime)
+        if nb_days == 0:
+            return day_date
+        calendar = self.calendar_id
+        if not calendar:
+            calendar = self.env.ref("stock_working_days.default_calendar")
+        newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date,
+                                                  resource_id=False,
+                                                  compute_leaves=True)
+        if isinstance(newdate, (list, tuple)):
+            newdate = newdate[0]
+        return newdate
+
 
 class stock_warehouse_with_calendar(models.Model):
     _inherit = "stock.warehouse"
@@ -139,6 +163,7 @@ class stock_working_days_location(models.Model):
         :rtype : datetime
         """
         self.ensure_one()
+        assert isinstance(day_date, datetime)
         if nb_days == 0:
             return day_date
         warehouse = self.env['stock.warehouse'].browse(self.get_warehouse(self))
@@ -146,7 +171,7 @@ class stock_working_days_location(models.Model):
         if resource:
             calendar = resource.calendar_id
         else:
-            calendar = self.env.user.company_id.calendar_id
+            calendar = self.company_id.calendar_id
         if not calendar:
             calendar = self.env.ref("stock_working_days.default_calendar")
         newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date,

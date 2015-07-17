@@ -21,7 +21,7 @@ msgstr ""
 #: field:res.partner,default_supply_delay:0
 #: help:res.partner,default_supply_delay:0
 msgid "Default supply delay"
-msgstr "Délai de livraison part défaut"
+msgstr "Délai de livraison par défaut"
 
 #. module: product_supplier_default_delay
 #: model:ir.model,name:product_supplier_default_delay.model_res_partner
