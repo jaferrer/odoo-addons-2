@@ -42,6 +42,7 @@ class res_partner_with_calendar(models.Model):
         :rtype : datetime
         """
         self.ensure_one()
+        assert isinstance(day_date, datetime)
         if nb_days == 0:
             return day_date
 

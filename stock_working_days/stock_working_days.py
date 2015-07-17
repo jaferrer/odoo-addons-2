@@ -111,6 +111,7 @@ class res_company_with_calendar(models.Model):
         :rtype : datetime
         """
         self.ensure_one()
+        assert isinstance(day_date, datetime)
         if nb_days == 0:
             return day_date
         calendar = self.calendar_id
@@ -162,6 +163,7 @@ class stock_working_days_location(models.Model):
         :rtype : datetime
         """
         self.ensure_one()
+        assert isinstance(day_date, datetime)
         if nb_days == 0:
             return day_date
         warehouse = self.env['stock.warehouse'].browse(self.get_warehouse(self))
