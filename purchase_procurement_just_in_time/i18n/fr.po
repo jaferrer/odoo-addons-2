@@ -89,6 +89,11 @@ msgid "Acknowledge Reference"
 msgstr "N° de l'AR"
 
 #. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,supplier_code:0
+msgid "Supplier Code"
+msgstr "Référence fournisseur"
+
+#. module: purchase_procurement_just_in_time
 #: view:purchase.order:0
 msgid "Are you sure you want to recompute all the line Numbers?"
 msgstr "Êtes-vous sûr de vouloir recalculer tous les numéros des lignes ?"

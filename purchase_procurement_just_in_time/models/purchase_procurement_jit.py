@@ -78,6 +78,7 @@ class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
 
     line_no = fields.Char("Line no.")
+    supplier_code = fields.Char(string="Supplier Code", compute='_compute_supplier_code')
     ack_ref = fields.Char("Acknowledge Reference", help="Reference of the supplier's last reply to confirm the delivery"
                                                         " at the planned date")
     date_ack = fields.Date("Last Acknowledge Date",
@@ -144,6 +145,16 @@ class PurchaseOrderLineJustInTime(models.Model):
             elif rec.opmsg_type == 'late':
                 msg += _("LATE by %i day(s)") % rec.opmsg_delay
             rec.opmsg_text = msg
+
+    @api.multi
+    @api.depends('partner_id', 'product_id')
+    def _compute_supplier_code(self):
+        for rec in self:
+            list_supinfos = self.env['product.supplierinfo'].search(
+                [('product_tmpl_id', '=', rec.product_id.product_tmpl_id.id), ('name', '=', rec.partner_id.id)]
+            )
+            if list_supinfos:
+                rec.fourniture = list_supinfos[0].product_code
 
     @api.multi
     def open_form_purchase_order_line(self):
