@@ -21,6 +21,7 @@ from openerp import fields, models, api, _
 
 class mrp_production(models.Model):
     _inherit = "mrp.production"
+
     product_lines = fields.One2many(readonly=False)
 
     @api.multi
