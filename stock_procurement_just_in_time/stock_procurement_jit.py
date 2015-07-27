@@ -118,6 +118,7 @@ class ProcurementOrderQuantity(models.Model):
                         raise
             if use_new_cursor:
                 new_env.cr.commit()
+                remaining -= 100
                 _logger.info("Minimum stock rules: Committing a chunk of 100 rules (%/% remaining)" %
                              (remaining, total))
             if prev_ids == orderpoints:
