@@ -65,6 +65,7 @@ class ProcurementOrderQuantity(models.Model):
         :param bool use_new_cursor: if set, use a dedicated cursor and auto-commit after processing each procurement.
             This is appropriate for batch jobs only.
         """
+        _logger.info("<<<Starting recomputing minimum stock rules")
         if use_new_cursor:
             cr = openerp.registry(self.env.cr.dbname).cursor()
             new_env = api.Environment(cr, self.env.user.id, self.env.context)
@@ -75,6 +76,8 @@ class ProcurementOrderQuantity(models.Model):
         orderpoint_env = this.env['stock.warehouse.orderpoint']
         dom = company_id and [('company_id', '=', company_id)] or []
         orderpoint_ids = orderpoint_env.search(dom)
+        total = len(orderpoint_ids)
+        remaining = total
         prev_ids = []
         while orderpoint_ids:
             orderpoints = orderpoint_ids[:100]
@@ -115,6 +118,8 @@ class ProcurementOrderQuantity(models.Model):
                         raise
             if use_new_cursor:
                 new_env.cr.commit()
+                _logger.info("Minimum stock rules: Committing a chunk of 100 rules (%/% remaining)" %
+                             (remaining, total))
             if prev_ids == orderpoints:
                 break
             else:
@@ -122,6 +127,7 @@ class ProcurementOrderQuantity(models.Model):
         if use_new_cursor:
             new_env.cr.commit()
             new_env.cr.close()
+        _logger.info(">>>Ended minimum stock rules calculation")
         return {}
 
 
