@@ -371,9 +371,7 @@ class StockLevelsRequirements(models.Model):
 
     proc_id = fields.Many2one("procurement.order", string="Procurement")
     product_id = fields.Many2one("product.product", string="Product", index=True)
-    product_categ_id = fields.Many2one("product.category", string="Product Category")
     location_id = fields.Many2one("stock.location", string="Location", index=True)
-    other_location_id = fields.Many2one("stock.location", string="Origin/Destination")
     move_type = fields.Selection([('existing', 'Existing'), ('in', 'Incoming'), ('out', 'Outcoming'),
                                   ('planned', "Planned (In)")],
                                  string="Move type", index=True)
@@ -407,9 +405,7 @@ class StockLevelsRequirements(models.Model):
                     || coalesce(foo.move_id::text, foo.proc_id::text, 'existing') as id,
                 foo.proc_id,
                 foo.product_id,
-                pt.categ_id as product_categ_id,
                 foo.location_id,
-                foo.other_location_id,
                 foo.move_type,
                 sum(foo.qty) over (partition by foo.location_id, foo.product_id order by date) as qty,
                 foo.date as date,
@@ -420,7 +416,6 @@ class StockLevelsRequirements(models.Model):
                         NULL as proc_id,
                         sq.product_id as product_id,
                         tp.top_parent_id as location_id,
-                        NULL as other_location_id,
                         'existing'::text as move_type,
                         least(
                             (select min(date)
@@ -452,7 +447,6 @@ class StockLevelsRequirements(models.Model):
                         sm.procurement_id as proc_id,
                         sm.product_id as product_id,
                         tp.top_parent_id as location_id,
-                        sm.location_id as other_location_id,
                         'in'::text as move_type,
                         coalesce(po.date_planned, sm.date) as date,
                         sm.product_qty as qty,
@@ -472,7 +466,6 @@ class StockLevelsRequirements(models.Model):
                         NULL as proc_id,
                         sm.product_id as product_id,
                         tp.top_parent_id as location_id,
-                        sm.location_dest_id as other_location_id,
                         'out'::text as move_type,
                         coalesce(po.date_planned, sm.date) as date,
                         -sm.product_qty as qty,
@@ -492,7 +485,6 @@ class StockLevelsRequirements(models.Model):
                         po.id as proc_id,
                         po.product_id as product_id,
                         po.location_id as location_id,
-                        NULL as other_location_id,
                         'planned'::text as move_type,
                         po.date_planned as date,
                         po.qty as qty,
@@ -507,9 +499,6 @@ class StockLevelsRequirements(models.Model):
                         and po.state::text <> 'done'::text
                         and (sm.id is NULL or sm.state::text = 'draft'::text)
                 ) foo
-                left join product_product pp on foo.product_id = pp.id
-                left join product_template pt on pp.product_tmpl_id = pt.id
-                left join top_parent tp on foo.location_id = tp.id
         )
         """)
 
