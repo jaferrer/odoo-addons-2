@@ -18,16 +18,29 @@
 #
 
 from dateutil.relativedelta import relativedelta
-from psycopg2 import OperationalError
 import logging
 
-import openerp
 import openerp.addons.decimal_precision as dp
+from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
+from openerp.addons.connector.queue.job import job
 from openerp.tools import float_compare, float_round, DEFAULT_SERVER_DATETIME_FORMAT
 from openerp.tools.sql import drop_view_if_exists
 from openerp import fields, models, api
 
+ORDERPOINT_CHUNK = 50
+
 _logger = logging.getLogger(__name__)
+
+
+@job
+def process_orderpoints(session, model_name, ids):
+    """Processes the given orderpoints."""
+    _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
+    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
+    with handler.session() as s:
+        for op in s.env[model_name].browse(ids):
+            op.process()
+        s.cr.commit()
 
 
 class ProcurementOrderQuantity(models.Model):
@@ -65,70 +78,14 @@ class ProcurementOrderQuantity(models.Model):
         :param bool use_new_cursor: if set, use a dedicated cursor and auto-commit after processing each procurement.
             This is appropriate for batch jobs only.
         """
-        _logger.info("<<<Starting recomputing minimum stock rules")
-        if use_new_cursor:
-            cr = openerp.registry(self.env.cr.dbname).cursor()
-            new_env = api.Environment(cr, self.env.user.id, self.env.context)
-        else:
-            new_env = self.env
-        this = self.with_env(new_env)
-
-        orderpoint_env = this.env['stock.warehouse.orderpoint']
+        orderpoint_env = self.env['stock.warehouse.orderpoint']
         dom = company_id and [('company_id', '=', company_id)] or []
         orderpoint_ids = orderpoint_env.search(dom)
-        total = len(orderpoint_ids)
-        remaining = total
-        prev_ids = []
         while orderpoint_ids:
-            orderpoints = orderpoint_ids[:100]
+            orderpoints = orderpoint_ids[:ORDERPOINT_CHUNK]
             orderpoint_ids = orderpoint_ids - orderpoints
-            for op in orderpoints:
-                try:
-                    _logger.debug("Computing orderpoint %s (%s, %s)" % (op.id, op.product_id.name, op.location_id.name))
-                    need = op.get_next_need()
-                    date_cursor = False
-                    while need:
-                        # We redistribute procurements between date_cursor and need.date
-                        op.redistribute_procurements(date_cursor, fields.Datetime.from_string(need.date), days=1)
-                        # We move the date_cursor to the need date
-                        date_cursor = fields.Datetime.from_string(need.date)
-                        # We check if there is already a procurement in the future
-                        next_proc = need.get_next_proc()
-                        if next_proc:
-                            # If there is a future procurement, we reschedule it (required date) to fit our need
-                            next_proc.reschedule_for_need(need)
-                        else:
-                            # Else, we create a new procurement
-                            op.create_from_need(need)
-                        need = op.get_next_need()
-                    # Now we want to make sure that at the end of the scheduled outgoing moves, the stock level is
-                    # the minimum quantity of the orderpoint.
-                    last_scheduled_date = op.get_last_scheduled_date()
-                    if last_scheduled_date:
-                        date_end = last_scheduled_date + relativedelta(minutes=+1)
-                        op.redistribute_procurements(date_cursor, date_end)
-                        op.remove_unecessary_procurements(date_end)
-
-                except OperationalError:
-                    if use_new_cursor:
-                        orderpoint_ids = orderpoint_ids | orderpoints
-                        new_env.cr.rollback()
-                        continue
-                    else:
-                        raise
-            if use_new_cursor:
-                new_env.cr.commit()
-                remaining -= 100
-                _logger.info("Minimum stock rules: Committing a chunk of 100 rules (%s / %s remaining)" %
-                             (remaining, total))
-            if prev_ids == orderpoints:
-                break
-            else:
-                prev_ids = orderpoints
-        if use_new_cursor:
-            new_env.cr.commit()
-            new_env.cr.close()
-        _logger.info(">>>Ended minimum stock rules calculation")
+            process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                      orderpoints.ids, description="Computing orderpoints %s" % orderpoints.ids)
         return {}
 
 
@@ -254,6 +211,35 @@ class StockWarehouseOrderPointJit(models.Model):
             _logger.debug("Removing not needed procurements: %s", procs.ids)
             procs.cancel()
             procs.unlink()
+
+    @api.multi
+    def process(self):
+        """Process this orderpoint."""
+        for op in self:
+            _logger.debug("Computing orderpoint %s (%s, %s)" % (op.id, op.product_id.name, op.location_id.name))
+            need = op.get_next_need()
+            date_cursor = False
+            while need:
+                # We redistribute procurements between date_cursor and need.date
+                op.redistribute_procurements(date_cursor, fields.Datetime.from_string(need.date), days=1)
+                # We move the date_cursor to the need date
+                date_cursor = fields.Datetime.from_string(need.date)
+                # We check if there is already a procurement in the future
+                next_proc = need.get_next_proc()
+                if next_proc:
+                    # If there is a future procurement, we reschedule it (required date) to fit our need
+                    next_proc.reschedule_for_need(need)
+                else:
+                    # Else, we create a new procurement
+                    op.create_from_need(need)
+                need = op.get_next_need()
+            # Now we want to make sure that at the end of the scheduled outgoing moves, the stock level is
+            # the minimum quantity of the orderpoint.
+            last_scheduled_date = op.get_last_scheduled_date()
+            if last_scheduled_date:
+                date_end = last_scheduled_date + relativedelta(minutes=+1)
+                op.redistribute_procurements(date_cursor, date_end)
+                op.remove_unecessary_procurements(date_end)
 
 
 class StockLevelsReport(models.Model):
