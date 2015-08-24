@@ -21,7 +21,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'purchase',
-    'depends': ['base','purchase'],
+    'depends': ['purchase'],
     'description': """
 Purchase Supplier Stats
 =======================

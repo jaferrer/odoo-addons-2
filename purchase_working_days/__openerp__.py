@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['resource','procurement','purchase','stock_working_days'],
+    'depends': ['purchase','stock_working_days'],
     'description': """
 Purchase Schedule on Working Days
 =================================
