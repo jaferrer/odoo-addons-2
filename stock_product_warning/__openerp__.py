@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Warehouse',
-    'depends': ['product', 'stock','warning'],
+    'depends': ['stock','warning'],
     'description': """
 Product Warning on Stock Operations
 ===================================
