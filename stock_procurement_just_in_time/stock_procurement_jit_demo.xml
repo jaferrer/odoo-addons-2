@@ -110,5 +110,6 @@
             <field name="product_uom_qty">10</field>
         </record>
 
+
     </data>
 </openerp>
