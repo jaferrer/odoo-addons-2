@@ -17,23 +17,25 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+
 {
-    'name': 'Validity Dates for Supplier Prices',
+    'name': 'Send Object Attachments by Email',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Product',
-    'depends': ['purchase', 'stock'],
+    'category': 'Usability',
+    'depends': ['email_template'],
     'description': """
-Validity Dates for Supplier Prices
-==================================
-Makes prices dependant on time, not only on purchase quantity.
+Send Object Attachments by Email
+================================
+This module adds an option "Attach object attachments" to email templates. When this option is selected, all the
+attachments of the object will be added to the email attachments.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['supplier_articles.xml'],
-    'demo': [
-        'test_supplier_articles.xml'
-        ],
+    'data': [
+        'mail_object_attachment_view.xml',
+    ],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

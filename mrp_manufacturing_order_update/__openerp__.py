@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Product',
-    'depends': ['mrp','product', 'stock'],
+    'depends': ['mrp'],
     'description': """
 Update manufacturing orders
 ===========================

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,27 +18,23 @@
 #
 
 {
-    'name': 'Asynchronous Scheduler for Stock',
+    'name': 'Fix Negative Landed Costs',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Procurement',
-    'depends': ['stock','scheduler_async'],
+    'category': 'Technical Settings',
+    'depends': ['stock_landed_costs'],
     'description': """
-Asynchronous Scheduler for Stock
-================================
-Asynchronous Scheduler reimplements the procurement scheduler using the 'OCA/connector' framework to be able to monitor
-the scheduler running in the background.
-
-This module brings the implementation of the scheduler part linked with the stock module.
+Fix Negative Landed Costs
+=========================
+Temporary fix to https://github.com/odoo/odoo/pull/8210 until it is pulled upstream.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': True,
+    'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
 }

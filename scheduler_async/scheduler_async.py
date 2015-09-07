@@ -30,16 +30,23 @@ def run_procure_all_async(session, model_name, ids):
     return "Scheduler ended compute_all job."
 
 
-class procurement_compute_async(models.TransientModel):
+@job
+def run_procure_orderpoint_async(session, model_name, ids):
+    """Compute minimum stock rules only"""
+    compute_orderpoint_wizard = session.pool[model_name]
+    res = compute_orderpoint_wizard._procure_calculation_orderpoint(session.cr, session.uid, ids,
+                                                                     context=session.context)
+    return "Scheduler ended compute_orderpoint job."
+
+
+class ProcurementComputeAllAsync(models.TransientModel):
     _inherit = 'procurement.order.compute.all'
 
     @api.multi
     def _procure_calculation_all(self):
         proc_obj = self.env['procurement.order']
-        user = self.env.user
-        comps = [x.id for x in user.company_ids]
-        for comp in comps:
-            proc_obj.run_scheduler(use_new_cursor=True, company_id=comp)
+        for company_id in self.env.user.company_ids.ids:
+            proc_obj.run_scheduler(use_new_cursor=True, company_id=company_id)
         return {}
 
     @api.multi
@@ -49,7 +56,24 @@ class procurement_compute_async(models.TransientModel):
         return {'type': 'ir.actions.act_window_close'}
 
 
-class procurement_order_async(models.Model):
+class ProcurementOrderPointComputeAsync(models.TransientModel):
+    _inherit = 'procurement.orderpoint.compute'
+
+    @api.multi
+    def _procure_calculation_orderpoint(self):
+        proc_obj = self.env['procurement.order']
+        for company_id in self.env.user.company_ids.ids:
+            proc_obj._procure_orderpoint_confirm(use_new_cursor=self.env.cr.dbname, company_id=company_id)
+        return {}
+
+    @api.multi
+    def procure_calculation(self):
+        session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+        run_procure_orderpoint_async.delay(session, 'procurement.orderpoint.compute', self.ids)
+        return {'type': 'ir.actions.act_window_close'}
+
+
+class ProcurementOrderAsync(models.Model):
     _inherit = 'procurement.order'
 
     @api.model

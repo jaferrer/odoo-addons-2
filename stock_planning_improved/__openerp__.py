@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Warehouse',
-    'depends': ['stock','stock_working_days'],
+    'depends': ['stock_working_days'],
     'description': """
 Stock Planning Improved
 =======================

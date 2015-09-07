@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,26 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Validity Dates for Supplier Prices',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Product',
-    'depends': ['purchase', 'stock'],
-    'description': """
-Validity Dates for Supplier Prices
-==================================
-Makes prices dependant on time, not only on purchase quantity.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['supplier_articles.xml'],
-    'demo': [
-        'test_supplier_articles.xml'
-        ],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from . import stock_scrap_resupply
