@@ -9,8 +9,11 @@
               <field name="priority" eval="16"/>
               <field name="arch" type="xml">
                   <header position="inside">
-                      <field name="left_products" invisible="1"/>
+					  <field name="left_products" invisible="1"/>
                   </header>
+                  <button name="action_cancel" position="after">
+					  <button name="button_cancel_starting_done" attrs="{'invisible': ['|',('state', 'not in', ['in_production']),('move_lines2','=',True)]}" string="Cancel Starting"/>
+                  </button>
                   <field name="location_dest_id" position="after">
                       <field name="child_location_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                   </field>
