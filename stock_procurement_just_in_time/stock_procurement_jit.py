@@ -292,6 +292,7 @@ class StockWarehouseOrderPointJit(models.Model):
         """
 
         # Computing the top parent location
+        min_date = False
         location = self.env['stock.location'].search([('id', '=', location_id)])
         location_id = location.top_parent_location_id.id
         result = []
@@ -318,7 +319,8 @@ class StockWarehouseOrderPointJit(models.Model):
                                          [y for y in x.move_ids if not y.id or y.state == 'draft']]
         if procurement_order_restricted2:
             dates += [min([x.date for x in procurement_order_restricted2])]
-        min_date = min(dates)
+        if dates:
+            min_date = min(dates)
 
         # existing items
         existing_qty = 0
@@ -331,7 +333,9 @@ class StockWarehouseOrderPointJit(models.Model):
             procurement_order_ordered = procurement_order_restricted.search([('state', 'not in', ['cancel', 'done'])],
                                                                                                 order='date_planned').\
                                 filtered(lambda po: bool([m for m in po.move_ids if not m.id or m.state == 'draft']))
-            date = min(min_date, procurement_order_ordered[0].date_planned)
+            date = procurement_order_ordered[0].date_planned
+            if min_date:
+                date = min(date, min_date)
             intermediate_result += [{
                     'proc_id': False,
                     'location_id': top_parent_location.id,
