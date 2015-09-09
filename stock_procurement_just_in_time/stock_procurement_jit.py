@@ -241,9 +241,10 @@ class StockWarehouseOrderPointJit(models.Model):
             procs = self.env['procurement.order'].search([('product_id', '=', orderpoint.product_id.id),
                                                           ('location_id', '=', orderpoint.location_id.id),
                                                           ('state', 'not in', ['done', 'cancel']),
-                                                          ('date_planned', '<=', fields.Datetime.to_string(timestamp)),
-                                                          ('date_planned', '>', last_outgoing[0]['date'])],
+                                                          ('date_planned', '<=', fields.Datetime.to_string(timestamp))],
                                                          order='qty DESC')
+            if last_outgoing:
+                procs = procs.filtered(lambda x: x.date_planned > last_outgoing[0]['date'])
             _logger.debug("Removing not needed procurements: %s", procs.ids)
             procs.cancel()
             procs.unlink()
