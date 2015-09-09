@@ -10,9 +10,23 @@
             <field name="arch" type="xml">
                 <field name="product_id" position="after">
                     <field name="procurement_warning" invisible="1"/>
-                    <button type="object" name="noop" string="This product has a procurement warning set"
+                    <button type="object" name="button_warning" string="This product has a procurement warning set"
                             icon="STOCK_DIALOG_WARNING" attrs="{'invisible': [('procurement_warning','=',False)]}"/>
                 </field>
+            </field>
+        </record>
+        
+        <record model="ir.ui.view" id="transfer_details_product_warning_alert">
+            <field name="name">transfer.details.product.warning.alert</field>
+            <field name="model">popup.warning</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+            	<form string="article form">
+                	<field name="text"/>
+                	<footer>
+                        <button string="_Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
             </field>
         </record>
 
@@ -26,6 +40,7 @@
                 <xpath expr="//notebook/page[@string='Warnings']/group" position="before">
                     <group string="Procurement warning">
                         <field name="procurement_warning"/>
+                        <field name="procurement_warning_msg" attrs="{'required':[('procurement_warning','!=',False)],'readonly':[('procurement_warning','=',False)]}" modifiers="{'readonly': [['procurement_warning', '=', False]], 'required': [['procurement_warning', '!=', False]]}"/>
                     </group>
                 </xpath>
             </field>
@@ -33,6 +48,7 @@
 
         <template id="assets_product_warning" inherit_id="web.assets_backend" name="Product procurement warning">
             <xpath expr="." position="inside">
+            	<link rel="stylesheet" type="text/css" href="/stock_product_warning/static/src/css/stock_product_warning.css"/>
                 <script type="text/javascript" src="/stock_product_warning/static/src/js/stock_product_warning.js"></script>
             </xpath>
         </template>

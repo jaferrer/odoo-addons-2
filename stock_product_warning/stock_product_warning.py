@@ -25,14 +25,40 @@ class stock_product_warning_product(models.Model):
     procurement_warning = fields.Boolean("Procurement Warning", help="Check this box to display a warning signal in "
                                                                      "the transfer pop-up of stock operations linked "
                                                                      "to this product")
+    
+    procurement_warning_msg = fields.Text(string="Procurement Warning Message",readonly=False)
+
 
 class stock_product_packop_line(models.Model):
     _inherit = 'stock.pack.operation'
 
     procurement_warning = fields.Boolean("Procurement Warning", related="product_id.procurement_warning")
+    
+    procurement_warning_msg = fields.Text(string="Procurement Warning Message",related="product_id.procurement_warning_msg")
 
 
 class stock_product_transfer_detail_items(models.TransientModel):
     _inherit = 'stock.transfer_details_items'
 
     procurement_warning = fields.Boolean("Procurement Warning", related="product_id.procurement_warning")
+    
+    @api.multi
+    def button_warning(self):
+        ctx = self.env.context.copy()
+        ctx['default_text'] = self.product_id.procurement_warning_msg
+        return {
+           'name':'Article',
+           'view_type':'form',
+           'view_mode':'form',
+           'res_model':'popup.warning',
+           'target':'popup',
+           'type':'ir.actions.act_window',
+           'context':ctx,
+        }
+
+
+class PopupWarning(models.TransientModel):
+    _name = 'popup.warning'
+
+    text = fields.Text(readonly=True)
+    
