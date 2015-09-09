@@ -23,10 +23,10 @@ from openerp.addons.connector.queue.job import job
 
 
 @job
-def run_procure_all_async(session, model_name, ids):
+def run_procure_all_async(session, model_name, ids, context):
     """Launch all schedulers"""
     compute_all_wizard = session.pool[model_name]
-    compute_all_wizard._procure_calculation_all(session.cr, session.uid, ids, context=session.context)
+    compute_all_wizard._procure_calculation_all(session.cr, session.uid, ids, context=context)
     return "Scheduler ended compute_all job."
 
 
@@ -51,8 +51,8 @@ class ProcurementComputeAllAsync(models.TransientModel):
 
     @api.multi
     def procure_calculation(self):
-        session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-        job_uuid = run_procure_all_async.delay(session, 'procurement.order.compute.all', self.ids)
+        session = ConnectorSession.from_env(self.env)
+        job_uuid = run_procure_all_async.delay(session, 'procurement.order.compute.all', self.ids, self.env.context)
         return {'type': 'ir.actions.act_window_close'}
 
 

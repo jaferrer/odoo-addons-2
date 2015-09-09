@@ -93,6 +93,8 @@ class ProcurementOrderQuantity(models.Model):
         """
         orderpoint_env = self.env['stock.warehouse.orderpoint']
         dom = company_id and [('company_id', '=', company_id)] or []
+        if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
+            dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
         orderpoint_ids = orderpoint_env.search(dom)
         while orderpoint_ids:
             orderpoints = orderpoint_ids[:ORDERPOINT_CHUNK]
@@ -423,6 +425,21 @@ class StockWarehouseOrderPointJit(models.Model):
             return result[:limit]
         else:
             return result
+
+
+class StockComputeAll(models.TransientModel):
+    _inherit = 'procurement.order.compute.all'
+
+    def _get_default_product_ids(self):
+        return self.env['product.product'].search([])
+
+    compute_all = fields.Boolean(string=u"Traiter l'ensemble des produits", default=True)
+    product_ids = fields.Many2many('product.product', string=u"Produits à traiter", default=_get_default_product_ids)
+
+    @api.multi
+    def procure_calculation(self):
+        return super(StockComputeAll, self.with_context(compute_product_ids=self.product_ids.ids,
+                                                        compute_all_products=self.compute_all)).procure_calculation()
 
 
 class StockLevelsReport(models.Model):
