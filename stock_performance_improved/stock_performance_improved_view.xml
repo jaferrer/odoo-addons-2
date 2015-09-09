@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-<!--stock.view_picking_form-->
-        <!-- creer les bouton dans le menu option -->
+
         <record model="ir.actions.server" id="ir_actions_server_process_prereservations">
             <field name="name">Process Prereservations</field>
             <field name="model_id" ref="stock.model_stock_picking"/>
