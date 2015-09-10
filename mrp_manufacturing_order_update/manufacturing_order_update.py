@@ -23,6 +23,7 @@ class mrp_production(models.Model):
     _inherit = "mrp.production"
 
     product_lines = fields.One2many(readonly=False)
+    bom_id = fields.Many2one('mrp.bom', readonly=False)
 
     @api.multi
     def update_moves(self):
