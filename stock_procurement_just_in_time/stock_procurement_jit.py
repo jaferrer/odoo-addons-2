@@ -42,21 +42,6 @@ def process_orderpoints(session, model_name, ids):
         s.cr.commit()
 
 
-class StockLocation(models.Model):
-    _inherit = 'stock.location'
-
-    top_parent_location_id = fields.Many2one('stock.location', string="Top Parent Location",
-                                             compute='_compute_top_parent_location_id', store=True)
-
-    @api.depends('location_id', 'usage')
-    def _compute_top_parent_location_id(self):
-        for rec in self:
-            top_parent_location = rec
-            while top_parent_location.location_id and top_parent_location.location_id.usage == 'internal':
-                top_parent_location = top_parent_location.location_id
-            rec.top_parent_location_id = top_parent_location
-
-
 class ProcurementOrderQuantity(models.Model):
     _inherit = 'procurement.order'
 
@@ -208,7 +193,7 @@ class StockWarehouseOrderPointJit(models.Model):
             proc = proc_obj.create(proc_vals)
             proc.run()
             _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
-                        (proc, proc.date_planned, proc.product_qty, orderpoint.product_id, orderpoint.location_id))
+                          (proc, proc.date_planned, proc.product_qty, orderpoint.product_id, orderpoint.location_id))
 
     @api.multi
     def get_last_scheduled_date(self):
@@ -232,10 +217,9 @@ class StockWarehouseOrderPointJit(models.Model):
         """
         for orderpoint in self:
             last_outgoing = self.env['stock.warehouse.orderpoint'].compute_stock_levels_requirements(
-                                                                product_id=orderpoint.product_id.id,
-                                                                location_id=orderpoint.location_id.id,
-                                                                list_move_types=('out',), limit=1,
-                                                                parameter_to_sort='date', to_reverse=True)
+                product_id=orderpoint.product_id.id, location_id=orderpoint.location_id.id,
+                list_move_types=('out',), limit=1, parameter_to_sort='date', to_reverse=True
+            )
             last_outgoing = [x for x in last_outgoing if x['date'] <= fields.Datetime.to_string(timestamp)]
             # We get all procurements placed before timestamp, but after the last outgoing line sorted by inv quantity
             procs = self.env['procurement.order'].search([('product_id', '=', orderpoint.product_id.id),
@@ -294,8 +278,6 @@ class StockWarehouseOrderPointJit(models.Model):
 
         # Computing the top parent location
         min_date = False
-        location = self.env['stock.location'].search([('id', '=', location_id)])
-        location_id = location.top_parent_location_id.id
         result = []
         intermediate_result = []
         stock_move_restricted_in = self.env['stock.move'].search([('product_id', '=', product_id),
@@ -307,122 +289,102 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                    ('location_id', 'child_of', location_id)],
                                                                   order='date')
         stock_quant_restricted = self.env['stock.quant'].search([('product_id', '=', product_id),
-                                                                 ('location_id', '=', location_id)])
+                                                                 ('location_id', 'child_of', location_id)])
         procurement_order_restricted = self.env['procurement.order'].search([('product_id', '=', product_id),
-                                                                             ('location_id', '=', location_id)],
-                                                                            order='date_planned')
+                                                                             ('location_id', 'child_of', location_id),
+                                                                             ('state', 'not in', ['cancel','done'])
+                                                                             ], order='date_planned')
         dates = []
         if stock_move_restricted_in:
             dates += [stock_move_restricted_in[0].date]
         if stock_move_restricted_out:
             dates += [stock_move_restricted_out[0].date]
-        procurement_order_restricted2 = [x for x in procurement_order_restricted if
-                                         [y for y in x.move_ids if not y.id or y.state == 'draft']]
-        if procurement_order_restricted2:
-            dates += [min([x.date for x in procurement_order_restricted2])]
+        procurement_order_restricted = procurement_order_restricted.filtered(
+            lambda p: not p.move_ids or any([(m.state == 'draft') for m in p.move_ids])
+        )
+        if procurement_order_restricted:
+            dates += [procurement_order_restricted[0].date_planned]
         if dates:
             min_date = min(dates)
 
         # existing items
-        existing_qty = 0
-        computed_parent_locations = []
-        list_sq = stock_quant_restricted
-        while list_sq:
-            top_parent_location = list_sq[0].location_id.top_parent_location_id
-            list_sq_in_top_location = list_sq.filtered(lambda sq: sq.location_id.top_parent_id == top_parent_location)
-            existing_qty = sum([x.qty for x in list_sq_in_top_location])
-            procurement_order_ordered = procurement_order_restricted.search([('state', 'not in', ['cancel', 'done'])],
-                                                                                                order='date_planned').\
-                                filtered(lambda po: bool([m for m in po.move_ids if not m.id or m.state == 'draft']))
-            date = procurement_order_ordered[0].date_planned
-            if min_date:
-                date = min(date, min_date)
-            intermediate_result += [{
-                    'proc_id': False,
-                    'location_id': top_parent_location.id,
-                    'move_type': 'existing',
-                    'date': date,
-                    'qty': existing_qty,
-                    'move_id': False,
-                }]
-            computed_parent_locations += [top_parent_location]
-            list_sq -= list_sq_in_top_location
+        existing_qty = sum([x.qty for x in stock_quant_restricted])
+        intermediate_result += [{
+            'proc_id': False,
+            'location_id': location_id,
+            'move_type': 'existing',
+            'date': min_date,
+            'qty': existing_qty,
+            'move_id': False,
+        }]
 
         # incoming items
         for sm in stock_move_restricted_in:
-            if sm.location_dest_id.usage in ['internal', 'transit']:
-                top_parent_location = sm.location_dest_id.top_parent_location_id
-                procurement = sm.procurement_id
-                date = False
-                if procurement and procurement.date_planned:
-                    date = procurement.date_planned
-                elif sm.date:
-                    date = sm.date
-                intermediate_result += [{
-                        'proc_id': procurement.id,
-                        'location_id': top_parent_location.id,
-                        'move_type': 'in',
-                        'date': date,
-                        'qty': sm.product_qty,
-                        'move_id': sm.id,
-                    }]
+            procurement = sm.procurement_id
+            date = False
+            if procurement and procurement.date_planned:
+                date = procurement.date_planned
+            elif sm.date:
+                date = sm.date
+            intermediate_result += [{
+                    'proc_id': procurement.id,
+                    'location_id': location_id,
+                    'move_type': 'in',
+                    'date': date,
+                    'qty': sm.product_qty,
+                    'move_id': sm.id,
+                }]
 
         # outgoing items
         for sm in stock_move_restricted_out:
-            if sm.location_id.usage in ['internal', 'transit']:
-                top_parent_location = sm.location_id.top_parent_location_id
-                procurement = sm.procurement_id
-                date = False
-                if procurement and procurement.date_planned:
-                    date = procurement.date_planned
-                elif sm.date:
-                    date = sm.date
-                intermediate_result += [{
-                        'proc_id': False,
-                        'location_id': location_id,
-                        'move_type': 'out',
-                        'date': date,
-                        'qty': - sm.product_qty,
-                        'move_id': sm.id,
-                    }]
+            procurement = sm.procurement_id
+            date = False
+            if procurement and procurement.date_planned:
+                date = procurement.date_planned
+            elif sm.date:
+                date = sm.date
+            intermediate_result += [{
+                    'proc_id': False,
+                    'location_id': location_id,
+                    'move_type': 'out',
+                    'date': date,
+                    'qty': - sm.product_qty,
+                    'move_id': sm.id,
+                }]
 
         # planned items
-        procurement_order_restricted = procurement_order_restricted.search([('state', 'not in', ['cancel', 'done'])]).\
-            filtered(lambda p: not p.move_ids or bool([m for m in p.move_ids if not m.id or m.state == 'draft']))
         for po in procurement_order_restricted:
-            if po.location_id.usage in ['internal', 'transit']:
-                intermediate_result += [{
-                        'proc_id': po.id,
-                        'location_id': po.location_id.id,
-                        'move_type': 'planned',
-                        'date': po.date_planned,
-                        'qty': po.qty,
-                        'move_id': False,
-                    }]
+            intermediate_result += [{
+                    'proc_id': po.id,
+                    'location_id': location_id,
+                    'move_type': 'planned',
+                    'date': po.date_planned,
+                    'qty': po.qty,
+                    'move_id': False,
+                }]
 
         intermediate_result = sorted(intermediate_result, key=lambda a: a['date'])
         qty = existing_qty
         for dictionary in intermediate_result:
-            if dictionary['location_id'] == location_id:
-                id = str(product_id) + '-' + str(dictionary['location_id']) + '-'
-                if dictionary['move_id']:
-                    id += str(dictionary['move_id'])
-                elif dictionary['proc_id']:
-                    id += str(dictionary['proc_id'])
-                else:
-                    id += 'existing'
-                if dictionary['move_type'] != 'existing':
-                    qty += dictionary['qty']
-                result += [{
-                    'id': id,
-                    'proc_id': dictionary['proc_id'],
-                    'product_id': product_id,
-                    'location_id': dictionary['location_id'],
-                    'move_type': dictionary['move_type'],
-                    'date': dictionary['date'],
-                    'qty': qty,
-                    'move_qty': dictionary['qty'],
-                }]
+            # id = str(product_id) + '-' + str(dictionary['location_id']) + '-'
+            # if dictionary['move_id']:
+            #     id += str(dictionary['move_id'])
+            # elif dictionary['proc_id']:
+            #     id += str(dictionary['proc_id'])
+            # else:
+            #     id += 'existing'
+            if dictionary['move_type'] != 'existing':
+                qty += dictionary['qty']
+            result += [{
+                # 'id': id,
+                'proc_id': dictionary['proc_id'],
+                'product_id': product_id,
+                'location_id': dictionary['location_id'],
+                'move_type': dictionary['move_type'],
+                'date': dictionary['date'],
+                'qty': qty,
+                'move_qty': dictionary['qty'],
+            }]
 
         result = sorted(result, key=lambda z: z[parameter_to_sort], reverse=to_reverse)
         result = [x for x in result if x['move_type'] in list_move_types]
