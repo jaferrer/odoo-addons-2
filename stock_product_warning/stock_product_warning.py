@@ -61,4 +61,4 @@ class PopupWarning(models.TransientModel):
     _name = 'popup.warning'
 
     text = fields.Text(readonly=True)
-    
+      
