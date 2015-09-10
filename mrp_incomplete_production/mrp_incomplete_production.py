@@ -161,6 +161,7 @@ class mrp_production2(models.Model):
 
     @api.model
     def _calculate_qty(self, production, product_qty=0.0):
+        #TODO: supprimer argument inutile ?
         consume_lines = super(mrp_production2, self)._calculate_qty(production)
         list_to_remove = []
         for item in consume_lines:
