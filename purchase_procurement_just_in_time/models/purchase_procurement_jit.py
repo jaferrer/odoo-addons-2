@@ -73,7 +73,6 @@ class PurchaseOrderJustInTime(models.Model):
         return result
 
 
-
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
 
@@ -222,9 +221,9 @@ class PurchaseOrderLineJustInTime(models.Model):
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
         if result.order_id.state not in ['draft', 'done', 'cancel']:
             list_lines = [x for x in result.order_id.order_line if x != result]
+            group = False
             if list_lines:
                 result.order_id.set_order_line_status(list_lines[0].state)
-                group = False
                 for line in list_lines:
                     for move in line.move_ids:
                         if move.state not in ['done', 'cancel']:
@@ -384,7 +383,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 if procurement.purchase_line_id.state not in ['draft', 'cancel']:
                     procurement.purchase_line_id.product_qty = qty
                     total_need = sum([x.product_qty for x in procurement.purchase_line_id.procurement_ids
-                                                                        if x.state != 'cancel' and x != procurement])
+                                     if x.state != 'cancel' and x != procurement])
                     if total_need != 0:
                         total_need = self.with_context({'cancelling_active_proc': True}).\
                                                                                     _calc_new_qty_price(procurement)[0]
