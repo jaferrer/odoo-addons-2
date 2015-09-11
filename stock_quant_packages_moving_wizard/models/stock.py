@@ -37,9 +37,15 @@ class StockQuant(models.Model):
                 'product_uom': item.product_id.uom_id.id,
                 'date_expected': fields.Datetime.now(),
                 'date': fields.Datetime.now(),
-                'quant_ids': [(4, item.id)],
                 'picking_type_id': picking_type_id.id
             })
+            item.reservation_id = new_move
             move_recordset = move_recordset | new_move
-        move_recordset.action_done()
+        move_recordset.action_confirm()
+        picking=move_recordset[0].picking_id
+        picking.do_prepare_partial()
+        picking.do_transfer()
+        
+        
+        #move_recordset.action_done()
         return move_recordset

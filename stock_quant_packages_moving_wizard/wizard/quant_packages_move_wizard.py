@@ -57,8 +57,8 @@ class StockQuantPackageMove(models.TransientModel):
     def do_detailed_transfer(self):
         quants = self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc).mapped(lambda x: x.package.quant_ids)
         quants.move_to(self.global_dest_loc, self.picking_type_id)
-        quants2 = (self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc)).mapped(lambda x: x.package.children_ids.quant_ids)
-        quants2.move_to(self.global_dest_loc, self.picking_type_id)
+        #quants2 = (self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc)).mapped(lambda x: x.package.children_ids.quant_ids)
+        #quants2.move_to(self.global_dest_loc, self.picking_type_id)
         return True
 
 class StockQuantPackageMoveItems(models.TransientModel):
