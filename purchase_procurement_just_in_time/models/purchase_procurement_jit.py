@@ -219,34 +219,19 @@ class PurchaseOrderLineJustInTime(models.Model):
                 theo_value = maximum + 10
             vals['line_no'] = str(theo_value)
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
+
         if result.order_id.state not in ['draft', 'done', 'cancel']:
-            list_lines = [x for x in result.order_id.order_line if x != result]
-            group = False
-            if list_lines:
-                result.order_id.set_order_line_status(list_lines[0].state)
-                for line in list_lines:
-                    for move in line.move_ids:
-                        if move.state not in ['done', 'cancel']:
-                            group = move.group_id
-                            break
             result.order_id.set_order_line_status('confirmed')
-            if result.product_qty != 0 and not result.move_ids:
+            if result.product_qty != 0 and not result.move_ids and not self.env.context.get('no_update_moves'):
+                # We create associated moves
+                order_lines = result.order_id.order_line.filtered(lambda l: l != result)
+                running_moves_with_group = order_lines.mapped(lambda l: l.move_ids).filtered(
+                    lambda m: m.state not in ['done', 'cancel'] and m.group_id
+                )
+                group = running_moves_with_group and running_moves_with_group[0] or False
                 result.order_id._create_stock_moves_improved(result.order_id, result, group_id=group.id)
+
         return result
-
-    @api.multi
-    def copy_name_and_set_parent(self, vals):
-
-        """
-        Copy a line and sets the parameters father_line_id and line_no to the good values.
-        :return: the new line
-        """
-
-        new_line = self.copy(vals)
-        if not self.father_line_id:
-            new_line.father_line_id = self
-        new_line.line_no = new_line.father_line_id.line_no + ' - ' + str(new_line.father_line_id.children_number)
-        return new_line
 
     @api.multi
     def change_qty_or_create(self, qty, global_qty_ordered):
@@ -352,7 +337,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         """
 
         result = super(PurchaseOrderLineJustInTime, self).write(vals)
-        if vals.get('product_qty'):
+        if vals.get('product_qty') and not self.env.context.get('no_update_moves'):
             if vals['product_qty'] < sum([x.product_uom_qty for x in self.move_ids if x.state == 'done']):
                 raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
             for item in self:
@@ -418,10 +403,10 @@ class SplitLine(models.TransientModel):
     _name = 'split.line'
     _description = "Split Line"
 
-    def get_pol(self):
+    def _get_pol(self):
         return self.env['purchase.order.line'].browse(self.env.context.get('active_id'))
 
-    line_id = fields.Many2one('purchase.order.line', string="Direct parent line in purchase order", default=get_pol,
+    line_id = fields.Many2one('purchase.order.line', string="Direct parent line in purchase order", default=_get_pol,
                               required=True, readonly=True)
     qty = fields.Float(string="New quantity of direct parent line")
 
@@ -459,38 +444,56 @@ class SplitLine(models.TransientModel):
         """
 
         self._check_split_possible()
-        if self.line_id.state == 'draft':
-            diff = self.line_id.product_qty - self.qty
-            self.line_id.product_qty = self.qty
-            self.line_id.copy_name_and_set_parent({'product_qty': diff})
+
+        # Reduce quantity of original move
+        original_qty = self.line_id.product_qty
+        new_pol_qty = original_qty - self.qty
+        self.line_id.with_context(no_update_moves=True).write({'product_qty': self.qty})
+
+        # Get a line_no for the new purchase.order.line
+        father_line_id = self.line_id.father_line_id or self.line_id
+        orig_line_no = father_line_id.line_no or "0"
+        new_line_no = orig_line_no + ' - ' + str(father_line_id.children_number + 1)
+
+        # Create new purchase.order.line
+        new_pol = self.line_id.with_context(no_update_moves=True).copy({
+            'product_qty': new_pol_qty,
+            'move_ids': False,
+            'children_line_ids': False,
+            'line_no': new_line_no,
+            'father_line_id': father_line_id.id,
+        })
+
+        # Dispatch moves if the original purchase.order.line was confirmed
         if self.line_id.state == 'confirmed':
-            list_moves = self.line_id.move_ids.filtered(lambda m: m.state not in ['draft', 'done', 'cancel']).\
-                                                                                sorted(key=lambda m: m.product_qty)
+            moves = self.line_id.move_ids.filtered(lambda m: m.state not in ['draft', 'done', 'cancel'])\
+                .sorted(key=lambda m: m.product_qty)
+            moves_to_keep = self.env['stock.move']
+            move_to_split = self.env['stock.move']
+
+
+            # Define what to do with each move
             _sum = sum(x.product_uom_qty for x in self.line_id.move_ids if x.state == 'done')
-            moves_to_keep = []
-            move_to_split = False
             if _sum != self.qty:
-                for move in list_moves:
+                for move in moves:
                     _sum += move.product_uom_qty
                     if _sum > self.qty:
                         move_to_split = move
                         break
                     if _sum == self.qty:
-                        moves_to_keep += [move]
+                        moves_to_keep += move
                         break
                     else:
-                        moves_to_keep += [move]
-            new_pol = self.line_id.copy_name_and_set_parent({'product_qty': 0, 'move_ids': False, 'children_line_ids':
-                                                                self.env['purchase.order.line'], 'children_number': 0})
-            for move in self.line_id.move_ids:
-                if move not in moves_to_keep and move != move_to_split and move.state not in ['done', 'cancel']:
-                    move.purchase_line_id = new_pol
+                        moves_to_keep += move
+
+            # Attach relevant moves to new purchase.order.line
+            moves_to_attach = moves - moves_to_keep - move_to_split
+            moves_to_attach.write({'purchase_line_id': new_pol.id})
+            # Split the move to split if any
             if move_to_split:
                 self.env['stock.move'].split(move_to_split, self.qty - sum([m.product_uom_qty for m in moves_to_keep]))
                 move_to_split.purchase_line_id = new_pol
-            new_pol.product_qty = sum(x.product_uom_qty for x in new_pol.move_ids)
-            self.line_id.product_qty = sum([x.product_uom_qty for x in self.line_id.move_ids])
-            for move in self.line_id.move_ids:
-                if move.purchase_line_id and move.state != 'assigned':
-                    move.action_assign()
+            # Try to assign all moves
+            moves.action_assign()
+            # Set the status of all lines
             self.line_id.order_id.set_order_line_status(self.line_id.state)

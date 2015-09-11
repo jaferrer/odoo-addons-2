@@ -605,6 +605,9 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line.product_qty, 48)
 
         purchase_order_1.signal_workflow('purchase_confirm')
+        self.assertEqual(len(line.move_ids), 3)
+        for m in line.move_ids:
+            self.assertIn(m.product_uom_qty, [1, 7, 40])
 
         split = self.env['split.line'].create({'line_id': line.id, 'qty': 20})
         split.do_split()
@@ -615,6 +618,10 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line.children_number, 1)
         self.assertEqual(line2.line_no, '10 - 1')
         self.assertEqual(line2.product_qty, 28)
+        self.assertEqual(line2.remaining_qty, 28)
+        for m in line.move_ids:
+            self.assertIn(m.product_uom_qty, [1, 7, 12])
+        self.assertEqual(line2.move_ids[0].product_uom_qty, 28)
 
         split = self.env['split.line'].create({'line_id': line2.id, 'qty': 10})
         split.do_split()
@@ -626,6 +633,14 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line.children_number, 2)
         self.assertEqual(line3.line_no, '10 - 2')
         self.assertEqual(line3.product_qty, 18)
+        self.assertEqual(line3.remaining_qty, 18)
+        for m in line.move_ids:
+            self.assertIn(m.product_uom_qty, [1, 7, 12])
+        self.assertEqual(len(line2.move_ids), 1)
+        self.assertEqual(line2.move_ids[0].product_uom_qty, 10)
+
+        self.assertEqual(len(line3.move_ids), 1)
+        self.assertEqual(line3.move_ids[0].product_uom_qty, 18)
 
         split = self.env['split.line'].create({'line_id': line.id, 'qty': 5})
         split.do_split()
@@ -638,8 +653,16 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line.children_number, 3)
         self.assertEqual(line1.line_no, '10 - 3')
         self.assertEqual(line1.product_qty, 15)
-
+        self.assertEqual(line1.remaining_qty, 15)
         self.assertEqual(len(line.move_ids), 2)
+        self.assertEqual(len(line2.move_ids), 1)
+        self.assertEqual(line2.move_ids[0].product_uom_qty, 10)
+        self.assertEqual(len(line3.move_ids), 1)
+        self.assertEqual(line3.move_ids[0].product_uom_qty, 18)
+        self.assertEqual(len(line1.move_ids), 2)
+        for m in line1.move_ids:
+            self.assertIn(m.product_uom_qty, [3, 12])
+
         [m1, m2] = [False]*2
         for move in line.move_ids:
             if move.product_qty == 1:
