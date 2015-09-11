@@ -26,7 +26,9 @@
 
     'summary': """
         A module that lets the user expand a
-        dialog box to the full screen width.""",
+        dialog box to the full screen width.
+        For expand the dialog box to the full size screen,
+        add dialog_full_size: True to act_window context""",
 
     'author': "ACSONE SA/NV,Odoo Community Association (OCA)",
     'website': "http://acsone.eu",
