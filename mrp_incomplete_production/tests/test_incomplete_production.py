@@ -74,6 +74,8 @@ class TestIncompleteProduction(common.TransactionCase):
         mrp_production1, move1, move2, move3 = self.production_check()
         move1.force_assign()
         self.assertEquals(move1.state, 'assigned')
+        self.assertEquals(move2.state, 'confirmed')
+        self.assertEquals(move3.state, 'confirmed')
         mrp_production1.action_assign()
         self.assertEqual(mrp_production1.state, 'ready')
         mrp_product_produce1_data = {
@@ -86,10 +88,12 @@ class TestIncompleteProduction(common.TransactionCase):
         self.assertEqual(mrp_product_produce1.consume_lines[0].product_id, self.product1)
         self.assertEqual(mrp_product_produce1.consume_lines[0].product_qty, self.line1.product_qty)
         self.assertEqual(mrp_product_produce1.child_src_loc_id, mrp_production1.location_src_id)
-        self.assertEqual(mrp_product_produce1.child_src_loc_id, mrp_production1.location_src_id)
         self.assertEqual(mrp_product_produce1.child_dest_loc_id, mrp_production1.location_dest_id)
         self.assertEqual(mrp_product_produce1.child_production_product_id, mrp_production1.product_id)
 
+        self.assertEquals(move1.state, 'assigned')
+        self.assertEquals(move2.state, 'confirmed')
+        self.assertEquals(move3.state, 'confirmed')
         mrp_product_produce1.do_produce()
 
         self.assertEqual(mrp_production1.state, 'done')

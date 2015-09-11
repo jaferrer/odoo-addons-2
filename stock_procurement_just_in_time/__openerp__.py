@@ -23,7 +23,8 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Warehouse',
-    'depends': ['stock','stock_planning_improved','group_operators','procurement_foresight_strategy'],
+    'depends': ['stock_planning_improved','group_operators','procurement_foresight_strategy',
+                'connector'],
     'description': """
 Stock Procurement Just-In-Time
 ==============================

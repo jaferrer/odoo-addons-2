@@ -82,5 +82,20 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="procurement_management_compute_all_form">
+            <field name="name">procurement.management.compute.all.form</field>
+            <field name="model">procurement.order.compute.all</field>
+            <field name="inherit_id" ref="procurement.view_compute_schedulers_wizard"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form position="inside">
+                    <group>
+                        <field name="compute_all"/>
+                        <field name="product_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
     </data>
 </openerp>

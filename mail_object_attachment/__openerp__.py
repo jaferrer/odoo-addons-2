@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,28 +17,28 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+
 {
-    'name': 'Asynchronous Scheduler for Stock',
+    'name': 'Send Object Attachments by Email',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Procurement',
-    'depends': ['stock','scheduler_async'],
+    'category': 'Usability',
+    'depends': ['email_template'],
     'description': """
-Asynchronous Scheduler for Stock
+Send Object Attachments by Email
 ================================
-Asynchronous Scheduler reimplements the procurement scheduler using the 'OCA/connector' framework to be able to monitor
-the scheduler running in the background.
-
-This module brings the implementation of the scheduler part linked with the stock module.
+This module adds an option "Attach object attachments" to email templates. When this option is selected, all the
+attachments of the object will be added to the email attachments.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'mail_object_attachment_view.xml',
     ],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': True,
+    'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
 }

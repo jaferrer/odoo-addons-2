@@ -31,7 +31,7 @@ class ManufacturingOrderPlanningImproved(models.Model):
                                         help="True if the manufacturing order has been taken into account",
                                         states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
     procurement_id = fields.Many2one('procurement.order', string="Corresponding procurement order",
-                                     compute='_compute_procurement_id', readonly=True)
+                                                                                    compute='_compute_procurement_id')
 
     @api.multi
     def _compute_procurement_id(self):

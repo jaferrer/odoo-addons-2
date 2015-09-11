@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Manufacture',
-    'depends': ['resource', 'procurement', 'mrp', 'stock_working_days'],
+    'depends': ['mrp', 'stock_working_days'],
     'description': """
 MRP Scheduling on Working Days
 ==============================
