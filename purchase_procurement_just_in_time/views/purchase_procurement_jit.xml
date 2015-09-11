@@ -119,7 +119,7 @@
                 </field>
                 <field name="price_unit" position="after">
                     <field name="order_id" readonly="1"/>
-                    <field name="line_no" readonly="1"/>
+                    <field name="line_no"/>
                     <field name="state"/>
                 </field>
                 <field name="product_uom" position="attributes">
