@@ -19,6 +19,7 @@
 #
 
 from openerp import models, fields, api
+from copy import copy
 
 
 class StockQuant(models.Model):
@@ -39,14 +40,16 @@ class StockQuant(models.Model):
                 'date': fields.Datetime.now(),
                 'picking_type_id': picking_type_id.id
             })
-            item.reservation_id = new_move
-            move_recordset = move_recordset | new_move
+            new_move.action_confirm()
+            self.quants_reserve([(item, new_move.product_uom_qty)], new_move)
+            
+            move_recordset=move_recordset | new_move
+                
         if move_recordset :
-            move_recordset.action_confirm()
             picking=move_recordset[0].picking_id
             picking.do_prepare_partial()
+            packops = picking.pack_operation_ids
+            packops.write({'location_dest_id': dest_location.id})
             picking.do_transfer()
         
-        
-        #move_recordset.action_done()
         return move_recordset

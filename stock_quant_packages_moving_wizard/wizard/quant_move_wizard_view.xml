@@ -17,6 +17,7 @@
                             nolabel="1">
                             <tree editable="bottom">
                                 <field name="quant" />
+                                <field name="qty" />
                                 <field name="source_loc" />
                             </tree>
                         </field>
