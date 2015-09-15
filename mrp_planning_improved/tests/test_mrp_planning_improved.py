@@ -67,16 +67,16 @@ class TestMrpPlanningImproved(common.TransactionCase):
         # First, without context, and order not taken into account
         procurement_order_1.date_planned = '2015-05-05 15:00:00'
         procurement_order_1.action_reschedule()
-        self.assertEqual(order.date_required, '2015-04-30 18:00:00')
-        self.assertEqual(order.date_planned, '2015-04-29 18:00:00')
+        self.assertEqual(order.date_required[:10], '2015-04-30')
+        self.assertEqual(order.date_planned[:10], '2015-04-29')
         self.assertEqual(move_created.date[:10], '2015-05-01')
         self.assertEqual(move_created.date_expected[:10], "2015-04-30")
 
         # Next, with context, and order not taken into account
         procurement_order_1.date_planned = '2015-05-06 15:00:00'
         procurement_order_1.with_context({'reschedule_planned_date': True}).action_reschedule()
-        self.assertEqual(order.date_required, '2015-05-01 18:00:00')
-        self.assertEqual(order.date_planned, '2015-05-01 18:00:00')
+        self.assertEqual(order.date_required[:10], '2015-05-01')
+        self.assertEqual(order.date_planned[:10], '2015-05-01')
         self.assertEqual(move_created.date[:10], '2015-05-04')
         self.assertEqual(move_created.date_expected[:10], '2015-05-01')
 
@@ -84,18 +84,18 @@ class TestMrpPlanningImproved(common.TransactionCase):
         procurement_order_1.taken_into_account = True
         procurement_order_1.date_planned = '2015-05-07 15:00:00'
         procurement_order_1.action_reschedule()
-        self.assertEqual(order.date_required, '2015-05-04 18:00:00')
-        self.assertEqual(order.date_planned, '2015-05-01 18:00:00')
+        self.assertEqual(order.date_required[:10], '2015-05-04')
+        self.assertEqual(order.date_planned[:10], '2015-05-01')
         self.assertEqual(move_created.date[:10], '2015-05-05')
-        self.assertEqual(move_created.date_expected, '2015-05-01 18:00:00')
+        self.assertEqual(move_created.date_expected[:10], '2015-05-01')
 
         # Next, with context, and order taken into account
         procurement_order_1.date_planned = '2015-05-08 15:00:00'
         procurement_order_1.action_reschedule()
-        self.assertEqual(order.date_required, '2015-05-05 18:00:00')
-        self.assertEqual(order.date_planned, '2015-05-01 18:00:00')
+        self.assertEqual(order.date_required[:10], '2015-05-05')
+        self.assertEqual(order.date_planned[:10], '2015-05-01')
         self.assertEqual(move_created.date[:10], '2015-05-06')
-        self.assertEqual(move_created.date_expected, '2015-05-01 18:00:00')
+        self.assertEqual(move_created.date_expected[:10], '2015-05-01')
 
     def test_20_mrp_planning_improved(self):
 
@@ -110,7 +110,7 @@ class TestMrpPlanningImproved(common.TransactionCase):
         self.assertTrue(procurement_order_1.production_id)
         order = procurement_order_1.production_id
         self.assertFalse(order.taken_into_account)
-        self.assertEqual(order.date_planned, '2015-04-29 18:00:00')
+        self.assertEqual(order.date_planned[:10], '2015-04-29')
         order.date_required = order.date_planned
         self.assertTrue(procurement_order_1.production_id.move_created_ids)
         self.assertEqual(len(procurement_order_1.production_id.move_created_ids), 1)
@@ -125,8 +125,8 @@ class TestMrpPlanningImproved(common.TransactionCase):
             if move.product_qty == 20.0:
                 m2 = move
         self.assertTrue(m1 and m2)
-        self.assertEqual(m1.date, '2015-04-29 18:00:00')
-        self.assertEqual(m2.date, '2015-04-29 18:00:00')
+        self.assertEqual(m1.date[:10], '2015-04-29')
+        self.assertEqual(m2.date[:10], '2015-04-29')
         initial_date_expected_input = m1.date_expected
         self.assertEqual(m2.date_expected, initial_date_expected_input)
 
@@ -134,11 +134,11 @@ class TestMrpPlanningImproved(common.TransactionCase):
         order.date_planned = '2015-04-30 15:00:00'
         self.assertEqual(m1.date_expected, initial_date_expected_input)
         self.assertEqual(m2.date_expected, initial_date_expected_input)
-        self.assertEqual(m1.date, '2015-04-29 18:00:00')
-        self.assertEqual(m2.date, '2015-04-29 18:00:00')
-        self.assertEqual(order.date_required, '2015-04-29 18:00:00')
+        self.assertEqual(m1.date[:10], '2015-04-29')
+        self.assertEqual(m2.date[:10], '2015-04-29')
+        self.assertEqual(order.date_required[:10], '2015-04-29')
         self.assertEqual(move_created.date, initial_date_output)
-        self.assertEqual(move_created.date_expected, '2015-04-30 15:00:00')
+        self.assertEqual(move_created.date_expected[:10], '2015-04-30')
 
         # Testing rescheduling: first, without context, and order not taken into account
         order.date_required = '2015-05-01 15:00:00'
@@ -147,42 +147,42 @@ class TestMrpPlanningImproved(common.TransactionCase):
         order.action_reschedule()
         self.assertEqual(m1.date_expected, initial_date_expected_input)
         self.assertEqual(m2.date_expected, initial_date_expected_input)
-        self.assertEqual(m1.date, '2015-05-01 15:00:00')
-        self.assertEqual(m2.date, '2015-05-01 15:00:00')
+        self.assertEqual(m1.date[:10], '2015-05-01')
+        self.assertEqual(m2.date[:10], '2015-05-01')
         self.assertEqual(move_created.date, initial_date_output)
-        self.assertEqual(move_created.date_expected, '2015-04-30 15:00:00')
+        self.assertEqual(move_created.date_expected[:10], '2015-04-30')
 
         # Next, with context, and order not taken into account
         order.date_required = '2015-05-02 15:00:00'
         order.date_planned = '2015-05-01 15:00:00'
         self.assertFalse(order.taken_into_account)
         order.with_context({'reschedule_planned_date': True}).action_reschedule()
-        self.assertEqual(m1.date_expected, '2015-05-02 15:00:00')
-        self.assertEqual(m2.date_expected, '2015-05-02 15:00:00')
-        self.assertEqual(m1.date, '2015-05-02 15:00:00')
-        self.assertEqual(m2.date, '2015-05-02 15:00:00')
+        self.assertEqual(m1.date_expected[:10], '2015-05-02')
+        self.assertEqual(m2.date_expected[:10], '2015-05-02')
+        self.assertEqual(m1.date[:10], '2015-05-02')
+        self.assertEqual(m2.date[:10], '2015-05-02')
         self.assertEqual(move_created.date, initial_date_output)
-        self.assertEqual(move_created.date_expected, '2015-05-01 15:00:00')
+        self.assertEqual(move_created.date_expected[:10], '2015-05-01')
 
         # Next, without context, and order taken into account
         order.date_required = '2015-05-03 15:00:00'
         order.date_planned = '2015-05-02 15:00:00'
         order.taken_into_account = True
         order.action_reschedule()
-        self.assertEqual(m1.date_expected, '2015-05-02 15:00:00')
-        self.assertEqual(m2.date_expected, '2015-05-02 15:00:00')
-        self.assertEqual(m1.date, '2015-05-02 15:00:00')
-        self.assertEqual(m2.date, '2015-05-02 15:00:00')
+        self.assertEqual(m1.date_expected[:10], '2015-05-02')
+        self.assertEqual(m2.date_expected[:10], '2015-05-02')
+        self.assertEqual(m1.date[:10], '2015-05-02')
+        self.assertEqual(m2.date[:10], '2015-05-02')
         self.assertEqual(move_created.date, initial_date_output)
-        self.assertEqual(move_created.date_expected, '2015-05-02 15:00:00')
+        self.assertEqual(move_created.date_expected[:10], '2015-05-02')
 
         # Next, with context, and order taken into account
         order.date_required = '2015-05-04 15:00:00'
         order.date_planned = '2015-05-03 15:00:00'
         order.with_context({'reschedule_planned_date': True}).action_reschedule()
-        self.assertEqual(m1.date_expected, '2015-05-04 15:00:00')
-        self.assertEqual(m2.date_expected, '2015-05-04 15:00:00')
-        self.assertEqual(m1.date, '2015-05-03 15:00:00')
-        self.assertEqual(m2.date, '2015-05-03 15:00:00')
+        self.assertEqual(m1.date_expected[:10], '2015-05-04')
+        self.assertEqual(m2.date_expected[:10], '2015-05-04')
+        self.assertEqual(m1.date[:10], '2015-05-03')
+        self.assertEqual(m2.date[:10], '2015-05-03')
         self.assertEqual(move_created.date, initial_date_output)
-        self.assertEqual(move_created.date_expected, '2015-05-03 15:00:00')
+        self.assertEqual(move_created.date_expected[:10], '2015-05-03')
