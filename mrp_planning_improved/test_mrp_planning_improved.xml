@@ -16,6 +16,7 @@
         <record id="product_to_manufacture1" model="product.product">
             <field name="name">Test Product to manufacture 1 (MRP planning improved)</field>
             <field name="type">product</field>
+            <field name="produce_delay">2</field>
         </record>
 
         <record id="product1" model="product.product">

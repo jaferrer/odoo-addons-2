@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,27 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+
 {
-    'name': 'Product Warning on Stock Operations',
+    'name': 'Free Numbering of Purchase Orders',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Warehouse',
-    'depends': ['stock','warning','web_action_target_popup'],
+    'category': 'Purchase',
+    'depends': ['purchase'],
     'description': """
-Product Warning on Stock Operations
-===================================
-This modules adds a flag on products which can be set to display a warning in stock operation transfer window as well
-as warehouse barcode UI.
+Free Numbering of Purchase Orders
+=================================
+With this module, the auto-incremented number of the purchase order can be modified by the user when it is in draft
+state.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'stock_product_warning_view.xml'
+        'purchase_free_name_view.xml',
     ],
-    'qweb': [
-        'static/src/xml/stock_product_warning.xml'
-    ],
-
     'demo': [],
     'test': [],
     'installable': True,

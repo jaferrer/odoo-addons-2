@@ -39,7 +39,7 @@ class TestMrpPlanningImproved(common.TransactionCase):
             'company_id': self.ref('base.main_company'),
             'rule_id': self.rule_manufacture.id,
         })
-        procurement.company_id.manufacturing_lead = 2.0
+        procurement.company_id.manufacturing_lead = 1.0
         return procurement
 
     def test_10_mrp_planning_improved(self):
@@ -50,8 +50,8 @@ class TestMrpPlanningImproved(common.TransactionCase):
 
         procurement_order_1 = self.create_procurement_order_1()
         procurement_order_1.run()
-        self.assertEqual(procurement_order_1.company_id.manufacturing_lead, 2.0)
-        self.assertEqual(self.product_to_manufacture.produce_delay, 1.0)
+        self.assertEqual(procurement_order_1.company_id.manufacturing_lead, 1.0)
+        self.assertEqual(self.product_to_manufacture.produce_delay, 2.0)
         self.assertEqual(procurement_order_1.rule_id.action, 'manufacture')
         self.assertTrue(procurement_order_1.production_id)
         order = procurement_order_1.production_id
@@ -62,7 +62,7 @@ class TestMrpPlanningImproved(common.TransactionCase):
         self.assertTrue(procurement_order_1.production_id.move_created_ids)
         self.assertEqual(len(procurement_order_1.production_id.move_created_ids), 1)
         move_created = procurement_order_1.production_id.move_created_ids[0]
-        self.assertEqual(move_created.date[:10], "2015-04-30")
+        self.assertEqual(move_created.date[:10], "2015-05-01")
 
         # First, without context, and order not taken into account
         procurement_order_1.date_planned = '2015-05-05 15:00:00'
@@ -105,7 +105,7 @@ class TestMrpPlanningImproved(common.TransactionCase):
 
         procurement_order_1 = self.create_procurement_order_1()
         procurement_order_1.run()
-        self.assertEqual(procurement_order_1.company_id.manufacturing_lead, 2.0)
+        self.assertEqual(procurement_order_1.company_id.manufacturing_lead, 1.0)
         self.assertEqual(procurement_order_1.rule_id.action, 'manufacture')
         self.assertTrue(procurement_order_1.production_id)
         order = procurement_order_1.production_id
