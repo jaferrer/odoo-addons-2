@@ -23,21 +23,65 @@ from openerp import fields, models, api
 class QuantitiesModificationsSaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    order_line = fields.One2many('sale.order.line', 'order_id', readonly=False, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
-
+    order_line = fields.One2many('sale.order.line', 'order_id', readonly=False, states={'done': [('readonly', True)],
+                                                                                        'cancel': [('readonly', True)]})
 
 class QuantitiesModificationsSaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    product_uom_qty = fields.Float(readonly=False, states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
+    product_uom_qty = fields.Float(readonly=False, states={'done': [('readonly', True)],
+                                                           'cancel': [('readonly', True)]})
 
     @api.multi
     def unlink(self):
+        # Deletion of the corresponding procurements when deleting a sale order line.
         for rec in self:
-            print 'supperssion ligne', rec
             if rec.procurement_ids:
-                print 'suppression procurements', rec.procurement_ids
                 rec.procurement_ids.cancel()
                 rec.procurement_ids.unlink()
         self.button_cancel()
         return super(QuantitiesModificationsSaleOrderLine, self).unlink()
+
+    @api.model
+    def create(self, vals):
+        # Creation of corresponding procurements when adding a sale order line.
+        result = super(QuantitiesModificationsSaleOrderLine, self).create(vals)
+        if result.order_id and result.order_id.state not in ['draft', 'done', 'cancel']:
+            # Lets's call 'action_ship_create' function using old api, in order to allow the system to change the
+            # context (which is a frozendict in new api).
+            context = self.env.context.copy()
+            # Creation of the corresponding procurement orders
+            self.pool.get('sale.order').action_ship_create(self.env.cr, self.env.uid, [result.order_id.id], context)
+        return result
+
+    @api.multi
+    def write(self, vals):
+        result = super(QuantitiesModificationsSaleOrderLine, self).write(vals)
+        # Overwriting the 'write' function, in order to deal with a modification of the quantity of a sale order line.
+        for rec in self:
+            if rec.state not in ['draft', 'cancel']:
+                if vals.get('product_uom_qty') and vals['product_uom_qty'] != 0:
+                    if rec.procurement_ids:
+                        sum_procurements = sum([x.product_qty for x in rec.procurement_ids if
+                                                x.state not in ['cancel', 'done']])
+                        if vals['product_uom_qty'] > sum_procurements:
+                            # If the qty of the line is increased, we increase the qty of the first procurement.
+                            sum_except_first_proc = sum([proc.product_qty for proc in rec.procurement_ids
+                                                         if proc != rec.procurement_ids[0]])
+                            rec.procurement_ids[0].product_qty = vals['product_uom_qty'] - sum_except_first_proc
+                        elif vals['product_uom_qty'] < sum_procurements:
+                            # If the qty of the line is decreased, we delete all the procurements linked to the line.
+                            # Other ones will be generated later.
+                            rec.procurement_ids.cancel()
+                            rec.procurement_ids.unlink()
+                    if not rec.procurement_ids:
+                        # Creation of the procurements for lines which have no ones.
+                        self.pool.get('sale.order').action_ship_create(self.env.cr, self.env.uid, [rec.order_id.id],
+                                                                       self.env.context.copy())
+                if vals.get('product_uom_qty') == 0:
+                    # If the quantity of a line is set to zero, we delete the linked procurements and the line itself.
+                    if rec.procurement_ids:
+                        rec.procurement_ids.cancel()
+                        rec.procurement_ids.unlink()
+                    rec.unlink()
+        return result

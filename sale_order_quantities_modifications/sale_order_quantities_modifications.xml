@@ -5,11 +5,35 @@
         <record model="ir.ui.view" id="quantities_modifications_sale_order">
             <field name="name">quantities.modifications.sale.order</field>
             <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="inherit_id" ref="sale_stock.view_order_form_inherit"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
+                <field name="client_order_ref" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+                </field>
+                <field name="warehouse_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+                </field>
                 <field name="product_uom_qty" position="attributes">
                     <attribute name="invisible" eval="False"/>
+                </field>
+                <field name="note" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+                </field>
+                <field name="fiscal_position" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+                </field>
+                <field name="incoterm" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+                </field>
+                <field name="payment_term" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+                </field>
+                <field name="user_id" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+                </field>
+                <field name="origin" position="attributes">
+                    <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
                 </field>
             </field>
         </record>
