@@ -84,8 +84,12 @@ class ProcurementOrderQuantity(models.Model):
         while orderpoint_ids:
             orderpoints = orderpoint_ids[:ORDERPOINT_CHUNK]
             orderpoint_ids = orderpoint_ids - orderpoints
-            process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                      orderpoints.ids, description="Computing orderpoints %s" % orderpoints.ids)
+            if self.env.context.get('without_job'):
+                for op in orderpoints:
+                    op.process()
+            else:
+                process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                          orderpoints.ids, description="Computing orderpoints %s" % orderpoints.ids)
         return {}
 
 
