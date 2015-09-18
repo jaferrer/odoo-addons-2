@@ -30,11 +30,7 @@ class MrpProduction(models.Model):
         def get_parent_move(move_id):
             move = move_obj.browse(cr, uid, move_id)
             if move.move_dest_id:
-                try:
-                    # We check if we have the permissions to do it
-                    return get_parent_move(move.move_dest_id.id)
-                except exceptions.AccessError:
-                    return move_id
+                return get_parent_move(move.move_dest_id.id)
             return move_id
 
         res = {}
@@ -42,11 +38,14 @@ class MrpProduction(models.Model):
         for production in productions:
             res[production.id] = False
             if production.move_prod_id:
-                parent_move_line = get_parent_move(production.move_prod_id.id)
-                if parent_move_line:
-                    move = move_obj.browse(cr, uid, parent_move_line)
-                    if field_name == 'name':
-                        res[production.id] = move.procurement_id and move.procurement_id.sale_line_id and move.procurement_id.sale_line_id.order_id.name or False
-                    if field_name == 'client_order_ref':
-                        res[production.id] = move.procurement_id and move.procurement_id.sale_line_id and move.procurement_id.sale_line_id.order_id.client_order_ref or False
+                try:
+                    parent_move_line = get_parent_move(production.move_prod_id.id)
+                    if parent_move_line:
+                        move = move_obj.browse(cr, uid, parent_move_line)
+                        if field_name == 'name':
+                            res[production.id] = move.procurement_id and move.procurement_id.sale_line_id and move.procurement_id.sale_line_id.order_id.name or False
+                        if field_name == 'client_order_ref':
+                            res[production.id] = move.procurement_id and move.procurement_id.sale_line_id and move.procurement_id.sale_line_id.order_id.client_order_ref or False
+                except exceptions.AccessError:
+                    pass
         return res
