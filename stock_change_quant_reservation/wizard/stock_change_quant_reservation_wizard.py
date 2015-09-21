@@ -19,16 +19,16 @@ class StockChangeQuantPicking(models.TransientModel):
         for quant in quants:
             if not quant.package_id:
                 compare=items
-                moves=self.env['stock.move'].search(['&',('product_id','=',quant.product_id.id),('state','not in',['done','cancel']),('|',('reserved_quant_ids','=',False),(quant.id,'not in','reserved_quant_ids'))])
-                sublist=[]
+                moves = self.env['stock.move'].search(['&',('product_id','=',quant.product_id.id),('state','not in',['done','cancel'])])
+                sublist = []
                 for move in moves:
                     sublist.append(move.picking_id.id)
                 if compare:
-                    items=set(compare).intersection(set(sublist))
+                    items = set(compare).intersection(set(sublist))
                 else:
-                    items=sublist
+                    items = sublist
        
-        return [('id','in',items)]
+        return [('id','in',list(items))]
     
     picking_id = fields.Many2one(
         comodel_name='stock.picking',
@@ -42,6 +42,7 @@ class StockChangeQuantPicking(models.TransientModel):
         for quant in quants:
             for move in moves:
                 if(move.product_id.id==quant.product_id.id):
+                    self.env['stock.quant'].quants_unreserve(move)
                     move.action_confirm()
                     quant.quants_reserve([(quant, move.product_uom_qty)], move)
                     break

@@ -49,6 +49,7 @@ class StockQuantMove(models.TransientModel):
                 item = {
                     'quant': quant.id,
                     'source_loc': quant.location_id.id,
+                    'qty': quant.qty
                 }
                 items.append(item)
         res.update(pack_move_items=items)
@@ -78,7 +79,7 @@ class StockQuantMoveItems(models.TransientModel):
     dest_loc = fields.Many2one(
         comodel_name='stock.location', string='Destination Location')
     
-    qty=fields.Float(string='Quantité',required=True,default=lambda x: x.quant.qty)
+    qty=fields.Float(string='Quantité',required=True)
 
     @api.one
     @api.onchange('quant')
