@@ -19,7 +19,6 @@
 #
 
 from openerp import models, fields, api
-from copy import copy
 
 
 class StockQuant(models.Model):
@@ -43,10 +42,10 @@ class StockQuant(models.Model):
             new_move.action_confirm()
             self.quants_reserve([(item, new_move.product_uom_qty)], new_move)
             
-            move_recordset=move_recordset | new_move
+            move_recordset = move_recordset | new_move
                 
-        if move_recordset :
-            picking=move_recordset[0].picking_id
+        if move_recordset:
+            picking = move_recordset[0].picking_id
             picking.do_prepare_partial()
             packops = picking.pack_operation_ids
             packops.write({'location_dest_id': dest_location.id})
