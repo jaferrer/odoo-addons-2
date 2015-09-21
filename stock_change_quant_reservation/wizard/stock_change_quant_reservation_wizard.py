@@ -19,7 +19,7 @@ class StockChangeQuantPicking(models.TransientModel):
         for quant in quants:
             if not quant.package_id:
                 compare=items
-                moves=self.env['stock.move'].search(['&',('product_id','=',quant.product_id.id),('state','not in',['done','cancel']),('|'('reserved_quant_ids','=',False),(quant.id,'not in','reserved_quant_ids'))])
+                moves=self.env['stock.move'].search(['&',('product_id','=',quant.product_id.id),('state','not in',['done','cancel']),('|',('reserved_quant_ids','=',False),(quant.id,'not in','reserved_quant_ids'))])
                 sublist=[]
                 for move in moves:
                     sublist.append(move.picking_id.id)
