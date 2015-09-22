@@ -19,6 +19,7 @@
 #
 
 from openerp import models, fields, api
+from openerp.exceptions import ValidationError
 
 
 class StockQuantMove(models.TransientModel):
@@ -32,7 +33,7 @@ class StockQuantMove(models.TransientModel):
         comodel_name='stock.location', string='Destination Location',
         required=True)
 
-    picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type')
+    picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type', required=True)
 
     def default_get(self, cr, uid, fields, context=None):
         res = super(StockQuantMove, self).default_get(
@@ -48,6 +49,7 @@ class StockQuantMove(models.TransientModel):
                 item = {
                     'quant': quant.id,
                     'source_loc': quant.location_id.id,
+                    'qty': quant.qty
                 }
                 items.append(item)
         res.update(pack_move_items=items)
@@ -56,7 +58,10 @@ class StockQuantMove(models.TransientModel):
     @api.one
     def do_transfer(self):
         quants = self.pack_move_items.mapped(lambda x: x.quant)
-        quants.move_to(self.global_dest_loc, self.picking_type_id)
+        qty_items = {}
+        for item in self.pack_move_items:
+            qty_items[item.quant.id] = item
+        quants.move_to(self.global_dest_loc, self.picking_type_id, qty_items)
         return True
 
 
@@ -73,8 +78,16 @@ class StockQuantMoveItems(models.TransientModel):
         comodel_name='stock.location', string='Source Location', required=True)
     dest_loc = fields.Many2one(
         comodel_name='stock.location', string='Destination Location')
+    
+    qty = fields.Float(string='Quantité', required=True)
 
     @api.one
     @api.onchange('quant')
     def onchange_quant(self):
         self.source_loc = self.quant.location_id
+
+    @api.one
+    @api.constrains('qty')
+    def _check_description(self):
+        if self.qty > self.quant.qty:
+            raise ValidationError("Fields qty must be letter than initial quant quantity")
