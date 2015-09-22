@@ -30,8 +30,8 @@
                     <attribute name="attrs"/>
                 </page>
                 <field name="pack_operation_ids" position="before">
-                    <button type="object" name="do_prepare_partial" string="Recompute Packing Operations"
-                            confirm="All existing packing operations will be removed and new one created from the stock moves.
+                    <button type="object" name="delete_packops" string="Delete Packing Operations"
+                            confirm="All existing packing operations will be removed.
                             Are you sure you want to continue?"/>
                 </field>
             </field>
