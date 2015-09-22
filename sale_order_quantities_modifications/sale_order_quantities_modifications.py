@@ -47,6 +47,7 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
         # Creation of corresponding procurements when adding a sale order line.
         result = super(QuantitiesModificationsSaleOrderLine, self).create(vals)
         if result.order_id and result.order_id.state not in ['draft', 'done', 'cancel']:
+            result.state = 'confirmed'
             # Lets's call 'action_ship_create' function using old api, in order to allow the system to change the
             # context (which is a frozendict in new api).
             context = self.env.context.copy()
@@ -59,16 +60,16 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
         result = super(QuantitiesModificationsSaleOrderLine, self).write(vals)
         # Overwriting the 'write' function, in order to deal with a modification of the quantity of a sale order line.
         for rec in self:
-            if rec.state not in ['draft', 'cancel']:
+            if rec.order_id.state not in ['draft', 'cancel', 'done']:
                 if vals.get('product_uom_qty') and vals['product_uom_qty'] != 0:
                     if rec.procurement_ids:
                         sum_procurements = sum([x.product_qty for x in rec.procurement_ids if
                                                 x.state not in ['cancel', 'done']])
                         if vals['product_uom_qty'] > sum_procurements:
                             # If the qty of the line is increased, we increase the qty of the first procurement.
-                            sum_except_first_proc = sum([proc.product_qty for proc in rec.procurement_ids
-                                                         if proc != rec.procurement_ids[0]])
-                            rec.procurement_ids[0].product_qty = vals['product_uom_qty'] - sum_except_first_proc
+                            sum_ordered_qty = sum([proc.product_qty for proc in rec.procurement_ids])
+                            new_proc = rec.procurement_ids[0].copy({'product_qty': vals['product_uom_qty'] - sum_ordered_qty})
+                            new_proc.run()
                         elif vals['product_uom_qty'] < sum_procurements:
                             # If the qty of the line is decreased, we delete all the procurements linked to the line.
                             # Other ones will be generated later.

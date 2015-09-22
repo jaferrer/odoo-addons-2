@@ -68,13 +68,15 @@ class TestQuantitiesModifications(common.TransactionCase):
         self.sale_order.write({'order_line': [[1, self.sale_order_line1.id, {'product_uom_qty': 5}],
                                               [1, self.sale_order_line2.id, {'product_uom_qty': 4}],
                                               [1,self.sale_order_line3.id, {'product_uom_qty': 7}]]})
-        check_procurements(lines, [[self.product1, 5], [self.product2, 4], [self.product3, 7]])
+        check_procurements(lines, [[self.product1, 4], [self.product1, 1], [self.product2, 4],
+                                   [self.product3, 6], [self.product3, 1]])
 
          # Two quantities decreased, one increased:
         self.sale_order.write({'order_line': [[1, self.sale_order_line1.id, {'product_uom_qty': 4}],
                                               [1, self.sale_order_line2.id, {'product_uom_qty': 3}],
                                               [1,self.sale_order_line3.id, {'product_uom_qty': 8}]]})
-        check_procurements(lines, [[self.product1, 4], [self.product2, 3], [self.product3, 8]])
+        check_procurements(lines, [[self.product1, 4], [self.product2, 3],
+                                   [self.product3, 6], [self.product3, 1], [self.product3, 1]])
 
         #Two quantities increased, one decreased, one line added
         self.sale_order.write({'order_line': [[1, self.sale_order_line1.id, {'product_uom_qty': 5}],
@@ -88,7 +90,8 @@ class TestQuantitiesModifications(common.TransactionCase):
             'price_unit': 4.0,
         })
         lines += [line4.id]
-        check_procurements(lines, [[self.product1, 5], [self.product2, 4], [self.product3, 7], [self.product1, 10]])
+        check_procurements(lines, [[self.product1, 1], [self.product1, 4], [self.product2, 3], [self.product2, 1],
+                                   [self.product3, 7], [self.product1, 10]])
 
          # One quantity decreased, one increased, and two lines deleted
         self.sale_order.write({'order_line': [[1, self.sale_order_line1.id, {'product_uom_qty': 2}],
@@ -96,4 +99,4 @@ class TestQuantitiesModifications(common.TransactionCase):
         self.sale_order_line2.unlink()
         line4.unlink()
         lines = [self.sale_order_line1.id, self.sale_order_line3.id]
-        check_procurements(lines, [[self.product1, 2], [self.product3, 15]])
+        check_procurements(lines, [[self.product1, 2], [self.product3, 7], [self.product3, 8]])
