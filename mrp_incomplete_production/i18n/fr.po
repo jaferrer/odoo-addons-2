@@ -71,7 +71,7 @@ msgstr "Ordre de fabrication"
 #. module: mrp_incomplete_production
 #: view:mrp.production:0
 msgid "Not consumed Products"
-msgstr "Produits non consommés"
+msgstr "Articles non consommés"
 
 #. module: mrp_incomplete_production
 #: field:mrp.production,child_move_ids:0
