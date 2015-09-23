@@ -129,6 +129,11 @@ msgid "True if the raw material of the related Manufacturing Order is entirely a
 msgstr "Vrai si les matières premières de l'ordre de fabrication associé sont toutes disponibles"
 
 #. module: mrp_incomplete_production
+#: field:mrp.production,child_order_id:0
+msgid "Child Manufacturing Order"
+msgstr "OF reliquat"
+
+#. module: mrp_incomplete_production
 #: view:mrp.production:0
 msgid "Cancel Starting"
 msgstr "Annuler le démarrage de l'OF"
