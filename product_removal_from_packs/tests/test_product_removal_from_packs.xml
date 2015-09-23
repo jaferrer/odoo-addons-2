@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!-- Product -->
+        <record id="product1" model="product.product">
+            <field name="name">Test Product 1 (Product Removal From Packs)</field>
+            <field name="type">product</field>
+        </record>
+
+        <!-- Location with new removal strategy -->
+        <record id="location1" model="stock.location">
+            <field name="name">Test Location (Product Removal From Packs)</field>
+            <field name="usage">internal</field>
+            <field name="removal_strategy_id" ref="product_removal_from_packs.removal_share_strategy"/>
+        </record>
+
+        <!-- Quants -->
+        <record id="quant1" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product1"/>
+            <field name="qty" eval="5.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+        </record>
+
+        <record id="quant2" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product1"/>
+            <field name="qty" eval="10.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+        </record>
+
+    </data>
+</openerp>
