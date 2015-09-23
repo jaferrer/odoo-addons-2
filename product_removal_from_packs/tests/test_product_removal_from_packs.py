@@ -26,6 +26,7 @@ class TestProductRemovalFromPacks(common.TransactionCase):
         super(TestProductRemovalFromPacks, self).setUp()
         self.location1 = self.browse_ref("product_removal_from_packs.location1")
         self.product1 = self.browse_ref("product_removal_from_packs.product1")
+        self.lot1 = self.browse_ref("product_removal_from_packs.lot1")
         self.quant1 = self.browse_ref("product_removal_from_packs.quant1")
         self.quant2 = self.browse_ref("product_removal_from_packs.quant2")
 
@@ -43,22 +44,27 @@ class TestProductRemovalFromPacks(common.TransactionCase):
         quants = self.env['stock.quant'].search([('location_id', '=', self.location1.id)])
         self.assertEqual(len(quants), len(list_quants))
         for quant in quants:
-            self.assertIn([quant.product_id, quant.qty], list_quants)
+            self.assertIn([quant.product_id, quant.lot_id, quant.qty], list_quants)
 
 
     def test_10_product_removal_from_packs(self):
 
         # Testing integer final values
-        self.create_move_out_and_test(2.0, [[self.product1, 4.0], [self.product1, 9.0]])
+        self.create_move_out_and_test(2.0, [[self.product1, self.lot1, 4.0],
+                                            [self.product1, self.env['stock.production.lot'], 9.0]])
 
         # Testing float final values
-        self.create_move_out_and_test(3.0, [[self.product1, 2.5], [self.product1, 7.5]])
+        self.create_move_out_and_test(3.0, [[self.product1, self.lot1, 2.5],
+                                            [self.product1, self.env['stock.production.lot'], 7.5]])
 
         # Testing one negative final values
-        self.create_move_out_and_test(7, [[self.product1, -1.0], [self.product1, 4.0]])
+        self.create_move_out_and_test(7, [[self.product1, self.lot1, -1.0],
+                                          [self.product1, self.env['stock.production.lot'], 4.0]])
 
         # Testing two negative final values (from one positive and one negative)
-        self.create_move_out_and_test(10, [[self.product1, -6.0], [self.product1, -1.0]])
+        self.create_move_out_and_test(10, [[self.product1, self.lot1, -6.0],
+                                           [self.product1, self.env['stock.production.lot'], -1.0]])
 
         # Testing two negative final values again (from two negatives)
-        self.create_move_out_and_test(2, [[self.product1, -7.0], [self.product1, -2.0]])
+        self.create_move_out_and_test(2, [[self.product1, self.lot1, -7.0],
+                                          [self.product1, self.env['stock.production.lot'], -2.0]])

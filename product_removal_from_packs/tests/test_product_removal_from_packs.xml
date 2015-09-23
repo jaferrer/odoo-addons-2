@@ -8,6 +8,12 @@
             <field name="type">product</field>
         </record>
 
+        <!-- Lot -->
+        <record id="lot1" model="stock.production.lot">
+            <field name="name">Lot 1 (Product Removal From Packs)</field>
+            <field name="product_id" ref="product_removal_from_packs.product1"/>
+        </record>
+
         <!-- Location with new removal strategy -->
         <record id="location1" model="stock.location">
             <field name="name">Test Location (Product Removal From Packs)</field>
@@ -20,6 +26,7 @@
             <field name="product_id" ref="product_removal_from_packs.product1"/>
             <field name="qty" eval="5.0"/>
             <field name="location_id" ref="product_removal_from_packs.location1"/>
+            <field name="lot_id" ref="product_removal_from_packs.lot1"/>
         </record>
 
         <record id="quant2" model="stock.quant">
