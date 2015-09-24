@@ -18,24 +18,23 @@
 #
 
 {
-    'name': 'Sale Order Quantities Modifications',
+    'name': 'Quants Origin',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Sale',
-    'depends': ['sale', 'sale_stock'],
+    'category': 'Stock',
+    'depends': ['stock'],
     'description': """
-Sale Order Quantities Modifications
-===================================
-This module allows to change quantities of confirmed sale orders.
+Quants Origin
+=============
+This modules creates a new field for stock quants, corresponding to the field 'origin' of its oldest stock move.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['sale_order_quantities_modifications.xml'],
-    'demo': ['test_quantities_modifications.xml'],
+    'data': ['quant_origin.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
 }
-
