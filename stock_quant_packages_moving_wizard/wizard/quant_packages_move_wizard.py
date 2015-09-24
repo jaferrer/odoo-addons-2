@@ -32,7 +32,7 @@ class StockQuantPackageMove(models.TransientModel):
         comodel_name='stock.location', string='Destination Location',
         required=True)
 
-    picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type')
+    picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type',required=True)
 
     def default_get(self, cr, uid, fields, context=None):
         res = super(StockQuantPackageMove, self).default_get(
@@ -56,11 +56,12 @@ class StockQuantPackageMove(models.TransientModel):
     @api.one
     def do_detailed_transfer(self):
         quants = self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc).mapped(lambda x: x.package.quant_ids)
-        quants.move_to(self.global_dest_loc, self.picking_type_id)
         quants2 = (self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc)).mapped(lambda x: x.package.children_ids.quant_ids)
-        quants2.move_to(self.global_dest_loc, self.picking_type_id)
+        quants= quants + quants2
+        quants.move_to(self.global_dest_loc, self.picking_type_id)   
         return True
 
+    
 class StockQuantPackageMoveItems(models.TransientModel):
     _name = 'stock.quant.package.move_items'
     _description = 'Picking wizard items'

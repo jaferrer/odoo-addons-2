@@ -18,9 +18,10 @@
 #
 from datetime import datetime
 
-from openerp import fields, models, api
+from openerp import models, api
 
-class stock_split_only_transfer_details(models.TransientModel):
+
+class StockSplitOnlyTransferDetails(models.TransientModel):
     _inherit = 'stock.transfer_details'
 
     @api.one
@@ -58,19 +59,25 @@ class stock_split_only_transfer_details(models.TransientModel):
                     processed_ids.append(packop_id.id)
         # Delete the others
         packops = self.env['stock.pack.operation'].search(['&', ('picking_id', '=', self.picking_id.id),
-                                                                '!', ('id', 'in', processed_ids)])
+                                                           '!', ('id', 'in', processed_ids)])
         for packop in packops:
             packop.unlink()
         return self.wizard_view()
 
 
-class stock_split_picking(models.Model):
+class StockSplitPicking(models.Model):
     _inherit = 'stock.picking'
 
     @api.one
     def action_split_from_ui(self):
         """ called when button 'done' is pushed in the barcode scanner UI """
-        #write qty_done into field product_qty for every package_operation before doing the transfer
+        # write qty_done into field product_qty for every package_operation before doing the transfer
         for operation in self.pack_operation_ids:
             operation.write({'product_qty': operation.qty_done})
         self.do_split()
+
+    @api.multi
+    def delete_packops(self):
+        """Removes packing operations from this picking."""
+        self.ensure_one()
+        self.pack_operation_ids.unlink()
