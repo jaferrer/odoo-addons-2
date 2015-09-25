@@ -24,19 +24,28 @@ class StockQuantRemovalFromPacks(models.Model):
     _inherit = 'stock.quant'
 
     @api.model
-    def apply_removal_strategy(self, location, product, qty, domain, removal_strategy):
+    def apply_removal_strategy(self, location, product, quantity, domain, removal_strategy):
         if removal_strategy == 'rss':
-            list_removals = []
-            quants = self.env['stock.quant'].search([('product_id', '=', product.id),
-                                                     ('location_id', '=', location.id)])
-            if quants:
-                qty_to_remove_for_each_quant = float(qty) / len(quants)
-                for quant in quants:
-                    # Spliting quants which final qty should be negative. If not, they will be deleted by the system.
-                    if quant.qty < qty_to_remove_for_each_quant:
-                        nq = quant.copy({'qty': quant.qty - qty_to_remove_for_each_quant})
-                        quant.qty = qty_to_remove_for_each_quant
-                    list_removals += [(quant, qty_to_remove_for_each_quant)]
-            return list_removals
-        else:
-            return super(StockQuantRemovalFromPacks, self).apply_removal_strategy(location, product, qty, domain, removal_strategy)
+            apply_rss = True
+            pack_or_lot_or_reservation_domain = [x for x in domain if x[0] == 'package_id' or x[0] == 'lot_id' or x[0] == 'reservation_id']
+            domain += [('location_id', '=', location.id)] + pack_or_lot_or_reservation_domain
+            for cond in pack_or_lot_or_reservation_domain:
+                if cond[2]:
+                    apply_rss = False
+                    break
+            if apply_rss:
+                list_removals = []
+                quants = self.env['stock.quant'].search([('product_id', '=', product.id),
+                                                         ('location_id', '=', location.id)])
+                if quants:
+                    qty_to_remove_for_each_quant = float(quantity) / len(quants)
+                    for quant in quants:
+                        if abs(quant.qty) <= qty_to_remove_for_each_quant:
+                            # For positive quants which final quantity should be negative, we don't mind losing
+                            # package_id and lot_id.
+                            list_removals += [(None, qty_to_remove_for_each_quant - quant.qty)]
+                        list_removals += [(quant, qty_to_remove_for_each_quant)]
+                return list_removals
+            else:
+                removal_strategy = 'fifo'
+        return super(StockQuantRemovalFromPacks, self).apply_removal_strategy(location, product, quantity, domain, removal_strategy)
