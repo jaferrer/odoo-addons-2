@@ -18,20 +18,25 @@
 #
 
 {
-    'name': 'Sale Order Quantities Modifications',
+    'name': 'Stock Specific Inventory',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Sale',
-    'depends': ['sale', 'sale_stock'],
+    'category': 'Warehouse Management',
+    'depends': ['stock'],
     'description': """
-Sale Order Quantities Modifications
-===================================
-This module allows to change quantities of confirmed sale orders.
+Stock Specific Inventory
+==========================
+
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['sale_order_quantities_modifications.xml'],
-    'demo': ['test_quantities_modifications.xml'],
+    'data': [
+        'security/ir.model.access.csv',
+        'views/stock_specific_product_for_inventory.xml'
+    ],
+    'demo': [
+        'test_stock_specific_inventory_demo.xml'
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,
