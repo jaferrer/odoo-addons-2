@@ -96,11 +96,11 @@ class StockSpecificProductInventory(models.Model):
     _name = 'stock.specific.product.inventory'
     _auto = False
 
-    stock_warehouse_id = fields.Many2one('stock.warehouse', readonly=True, index=True)
-    product_id = fields.Many2one('product.product', readonly=True, index=True)
+    stock_warehouse_id = fields.Many2one('stock.warehouse', readonly=True, index=True,string='Entrepot')
+    product_id = fields.Many2one('product.product', readonly=True, index=True,string='Article')
     qty = fields.Integer('total',readonly=True)
-    invetory_date = fields.Date('Date du dernier inventaire',readonly=True)
-    move_stock_date = fields.Date('Date du dernier mouvement de stock',readonly=True)
+    invetory_date = fields.Datetime('Date du dernier inventaire',readonly=True)
+    move_stock_date = fields.Datetime('Date du dernier mouvement de stock',readonly=True)
 
     def init(self, cr):
         drop_view_if_exists(cr, "stock_specific_product_inventory")
@@ -126,7 +126,9 @@ select stock_warehouse.id::text||'-'||product_product.id::text as id,stock_wareh
 inner join top_parent on stock_warehouse.lot_stock_id=top_parent.top_parent_id
 inner join stock_quant on stock_quant.location_id=top_parent.loc_id
 inner join product_product on product_product.id=stock_quant.product_id
-left join stock_inventory on stock_inventory.location_id=top_parent.loc_id
-left join stock_move on (stock_move.location_id=top_parent.loc_id or stock_move.location_dest_id=top_parent.loc_id)
+left join (select location_id,max(date) as date from stock_inventory s
+group by location_id) stock_inventory on stock_inventory.location_id=top_parent.loc_id
+left join (select location_id,product_id,max(date) as date from stock_move m
+group by location_id,product_id) stock_move on stock_move.location_id=top_parent.loc_id and stock_move.product_id=product_product.id
 group by stock_warehouse.id,product_product.id)
         """)

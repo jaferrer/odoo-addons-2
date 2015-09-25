@@ -31,9 +31,11 @@ Stock Specific Inventory
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'security/ir.model.access.csv',
         'views/stock_specific_product_for_inventory.xml'
     ],
     'demo': [
+        'test_stock_specific_inventory_demo.xml'
     ],
     'test': [],
     'installable': True,
