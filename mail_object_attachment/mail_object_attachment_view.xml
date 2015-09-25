@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="email_template_form_send_attachments">
+            <field name="name">email.template.form.send.attachments</field>
+            <field name="model">email.template</field>
+            <field name="inherit_id" ref="email_template.email_template_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="report_name" position="after">
+                    <field name="send_object_attachments"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>

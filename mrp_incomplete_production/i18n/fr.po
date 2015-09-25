@@ -127,3 +127,8 @@ msgstr "Cet ordre de fabrication a généré un reliquat qui nécessite cette ma
 #: field:mrp.product.produce,production_all_available:0
 msgid "True if the raw material of the related Manufacturing Order is entirely available"
 msgstr "Vrai si les matières premières de l'ordre de fabrication associé sont toutes disponibles"
+
+#. module: mrp_incomplete_production
+#: view:mrp.production:0
+msgid "Cancel Starting"
+msgstr "Annuler le démarrage de l'OF"

@@ -30,11 +30,16 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.location_inv = self.browse_ref("stock.location_inventory")
         self.product_uom_unit_id = self.ref("product.product_uom_unit")
 
+    def process_orderpoints(self):
+        """Function to call the scheduler without needing connector to work."""
+        ops = self.env['stock.warehouse.orderpoint'].search([])
+        ops.process()
+
     def test_10_procurement_jit_basic(self):
         """Check basic jit procurement from scratch."""
         # Create procurements from minimum stock rules in B
         proc_env = self.env['procurement.order']
-        proc_env._procure_orderpoint_confirm()
+        self.process_orderpoints()
         # Let's have a look to the procurements created in B
         procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
@@ -64,7 +69,7 @@ class TestStockProcurementJIT(common.TransactionCase):
             'warehouse_id': self.ref('stock.warehouse0'),
             'location_id': self.location_b.id
         })
-        proc_env._procure_orderpoint_confirm()
+        self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
         self.assertEqual(len(procs), 3)
@@ -104,7 +109,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         })
         proc1.run()
         self.assertEqual(proc1.move_ids[0].date[0:10], "2015-03-23")
-        proc_env._procure_orderpoint_confirm()
+        self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
         # They should all be running
@@ -150,7 +155,7 @@ class TestStockProcurementJIT(common.TransactionCase):
             'date': "2015-03-19 12:00:00",
         })
         move.action_confirm()
-        proc_env._procure_orderpoint_confirm()
+        self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
         self.assertEqual(len(procs), 3)
@@ -178,7 +183,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         # We create a new move in order to have a need at the end
         new_move = move_need2.copy({'date': "2015-03-30 11:10:00"})
         new_move.action_confirm()
-        proc_env._procure_orderpoint_confirm()
+        self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
         self.assertEqual(len(procs), 4)
@@ -200,7 +205,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.test_10_procurement_jit_basic()
         move_need2 = self.browse_ref('stock_procurement_just_in_time.need2')
         move_need2.action_cancel()
-        proc_env._procure_orderpoint_confirm()
+        self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
         procs = procs.sorted(lambda x: x.date_planned)
         self.assertEqual(len(procs), 2)
