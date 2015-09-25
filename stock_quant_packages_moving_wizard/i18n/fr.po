@@ -84,7 +84,7 @@ msgstr "Dernière mise à jour le"
 #. module: stock_quant_packages_moving_wizard
 #: model:ir.actions.act_window,name:stock_quant_packages_moving_wizard.action_move_quants
 msgid "Move Stock Quant"
-msgstr "Déplacer le quant de stock"
+msgstr "Déplacer le quant"
 
 #. module: stock_quant_packages_moving_wizard
 #: model:ir.actions.act_window,name:stock_quant_packages_moving_wizard.action_move_packages

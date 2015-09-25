@@ -25,7 +25,7 @@ class StockQuant(models.Model):
     _inherit = 'stock.quant'
 
     @api.multi
-    def move_to(self, dest_location, picking_type_id):
+    def move_to(self, dest_location, picking_type_id, move_items=False):
         move_recordset = self.env['stock.move']
         for item in self:
             new_move = self.env['stock.move'].create({
@@ -33,13 +33,22 @@ class StockQuant(models.Model):
                 'product_id': item.product_id.id,
                 'location_id': item.location_id.id,
                 'location_dest_id': dest_location.id,
-                'product_uom_qty': item.qty,
+                'product_uom_qty': item.qty if not move_items else move_items[item.id].qty,
                 'product_uom': item.product_id.uom_id.id,
                 'date_expected': fields.Datetime.now(),
                 'date': fields.Datetime.now(),
-                'quant_ids': [(4, item.id)],
                 'picking_type_id': picking_type_id.id
             })
+            new_move.action_confirm()
+            self.quants_reserve([(item, new_move.product_uom_qty)], new_move)
+            
             move_recordset = move_recordset | new_move
-        move_recordset.action_done()
+                
+        if move_recordset:
+            picking = move_recordset[0].picking_id
+            picking.do_prepare_partial()
+            packops = picking.pack_operation_ids
+            packops.write({'location_dest_id': dest_location.id})
+            picking.do_transfer()
+        
         return move_recordset

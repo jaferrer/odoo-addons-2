@@ -39,7 +39,7 @@ def process_orderpoints(session, model_name, ids):
     with handler.session() as s:
         for op in s.env[model_name].browse(ids):
             op.process()
-        s.cr.commit()
+        s.commit()
 
 
 class ProcurementOrderQuantity(models.Model):
@@ -84,8 +84,12 @@ class ProcurementOrderQuantity(models.Model):
         while orderpoint_ids:
             orderpoints = orderpoint_ids[:ORDERPOINT_CHUNK]
             orderpoint_ids = orderpoint_ids - orderpoints
-            process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                      orderpoints.ids, description="Computing orderpoints %s" % orderpoints.ids)
+            if self.env.context.get('without_job'):
+                for op in orderpoints:
+                    op.process()
+            else:
+                process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                          orderpoints.ids, description="Computing orderpoints %s" % orderpoints.ids)
         return {}
 
 
@@ -366,13 +370,6 @@ class StockWarehouseOrderPointJit(models.Model):
         intermediate_result = sorted(intermediate_result, key=lambda a: a['date'])
         qty = existing_qty
         for dictionary in intermediate_result:
-            # id = str(product_id) + '-' + str(dictionary['location_id']) + '-'
-            # if dictionary['move_id']:
-            #     id += str(dictionary['move_id'])
-            # elif dictionary['proc_id']:
-            #     id += str(dictionary['proc_id'])
-            # else:
-            #     id += 'existing'
             if dictionary['move_type'] != 'existing':
                 qty += dictionary['qty']
             result += [{
@@ -397,11 +394,8 @@ class StockWarehouseOrderPointJit(models.Model):
 class StockComputeAll(models.TransientModel):
     _inherit = 'procurement.order.compute.all'
 
-    def _get_default_product_ids(self):
-        return self.env['product.product'].search([])
-
     compute_all = fields.Boolean(string=u"Traiter l'ensemble des produits", default=True)
-    product_ids = fields.Many2many('product.product', string=u"Produits à traiter", default=_get_default_product_ids)
+    product_ids = fields.Many2many('product.product', string=u"Produits à traiter")
 
     @api.multi
     def procure_calculation(self):
