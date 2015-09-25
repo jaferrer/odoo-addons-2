@@ -74,7 +74,7 @@
         
         <record model="ir.actions.server" id="action_create_inventory">
             <field name="name">Create inventory with selected product</field>
-            <field name="model_id" ref="stock.model_stock_inventory" />
+            <field name="model_id" ref="model_stock_specific_product_inventory" />
             <field name="code">
 action = self.create_inventory(cr, uid, context=context)
 			</field>

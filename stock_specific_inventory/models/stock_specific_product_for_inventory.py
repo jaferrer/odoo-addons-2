@@ -2,35 +2,7 @@ from openerp import fields, models, api
 from openerp.tools.sql import drop_view_if_exists
 
 class StockInventorySpecific(models.Model):
-    _inherit = 'stock.inventory'
-    
-    @api.model
-    def create_inventory(self):
-        product_view_ids = self.env.context.get('active_ids', [])
-        if not product_view_ids:
-            return []
-        product_views = self.env['stock.specific.product.inventory'].browse(product_view_ids)
-        
-        for entrepot in self.env['stock.warehouse'].search([]):
-            products = product_views.filtered(lambda x: x.stock_warehouse_id == entrepot).mapped(lambda x:x.product_id)
-            if products:
-                self.env['stock.inventory'] .create({ 
-                                                   'specify_product_ids': [(6,0,products.ids)],
-                                                   'location_id':entrepot.lot_stock_id.id,
-                                                   'filter':'inventory_specific',
-                                                   'company_id':entrepot.company_id.id,
-                                                   'name':'inventaire'+'-'+entrepot.name+'-'+fields.Datetime.now()
-                                                   }
-                                                  )
-        
-        return {
-            'name': 'Inventory Adjustments',
-            'view_type': 'form',
-            'view_mode': 'tree,form',
-            'res_model': 'stock.inventory',
-            'type': 'ir.actions.act_window'
-        }
-        
+    _inherit = 'stock.inventory'   
 
     def _get_available_filters(self):
         """
@@ -132,3 +104,30 @@ left join (select location_id,product_id,max(date) as date from stock_move m
 group by location_id,product_id) stock_move on stock_move.location_id=top_parent.loc_id and stock_move.product_id=product_product.id
 group by stock_warehouse.id,product_product.id)
         """)
+    
+    @api.model
+    def create_inventory(self):
+        product_view_ids = self.env.context.get('active_ids', [])
+        if not product_view_ids:
+            return []
+        product_views = self.env['stock.specific.product.inventory'].browse(product_view_ids)
+        
+        for entrepot in self.env['stock.warehouse'].search([]):
+            products = product_views.filtered(lambda x: x.stock_warehouse_id == entrepot).mapped(lambda x:x.product_id)
+            if products:
+                self.env['stock.inventory'] .create({ 
+                                                   'specify_product_ids': [(6,0,products.ids)],
+                                                   'location_id':entrepot.lot_stock_id.id,
+                                                   'filter':'inventory_specific',
+                                                   'company_id':entrepot.company_id.id,
+                                                   'name':'inventaire'+'-'+entrepot.name+'-'+fields.Datetime.now()
+                                                   }
+                                                  )
+        
+        return {
+            'name': 'Inventory Adjustments',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'stock.inventory',
+            'type': 'ir.actions.act_window'
+        }
