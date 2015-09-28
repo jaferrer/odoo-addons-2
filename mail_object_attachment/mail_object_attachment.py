@@ -43,7 +43,6 @@ class EmailTemplate(models.Model):
                 for res_id in template_res_ids:
                     obj_attachments = self.env['ir.attachment'].search([('res_model', '=', res[res_id].get('model')),
                                                                         ('res_id', '=', res_id)])
-                    print "obj_att: %s" % obj_attachments
                     mail_attachments = res[res_id].get('attachment_ids', [])
                     mail_attachments.extend([(4, a.id) for a in obj_attachments])
                     res[res_id].update({
