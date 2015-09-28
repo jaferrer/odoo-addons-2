@@ -25,9 +25,13 @@ class EmailTemplate(models.Model):
 
     send_object_attachments = fields.Boolean(u"Attach Object Attachements")
 
+    def generate_email_batch(self, cr, uid, template_id, res_ids, context=None, fields=None):
+        res = super(EmailTemplate, self).generate_email_batch(cr, uid, template_id, res_ids, context=context,
+                                                              fields=fields)
+        return self.generate_email_batch_new_api(cr, uid, template_id, res_ids, fields=fields, res=res, context=context)
+
     @api.model
-    def generate_email_batch(self, template_id, res_ids, fields=None):
-        res = super(EmailTemplate, self).generate_email_batch(template_id, res_ids, fields=fields)
+    def generate_email_batch_new_api(self, template_id, res_ids, fields=None, res=None):
         res_ids_to_templates = self.get_email_template_batch(template_id, res_ids)
         # templates: res_id -> template; template -> res_ids
         templates_to_res_ids = {}
