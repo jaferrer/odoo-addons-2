@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!-- Products1 -->
+        <record id="product1" model="product.product">
+            <field name="name">Test Product 1 (Product Removal From Packs)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record id="product2" model="product.product">
+            <field name="name">Test Product 2 (Product Removal From Packs)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record id="product3" model="product.product">
+            <field name="name">Test Product 3 (Product Removal From Packs)</field>
+            <field name="type">product</field>
+        </record>
+
+        <!-- Location with new removal strategy -->
+        <record id="location1" model="stock.location">
+            <field name="name">Test Location (Product Removal From Packs)</field>
+            <field name="usage">internal</field>
+            <field name="removal_strategy_id" ref="product_removal_from_packs.removal_share_strategy"/>
+        </record>
+
+        <!-- Packages -->
+
+        <record id="package1" model="stock.quant.package">
+            <field name="name">Package 1 (Product Removal From Packs)</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+        </record>
+
+        <record id="package2" model="stock.quant.package">
+            <field name="name">Package 2 (Product Removal From Packs)</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+        </record>
+
+        <!-- Lot -->
+        <record id="lot1" model="stock.production.lot">
+            <field name="name">Lot 1 (Product Removal From Packs)</field>
+            <field name="product_id" ref="product_removal_from_packs.product1"/>
+        </record>
+
+        <record id="lot2" model="stock.production.lot">
+            <field name="name">Lot 2 (Product Removal From Packs)</field>
+            <field name="product_id" ref="product_removal_from_packs.product1"/>
+        </record>
+
+        <record id="lot3" model="stock.production.lot">
+            <field name="name">Lot 3 (Product Removal From Packs)</field>
+            <field name="product_id" ref="product_removal_from_packs.product2"/>
+        </record>
+
+        <!-- Quants for package 1 -->
+        <record id="quant1" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product1"/>
+            <field name="qty" eval="5.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+            <field name="package_id" ref="product_removal_from_packs.package1"/>
+            <field name="lot_id" ref="product_removal_from_packs.lot1"/>
+        </record>
+
+        <record id="quant2" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product1"/>
+            <field name="qty" eval="10.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+            <field name="package_id" ref="product_removal_from_packs.package1"/>
+            <field name="lot_id" ref="product_removal_from_packs.lot2"/>
+        </record>
+
+        <record id="quant3" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product2"/>
+            <field name="qty" eval="15.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+            <field name="package_id" ref="product_removal_from_packs.package1"/>
+        </record>
+
+        <record id="quant4" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product3"/>
+            <field name="qty" eval="20.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+            <field name="package_id" ref="product_removal_from_packs.package1"/>
+        </record>
+
+        <!-- Quants for package 2 -->
+        <record id="quant5" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product1"/>
+            <field name="qty" eval="25.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+            <field name="package_id" ref="product_removal_from_packs.package2"/>
+        </record>
+
+        <record id="quant6" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product2"/>
+            <field name="qty" eval="-30.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+            <field name="package_id" ref="product_removal_from_packs.package2"/>
+            <field name="lot_id" ref="product_removal_from_packs.lot3"/>
+        </record>
+
+        <record id="quant7" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product2"/>
+            <field name="qty" eval="35.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+            <field name="package_id" ref="product_removal_from_packs.package2"/>
+        </record>
+
+        <record id="quant8" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product3"/>
+            <field name="qty" eval="-40.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+            <field name="package_id" ref="product_removal_from_packs.package2"/>
+        </record>
+
+        <!-- Quants without packages -->
+        <record id="quant9" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product1"/>
+            <field name="qty" eval="15.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+        </record>
+
+        <record id="quant10" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product2"/>
+            <field name="qty" eval="50.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+            <field name="lot_id" ref="product_removal_from_packs.lot3"/>
+        </record>
+
+        <record id="quant11" model="stock.quant">
+            <field name="product_id" ref="product_removal_from_packs.product3"/>
+            <field name="qty" eval="55.0"/>
+            <field name="location_id" ref="product_removal_from_packs.location1"/>
+        </record>
+
+    </data>
+</openerp>
