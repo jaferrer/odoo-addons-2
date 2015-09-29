@@ -1,13 +1,13 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-#	* sirail_projet
+#	* stock_specific_inventory
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-09-08 09:33+0000\n"
-"PO-Revision-Date: 2015-09-08 09:33+0000\n"
+"POT-Creation-Date: 2015-09-29 13:52+0000\n"
+"PO-Revision-Date: 2015-09-29 13:52+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -15,4 +15,123 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
+#. module: stock_specific_inventory
+#: view:stock.specific.product.inventory:0
+#: field:stock.specific.product.inventory,product_id:0
+msgid "Article"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: model:ir.actions.server,name:stock_specific_inventory.action_create_inventory
+msgid "Create inventory with selected product"
+msgstr "Créer un inventaire à partir des produits sélectionnés"
+
+#. module: stock_specific_inventory
+#: view:stock.specific.product.inventory:0
+msgid "Date Mouvement"
+msgstr "Date Mouvement"
+
+#. module: stock_specific_inventory
+#: view:stock.specific.product.inventory:0
+msgid "Date d'inventaire par Mois"
+msgstr "Date d'inventaire par Mois"
+
+#. module: stock_specific_inventory
+#: field:stock.specific.product.inventory,invetory_date:0
+msgid "Date du dernier inventaire"
+msgstr "Date du dernier inventaire"
+
+#. module: stock_specific_inventory
+#: field:stock.specific.product.inventory,move_stock_date:0
+msgid "Date du dernier mouvement de stock"
+msgstr "Date du dernier mouvement de stock"
+
+#. module: stock_specific_inventory
+#: view:stock.specific.product.inventory:0
+#: field:stock.specific.product.inventory,stock_warehouse_id:0
+msgid "Entrepot"
+msgstr "Entrepot"
+
+#. module: stock_specific_inventory
+#: view:stock.specific.product.inventory:0
+#: field:stock.specific.product.inventory,category:0
+msgid "Famille"
+msgstr "Famille"
+
+#. module: stock_specific_inventory
+#: view:stock.inventory:0
+#: view:stock.specific.product.inventory:0
+msgid "Group By"
+msgstr "Grouper par"
+
+#. module: stock_specific_inventory
+#: field:stock.specific.product.inventory,id:0
+msgid "ID"
+msgstr "ID"
+
+#. module: stock_specific_inventory
+#: model:ir.actions.act_window,name:stock_specific_inventory.action_inventory_specific
+#: model:ir.ui.menu,name:stock_specific_inventory.menu_action_inventory_form
+msgid "Inventaire spécidique d'articles"
+msgstr "Inventaire spécidique d'articles"
+
+#. module: stock_specific_inventory
+#: view:stock.inventory:0
+msgid "Inventories Month"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: model:ir.model,name:stock_specific_inventory.model_stock_inventory
+msgid "Inventory"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: view:stock.inventory:0
+msgid "Inventory Reference"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: view:stock.inventory:0
+msgid "Physical Inventories by Month"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: field:stock.inventory,specify_product_ids:0
+msgid "Products Specifics"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: view:stock.inventory:0
+msgid "Search Inventory"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: view:stock.specific.product.inventory:0
+msgid "Search Product"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: view:stock.inventory:0
+msgid "Status"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: field:stock.specific.product.inventory,value_stock:0
+msgid "Valeur du stock"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: view:stock.specific.product.inventory:0
+msgid "liste"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: model:ir.model,name:stock_specific_inventory.model_stock_specific_product_inventory
+msgid "stock.specific.product.inventory"
+msgstr ""
+
+#. module: stock_specific_inventory
+#: field:stock.specific.product.inventory,qty:0
+msgid "total"
+msgstr ""
 
