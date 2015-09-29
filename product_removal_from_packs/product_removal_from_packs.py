@@ -35,17 +35,23 @@ class StockQuantRemovalFromPacks(models.Model):
                     break
             if apply_rss:
                 list_removals = []
-                quants = self.env['stock.quant'].search([('product_id', '=', product.id),
-                                                         ('location_id', '=', location.id)])
-                if quants:
-                    qty_to_remove_for_each_quant = float(quantity) / len(quants)
-                    for quant in quants:
-                        if abs(quant.qty) <= qty_to_remove_for_each_quant:
-                            # For positive quants which final quantity should be negative, we don't mind losing
-                            # package_id and lot_id.
-                            list_removals += [(None, qty_to_remove_for_each_quant - quant.qty)]
-                        list_removals += [(quant, qty_to_remove_for_each_quant)]
+                packs = self.env['stock.quant.package'].search([('location_id', '=', location.id)]).\
+                    filtered(lambda p: product in [x.product_id for x in p.quant_ids])
+                if packs:
+                    qty_to_remove_for_each_pack = float(quantity) / len(packs)
+                    for pack in packs:
+                        qty_available_in_pack = sum([x.qty for x in pack.quant_ids if x.product_id == product])
+                        if qty_available_in_pack >= qty_to_remove_for_each_pack:
+                           list_removals += super(StockQuantRemovalFromPacks, self).\
+                                apply_removal_strategy(location,product,qty_to_remove_for_each_pack,
+                                                       domain + [('package_id', '=', pack.id)], 'fifo')
+                        else:
+                            for quant in pack.quant_ids:
+                                if quant.product_id == product:
+                                    list_removals += [(quant, quant.qty)]
                 return list_removals
             else:
-                removal_strategy = 'fifo'
-        return super(StockQuantRemovalFromPacks, self).apply_removal_strategy(location, product, quantity, domain, removal_strategy)
+                return super(StockQuantRemovalFromPacks, self).apply_removal_strategy(location, product, quantity,
+                                                                                      domain, 'fifo')
+        return super(StockQuantRemovalFromPacks, self).apply_removal_strategy(location, product, quantity, domain,
+                                                                              removal_strategy)

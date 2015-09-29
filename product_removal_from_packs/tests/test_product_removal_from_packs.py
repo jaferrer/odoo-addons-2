@@ -34,6 +34,7 @@ class TestProductRemovalFromPacks(common.TransactionCase):
         self.lot3 = self.browse_ref("product_removal_from_packs.lot3")
         self.package1 = self.browse_ref("product_removal_from_packs.package1")
         self.package2 = self.browse_ref("product_removal_from_packs.package2")
+        self.quant9 = self.browse_ref("product_removal_from_packs.quant9")
 
     def create_move_out_and_test(self, qty, list_quants):
         move_out = self.env['stock.move'].create({
@@ -42,15 +43,20 @@ class TestProductRemovalFromPacks(common.TransactionCase):
             'product_uom': self.browse_ref('product.product_uom_unit').id,
             'product_uom_qty': qty,
             'location_id': self.location1.id,
-            'location_dest_id': self.browse_ref('stock.stock_location_customers').id})
-        move_out.action_done()
+            'location_dest_id': self.browse_ref('stock.stock_location_customers').id,
+            'picking_type_id': self.ref('stock.picking_type_internal')})
+        move_out.action_confirm()
+        self.assertTrue(move_out.picking_id)
+        self.assertFalse(move_out.picking_id.pack_operation_ids)
+        move_out.action_assign()
+        move_out.picking_id.do_prepare_partial()
+        move_out.picking_id.do_transfer()
         self.assertEqual(move_out.state, 'done')
         quants = self.env['stock.quant'].search([('location_id', '=', self.location1.id),
                                                  ('product_id', '=', self.product1.id)])
         self.assertEqual(len(quants), len(list_quants))
         for quant in quants:
             self.assertIn([quant.package_id, quant.lot_id, quant.qty], list_quants)
-
 
     def test_10_product_removal_from_packs(self):
 
@@ -59,46 +65,29 @@ class TestProductRemovalFromPacks(common.TransactionCase):
         """
 
         # Testing integer final values
-        self.create_move_out_and_test(4.0, [[self.package1, self.lot1, 4.0],
-                                            [self.package1, self.lot2, 9.0],
-                                            [self.package2, self.env['stock.production.lot'], 24.0],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -16.0]])
+        self.create_move_out_and_test(4.0, [[self.package1, self.lot1, 3.0],
+                                            [self.package1, self.lot2, 10.0],
+                                            [self.package2, self.env['stock.production.lot'], 23.0],
+                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], 15.0]])
 
         # Testing float final values
-        self.create_move_out_and_test(2.0, [[self.package1, self.lot1, 3.5],
-                                            [self.package1, self.lot2, 8.5],
-                                            [self.package2, self.env['stock.production.lot'], 23.5],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -16.5]])
+        self.create_move_out_and_test(1.0, [[self.package1, self.lot1, 3.0],
+                                            [self.package1, self.lot2, 9.5],
+                                            [self.package2, self.env['stock.production.lot'], 22.5],
+                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], 15.0]])
 
-        # Testing one negative final values, with loss of lot_id and package_id
-        self.create_move_out_and_test(18.0, [[self.env['stock.quant.package'], self.env['stock.production.lot'], -1.0],
-                                            [self.package1, self.lot2, 4.0],
-                                            [self.package2, self.env['stock.production.lot'], 19.0],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -21.0]])
+        # Testing one negative final value, losing a lot number.
+        self.create_move_out_and_test(19.0, [[self.package1, self.lot2, 3.0],
+                                            [self.package2, self.env['stock.production.lot'], 13.0],
+                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], 15.0]])
 
-        #
-        self.create_move_out_and_test(8.0, [[self.env['stock.quant.package'], self.env['stock.production.lot'], -3.0],
-                                            [self.package1, self.lot2, 2.0],
-                                            [self.package2, self.env['stock.production.lot'], 17.0],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -23.0]])
+        # Trying to consume more than available, losing a package
+        self.create_move_out_and_test(8.0, [[self.package2, self.env['stock.production.lot'], 8.0],
+                                            [self.package2, self.env['stock.production.lot'], 1.0],
+                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], 15.0]])
 
-        # Testing two negative final values (from one positive and one negative)
-        self.create_move_out_and_test(12.0, [[self.env['stock.quant.package'], self.env['stock.production.lot'], -6.0],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -1.0],
-                                            [self.package2, self.env['stock.production.lot'], 14],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -26.0]])
-
-        # Testing with a null final quantity
-        self.create_move_out_and_test(56.0, [[self.env['stock.quant.package'], self.env['stock.production.lot'], -20.0],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -15.0],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], 0],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -40.0]])
-
-        # A final negative move
-        self.create_move_out_and_test(8.0, [[self.env['stock.quant.package'], self.env['stock.production.lot'], -22.0],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -17.0],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -2],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], -42.0]])
+        # Again, no more package
+        self.create_move_out_and_test(10.0, [[self.env['stock.quant.package'], self.env['stock.production.lot'], 15.0]])
 
     def create_inventory_and_test(self, list_lines_to_create, list_quants):
         inventaire = self.env['stock.inventory'].create({
@@ -134,6 +123,9 @@ class TestProductRemovalFromPacks(common.TransactionCase):
         """
         Testing via stock inventories.
         """
+
+        # We need a negative quant for this test
+        self.quant9.qty = -15.0
 
         # Package and lot specified, simple case.
         self.create_inventory_and_test([[self.product2, self.package2, self.lot3, 60.0]],
