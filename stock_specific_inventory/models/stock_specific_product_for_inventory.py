@@ -68,13 +68,13 @@ class StockSpecificProductInventory(models.Model):
     _name = 'stock.specific.product.inventory'
     _auto = False
 
-    stock_warehouse_id = fields.Many2one('stock.warehouse', readonly=True, index=True,string='Entrepot')
+    stock_warehouse_id = fields.Many2one('stock.warehouse', readonly=True, index=True, string='Entrepot')
     product_id = fields.Many2one('product.product', readonly=True, index=True,string='Article')
-    category= fields.Char('Famille',readonly=True,store=True)
-    qty = fields.Integer('total',readonly=True)
-    invetory_date = fields.Datetime('Date du dernier inventaire',readonly=True)
-    move_stock_date = fields.Datetime('Date du dernier mouvement de stock',readonly=True)
-    value_stock=fields.Float('Valeur du stock',readonly=True)
+    category= fields.Char('Famille', readonly=True, store=True)
+    qty = fields.Integer('total', readonly=True)
+    invetory_date = fields.Datetime('Date du dernier inventaire', readonly=True)
+    move_stock_date = fields.Datetime('Date du dernier mouvement de stock', readonly=True)
+    value_stock=fields.Float('Valeur du stock', readonly=True)
 
     def init(self, cr):
         drop_view_if_exists(cr, "stock_specific_product_inventory")

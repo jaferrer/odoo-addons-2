@@ -24,7 +24,7 @@ msgstr ""
 #. module: stock_specific_inventory
 #: model:ir.actions.server,name:stock_specific_inventory.action_create_inventory
 msgid "Create inventory with selected product"
-msgstr "Créer un inventaire à partir des produits sélectionnés"
+msgstr "CrÃ©er un inventaire Ã© partir des produits sÃ©lectionnÃ©s"
 
 #. module: stock_specific_inventory
 #: view:stock.specific.product.inventory:0
@@ -72,8 +72,8 @@ msgstr "ID"
 #. module: stock_specific_inventory
 #: model:ir.actions.act_window,name:stock_specific_inventory.action_inventory_specific
 #: model:ir.ui.menu,name:stock_specific_inventory.menu_action_inventory_form
-msgid "Inventaire spécidique d'articles"
-msgstr "Inventaire spécidique d'articles"
+msgid "Inventaire spÃ©cidique d'articles"
+msgstr "Inventaire spÃ©cidique d'articles"
 
 #. module: stock_specific_inventory
 #: view:stock.inventory:0
@@ -134,4 +134,5 @@ msgstr ""
 #: field:stock.specific.product.inventory,qty:0
 msgid "total"
 msgstr ""
+
 
