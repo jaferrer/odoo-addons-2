@@ -50,8 +50,6 @@ class TestStockProcurementJIT(common.TransactionCase):
                                                                             self.test_product3.id])])
         self.assertFalse(procs)
         self.process_orderpoints()
-        self.assertFalse(self.test_product3.route_ids)
-        self.assertFalse(self.test_product3.categ_id.total_route_ids)
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
                                                       ('product_id', 'in', [self.test_product.id,
                                                                             self.test_product2.id,
