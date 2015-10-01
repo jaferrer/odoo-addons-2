@@ -12,7 +12,6 @@ openerp.stock_transfer_unpack = function(instance){
                 	row.cols.is_package = true;
                 }
             });
-            console.log(sorted_rows);
             return sorted_rows;
         },
         
@@ -36,7 +35,6 @@ openerp.stock_transfer_unpack = function(instance){
 	        return new instance.web.Model('stock.pack.operation')
 	            .call('unpack',[parseInt(op_id)])
 	            .then(function(){
-	            	console.log(self);
 	                return self.refresh_ui(self.picking.id);
 	            });
 	    }
