@@ -423,88 +423,94 @@ class StockLevelsReport(models.Model):
     def init(self, cr):
         drop_view_if_exists(cr, "stock_levels_report")
         cr.execute("""
-        create or replace view stock_levels_report as (
-            with recursive top_parent(id, top_parent_id) as (
-                    select
-                        sl.id, sl.id as top_parent_id
-                    from
-                        stock_location sl
-                        left join stock_location slp on sl.location_id = slp.id
-                    where
-                        sl.usage='internal' and (sl.location_id is null or slp.usage<>'internal')
-                union
-                    select
-                        sl.id, tp.top_parent_id
-                    from
-                        stock_location sl, top_parent tp
-                    where
-                        sl.usage='internal' and sl.location_id=tp.id
-            )
-            select
-                foo.product_id::text || '-'
-                    || foo.location_id::text || '-'
-                    || coalesce(foo.move_id::text, 'existing') as id,
-                foo.product_id,
-                pt.categ_id as product_categ_id,
-                tp.top_parent_id as location_id,
-                foo.other_location_id,
-                foo.move_type,
-                sum(foo.qty) over (partition by foo.location_id, foo.product_id order by date) as qty,
-                foo.date as date,
-                foo.qty as move_qty
-            from
-                (
-                    select
-                        sq.product_id as product_id,
-                        sq.location_id as location_id,
-                        NULL as other_location_id,
-                        'existing'::text as move_type,
-                        max(sq.in_date) as date,
-                        sum(sq.qty) as qty,
-                        NULL as move_id
-                    from
-                        stock_quant sq
-                        left join stock_location sl on sq.location_id = sl.id
-                    where
-                        sl.usage = 'internal'::text or sl.usage = 'transit'::text
-                    group by sq.product_id, sq.location_id
-                union all
-                    select
-                        sm.product_id as product_id,
-                        sm.location_dest_id as location_id,
-                        sm.location_id as other_location_id,
-                        'in'::text as move_type,
-                        sm.date_expected as date,
-                        sm.product_qty as qty,
-                        sm.id as move_id
-                    from
-                        stock_move sm
-                        left join stock_location sl on sm.location_dest_id = sl.id
-                    where
-                        (sl.usage = 'internal'::text or sl.usage = 'transit'::text)
-                        and sm.state::text <> 'cancel'::text
-                        and sm.state::text <> 'done'::text
-                        and sm.state::text <> 'draft'::text
-                union all
-                    select
-                        sm.product_id as product_id,
-                        sm.location_id as location_id,
-                        sm.location_dest_id as other_location_id,
-                        'out'::text as move_type,
-                        sm.date_expected as date,
-                        -sm.product_qty as qty,
-                        sm.id as move_id
-                    from
-                        stock_move sm
-                        left join stock_location sl on sm.location_id = sl.id
-                    where
-                        (sl.usage = 'internal'::text or sl.usage = 'transit'::text)
-                        and sm.state::text <> 'cancel'::text
-                        and sm.state::text <> 'done'::text
-                        and sm.state::text <> 'draft'::text
-                ) foo
-                left join product_product pp on foo.product_id = pp.id
-                left join product_template pt on pp.product_tmpl_id = pt.id
-                left join top_parent tp on foo.location_id = tp.id
-        )
+CREATE OR REPLACE VIEW stock_levels_report AS (
+    WITH RECURSIVE top_parent(id, top_parent_id) AS (
+        SELECT
+            sl.id,
+            sl.id AS top_parent_id
+        FROM
+            stock_location sl
+            LEFT JOIN stock_location slp ON sl.location_id = slp.id
+        WHERE
+            sl.usage = 'internal' AND (sl.location_id IS NULL OR slp.usage <> 'internal')
+        UNION
+        SELECT
+            sl.id,
+            tp.top_parent_id
+        FROM
+            stock_location sl, top_parent tp
+        WHERE
+            sl.usage = 'internal' AND sl.location_id = tp.id
+    )
+    SELECT
+        foo.product_id :: TEXT || '-'
+        || foo.location_id :: TEXT || '-'
+        || coalesce(foo.move_id :: TEXT, 'existing') AS id,
+        foo.product_id,
+        pt.categ_id                                  AS product_categ_id,
+        foo.location_id                              AS location_id,
+        foo.other_location_id,
+        foo.move_type,
+        sum(foo.qty)
+        OVER (PARTITION BY foo.location_id, foo.product_id
+            ORDER BY date)                           AS qty,
+        foo.date                                     AS date,
+        foo.qty                                      AS move_qty
+    FROM
+        (
+            SELECT
+                sq.product_id      AS product_id,
+                tp.top_parent_id   AS location_id,
+                NULL               AS other_location_id,
+                'existing' :: TEXT AS move_type,
+                max(sq.in_date)    AS date,
+                sum(sq.qty)        AS qty,
+                NULL               AS move_id
+            FROM
+                stock_quant sq
+                LEFT JOIN stock_location sl ON sq.location_id = sl.id
+                LEFT JOIN top_parent tp ON sq.location_id = tp.id
+            WHERE
+                sl.usage = 'internal' :: TEXT OR sl.usage = 'transit' :: TEXT
+            GROUP BY sq.product_id, tp.top_parent_id
+            UNION ALL
+            SELECT
+                sm.product_id    AS product_id,
+                tp.top_parent_id AS location_id,
+                sm.location_id   AS other_location_id,
+                'in' :: TEXT     AS move_type,
+                sm.date_expected AS date,
+                sm.product_qty   AS qty,
+                sm.id            AS move_id
+            FROM
+                stock_move sm
+                LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
+                LEFT JOIN top_parent tp ON sm.location_dest_id = tp.id
+            WHERE
+                (sl.usage = 'internal' :: TEXT OR sl.usage = 'transit' :: TEXT)
+                AND sm.state :: TEXT <> 'cancel' :: TEXT
+                AND sm.state :: TEXT <> 'done' :: TEXT
+                AND sm.state :: TEXT <> 'draft' :: TEXT
+            UNION ALL
+            SELECT
+                sm.product_id       AS product_id,
+                tp.top_parent_id    AS location_id,
+                sm.location_dest_id AS other_location_id,
+                'out' :: TEXT       AS move_type,
+                sm.date_expected    AS date,
+                -sm.product_qty     AS qty,
+                sm.id               AS move_id
+            FROM
+                stock_move sm
+                LEFT JOIN stock_location sl ON sm.location_id = sl.id
+                LEFT JOIN top_parent tp ON sm.location_id = tp.id
+            WHERE
+                (sl.usage = 'internal' :: TEXT OR sl.usage = 'transit' :: TEXT)
+                AND sm.state :: TEXT <> 'cancel' :: TEXT
+                AND sm.state :: TEXT <> 'done' :: TEXT
+                AND sm.state :: TEXT <> 'draft' :: TEXT
+        ) foo
+        LEFT JOIN product_product pp ON foo.product_id = pp.id
+        LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
+)
         """)
