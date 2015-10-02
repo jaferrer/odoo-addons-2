@@ -322,8 +322,6 @@ class TestStockProcurementJIT(common.TransactionCase):
         else:
             self.assertEqual(procs[1].state, 'confirmed')
 
-
-
         self.assertEqual(procs[2].date_planned, "2015-03-20 09:59:59")
         self.assertEqual(procs[2].product_qty, 6)
         self.assertEqual(procs[2].product_id, self.test_product)
