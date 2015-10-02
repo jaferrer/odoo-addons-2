@@ -317,7 +317,9 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[1].date_planned, "2015-03-16 09:59:59")
         self.assertEqual(procs[1].product_qty, 4)
         self.assertEqual(procs[1].product_id, self.test_product3)
-        if self.env['ir.module.module'].search([('name', '=', 'procurement_jit'), ('state', '=', 'installed')]):
+        if self.env['ir.module.module'].search([('name', '=', 'purchase_procurement_just_in_time'), ('state', '=', 'installed')]):
+            self.assertEqual(procs[1].state, 'exception')
+        elif self.env['ir.module.module'].search([('name', '=', 'procurement_jit'), ('state', '=', 'installed')]):
             self.assertEqual(procs[1].state, 'running')
         else:
             self.assertEqual(procs[1].state, 'confirmed')
