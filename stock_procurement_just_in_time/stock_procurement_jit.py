@@ -148,7 +148,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 date_domain += [('date_planned', '>=', fields.Datetime.to_string(date_start))]
             procs = self.env['procurement.order'].search([('product_id', '=', op.product_id.id),
                                                           ('location_id', '=', op.location_id.id),
-                                                          ('state', 'in', ['confirmed', 'running'])]
+                                                          ('state', 'in', ['confirmed', 'running', 'exception'])]
                                                          + date_domain,
                                                          order="date_planned DESC")
             for proc in procs:
@@ -373,7 +373,6 @@ class StockWarehouseOrderPointJit(models.Model):
             if dictionary['move_type'] != 'existing':
                 qty += dictionary['qty']
             result += [{
-                # 'id': id,
                 'proc_id': dictionary['proc_id'],
                 'product_id': product_id,
                 'location_id': dictionary['location_id'],
