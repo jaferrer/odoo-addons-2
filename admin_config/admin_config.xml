@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="view_list_translation_improved">
+            <field name="name">view.list.translation.improved</field>
+            <field name="model">ir.translation</field>
+            <field name="inherit_id" ref="base.view_translation_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="type" position="after">
+                    <field name="module" readonly="1"/>
+                    <field name="res_id"/>
+                    <field name="module_sequence" readonly="1"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_search_translation_improved">
+            <field name="name">view.search.translation.improved</field>
+            <field name="model">ir.translation</field>
+            <field name="inherit_id" ref="base.view_translation_search"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="value" position="after">
+                    <field name="module"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_form_modules_improved">
+            <field name="name">view.form.modules.improved</field>
+            <field name="model">ir.module.module</field>
+            <field name="inherit_id" ref="base.module_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="state" position="after">
+                    <field name="sequence"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
