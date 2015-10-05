@@ -63,9 +63,13 @@ msgstr "Chaque règle active est colorée en vert."
 
 #. module: product_supplier_price_validity
 #: field:pricelist.partnerinfo,validity_date:0
+msgid "Validity date"
+msgstr "Date de début de validité de la liste de prix"
+
+#. module: product_supplier_price_validity
 #: field:product.supplierinfo,validity_date_2:0
 msgid "Validity date"
-msgstr "Date de validité"
+msgstr "Date de fin de validité de la liste de prix"
 
 #. module: product_supplier_price_validity
 #: help:pricelist.partnerinfo,validity_date:0
