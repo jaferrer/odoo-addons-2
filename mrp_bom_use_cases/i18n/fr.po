@@ -48,12 +48,21 @@ msgid "Product Use Cases in BoMs"
 msgstr "Cas d'emploi"
 
 #. module: mrp_bom_use_cases
-#: field:mrp.bom.line,product_father_id:0
-msgid "Father Product"
-msgstr "Produit père"
+#: field:mrp.bom.line,product_parent_id:0
+msgid "Parent Product"
+msgstr "Produit parent"
 
 #. module: mrp_bom_use_cases
-#: model:ir.model,name:mrp_bom_use_cases.model_mrp_bom_line
-msgid "mrp.bom.line"
-msgstr "mrp.bom.line"
+#: model:ir.model,name:mrp_bom_use_cases.model_product_product
+msgid "Product"
+msgstr "Article"
 
+#. module: mrp_bom_use_cases
+#: model:ir.actions.act_window,name:mrp_bom_use_cases.act_window_mrp_bom_inverted
+msgid "Product Use Cases in BoMs"
+msgstr "Cas d'emploi"
+
+#. module: mrp_bom_use_cases
+#: view:product.product:0
+msgid "Use Cases"
+msgstr "Cas d'emploi"
