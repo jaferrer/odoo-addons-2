@@ -8,6 +8,9 @@
             <field name="inherit_id" ref="base.view_translation_tree"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <button string="Delete all the translations which have the same name" type="object" name="delete_field_translations" icon="terp-dialog-close"/>
+                </field>
                 <field name="type" position="after">
                     <field name="module" readonly="1"/>
                     <field name="res_id"/>

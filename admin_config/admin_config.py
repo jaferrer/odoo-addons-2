@@ -34,3 +34,8 @@ class IrTranslationImproved(models.Model):
                 if len(modules) == 1:
                     module_sequence = modules[0].sequence
             rec.module_sequence = module_sequence
+
+    @api.multi
+    def delete_field_translations(self):
+        for rec in self:
+            self.env['ir.translation'].search([('name', '=', rec.name)]).unlink()
