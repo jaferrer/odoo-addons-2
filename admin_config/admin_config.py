@@ -38,6 +38,4 @@ class IrTranslationImproved(models.Model):
     @api.multi
     def delete_field_translations(self):
         for rec in self:
-            print 'delete', rec, rec.name
-            print self.env['ir.translation'].search([('name', '=', rec.name)])
             self.env['ir.translation'].search([('name', '=', rec.name)]).unlink()
