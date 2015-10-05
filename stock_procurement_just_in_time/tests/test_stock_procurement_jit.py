@@ -318,7 +318,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[1].product_qty, 4)
         self.assertEqual(procs[1].product_id, self.test_product3)
         if self.env['ir.module.module'].search([('name', '=', 'procurement_jit'), ('state', '=', 'installed')]):
-            self.assertEqual(procs[1].state, 'running')
+            self.assertEqual(procs[1].state, 'exception')
         else:
             self.assertEqual(procs[1].state, 'confirmed')
 
