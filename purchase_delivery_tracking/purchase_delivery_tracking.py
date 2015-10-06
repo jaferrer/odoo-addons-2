@@ -20,13 +20,13 @@
 from openerp import models, fields, api
 
 
-class PurchaseDeliveryTrackingTransporter(models.Model):
+class TrackingTransporter(models.Model):
     _name = 'tracking.transporter'
 
     name = fields.Char(string="Name")
 
 
-class DeliveryStatus(models.Model):
+class TrackingStatus(models.Model):
     _name = 'tracking.status'
 
     tracking_id = fields.Many2one('tracking.number', string="Linked tracking number")
@@ -34,7 +34,7 @@ class DeliveryStatus(models.Model):
     status = fields.Char(string="Delivery Status")
 
 
-class PurchaseDeliveryTracking(models.Model):
+class TrackingNumber(models.Model):
     _name = 'tracking.number'
 
     name = fields.Char(string="Tracking number")
