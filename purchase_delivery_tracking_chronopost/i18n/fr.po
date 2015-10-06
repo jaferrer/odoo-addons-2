@@ -1,0 +1,46 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* purchase_delivery_tracking_chronopost
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-10-06 14:53+0000\n"
+"PO-Revision-Date: 2015-10-06 14:53+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_purchase_delivery_tracking_chronopost
+msgid "Purchase delivery tracking (Chronopost)"
+msgstr "Suivi des livraisons d'achat (Chronopost)"
+
+#. module: base
+#: model:ir.module.module,description:base.module_purchase_delivery_tracking_chronopost
+msgid ""
+"\n"
+"NPurchase delivery tracking (Chronopost)\n"
+"========================================\n"
+"This module allows to track the Chronopost deliveries\n"
+msgstr ""
+"\n"
+"Suivi des livraisons d'achat (Chronopost)\n"
+"=========================================\n"
+"Ce module permet de suivre les livraisons d'achat utilisant Chronopost\n"
+
+#. module: purchase_delivery_tracking_chronopost
+#: model:ir.model,name:purchase_delivery_tracking_chronopost.model_purchase_order
+msgid "Purchase Order"
+msgstr "Bon de commande"
+
+#. module: purchase_delivery_tracking_chronopost
+#: code:addons\purchase_delivery_tracking_chronopost\purchase_delivery_tracking_chronopost.py:34
+#, python-format
+msgid "https://www.chronopost.fr/tracking-cxf/TrackingServiceWS/trackSkybill?language=en_US&skybillNumber="
+msgstr "https://www.chronopost.fr/tracking-cxf/TrackingServiceWS/trackSkybill?language=fr_FR&skybillNumber="
+

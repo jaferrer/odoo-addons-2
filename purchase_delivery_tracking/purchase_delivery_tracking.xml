@@ -23,7 +23,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="model">tracking.status</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree name="tracking_history">
+                <tree name="tracking_history" create="false">
                     <field name="date"/>
                     <field name="status"/>
                 </tree>
@@ -32,7 +32,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
 
         <record model="ir.actions.act_window" id="action_tracking_history">
             <field name="name">Tracking History</field>
-            <field name="res_model">tracking.number</field>
+            <field name="res_model">tracking.status</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree</field>
             <field name="domain">[]</field>
@@ -55,10 +55,11 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                         </group>
                         <field name="tracking_ids">
                             <tree name="Delivery Tracking" editable="top">
+                                <field name="id" invisible="1"/>
                                 <field name="name"/>
                                 <field name="date" readonly="1"/>
                                 <field name="status" readonly="1"/>
-                                <button string="Tracking History" type="action" name="action_tracking_history" icon="terp-stock_zoom" context="{'search_default_tracking_id': id}"/>
+                                <button string="Tracking History" type="object" name="open_status_ids" icon="terp-stock_zoom"/>
                             </tree>
                         </field>
                     </page>

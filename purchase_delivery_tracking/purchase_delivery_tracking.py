@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api
+from openerp import models, fields, api, _
 
 
 class TrackingTransporter(models.Model):
@@ -53,6 +53,18 @@ class TrackingNumber(models.Model):
                 status = rec.status_ids.filtered(lambda x: x.date == max_date)[0].status
             rec.date = max_date
             rec.status = status
+
+    @api.multi
+    def open_status_ids(self):
+        self.ensure_one()
+        return {
+            'name': _('List of status corresponding to this tracking number'),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'list',
+            'res_model': 'tracking.status',
+            'domain': [('tracking_id', '=', self.id)]
+        }
 
 
 class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
