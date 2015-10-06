@@ -39,26 +39,19 @@ class TrackingNumber(models.Model):
 
     name = fields.Char(string="Tracking number")
     status_ids = fields.One2many('tracking.status', 'tracking_id', string="Status history")
-    date = fields.Datetime(string="Date of the status", compute='_compute_date')
-    status = fields.Char(string="Status", compute='_compute_status')
+    date = fields.Datetime(string="Date of the status", compute='_compute_date_and_status')
+    status = fields.Char(string="Status", compute='_compute_date_and_status')
     order_id = fields.Many2one('purchase.order', string="Linked purchase order")
 
     @api.multi
-    def _compute_date(self):
+    def _compute_date_and_status(self):
         for rec in self:
-            date = False
-            if rec.status_ids:
-                max_date = max([status.date for status in rec.status_ids])
-                date = rec.status_ids.filtered(lambda x: x.date == max_date)[0].date
-            rec.date = date
-
-    @api.multi
-    def _compute_status(self):
-        for rec in self:
+            max_date = False
             status = False
             if rec.status_ids:
                 max_date = max([status.date for status in rec.status_ids])
                 status = rec.status_ids.filtered(lambda x: x.date == max_date)[0].status
+            rec.date = max_date
             rec.status = status
 
 
