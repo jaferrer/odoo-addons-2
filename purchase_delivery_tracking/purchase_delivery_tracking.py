@@ -49,7 +49,7 @@ class TrackingNumber(models.Model):
             date = False
             if rec.status_ids:
                 max_date = max([status.date for status in rec.status_ids])
-                date = rec.history_ids.filtered(lambda x: x.date == max_date)[0].date
+                date = rec.status_ids.filtered(lambda x: x.date == max_date)[0].date
             rec.date = date
 
     @api.multi
@@ -58,7 +58,7 @@ class TrackingNumber(models.Model):
             status = False
             if rec.status_ids:
                 max_date = max([status.date for status in rec.status_ids])
-                status = rec.history_ids.filtered(lambda x: x.date == max_date)[0].status
+                status = rec.status_ids.filtered(lambda x: x.date == max_date)[0].status
             rec.status = status
 
 
