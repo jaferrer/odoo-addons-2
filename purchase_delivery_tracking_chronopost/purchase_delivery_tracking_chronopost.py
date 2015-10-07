@@ -32,10 +32,11 @@ class ChronopostPurchaseOrder(models.Model):
                 for track in rec.tracking_ids:
                     track.status_ids.unlink()
                     file = urlopen(_('https://www.chronopost.fr/tracking-cxf/TrackingServiceWS/trackSkybill?language=en_US&skybillNumber=') + track.name)
-                    list_status = etree.fromstring(file.read()).findall(".//events")
-                    for c in list_status:
-                        date = c.find(".//eventDate").text
-                        date = date[:10] + ' ' + date[11:19]
-                        self.env['tracking.status'].create({'date': date,
-                                                            'status': c.find(".//eventLabel").text,
-                                                            'tracking_id': track.id})
+                    if file:
+                        list_status = etree.fromstring(file.read()).findall(".//events")
+                        for c in list_status:
+                            date = c.find(".//eventDate").text
+                            date = date[:10] + ' ' + date[11:19]
+                            self.env['tracking.status'].create({'date': date,
+                                                                'status': c.find(".//eventLabel").text,
+                                                                'tracking_id': track.id})

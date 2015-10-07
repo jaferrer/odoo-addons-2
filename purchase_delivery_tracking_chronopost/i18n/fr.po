@@ -24,7 +24,7 @@ msgstr "Suivi des livraisons d'achat (Chronopost)"
 #: model:ir.module.module,description:base.module_purchase_delivery_tracking_chronopost
 msgid ""
 "\n"
-"NPurchase delivery tracking (Chronopost)\n"
+"Purchase delivery tracking (Chronopost)\n"
 "========================================\n"
 "This module allows to track the Chronopost deliveries\n"
 msgstr ""

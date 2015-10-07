@@ -1,0 +1,46 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* purchase_delivery_tracking_dhl
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-10-07 12:43+0000\n"
+"PO-Revision-Date: 2015-10-07 12:43+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_purchase_delivery_tracking_dhl
+msgid "Purchase delivery tracking (DHL)"
+msgstr "Suivi des livraisons d'achat (DHL)"
+
+#. module: base
+#: model:ir.module.module,description:base.module_purchase_delivery_tracking_dhl
+msgid ""
+"\n"
+"Purchase delivery tracking (DHL)\n"
+"================================\n"
+"This module allows to track the DHL deliveries\n"
+msgstr ""
+"\n"
+"Suivi des livraisons d'achat (DHL)\n"
+"==================================\n"
+"Ce module permet de suivre les livraisons d'achat utilisant DHL\n"
+
+#. module: purchase_delivery_tracking_dhl
+#: code:addons\purchase_delivery_tracking_dhl\purchase_delivery_tracking_dhl.py:36
+#, python-format
+msgid "&countryCode=fr&languageCode=en"
+msgstr "&countryCode=fr&languageCode=fr"
+
+#. module: purchase_delivery_tracking_dhl
+#: model:ir.model,name:purchase_delivery_tracking_dhl.model_purchase_order
+msgid "Purchase Order"
+msgstr "Bon de commande"
+
