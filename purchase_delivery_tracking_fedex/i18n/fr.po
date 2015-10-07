@@ -1,0 +1,46 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* purchase_delivery_tracking_fedex
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-10-07 16:31+0000\n"
+"PO-Revision-Date: 2015-10-07 16:31+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_purchase_delivery_tracking_fedex
+msgid "Purchase delivery tracking (FedEx)"
+msgstr "Suivi des livraisons d'achat (FedEx)"
+
+#. module: base
+#: model:ir.module.module,description:base.module_purchase_delivery_tracking_fedex
+msgid ""
+"\n"
+"Purchase delivery tracking (FedEx)\n"
+"==================================\n"
+"This module allows to track the FedEx deliveries\n"
+msgstr ""
+"\n"
+"Suivi des livraisons d'achat (FedEx)\n"
+"====================================\n"
+"Ce module permet de suivre les livraisons d'achat utilisant FedEx\n"
+
+#. module: purchase_delivery_tracking_fedex
+#: model:ir.model,name:purchase_delivery_tracking_fedex.model_purchase_order
+msgid "Purchase Order"
+msgstr "Bon de commande"
+
+#. module: purchase_delivery_tracking_fedex
+#: code:addons\purchase_delivery_tracking_fedex\purchase_delivery_tracking_fedex.py:42
+#, python-format
+msgid "en_EN"
+msgstr "fr_FR"
+
