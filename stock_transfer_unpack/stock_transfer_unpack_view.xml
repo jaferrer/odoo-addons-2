@@ -12,6 +12,12 @@
                 </xpath>
             </field>
         </record>
+        
+        <template id="assets_transfert_unpack" inherit_id="web.assets_backend" name="Transfert unpack">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/stock_transfer_unpack/static/src/js/stock_transfer_unpack.js"></script>
+            </xpath>
+        </template>
 
     </data>
 </openerp>

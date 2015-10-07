@@ -100,4 +100,5 @@ class ProcurementOrderPlanningImproved(models.Model):
                     # Updating the date_planned of the corresponding manufacturing order
                     if self.env.context.get('reschedule_planned_date') and not proc.production_id.taken_into_account:
                         proc.production_id.date_planned = prod_start_date
+                    proc.production_id.action_reschedule()
         super(ProcurementOrderPlanningImproved, self).action_reschedule()

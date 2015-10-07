@@ -17,29 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Stock Transfer Unpack',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Warehouse',
-    'depends': ['stock'],
-    'description': """
-Stock Transfer Unpack
-=====================
-This module adds a button in the transfer window of a stock operation in front of each pack so as to unpack it.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'stock_transfer_unpack_view.xml'
-    ],
-    'qweb': [
-        'static/src/xml/stock_transfer_unpack.xml'
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+import admin_config

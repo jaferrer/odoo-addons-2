@@ -17,29 +17,25 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Stock Transfer Unpack',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Warehouse',
-    'depends': ['stock'],
-    'description': """
-Stock Transfer Unpack
-=====================
-This module adds a button in the transfer window of a stock operation in front of each pack so as to unpack it.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'stock_transfer_unpack_view.xml'
-    ],
-    'qweb': [
-        'static/src/xml/stock_transfer_unpack.xml'
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from openerp import fields, models, api
+
+
+class IrTranslationImproved(models.Model):
+    _inherit = 'ir.translation'
+
+    module_sequence = fields.Integer(string="Sequence", compute='_compute_sequence')
+
+    @api.multi
+    def _compute_sequence(self):
+        for rec in self:
+            module_sequence = False
+            if rec.module:
+                modules = self.env['ir.module.module'].search([('name', '=', rec.module)])
+                if len(modules) == 1:
+                    module_sequence = modules[0].sequence
+            rec.module_sequence = module_sequence
+
+    @api.multi
+    def delete_field_translations(self):
+        for rec in self:
+            self.env['ir.translation'].search([('name', '=', rec.name)]).unlink()

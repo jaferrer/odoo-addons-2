@@ -16,27 +16,51 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 from openerp import fields, models, api
 
-class sirail_production_bom_line (models.Model):
+
+class MrpBomLine(models.Model):
     _inherit = "mrp.bom.line"
 
-    product_father_id = fields.Many2one('product.product', string="Father Product")
-    father_line_ids = fields.Many2many('mrp.bom.line', compute="_get_father_bom_lines")
+    product_parent_id = fields.Many2one('product.template', string="Parent Product",
+                                        compute='_compute_parents')
+    father_line_ids = fields.Many2many('mrp.bom.line', 'mrp_bom_lines_father_rel', 'child_id', 'father_id',
+                                       compute="_compute_parents")
 
     @api.multi
-    def _get_father_bom_lines(self, context=None):
-        """If the BOM line refers to a BOM, return the ids of the child BOM lines"""
+    @api.depends('bom_id.product_id', 'bom_id.product_tmpl_id', 'bom_id')
+    def _compute_parents(self):
+        """Computes the fields necessary to get use cases."""
         for rec in self:
-            parent_ids = []
             parent_product = rec.bom_id.product_id
             parent_product_tmpl = rec.bom_id.product_tmpl_id
+            rec.product_parent_id = parent_product.product_tmpl_id or parent_product_tmpl
+
             if parent_product:
-                parent_ids.append(parent_product.id)
-            elif parent_product_tmpl:
-                products = self.env['product.product'].search([('product_tmpl_id','=',parent_product_tmpl.id)])
-                parent_ids += products.ids
-            parent_lines = self.search([('product_id','in',parent_ids)])
+                products = parent_product
+            else:
+                products = self.env['product.product'].search([('product_tmpl_id', '=', parent_product_tmpl.id)])
+
+            parent_lines = self.search(
+                [('product_id', 'in', products.ids),
+                 '|', ('bom_id.date_start', '<=', fields.Date.today()), ('bom_id.date_start', '=', False),
+                 '|', ('bom_id.date_stop', '>=', fields.Date.today()), ('bom_id.date_start', '=', False)]
+            )
+
             rec.father_line_ids = [(6, 0, [p.id for p in parent_lines])]
 
 
+class ProductProduct(models.Model):
+    _inherit = 'product.product'
+
+    use_case_count = fields.Integer("No of use cases", compute='_compute_use_case_count')
+
+    @api.multi
+    def _compute_use_case_count(self):
+        for rec in self:
+            rec.use_case_count = len(self.env['mrp.bom.line'].search(
+                [('product_id', '=', rec.id),
+                 '|', ('bom_id.date_start', '<=', fields.Date.today()), ('bom_id.date_start', '=', False),
+                 '|', ('bom_id.date_stop', '>=', fields.Date.today()), ('bom_id.date_start', '=', False)])
+            )

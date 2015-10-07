@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,25 +18,20 @@
 #
 
 {
-    'name': 'Stock Transfer Unpack',
+    'name': 'Product removal from packs',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Warehouse',
+    'category': '',
     'depends': ['stock'],
     'description': """
-Stock Transfer Unpack
-=====================
-This module adds a button in the transfer window of a stock operation in front of each pack so as to unpack it.
+Product removal from packs
+==========================
+This module creates a new removal strategy, which shares the removal of the considered product between all the packs containing it at the considered location.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'stock_transfer_unpack_view.xml'
-    ],
-    'qweb': [
-        'static/src/xml/stock_transfer_unpack.xml'
-    ],
-    'demo': [],
+    'data': ['product_removal_from_packs_data.xml'],
+    'demo': ['tests/test_product_removal_from_packs.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,

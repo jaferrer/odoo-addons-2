@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,24 +18,19 @@
 #
 
 {
-    'name': 'Stock Transfer Unpack',
+    'name': 'Admin Config',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Warehouse',
-    'depends': ['stock'],
+    'category': 'Technical Settings',
+    'depends': [],
     'description': """
-Stock Transfer Unpack
-=====================
-This module adds a button in the transfer window of a stock operation in front of each pack so as to unpack it.
+Admin Config
+============
+Implements a few configurations item which should help to administrate the ERP.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'stock_transfer_unpack_view.xml'
-    ],
-    'qweb': [
-        'static/src/xml/stock_transfer_unpack.xml'
-    ],
+    'data': ['admin_config.xml'],
     'demo': [],
     'test': [],
     'installable': True,

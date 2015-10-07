@@ -28,6 +28,7 @@
             <field name="active">1</field>
             <field name="sequence">20</field>
             <field name="product_categ_selectable"/>
+            <field name="warehouse_selectable"/>
             <field name="product_selectable">1</field>
             <field name="company_id"/>
         </record>
@@ -44,6 +45,12 @@
             <field name="default_code">TP2</field>
             <field name="type">product</field>
             <field name="route_ids" eval="[(4,ref('test_route'))]"/>
+        </record>
+
+        <record id="product_test_product3" model="product.product">
+            <field name="name">Test Product 3 (JIT)</field>
+            <field name="default_code">TP3</field>
+            <field name="type">product</field>
         </record>
 
         <record model="procurement.rule" id="procurement_rule_a_to_b">
@@ -75,6 +82,16 @@
         <record model="stock.warehouse.orderpoint" id="warehouse_orderpoint2">
             <field name="name">Orderpoint 2 in B (JIT)</field>
             <field name="product_id" ref="product_test_product2"/>
+            <field name="warehouse_id" ref="stock.warehouse0"/>
+            <field name="location_id" ref="stock_location_b"/>
+            <field name="product_min_qty" eval="2"/>
+            <field name="product_max_qty" eval="6"/>
+            <field name="qty_multiple" eval="2"/>
+        </record>
+
+        <record model="stock.warehouse.orderpoint" id="warehouse_orderpoint3">
+            <field name="name">Orderpoint 3 in B (JIT)</field>
+            <field name="product_id" ref="product_test_product3"/>
             <field name="warehouse_id" ref="stock.warehouse0"/>
             <field name="location_id" ref="stock_location_b"/>
             <field name="product_min_qty" eval="2"/>
@@ -135,6 +152,51 @@
             <field name="location_dest_id" ref="stock.stock_location_stock"/>
             <field name="state">confirmed</field>
             <field name="date">2015-03-25 10:00:00</field>
+            <field name="product_uom_qty">10</field>
+        </record>
+
+        <!-- Moves for product 3 -->
+        <record id="need6" model="stock.move">
+            <field name="name">Need 6</field>
+            <field name="product_id" ref="product_test_product3"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="location_id" ref="stock_location_b"/>
+            <field name="location_dest_id" ref="stock.stock_location_stock"/>
+            <field name="state">confirmed</field>
+            <field name="date">2015-03-16 10:00:00</field>
+            <field name="product_uom_qty">2</field>
+        </record>
+
+        <record id="need7" model="stock.move">
+            <field name="name">Need 7</field>
+            <field name="product_id" ref="product_test_product3"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="location_id" ref="stock_location_b"/>
+            <field name="location_dest_id" ref="stock.stock_location_stock"/>
+            <field name="state">confirmed</field>
+            <field name="date">2015-03-21 10:00:00</field>
+            <field name="product_uom_qty">5</field>
+        </record>
+
+        <record id="need8" model="stock.move">
+            <field name="name">Need 8</field>
+            <field name="product_id" ref="product_test_product3"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="location_id" ref="stock_location_b"/>
+            <field name="location_dest_id" ref="stock.stock_location_stock"/>
+            <field name="state">confirmed</field>
+            <field name="date">2015-03-24 10:00:00</field>
+            <field name="product_uom_qty">3</field>
+        </record>
+
+        <record id="need9" model="stock.move">
+            <field name="name">Need 9</field>
+            <field name="product_id" ref="product_test_product3"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="location_id" ref="stock_location_b"/>
+            <field name="location_dest_id" ref="stock.stock_location_stock"/>
+            <field name="state">confirmed</field>
+            <field name="date">2015-03-26 10:00:00</field>
             <field name="product_uom_qty">10</field>
         </record>
 
