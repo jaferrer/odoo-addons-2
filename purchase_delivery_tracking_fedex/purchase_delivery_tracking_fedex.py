@@ -22,6 +22,7 @@ from urllib2 import urlopen
 from urllib import urlencode
 import json
 
+
 class FedexPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 

@@ -21,6 +21,7 @@ from openerp import models, api, _
 from urllib2 import urlopen
 from lxml import etree
 
+
 class ChronopostPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 

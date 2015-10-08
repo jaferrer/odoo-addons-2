@@ -22,6 +22,7 @@ from urllib2 import urlopen
 import json
 from dateutil.parser import parse
 
+
 class DhlPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
