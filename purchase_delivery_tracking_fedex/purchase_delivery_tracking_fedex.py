@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, _
+from openerp import models, api, _
 from urllib2 import urlopen
 from urllib import urlencode
 import json
