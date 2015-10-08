@@ -24,12 +24,12 @@ from lxml import etree
 from dateutil.parser import parse
 
 
-class FedexPurchaseOrder(models.Model):
+class TntPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
     @api.multi
     def update_delivery_status(self):
-        super(FedexPurchaseOrder, self).update_delivery_status()
+        super(TntPurchaseOrder, self).update_delivery_status()
         for rec in self:
             if rec.transporter_id.name == 'TNT' and rec.state not in ['draft', 'cancel', 'done']:
                 for track in rec.tracking_ids:

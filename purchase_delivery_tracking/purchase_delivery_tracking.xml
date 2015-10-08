@@ -50,7 +50,8 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                 <notebook position="inside">
                     <page string="Delivery Tracking">
                         <group string="Information">
-                            <field name="transporter_id"/>
+                            <field name="transporter_id" class="oe_no_button"
+                                   options="{'no_open': True, 'no_create': True}"/>
                             <field name="last_status_update" readonly="1"/>
                         </group>
                         <field name="tracking_ids">
