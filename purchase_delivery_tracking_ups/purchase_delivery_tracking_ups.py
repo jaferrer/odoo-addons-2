@@ -73,32 +73,34 @@ class UpsPurchaseOrder(models.Model):
                     post_response = urlopen('http://wwwapps.ups.com/WebTracking/detail', urlencode(values))
                     response_etree = etree.parse(post_response, etree.HTMLParser())
 
-                    list_status = response_etree.xpath(".//table[@class='dataTable']")[0].findall(".//tr[@class='odd']")
-                    list_status_strings = []
-                    current_location = ''
+                    list_status = response_etree.xpath(".//table[@class='dataTable']")
+                    if list_status:
+                        list_status = list_status[0].findall(".//tr[@class='odd']")
+                        list_status_strings = []
+                        current_location = ''
 
-                    # Formating the result and creating status lines
-                    for status in list_status:
-                        properties = status.findall(".//td")
-                        if properties:
-                            property_strings = []
-                            for property in properties:
-                                new_prop = ''
-                                for item in property.text.split():
+                        # Formating the result and creating status lines
+                        for status in list_status:
+                            properties = status.findall(".//td")
+                            if properties:
+                                property_strings = []
+                                for property in properties:
+                                    new_prop = ''
+                                    for item in property.text.split():
+                                        if new_prop:
+                                            new_prop = new_prop + ' ' + item
+                                        else:
+                                            new_prop = new_prop + item
                                     if new_prop:
-                                        new_prop = new_prop + ' ' + item
-                                    else:
-                                        new_prop = new_prop + item
-                                if new_prop:
-                                    property_strings += [new_prop]
-                            if len(property_strings) == 4:
-                                current_location = property_strings[0]
-                            if len(property_strings) == 3:
-                                property_strings = [current_location] + property_strings
-                            list_status_strings += [property_strings]
-                    for status in list_status_strings:
-                        string_time = status[2]
-                        string_date = format(status[1])
-                        self.env['tracking.status'].create({'date': parse(string_date + ' ' + string_time),
-                                                            'status': status[0] + ' - '+ status[3],
-                                                            'tracking_id': track.id})
+                                        property_strings += [new_prop]
+                                if len(property_strings) == 4:
+                                    current_location = property_strings[0]
+                                if len(property_strings) == 3:
+                                    property_strings = [current_location] + property_strings
+                                list_status_strings += [property_strings]
+                        for status in list_status_strings:
+                            string_time = status[2]
+                            string_date = format(status[1])
+                            self.env['tracking.status'].create({'date': parse(string_date + ' ' + string_time),
+                                                                'status': status[0] + ' - '+ status[3],
+                                                                'tracking_id': track.id})
