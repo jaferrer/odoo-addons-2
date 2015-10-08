@@ -52,7 +52,7 @@ openerp.web_graph_update = function(instance) {
     	get_groups: function (groupbys, fields, domain) {
             var self = this;
             return this.model.query(_.without(fields, '__count'))
-            	/*.order_by((this.sort!=null)?this.sort:false)*/
+            	.order_by((this.sort!=null)?this.sort:false)
                 .filter(domain)
                 .context(this.context)
                 .lazy(false)
