@@ -1,6 +1,7 @@
 openerp.web_graph_update = function(instance) {
 	
-	
+	var _lt = openerp.web._lt;
+	var _t = openerp.web._t;
 	
 	instance.web_graph.Graph.include({
 		
@@ -51,7 +52,7 @@ openerp.web_graph_update = function(instance) {
     	get_groups: function (groupbys, fields, domain) {
             var self = this;
             return this.model.query(_.without(fields, '__count'))
-            	.order_by((this.sort!=null)?this.sort:false)
+            	/*.order_by((this.sort!=null)?this.sort:false)*/
                 .filter(domain)
                 .context(this.context)
                 .lazy(false)
