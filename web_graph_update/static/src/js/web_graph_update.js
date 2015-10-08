@@ -1,6 +1,7 @@
 openerp.web_graph_update = function(instance) {
 	
-	
+	var _lt = openerp.web._lt;
+	var _t = openerp.web._t;
 	
 	instance.web_graph.Graph.include({
 		
