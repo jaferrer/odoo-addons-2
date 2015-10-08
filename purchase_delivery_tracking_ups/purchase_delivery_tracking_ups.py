@@ -23,6 +23,7 @@ from lxml import etree
 from urllib import urlencode
 from dateutil.parser import parse
 
+
 class UpsPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
@@ -85,12 +86,7 @@ class UpsPurchaseOrder(models.Model):
                             if properties:
                                 property_strings = []
                                 for property in properties:
-                                    new_prop = ''
-                                    for item in property.text.split():
-                                        if new_prop:
-                                            new_prop = new_prop + ' ' + item
-                                        else:
-                                            new_prop = new_prop + item
+                                    new_prop = ' '.join(property.text.split())
                                     if new_prop:
                                         property_strings += [new_prop]
                                 if len(property_strings) == 4:
