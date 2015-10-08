@@ -1,0 +1,40 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* purchase_delivery_tracking_tnt
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-10-08 14:19+0000\n"
+"PO-Revision-Date: 2015-10-08 14:19+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_purchase_delivery_tracking_tnt
+msgid "Purchase delivery tracking (TNT)"
+msgstr "Suivi des livraisons d'achat (TNT)"
+
+#. module: base
+#: model:ir.module.module,description:base.module_purchase_delivery_tracking_tnt
+msgid ""
+"\n"
+"Purchase delivery tracking (TNT)\n"
+"================================\n"
+"This module allows to track the TNT deliveries\n"
+msgstr ""
+"\n"
+"Suivi des livraisons d'achat (TNT)\n"
+"==================================\n"
+"Ce module permet de suivre les livraisons d'achat utilisant TNT\n"
+
+#. module: purchase_delivery_tracking_tnt
+#: model:ir.model,name:purchase_delivery_tracking_tnt.model_purchase_order
+msgid "Purchase Order"
+msgstr "Bon de commande"
+
