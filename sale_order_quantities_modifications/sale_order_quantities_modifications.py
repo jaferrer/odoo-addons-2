@@ -31,7 +31,6 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
 
     product_uom_qty = fields.Float(readonly=False, states={'done': [('readonly', True)],
                                                            'cancel': [('readonly', True)]})
-    price_unit = fields.Float(readonly=False)
 
     @api.multi
     def unlink(self):
