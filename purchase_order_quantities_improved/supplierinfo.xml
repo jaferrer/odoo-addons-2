@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+
         <record model="ir.ui.view" id="product_supplierinfo_form_view_improved">
             <field name="name">product.supplierinfo.form.view.improved</field>
             <field name="model">product.supplierinfo</field>

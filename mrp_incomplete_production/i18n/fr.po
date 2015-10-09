@@ -129,9 +129,29 @@ msgid "True if the raw material of the related Manufacturing Order is entirely a
 msgstr "Vrai si les matières premières de l'ordre de fabrication associé sont toutes disponibles"
 
 #. module: mrp_incomplete_production
+#: field:mrp.product.produce,create_child:0
+msgid "Create a child manufacturing order"
+msgstr "Générer un OF reliquat"
+
+#. module: mrp_incomplete_production
+#: field:mrp.product.produce,child_src_loc_id:0
+msgid "Child source location"
+msgstr "Emplacement source du reliquat"
+
+#. module: mrp_incomplete_production
+#: field:mrp.product.produce,child_dest_loc_id:0
+msgid "Child destination location"
+msgstr "Emplacement de destination du reliquat"
+
+#. module: mrp_incomplete_production
+#: field:mrp.product.produce,child_production_product_id:0
+msgid "Product of the child Manufacturing Order"
+msgstr "Article du reliquat"
+
+#. module: mrp_incomplete_production
 #: field:mrp.production,child_order_id:0
 msgid "Child Manufacturing Order"
-msgstr "OF reliquat"
+msgstr "Ordre de fabrication reliquat"
 
 #. module: mrp_incomplete_production
 #: view:mrp.production:0
