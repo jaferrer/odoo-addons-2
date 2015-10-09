@@ -16,3 +16,16 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+from openerp import models, api
+
+
+class QueueJob(models.Model):
+    _inherit = "queue.job"
+
+    @api.multi
+    def set_to_done(self):
+        """Sets to done the given jobs if they are not running."""
+        for job in self:
+            if job.state != 'Started':
+                job.button_done()

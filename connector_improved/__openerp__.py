@@ -16,3 +16,31 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+{
+    'name': 'Improvements for Connector',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Generic Modules',
+    'depends': ['connector'],
+    'description': """
+Improvements for Connector
+==========================
+This modules holds several improvements for the connector module from OCA.
+
+This includes:
+- Mass setting of jobs to 'Done' state
+
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'connector_improved_view.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}
