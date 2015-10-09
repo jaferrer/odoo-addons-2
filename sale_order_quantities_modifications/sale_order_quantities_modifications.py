@@ -31,6 +31,7 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
 
     product_uom_qty = fields.Float(readonly=False, states={'done': [('readonly', True)],
                                                            'cancel': [('readonly', True)]})
+    price_unit = fields.Float(readonly=False)
 
     @api.multi
     def unlink(self):
@@ -61,6 +62,11 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
         # Overwriting the 'write' function, in order to deal with a modification of the quantity of a sale order line.
         for rec in self:
             if rec.order_id.state not in ['draft', 'cancel', 'done']:
+                if vals.get('price_unit'):
+                    active_moves = self.env['stock.move'].search([('product_id', '=', rec.product_id.id),
+                                                                  ('procurement_id', 'in', rec.procurement_ids.ids),
+                                                                  ('state', 'not in', ['draft', 'cancel', 'done'])])
+                    active_moves.write({'price_unit': vals['price_unit']})
                 if vals.get('product_uom_qty') and vals['product_uom_qty'] != 0:
                     if rec.procurement_ids:
                         sum_procurements = sum([x.product_qty for x in rec.procurement_ids if
