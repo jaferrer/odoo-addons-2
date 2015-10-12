@@ -342,6 +342,12 @@ class PurchaseOrderLineJustInTime(models.Model):
                 raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
             for item in self:
                 item.update_moves(vals)
+        if vals.get('price_unit'):
+            for rec in self:
+                active_moves = self.env['stock.move'].search([('product_id', '=', rec.product_id.id),
+                                                              ('purchase_line_id', '=', rec.id),
+                                                              ('state', 'not in', ['draft', 'cancel', 'done'])])
+                active_moves.write({'price_unit': vals['price_unit']})
         return result
 
 
