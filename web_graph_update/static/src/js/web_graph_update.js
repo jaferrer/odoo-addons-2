@@ -50,42 +50,44 @@ openerp.web_graph_update = function(instance) {
     	
     	get_groups: function (groupbys, fields, domain) {
             var self = this;
-            return this.model.query(_.without(fields, '__count'))
-            	.order_by((this.sort!=null)?this.sort:false)
-                .filter(domain)
-                .context(this.context)
-                .lazy(false)
-                .group_by(groupbys)
-                .then(function (groups) {
-                    return groups.filter(function (group) {
-                        return group.attributes.length > 0;
-                    }).map(function (group) {
-                        var attrs = group.attributes,
-                            grouped_on = attrs.grouped_on instanceof Array ? attrs.grouped_on : [attrs.grouped_on],
-                            raw_grouped_on = grouped_on.map(function (f) {
-                                return self.raw_field(f);
-                            });
-                        if (grouped_on.length === 1) {
-                            attrs.value = [attrs.value];
-                        }
-                        attrs.value = _.range(grouped_on.length).map(function (i) {
-                            var grp = grouped_on[i],
-                                field = self.fields[grp];
-                            if (attrs.value[i] === false) {
-                                return _t('Undefined');
-                            } else if (attrs.value[i] instanceof Array) {
-                                return attrs.value[i][1];
-                            } else if (field && field.type === 'selection') {
-                                var selected = _.where(field.selection, {0: attrs.value[i]})[0];
-                                return selected ? selected[1] : attrs.value[i];
-                            }
-                            return attrs.value[i];
-                        });
-                        attrs.aggregates.__count = group.attributes.length;
-                        attrs.grouped_on = raw_grouped_on;
-                        return group;
-                    });
-                });
+            var result = this.model.query(_.without(fields, '__count'));
+            if(this.sort!=null) {
+            	result=result.order_by(this.sort);
+            }
+			return result.filter(domain)
+			.context(this.context)
+			.lazy(false)
+			.group_by(groupbys)
+			.then(function (groups) {
+			    return groups.filter(function (group) {
+			        return group.attributes.length > 0;
+			    }).map(function (group) {
+			        var attrs = group.attributes,
+			            grouped_on = attrs.grouped_on instanceof Array ? attrs.grouped_on : [attrs.grouped_on],
+			            raw_grouped_on = grouped_on.map(function (f) {
+			                return self.raw_field(f);
+			            });
+			        if (grouped_on.length === 1) {
+			            attrs.value = [attrs.value];
+			        }
+			        attrs.value = _.range(grouped_on.length).map(function (i) {
+			            var grp = grouped_on[i],
+			                field = self.fields[grp];
+			            if (attrs.value[i] === false) {
+			                return _t('Undefined');
+			            } else if (attrs.value[i] instanceof Array) {
+			                return attrs.value[i][1];
+			            } else if (field && field.type === 'selection') {
+			                var selected = _.where(field.selection, {0: attrs.value[i]})[0];
+			                return selected ? selected[1] : attrs.value[i];
+			            }
+			            return attrs.value[i];
+			        });
+			        attrs.aggregates.__count = group.attributes.length;
+			        attrs.grouped_on = raw_grouped_on;
+			        return group;
+			    });
+			});
         }
     });
 }

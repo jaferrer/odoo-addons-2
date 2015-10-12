@@ -37,19 +37,20 @@ class IrAttachmentScanner(models.Model):
     
     @api.model
     def scan(self,ctx):
-        self.env.context=ctx
+        self.env.context = ctx
         ad = os.path.abspath(os.path.join(tools.ustr(config['root_path']), u'addons'))
         mod_path_list = map(lambda m: os.path.abspath(tools.ustr(m.strip())), config['addons_path'].split(','))
         mod_path_list.append(ad)
         mod_path_list = list(set(mod_path_list))
-        pathmod="document_scanner/shell/scantopdf.sh"
-        outputfile="scan_%s_%s.pdf"%(self.env.user.id,time.strftime("%H%M%S"))
+        pathmod = "document_scanner/shell/scantopdf.sh"
+        outputfile = "scan_%s_%s.pdf"%(self.env.user.id,time.strftime("%H%M%S"))
         path=tempfile.tempdir
         device=self.env.user.scanner
+        status=0
         for mod_path in mod_path_list:
             if os.path.lexists(mod_path+os.path.sep+pathmod.split(os.path.sep)[0]):
                 filepath = mod_path+os.path.sep+pathmod
-                print os.system('sh %s %s %s %s %s'%(filepath,outputfile,path,device,self.env.user.id))
+                status = os.system('sh %s %s %s %s %s'%(filepath, outputfile, path, device, self.env.user.id))
                 break
         
         
@@ -69,7 +70,7 @@ class IrAttachmentScanner(models.Model):
                     }
         else :
             return {
-                        "error":""
+                        "error":status
                     }
         
     
