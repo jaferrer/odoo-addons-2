@@ -66,3 +66,74 @@ msgstr "Cas d'emploi"
 #: view:product.product:0
 msgid "Use Cases"
 msgstr "Cas d'emploi"
+
+#. module: mrp_bom_use_cases
+#: field:date.report.use.cases,product_id:0
+msgid "Related product"
+msgstr "Article correspondant"
+
+#. module: mrp_bom_use_cases
+#: view:date.report.use.cases:mrp_bom_use_cases.sirail_definition_date_cas_emploi_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: mrp_bom_use_cases
+#: view:date.report.use.cases:mrp_bom_use_cases.sirail_definition_date_cas_emploi_form
+msgid "Date"
+msgstr "Date"
+
+#. module: mrp_bom_use_cases
+#: field:date.report.use.cases,date:0
+msgid "Date"
+msgstr "Date souhaitée"
+
+#. module: mrp_bom_use_cases
+#: view:date.report.use.cases:mrp_bom_use_cases.sirail_definition_date_cas_emploi_form
+msgid "Export"
+msgstr "Exporter"
+
+#. module: mrp_bom_use_cases
+#: model:ir.actions.act_window,name:mrp_bom_use_cases.sirail_act_window_define_date_use_cases
+#: model:ir.actions.report.xml,name:mrp_bom_use_cases.ir_actions_report_use_cases
+msgid "Report use cases"
+msgstr "Exporter les cas d'emploi"
+
+#. module: mrp_bom_use_cases
+#: view:date.report.use.cases:mrp_bom_use_cases.sirail_definition_date_cas_emploi_form
+msgid "or"
+msgstr "ou"
+
+#. module: mrp_bom_use_cases
+#: report:ir.actions.report.xml:mrp_bom_use_cases.ir_actions_report_use_cases
+msgid "Article"
+msgstr "Article demandé"
+
+#. module: mrp_bom_use_cases
+#: report:ir.actions.report.xml:mrp_bom_use_cases.ir_actions_report_use_cases
+msgid "Considered date"
+msgstr "Date voulue"
+
+#. module: mrp_bom_use_cases
+#: report:ir.actions.report.xml:mrp_bom_use_cases.ir_actions_report_use_cases
+msgid "Most accurate BOM for the considered date"
+msgstr "Nomenclature la plus pertinente pour la date voulue"
+
+#. module: mrp_bom_use_cases
+#: report:ir.actions.report.xml:mrp_bom_use_cases.ir_actions_report_use_cases
+msgid "Parent BOM"
+msgstr "Nomenclature parente"
+
+#. module: mrp_bom_use_cases
+#: report:ir.actions.report.xml:mrp_bom_use_cases.ir_actions_report_use_cases
+msgid "Parent article"
+msgstr "Article parent"
+
+#. module: mrp_bom_use_cases
+#: report:ir.actions.report.xml:mrp_bom_use_cases.ir_actions_report_use_cases
+msgid "Quantity of article"
+msgstr "Quantité de l'article"
+
+#. module: mrp_bom_use_cases
+#: report:ir.actions.report.xml:mrp_bom_use_cases.ir_actions_report_use_cases
+msgid "in the parent"
+msgstr "dans le parent"

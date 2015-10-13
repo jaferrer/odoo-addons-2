@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api
+from openerp import fields, models, api, _
 
 
 class MrpBomLine(models.Model):
@@ -41,14 +41,45 @@ class MrpBomLine(models.Model):
                 products = parent_product
             else:
                 products = self.env['product.product'].search([('product_tmpl_id', '=', parent_product_tmpl.id)])
-
-            parent_lines = self.search(
-                [('product_id', 'in', products.ids),
-                 '|', ('bom_id.date_start', '<=', fields.Date.today()), ('bom_id.date_start', '=', False),
-                 '|', ('bom_id.date_stop', '>=', fields.Date.today()), ('bom_id.date_start', '=', False)]
-            )
+            if self.env.context.get('date_report_use_cases'):
+                date_report = self.env.context['date_report_use_cases']
+                parent_lines = self.search(
+                    [('product_id', 'in', products.ids),
+                     '|', ('bom_id.date_start', '<=', date_report), ('bom_id.date_start', '=', False),
+                     '|', ('bom_id.date_stop', '>=', date_report), ('bom_id.date_start', '=', False)]
+                )
+            else:
+                parent_lines = self.search(
+                    [('product_id', 'in', products.ids),
+                     '|', ('bom_id.date_start', '<=', fields.Date.today()), ('bom_id.date_start', '=', False),
+                     '|', ('bom_id.date_stop', '>=', fields.Date.today()), ('bom_id.date_start', '=', False)]
+                )
 
             rec.father_line_ids = [(6, 0, [p.id for p in parent_lines])]
+
+    @api.multi
+    def explode(self, bom_lines_done, qty, date):
+        self.ensure_one()
+        list_qty = []
+        bom_lines = self.with_context(date_report_use_cases=date).father_line_ids
+        for line in bom_lines_done:
+            if line in bom_lines:
+                bom_lines = bom_lines - line
+        bom_lines_done = bom_lines_done + bom_lines
+        while bom_lines:
+            current_parent_product = bom_lines[0].product_parent_id
+            bom_lines_current_product = bom_lines.filtered(lambda l: l.product_parent_id == current_parent_product)
+            while bom_lines_current_product:
+                bom_lines_current_bom = bom_lines_current_product.\
+                    filtered(lambda l: l.bom_id == bom_lines_current_product[0].bom_id)
+                list_qty += [{'to_check': True,
+                              'line_ids': bom_lines_current_bom,
+                              'qty': qty * sum([float(x.product_qty) / x.bom_id.product_qty for x in bom_lines_current_bom]),
+                              'product_id': current_parent_product,
+                              'bom_id': bom_lines_current_product[0].bom_id}]
+                bom_lines_current_product = bom_lines_current_product - bom_lines_current_bom
+                bom_lines = bom_lines - bom_lines_current_bom
+        return list_qty, bom_lines_done
 
 
 class ProductProduct(models.Model):
@@ -64,3 +95,16 @@ class ProductProduct(models.Model):
                  '|', ('bom_id.date_start', '<=', fields.Date.today()), ('bom_id.date_start', '=', False),
                  '|', ('bom_id.date_stop', '>=', fields.Date.today()), ('bom_id.date_start', '=', False)])
             )
+
+
+class SirailDefinitionDateCasEmploi(models.TransientModel):
+    _name = 'date.report.use.cases'
+
+    def _get_default_product_id(self):
+        if self.env.context.get('active_id'):
+            return self.env['product.product'].search([('id', '=', self.env.context.get('active_id'))])
+        else:
+            return False
+
+    product_id = fields.Many2one('product.product', string='Related product', default=_get_default_product_id, required=True)
+    date = fields.Date(string='Date', required=True, default=fields.Date.today())

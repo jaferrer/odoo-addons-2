@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!-- Use cases report -->
+
+        <record model="ir.actions.report.xml" id="ir_actions_report_use_cases">
+            <field name="name">Report use cases</field>
+            <field name="type">ir.actions.report.xml</field>
+            <field name="model">date.report.use.cases</field>
+            <field name="report_name">report_use_cases</field>
+            <field name="report_type">aeroo</field>
+            <field name="in_format">oo-ods</field>
+            <field name="report_rml">mrp_bom_use_cases/report/report_use_cases.ods</field>
+            <field name="parser_state">loc</field>
+            <field name="parser_loc">mrp_bom_use_cases/report/report_use_cases.py</field>
+            <field name="tml_source">file</field>
+        </record>
+
+        <record model="ir.ui.view" id="date_report_use_cases_form">
+            <field name="name">date.report.use.cases</field>
+            <field name="model">date.report.use.cases</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Date">
+                    <group>
+                        <field name="date"/>
+                    </group>
+                    <footer>
+                        <button name="%(ir_actions_report_use_cases)d" string="Export" type="action" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_define_date_use_cases">
+            <field name="name">Report use cases</field>
+            <field name="res_model">date.report.use.cases</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <record model="ir.values" id="ir_value_report_use_cases">
+            <field name="key">action</field>
+            <field name="key2">client_print_multi</field>
+            <field name="model">product.product</field>
+            <field name="name">report_use_cases</field>
+            <field name="value" eval="'ir.actions.act_window,' + str(ref('act_window_define_date_use_cases'))"/>
+        </record>
+
+    </data>
+</openerp>

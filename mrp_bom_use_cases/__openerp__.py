@@ -35,6 +35,7 @@ parent BoM is itself a component of another BoM, it is also displayed as a tree 
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'report/report_use_cases.xml',
         'mrp_bom_use_cases_view.xml'
     ],
     'demo': [],
