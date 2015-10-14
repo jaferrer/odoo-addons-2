@@ -44,3 +44,16 @@ msgstr "Eléments d'assistant d'opération"
 msgid "Unpack"
 msgstr "Dépaqueter"
 
+#. module: stock_transfer_unpack
+#: view:stock.transfer_details:0
+msgid "Unpack"
+msgstr "Dépaqueter"
+
+#. module: stock_transfer_unpack
+#. openerp-web
+#: code:addons\stock_transfer_unpack\static\src\xml\stock_transfer_unpack.xml:7
+#: view:stock.transfer_details:0
+#, python-format
+msgid "Unpack"
+msgstr "Dépaqueter"
+

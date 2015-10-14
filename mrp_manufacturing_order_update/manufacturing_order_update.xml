@@ -13,7 +13,7 @@
                           <label for="bom_id" class="oe_force_bold"/>
                           <button name="button_update" string="(update)" type="object" states="draft,confirmed,ready" class="oe_link"/>
                       </div>
-                      <field name="bom_id" nolabel="1"/>
+                      <field name="bom_id" nolabel="1" attrs="{'readonly': [('state', 'not in', ['draft','confirmed','ready'])]}"/>
                   </field>
                   <field name="product_lines" position="attributes">
                       <attribute name="context" eval="{'by_user': True}"/>

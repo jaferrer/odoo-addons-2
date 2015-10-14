@@ -98,6 +98,7 @@ class product_produce(models.TransientModel):
 
     production_id = fields.Many2one('mrp.production', string="Related Manufacturing Order",
                                     default=_get_default_production_id, readonly=True)
+    create_child = fields.Boolean(string="Create a child manufacturing order", default=True)
     child_production_product_id = fields.Many2one('product.product', default=_get_default_product_id,
                                                   string='Product of the child Manufacturing Order')
     child_src_loc_id = fields.Many2one('stock.location', string="Child source location",
@@ -161,6 +162,7 @@ class mrp_production2(models.Model):
 
     @api.model
     def _calculate_qty(self, production, product_qty=0.0):
+        #TODO: supprimer argument inutile ?
         consume_lines = super(mrp_production2, self)._calculate_qty(production)
         list_to_remove = []
         for item in consume_lines:
@@ -186,7 +188,7 @@ class mrp_production2(models.Model):
         for move in production.move_lines2:
             if move.state == 'cancel' and move not in list_cancelled_moves1:
                 list_cancelled_moves += [move]
-        if len(list_cancelled_moves) != 0:
+        if len(list_cancelled_moves) != 0 and wiz.create_child:
             production_data = {
                 'product_id': wiz.child_production_product_id.id,
                 'product_qty': production.product_qty,

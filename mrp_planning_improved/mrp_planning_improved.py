@@ -31,7 +31,7 @@ class ManufacturingOrderPlanningImproved(models.Model):
                                         help="True if the manufacturing order has been taken into account",
                                         states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
     procurement_id = fields.Many2one('procurement.order', string="Corresponding procurement order",
-                                     compute='_compute_procurement_id', readonly=True)
+                                                                                    compute='_compute_procurement_id')
 
     @api.multi
     def _compute_procurement_id(self):
@@ -100,4 +100,5 @@ class ProcurementOrderPlanningImproved(models.Model):
                     # Updating the date_planned of the corresponding manufacturing order
                     if self.env.context.get('reschedule_planned_date') and not proc.production_id.taken_into_account:
                         proc.production_id.date_planned = prod_start_date
+                    proc.production_id.action_reschedule()
         super(ProcurementOrderPlanningImproved, self).action_reschedule()

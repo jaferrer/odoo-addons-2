@@ -29,12 +29,17 @@ class StockPicking(models.Model):
     def assign_moves_to_picking(self):
         """Assign prereserved moves that do not belong to a picking yet to a picking by reconfirming them.
         """
-        prereservations = self.env['stock.prereservation'].search([('picking_id', '=', False)])
+        # We skip moves given in context not create infinite recursion
+        skip_move_ids = self.env.context.get('skip_moves', [])
+        prereservations = self.env['stock.prereservation'].search([('picking_id', '=', False),
+                                                                   ('move_id', 'not in', skip_move_ids)])
         todo_moves = prereservations.mapped(lambda p: p.move_id)
         to_assign_moves = todo_moves.filtered(lambda m: m.state == 'assigned')
-        todo_moves.action_confirm()
-        # We reassign moves that were assigned beforehand because action_confirmed changed the state
-        to_assign_moves.action_assign()
+        if todo_moves:
+            # We check if we have todo_moves to prevent infinite recursion
+            todo_moves.action_confirm()
+            # We reassign moves that were assigned beforehand because action_confirmed changed the state
+            to_assign_moves.action_assign()
 
     @api.multi
     def action_assign(self):
@@ -122,6 +127,13 @@ class StockMove(models.Model):
         moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
         moves_no_pick.action_confirm()
         super(StockMove, self).action_assign()
+
+    @api.multi
+    def action_done(self):
+        """Overridden here to process prereservations once a move has been done."""
+        res = super(StockMove, self).action_done()
+        self.env['stock.picking'].with_context(skip_moves=self.ids).assign_moves_to_picking()
+        return res
 
 
 class ProcurementRule(models.Model):

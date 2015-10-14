@@ -24,7 +24,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase','purchase_planning_improved','purchase_group_by_period','stock_procurement_just_in_time'],
+    'depends': ['purchase_order_quantities_improved','purchase_planning_improved','purchase_group_by_period','stock_procurement_just_in_time'],
     'description': """
 Purchase Just-In-Time Extension
 ===============================
