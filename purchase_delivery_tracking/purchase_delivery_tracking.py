@@ -37,7 +37,7 @@ class TrackingStatus(models.Model):
 class TrackingNumber(models.Model):
     _name = 'tracking.number'
 
-    name = fields.Char(string="Tracking number")
+    name = fields.Char(string="Tracking number", required=True)
     status_ids = fields.One2many('tracking.status', 'tracking_id', string="Status history")
     date = fields.Datetime(string="Date of the status", compute='_compute_date_and_status')
     status = fields.Char(string="Status", compute='_compute_date_and_status')
