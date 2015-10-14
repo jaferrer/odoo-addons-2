@@ -33,21 +33,21 @@ class ColissimoPurchaseOrder(models.Model):
             if rec.transporter_id.name == 'Colissimo' and rec.state not in ['draft', 'cancel', 'done']:
                 for track in rec.tracking_ids:
                     track.status_ids.unlink()
-                post_response = urlopen('http://www.colissimo.fr/portail_colissimo/suivreResultatStubs.do',
-                                        urlencode({"language": _("en_GB"), "parcelnumber": track.name}))
-                if post_response:
-                    response_etree = etree.parse(post_response, etree.HTMLParser())
-                    body = response_etree.xpath(".//tbody")
-                    if body:
-                        list_status = body[0].findall(".//tr")
-                        if list_status:
-                            for status in list_status:
-                                description_status = status.findall(".//td")
-                                description = ' '.join(description_status[1].text.split())
-                                if description_status[2].text and ' '.join(description_status[2].text.split()) != '':
-                                    description = ' '.join(description_status[2].text.split()) + ' - ' + description
-                                date = description_status[0].text
-                                date = date[6:] + '-' + date[3:5] + '-' + date[:2] + ' 00:00:01'
-                                self.env['tracking.status'].create({'date': date,
-                                                                    'status': description,
-                                                                    'tracking_id': track.id})
+                    post_response = urlopen('http://www.colissimo.fr/portail_colissimo/suivreResultatStubs.do',
+                                            urlencode({"language": _("en_GB"), "parcelnumber": track.name}))
+                    if post_response:
+                        response_etree = etree.parse(post_response, etree.HTMLParser())
+                        body = response_etree.xpath(".//tbody")
+                        if body:
+                            list_status = body[0].findall(".//tr")
+                            if list_status:
+                                for status in list_status:
+                                    description_status = status.findall(".//td")
+                                    description = ' '.join(description_status[1].text.split())
+                                    if description_status[2].text and ' '.join(description_status[2].text.split()) != '':
+                                        description = ' '.join(description_status[2].text.split()) + ' - ' + description
+                                    date = description_status[0].text
+                                    date = date[6:] + '-' + date[3:5] + '-' + date[:2] + ' 00:00:01'
+                                    self.env['tracking.status'].create({'date': date,
+                                                                        'status': description,
+                                                                        'tracking_id': track.id})
