@@ -22,12 +22,12 @@ from urllib2 import urlopen
 import json
 
 
-class ChronopostPurchaseOrder(models.Model):
+class GlsPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
     @api.multi
     def update_delivery_status(self):
-        super(ChronopostPurchaseOrder, self).update_delivery_status()
+        super(GlsPurchaseOrder, self).update_delivery_status()
         for rec in self:
             if rec.transporter_id.name == 'GLS' and rec.state not in ['draft', 'cancel', 'done']:
                 for track in rec.tracking_ids:
