@@ -68,5 +68,56 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             </field>
         </record>
 
+        <!-- New menu for delivery tracking data-->
+
+        <menuitem id="menu_delivery_tracking" name="Delivery tracking"
+                  parent="base.menu_purchase_root" sequence="3"/>
+
+        <record model="ir.ui.view" id="tracking_number_tree">
+            <field name="name">tracking.number.tree</field>
+            <field name="model">tracking.number</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                 <tree string="Tracking numbers" create="false" edit="false" delete="false">
+                     <field name="name"/>
+                     <field name="order_id"/>
+                     <field name="date"/>
+                     <field name="status"/>
+                 </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="tracking_number_search">
+            <field name="name">tracking.number.search</field>
+            <field name="model">tracking.number</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search string="Search tracking numbers">
+                    <field name="name"/>
+                    <field name="order_id"/>
+                    <filter name="active_orders" string="Active orders"
+                            domain="[('order_id.state', 'not in', ['draft', 'done', 'cancel'])]"/>
+                    <group string="Group by...">
+                        <filter name="order_id" string="Purchase Order" domain="[]" context="{'group_by': 'order_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_tracking_number">
+            <field name="name">Tracking Numbers</field>
+            <field name="res_model">tracking.number</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="tracking_number_tree"/>
+            <field name="search_view_id" ref="tracking_number_search"/>
+            <field name="domain">[]</field>
+            <field name="context">{'search_default_active_orders': 1}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_tracking_numbers" name="Tracking numbers" action="act_window_tracking_number"
+                  parent="menu_delivery_tracking" sequence="20"/>
+
     </data>
 </openerp>
