@@ -41,19 +41,12 @@ class MrpBomLine(models.Model):
                 products = parent_product
             else:
                 products = self.env['product.product'].search([('product_tmpl_id', '=', parent_product_tmpl.id)])
-            if self.env.context.get('date_report_use_cases'):
-                date_report = self.env.context['date_report_use_cases']
-                parent_lines = self.search(
-                    [('product_id', 'in', products.ids),
-                     '|', ('bom_id.date_start', '<=', date_report), ('bom_id.date_start', '=', False),
-                     '|', ('bom_id.date_stop', '>=', date_report), ('bom_id.date_start', '=', False)]
-                )
-            else:
-                parent_lines = self.search(
-                    [('product_id', 'in', products.ids),
-                     '|', ('bom_id.date_start', '<=', fields.Date.today()), ('bom_id.date_start', '=', False),
-                     '|', ('bom_id.date_stop', '>=', fields.Date.today()), ('bom_id.date_start', '=', False)]
-                )
+            date_report = self.env.context.get('date_report_use_cases') or fields.Date.today()
+            parent_lines = self.search(
+                [('product_id', 'in', products.ids),
+                 '|', ('bom_id.date_start', '<=', date_report), ('bom_id.date_start', '=', False),
+                 '|', ('bom_id.date_stop', '>=', date_report), ('bom_id.date_start', '=', False)]
+            )
 
             rec.father_line_ids = [(6, 0, [p.id for p in parent_lines])]
 
