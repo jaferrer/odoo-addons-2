@@ -25,6 +25,7 @@ class TestStockProcurementJIT(common.TransactionCase):
     def setUp(self):
         super(TestStockProcurementJIT, self).setUp()
         self.test_product = self.browse_ref("stock_procurement_just_in_time.product_test_product")
+        self.test_product2 = self.browse_ref("stock_procurement_just_in_time.product_test_product2")
         self.location_a = self.browse_ref("stock_procurement_just_in_time.stock_location_a")
         self.location_b = self.browse_ref("stock_procurement_just_in_time.stock_location_b")
         self.location_inv = self.browse_ref("stock.location_inventory")
@@ -33,15 +34,22 @@ class TestStockProcurementJIT(common.TransactionCase):
     def process_orderpoints(self):
         """Function to call the scheduler without needing connector to work."""
         ops = self.env['stock.warehouse.orderpoint'].search([])
-        ops.process()
+        compute_wizard = self.env['procurement.order.compute.all'].create({
+            'compute_all': False,
+            'product_ids': [(4, self.test_product.id)],
+        })
+        self.env['procurement.order'].with_context(compute_product_ids=compute_wizard.product_ids.ids,
+                                                   compute_all_products=compute_wizard.compute_all,
+                                                   without_job=True)._procure_orderpoint_confirm()
 
     def test_10_procurement_jit_basic(self):
         """Check basic jit procurement from scratch."""
         # Create procurements from minimum stock rules in B
-        proc_env = self.env['procurement.order']
         self.process_orderpoints()
         # Let's have a look to the procurements created in B
-        procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
+        procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
+                                                      ('product_id', 'in', [self.test_product.id,
+                                                                            self.test_product2.id])])
         procs = procs.sorted(lambda x: x.date_planned)
         self.assertEqual(len(procs), 3)
         # They should all be running
@@ -69,10 +77,20 @@ class TestStockProcurementJIT(common.TransactionCase):
             'warehouse_id': self.ref('stock.warehouse0'),
             'location_id': self.location_b.id
         })
+        proc1 = proc_env.create({
+            'name': "Procurement 2",
+            'date_planned': '2015-03-26 18:00:00',
+            'product_id': self.test_product2.id,
+            'product_qty': 5,
+            'product_uom': self.product_uom_unit_id,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.location_b.id
+        })
         self.process_orderpoints()
-        procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', '=', self.test_product.id)])
+        procs = proc_env.search([('location_id', '=', self.location_b.id), ('product_id', 'in', [self.test_product.id,
+                                                                            self.test_product2.id])])
         procs = procs.sorted(lambda x: x.date_planned)
-        self.assertEqual(len(procs), 3)
+        self.assertEqual(len(procs), 4)
         self.assertEqual(procs[0], proc0)
         self.assertEqual(procs[0].date_planned, "2015-03-15 09:59:59")
         self.assertEqual(procs[0].product_qty, 5)
@@ -83,6 +101,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[2].date_planned, "2015-03-25 09:59:59")
         self.assertEqual(procs[2].product_qty, 14)
         self.assertEqual(procs[2].state, 'running')
+        self.assertEqual(procs[3].date_planned, "2015-03-26 18:00:00")
+        self.assertEqual(procs[3].product_qty, 5)
 
     def test_30_procurement_jit_several_reschedule(self):
         """Check jit with several rescheduling of running procurements."""
