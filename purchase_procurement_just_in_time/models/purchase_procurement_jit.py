@@ -96,6 +96,9 @@ class PurchaseOrderLineJustInTime(models.Model):
     children_number = fields.Integer(string="Number of children", readonly=True, compute='_compute_children_number')
     location_id = fields.Many2one(related='order_id.location_id')
 
+
+
+
     @api.depends('date_planned', 'date_required', 'to_delete', 'product_qty', 'opmsg_reduce_qty')
     def _compute_opmsg(self):
 

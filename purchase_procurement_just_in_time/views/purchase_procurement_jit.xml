@@ -167,6 +167,9 @@
                     <separator/>
                     <filter name="waiting_ack" string="Awaiting Supplier Ack" domain="['|', ('ack_ref', '=', False), ('date_ack', '=', False)]"/>
                 </filter>
+                 <group string="Group By" position="inside">
+                    <filter string="Mois"  domain="[]" context="{'group_by': 'date_ack:month'}"/>
+                </group>
             </field>
         </record>
 
