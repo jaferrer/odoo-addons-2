@@ -1,0 +1,51 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* connector_improved
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-10-09 09:54+0000\n"
+"PO-Revision-Date: 2015-10-09 09:54+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_connector_improved
+msgid "Improvements for Connector"
+msgstr "Améliorations du Connecteur"
+
+#. module: base
+#: model:ir.module.module,description:base.module_connector_improved
+msgid ""
+"Improvements for Connector\n"
+"==========================\n"
+"This modules holds several improvements for the connector module from OCA.\n"
+"\n"
+"This includes:\n"
+"- Mass setting of jobs to 'Done' state\n"
+"\n"
+msgstr ""
+"Améliorations du Connecteur\n"
+"===========================\n"
+"Ce module implémente différentes améliorations pour le module connector d'OCA.\n"
+"\n"
+"Ceci inclut :\n"
+"- Mettre des jobs à Terminé en masse\n"
+"\n"
+
+#. module: connector_improved
+#: model:ir.model,name:connector_improved.model_queue_job
+msgid "Queue Job"
+msgstr "Queue de jobs"
+
+#. module: connector_improved
+#: model:ir.actions.server,name:connector_improved.ir_actions_server_set_done
+msgid "Set to Done"
+msgstr "Mettre en Terminé"
+

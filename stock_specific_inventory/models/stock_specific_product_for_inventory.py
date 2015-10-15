@@ -68,11 +68,13 @@ class StockSpecificProductInventory(models.Model):
     _name = 'stock.specific.product.inventory'
     _auto = False
 
-    stock_warehouse_id = fields.Many2one('stock.warehouse', readonly=True, index=True,string='Entrepot')
+    stock_warehouse_id = fields.Many2one('stock.warehouse', readonly=True, index=True, string='Entrepot')
     product_id = fields.Many2one('product.product', readonly=True, index=True,string='Article')
-    qty = fields.Integer('total',readonly=True)
-    invetory_date = fields.Datetime('Date du dernier inventaire',readonly=True)
-    move_stock_date = fields.Datetime('Date du dernier mouvement de stock',readonly=True)
+    category= fields.Char('Famille', readonly=True, store=True)
+    qty = fields.Integer('total', readonly=True)
+    invetory_date = fields.Datetime('Date du dernier inventaire', readonly=True)
+    move_stock_date = fields.Datetime('Date du dernier mouvement de stock', readonly=True)
+    value_stock=fields.Float('Valeur du stock', readonly=True)
 
     def init(self, cr):
         drop_view_if_exists(cr, "stock_specific_product_inventory")
@@ -94,15 +96,17 @@ class StockSpecificProductInventory(models.Model):
                     where
                         sl.usage='internal' and sl.location_id=tp.loc_id
             )
-select stock_warehouse.id::text||'-'||product_product.id::text as id,stock_warehouse.id as stock_warehouse_id,product_product.id as product_id,sum(stock_quant.qty) as qty,max(stock_inventory.date) as invetory_date,max(stock_move.date) as move_stock_date from stock_warehouse
+select stock_warehouse.id::text||'-'||product_product.id::text as id,stock_warehouse.id as stock_warehouse_id,product_product.id as product_id,product_category.name as category,sum(stock_quant.qty) as qty,sum(stock_quant.qty*stock_quant.cost) as value_stock,max(stock_inventory.date) as invetory_date,max(stock_move.date) as move_stock_date from stock_warehouse
 inner join top_parent on stock_warehouse.lot_stock_id=top_parent.top_parent_id
 inner join stock_quant on stock_quant.location_id=top_parent.loc_id
 inner join product_product on product_product.id=stock_quant.product_id
+inner join product_template on product_product.product_tmpl_id=product_template.id
+inner join product_category on product_template.categ_id=product_category.id
 left join (select location_id,max(date) as date from stock_inventory s
 group by location_id) stock_inventory on stock_inventory.location_id=top_parent.loc_id
 left join (select location_id,product_id,max(date) as date from stock_move m
 group by location_id,product_id) stock_move on stock_move.location_id=top_parent.loc_id and stock_move.product_id=product_product.id
-group by stock_warehouse.id,product_product.id)
+group by stock_warehouse.id,product_product.id,product_category.name)
         """)
     
     @api.model

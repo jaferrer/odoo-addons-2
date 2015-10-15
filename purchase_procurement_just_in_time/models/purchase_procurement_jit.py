@@ -228,7 +228,7 @@ class PurchaseOrderLineJustInTime(models.Model):
                 running_moves_with_group = order_lines.mapped(lambda l: l.move_ids).filtered(
                     lambda m: m.state not in ['done', 'cancel'] and m.group_id
                 )
-                group = running_moves_with_group and running_moves_with_group[0] or False
+                group = running_moves_with_group and running_moves_with_group[0].group_id or False
                 result.order_id._create_stock_moves_improved(result.order_id, result, group_id=group.id)
 
         return result
@@ -342,6 +342,12 @@ class PurchaseOrderLineJustInTime(models.Model):
                 raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
             for item in self:
                 item.update_moves(vals)
+        if vals.get('price_unit'):
+            for rec in self:
+                active_moves = self.env['stock.move'].search([('product_id', '=', rec.product_id.id),
+                                                              ('purchase_line_id', '=', rec.id),
+                                                              ('state', 'not in', ['draft', 'cancel', 'done'])])
+                active_moves.write({'price_unit': vals['price_unit']})
         return result
 
 
