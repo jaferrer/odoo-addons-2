@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, _
+from openerp import fields, models, api
 
 
 class MrpBomLine(models.Model):
