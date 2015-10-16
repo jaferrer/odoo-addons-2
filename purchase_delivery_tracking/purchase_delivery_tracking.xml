@@ -54,7 +54,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                                    options="{'no_open': True, 'no_create': True}"/>
                             <field name="last_status_update" readonly="1"/>
                         </group>
-                        <field name="tracking_ids">
+                        <field name="tracking_ids" attrs="{'invisible': [('transporter_id', '=', False)]}">
                             <tree name="Delivery Tracking" editable="top">
                                 <field name="id" invisible="1"/>
                                 <field name="name"/>
