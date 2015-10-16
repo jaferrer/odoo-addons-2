@@ -33,6 +33,9 @@ This module adds a button in the transfer window of a stock operation in front o
     'data': [
         'stock_transfer_unpack_view.xml'
     ],
+    'qweb': [
+        'static/src/xml/stock_transfer_unpack.xml'
+    ],
     'demo': [],
     'test': [],
     'installable': True,

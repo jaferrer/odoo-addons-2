@@ -22,8 +22,8 @@
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Procurement',
-    'depends': ['procurement','connector'],
+    'category': 'Warehouse',
+    'depends': ['stock','connector'],
     'description': """
 Asynchronous Scheduler
 ======================

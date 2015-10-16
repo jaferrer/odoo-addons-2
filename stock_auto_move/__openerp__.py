@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Warehouse',
-    'depends': ['stock', 'procurement'],
+    'depends': ['stock'],
     'description': """
 Automatic Move Processing
 =========================

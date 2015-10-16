@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Product',
-    'depends': ['product', 'purchase', 'stock'],
+    'depends': ['purchase', 'stock'],
     'description': """
 Validity Dates for Supplier Prices
 ==================================

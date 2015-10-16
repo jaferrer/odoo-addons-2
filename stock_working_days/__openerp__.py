@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Warehouse',
-    'depends': ['resource','procurement','stock'],
+    'depends': ['resource', 'stock'],
     'description': """
 Stock Move Scheduling on Working Days
 =====================================

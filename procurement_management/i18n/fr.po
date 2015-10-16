@@ -61,3 +61,13 @@ msgstr "Lancer les approvisionnements"
 #: view:procurement.order:0
 msgid "Upstream and Downstream Moves"
 msgstr "Mouvements aval/amont"
+
+#. module: procurement_management
+#: model:ir.actions.server,name:procurement_management.ir_actions_server_cancel_procurements
+msgid "Cancel procurements"
+msgstr "Annuler les approvisionnements"
+
+#. module: procurement_management
+#: model:ir.actions.server,name:procurement_management.ir_actions_server_reschedule_procurements
+msgid "Reschedule procurements"
+msgstr "Plannifier les approvisionnements"

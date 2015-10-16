@@ -42,7 +42,6 @@ class TestPackageWeight(common.TransactionCase):
         pack_1 = self.env['stock.quant.package'].create({
             'name': "PACK01",
         })
-        print str(quant_10)
         quant_10[0].package_id = pack_1.id
         quant_7[0].package_id = pack_1.id
         ul = self.browse_ref('product.product_ul_box')
