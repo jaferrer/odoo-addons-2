@@ -96,7 +96,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                     <field name="name"/>
                     <field name="order_id"/>
                     <filter name="active_orders" string="Active orders"
-                            domain="[('order_id.state', 'not in', ['draft', 'done', 'cancel'])]"/>
+                            domain="[('order_id.state', 'not in', ['draft', 'done', 'cancel', 'picking_done'])]"/>
                     <group string="Group by...">
                         <filter name="order_id" string="Purchase Order" domain="[]" context="{'group_by': 'order_id'}"/>
                     </group>
