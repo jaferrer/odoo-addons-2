@@ -120,3 +120,33 @@ msgstr "Transporteur utilise"
 #: model:ir.actions.server,name:purchase_delivery_tracking.ir_actions_server_update_delivery_status
 msgid "Update delivery status"
 msgstr "Mettre a jour les statuts des livraisons"
+
+#. module: purchase_delivery_tracking
+#: view:tracking.number:purchase_delivery_tracking.tracking_number_search
+msgid "Search tracking numbers"
+msgstr "Recherche numeros de suivi"
+
+#. module: purchase_delivery_tracking
+#: model:ir.actions.act_window,name:purchase_delivery_tracking.act_window_tracking_number
+msgid "Tracking Numbers"
+msgstr "Numeros de suivi"
+
+#. module: purchase_delivery_tracking
+#: view:tracking.number:purchase_delivery_tracking.tracking_number_tree
+msgid "Tracking numbers"
+msgstr "Suivi express des livraisons"
+
+#. module: purchase_delivery_tracking
+#: model:ir.ui.menu,name:purchase_delivery_tracking.menu_delivery_tracking
+msgid "Delivery tracking"
+msgstr "Suivi des livraisons"
+
+#. module: purchase_delivery_tracking
+#: model:ir.ui.menu,name:purchase_delivery_tracking.menu_tracking_numbers
+msgid "Tracking numbers"
+msgstr "Suivi express des livraisons"
+
+#. module: purchase_delivery_tracking
+#: view:tracking.number:purchase_delivery_tracking.tracking_number_search
+msgid "Active orders"
+msgstr "Commandes en cours"
