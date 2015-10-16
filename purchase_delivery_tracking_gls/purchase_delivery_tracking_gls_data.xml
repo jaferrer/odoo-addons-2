@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="transporter_gls" model="tracking.transporter">
+            <field name="name">GLS</field>
+        </record>
+
+    </data>
+</openerp>
