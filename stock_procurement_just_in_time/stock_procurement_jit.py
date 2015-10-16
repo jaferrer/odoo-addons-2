@@ -97,11 +97,18 @@ class StockWarehouseOrderPointJit(models.Model):
     def get_next_need(self):
         """Returns the next stock.level.requirements where the stock level is below minimum qty for the product and
         the location of the orderpoint."""
-        need = self.env['stock.levels.requirements'].search([('product_id', '=', self.product_id.id),
-                                                             ('qty', '<', self.product_min_qty),
-                                                             ('location_id', '=', self.location_id.id),
-                                                             ('move_type', '=', 'out')], order='date', limit=1)
-        return need
+        self.ensure_one()
+        need = self.compute_stock_levels_requirements(product_id=self.product_id.id, location_id=self.location_id.id,
+                                                      list_move_types=('out',), limit=False, parameter_to_sort='date',
+                                                      to_reverse=False)
+        need = [x for x in need if float_compare(x['qty'], self.product_min_qty,
+                                                 precision_rounding=self.product_uom.rounding) < 0]
+        if need:
+            need = need[0]
+            if need.get('id') or need.get('proc_id') or need.get('product_id') or need.get('location_id') or \
+                    need.get('move_type') or need.get('qty') or need.get('date') or need.get('move_qty'):
+                return need
+        return False
 
     @api.multi
     def redistribute_procurements(self, date_start, date_end, days=1):
@@ -216,7 +223,7 @@ class StockWarehouseOrderPointJit(models.Model):
     def process(self):
         """Process this orderpoint."""
         for op in self:
-            _logger.debug("Computing orderpoint %s (%s, %s)" % (op.id, op.product_id.name, op.location_id.name))
+            _logger.debug("Computing orderpoint %s (%s, %s, %s)" % (op.id, op.name, op.product_id.name, op.location_id.name))
             need = op.get_next_need()
             date_cursor = False
             while need:
