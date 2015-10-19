@@ -25,7 +25,7 @@ class StockQuant(models.Model):
     _inherit = 'stock.quant'
 
     @api.multi
-    def move_to(self, dest_location, picking_type_id, move_items=False):
+    def move_to(self, dest_location, picking_type_id, move_items=False,is_manual_op=False):
         move_recordset = self.env['stock.move']
         for item in self:
             new_move = self.env['stock.move'].create({
@@ -49,6 +49,6 @@ class StockQuant(models.Model):
             picking.do_prepare_partial()
             packops = picking.pack_operation_ids
             packops.write({'location_dest_id': dest_location.id})
-            picking.do_transfer()
-        
+            if not is_manual_op :
+                picking.do_transfer()
         return move_recordset
