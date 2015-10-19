@@ -39,9 +39,13 @@ class TrackingNumber(models.Model):
 
     name = fields.Char(string="Tracking number", required=True)
     status_ids = fields.One2many('tracking.status', 'tracking_id', string="Status history")
-    date = fields.Datetime(string="Date of the status", compute='_compute_date_and_status')
-    status = fields.Char(string="Status", compute='_compute_date_and_status')
+    date = fields.Datetime(string="Date of the last status", compute='_compute_date_and_status')
+    status = fields.Char(string="Last status", compute='_compute_date_and_status')
     order_id = fields.Many2one('purchase.order', string="Linked purchase order")
+    transporter_id = fields.Many2one('tracking.transporter', string="Transporter", related='order_id.transporter_id')
+    partner_id = fields.Many2one('res.partner', string="Supplier", related='order_id.partner_id')
+    last_status_update = fields.Datetime(string="Date of the last update", related='order_id.last_status_update')
+    logo = fields.Char(compute='_compute_logo', string="Logo")
 
     @api.multi
     def _compute_date_and_status(self):
@@ -65,6 +69,12 @@ class TrackingNumber(models.Model):
             'res_model': 'tracking.status',
             'domain': [('tracking_id', '=', self.id)]
         }
+
+    # Function to overwrite for each transporter.
+    @api.multi
+    def _compute_logo(self):
+        for rec in self:
+            rec.logo = False
 
 
 class PurchaseDeliveryTrackingPurchaseOrder(models.Model):

@@ -57,7 +57,27 @@ msgstr "Informations"
 #. module: purchase_delivery_tracking
 #: field:tracking.number,order_id:0
 msgid "Linked purchase order"
-msgstr "Commande d'achat liee"
+msgstr "Commande"
+
+#. module: purchase_delivery_tracking
+#: field:tracking.number,transporter_id:0
+msgid "Transporter"
+msgstr "Transporteur"
+
+#. module: purchase_delivery_tracking
+#: field:tracking.number,partner_id:0
+msgid "Supplier"
+msgstr "Fournisseur"
+
+#. module: purchase_delivery_tracking
+#: field:tracking.number,last_status_update:0
+msgid "Date of the last update"
+msgstr "Date de derniere mise a jour"
+
+#. module: purchase_delivery_tracking
+#: field:tracking.number,logo:0
+msgid "Logo"
+msgstr "Logo"
 
 #. module: purchase_delivery_tracking
 #: field:tracking.status,tracking_id:0
@@ -103,13 +123,13 @@ msgstr "Numero de suivi"
 
 #. module: purchase_delivery_tracking
 #: field:tracking.number,date:0
-msgid "Date of the status"
-msgstr "Date du statut"
+msgid "Date of the last status"
+msgstr "Date du dernier statut"
 
 #. module: purchase_delivery_tracking
 #: field:tracking.number,status:0
-msgid "Status"
-msgstr "Statut"
+msgid "Last status"
+msgstr "Dernier statut"
 
 #. module: purchase_delivery_tracking
 #: field:purchase.order,transporter_id:0

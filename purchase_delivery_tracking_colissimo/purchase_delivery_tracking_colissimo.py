@@ -23,6 +23,17 @@ from lxml import etree
 from urllib import urlencode
 
 
+class ColissimoTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
+
+    @api.multi
+    def _compute_logo(self):
+        super(ColissimoTrackingNumber, self)._compute_logo()
+        for rec in self:
+            if rec.transporter_id.name == 'Colissimo':
+                rec.logo = "/purchase_delivery_tracking_colissimo/static/img/colissimo.jpg"
+
+
 class ColissimoPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 

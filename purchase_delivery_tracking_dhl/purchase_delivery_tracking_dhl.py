@@ -23,6 +23,17 @@ import json
 from dateutil.parser import parse
 
 
+class DhlTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
+
+    @api.multi
+    def _compute_logo(self):
+        super(DhlTrackingNumber, self)._compute_logo()
+        for rec in self:
+            if rec.transporter_id.name == 'DHL':
+                rec.logo = "/purchase_delivery_tracking_dhl/static/img/dhl.jpg"
+
+
 class DhlPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 

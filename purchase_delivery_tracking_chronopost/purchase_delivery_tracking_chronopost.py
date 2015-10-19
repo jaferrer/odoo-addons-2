@@ -22,6 +22,17 @@ from urllib2 import urlopen
 from lxml import etree
 
 
+class ChronopostTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
+
+    @api.multi
+    def _compute_logo(self):
+        super(ChronopostTrackingNumber, self)._compute_logo()
+        for rec in self:
+            if rec.transporter_id.name == 'Chronopost':
+                rec.logo = "/purchase_delivery_tracking_chronopost/static/img/chronopost.png"
+
+
 class ChronopostPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 

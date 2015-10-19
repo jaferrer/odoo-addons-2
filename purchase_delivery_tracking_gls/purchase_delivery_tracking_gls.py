@@ -22,6 +22,17 @@ from urllib2 import urlopen
 import json
 
 
+class GlsTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
+
+    @api.multi
+    def _compute_logo(self):
+        super(GlsTrackingNumber, self)._compute_logo()
+        for rec in self:
+            if rec.transporter_id.name == 'GLS':
+                rec.logo = "/purchase_delivery_tracking_gls/static/img/gls.gif"
+
+
 class GlsPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 

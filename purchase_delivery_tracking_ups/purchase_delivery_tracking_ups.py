@@ -24,6 +24,17 @@ from urllib import urlencode
 from dateutil.parser import parse
 
 
+class UpsTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
+
+    @api.multi
+    def _compute_logo(self):
+        super(UpsTrackingNumber, self)._compute_logo()
+        for rec in self:
+            if rec.transporter_id.name == 'UPS':
+                rec.logo = "/purchase_delivery_tracking_ups/static/img/ups.jpg"
+
+
 class UpsPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
