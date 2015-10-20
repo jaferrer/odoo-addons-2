@@ -18,25 +18,28 @@
 #
 
 from openerp import fields, models, api
-from openerp.addons.connector.session import ConnectorSession
+from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
 from openerp.addons.connector.queue.job import job
 
 
 @job
 def run_procure_all_async(session, model_name, ids, context):
     """Launch all schedulers"""
-    compute_all_wizard = session.pool[model_name]
-    compute_all_wizard._procure_calculation_all(session.cr, session.uid, ids, context=context)
-    return "Scheduler ended compute_all job."
+    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
+    with handler.session() as s:
+        compute_all_wizard = s.pool[model_name]
+        compute_all_wizard._procure_calculation_all(s.cr, s.uid, ids, context=context)
+        return "Scheduler ended compute_all job."
 
 
 @job
 def run_procure_orderpoint_async(session, model_name, ids):
     """Compute minimum stock rules only"""
-    compute_orderpoint_wizard = session.pool[model_name]
-    res = compute_orderpoint_wizard._procure_calculation_orderpoint(session.cr, session.uid, ids,
-                                                                     context=session.context)
-    return "Scheduler ended compute_orderpoint job."
+    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
+    with handler.session() as s:
+        compute_orderpoint_wizard = s.pool[model_name]
+        res = compute_orderpoint_wizard._procure_calculation_orderpoint(s.cr, s.uid, ids, context=s.context)
+        return "Scheduler ended compute_orderpoint job."
 
 
 class ProcurementComputeAllAsync(models.TransientModel):
