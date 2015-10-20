@@ -394,8 +394,8 @@ class StockWarehouseOrderPointJit(models.Model):
 class StockComputeAll(models.TransientModel):
     _inherit = 'procurement.order.compute.all'
 
-    compute_all = fields.Boolean(string=u"Traiter l'ensemble des produits", default=True)
-    product_ids = fields.Many2many('product.product', string=u"Produits à traiter")
+    compute_all = fields.Boolean(string=u"Compute all the products", default=True)
+    product_ids = fields.Many2many('product.product', string=u"Products to compute")
 
     @api.multi
     def procure_calculation(self):
