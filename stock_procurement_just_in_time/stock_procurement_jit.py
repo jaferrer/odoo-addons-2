@@ -22,6 +22,7 @@ import logging
 import openerp.addons.decimal_precision as dp
 from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
 from openerp.addons.connector.queue.job import job
+import psycopg2
 from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 from openerp import fields, models, api
@@ -35,11 +36,8 @@ _logger = logging.getLogger(__name__)
 def process_orderpoints(session, model_name, ids):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
-    with handler.session() as s:
-        for op in s.env[model_name].browse(ids):
-            op.process()
-        s.commit()
+    for op in session.env[model_name].browse(ids):
+        op.process()
 
 
 class ProcurementOrderQuantity(models.Model):
@@ -149,8 +147,8 @@ class StockWarehouseOrderPointJit(models.Model):
                 date_domain += [('date_planned', '>=', fields.Datetime.to_string(date_start))]
             procs = self.env['procurement.order'].search([('product_id', '=', op.product_id.id),
                                                           ('location_id', '=', op.location_id.id),
-                                                          ('state', 'in', ['confirmed', 'running', 'exception'])]
-                                                         + date_domain,
+                                                          ('state', 'in', ['confirmed', 'running', 'exception'])] +
+                                                         date_domain,
                                                          order="date_planned DESC")
             for proc in procs:
                 stock_date = min(
@@ -210,7 +208,7 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                 list_move_types=['in', 'out', 'existing'], limit=1,
                                                                 parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-              fields.Datetime.from_string(last_schedule[0].get('date')) or False
+            fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -233,7 +231,7 @@ class StockWarehouseOrderPointJit(models.Model):
                                                           ('date_planned', '<=', fields.Datetime.to_string(timestamp))],
                                                          order='qty DESC')
             if last_outgoing:
-                procs = procs.filtered(lambda x: x.date_planned > last_outgoing[0]['date'])
+                procs = procs.filtered(lambda y: y.date_planned > last_outgoing[0]['date'])
             _logger.debug("Removing not needed procurements: %s", procs.ids)
             procs.cancel()
             procs.unlink()
@@ -242,7 +240,8 @@ class StockWarehouseOrderPointJit(models.Model):
     def process(self):
         """Process this orderpoint."""
         for op in self:
-            _logger.debug("Computing orderpoint %s (%s, %s, %s)" % (op.id, op.name, op.product_id.name, op.location_id.name))
+            _logger.debug("Computing orderpoint %s (%s, %s, %s)" % (op.id, op.name, op.product_id.name,
+                                                                    op.location_id.name))
             need = op.get_next_need()
             date_cursor = False
             while need:
@@ -297,7 +296,7 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                  ('location_id', 'child_of', location_id)])
         procurement_order_restricted = self.env['procurement.order'].search([('product_id', '=', product_id),
                                                                              ('location_id', 'child_of', location_id),
-                                                                             ('state', 'not in', ['cancel','done'])
+                                                                             ('state', 'not in', ['cancel', 'done'])
                                                                              ], order='date_planned')
         dates = []
         if stock_move_restricted_in:
