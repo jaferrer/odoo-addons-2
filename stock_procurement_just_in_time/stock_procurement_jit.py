@@ -36,11 +36,8 @@ _logger = logging.getLogger(__name__)
 def process_orderpoints(session, model_name, ids):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
-    with handler.session() as s:
-        for op in s.env[model_name].browse(ids):
-            op.process()
-        s.commit()
+    for op in session.env[model_name].browse(ids):
+        op.process()
 
 
 class ProcurementOrderQuantity(models.Model):
