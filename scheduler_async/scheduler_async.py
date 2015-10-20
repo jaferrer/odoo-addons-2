@@ -83,5 +83,3 @@ class ProcurementOrderAsync(models.Model):
     def run_scheduler_async(self, use_new_cursor=False, company_id = False):
         proc_compute = self.env['procurement.order.compute.all'].create({})
         proc_compute.procure_calculation()
-
-
