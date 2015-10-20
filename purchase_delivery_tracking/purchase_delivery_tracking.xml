@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.actions.server" id="ir_actions_server_update_delivery_status">
+            <field name="name">Update delivery status</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="code">
+self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_update_delivery_status">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">purchase.order</field>
+            <field name="name">Update delivery status</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_update_delivery_status)"/>
+        </record>
+
+        <record model="ir.ui.view" id="tracking_status_tree_view">
+            <field name="name">tracking.status.tree.view</field>
+            <field name="model">tracking.status</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree name="tracking_history" create="false">
+                    <field name="date"/>
+                    <field name="status"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="action_tracking_history">
+            <field name="name">Tracking History</field>
+            <field name="res_model">tracking.status</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+            <field name="view_id" ref="tracking_status_tree_view"/>
+        </record>
+
+        <record model="ir.ui.view" id="purchase_delivery_tracking_purchase_order_form">
+            <field name="name">purchase.delivery.tracking.purchase.order.form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="Delivery Tracking">
+                        <group string="Information">
+                            <field name="transporter_id" class="oe_no_button"
+                                   options="{'no_open': True, 'no_create': True}"/>
+                            <field name="last_status_update" readonly="1"/>
+                        </group>
+                        <field name="tracking_ids" attrs="{'invisible': [('transporter_id', '=', False)]}">
+                            <tree name="Delivery Tracking" editable="top">
+                                <field name="id" invisible="1"/>
+                                <field name="name"/>
+                                <field name="date" readonly="1"/>
+                                <field name="status" readonly="1"/>
+                                <button string="Tracking History" type="object" name="open_status_ids" icon="terp-stock_zoom"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+        <!-- New menu for delivery tracking data-->
+
+        <menuitem id="menu_delivery_tracking" name="Delivery tracking"
+                  parent="base.menu_purchase_root" sequence="3"/>
+
+        <record model="ir.ui.view" id="tracking_number_tree">
+            <field name="name">tracking.number.tree</field>
+            <field name="model">tracking.number</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                 <tree string="Tracking numbers" create="false" edit="false" delete="false">
+                     <field name="name"/>
+                     <field name="order_id"/>
+                     <field name="date"/>
+                     <field name="status"/>
+                 </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="tracking_number_search">
+            <field name="name">tracking.number.search</field>
+            <field name="model">tracking.number</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search string="Search tracking numbers">
+                    <field name="name"/>
+                    <field name="order_id"/>
+                    <filter name="active_orders" string="Active orders"
+                            domain="[('order_id.state', 'not in', ['draft', 'done', 'cancel', 'picking_done'])]"/>
+                    <group string="Group by...">
+                        <filter name="order_id" string="Purchase Order" domain="[]" context="{'group_by': 'order_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_tracking_number">
+            <field name="name">Tracking Numbers</field>
+            <field name="res_model">tracking.number</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="tracking_number_tree"/>
+            <field name="search_view_id" ref="tracking_number_search"/>
+            <field name="domain">[]</field>
+            <field name="context">{'search_default_active_orders': 1}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_tracking_numbers" name="Tracking numbers" action="act_window_tracking_number"
+                  parent="menu_delivery_tracking" sequence="20"/>
+
+    </data>
+</openerp>

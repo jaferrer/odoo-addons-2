@@ -1,8 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
     <t t-extend="PickingEditorWidget">
+        <t t-jquery='div[id="js_LocationChooseModal"]' t-operation="after">
+	        <div class="modal fade" id="js_OpenStockWarning" tabindex="-1" role="dialog" aria-labelledby="PackConfModal" aria-hidden="true">
+	            <div class="modal-dialog">
+	                <div class="modal-content">
+	                    <div class="modal-header">
+	                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+	                        <h4 class="modal-title" id="myModalLabel">Stock Warning</h4>
+	                    </div>
+	                    <div class="modal-body">
+	                    	<div id="js_open_warning_msg">
+	                    	</div>
+	                    </div>
+	                    <div class="modal-footer">
+	                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+	                    </div>
+	                </div>
+	            </div>
+	        </div>
+	       </t>
+        
         <t t-jquery='t[t-esc="row.cols.product"]' t-operation="before">
-            <t t-if="row.cols.procurement_warning" ><span class="fa fa-warning"></span></t>
+            <a class="js_open_warning" href="#"><t t-if="row.cols.procurement_warning" ><span class="fa fa-warning stockproductwarn"></span></t></a>
         </t>
+        
+        
     </t>
+    
 </templates>

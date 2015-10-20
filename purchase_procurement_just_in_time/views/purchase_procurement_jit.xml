@@ -119,7 +119,7 @@
                 </field>
                 <field name="price_unit" position="after">
                     <field name="order_id" readonly="1"/>
-                    <field name="line_no" readonly="1"/>
+                    <field name="line_no"/>
                     <field name="state"/>
                 </field>
                 <field name="product_uom" position="attributes">
@@ -167,6 +167,9 @@
                     <separator/>
                     <filter name="waiting_ack" string="Awaiting Supplier Ack" domain="['|', ('ack_ref', '=', False), ('date_ack', '=', False)]"/>
                 </filter>
+                 <group string="Group By" position="inside">
+                    <filter string="Mois de réception"  domain="[]" context="{'group_by': 'date_planned:month'}"/>
+                </group>
             </field>
         </record>
 

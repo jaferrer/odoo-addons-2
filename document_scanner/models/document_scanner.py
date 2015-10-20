@@ -74,9 +74,3 @@ class IrAttachmentScanner(models.Model):
             return {
                         "error":status
                     }
-        
-    
-    
-
-
-

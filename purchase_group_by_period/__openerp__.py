@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['base','purchase'],
+    'depends': ['purchase'],
     'description': """
 Group Purchase Lines By Period
 ==============================
