@@ -23,14 +23,14 @@ import json
 from dateutil.parser import parse
 
 
-class DpdTrackingNumber(models.Model):
-    _inherit = 'tracking.number'
+class DpdTrackingTransporter(models.Model):
+    _inherit = 'tracking.transporter'
 
     @api.multi
     def _compute_logo(self):
-        super(DpdTrackingNumber, self)._compute_logo()
+        super(DpdTrackingTransporter, self)._compute_logo()
         for rec in self:
-            if rec.transporter_id.name == 'DPD':
+            if rec.name == 'DPD':
                 rec.logo = "/purchase_delivery_tracking_dpd/static/img/dpd.png"
 
 

@@ -4,6 +4,7 @@
 
         <record id="transporter_gls" model="tracking.transporter">
             <field name="name">GLS</field>
+            <field name="image" type="base64" file="purchase_delivery_tracking_gls/static/img/gls.gif"/>
         </record>
 
     </data>

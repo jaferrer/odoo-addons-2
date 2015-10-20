@@ -23,14 +23,14 @@ from urllib import urlencode
 import json
 
 
-class FedexTrackingNumber(models.Model):
-    _inherit = 'tracking.number'
+class FedexTrackingTransporter(models.Model):
+    _inherit = 'tracking.transporter'
 
     @api.multi
     def _compute_logo(self):
-        super(FedexTrackingNumber, self)._compute_logo()
+        super(FedexTrackingTransporter, self)._compute_logo()
         for rec in self:
-            if rec.transporter_id.name == 'FedEx':
+            if rec.name == 'FedEx':
                 rec.logo = "/purchase_delivery_tracking_fedex/static/img/fedex.png"
 
 
