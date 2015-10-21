@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="transporter_kn" model="tracking.transporter">
+            <field name="name">Kuehne Nagel</field>
+            <field name="image" type="base64" file="purchase_delivery_tracking_kn/static/img/kn.jpg"/>
+        </record>
+
+    </data>
+</openerp>
