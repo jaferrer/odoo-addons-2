@@ -4,6 +4,7 @@
 
         <record id="transporter_colissimo" model="tracking.transporter">
             <field name="name">Colissimo</field>
+            <field name="image" type="base64" file="purchase_delivery_tracking_colissimo/static/img/colissimo.jpg"/>
         </record>
 
     </data>

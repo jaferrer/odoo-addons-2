@@ -18,20 +18,19 @@
 #
 
 {
-    'name': 'Purchase delivery tracking',
+    'name': 'Purchase delivery tracking (Kuehne Nagel)',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'web_tree_image'],
+    'depends': ['purchase_delivery_tracking'],
     'description': """
-Purchase delivery tracking
-==========================
-This module allows to upload the status of a purchase order, knowing the transporter and the tracking number.
+Purchase delivery tracking (Kuehne Nagel)
+=========================================
+This module allows to track the Kuehne Nagel deliveries
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['security/ir.model.access.csv',
-             'purchase_delivery_tracking.xml'],
+    'data': ['purchase_delivery_tracking_kn_data.xml'],
     'demo': [],
     'test': [],
     'installable': True,

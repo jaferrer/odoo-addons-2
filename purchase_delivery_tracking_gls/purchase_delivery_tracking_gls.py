@@ -22,6 +22,17 @@ from urllib2 import urlopen
 import json
 
 
+class GlsTrackingTransporter(models.Model):
+    _inherit = 'tracking.transporter'
+
+    @api.multi
+    def _compute_logo(self):
+        super(GlsTrackingTransporter, self)._compute_logo()
+        for rec in self:
+            if rec.name == 'GLS':
+                rec.logo = "/purchase_delivery_tracking_gls/static/img/gls.gif"
+
+
 class GlsPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
@@ -31,9 +42,13 @@ class GlsPurchaseOrder(models.Model):
         for rec in self:
             if rec.transporter_id.name == 'GLS' and rec.state not in ['draft', 'cancel', 'done']:
                 for track in rec.tracking_ids:
+                    file = False
                     track.status_ids.unlink()
-                    file = urlopen(_('https://gls-group.eu/app/service/open/rest/EN/en/rstt001?match=') +
-                                   track.name + '&caller=witt002&milis=1444824770093')
+                    try:
+                        file = urlopen(_('https://gls-group.eu/app/service/open/rest/EN/en/rstt001?match=') +
+                                       track.name + '&caller=witt002&milis=1444824770093')
+                    except:
+                        pass
                     if file:
                         list_status = json.loads(file.read())
                         if list_status.get('tuStatus'):
