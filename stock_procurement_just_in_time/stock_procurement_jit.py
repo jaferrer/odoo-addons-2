@@ -22,7 +22,6 @@ import logging
 import openerp.addons.decimal_precision as dp
 from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
 from openerp.addons.connector.queue.job import job
-import psycopg2
 from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 from openerp import fields, models, api
@@ -36,8 +35,11 @@ _logger = logging.getLogger(__name__)
 def process_orderpoints(session, model_name, ids):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    for op in session.env[model_name].browse(ids):
-        op.process()
+    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
+    with handler.session() as s:
+        for op in s.env[model_name].browse(ids):
+            op.process()
+        s.commit()
 
 
 class ProcurementOrderQuantity(models.Model):
