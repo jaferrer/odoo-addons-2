@@ -4,6 +4,7 @@
 
         <record id="transporter_ups" model="tracking.transporter">
             <field name="name">UPS</field>
+            <field name="image" type="base64" file="purchase_delivery_tracking_ups/static/img/ups.jpg"/>
         </record>
 
     </data>

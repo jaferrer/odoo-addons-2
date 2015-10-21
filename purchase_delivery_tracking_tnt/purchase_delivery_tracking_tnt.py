@@ -24,6 +24,17 @@ from lxml import etree
 from dateutil.parser import parse
 
 
+class TntTrackingTransporter(models.Model):
+    _inherit = 'tracking.transporter'
+
+    @api.multi
+    def _compute_logo(self):
+        super(TntTrackingTransporter, self)._compute_logo()
+        for rec in self:
+            if rec.name == 'TNT':
+                rec.logo = "/purchase_delivery_tracking_tnt/static/img/tnt.png"
+
+
 class TntPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
