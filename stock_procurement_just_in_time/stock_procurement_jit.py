@@ -389,6 +389,18 @@ class StockWarehouseOrderPointJit(models.Model):
             return result
 
 
+class StockComputeAll(models.TransientModel):
+    _inherit = 'procurement.order.compute.all'
+
+    compute_all = fields.Boolean(string=u"Compute all the products", default=True)
+    product_ids = fields.Many2many('product.product', string=u"Products to compute")
+
+    @api.multi
+    def procure_calculation(self):
+        return super(StockComputeAll, self.with_context(compute_product_ids=self.product_ids.ids,
+                                                        compute_all_products=self.compute_all)).procure_calculation()
+
+
 class StockLevelsReport(models.Model):
     _name = "stock.levels.report"
     _description = "Stock Levels Report"
