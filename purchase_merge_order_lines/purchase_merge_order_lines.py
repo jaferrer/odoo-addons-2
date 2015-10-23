@@ -19,6 +19,7 @@
 
 from openerp import models, fields, api
 
+
 class MergePolPurchaseOrderGroup(models.TransientModel):
     _inherit = 'purchase.order.group'
 
@@ -29,7 +30,10 @@ class MergePolPurchaseOrderGroup(models.TransientModel):
 
     @api.multi
     def merge_orders(self):
-        return super(MergePolPurchaseOrderGroup, self.with_context(merge_different_dates=True)).merge_orders()
+        self.ensure_one()
+        return super(MergePolPurchaseOrderGroup,
+                     self.with_context(merge_different_dates=self.merge_different_dates)).merge_orders()
+
 
 class MergePolPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
