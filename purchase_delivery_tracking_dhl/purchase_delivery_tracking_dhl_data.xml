@@ -4,6 +4,7 @@
 
         <record id="transporter_dhl" model="tracking.transporter">
             <field name="name">DHL</field>
+            <field name="image" type="base64" file="purchase_delivery_tracking_dhl/static/img/dhl.jpg"/>
         </record>
 
     </data>

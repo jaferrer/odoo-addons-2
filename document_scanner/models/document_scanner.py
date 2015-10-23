@@ -1,18 +1,21 @@
-import sane
 import tempfile
-import os
+import sys
 import os.path
 import time
 import base64
 from openerp import fields, models, api, tools
 from openerp.tools.config import config
 
+try :
+    import sane
+except :
+    pass
+
 class DocumentScannerUser(models.Model):
     _inherit = "res.users"
     
     def _get_devices_options(self):
         devices=eval(self.env['ir.config_parameter'].get_param('sirail.list_scanner', default='[]'))
-        print('Available devices:', devices)
         res=[]
         for item in devices:
             res.append((item[0],"%s - %s"%(item[1],item[2])))
@@ -72,9 +75,3 @@ class IrAttachmentScanner(models.Model):
             return {
                         "error":status
                     }
-        
-    
-    
-
-
-

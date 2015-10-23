@@ -1,0 +1,4 @@
+.openerp .oe_sidebar .oe_dropdown_menu .oe_sidebar_scan_attachment {
+    cursor: pointer;
+    font-weight: bold;
+}

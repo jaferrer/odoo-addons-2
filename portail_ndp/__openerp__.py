@@ -17,19 +17,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api
-
-
-class StockComputeAll(models.TransientModel):
-    _inherit = 'procurement.order.compute.all'
-
-    compute_all = fields.Boolean(string=u"Traiter l'ensemble des produits", default=True)
-    product_ids = fields.Many2many('product.product', string=u"Produits à traiter")
-
-    @api.multi
-    def procure_calculation(self):
-        proc_obj = self.env['procurement.order']
-        for company_id in self.env.user.company_ids.ids:
-            proc_obj.with_context(compute_product_ids=self.product_ids.ids, compute_all_products=self.compute_all).\
-                _procure_orderpoint_confirm(use_new_cursor=self.env.cr.dbname, company_id=company_id)
-        return {}
+{
+    'name': 'Load Portail NDP CSS',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Technical Settings',
+    'depends': ['web'],
+    'description': """
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+             'load_css.xml'
+             ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

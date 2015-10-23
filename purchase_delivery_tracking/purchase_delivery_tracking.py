@@ -24,6 +24,49 @@ class TrackingTransporter(models.Model):
     _name = 'tracking.transporter'
 
     name = fields.Char(string="Name")
+    image = fields.Binary(string="Image")
+    number_ids = fields.One2many('tracking.number', 'transporter_id', string="List of related tracking numbers")
+    order_ids = fields.One2many('purchase.order', 'transporter_id', string="List of related purchase orders")
+    number_trackings = fields.Integer(string="Number of related tracking numbers", compute='_compute_numbers')
+    number_orders = fields.Integer(string="Number of related purchase orders", compute='_compute_numbers')
+    logo = fields.Char(compute='_compute_logo', string="Logo")
+
+    @api.multi
+    def _compute_numbers(self):
+        for rec in self:
+            rec.number_trackings = len(rec.number_ids)
+            rec.number_orders = len(rec.order_ids)
+
+    # Function to overwrite for each transporter.
+    @api.multi
+    def _compute_logo(self):
+        for rec in self:
+            rec.logo = False
+
+
+    @api.multi
+    def open_transporter_numbers(self):
+        self.ensure_one()
+        return {
+            'name': _('Tracking numbers related to transporter %s' % self.name),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'tracking.number',
+            'domain': [('transporter_id', '=', self.id)]
+        }
+
+    @api.multi
+    def open_purchase_orders(self):
+        self.ensure_one()
+        return {
+            'name': _('Purchase orders related to transporter %s' % self.name),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'purchase.order',
+            'domain': [('transporter_id', '=', self.id)]
+        }
 
 
 class TrackingStatus(models.Model):
@@ -39,9 +82,15 @@ class TrackingNumber(models.Model):
 
     name = fields.Char(string="Tracking number", required=True)
     status_ids = fields.One2many('tracking.status', 'tracking_id', string="Status history")
-    date = fields.Datetime(string="Date of the status", compute='_compute_date_and_status')
-    status = fields.Char(string="Status", compute='_compute_date_and_status')
+    date = fields.Datetime(string="Date of the last status", compute='_compute_date_and_status')
+    status = fields.Char(string="Last status", compute='_compute_date_and_status')
     order_id = fields.Many2one('purchase.order', string="Linked purchase order")
+    transporter_id = fields.Many2one('tracking.transporter', string="Transporter", related='order_id.transporter_id',
+                                     store=True)
+    partner_id = fields.Many2one('res.partner', string="Supplier", related='order_id.partner_id')
+    last_status_update = fields.Datetime(string="Date of the last update", related='order_id.last_status_update')
+    logo = fields.Char(string="Logo", related='transporter_id.logo')
+    image = fields.Binary(string="Image", related='transporter_id.image')
 
     @api.multi
     def _compute_date_and_status(self):
@@ -58,14 +107,21 @@ class TrackingNumber(models.Model):
     def open_status_ids(self):
         self.ensure_one()
         return {
-            'name': _('List of status corresponding to this tracking number'),
+            'name': _('List of status corresponding to tracking number %s' % self.name),
             'type': 'ir.actions.act_window',
             'view_type': 'form',
-            'view_mode': 'list',
+            'view_mode': 'tree',
             'res_model': 'tracking.status',
             'domain': [('tracking_id', '=', self.id)]
         }
 
+    @api.multi
+    def update_delivery_status(self):
+        order_to_update = self.env['purchase.order']
+        for rec in self:
+            if rec.order_id not in order_to_update:
+                order_to_update = order_to_update + rec.order_id
+        order_to_update.update_delivery_status()
 
 class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
