@@ -16,7 +16,6 @@ class DocumentScannerUser(models.Model):
     
     def _get_devices_options(self):
         devices=eval(self.env['ir.config_parameter'].get_param('sirail.list_scanner', default='[]'))
-        print('Available devices:', devices)
         res=[]
         for item in devices:
             res.append((item[0],"%s - %s"%(item[1],item[2])))
@@ -76,4 +75,3 @@ class IrAttachmentScanner(models.Model):
             return {
                         "error":status
                     }
-
