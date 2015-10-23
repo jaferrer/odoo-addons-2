@@ -2,15 +2,28 @@
 <openerp>
     <data>
 
+        <record model="ir.actions.server" id="ir_actions_server_delete_field_translations">
+            <field name="name">Delete all translations of this item</field>
+            <field name="model_id" ref="base.model_ir_translation"/>
+            <field name="code">
+self.delete_field_translations(cr, uid, context.get('active_ids'), False, context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_delete_field_translations">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">ir.translation</field>
+            <field name="name">Delete all translations of this item</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_delete_field_translations)"/>
+        </record>
+
         <record model="ir.ui.view" id="view_list_translation_improved">
             <field name="name">view.list.translation.improved</field>
             <field name="model">ir.translation</field>
             <field name="inherit_id" ref="base.view_translation_tree"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <field name="name" position="after">
-                    <button string="Delete all the translations which have the same name" type="object" name="delete_field_translations" icon="terp-dialog-close"/>
-                </field>
                 <field name="type" position="after">
                     <field name="module" readonly="1"/>
                     <field name="res_id"/>
