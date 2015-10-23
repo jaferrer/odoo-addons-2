@@ -34,7 +34,7 @@ class StockQuantPackageMove(models.TransientModel):
 
     picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type',required=True)
     
-    is_manual_op=fields.Boolean(string=u"Opération Manuelle")
+    is_manual_op = fields.Boolean(string=u"Manual Operation")
 
     def default_get(self, cr, uid, fields, context=None):
         res = super(StockQuantPackageMove, self).default_get(
@@ -61,8 +61,8 @@ class StockQuantPackageMove(models.TransientModel):
         quants = self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc).mapped(lambda x: x.package.quant_ids)
         quants2 = (self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc)).mapped(lambda x: x.package.children_ids.quant_ids)
         quants= quants + quants2
-        result=quants.move_to(self.global_dest_loc, self.picking_type_id,is_manual_op=self.is_manual_op)
-        if self.is_manual_op :
+        result = quants.move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
+        if self.is_manual_op:
             return {
                     'name': 'picking_form',
                     'type': 'ir.actions.act_window',

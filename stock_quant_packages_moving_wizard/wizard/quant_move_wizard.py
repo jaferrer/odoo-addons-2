@@ -33,7 +33,7 @@ class StockQuantMove(models.TransientModel):
         comodel_name='stock.location', string='Destination Location',
         required=True)
     
-    is_manual_op=fields.Boolean(string=u"Opération Manuelle")
+    is_manual_op = fields.Boolean(string=u"Manual Operation")
 
     picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type', required=True)
 
@@ -64,15 +64,15 @@ class StockQuantMove(models.TransientModel):
         qty_items = {}
         for item in self.pack_move_items:
             qty_items[item.quant.id] = item
-        result=quants.move_to(self.global_dest_loc, self.picking_type_id, qty_items,self.is_manual_op)
-        if self.is_manual_op :
+        result = quants.move_to(self.global_dest_loc, self.picking_type_id, qty_items,self.is_manual_op)
+        if self.is_manual_op:
             return {
                     'name': 'picking_form',
                     'type': 'ir.actions.act_window',
                     'view_type': 'form',
                     'view_mode': 'form',
                     'res_model': 'stock.picking',
-                    'res_id':result[0].picking_id.id
+                    'res_id': result[0].picking_id.id
                 }
         else :
             return result
