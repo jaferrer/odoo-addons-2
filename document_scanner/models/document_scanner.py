@@ -1,11 +1,15 @@
-import sane
 import tempfile
-import os
+import sys
 import os.path
 import time
 import base64
 from openerp import fields, models, api, tools
 from openerp.tools.config import config
+
+try :
+    import sane
+except :
+    pass
 
 class DocumentScannerUser(models.Model):
     _inherit = "res.users"
