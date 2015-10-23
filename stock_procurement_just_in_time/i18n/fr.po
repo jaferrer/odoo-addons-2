@@ -199,3 +199,18 @@ msgstr "Besoins en niveaux de stock"
 #: field:stock.levels.requirements,qty:0
 msgid "Stock quantity"
 msgstr "Quantité en stock"
+
+#. module: procurement
+#: view:procurement.order.compute.all:procurement.view_compute_schedulers_wizard
+msgid "Compute all procurements in the background."
+msgstr "Traite toutes les demandes d'approvisionnement"
+
+#. module: stock_procurement_just_in_time
+#: field:procurement.order.compute.all,compute_all:0
+msgid "Compute all the products"
+msgstr "Traiter l'ensemble des produits"
+
+#. module: stock_procurement_just_in_time
+#: field:procurement.order.compute.all,product_ids:0
+msgid "Products to compute"
+msgstr "Produits à traiter"

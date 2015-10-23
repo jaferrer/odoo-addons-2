@@ -18,4 +18,16 @@
 #   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             
 #
 
-from . import procure_calculation
+from openerp import fields, models, api
+
+
+class StockComputeAll(models.TransientModel):
+    _inherit = 'procurement.order.compute.all'
+
+    compute_all = fields.Boolean(string=u"Compute all the products", default=True)
+    product_ids = fields.Many2many('product.product', string=u"Products to compute")
+
+    @api.multi
+    def procure_calculation(self):
+        return super(StockComputeAll, self.with_context(compute_product_ids=self.product_ids.ids,
+                                                        compute_all_products=self.compute_all)).procure_calculation()
