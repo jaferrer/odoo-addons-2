@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="transporter_chronopost" model="tracking.transporter">
+            <field name="name">Chronopost</field>
+        </record>
+
+    </data>
+</openerp>

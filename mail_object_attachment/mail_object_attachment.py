@@ -25,9 +25,13 @@ class EmailTemplate(models.Model):
 
     send_object_attachments = fields.Boolean(u"Attach Object Attachements")
 
+    def generate_email_batch(self, cr, uid, template_id, res_ids, context=None, fields=None):
+        res = super(EmailTemplate, self).generate_email_batch(cr, uid, template_id, res_ids, context=context,
+                                                              fields=fields)
+        return self.generate_email_batch_new_api(cr, uid, template_id, res_ids, fields=fields, res=res, context=context)
+
     @api.model
-    def generate_email_batch(self, template_id, res_ids, fields=None):
-        res = super(EmailTemplate, self).generate_email_batch(template_id, res_ids, fields=fields)
+    def generate_email_batch_new_api(self, template_id, res_ids, fields=None, res=None):
         res_ids_to_templates = self.get_email_template_batch(template_id, res_ids)
         # templates: res_id -> template; template -> res_ids
         templates_to_res_ids = {}
@@ -39,7 +43,6 @@ class EmailTemplate(models.Model):
                 for res_id in template_res_ids:
                     obj_attachments = self.env['ir.attachment'].search([('res_model', '=', res[res_id].get('model')),
                                                                         ('res_id', '=', res_id)])
-                    print "obj_att: %s" % obj_attachments
                     mail_attachments = res[res_id].get('attachment_ids', [])
                     mail_attachments.extend([(4, a.id) for a in obj_attachments])
                     res[res_id].update({

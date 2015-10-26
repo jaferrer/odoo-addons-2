@@ -58,3 +58,42 @@ class StockTransferDetailsItems(models.TransientModel):
                     self.with_context(no_recompute=True).copy(data)
 
         return transfer.wizard_view()
+    
+    
+class stock_product_packop_line(models.Model):
+    _inherit = 'stock.pack.operation'
+
+    @api.multi
+    def unpack(self):
+        """Unpacks the current pack if any"""
+        self.ensure_one()
+        if self.package_id and not self.product_id:
+            quants = self.package_id.quant_ids
+            products = quants.mapped(lambda q: q.product_id)
+            packs = self.package_id.children_ids
+            datas = []
+            for product in products:
+                qty = sum([q.qty for q in quants if q.product_id == product])
+                datas.append({
+                    'product_id': product.id,
+                    'product_uom_id': product.uom_id.id,
+                    'product_qty': qty,
+                    'result_package_id': False,
+                })
+            for pack in packs:
+                datas.append({
+                    'package_id': pack.id,
+                    'product_id': False,
+                    'product_uom_id': False,
+                    'product_qty': 1.0,
+                    'result_package_id': False,
+                })
+            if len(datas) >= 1:
+                # We first modify ourselves not to get "record not correctly loaded" error
+                self.with_context(no_recompute=True).write(datas[0])
+                # We create new lines for the others
+                for data in datas[1:]:
+                    data['packop_id'] = False
+                    self.with_context(no_recompute=True).copy(data)
+
+

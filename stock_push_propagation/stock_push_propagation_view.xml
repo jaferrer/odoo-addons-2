@@ -8,9 +8,9 @@
             <field name="inherit_id" ref="stock.stock_location_path_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <group position="inside">
+                <field name="auto" position="after">
                     <field name="group_propagation_option"/>
-                </group>
+                </field>
             </field>
         </record>
 

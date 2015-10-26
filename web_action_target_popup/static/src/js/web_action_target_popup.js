@@ -34,10 +34,9 @@ openerp.web_action_target_popup = function(instance){
         },
 
         ir_actions_common: function(executor, options) {
-            var widget = executor.widget();
-            var self = this;
             if (executor.action.target === 'popup') {
-                console.log("I'm in!!");
+                var widget = executor.widget();
+                var self = this;
                 var pre_dialog = (this.dialog && !this.dialog.isDestroyed()) ? this.dialog : null;
                 if (!pre_dialog){
                     // no previous dialog, so we call with target="new"
@@ -46,7 +45,7 @@ openerp.web_action_target_popup = function(instance){
                 }
                 this.child_dialog = new instance.web.Dialog(this, {
                     title: executor.action.name,
-                    dialogClass: executor.klass,
+                    dialogClass: executor.klass
                 });
 
                 // Refresh parent popup on closing and ignore options.on_close
@@ -59,7 +58,7 @@ openerp.web_action_target_popup = function(instance){
                 if (widget instanceof instance.web.ViewManager) {
                     _.extend(widget.flags, {
                         $buttons: this.child_dialog.$buttons,
-                        footer_to_buttons: true,
+                        footer_to_buttons: true
                     });
                 }
                 this.child_dialog_widget = widget;
@@ -71,6 +70,6 @@ openerp.web_action_target_popup = function(instance){
             else {
                 return this._super(executor, options);
             }
-        },
+        }
     });
-}
+};

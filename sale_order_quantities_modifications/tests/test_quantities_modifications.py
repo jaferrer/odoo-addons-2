@@ -64,12 +64,17 @@ class TestQuantitiesModifications(common.TransactionCase):
         self.assertTrue(self.sale_order_line3.procurement_ids)
         check_procurements(lines, [[self.product1, 4], [self.product2, 5], [self.product3, 6]])
 
-        # Two quantities increased, one decreased:
+        # Two quantities increased, one decreased, and modification of price_unit:
+        move = self.env['stock.move'].search([('product_id', '=', self.product3.id),
+                                               ('procurement_id', 'in', self.sale_order_line3.procurement_ids.ids),
+                                               ('state', 'not in', ['draft', 'cancel', 'done'])])
+        self.assertEqual(len(move), 1)
         self.sale_order.write({'order_line': [[1, self.sale_order_line1.id, {'product_uom_qty': 5}],
                                               [1, self.sale_order_line2.id, {'product_uom_qty': 4}],
-                                              [1,self.sale_order_line3.id, {'product_uom_qty': 7}]]})
+                                              [1,self.sale_order_line3.id, {'product_uom_qty': 7, 'price_unit': 1.5}]]})
         check_procurements(lines, [[self.product1, 4], [self.product1, 1], [self.product2, 4],
                                    [self.product3, 6], [self.product3, 1]])
+        self.assertEqual(move.price_unit, 1.5)
 
          # Two quantities decreased, one increased:
         self.sale_order.write({'order_line': [[1, self.sale_order_line1.id, {'product_uom_qty': 4}],
