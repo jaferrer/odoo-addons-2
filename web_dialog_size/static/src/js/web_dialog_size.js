@@ -1,4 +1,8 @@
 openerp.web_dialog_size= function (instance) {
+	
+	dialog_state=[];
+	
+	
 
     instance.web.Dialog =  instance.web.Dialog.extend({
     	
@@ -13,7 +17,8 @@ openerp.web_dialog_size= function (instance) {
                 self.$dialog_box.find('.dialog_button_extend').on('click', self._extending);
                 self.$dialog_box.find('.dialog_button_restore').on('click', self._restore);
             }
-            this._apply_custom_options((this.getParent().action_context!=undefined && this.getParent().action_context!=null)?this.getParent().action_context.context:null);
+
+            this._apply_custom_options((this.getParent().action_context!=undefined && this.getParent().action_context!=null)?this.getParent().action_context:null);
         },
 
         _extending: function() {
@@ -33,11 +38,14 @@ openerp.web_dialog_size= function (instance) {
         },
         
         _apply_custom_options: function(options) {
-        	if(options!=null && options.dialog_full_size) {
-           	 	this.$dialog_box.find('.modal-dialog').addClass('dialog_full_screen');
+        	if((options!=null && options.context!=undefined && options.context!=null && options.context.dialog_full_size)) {
+        		dialog_state[options.view_id]=true;
+        	}
+        	if(dialog_state[options.view_id]!=undefined && dialog_state[options.view_id]) {
+        		this.$dialog_box.find('.modal-dialog').addClass('dialog_full_screen');
            	 	this.$dialog_box.find('.dialog_button_extend').addClass('dialog_button_hide');
            	 	this.$dialog_box.find('.dialog_button_restore').removeClass('dialog_button_hide');
-           }
+        	}
         }
 
     });
