@@ -44,8 +44,8 @@ class ProcurementComputeAllAsync(models.TransientModel):
     @api.multi
     def _procure_calculation_all(self):
         proc_obj = self.env['procurement.order']
-        for company_id in self.env.user.company_ids.ids:
-            proc_obj.run_scheduler(use_new_cursor=True, company_id=company_id)
+        for company in self.env.user.company_id.child_ids:
+            proc_obj.run_scheduler(use_new_cursor=True, company_id=company.id)
         return {}
 
     @api.multi
@@ -61,8 +61,8 @@ class ProcurementOrderPointComputeAsync(models.TransientModel):
     @api.multi
     def _procure_calculation_orderpoint(self):
         proc_obj = self.env['procurement.order']
-        for company_id in self.env.user.company_ids.ids:
-            proc_obj._procure_orderpoint_confirm(use_new_cursor=self.env.cr.dbname, company_id=company_id)
+        for company in self.env.user.company_id.child_ids:
+            proc_obj._procure_orderpoint_confirm(use_new_cursor=self.env.cr.dbname, company_id=company.id)
         return {}
 
     @api.multi
