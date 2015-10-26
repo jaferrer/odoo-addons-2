@@ -31,3 +31,16 @@ class StockComputeAll(models.TransientModel):
     def procure_calculation(self):
         return super(StockComputeAll, self.with_context(compute_product_ids=self.product_ids.ids,
                                                         compute_all_products=self.compute_all)).procure_calculation()
+
+
+class StockOrderpointCompute(models.TransientModel):
+    _inherit = 'procurement.orderpoint.compute'
+
+    compute_all = fields.Boolean(string=u"Compute all the products", default=True)
+    product_ids = fields.Many2many('product.product', string=u"Products to compute")
+
+    @api.multi
+    def procure_calculation(self):
+        return super(StockOrderpointCompute,
+                     self.with_context(compute_product_ids=self.product_ids.ids,
+                                       compute_all_products=self.compute_all)).procure_calculation()
