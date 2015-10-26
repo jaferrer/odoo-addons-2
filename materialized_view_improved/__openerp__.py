@@ -24,7 +24,9 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Usability',
-    'depends': ['materialized_sql_view'],
+    'depends': [
+                'materialized_sql_view','connector_improved'
+                ],
     'description': """
 """,
     'website': 'http://www.ndp-systemes.fr',
