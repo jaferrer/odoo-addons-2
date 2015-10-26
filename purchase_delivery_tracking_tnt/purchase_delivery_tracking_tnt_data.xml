@@ -4,6 +4,7 @@
 
         <record id="transporter_tnt" model="tracking.transporter">
             <field name="name">TNT</field>
+            <field name="image" type="base64" file="purchase_delivery_tracking_tnt/static/img/tnt.png"/>
         </record>
 
     </data>

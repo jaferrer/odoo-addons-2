@@ -41,6 +41,7 @@ action = self.update_list_scanner(cr, uid, context=context)
     	
     	<template id="assets_product_warning" inherit_id="web.assets_backend" name="Product procurement warning">
             <xpath expr="." position="inside">
+            	<link rel="stylesheet" href="/document_scanner/static/src/css/scanner.css"/>
                 <script type="text/javascript" src="/document_scanner/static/src/js/document_scanner.js"></script>
             </xpath>
         </template>

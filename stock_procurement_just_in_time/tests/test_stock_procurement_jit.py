@@ -34,7 +34,6 @@ class TestStockProcurementJIT(common.TransactionCase):
 
     def process_orderpoints(self):
         """Function to call the scheduler without needing connector to work."""
-        ops = self.env['stock.warehouse.orderpoint'].search([])
         compute_wizard = self.env['procurement.order.compute.all'].create({
             'compute_all': False,
             'product_ids': [(4, self.test_product.id), (4, self.test_product3.id)],

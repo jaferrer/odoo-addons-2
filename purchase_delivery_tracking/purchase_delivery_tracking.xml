@@ -54,7 +54,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                                    options="{'no_open': True, 'no_create': True}"/>
                             <field name="last_status_update" readonly="1"/>
                         </group>
-                        <field name="tracking_ids">
+                        <field name="tracking_ids" attrs="{'invisible': [('transporter_id', '=', False)]}">
                             <tree name="Delivery Tracking" editable="top">
                                 <field name="id" invisible="1"/>
                                 <field name="name"/>
@@ -73,16 +73,61 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
         <menuitem id="menu_delivery_tracking" name="Delivery tracking"
                   parent="base.menu_purchase_root" sequence="3"/>
 
+        <record model="ir.actions.server" id="ir_actions_server_update_numbers_delivery_status">
+            <field name="name">Update delivery status</field>
+            <field name="model_id" ref="model_tracking_number"/>
+            <field name="code">
+self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_update_numbers_delivery_status">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">tracking.number</field>
+            <field name="name">Update delivery status</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_update_numbers_delivery_status)"/>
+        </record>
+
+        <record model="ir.ui.view" id="tracking_number_form">
+            <field name="name">tracking.number.form</field>
+            <field name="model">tracking.number</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Tracking Number" create="false">
+                    <group>
+                        <field name="name"/>
+                        <field name="transporter_id"/>
+                        <field name="partner_id"/>
+                        <field name="order_id"/>
+                        <field name="status"/>
+                        <field name="date"/>
+                        <field name="last_status_update"/>
+                    </group>
+                    <field name="status_ids">
+                        <tree name="Status List">
+                            <field name="status"/>
+                            <field name="date"/>
+                        </tree>
+                    </field>
+                </form>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="tracking_number_tree">
             <field name="name">tracking.number.tree</field>
             <field name="model">tracking.number</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                  <tree string="Tracking numbers" create="false" edit="false" delete="false">
-                     <field name="name"/>
+                     <field name="transporter_id"/>
+                     <field name="logo" widget="image"/>
+                     <field name="partner_id"/>
                      <field name="order_id"/>
-                     <field name="date"/>
+                     <field name="name"/>
                      <field name="status"/>
+                     <field name="date"/>
+                     <field name="last_status_update"/>
                  </tree>
             </field>
         </record>
@@ -96,7 +141,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                     <field name="name"/>
                     <field name="order_id"/>
                     <filter name="active_orders" string="Active orders"
-                            domain="[('order_id.state', 'not in', ['draft', 'done', 'cancel'])]"/>
+                            domain="[('order_id.state', 'not in', ['draft', 'done', 'cancel', 'picking_done'])]"/>
                     <group string="Group by...">
                         <filter name="order_id" string="Purchase Order" domain="[]" context="{'group_by': 'order_id'}"/>
                     </group>
@@ -108,7 +153,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="name">Tracking Numbers</field>
             <field name="res_model">tracking.number</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree</field>
+            <field name="view_mode">tree,form</field>
             <field name="view_id" ref="tracking_number_tree"/>
             <field name="search_view_id" ref="tracking_number_search"/>
             <field name="domain">[]</field>
@@ -118,6 +163,97 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
 
         <menuitem id="menu_tracking_numbers" name="Tracking numbers" action="act_window_tracking_number"
                   parent="menu_delivery_tracking" sequence="20"/>
+
+        <record model="ir.ui.view" id="tracking_transporter_kanban">
+            <field name="name">tracking.transporter.kanban</field>
+            <field name="model">tracking.transporter</field>
+            <field name="arch" type="xml">
+                <kanban string="Transporters" create="false">
+                    <field name="number_trackings"/>
+                    <field name="number_orders"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_vignette oe_semantic_html_override">
+                                <a type="open"><img t-att-src="kanban_image('tracking.transporter', 'image', record.id.value)" class="oe_kanban_image"/></a>
+                                <div class="oe_kanban_details">
+                                    <h4>
+                                        <a type="open">
+                                            <field name="name"/>
+                                        </a>
+                                    </h4>
+                                    <div name="transporters"/>
+                                    <a name="open_transporter_numbers" type="object">
+                                        <t t-esc="record.number_trackings.value"/> Deliveries
+                                    </a>
+                                    <div name="orders"/>
+                                    <a name="open_purchase_orders" type="object">
+                                        <t t-esc="record.number_orders.value"/> Purchase Orders
+                                    </a>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="tracking_transporter_tree">
+            <field name="name">tracking.transporter.tree</field>
+            <field name="model">tracking.transporter</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                 <tree string="Transporters" create="false" edit="false" delete="false">
+                     <field name="logo" widget="image"/>
+                     <field name="name" string="Transporter"/>
+                     <field name="number_trackings"/>
+                 </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="tracking_transporter_form">
+            <field name="name">tracking.transporter.form</field>
+            <field name="model">tracking.transporter</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                 <form string="Transporter" create="false" edit="false">
+                     <group>
+                         <field name="name" string="Transporter"/>
+                         <field name="number_trackings"/>
+                         <field name="number_orders"/>
+                     </group>
+                     <notebook>
+                         <page string="Tracking numbers">
+                             <field name="number_ids">
+                                 <tree name="Tracking numbers">
+                                     <field name="partner_id"/>
+                                     <field name="order_id"/>
+                                     <field name="name"/>
+                                     <field name="status"/>
+                                     <field name="date"/>
+                                     <field name="last_status_update"/>
+                                 </tree>
+                             </field>
+                         </page>
+                         <page string="Purchase Orders">
+                             <field name="order_ids"/>
+                         </page>
+                     </notebook>
+                 </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_tracking_number_by_transporter">
+            <field name="name">Tracking numbers by transporter</field>
+            <field name="res_model">tracking.transporter</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_tracking_by_transporter" name="Tracking numbers by transporter" action="act_window_tracking_number_by_transporter"
+                  parent="menu_delivery_tracking" sequence="30"/>
 
     </data>
 </openerp>

@@ -18,3 +18,4 @@
 #
 
 from . import stock_procurement_jit
+from . import wizard

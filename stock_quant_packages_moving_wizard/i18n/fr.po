@@ -60,6 +60,12 @@ msgid "Destination Location"
 msgstr "Emplacement destination"
 
 #. module: stock_quant_packages_moving_wizard
+#: field:stock.quant.move,is_manual_op:0
+#: field:stock.quant.package.move,is_manual_op:0
+msgid "Manual Operation"
+msgstr "Opération Manuelle"
+
+#. module: stock_quant_packages_moving_wizard
 #: field:stock.quant.move,id:0 field:stock.quant.move_items,id:0
 #: field:stock.quant.package.move,id:0
 #: field:stock.quant.package.move_items,id:0

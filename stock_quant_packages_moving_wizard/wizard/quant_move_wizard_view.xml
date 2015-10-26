@@ -12,6 +12,9 @@
                     <group>
                         <field name="picking_type_id"/>
                     </group>
+                    <group>
+                        <field name="is_manual_op"/>
+                    </group>
                     <group groups="stock.group_tracking_lot">
                         <field name="pack_move_items"
                             nolabel="1">
