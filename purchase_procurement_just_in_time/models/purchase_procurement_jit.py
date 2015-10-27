@@ -200,8 +200,6 @@ class PurchaseOrderLineJustInTime(models.Model):
         :return: the same result as original create function
         """
 
-        print 'new create'
-
         maximum = 0
         if not vals.get('line_no', False):
             list_line_no = []
@@ -222,9 +220,7 @@ class PurchaseOrderLineJustInTime(models.Model):
             vals['line_no'] = str(theo_value)
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
 
-        print 'a'
         if result.order_id.state not in ['draft', 'sent', 'bid', 'confirmed', 'done', 'cancel']:
-            print 'b'
             result.order_id.set_order_line_status('confirmed')
             if result.product_qty != 0 and not result.move_ids and not self.env.context.get('no_update_moves'):
                 # We create associated moves
