@@ -214,3 +214,13 @@ msgstr "Traiter l'ensemble des produits"
 #: field:procurement.order.compute.all,product_ids:0
 msgid "Products to compute"
 msgstr "Produits à traiter"
+
+#. module: stock_procurement_just_in_time
+#: field:procurement.orderpoint.compute,compute_all:0
+msgid "Compute all the products"
+msgstr "Traiter l'ensemble des produits"
+
+#. module: stock_procurement_just_in_time
+#: field:procurement.orderpoint.compute,product_ids:0
+msgid "Products to compute"
+msgstr "Produits à traiter"
