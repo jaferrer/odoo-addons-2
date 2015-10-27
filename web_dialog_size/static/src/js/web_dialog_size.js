@@ -41,7 +41,7 @@ openerp.web_dialog_size= function (instance) {
         	if((options!=null && options.context!=undefined && options.context!=null && options.context.dialog_full_size)) {
         		dialog_state[options.view_id]=true;
         	}
-        	if(dialog_state[options.view_id]!=undefined && dialog_state[options.view_id]) {
+        	if(options!=null && options.view_id!=null && dialog_state[options.view_id]!=undefined && dialog_state[options.view_id]) {
         		this.$dialog_box.find('.modal-dialog').addClass('dialog_full_screen');
            	 	this.$dialog_box.find('.dialog_button_extend').addClass('dialog_button_hide');
            	 	this.$dialog_box.find('.dialog_button_restore').removeClass('dialog_button_hide');
