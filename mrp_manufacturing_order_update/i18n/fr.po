@@ -57,7 +57,7 @@ msgstr "Article %s : n'est plus une matière première<br>"
 #: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:64
 #, python-format
 msgid "Product %s: quantity changed from %s to %s<br>"
-msgstr "Atricle %s : quantité modifiée de %s à %s<br>"
+msgstr "Article %s : quantité modifiée de %s à %s<br>"
 
 #. module: mrp_manufacturing_order_update
 #: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:70
