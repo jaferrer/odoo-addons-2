@@ -41,8 +41,9 @@ class MergePolPurchaseOrder(models.Model):
     @api.multi
     def do_merge(self):
         result = super(MergePolPurchaseOrder, self).do_merge()
-        if self.env.context.get('merge_different_dates'):
-            for order in self.env['purchase.order'].search([('id', 'in', result.keys())]):
+        for key in result.keys():
+            order = self.env['purchase.order'].search([('id', '=', key)])
+            if self.env.context.get('merge_different_dates'):
                 lines = order.order_line
                 while lines:
                     lines_current_product = lines.filtered(lambda l: l.product_id == lines[0].product_id)
@@ -54,4 +55,8 @@ class MergePolPurchaseOrder(models.Model):
                     lignes_to_delete = lines_current_product.filtered(lambda l: l != line_to_keep)
                     line_to_keep.product_qty = line_to_keep.product_qty + sum([l.product_qty for l in lignes_to_delete])
                     lignes_to_delete.unlink()
+            if result.get(key):
+                merged_orders = self.env['purchase.order'].search([('id', 'in', result.get(key))], order='date_order')
+                if merged_orders:
+                    order.payment_term_id = merged_orders[0].payment_term_id
         return result
