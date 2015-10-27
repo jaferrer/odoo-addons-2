@@ -46,3 +46,21 @@ msgstr "(mettre à jour)"
 #: model:ir.model,name:manufacturing_order_update.model_mrp_production
 msgid "Manufacturing Order"
 msgstr "Ordre de fabrication"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:38
+#, python-format
+msgid "Product %s: not needed anymore<br>"
+msgstr "Article %s : n'est plus une matière première<br>"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:64
+#, python-format
+msgid "Product %s: quantity changed from %s to %s<br>"
+msgstr "Atricle %s : quantité modifiée de %s à %s<br>"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:70
+#, python-format
+msgid "Raw material move created of quantity %s for product %s<br>"
+msgstr "Mouvement de %s créé pour l'article %s<br>"
