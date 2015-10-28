@@ -268,7 +268,6 @@ class StockWarehouseOrderPointJit(models.Model):
     @api.model
     def compute_stock_levels_requirements(self, product_id, location_id, list_move_types, limit=1,
                                           parameter_to_sort='date', to_reverse=False):
-
         """
         Computes stock level report
         :param product_id: int
