@@ -163,7 +163,7 @@
                 <filter name="hide_cancelled" position="after">
                     <field name="ack_ref"/>
                     <field name="date_ack"/>
-                    <filter name="confirmed_lines" string="Confirmed but not received lines" domain="[('order_id.state', ' not in', ['draft', 'done', 'cancel', 'picking_done']), ('remaining_qty', '>', 0.0)]"/>
+                    <filter name="confirmed_lines" string="Confirmed but not received lines" domain="[('state', '=', 'confirmed'), ('remaining_qty', '>', 0.0)]"/>
                     <separator/>
                     <filter name="waiting_ack" string="Awaiting Supplier Ack" domain="['|', ('ack_ref', '=', False), ('date_ack', '=', False)]"/>
                 </filter>
