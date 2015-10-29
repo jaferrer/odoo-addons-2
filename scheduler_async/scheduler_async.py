@@ -50,7 +50,7 @@ class ProcurementComputeAllAsync(models.TransientModel):
     @api.multi
     def procure_calculation(self):
         session = ConnectorSession.from_env(self.env)
-        for company in self.env.user.company_id.child_ids:
+        for company in self.env.user.company_id + self.env.user.company_id.child_ids:
             run_procure_all_async.delay(session, 'procurement.order.compute.all', self.ids, company.id,
                                         self.env.context)
         return {'type': 'ir.actions.act_window_close'}
@@ -69,7 +69,7 @@ class ProcurementOrderPointComputeAsync(models.TransientModel):
     @api.multi
     def procure_calculation(self):
         session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-        for company in self.env.user.company_id.child_ids:
+        for company in self.env.user.company_id + self.env.user.company_id.child_ids:
             run_procure_orderpoint_async.delay(session, 'procurement.orderpoint.compute', self.ids, company.id,
                                                self.env.context)
         return {'type': 'ir.actions.act_window_close'}
