@@ -77,10 +77,8 @@ class ProcurementComputeAllAsync(models.TransientModel):
     @api.multi
     def procure_calculation(self):
         for company in self.env.user.company_id + self.env.user.company_id.child_ids:
-            scheduler_session = ConnectorSession(self.env.cr, self.env.ref('scheduler_async.user_scheduler').id,
-                                                 self.env.context)
-            run_procure_all_async.delay(scheduler_session, 'procurement.order.compute.all', company.id,
-                                        self.env.context)
+            run_procure_all_async.delay(ConnectorSession.from_env(self.env), 'procurement.order.compute.all',
+                                        company.id, self.env.context)
         return {'type': 'ir.actions.act_window_close'}
 
 
@@ -96,10 +94,8 @@ class ProcurementOrderPointComputeAsync(models.TransientModel):
     @api.multi
     def procure_calculation(self):
         for company in self.env.user.company_id + self.env.user.company_id.child_ids:
-            scheduler_session = ConnectorSession(self.env.cr, self.env.ref('scheduler_async.user_scheduler').id,
-                                                 self.env.context)
-            run_procure_orderpoint_async.delay(scheduler_session, 'procurement.orderpoint.compute', company.id,
-                                               self.env.context)
+            run_procure_orderpoint_async.delay(ConnectorSession.from_env(self.env), 'procurement.orderpoint.compute',
+                                               company.id, self.env.context)
         return {'type': 'ir.actions.act_window_close'}
 
 
@@ -108,12 +104,11 @@ class ProcurementOrderAsync(models.Model):
 
     @api.model
     def run_assign_moves(self):
-        scheduler_env = self.sudo(self.env.ref('scheduler_async.user_scheduler')).env
         confirmed_moves = self.env['stock.move'].search([('state', '=', 'confirmed')], limit=None,
                                                         order='priority desc, date_expected asc')
 
         while confirmed_moves:
-            assign_moves.delay(ConnectorSession.from_env(scheduler_env), 'stock.move', confirmed_moves[:100].ids,
+            assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:100].ids,
                                self.env.context)
             confirmed_moves = confirmed_moves[100:]
 
@@ -127,36 +122,22 @@ class ProcurementOrderAsync(models.Model):
         """New scheduler function to run async jobs.
 
         This function overwrites the function with the same name from modules stock and procurement."""
-        scheduler_env = self.sudo(self.env.ref('scheduler_async.user_scheduler')).env
         dom = []
         if company_id:
             dom += [('company_id', '=', company_id)]
 
         # Run confirmed procurements
         run_dom = dom + [('state', '=', 'confirmed')]
-        run_or_check_procurements.delay(ConnectorSession.from_env(scheduler_env), 'procurement.order', run_dom, 'run',
+        run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', run_dom, 'run',
                                         self.env.context)
 
         # Run minimum stock rules
-        self.with_env(scheduler_env)._procure_orderpoint_confirm(use_new_cursor=True, company_id=company_id)
+        self._procure_orderpoint_confirm(use_new_cursor=True, company_id=company_id)
 
         # Check if running procurements are done
         check_dom = dom + [('state', '=', 'running')]
-        run_or_check_procurements.delay(ConnectorSession.from_env(scheduler_env), 'procurement.order', check_dom,
+        run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', check_dom,
                                         'check', self.env.context)
 
         # Try to assign moves
-        self.with_env(scheduler_env).run_assign_moves()
-
-
-class SchedulerAsync(models.TransientModel):
-    _name = "scheduler.async"
-
-    @api.model
-    def setup_scheduler_perms(self):
-        """Sets up the scheduler user perms according to the installed modules."""
-        scheduler_user = self.env.ref('scheduler_async.user_scheduler')
-        if self.env['ir.module.module'].search([('name', '=', 'purchase'), ('state', '!=', 'uninstalled')]):
-            scheduler_user.groups_id = [(4, self.env.ref('purchase.group_purchase_manager').id)]
-        if self.env['ir.module.module'].search([('name', '=', 'mrp'), ('state', '!=', 'uninstalled')]):
-            scheduler_user.groups_id = [(4, self.env.ref('mrp.group_mrp_manager').id)]
+        self.run_assign_moves()
