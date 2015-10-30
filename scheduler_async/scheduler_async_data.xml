@@ -10,13 +10,19 @@
         <record id="user_scheduler" model="res.users">
             <field name="name">Scheduler</field>
             <field name="login">scheduler</field>
-            <field name="email">scheduler@example.com</field>
-            <field name="password"/>
+            <field name="password"></field>
             <field name="notify_email">none</field>
             <field name="company_id" ref="base.main_company"/>
             <field name="company_ids" eval="[(6,0,[ref('base.main_company')])]"/>
             <field name="groups_id" eval="[(6,0,[ref('base.group_no_one'), ref('stock.group_stock_manager')])]"/>
         </record>
+
+        <!-- Add scheduler email after creating the user so as not to send email -->
+        <record id="user_scheduler_res_partner" model="res.partner">
+            <field name="email">scheduler@example.com</field>
+        </record>
+
+        <function model="scheduler.async" name="setup_scheduler_perms"/>
 
     </data>
 </openerp>

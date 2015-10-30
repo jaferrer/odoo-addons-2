@@ -147,3 +147,16 @@ class ProcurementOrderAsync(models.Model):
 
         # Try to assign moves
         self.with_env(scheduler_env).run_assign_moves()
+
+
+class SchedulerAsync(models.TransientModel):
+    _name = "scheduler.async"
+
+    @api.model
+    def setup_scheduler_perms(self):
+        """Sets up the scheduler user perms according to the installed modules."""
+        scheduler_user = self.env.ref('scheduler_async.user_scheduler')
+        if self.env['ir.module.module'].search([('name', '=', 'purchase'), ('state', '!=', 'uninstalled')]):
+            scheduler_user.groups_id = [(4, self.env.ref('purchase.group_purchase_manager').id)]
+        if self.env['ir.module.module'].search([('name', '=', 'mrp'), ('state', '!=', 'uninstalled')]):
+            scheduler_user.groups_id = [(4, self.env.ref('mrp.group_mrp_manager').id)]
