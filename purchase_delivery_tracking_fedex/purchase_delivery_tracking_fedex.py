@@ -34,32 +34,33 @@ class FedexTrackingTransporter(models.Model):
                 rec.logo = "/purchase_delivery_tracking_fedex/static/img/fedex.png"
 
 
-class FedexPurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
+class FedexTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
 
     @api.multi
     def update_delivery_status(self):
-        super(FedexPurchaseOrder, self).update_delivery_status()
+        super(FedexTrackingNumber, self).update_delivery_status()
         for rec in self:
-            if rec.transporter_id.name == 'FedEx' and rec.state not in ['draft', 'cancel', 'done']:
-                for track in rec.tracking_ids:
-                    track.status_ids.unlink()
-                    file_translated = urlopen('https://www.fedex.com/trackingCal/track',
-                                              urlencode({"data": '{"TrackPackagesRequest":{"appType":"WTRK",'
-                                                                 '"uniqueKey":"","processingParameters":{},'
-                                                                 '"trackingInfoList":[{"trackNumberInfo":'
-                                                                 '{"trackingNumber":"652920832306","trackingQualifier":'
-                                                                 '"","trackingCarrier":""}}]}}',
-                                                         "action": "trackpackages",
-                                                         "locale": _("en_EN"),
-                                                         "version": "1",
-                                                         "format": "json"}))
+            if rec.transporter_id.name == 'FedEx':
+                print 'track unlink', rec, rec.name
+                rec.status_ids.unlink()
+                print rec.status_ids
+                file_translated = urlopen('https://www.fedex.com/trackingCal/track',
+                                          urlencode({"data": '{"TrackPackagesRequest":{"appType":"WTRK",'
+                                                             '"uniqueKey":"","processingParameters":{},'
+                                                             '"trackingInfoList":[{"trackNumberInfo":'
+                                                             '{"trackingNumber":"%s","trackingQualifier":'
+                                                             '"","trackingCarrier":""}}]}}' % (rec.name,),
+                                                     "action": "trackpackages",
+                                                     "locale": _("en_EN"),
+                                                     "version": "1",
+                                                     "format": "json"}))
 
-                    list_status_english = json.loads(file_translated.read())
-                    if list_status_english.get('TrackPackagesResponse').get('packageList') and \
-                            list_status_english['TrackPackagesResponse']['packageList'][0].get('scanEventList'):
-                        for item in list_status_english['TrackPackagesResponse']['packageList'][0]['scanEventList']:
-                            if item.get('status') and item.get('date') and item.get('time'):
-                                self.env['tracking.status'].create({'date': item['date'] + ' ' + item['time'],
-                                                                    'status': item['status'],
-                                                                    'tracking_id': track.id})
+                list_status_english = json.loads(file_translated.read())
+                if list_status_english.get('TrackPackagesResponse').get('packageList') and \
+                        list_status_english['TrackPackagesResponse']['packageList'][0].get('scanEventList'):
+                    for item in list_status_english['TrackPackagesResponse']['packageList'][0]['scanEventList']:
+                        if item.get('status') and item.get('date') and item.get('time'):
+                            self.env['tracking.status'].create({'date': item['date'] + ' ' + item['time'],
+                                                                'status': item['status'],
+                                                                'tracking_id': rec.id})

@@ -33,30 +33,29 @@ class GlsTrackingTransporter(models.Model):
                 rec.logo = "/purchase_delivery_tracking_gls/static/img/gls.gif"
 
 
-class GlsPurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
+class GlsTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
 
     @api.multi
     def update_delivery_status(self):
-        super(GlsPurchaseOrder, self).update_delivery_status()
+        super(GlsTrackingNumber, self).update_delivery_status()
         for rec in self:
-            if rec.transporter_id.name == 'GLS' and rec.state not in ['draft', 'cancel', 'done']:
-                for track in rec.tracking_ids:
-                    file = False
-                    track.status_ids.unlink()
-                    try:
-                        file = urlopen(_('https://gls-group.eu/app/service/open/rest/EN/en/rstt001?match=') +
-                                       track.name + '&caller=witt002&milis=1444824770093')
-                    except:
-                        pass
-                    if file:
-                        list_status = json.loads(file.read())
-                        if list_status.get('tuStatus'):
-                            for status in list_status['tuStatus'][0].get('history'):
-                                if status.get('address') and status['address'].get('countryName') and \
-                                        status['address'].get('city'):
-                                    description = status['address']['city'] + ' (' + status['address']['countryName'] \
-                                                  + ') - ' + status['evtDscr']
-                                self.env['tracking.status'].create({'date': status['date'] + ' ' + status['time'],
-                                                                    'status': description,
-                                                                    'tracking_id': track.id})
+            if rec.transporter_id.name == 'GLS':
+                file = False
+                rec.status_ids.unlink()
+                try:
+                    file = urlopen(_('https://gls-group.eu/app/service/open/rest/EN/en/rstt001?match=') +
+                                   rec.name + '&caller=witt002&milis=1444824770093')
+                except:
+                    pass
+                if file:
+                    list_status = json.loads(file.read())
+                    if list_status.get('tuStatus'):
+                        for status in list_status['tuStatus'][0].get('history'):
+                            if status.get('address') and status['address'].get('countryName') and \
+                                    status['address'].get('city'):
+                                description = status['address']['city'] + ' (' + status['address']['countryName'] \
+                                              + ') - ' + status['evtDscr']
+                            self.env['tracking.status'].create({'date': status['date'] + ' ' + status['time'],
+                                                                'status': description,
+                                                                'tracking_id': rec.id})

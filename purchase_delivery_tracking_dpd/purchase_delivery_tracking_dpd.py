@@ -34,27 +34,26 @@ class DpdTrackingTransporter(models.Model):
                 rec.logo = "/purchase_delivery_tracking_dpd/static/img/dpd.png"
 
 
-class DpdPurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
+class DpdTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
 
     @api.multi
     def update_delivery_status(self):
-        super(DpdPurchaseOrder, self).update_delivery_status()
+        super(DpdTrackingNumber, self).update_delivery_status()
         for rec in self:
-            if rec.transporter_id.name == 'DPD' and rec.state not in ['draft', 'cancel', 'done']:
-                for track in rec.tracking_ids:
-                    track.status_ids.unlink()
-                    file = urlopen('https://tracking.dpd.de/cgi-bin/simpleTracking.cgi?parcelNr=' +
-                                   track.name + '&locale=en_D2&type=1')
-                    file_string = file.read()
-                    data = json.loads(file_string[-len(file_string) + 1:-1])
-                    if data.get('TrackingStatusJSON') and data['TrackingStatusJSON'].get('statusInfos'):
+            if rec.transporter_id.name == 'DPD':
+                rec.status_ids.unlink()
+                file = urlopen('https://tracking.dpd.de/cgi-bin/simpleTracking.cgi?parcelNr=' +
+                               rec.name + '&locale=en_D2&type=1')
+                file_string = file.read()
+                data = json.loads(file_string[-len(file_string) + 1:-1])
+                if data.get('TrackingStatusJSON') and data['TrackingStatusJSON'].get('statusInfos'):
 
-                        for item in data['TrackingStatusJSON']['statusInfos']:
-                            if item.get('contents') and item['contents'][0].get('label'):
-                                date = item['date']
-                                date = parse(date[6:] + '-' + date[3:5] + '-' + date[:2] + ' ' + item['time'])
-                                self.env['tracking.status'].create({'date': date,
-                                                                    'status': item['city'] + ' - ' +
-                                                                              item['contents'][0]['label'],
-                                                                    'tracking_id': track.id})
+                    for item in data['TrackingStatusJSON']['statusInfos']:
+                        if item.get('contents') and item['contents'][0].get('label'):
+                            date = item['date']
+                            date = parse(date[6:] + '-' + date[3:5] + '-' + date[:2] + ' ' + item['time'])
+                            self.env['tracking.status'].create({'date': date,
+                                                                'status': item['city'] + ' - ' +
+                                                                          item['contents'][0]['label'],
+                                                                'tracking_id': rec.id})
