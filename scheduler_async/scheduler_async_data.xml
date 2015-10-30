@@ -7,5 +7,16 @@
             <field name="args"/>
         </record>
 
+        <record id="user_scheduler" model="res.users">
+            <field name="name">Scheduler</field>
+            <field name="login">scheduler</field>
+            <field name="email">scheduler@example.com</field>
+            <field name="password"/>
+            <field name="notify_email">none</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[(6,0,[ref('base.main_company')])]"/>
+            <field name="groups_id" eval="[(6,0,[ref('base.group_no_one'), ref('stock.group_stock_manager')])]"/>
+        </record>
+
     </data>
 </openerp>

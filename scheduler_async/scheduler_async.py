@@ -22,20 +22,47 @@ from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 
 
+MOVE_CHUNK = 100
+
+
 @job
-def run_procure_all_async(session, model_name, ids, company_id, context):
+def run_procure_all_async(session, model_name, company_id, context):
     """Launch all schedulers"""
-    compute_all_wizard = session.env[model_name]
+    compute_all_wizard = session.env[model_name].with_context(context)
     compute_all_wizard._procure_calculation_all(company_id)
     return "Scheduler ended compute_all job."
 
 
 @job
-def run_procure_orderpoint_async(session, model_name, ids, company_id, context):
+def run_procure_orderpoint_async(session, model_name, company_id, context):
     """Compute minimum stock rules only"""
-    compute_orderpoint_wizard = session.env[model_name]
-    res = compute_orderpoint_wizard._procure_calculation_orderpoint(company_id, context)
+    compute_orderpoint_wizard = session.env[model_name].with_context(context)
+    compute_orderpoint_wizard._procure_calculation_orderpoint(company_id)
     return "Scheduler ended compute_orderpoint job."
+
+
+@job
+def run_or_check_procurements(session, model_name, domain, action, context):
+    """Tries to confirms all procurements that can be found with domain"""
+    proc_obj = session.env[model_name].with_context(context)
+    prev_procs = proc_obj
+    while True:
+        procs = proc_obj.sudo().search(domain)
+        if not procs or prev_procs == procs:
+            break
+        else:
+            prev_procs = procs
+        if action == 'run':
+            procs.sudo().run()
+        elif action == 'check':
+            procs.sudo().check()
+
+
+@job
+def assign_moves(session, model_name, ids, context):
+    """Assign confirmed moves"""
+    moves = session.env[model_name].with_context(context).browse(ids)
+    moves.action_assign()
 
 
 class ProcurementComputeAllAsync(models.TransientModel):
@@ -49,9 +76,10 @@ class ProcurementComputeAllAsync(models.TransientModel):
 
     @api.multi
     def procure_calculation(self):
-        session = ConnectorSession.from_env(self.env)
         for company in self.env.user.company_id + self.env.user.company_id.child_ids:
-            run_procure_all_async.delay(session, 'procurement.order.compute.all', self.ids, company.id,
+            scheduler_session = ConnectorSession(self.env.cr, self.env.ref('scheduler_async.user_scheduler').id,
+                                                 self.env.context)
+            run_procure_all_async.delay(scheduler_session, 'procurement.order.compute.all', company.id,
                                         self.env.context)
         return {'type': 'ir.actions.act_window_close'}
 
@@ -60,17 +88,17 @@ class ProcurementOrderPointComputeAsync(models.TransientModel):
     _inherit = 'procurement.orderpoint.compute'
 
     @api.multi
-    def _procure_calculation_orderpoint(self, company_id, context):
+    def _procure_calculation_orderpoint(self, company_id):
         proc_obj = self.env['procurement.order']
-        proc_obj.with_context(context).\
-            _procure_orderpoint_confirm(use_new_cursor=self.env.cr.dbname, company_id=company_id)
+        proc_obj._procure_orderpoint_confirm(use_new_cursor=self.env.cr.dbname, company_id=company_id)
         return {}
 
     @api.multi
     def procure_calculation(self):
-        session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
         for company in self.env.user.company_id + self.env.user.company_id.child_ids:
-            run_procure_orderpoint_async.delay(session, 'procurement.orderpoint.compute', self.ids, company.id,
+            scheduler_session = ConnectorSession(self.env.cr, self.env.ref('scheduler_async.user_scheduler').id,
+                                                 self.env.context)
+            run_procure_orderpoint_async.delay(scheduler_session, 'procurement.orderpoint.compute', company.id,
                                                self.env.context)
         return {'type': 'ir.actions.act_window_close'}
 
@@ -79,6 +107,43 @@ class ProcurementOrderAsync(models.Model):
     _inherit = 'procurement.order'
 
     @api.model
-    def run_scheduler_async(self, use_new_cursor=False, company_id = False):
+    def run_assign_moves(self):
+        scheduler_env = self.sudo(self.env.ref('scheduler_async.user_scheduler')).env
+        confirmed_moves = self.env['stock.move'].search([('state', '=', 'confirmed')], limit=None,
+                                                        order='priority desc, date_expected asc')
+
+        while confirmed_moves:
+            assign_moves.delay(ConnectorSession.from_env(scheduler_env), 'stock.move', confirmed_moves[:100].ids,
+                               self.env.context)
+            confirmed_moves = confirmed_moves[100:]
+
+    @api.model
+    def run_scheduler_async(self, use_new_cursor=False, company_id=False):
         proc_compute = self.env['procurement.order.compute.all'].create({})
         proc_compute.procure_calculation()
+
+    @api.model
+    def run_scheduler(self, use_new_cursor=False, company_id=False):
+        """New scheduler function to run async jobs.
+
+        This function overwrites the function with the same name from modules stock and procurement."""
+        scheduler_env = self.sudo(self.env.ref('scheduler_async.user_scheduler')).env
+        dom = []
+        if company_id:
+            dom += [('company_id', '=', company_id)]
+
+        # Run confirmed procurements
+        run_dom = dom + [('state', '=', 'confirmed')]
+        run_or_check_procurements.delay(ConnectorSession.from_env(scheduler_env), 'procurement.order', run_dom, 'run',
+                                        self.env.context)
+
+        # Run minimum stock rules
+        self.with_env(scheduler_env)._procure_orderpoint_confirm(use_new_cursor=True, company_id=company_id)
+
+        # Check if running procurements are done
+        check_dom = dom + [('state', '=', 'running')]
+        run_or_check_procurements.delay(ConnectorSession.from_env(scheduler_env), 'procurement.order', check_dom,
+                                        'check', self.env.context)
+
+        # Try to assign moves
+        self.with_env(scheduler_env).run_assign_moves()
