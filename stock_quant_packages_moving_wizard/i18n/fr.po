@@ -122,6 +122,11 @@ msgid "Picking wizard items"
 msgstr "Fenêtre de prélèvement d'objets"
 
 #. module: stock_quant_packages_moving_wizard
+#: field:stock.quant.move_items,qty:0
+msgid "Quantity"
+msgstr "Quantité"
+
+#. module: stock_quant_packages_moving_wizard
 #: field:stock.quant.move_items,quant:0
 msgid "Quant"
 msgstr "Quant"
