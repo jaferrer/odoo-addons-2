@@ -156,7 +156,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="tracking_number_tree"/>
             <field name="search_view_id" ref="tracking_number_search"/>
-            <field name="domain">[]</field>
+            <field name="domain">[('order_id', '!=', False)]</field>
             <field name="context">{'search_default_active_orders': 1}</field>
             <field name="help"></field>
         </record>
