@@ -57,7 +57,10 @@ class ManufacturingOrderPlanningImproved(models.Model):
         result = super(ManufacturingOrderPlanningImproved, self).write(vals)
         if vals.get('date_planned'):
             for rec in self:
-                rec.move_created_ids.write({'date_expected': vals['date_planned']})
+                # Add time if we get only date (e.g. if we have date widget on view)
+                date_planned = vals['date_planned'] + " 12:00:00" if len(vals['date_planned']) == 10 \
+                    else vals['date_planned']
+                rec.move_created_ids.write({'date_expected': date_planned})
         return result
 
     @api.multi
