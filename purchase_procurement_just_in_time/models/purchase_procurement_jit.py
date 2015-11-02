@@ -359,7 +359,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
         """
         Improves the original propagate_cancel function. If the corresponding purchase order is draft, it eventually
-        cancels and/or deletes tho purchase order line and the purchase order.
+        cancels and/or deletes the purchase order line and the purchase order.
         """
 
         result = None
