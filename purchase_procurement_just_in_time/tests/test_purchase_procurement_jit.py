@@ -74,7 +74,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
             'product_uom': self.ref('product.product_uom_unit'),
         })
 
-    def test_10_purchase_procurement_jit(self):
+    def test_05_purchase_procurement_jit(self):
 
         """
         Testing calculation of opmsg_reduce_qty, to_delete and remaining_qty
@@ -111,7 +111,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         move.action_done()
         self.assertEqual(line.remaining_qty, 41)
 
-    def test_20_purchase_procurement_jit(self):
+    def test_10_purchase_procurement_jit(self):
 
         """
         Testing calculation of opmsg_type, opmsg_delay and opmsg_text
@@ -146,7 +146,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line.opmsg_text, 'LATE by 1 day(s)')
         self.assertEqual(line.opmsg_type, 'late')
 
-    def test_30_purchase_procurement_jit(self):
+    def test_15_purchase_procurement_jit(self):
 
         """
         Test canceling procurements of a draft purchase order line
@@ -171,6 +171,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
             if line.product_id == self.product2:
                 line2 = line
         self.assertTrue(line1 and line2)
+        self.assertEqual(purchase_order_1.state, 'draft')
         procurement_order_2.cancel()
         self.assertEqual(line1.product_qty, 36)
         procurement_order_1.cancel()
@@ -179,7 +180,44 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         procurement_order_4.cancel()
         self.assertFalse(self.env['purchase.order'].search([('id', '=', purchase_order_1_id)]))
 
-    def test_40_purchase_procurement_jit(self):
+    def test_20_purchase_procurement_jit(self):
+
+        """
+        Test canceling procurements of a not-draft purchase order line
+        """
+
+        procurement_order_1 = self.create_procurement_order_1()
+        procurement_order_1.run()
+        procurement_order_2 = self.create_procurement_order_2()
+        procurement_order_2.run()
+        procurement_order_4 = self.create_procurement_order_4()
+        procurement_order_4.run()
+        self.assertEqual(procurement_order_1.purchase_id, procurement_order_2.purchase_id,
+                         procurement_order_4.purchase_id)
+        purchase_order_1 = procurement_order_1.purchase_id
+        purchase_order_1_id = purchase_order_1.id
+        self.assertEqual(len(purchase_order_1.order_line), 2)
+        line1 = False
+        line2 = False
+        for line in purchase_order_1.order_line:
+            if line.product_id == self.product1:
+                line1 = line
+            if line.product_id == self.product2:
+                line2 = line
+        self.assertTrue(line1 and line2)
+
+        purchase_order_1.state = 'sent'
+
+        procurement_order_2.cancel()
+        self.assertEqual(line1.product_qty, 48)
+        procurement_order_1.cancel()
+        self.assertEqual(len(purchase_order_1.order_line), 2)
+        self.assertIn(line2, purchase_order_1.order_line)
+        procurement_order_4.cancel()
+        self.assertEqual(line2.product_qty, 10)
+        self.assertTrue(self.env['purchase.order'].search([('id', '=', purchase_order_1_id)]))
+
+    def test_25_purchase_procurement_jit(self):
 
         """
         Quantity of a draft purchase order line set to 0
@@ -209,7 +247,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         for move in line.move_ids:
             self.assertEqual(move.product_qty, 0)
 
-    def test_50_purchase_procurement_jit(self):
+    def test_30_purchase_procurement_jit(self):
 
         """
         Test increasing quantity a draft purchase order line
@@ -255,7 +293,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(m4.procurement_id, self.env['procurement.order'])
         self.assertEqual(m4.state, 'assigned')
 
-    def test_60_purchase_procurement_jit(self):
+    def test_35_purchase_procurement_jit(self):
 
         """
         Test decreasing quantity a draft purchase order line with 3 move needed
@@ -297,7 +335,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(m3.procurement_id, procurement_order_3)
         self.assertEqual(m3.state, 'assigned')
 
-    def test_70_purchase_procurement_jit(self):
+    def test_40_purchase_procurement_jit(self):
 
         """
         Test decreasing quantity a draft purchase order line with 2 move needed (the 3rd has a null quantity)
@@ -351,7 +389,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(m2.state, 'done')
         self.assertEqual(m3.state, 'done')
 
-    def test_80_purchase_procurement_jit(self):
+    def test_45_purchase_procurement_jit(self):
 
         """
         Decreasing line quantity of a confirmed purchase order line
@@ -427,7 +465,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3]])
         test_decreasing_line_qty(line, 1, 3, [0, 0, 1])
 
-    def test_90_purchase_procurement_jit(self):
+    def test_50_purchase_procurement_jit(self):
 
         """
         Increasing quantity of a confirmed purchase order line
@@ -520,7 +558,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         picking = m1.picking_id
         self.assertTrue(m2 in picking.move_lines and m3 in picking.move_lines and m4 in picking.move_lines)
 
-    def test_100_purchase_procurement_jit(self):
+    def test_55_purchase_procurement_jit(self):
 
         """
         Testing draft purchase order lines splits
@@ -588,7 +626,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(line3.move_ids), 1)
         self.assertEqual(line3.move_ids[0].product_qty, 18)
 
-    def test_110_purchase_procurement_jit(self):
+    def test_60_purchase_procurement_jit(self):
 
         """
         Testing confirmed purchase order lines splits
