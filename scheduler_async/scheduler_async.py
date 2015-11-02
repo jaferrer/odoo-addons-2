@@ -146,7 +146,7 @@ class ProcurementOrderAsync(models.Model):
                                       self.env.context)
 
         # Run minimum stock rules
-        without_job = not self.env.get("jobify", False)
+        without_job = not self.env.context.get("jobify", False)
         self.with_context(without_job=without_job).sudo()._procure_orderpoint_confirm(use_new_cursor=True,
                                                                                       company_id=company_id)
 
