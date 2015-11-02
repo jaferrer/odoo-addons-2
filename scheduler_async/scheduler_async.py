@@ -132,7 +132,7 @@ class ProcurementOrderAsync(models.Model):
                                         self.env.context)
 
         # Run minimum stock rules
-        self._procure_orderpoint_confirm(use_new_cursor=True, company_id=company_id)
+        self.sudo()._procure_orderpoint_confirm(use_new_cursor=True, company_id=company_id)
 
         # Check if running procurements are done
         check_dom = dom + [('state', '=', 'running')]
