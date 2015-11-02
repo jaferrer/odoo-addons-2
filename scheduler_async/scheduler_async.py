@@ -77,8 +77,11 @@ class ProcurementComputeAllAsync(models.TransientModel):
     @api.multi
     def procure_calculation(self):
         for company in self.env.user.company_id + self.env.user.company_id.child_ids:
+            # Hack to get tests working correctly
+            context = dict(self.env.context)
+            context['jobify'] = True
             run_procure_all_async.delay(ConnectorSession.from_env(self.env), 'procurement.order.compute.all',
-                                        company.id, self.env.context)
+                                        company.id, context)
         return {'type': 'ir.actions.act_window_close'}
 
 
@@ -94,8 +97,11 @@ class ProcurementOrderPointComputeAsync(models.TransientModel):
     @api.multi
     def procure_calculation(self):
         for company in self.env.user.company_id + self.env.user.company_id.child_ids:
+            # Hack to get tests working correctly
+            context = dict(self.env.context)
+            context['jobify'] = True
             run_procure_orderpoint_async.delay(ConnectorSession.from_env(self.env), 'procurement.orderpoint.compute',
-                                               company.id, self.env.context)
+                                               company.id, context)
         return {'type': 'ir.actions.act_window_close'}
 
 
@@ -108,8 +114,12 @@ class ProcurementOrderAsync(models.Model):
                                                         order='priority desc, date_expected asc')
 
         while confirmed_moves:
-            assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:100].ids,
-                               self.env.context)
+            if self.env.context.get("jobify"):
+                assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:100].ids,
+                                   self.env.context)
+            else:
+                assign_moves(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:100].ids,
+                             self.env.context)
             confirmed_moves = confirmed_moves[100:]
 
     @api.model
@@ -128,16 +138,26 @@ class ProcurementOrderAsync(models.Model):
 
         # Run confirmed procurements
         run_dom = dom + [('state', '=', 'confirmed')]
-        run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', run_dom, 'run',
-                                        self.env.context)
+        if self.env.context.get("jobify", False):
+            run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', run_dom, 'run',
+                                            self.env.context)
+        else:
+            run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', run_dom, 'run',
+                                      self.env.context)
 
         # Run minimum stock rules
-        self.sudo()._procure_orderpoint_confirm(use_new_cursor=True, company_id=company_id)
+        without_job = not self.env.get("jobify", False)
+        self.with_context(without_job=without_job).sudo()._procure_orderpoint_confirm(use_new_cursor=True,
+                                                                                      company_id=company_id)
 
         # Check if running procurements are done
         check_dom = dom + [('state', '=', 'running')]
-        run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', check_dom,
-                                        'check', self.env.context)
+        if self.env.context.get("jobify", False):
+            run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', check_dom,
+                                            'check', self.env.context)
+        else:
+            run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', check_dom,
+                                      'check', self.env.context)
 
         # Try to assign moves
         self.run_assign_moves()
