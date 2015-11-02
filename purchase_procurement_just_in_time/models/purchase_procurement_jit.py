@@ -364,6 +364,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
         result = None
         qty = 0
+        to_delete = False
         if procurement.rule_id.action == 'buy' and procurement.purchase_line_id:
             if procurement.purchase_line_id.state not in ['draft', 'cancel']:
                 qty = procurement.purchase_line_id.product_qty
@@ -372,22 +373,21 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             except exceptions.except_orm:
                 # Canceling a confirmed procurement order
                 if procurement.purchase_line_id.state not in ['draft', 'cancel']:
-                    procurement.purchase_line_id.product_qty = qty
                     total_need = sum([x.product_qty for x in procurement.purchase_line_id.procurement_ids
                                      if x.state != 'cancel' and x != procurement])
                     if total_need != 0:
                         total_need = self.with_context({'cancelling_active_proc': True}).\
                                                                                     _calc_new_qty_price(procurement)[0]
-                    procurement.purchase_line_id.opmsg_reduce_qty = total_need
+                    opmsg_reduce_qty = total_need
                     if total_need == 0:
-                        procurement.purchase_line_id.to_delete = True
-                    procurement.purchase_line_id.product_qty = qty
+                        to_delete = True
+                    procurement.purchase_line_id.write({'product_qty': qty,
+                                                        'opmsg_reduce_qty': opmsg_reduce_qty,
+                                                        'to_delete': to_delete})
         else:
             result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
         # Checking what should be cancelled
-        qty = False
-        if procurement.purchase_line_id and procurement.purchase_line_id.order_id.state != 'draft':
-            qty = procurement.purchase_line_id.product_qty
+        qty = procurement.purchase_line_id and procurement.purchase_line_id.order_id.state != 'draft' and qty or False
         if procurement.purchase_line_id and procurement.purchase_line_id.order_id.state == 'draft':
             # in this case, purchase order is not yet confirmed
             line = procurement.purchase_line_id
