@@ -366,42 +366,45 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         qty = 0
         to_delete = False
         if procurement.rule_id.action == 'buy' and procurement.purchase_line_id:
-            if procurement.purchase_line_id.state not in ['draft', 'cancel']:
+            if procurement.purchase_line_id.order_id.state not in ['draft', 'cancel']:
                 qty = procurement.purchase_line_id.product_qty
             try:
                 result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
             except exceptions.except_orm:
                 # Canceling a confirmed procurement order
-                if procurement.purchase_line_id.state not in ['draft', 'cancel']:
-                    total_need = sum([x.product_qty for x in procurement.purchase_line_id.procurement_ids
-                                     if x.state != 'cancel' and x != procurement])
-                    if total_need != 0:
-                        total_need = self.with_context({'cancelling_active_proc': True}).\
-                                                                                    _calc_new_qty_price(procurement)[0]
-                    opmsg_reduce_qty = total_need
-                    if total_need == 0:
-                        to_delete = True
-                    procurement.purchase_line_id.write({'product_qty': qty,
-                                                        'opmsg_reduce_qty': opmsg_reduce_qty,
-                                                        'to_delete': to_delete})
+                pass
+            if procurement.purchase_line_id.order_id.state not in ['draft', 'cancel']:
+                total_need = sum([x.product_qty for x in procurement.purchase_line_id.procurement_ids
+                                 if x.state != 'cancel' and x != procurement])
+                if total_need != 0:
+                    total_need = self.with_context({'cancelling_active_proc': True}). \
+                        _calc_new_qty_price(procurement)[0]
+                opmsg_reduce_qty = total_need
+                if total_need == 0:
+                    to_delete = True
+                procurement.purchase_line_id.write({'product_qty': qty,
+                                                    'opmsg_reduce_qty': opmsg_reduce_qty,
+                                                    'to_delete': to_delete})
         else:
             result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
         # Checking what should be cancelled
         qty = procurement.purchase_line_id and procurement.purchase_line_id.order_id.state != 'draft' and qty or False
-        if procurement.purchase_line_id and procurement.purchase_line_id.order_id.state == 'draft':
-            # in this case, purchase order is not yet confirmed
-            line = procurement.purchase_line_id
-            order = line.order_id
-            global_qty = 0
-            for order_line in order.order_line:
-                global_qty += sum([x.product_qty for x in order_line.procurement_ids if x.product_id == line.product_id
-                                   and x != procurement and x.state != 'cancel'])
-            if line.state == 'draft' and global_qty == 0:
-                line.unlink()
-            if not order.order_line:
-                order.unlink()
-        if qty:
-            procurement.purchase_line_id.product_qty = qty
+        if procurement.purchase_line_id.order_id.state == 'draft':
+            if procurement.purchase_line_id:
+                # in this case, purchase order is not yet confirmed
+                line = procurement.purchase_line_id
+                order = line.order_id
+                global_qty = 0
+                for order_line in order.order_line:
+                    global_qty += sum(
+                        [x.product_qty for x in order_line.procurement_ids if x.product_id == line.product_id
+                         and x != procurement and x.state != 'cancel'])
+                if global_qty == 0:
+                    line.unlink()
+                if not order.order_line:
+                    order.unlink()
+            if qty:
+                procurement.purchase_line_id.product_qty = qty
         return result
 
 
