@@ -150,3 +150,4 @@ class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
             for rec in self:
                 rec.tracking_ids.write({'transporter_id': vals['transporter_id']})
         return result
+
