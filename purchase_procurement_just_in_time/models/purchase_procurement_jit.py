@@ -368,12 +368,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         if procurement.rule_id.action == 'buy' and procurement.purchase_line_id:
             if procurement.purchase_line_id.order_id.state not in ['draft', 'cancel']:
                 qty = procurement.purchase_line_id.product_qty
-            try:
-                result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
-            except exceptions.except_orm:
-                # Canceling a confirmed procurement order
-                pass
-            if procurement.purchase_line_id.order_id.state not in ['draft', 'cancel']:
+                # Canceling a confirmed procurement order if needed
                 total_need = sum([x.product_qty for x in procurement.purchase_line_id.procurement_ids
                                  if x.state != 'cancel' and x != procurement])
                 if total_need != 0:
@@ -385,8 +380,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 procurement.purchase_line_id.write({'product_qty': qty,
                                                     'opmsg_reduce_qty': opmsg_reduce_qty,
                                                     'to_delete': to_delete})
-        else:
-            result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
+            else:
+                result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
         # Checking what should be cancelled
         qty = procurement.purchase_line_id and procurement.purchase_line_id.order_id.state != 'draft' and qty or False
         if procurement.purchase_line_id.order_id.state == 'draft':
