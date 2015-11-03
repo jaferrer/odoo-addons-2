@@ -27,7 +27,8 @@ class res_partner_purchase_supplier_stat(models.Model):
     total_sale_supplier = fields.Float("Total Sales", compute="_compute_total_sale_supplier",
                                        help="Total amount of this supplier's product sold to customers")
     total_purchase_order = fields.Float("Purchase Orders in Progress", compute="_compute_total_purchase_order",
-                                        help="Purchase Orders in Progress")
+                                        help="Purchase Orders in Progress",
+                                        groups="purchase_viewer.group_purchase_viewer")
 
     @api.multi
     def _compute_total_purchase(self):
