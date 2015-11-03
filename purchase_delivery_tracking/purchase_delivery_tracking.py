@@ -85,10 +85,9 @@ class TrackingNumber(models.Model):
     date = fields.Datetime(string="Date of the last status", compute='_compute_date_and_status')
     status = fields.Char(string="Last status", compute='_compute_date_and_status')
     order_id = fields.Many2one('purchase.order', string="Linked purchase order")
-    transporter_id = fields.Many2one('tracking.transporter', string="Transporter", related='order_id.transporter_id',
-                                     store=True)
+    transporter_id = fields.Many2one('tracking.transporter', string="Transporter")
     partner_id = fields.Many2one('res.partner', string="Supplier", related='order_id.partner_id')
-    last_status_update = fields.Datetime(string="Date of the last update", related='order_id.last_status_update')
+    last_status_update = fields.Datetime(string="Date of the last update")
     logo = fields.Char(string="Logo", related='transporter_id.logo')
     image = fields.Binary(string="Image", related='transporter_id.image')
 
@@ -115,13 +114,20 @@ class TrackingNumber(models.Model):
             'domain': [('tracking_id', '=', self.id)]
         }
 
+    # Function to overwrite for each transporter.
     @api.multi
     def update_delivery_status(self):
-        order_to_update = self.env['purchase.order']
         for rec in self:
-            if rec.order_id not in order_to_update:
-                order_to_update = order_to_update + rec.order_id
-        order_to_update.update_delivery_status()
+            rec.last_status_update = fields.Datetime.now()
+
+    @api.model
+    def create(self, vals):
+        if vals.get('order_id'):
+            order = self.env['purchase.order'].search([('id', '=', vals['order_id'])])
+            if order and order.transporter_id:
+                vals['transporter_id'] = order.transporter_id.id
+        return super(TrackingNumber, self).create(vals)
+
 
 class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
@@ -130,10 +136,17 @@ class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
     last_status_update = fields.Datetime(string="Date of the last update")
     tracking_ids = fields.One2many('tracking.number', 'order_id', string="Delivery Tracking")
 
-    # Function to overwrite for each transporter.
     @api.multi
     def update_delivery_status(self):
         for rec in self:
-            rec.last_status_update = fields.Datetime.now()
-            rec.status_date = False
-            rec.delivery_status = False
+            if rec.state not in ['draft', 'cancel', 'done']:
+                rec.last_status_update = fields.Datetime.now()
+                rec.tracking_ids.update_delivery_status()
+
+    @api.multi
+    def write(self, vals):
+        result = super(PurchaseDeliveryTrackingPurchaseOrder, self).write(vals)
+        if vals.get('transporter_id'):
+            for rec in self:
+                rec.tracking_ids.write({'transporter_id': vals['transporter_id']})
+        return result
