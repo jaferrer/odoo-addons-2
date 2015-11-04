@@ -1,4 +1,4 @@
-# Translation of Odoo Server.
+﻿# Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # 	* procurement_management
 #
@@ -61,6 +61,11 @@ msgstr "Lancer les approvisionnements"
 #: view:procurement.order:0
 msgid "Upstream and Downstream Moves"
 msgstr "Mouvements aval/amont"
+
+#. module: procurement_management
+#: model:ir.actions.server,name:procurement_management.ir_actions_server_restart_procurements
+msgid "Restart procurements"
+msgstr "Relancer les approvisionnements"
 
 #. module: procurement_management
 #: model:ir.actions.server,name:procurement_management.ir_actions_server_cancel_procurements
