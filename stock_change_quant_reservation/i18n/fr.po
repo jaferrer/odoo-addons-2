@@ -1,0 +1,90 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_change_quant_reservation
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-11-05 13:36+0000\n"
+"PO-Revision-Date: 2015-11-05 13:36+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_change_quant_reservation
+msgid "Change Quants Reservation"
+msgstr "Changer la réservation des quants"
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_change_quant_reservation
+msgid ""
+"\n"
+"Change Quants Reservation\n"
+"=========================\n"
+"This module gives the possibilitie to change quants reservations to assign them to another picking.\n"
+msgstr ""
+"\n"
+"Changer la réservation des quants\n"
+"=================================\n"
+"Ce module donne la possibilité de changer la réservation des quants et de les réaffecter sur une autre opération.\n"
+
+
+#. module: stock_change_quant_reservation
+#: model:ir.actions.act_window,name:stock_change_quant_reservation.action_change_quants
+msgid "Affect Quant"
+msgstr "Affecter les quant"
+
+#. module: stock_change_quant_reservation
+#: field:stock.quant.picking,create_uid:0
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: stock_change_quant_reservation
+#: field:stock.quant.picking,create_date:0
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: stock_change_quant_reservation
+#: field:stock.quant.picking,id:0
+msgid "ID"
+msgstr "ID"
+
+#. module: stock_change_quant_reservation
+#: field:stock.quant.picking,write_uid:0
+msgid "Last Updated by"
+msgstr "Modifié par"
+
+#. module: stock_change_quant_reservation
+#: field:stock.quant.picking,write_date:0
+msgid "Last Updated on"
+msgstr "Modifié le"
+
+#. module: stock_change_quant_reservation
+#: field:stock.quant.picking,picking_id:0
+msgid "Pickings"
+msgstr "Opérations"
+
+#. module: stock_change_quant_reservation
+#: view:stock.quant.picking:stock_change_quant_reservation.stock_change_quant_reservation_wizard
+msgid "Transfer details"
+msgstr "Détail du transfert"
+
+#. module: stock_change_quant_reservation
+#: view:stock.quant.picking:stock_change_quant_reservation.stock_change_quant_reservation_wizard
+msgid "_Apply"
+msgstr "_Appliquer"
+
+#. module: stock_change_quant_reservation
+#: view:stock.quant.picking:stock_change_quant_reservation.stock_change_quant_reservation_wizard
+msgid "_Cancel"
+msgstr "_Annuler"
+
+#. module: stock_change_quant_reservation
+#: view:stock.quant.picking:stock_change_quant_reservation.stock_change_quant_reservation_wizard
+msgid "or"
+msgstr "ou"

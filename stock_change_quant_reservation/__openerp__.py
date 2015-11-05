@@ -1,5 +1,4 @@
 # -*- coding: utf8 -*-
-
 #
 # Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
@@ -19,19 +18,20 @@
 #
 
 {
-    'name': 'Change quants reservation',
+    'name': 'Change Quants Reservation',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     "summary": "",
-    "category": "Warehouse Management",
+    "category": "Warehouse",
     "depends": [
         "stock",
     ],
     'description': """
-Quants and packaging moving wizards
-===================================
-This module gives the possibilitie to change quants reservation.""",
+Change Quants Reservation
+=========================
+This module gives the possibilitie to change quants reservations to assign them to another picking.
+""",
     "website": "http://www.ndp-systemes.fr",
     "contributors": [
     ],
