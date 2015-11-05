@@ -54,10 +54,11 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                                    options="{'no_open': True, 'no_create': True}"/>
                             <field name="last_status_update" readonly="1"/>
                         </group>
-                        <field name="tracking_ids" attrs="{'invisible': [('transporter_id', '=', False)]}">
+                        <field name="tracking_ids">
                             <tree name="Delivery Tracking" editable="top">
                                 <field name="id" invisible="1"/>
                                 <field name="name"/>
+                                <field name="transporter_id"/>
                                 <field name="date" readonly="1"/>
                                 <field name="status" readonly="1"/>
                                 <button string="Tracking History" type="object" name="open_status_ids" icon="terp-stock_zoom"/>
@@ -98,8 +99,8 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                     <group>
                         <field name="name"/>
                         <field name="transporter_id"/>
-                        <field name="partner_id"/>
-                        <field name="order_id"/>
+                        <field name="partner_id" attrs="{'invisible': [('order_id', '=', False)]}"/>
+                        <field name="order_id" attrs="{'invisible': [('order_id', '=', False)]}"/>
                         <field name="status"/>
                         <field name="date"/>
                         <field name="last_status_update"/>
@@ -119,7 +120,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="model">tracking.number</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                 <tree string="Tracking numbers" create="false" edit="false" delete="false">
+                 <tree string="Tracking numbers" create="false" edit="false">
                      <field name="transporter_id"/>
                      <field name="logo" widget="image"/>
                      <field name="partner_id"/>
