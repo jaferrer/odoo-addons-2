@@ -20,6 +20,7 @@
 from datetime import datetime
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp import fields, models, api, _, exceptions
+from openerp.tools.float_utils import float_compare
 
 
 class PurchaseOrderJustInTime(models.Model):
@@ -373,7 +374,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 total_need += sum(
                     [x.product_qty for x in order_line.procurement_ids if x.product_id == line.product_id
                      and x != procurement and x.state != 'cancel'])
-            if total_need != 0:
+            if float_compare(total_need, 0.0, precision_rounding=procurement.product_uom.rounding) != 0:
                 total_need = self.with_context(cancelling_active_proc=True). \
                     _calc_new_qty_price(procurement)[0]
             # Considering the case of different lines with same product in one order
@@ -381,19 +382,14 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                            l.product_id == line.product_id])
             if procurement.purchase_line_id.order_id.state not in ['draft', 'cancel']:
                 opmsg_reduce_qty = total_need
-                if total_need == 0:
+                if float_compare(total_need, 0.0, precision_rounding=procurement.product_uom.rounding) == 0:
                     to_delete = True
                 procurement.purchase_line_id.write({'opmsg_reduce_qty': opmsg_reduce_qty,
                                                     'to_delete': to_delete})
-            # Checking what should be cancelled
-            if procurement.purchase_line_id.order_id.state == 'draft':
-                # in this case, purchase order is not yet confirmed
-                if total_need == 0:
-                    line.unlink()
-                else:
-                    procurement.purchase_line_id.product_qty = total_need
-                if not order.order_line:
-                    order.unlink()
+            else:
+                result = super(ProcurementOrderPurchaseJustInTime,
+                               self.with_context(cancelling_active_proc=True)).\
+                    propagate_cancel(procurement)
         else:
             result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
         return result
