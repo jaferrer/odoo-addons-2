@@ -114,7 +114,7 @@ msgstr "Jours de la semaine"
 #. module: stock_working_days
 #: field:procurement.rule,days_of_week:0
 msgid "Fixed days of week"
-msgstr "Fixed days of week"
+msgstr "Jours de la semaine"
 
 #. module: stock_working_days
 #: field:resource.day_of_week,id:0
@@ -186,3 +186,12 @@ msgstr "Entrepôt"
 msgid "Warehouse resource"
 msgstr "Ressource de l'entrepôt"
 
+#. module: stock_working_days
+#: field:resource.resource,leave_ids:0
+msgid "List of related leaves"
+msgstr "Liste des congés correspondants"
+
+#. module: stock_working_days
+#: view:resource.resource:stock_working_days.working_days_resource_form
+msgid "Resource leaves"
+msgstr "Congés de la ressource"
