@@ -42,9 +42,7 @@ class FedexTrackingNumber(models.Model):
         super(FedexTrackingNumber, self).update_delivery_status()
         for rec in self:
             if rec.transporter_id.name == 'FedEx':
-                print 'track unlink', rec, rec.name
                 rec.status_ids.unlink()
-                print rec.status_ids
                 file_translated = urlopen('https://www.fedex.com/trackingCal/track',
                                           urlencode({"data": '{"TrackPackagesRequest":{"appType":"WTRK",'
                                                              '"uniqueKey":"","processingParameters":{},'

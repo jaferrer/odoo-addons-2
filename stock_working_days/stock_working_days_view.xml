@@ -41,5 +41,24 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="working_days_resource_form">
+            <field name="name">working.days.resource.form</field>
+            <field name="model">resource.resource</field>
+            <field name="inherit_id" ref="resource.resource_resource_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form position="inside">
+                    <separator string="Resource leaves"/>
+                    <field name="leave_ids" context="{'default_calendar_id': calendar_id, 'default_resource_id': id}">
+                        <tree editable="top">
+                            <field name="name"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </tree>
+                    </field>
+                </form>
+            </field>
+        </record>
+
     </data>
 </openerp>
