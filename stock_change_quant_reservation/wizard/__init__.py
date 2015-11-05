@@ -1,5 +1,4 @@
 # -*- coding: utf8 -*-
-
 #
 # Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
