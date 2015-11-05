@@ -25,8 +25,10 @@ class TrackingTransporter(models.Model):
 
     name = fields.Char(string="Name")
     image = fields.Binary(string="Image")
-    number_ids = fields.One2many('tracking.number', 'transporter_id', string="List of related tracking numbers")
-    order_ids = fields.One2many('purchase.order', 'transporter_id', string="List of related purchase orders")
+    number_ids = fields.One2many('tracking.number', compute='_compute_numbers',
+                                 string="List of related tracking numbers")
+    order_ids = fields.One2many('purchase.order', compute='_compute_numbers',
+                                string="List of related purchase orders")
     number_trackings = fields.Integer(string="Number of related tracking numbers", compute='_compute_numbers')
     number_orders = fields.Integer(string="Number of related purchase orders", compute='_compute_numbers')
     logo = fields.Char(compute='_compute_logo', string="Logo")
@@ -34,8 +36,12 @@ class TrackingTransporter(models.Model):
     @api.multi
     def _compute_numbers(self):
         for rec in self:
-            rec.number_trackings = len(rec.number_ids)
-            rec.number_orders = len(rec.order_ids)
+            number_ids = self.env['tracking.number'].search([('transporter_id', '=', rec.id)])
+            order_ids = self.env['purchase.order'].search([('transporter_id', '=', rec.id)])
+            rec.number_ids = number_ids
+            rec.order_ids = order_ids
+            rec.number_trackings = len(number_ids)
+            rec.number_orders = len(order_ids)
 
     # Function to overwrite for each transporter.
     @api.multi
@@ -85,8 +91,7 @@ class TrackingNumber(models.Model):
     date = fields.Datetime(string="Date of the last status", compute='_compute_date_and_status')
     status = fields.Char(string="Last status", compute='_compute_date_and_status')
     order_id = fields.Many2one('purchase.order', string="Linked purchase order")
-    transporter_id = fields.Many2one('tracking.transporter', string="Transporter", related='order_id.transporter_id',
-                                     store=True)
+    transporter_id = fields.Many2one('tracking.transporter', string="Transporter")
     partner_id = fields.Many2one('res.partner', string="Supplier", related='order_id.partner_id')
     last_status_update = fields.Datetime(string="Date of the last update")
     logo = fields.Char(string="Logo", related='transporter_id.logo')
@@ -125,7 +130,8 @@ class TrackingNumber(models.Model):
 class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
-    transporter_id = fields.Many2one('tracking.transporter', string="Transporter used")
+    transporter_id = fields.Many2one('tracking.transporter', string="Transporter used",
+                                     compute='_compute_transporter_id', store=True)
     last_status_update = fields.Datetime(string="Date of the last update")
     tracking_ids = fields.One2many('tracking.number', 'order_id', string="Delivery Tracking")
 
@@ -135,3 +141,12 @@ class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
             if rec.state not in ['draft', 'cancel', 'done']:
                 rec.last_status_update = fields.Datetime.now()
                 rec.tracking_ids.update_delivery_status()
+
+    @api.depends('tracking_ids', 'tracking_ids.transporter_id')
+    def _compute_transporter_id(self):
+        for rec in self:
+            print '_compute_transporter_id', self
+            if rec.tracking_ids:
+                rec.transporter_id = rec.tracking_ids[0].transporter_id
+            else:
+                rec.transporter_id = False

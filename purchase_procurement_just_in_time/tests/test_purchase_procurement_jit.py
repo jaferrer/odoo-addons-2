@@ -171,6 +171,8 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
             if line.product_id == self.product2:
                 line2 = line
         self.assertTrue(line1 and line2)
+        self.assertEqual(line1.product_qty, 48)
+        self.assertEqual(line2.product_qty, 10)
         self.assertEqual(purchase_order_1.state, 'draft')
         procurement_order_2.cancel()
         self.assertEqual(line1.product_qty, 36)
