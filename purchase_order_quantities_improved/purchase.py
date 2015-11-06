@@ -18,6 +18,7 @@
 #
 
 from openerp import fields, models, api
+from openerp.tools.float_utils import float_compare
 
 class supplier(models.Model):
     _inherit = 'product.supplierinfo'
@@ -38,10 +39,11 @@ class procurement_order_improved(models.Model):
                                                 ('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id)])
         supplierinfo = list_supplierinfo_ids[0]
         packaging_number = supplierinfo.packaging_qty
-        if packaging_number == 0:
+        if float_compare(packaging_number, 0.0, precision_rounding=procurement.product_uom.rounding) == 0:
             packaging_number = 1
-        qty = max(qty, supplierinfo.min_qty)
-        if qty % packaging_number != 0:
+        if float_compare(qty, 0.0, precision_rounding=procurement.product_uom.rounding) != 0:
+            qty = max(qty, supplierinfo.min_qty)
+        if float_compare(qty % packaging_number, 0.0, precision_rounding=procurement.product_uom.rounding) != 0:
             qty = (qty//packaging_number+1)*packaging_number
         pricelist = po_line.order_id.partner_id.property_product_pricelist_purchase
         price = pricelist.with_context(uom=procurement.product_uom.id).price_get(procurement.product_id.id, qty,

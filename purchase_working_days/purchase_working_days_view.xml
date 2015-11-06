@@ -2,17 +2,47 @@
 <openerp>
     <data>
 
+        <record model="ir.actions.act_window" id="working_days_open_partner_leaves">
+            <field name="name">Partner leaves</field>
+            <field name="src_model">res.partner</field>
+            <field name="res_model">resource.calendar.leaves</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
         <record model="ir.ui.view" id="res_partner_with_calendar_view_form">
             <field name="name">res.partner.with.calendar.view.form</field>
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="base.view_partner_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
+                <xpath expr="//div[@name='buttons']" position="inside">
+                    <button class="oe_inline oe_stat_button" name="%(working_days_open_partner_leaves)d" type="action"
+                            icon="fa-tasks" context="{'search_default_resource_id': resource_id}">
+                        <field name="partner_leaves_count" widget="statinfo"/>
+                    </button>
+                </xpath>
                 <field name="ref" position="after">
                     <field name="resource_id" attrs="{'invisible': [('supplier','=',False)]}"/>
                 </field>
             </field>
         </record>
+
+        <record model="ir.actions.act_window" id="working_days_act_resource_purchase">
+            <field name="name">Resource</field>
+            <field name="res_model">resource.resource</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('resource_type', '=', 'material')]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="working_days_menu_resource_purchase" name="Resource" action="working_days_act_resource_purchase"
+                  parent="purchase.menu_procurement_management" sequence="30" groups="purchase.group_purchase_manager"/>
 
     </data>
 </openerp>

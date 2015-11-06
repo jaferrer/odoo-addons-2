@@ -3,23 +3,31 @@
     <data>
 
         <record model="ir.ui.view" id="mrp_production_form_improved">
-              <field name="name">mrp.production.form.improved</field>
-              <field name="model">mrp.production</field>
-              <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
-              <field name="priority" eval="16"/>
-              <field name="arch" type="xml">
-                  <field name="bom_id" position="replace">
-                      <div class="oe_subtotal_footer_separator oe_inline">
-                          <label for="bom_id" class="oe_force_bold"/>
-                          <button name="button_update" string="(update)" type="object" states="draft,confirmed,ready" class="oe_link"/>
-                      </div>
-                      <field name="bom_id" nolabel="1" attrs="{'readonly': [('state', 'not in', ['draft','confirmed','ready'])]}"/>
-                  </field>
-                  <field name="product_lines" position="attributes">
-                      <attribute name="context" eval="{'by_user': True}"/>
-                  </field>
-              </field>
-         </record>
+            <field name="name">mrp.production.form.improved</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="bom_id" position="replace">
+                    <div class="oe_subtotal_footer_separator oe_inline">
+                        <label for="bom_id" class="oe_force_bold"/>
+                        <button name="button_update" string="(update)" type="object" states="draft,confirmed,ready"
+                                class="oe_link" groups="mrp.group_mrp_manager"/>
+                    </div>
+                    <field name="bom_id"
+                           domain="['|',
+                                        ('product_id','=',product_id),
+                                        '&amp;',
+                                            ('product_tmpl_id.product_variant_ids','=',product_id),
+                                            ('product_id','=',False)]"
+                           context="{'default_product_id': product_id}" nolabel="1"
+                           attrs="{'readonly': [('state', 'not in', ['draft','confirmed','ready'])]}"/>
+                </field>
+                <field name="product_lines" position="attributes">
+                    <attribute name="context" eval="{'by_user': True}"/>
+                </field>
+            </field>
+        </record>
 
     </data>
 </openerp>
