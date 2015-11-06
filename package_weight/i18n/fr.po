@@ -21,3 +21,13 @@ msgstr ""
 #: model:ir.model,name:package_weight.model_stock_quant_package
 msgid "Physical Packages"
 msgstr "Colis"
+
+#. module: package_weight
+#: field:stock.quant.package,weight:0
+msgid "Gross Weight"
+msgstr "Poids brut"
+
+#. module: package_weight
+#: field:stock.quant.package,weight_net:0
+msgid "Net Weight"
+msgstr "Poids net"
