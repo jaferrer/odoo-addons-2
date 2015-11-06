@@ -120,7 +120,7 @@
             <field name="arch" type="xml">
                 <filter name="internal_loc" position="after">
                     <separator/>
-                    <filter string="Quants non réservés" domain="[('reservation_id' ,'=',False )]"/>
+                    <filter string="Non Reserved Quants" domain="[('reservation_id' ,'=',False )]"/>
                 </filter>
             </field>
         </record>
