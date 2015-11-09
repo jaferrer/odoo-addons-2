@@ -54,7 +54,6 @@ class ColissimoTrackingNumber(models.Model):
                             for status in list_status:
                                 description_status = status.findall(".//td")
                                 description = ' '.join(description_status[1].text.split())
-                                print 'description', description, description_status
                                 if len(description_status) == 3 and description_status[2].text and\
                                                 ' '.join(description_status[2].text.split()) != '':
                                     description = ' '.join(description_status[2].text.split()) + ' - ' + description
