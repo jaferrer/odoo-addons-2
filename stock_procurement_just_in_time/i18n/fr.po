@@ -224,3 +224,8 @@ msgstr "Traiter l'ensemble des produits"
 #: field:procurement.orderpoint.compute,product_ids:0
 msgid "Products to compute"
 msgstr "Produits à traiter"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.quant:stock_procurement_just_in_time.stock_quant_view_search
+msgid "Non Reserved Quants"
+msgstr "Quants non réservés"
