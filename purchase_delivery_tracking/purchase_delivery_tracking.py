@@ -153,4 +153,7 @@ class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
     @api.depends('tracking_ids', 'tracking_ids.transporter_id')
     def _compute_transporter_id(self):
         for rec in self:
-            rec.transporter_id = self.env['tracking.transporter'].search([('order_id', '=', rec.id)], limit=1)
+            if rec.tracking_ids:
+                rec.transporter_id = rec.tracking_ids[0].transporter_id
+            else:
+                rec.transporter_id = False
