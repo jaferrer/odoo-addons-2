@@ -500,3 +500,5 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
         LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
 )
         """)
+
+

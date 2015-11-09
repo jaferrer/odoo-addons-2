@@ -126,6 +126,14 @@ class TrackingNumber(models.Model):
         for rec in self:
             rec.last_status_update = fields.Datetime.now()
 
+    @api.model
+    def create(self, vals):
+        if vals.get('order_id'):
+            order = self.env['purchase.order'].search([('id', '=', vals['order_id'])])
+            if order and order.transporter_id:
+                vals['transporter_id'] = order.transporter_id.id
+        return super(TrackingNumber, self).create(vals)
+
 
 class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
