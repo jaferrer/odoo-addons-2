@@ -42,7 +42,7 @@
         </record>
 
         <menuitem id="working_days_menu_resource_purchase" name="Resource" action="working_days_act_resource_purchase"
-                  parent="purchase.menu_procurement_management" sequence="30" groups="purchase.group_purchase_manager"/>
+                  parent="purchase.menu_purchase_partner_cat" sequence="30"/>
 
     </data>
 </openerp>
