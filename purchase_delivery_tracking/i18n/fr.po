@@ -31,12 +31,12 @@ msgstr ""
 "\n"
 "Suivi des livraisons d'achat\n"
 "============================\n"
-"Ce module permet de suivre les livraisons d'achat, en connaissant le transporteur et le numéro de suivi.\n"
+"Ce module permet de suivre les livraisons d'achat, en connaissant le transporteur et le numÃ©ro de suivi.\n"
 
 #. module: purchase_delivery_tracking
 #: field:purchase.order,last_status_update:0
 msgid "Date of the last update"
-msgstr "Date de dernière mise à jour"
+msgstr "Date de derniÃ¨re mise Ã  jour"
 
 #. module: purchase_delivery_tracking
 #: field:tracking.status,status:0
@@ -72,7 +72,7 @@ msgstr "Fournisseur"
 #. module: purchase_delivery_tracking
 #: field:tracking.number,last_status_update:0
 msgid "Date of the last update"
-msgstr "Date de dernière mise à jour"
+msgstr "Date de derniÃ¨re mise Ã  jour"
 
 #. module: purchase_delivery_tracking
 #: field:tracking.number,logo:0
@@ -82,7 +82,7 @@ msgstr "Logo"
 #. module: purchase_delivery_tracking
 #: field:tracking.status,tracking_id:0
 msgid "Linked tracking number"
-msgstr "Numéro de suivi lié"
+msgstr "NumÃ©ro de suivi liÃ©"
 
 #. module: purchase_delivery_tracking
 #: field:tracking.transporter,name:0
@@ -113,7 +113,7 @@ msgstr "Historique du suivi"
 #. module: purchase_delivery_tracking
 #: field:tracking.number,name:0
 msgid "Tracking number"
-msgstr "Numéro de suivi"
+msgstr "NumÃ©ro de suivi"
 
 #. module: purchase_delivery_tracking
 #: field:tracking.number,date:0
@@ -128,22 +128,22 @@ msgstr "Dernier statut"
 #. module: purchase_delivery_tracking
 #: field:purchase.order,transporter_id:0
 msgid "Transporter used"
-msgstr "Transporteur utilisé"
+msgstr "Transporteur utilisÃ©"
 
 #. module: purchase_delivery_tracking
 #: model:ir.actions.server,name:purchase_delivery_tracking.ir_actions_server_update_delivery_status
 msgid "Update delivery status"
-msgstr "Mettre à jour les statuts des livraisons"
+msgstr "Mettre Ã  jour les statuts des livraisons"
 
 #. module: purchase_delivery_tracking
 #: view:tracking.number:purchase_delivery_tracking.tracking_number_search
 msgid "Search tracking numbers"
-msgstr "Recherche numéros de suivi"
+msgstr "Recherche numÃ©ros de suivi"
 
 #. module: purchase_delivery_tracking
 #: model:ir.actions.act_window,name:purchase_delivery_tracking.act_window_tracking_number
 msgid "Tracking Numbers"
-msgstr "Numéros de suivi"
+msgstr "NumÃ©ros de suivi"
 
 #. module: purchase_delivery_tracking
 #: view:tracking.number:purchase_delivery_tracking.tracking_number_tree
@@ -183,29 +183,29 @@ msgstr "Image"
 #. module: purchase_delivery_tracking
 #: field:tracking.transporter,order_ids:0
 msgid "List of related purchase orders"
-msgstr "Liste des commandes liées"
+msgstr "Liste des commandes liÃ©es"
 
 #. module: purchase_delivery_tracking
 #: field:tracking.transporter,number_ids:0
 msgid "List of related tracking numbers"
-msgstr "Liste des numéros de suivi liés"
+msgstr "Liste des numÃ©ros de suivi liÃ©s"
 
 #. module: purchase_delivery_tracking
 #: code:addons\purchase_delivery_tracking\purchase_delivery_tracking.py:110
 #, python-format
 msgid "List of status corresponding to tracking number %s"
-msgstr "Liste des statuts correspondant au numéro de suivi %s"
+msgstr "Liste des statuts correspondant au numÃ©ro de suivi %s"
 
 #. module: purchase_delivery_tracking
 #: code:addons\purchase_delivery_tracking\purchase_delivery_tracking.py:63
 #, python-format
 msgid "Purchase orders related to transporter %s"
-msgstr "Commandes liées au transporteur %s"
+msgstr "Commandes liÃ©es au transporteur %s"
 
 #. module: purchase_delivery_tracking
 #: view:tracking.number:purchase_delivery_tracking.tracking_number_form
 msgid "Tracking Number"
-msgstr "Numéro de suivi"
+msgstr "NumÃ©ro de suivi"
 
 #. module: purchase_delivery_tracking
 #: model:ir.ui.menu,name:purchase_delivery_tracking.menu_tracking_by_transporter
@@ -215,13 +215,13 @@ msgstr "Suivi par transporteur"
 #. module: purchase_delivery_tracking
 #: model:ir.actions.act_window,name:purchase_delivery_tracking.act_window_tracking_number_by_transporter
 msgid "Tracking numbers by transporter"
-msgstr "Numéro de suivi par transporteur"
+msgstr "NumÃ©ro de suivi par transporteur"
 
 #. module: purchase_delivery_tracking
 #: code:addons\purchase_delivery_tracking\purchase_delivery_tracking.py:51
 #, python-format
 msgid "Tracking numbers related to transporter %s"
-msgstr "Numéros de suivi liés au transporteur %s"
+msgstr "NumÃ©ros de suivi liÃ©s au transporteur %s"
 
 #. module: purchase_delivery_tracking
 #: view:tracking.transporter:purchase_delivery_tracking.tracking_transporter_form
@@ -241,7 +241,7 @@ msgstr "Transporteurs"
 #. module: purchase_delivery_tracking
 #: field:tracking.transporter,number_trackings:0
 msgid "Number of related tracking numbers"
-msgstr "Nombre de numéros de suivi"
+msgstr "Nombre de numÃ©ros de suivi"
 
 #. module: purchase_delivery_tracking
 #: field:tracking.transporter,number_orders:0
@@ -251,7 +251,7 @@ msgstr "Nombre de commandes"
 #. module: purchase_delivery_tracking
 #: view:tracking.transporter:purchase_delivery_tracking.tracking_transporter_form
 msgid "Tracking numbers"
-msgstr "Numéros de suivi"
+msgstr "NumÃ©ros de suivi"
 
 #. module: purchase_delivery_tracking
 #: view:tracking.transporter:purchase_delivery_tracking.tracking_transporter_form
