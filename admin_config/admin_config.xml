@@ -56,5 +56,17 @@ self.delete_field_translations(cr, uid, context.get('active_ids'), False, contex
             </field>
         </record>
 
+        <record model="ir.ui.view" id="admin_config_workflow_instance_form">
+            <field name="name">admin.config.workflow.instance.form</field>
+            <field name="model">workflow.instance</field>
+            <field name="inherit_id" ref="base.view_workflow_instance_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <group position="inside">
+                    <field name="transition_ids"/>
+                </group>
+            </field>
+        </record>
+
     </data>
 </openerp>

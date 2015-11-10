@@ -25,15 +25,16 @@ class TrackingTransporter(models.Model):
 
     name = fields.Char(string="Name")
     image = fields.Binary(string="Image")
-    number_ids = fields.One2many('tracking.number', compute='_compute_numbers',
+    number_ids = fields.One2many('tracking.number', 'transporter_id', domain=[('order_id', '!=', False)],
                                  string="List of related tracking numbers")
-    order_ids = fields.One2many('purchase.order', compute='_compute_numbers',
-                                string="List of related purchase orders")
-    number_trackings = fields.Integer(string="Number of related tracking numbers", compute='_compute_numbers')
-    number_orders = fields.Integer(string="Number of related purchase orders", compute='_compute_numbers')
+    order_ids = fields.One2many('purchase.order', 'transporter_id', string="List of related purchase orders")
+    number_trackings = fields.Integer(string="Number of related tracking numbers", compute='_compute_numbers',
+                                      store=True)
+    number_orders = fields.Integer(string="Number of related purchase orders", compute='_compute_numbers',
+                                   store=True)
     logo = fields.Char(compute='_compute_logo', string="Logo")
 
-    @api.multi
+    @api.depends('number_ids', 'order_ids')
     def _compute_numbers(self):
         for rec in self:
             number_ids = self.env['tracking.number'].search([('transporter_id', '=', rec.id)])
@@ -71,7 +72,7 @@ class TrackingTransporter(models.Model):
             'view_type': 'form',
             'view_mode': 'tree,form',
             'res_model': 'purchase.order',
-            'domain': [('transporter_id', '=', self.id)]
+            'domain': [('id', 'in', self.order_ids.ids)]
         }
 
 
@@ -131,7 +132,7 @@ class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
     transporter_id = fields.Many2one('tracking.transporter', string="Transporter used",
-                                     compute='_compute_transporter_id', store=True)
+                                     related='tracking_ids.transporter_id', store=True, readonly=True)
     last_status_update = fields.Datetime(string="Date of the last update")
     tracking_ids = fields.One2many('tracking.number', 'order_id', string="Delivery Tracking")
 

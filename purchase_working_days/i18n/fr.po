@@ -95,4 +95,4 @@ msgstr "Congés du partenaire"
 #: model:ir.actions.act_window,name:purchase_working_days.working_days_act_resource_purchase
 #: model:ir.ui.menu,name:purchase_working_days.working_days_menu_resource_purchase
 msgid "Resource"
-msgstr "Ressource"
+msgstr "Calendriers fournisseurs"
