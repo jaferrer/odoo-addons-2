@@ -36,8 +36,9 @@ class TrackingTransporter(models.Model):
     @api.multi
     def _compute_numbers(self):
         for rec in self:
-            number_ids = self.env['tracking.number'].search([('transporter_id', '=', rec.id)])
-            order_ids = self.env['purchase.order'].search([('transporter_id', '=', rec.id)])
+            number_ids = self.env['tracking.number'].search([('transporter_id', '=', rec.id), ('order_id', '!=', False)])
+            order_ids = self.env['purchase.order'].search([]).filtered(
+                lambda po: rec in [tn.transporter_id for tn in po.tracking_ids])
             rec.number_ids = number_ids
             rec.order_ids = order_ids
             rec.number_trackings = len(number_ids)
@@ -65,13 +66,17 @@ class TrackingTransporter(models.Model):
     @api.multi
     def open_purchase_orders(self):
         self.ensure_one()
+        ids_to_print = self.env['purchase.order'].search([]).filtered(
+                lambda po: self in [tn.transporter_id for tn in po.tracking_ids])
+        if ids_to_print:
+            ids_to_print = ids_to_print.ids
         return {
             'name': _('Purchase orders related to transporter %s' % self.name),
             'type': 'ir.actions.act_window',
             'view_type': 'form',
             'view_mode': 'tree,form',
             'res_model': 'purchase.order',
-            'domain': [('transporter_id', '=', self.id)]
+            'domain': [('id', 'in', ids_to_print)]
         }
 
 
@@ -126,20 +131,12 @@ class TrackingNumber(models.Model):
         for rec in self:
             rec.last_status_update = fields.Datetime.now()
 
-    @api.model
-    def create(self, vals):
-        if vals.get('order_id'):
-            order = self.env['purchase.order'].search([('id', '=', vals['order_id'])])
-            if order and order.transporter_id:
-                vals['transporter_id'] = order.transporter_id.id
-        return super(TrackingNumber, self).create(vals)
-
 
 class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
     transporter_id = fields.Many2one('tracking.transporter', string="Transporter used",
-                                     compute='_compute_transporter_id', store=True)
+                                     compute='_compute_transporter_id')
     last_status_update = fields.Datetime(string="Date of the last update")
     tracking_ids = fields.One2many('tracking.number', 'order_id', string="Delivery Tracking")
 
@@ -150,7 +147,7 @@ class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
                 rec.last_status_update = fields.Datetime.now()
                 rec.tracking_ids.update_delivery_status()
 
-    @api.depends('tracking_ids', 'tracking_ids.transporter_id')
+    @api.multi
     def _compute_transporter_id(self):
         for rec in self:
             rec.transporter_id = rec.tracking_ids and rec.tracking_ids[0].transporter_id or False
