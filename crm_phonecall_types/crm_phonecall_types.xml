@@ -9,7 +9,7 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <field name="date" position="after">
-                    <field name="type_event"/>
+                    <field name="type_action"/>
                 </field>
                 <tree position="inside">
                     <button string="Modify" name="open_phonecall" type="object" icon="gtk-edit"/>
@@ -25,7 +25,7 @@
             <field name="arch" type="xml">
                 <data>
                     <field name="date" position="after">
-                        <field name="type_event"/>
+                        <field name="type_action"/>
                     </field>
                 </data>
             </field>
@@ -41,7 +41,7 @@
                     <xpath expr="//sheet/div[@class='oe_title']" position="after">
                         <group>
                             <group>
-                                <field name="type_event" widget="radio"/>
+                                <field name="type_action" widget="radio"/>
                             </group>
                         </group>
                     </xpath>
@@ -49,23 +49,23 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="cofinex_crm_phonecall_search">
-            <field name="name">cofinex.crm.phonecall.search</field>
+        <record model="ir.ui.view" id="crm_phonecall_search">
+            <field name="name">crm.phonecall.search</field>
             <field name="model">crm.phonecall</field>
             <field name="inherit_id" ref="crm.view_crm_case_phonecalls_filter"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <data>
                     <filter string="My Phonecalls" position="before">
-                        <filter string="Calls" domain="[('type_event','=','call')]"/>
-                        <filter string="E-mails" domain="[('type_event','=','email')]"/>
-                        <filter string="Reminders" domain="[('type_event','=','reminder')]"/>
-                        <filter string="Appointments" domain="[('type_event','=','appointment')]"/>
+                        <filter string="Calls" domain="[('type_action','=','call')]"/>
+                        <filter string="E-mails" domain="[('type_action','=','email')]"/>
+                        <filter string="Reminders" domain="[('type_action','=','reminder')]"/>
+                        <filter string="Appointments" domain="[('type_action','=','appointment')]"/>
                         <separator/>
                     </filter>
                     <filter string="Partner" position="before">
-                        <filter string="Type" domain="[]" context="{'group_by':'type_event'}"
-                                help="Group by type of event (call or e-mail)"/>
+                        <filter string="Type of action" domain="[]" context="{'group_by':'type_action'}"
+                                help="Group by type of action (call or e-mail)"/>
                     </filter>
                 </data>
             </field>

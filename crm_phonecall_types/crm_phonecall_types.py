@@ -21,18 +21,18 @@ from openerp import models, fields, api, _
 
 
 class cofinex_crm_phonecall(models.Model):
-    _inherit = "crm.phonecall"
+    _inherit = 'crm.phonecall'
 
-    type_event = fields.Selection([('call', _("Call")), ('email', _("E-mail")), ('reminder', _("Reminder")),
-                                   ('appointment', _("Appointment"))], string="Type", help="Type of event",
-                                  default='call', index=True)
+    type_action = fields.Selection([('call', _("Call")), ('email', _("E-mail")), ('reminder', _("Reminder")),
+                                    ('appointment', _("Appointment"))], string="Type of action",
+                                   default='call', index=True)
 
     @api.multi
     def open_phonecall(self):
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'crm.phonecall',
-            'name': _("Event"),
+            'name': _("Action"),
             'views': [(False, "form")],
             'res_id': self.id,
             'context': {}
