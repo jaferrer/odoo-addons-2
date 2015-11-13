@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP SystÃ¨mes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -47,7 +47,7 @@ class StockChangeQuantPicking(models.TransientModel):
 
     picking_id = fields.Many2one(
         comodel_name='stock.picking',
-        string='Pickings', domain=_picking_list_get, required=True)
+        string='Picking', domain=_picking_list_get, required=True)
 
     @api.multi
     def do_apply(self):
