@@ -64,8 +64,8 @@ msgstr "Mouvements aval/amont"
 
 #. module: procurement_management
 #: model:ir.actions.server,name:procurement_management.ir_actions_server_restart_procurements
-msgid "Restart procurements"
-msgstr "Relancer les approvisionnements"
+msgid "Run procurements"
+msgstr "Lancer les approvisionnements"
 
 #. module: procurement_management
 #: model:ir.actions.server,name:procurement_management.ir_actions_server_cancel_procurements
