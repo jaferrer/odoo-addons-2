@@ -128,13 +128,6 @@ class StockMove(models.Model):
         moves_no_pick.action_confirm()
         super(StockMove, self).action_assign()
 
-    @api.multi
-    def action_done(self):
-        """Overridden here to process prereservations once a move has been done."""
-        res = super(StockMove, self).action_done()
-        self.env['stock.picking'].with_context(skip_moves=self.ids).assign_moves_to_picking()
-        return res
-
 
 class ProcurementRule(models.Model):
     _inherit = 'procurement.rule'
