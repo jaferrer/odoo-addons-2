@@ -20,7 +20,7 @@ self.run(cr, uid, context.get('active_ids'), context)
 
 
         <record model="ir.actions.server" id="ir_actions_server_restart_procurements">
-            <field name="name">Restart procurements</field>
+            <field name="name">Run procurements</field>
             <field name="model_id" ref="procurement.model_procurement_order"/>
             <field name="code">
 self.run(cr, uid, context.get('active_ids'), context)
