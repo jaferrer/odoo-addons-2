@@ -47,7 +47,7 @@ class StockChangeQuantPicking(models.TransientModel):
 
     picking_id = fields.Many2one(
         comodel_name='stock.picking',
-        string='Pickings', domain=_picking_list_get, required=True)
+        string='Picking', domain=_picking_list_get, required=True)
 
     @api.multi
     def do_apply(self):
