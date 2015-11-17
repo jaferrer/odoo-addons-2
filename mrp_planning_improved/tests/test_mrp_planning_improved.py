@@ -69,21 +69,21 @@ class TestMrpPlanningImproved(common.TransactionCase):
         procurement_order_1.date_planned = '2015-09-07 15:00:00'
         procurement_order_1.action_reschedule()
         self.assertEqual(order.date_required[:10], '2015-09-02')
-        self.assertEqual(order.date_planned[:10], '2015-08-31')
+        self.assertEqual(order.date_planned[:10], '2015-09-02')
         self.assertEqual(move_created.date[:10], '2015-09-04')
         self.assertEqual(move_created.date_expected[:10], '2015-09-02')
 
         # Next, with context, and order not taken into account
         self.assertFalse(order.taken_into_account)
         procurement_order_1.date_planned = '2015-09-08 15:00:00'
-        procurement_order_1.with_context({'reschedule_planned_date': True}).action_reschedule()
+        procurement_order_1.with_context(reschedule_planned_date=True).action_reschedule()
         self.assertEqual(order.date_required[:10], '2015-09-03')
         self.assertEqual(order.date_planned[:10], '2015-09-03')
         self.assertEqual(move_created.date[:10], '2015-09-07')
         self.assertEqual(move_created.date_expected[:10], '2015-09-03')
 
         # Next, without context, and order taken into account
-        procurement_order_1.taken_into_account = True
+        order.taken_into_account = True
         procurement_order_1.date_planned = '2015-09-10 15:00:00'
         procurement_order_1.action_reschedule()
         self.assertEqual(order.date_required[:10], '2015-09-07')
@@ -93,7 +93,7 @@ class TestMrpPlanningImproved(common.TransactionCase):
 
         # Next, with context, and order taken into account
         procurement_order_1.date_planned = '2015-09-11 15:00:00'
-        procurement_order_1.action_reschedule()
+        procurement_order_1.with_context(reschedule_planned_date=True).action_reschedule()
         self.assertEqual(order.date_required[:10], '2015-09-08')
         self.assertEqual(order.date_planned[:10], '2015-09-03')
         self.assertEqual(move_created.date[:10], '2015-09-10')
