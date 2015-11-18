@@ -56,6 +56,7 @@ def run_or_check_procurements(session, model_name, domain, action, context):
             procs.sudo().run()
         elif action == 'check':
             procs.sudo().check()
+        session.commit()
 
 
 @job
