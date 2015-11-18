@@ -228,17 +228,17 @@ class StockPrereservation(models.Model):
                     from
                         move_qties mq
                     where
-                            mq.qty <= (
-                                select
-                                    sum(qty)
-                                from
-                                    stock_quant sq
-                                where
-                                    sq.reservation_id is null
-                                    and sq.location_id in (
-                                        select loc_id from top_parent where top_parent_id=mq.location_id
-                                    )
-                                    and sq.product_id = mq.product_id)
+                        mq.qty <= (
+                            select
+                                sum(qty)
+                            from
+                                stock_quant sq
+                            where
+                                sq.reservation_id is null
+                                and sq.location_id in (
+                                    select loc_id from top_parent where top_parent_id=mq.location_id
+                                )
+                                and sq.product_id = mq.product_id)
             ) foo
         )
         """)
