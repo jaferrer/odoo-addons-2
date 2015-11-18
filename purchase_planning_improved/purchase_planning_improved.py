@@ -77,7 +77,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     @api.multi
     def set_moves_dates(self, date_required):
         for rec in self:
-            moves = rec.move_ids.filtered(lambda m: m.state not in ['done', 'cancel'])
+            moves = rec.move_ids.filtered(lambda m: m.state not in ['draft', 'cancel'])
             moves.write({'date': date_required})
 
     @api.multi
