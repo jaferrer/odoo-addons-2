@@ -53,9 +53,9 @@ def run_or_check_procurements(session, model_name, domain, action, context):
         else:
             prev_procs = procs
         if action == 'run':
-            procs.sudo().run()
+            procs.sudo().run(autocommit=True)
         elif action == 'check':
-            procs.sudo().check()
+            procs.sudo().check(autocommit=True)
         session.commit()
 
 
