@@ -37,7 +37,7 @@ msgstr ""
 #. module: stock_change_quant_reservation
 #: model:ir.actions.act_window,name:stock_change_quant_reservation.action_change_quants
 msgid "Affect Quant"
-msgstr "Affecter les quant"
+msgstr "Affecter les quants"
 
 #. module: stock_change_quant_reservation
 #: field:stock.quant.picking,create_uid:0
@@ -66,8 +66,8 @@ msgstr "Modifié le"
 
 #. module: stock_change_quant_reservation
 #: field:stock.quant.picking,picking_id:0
-msgid "Pickings"
-msgstr "Opérations"
+msgid "Picking"
+msgstr "Bon d'expédition"
 
 #. module: stock_change_quant_reservation
 #: view:stock.quant.picking:stock_change_quant_reservation.stock_change_quant_reservation_wizard

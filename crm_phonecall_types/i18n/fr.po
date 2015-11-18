@@ -1,0 +1,111 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* crm_phonecall_types
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-11-12 14:28+0000\n"
+"PO-Revision-Date: 2015-11-12 14:28+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: crm_phonecall_types
+#: code:addons\crm_phonecall_types\crm_phonecall_types.py:35
+#, python-format
+msgid "Action"
+msgstr "Action"
+
+#. module: crm_phonecall_types
+#: code:addons\crm_phonecall_types\crm_phonecall_types.py:27
+#: selection:crm.phonecall,type_action:0
+#, python-format
+msgid "Appointment"
+msgstr "Rendez-vous"
+
+#. module: crm_phonecall_types
+#: view:crm.phonecall:crm_phonecall_types.crm_phonecall_search
+msgid "Appointments"
+msgstr "Rendez-vous"
+
+#. module: crm_phonecall_types
+#: selection:crm.phonecall,type_event:0
+msgid "CRM"
+msgstr "CRM"
+
+#. module: crm_phonecall_types
+#: code:addons\crm_phonecall_types\crm_phonecall_types.py:26
+#: selection:crm.phonecall,type_action:0
+#, python-format
+msgid "Call"
+msgstr "Appel"
+
+#. module: crm_phonecall_types
+#: view:crm.phonecall:crm_phonecall_types.crm_phonecall_search
+msgid "Calls"
+msgstr "Appels"
+
+#. module: crm_phonecall_types
+#: code:addons\crm_phonecall_types\crm_phonecall_types.py:26
+#: selection:crm.phonecall,type_action:0
+#, python-format
+msgid "E-mail"
+msgstr "Email"
+
+#. module: crm_phonecall_types
+#: view:crm.phonecall:crm_phonecall_types.crm_phonecall_search
+msgid "E-mails"
+msgstr "Emails"
+
+#. module: crm_phonecall_types
+#: view:crm.phonecall:crm_phonecall_types.crm_phonecall_search
+msgid "Group by type of action (call or e-mail)"
+msgstr "Grouper par type d'action (appel ou email)"
+
+#. module: crm_phonecall_types
+#: selection:crm.phonecall,type_event:0
+msgid "Hotline"
+msgstr "Hotline"
+
+#. module: crm_phonecall_types
+#: view:crm.phonecall:crm_phonecall_types.crm_phonecall_types_inbound_tree
+msgid "Modify"
+msgstr "Modifier"
+
+#. module: crm_phonecall_types
+#: view:crm.phonecall:crm_phonecall_types.crm_phonecall_search
+msgid "My Phonecalls"
+msgstr "Mes appels"
+
+#. module: crm_phonecall_types
+#: view:crm.phonecall:crm_phonecall_types.crm_phonecall_search
+msgid "Partner"
+msgstr "Partenaire"
+
+#. module: crm_phonecall_types
+#: model:ir.model,name:crm_phonecall_types.model_crm_phonecall
+msgid "Phonecall"
+msgstr "Appel téléphonique"
+
+#. module: crm_phonecall_types
+#: code:addons\crm_phonecall_types\crm_phonecall_types.py:26
+#: selection:crm.phonecall,type_action:0
+#, python-format
+msgid "Reminder"
+msgstr "Relance"
+
+#. module: crm_phonecall_types
+#: view:crm.phonecall:crm_phonecall_types.crm_phonecall_search
+msgid "Reminders"
+msgstr "Relances"
+
+#. module: crm_phonecall_types
+#: view:crm.phonecall:crm_phonecall_types.crm_phonecall_search
+#: field:crm.phonecall,type_action:0
+msgid "Type of action"
+msgstr "Type d'action"
