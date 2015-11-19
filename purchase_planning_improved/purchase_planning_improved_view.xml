@@ -17,5 +17,17 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="purchase_order_line_planning_improved">
+            <field name="name">purchase.order.line.planning.improved</field>
+            <field name="model">purchase.order.line</field>
+            <field name="inherit_id" ref="purchase.purchase_order_line_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="date_planned" position="after">
+                    <field name="date_required"/>
+                </field>
+            </field>
+        </record>
+
     </data>
 </openerp>

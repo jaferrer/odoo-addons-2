@@ -128,13 +128,6 @@ class StockMove(models.Model):
         moves_no_pick.action_confirm()
         super(StockMove, self).action_assign()
 
-    @api.multi
-    def action_done(self):
-        """Overridden here to process prereservations once a move has been done."""
-        res = super(StockMove, self).action_done()
-        self.env['stock.picking'].with_context(skip_moves=self.ids).assign_moves_to_picking()
-        return res
-
 
 class ProcurementRule(models.Model):
     _inherit = 'procurement.rule'
@@ -235,17 +228,17 @@ class StockPrereservation(models.Model):
                     from
                         move_qties mq
                     where
-                            mq.qty <= (
-                                select
-                                    sum(qty)
-                                from
-                                    stock_quant sq
-                                where
-                                    sq.reservation_id is null
-                                    and sq.location_id in (
-                                        select loc_id from top_parent where top_parent_id=mq.location_id
-                                    )
-                                    and sq.product_id = mq.product_id)
+                        mq.qty <= (
+                            select
+                                sum(qty)
+                            from
+                                stock_quant sq
+                            where
+                                sq.reservation_id is null
+                                and sq.location_id in (
+                                    select loc_id from top_parent where top_parent_id=mq.location_id
+                                )
+                                and sq.product_id = mq.product_id)
             ) foo
         )
         """)

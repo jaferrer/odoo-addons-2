@@ -124,36 +124,6 @@ class TestStockPerformanceImproved(common.TransactionCase):
         move.action_done()
         self.assertTrue(move2.picking_id, "Move should have been assigned a picking when previous is done")
 
-    def test_25_following_moves(self):
-        """Test of following moves (MTS)."""
-        move2 = self.env['stock.move'].create({
-            'name': "Test Performance Improved",
-            'product_id': self.product.id,
-            'product_uom': self.product_uom_unit_id,
-            'product_uom_qty': 8,
-            'location_id': self.location_shelf2.id,
-            'location_dest_id': self.location_shelf.id,
-            'picking_type_id': self.picking_type_id,
-            'defer_picking_assign': True,
-        })
-        move = self.env['stock.move'].create({
-            'name': "Test Performance Improved",
-            'product_id': self.product.id,
-            'product_uom': self.product_uom_unit_id,
-            'product_uom_qty': 8,
-            'location_id': self.location_shelf.id,
-            'location_dest_id': self.location_shelf2.id,
-            'picking_type_id': self.picking_type_id,
-            'defer_picking_assign': True,
-        })
-        move2.action_confirm()
-        move.action_confirm()
-        self.assertTrue(move.picking_id, "Move should have been assigned a picking")
-        self.assertFalse(move2.picking_id, "Move should not have been assigned a picking")
-        move.action_assign()
-        move.action_done()
-        self.assertTrue(move2.picking_id, "Move should have been assigned a picking when quants arrived in source loc")
-
     def test_30_check_picking(self):
         """Check if the moves are assigned to the correct picking."""
         move = self.env['stock.move'].create({
