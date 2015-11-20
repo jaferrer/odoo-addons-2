@@ -34,6 +34,9 @@
                             confirm="All existing packing operations will be removed.
                             Are you sure you want to continue?"/>
                 </field>
+                <field name="picking_type_id" position="after">
+                    <field name="packing_details_saved"/>
+                </field>
             </field>
         </record>
 

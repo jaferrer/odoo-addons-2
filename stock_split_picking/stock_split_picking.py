@@ -16,9 +16,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from datetime import datetime
 
-from openerp import models, api
+from datetime import datetime
+from openerp import models, fields, api
 
 
 class StockSplitOnlyTransferDetails(models.TransientModel):
@@ -62,11 +62,14 @@ class StockSplitOnlyTransferDetails(models.TransientModel):
                                                            '!', ('id', 'in', processed_ids)])
         for packop in packops:
             packop.unlink()
+        self.picking_id.packing_details_saved = True
         return self.wizard_view()
 
 
 class StockSplitPicking(models.Model):
     _inherit = 'stock.picking'
+
+    packing_details_saved = fields.Boolean(string="Packing operations saved")
 
     @api.one
     def action_split_from_ui(self):
@@ -81,3 +84,11 @@ class StockSplitPicking(models.Model):
         """Removes packing operations from this picking."""
         self.ensure_one()
         self.pack_operation_ids.unlink()
+
+    @api.multi
+    def do_prepare_partial(self):
+        new_pickings = self.env['stock.picking']
+        for picking in self:
+            if not picking.packing_details_saved:
+                new_pickings = new_pickings +  picking
+        return super(StockSplitPicking, new_pickings).do_prepare_partial()
