@@ -53,7 +53,3 @@ class QuantOriginStockQuant(models.Model):
 
         for rec in self:
             rec.origin = affect[rec.id]
-
-#        for rec in self:
-#            if rec.history_ids:
-#                rec.origin = rec.history_ids.sorted(key=lambda m: m.date)[0].origin
