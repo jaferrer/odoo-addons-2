@@ -25,13 +25,14 @@
     'maintainer': 'NDP Systèmes',
     'category': 'Usability',
     'depends': [
-                'materialized_sql_view','connector_improved'
-                ],
+                'materialized_sql_view', 'connector_improved'
+    ],
     'description': """
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-             "view/materialized_sql_view_improved.xml"
+        'data/materialized_view.xml',
+        "view/materialized_sql_view_improved.xml"
     ],
     'demo': [],
     'test': [],

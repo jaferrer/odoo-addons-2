@@ -91,3 +91,34 @@ class MaterializedViewImproved(models.Model):
         uid = self.env.context.get('delegate_user', self.env.user.id)
         session = ConnectorSession(self._cr, uid, self._context)
         refresh_materialized_view_job.delay(session, 'materialized.sql.view', ids, description="")
+
+
+class AbstractMaterializedSqlViewImproved(models.AbstractModel):
+    _inherit = "abstract.materialized.sql.view"
+
+    _replace_view = True
+
+    def init(self, cr):
+        cr.execute("""
+           CREATE or REPLACE FUNCTION DROP_VM_SQL_IMPROVED(view_name text) RETURNS integer AS $$
+            BEGIN
+                execute format('drop view if exists %I',view_name) ;
+                return 1;
+            EXCEPTION
+                when others then return 1;
+            END;
+            $$ LANGUAGE plpgsql;
+                  """)
+        super(AbstractMaterializedSqlViewImproved, self).init(cr)
+
+    def create_materialized_view(self, cr, uid, context=None):
+
+        params = (self._sql_mat_view_name,)
+        query = """
+                SELECT DROP_VM_SQL_IMPROVED(%s);
+            """
+        if self._replace_view:
+            cr.execute(query, params)
+
+        result = super(AbstractMaterializedSqlViewImproved, self).create_materialized_view(cr, uid, context=context)
+        return result
