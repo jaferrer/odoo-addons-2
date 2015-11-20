@@ -59,8 +59,5 @@ class MergePolPurchaseOrder(models.Model):
                 merged_orders = self.env['purchase.order'].search([('id', 'in', result.get(key))], order='date_order')
                 if merged_orders:
                     order.write({'payment_term_id': merged_orders[0].payment_term_id.id,
-                                 'incoterm_id': merged_orders[0].incoterm_id.id,
-                                 'livraison_id': merged_orders[0].livraison_id.id,
-                                 'frequence_relance_nego': merged_orders[0].frequence_relance_nego,
-                                 'frequence_relance_preparation': merged_orders[0].frequence_relance_preparation})
+                                 'incoterm_id': merged_orders[0].incoterm_id.id})
         return result
