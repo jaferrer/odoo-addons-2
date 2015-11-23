@@ -58,9 +58,12 @@ class MergePolPurchaseOrder(models.Model):
             if result.get(key):
                 merged_orders = self.env['purchase.order'].search([('id', 'in', result.get(key))], order='date_order')
                 if merged_orders:
-                    order.write({'payment_term_id': merged_orders[0].payment_term_id.id,
-                                 'incoterm_id': merged_orders[0].incoterm_id.id,
-                                 'livraison_id': merged_orders[0].livraison_id.id,
-                                 'frequence_relance_nego': merged_orders[0].frequence_relance_nego,
-                                 'frequence_relance_preparation': merged_orders[0].frequence_relance_preparation})
+                    dict_fields_to_keep = {'payment_term_id': merged_orders[0].payment_term_id.id,
+                                           'incoterm_id': merged_orders[0].incoterm_id.id}
+                    if self.env.context.get('fields_to_keep'):
+                        for field_name in self.env.context.get('fields_to_keep'):
+                            field_value = getattr(merged_orders[0], field_name)
+                            if hasattr(field_value, "id"):
+                                field_value = field_value.id
+                            dict_fields_to_keep[field_name] = field_value
         return result
