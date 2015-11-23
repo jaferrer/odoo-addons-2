@@ -87,8 +87,5 @@ class StockSplitPicking(models.Model):
 
     @api.multi
     def do_prepare_partial(self):
-        new_pickings = self.env['stock.picking']
-        for picking in self:
-            if not picking.packing_details_saved:
-                new_pickings = new_pickings +  picking
-        return super(StockSplitPicking, new_pickings).do_prepare_partial()
+        pickings = self.filtered(lambda p: not p.packing_details_saved)
+        return super(StockSplitPicking, pickings).do_prepare_partial()
