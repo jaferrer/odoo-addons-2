@@ -356,7 +356,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'stock.levels.report',
-            'name': "Stock Evolution",
+            'name': _("Stock Evolution"),
             'view_type': 'form',
             'view_mode': 'graph,tree',
             'res_id': self.id,
