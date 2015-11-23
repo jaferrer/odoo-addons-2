@@ -18,6 +18,8 @@
 #
 
 from openerp import fields, models, api
+from datetime import datetime
+
 
 class QuantOriginStockQuant(models.Model):
     _inherit = 'stock.quant'
@@ -26,6 +28,28 @@ class QuantOriginStockQuant(models.Model):
 
     @api.multi
     def _compute_origin(self):
+
+        query = """
+            select quant_id,origin from (
+                select tmp.quant_id,tmp.origin,tmp.order_num, min(tmp.order_num) OVER (PARTITION BY tmp.quant_id)  from 
+                (
+                    select stock_quant_move_rel.quant_id,stock_move.origin, row_number() OVER (order by stock_move.date asc) order_num 
+                    from stock_quant_move_rel
+                    inner join stock_move on stock_move.id=stock_quant_move_rel.move_id
+                    where stock_quant_move_rel.quant_id in %s
+                ) tmp
+            ) t
+            where min=order_num
+            order by quant_id asc
+        """
+
+        params = (tuple(self.ids),)
+        self.env.cr.execute(query, params)
+
+        rows = self.env.cr.fetchall()
+        affect = {}
+        for row in rows:
+            affect[row[0]] = row[1]
+
         for rec in self:
-            if rec.history_ids:
-                rec.origin = rec.history_ids.sorted(key=lambda m: m.date)[0].origin
+            rec.origin = affect[rec.id]
