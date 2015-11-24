@@ -162,13 +162,12 @@ class mrp_production2(models.Model):
 
     @api.model
     def _calculate_qty(self, production, product_qty=0.0):
-        #TODO: supprimer argument inutile ?
-        consume_lines = super(mrp_production2, self)._calculate_qty(production)
+        consume_lines = super(mrp_production2, self)._calculate_qty(production, product_qty)
         list_to_remove = []
         for item in consume_lines:
             local_product_id = item['product_id']
             total = sum([x.product_qty for x in production.move_lines if x.product_id.id == local_product_id
-                                                                                        and x.state == 'assigned'])
+                         and x.state == 'assigned'])
             if total != 0:
                 item['product_qty'] = total
             else:
@@ -177,45 +176,56 @@ class mrp_production2(models.Model):
             consume_lines.remove(move)
         return consume_lines
 
+    @api.multi
+    def _get_child_order_data(self, wiz):
+        self.ensure_one()
+        return {
+            'product_id': wiz.child_production_product_id.id,
+            'product_qty': self.product_qty,
+            'product_uom': self.product_uom.id,
+            'location_src_id': wiz.child_src_loc_id.id,
+            'location_dest_id': wiz.child_dest_loc_id.id,
+            'date_planned': datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+            'bom_id': self.bom_id.id,
+            'company_id': self.company_id.id,
+            'backorder_id': self.id,
+        }
+
+    @api.multi
+    def _get_child_order_product_line_data(self, cancelled_move):
+        self.ensure_one()
+        return {
+            'name': self.name,
+            'product_id': cancelled_move.product_id.id,
+            'product_qty': cancelled_move.product_qty,
+            'product_uom': cancelled_move.product_uom.id,
+            'product_uos_qty': cancelled_move.product_uos_qty,
+            'product_uos': cancelled_move.product_uos.id,
+            'parent_production_id': self.id,
+        }
+
     @api.model
     def action_produce(self, production_id, production_qty, production_mode, wiz=False):
         production = self.browse(production_id)
         list_cancelled_moves1 = []
         for item in production.move_lines2:
             list_cancelled_moves1 += [item]
-        result = super(mrp_production2, self.with_context(cancel_procurement=True)).action_produce(production_id, production_qty, production_mode, wiz=wiz)
+        result = super(mrp_production2, self.with_context(cancel_procurement=True)).\
+            action_produce(production_id,production_qty, production_mode, wiz=wiz)
         list_cancelled_moves = []
         for move in production.move_lines2:
             if move.state == 'cancel' and move not in list_cancelled_moves1:
                 list_cancelled_moves += [move]
         if len(list_cancelled_moves) != 0 and wiz.create_child:
-            production_data = {
-                'product_id': wiz.child_production_product_id.id,
-                'product_qty': production.product_qty,
-                'product_uom': production.product_uom.id,
-                'location_src_id': wiz.child_src_loc_id.id,
-                'location_dest_id': wiz.child_dest_loc_id.id,
-                'date_planned': datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT),
-                'bom_id': production.bom_id.id,
-                'company_id': production.company_id.id,
-                'backorder_id': production.id,
-            }
+            production_data = production._get_child_order_data(wiz)
             production.action_production_end()
             new_production = self.env['mrp.production'].create(production_data)
             if wiz.product_different:
                 new_production._make_production_produce_line(new_production)
-            for item in list_cancelled_moves:
-                product_line_data = {
-                    'name': production.name,
-                    'product_id': item.product_id.id,
-                    'product_qty': item.product_qty,
-                    'product_uom': item.product_uom.id,
-                    'product_uos_qty': item.product_uos_qty,
-                    'product_uos': item.product_uos.id,
-                    'parent_production_id': production.id,
-                }
+            for move in list_cancelled_moves:
+                product_line_data = production._get_child_order_product_line_data(move)
                 new_production_line = self.env['mrp.production.product.line'].create(product_line_data)
-                new_production.product_lines = new_production.product_lines +  new_production_line
+                new_production.product_lines = new_production.product_lines + new_production_line
             new_production.signal_workflow('button_confirm')
         return result
 
