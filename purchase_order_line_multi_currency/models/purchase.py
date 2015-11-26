@@ -20,16 +20,14 @@
 from openerp import fields, models, api
 
 
-class SirailPurchaseOrderLine(models.Model):
+class PurchaseOrderLine(models.Model):
     _inherit = "purchase.order.line"
 
     subtotal_eur = fields.Float(string=u"subtotal euro", compute='_compute_subtotal_eur', store=True)
 
     @api.depends('price_unit', 'product_qty')
     def _compute_subtotal_eur(self):
-
         for rec in self:
-
             line_price = self._calc_line_base_price(rec)
             line_qty = self._calc_line_quantity(rec)
             taxes = rec.taxes_id.compute_all(line_price, line_qty, rec.product_id, rec.order_id.partner_id)
