@@ -464,3 +464,10 @@ msgstr "purchase.config.settings"
 #: view:purchase.order.line:0
 msgid "{'readonly': [('state','=','done')]}"
 msgstr "{'readonly': [('state','=','done')]}"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:359
+#: view:purchase.order.line:purchase_procurement_just_in_time.purchase_order_line_tree_jit
+#, python-format
+msgid "Stock Evolution"
+msgstr "Evolution des stocks"

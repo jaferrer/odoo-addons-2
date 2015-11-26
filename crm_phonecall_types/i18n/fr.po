@@ -15,6 +15,24 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_crm_phonecall_types
+msgid "CRM phonecall types"
+msgstr "Différenciation des types d'appels CRM"
+
+#. module: base
+#: model:ir.module.module,description:base.module_crm_phonecall_types
+msgid ""
+"\n"
+"CRM phonecall types\n"
+"===================\n"
+"This module allows to assign different types to a phonecall.\n"
+msgstr ""
+"\n"
+"Différenciation des types d'appels CRM\n"
+"===========================\n"
+"Ce module permet de différencier les types d'appels téléphoniques.\n"
+
 #. module: crm_phonecall_types
 #: code:addons\crm_phonecall_types\crm_phonecall_types.py:35
 #, python-format

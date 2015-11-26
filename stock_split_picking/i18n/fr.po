@@ -71,3 +71,7 @@ msgstr "Sauvegarder"
 msgid "or"
 msgstr "ou"
 
+#. module: stock_split_picking
+#: field:stock.picking,packing_details_saved:0
+msgid "Packing operations saved"
+msgstr "Opérations de colisage sauvegardées"
