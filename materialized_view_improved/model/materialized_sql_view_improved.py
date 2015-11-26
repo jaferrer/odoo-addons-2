@@ -95,11 +95,6 @@ class MaterializedViewImproved(models.Model):
     @api.model
     def create_if_not_exist(self, values):
 
-        print self.search_count([('model_id.model', '=', values['model_name']),
-                                 ('view_name', '=', values['view_name']),
-                                 ('matview_name', '=', values['matview_name']),
-                                 ])
-
         if self.search_count([('model_id.model', '=', values['model_name']),
                               ('view_name', '=', values['view_name']),
                               ('matview_name', '=', values['matview_name']),
