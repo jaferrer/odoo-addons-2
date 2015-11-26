@@ -52,4 +52,4 @@ class QuantOriginStockQuant(models.Model):
             affect[row[0]] = row[1]
 
         for rec in self:
-            rec.origin = affect[rec.id]
+            rec.origin = affect.get(rec.id, False)
