@@ -37,7 +37,6 @@ class stock_auto_move_move(models.Model):
         todo_pickings.do_prepare_partial()
         moves.action_done()
 
-
     @api.multi
     def action_confirm(self):
         for move in self:
