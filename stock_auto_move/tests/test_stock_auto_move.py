@@ -30,7 +30,6 @@ class TestStockAutoMove(common.TransactionCase):
         self.location_3 = self.browse_ref("stock_auto_move.stock_location_c")
         self.product_uom_unit_id = self.ref("product.product_uom_unit")
         self.picking_type_id = self.ref("stock.picking_type_internal")
-        self.auto_group_id = self.ref("stock_auto_move.automatic_group")
 
     def test_10_auto_move(self):
         """Check automatic processing of move with auto_move set."""
