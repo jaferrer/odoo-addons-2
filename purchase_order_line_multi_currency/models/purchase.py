@@ -23,15 +23,15 @@ from openerp import fields, models, api
 class PurchaseOrderLine(models.Model):
     _inherit = "purchase.order.line"
 
-    subtotal_eur = fields.Float(string=u"subtotal euro", compute='_compute_subtotal_eur', store=True)
+    subtotal_cur = fields.Float(string=u"subtotal euro", compute='_compute_subtotal_cur', store=True)
 
     @api.depends('price_unit', 'product_qty')
-    def _compute_subtotal_eur(self):
+    def _compute_subtotal_cur(self):
         for rec in self:
             line_price = self._calc_line_base_price(rec)
             line_qty = self._calc_line_quantity(rec)
             taxes = rec.taxes_id.compute_all(line_price, line_qty, rec.product_id, rec.order_id.partner_id)
             cur = rec.order_id.pricelist_id.currency_id
-            euro = self.env.ref('base.EUR')
-            rec.subtotal_eur = rec.order_id.currency_id.with_context(date=rec.order_id.date_order).compute(
-                cur.round(taxes['total']), euro, round=True)
+            company_cur = self.env.user.company_id.currency_id
+            rec.subtotal_cur = rec.order_id.currency_id.with_context(date=rec.order_id.date_order).compute(
+                cur.round(taxes['total']), company_cur, round=True)
