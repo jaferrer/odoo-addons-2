@@ -19,8 +19,8 @@
 
 from openerp.tests import common
 
-class TestStockAutoMove(common.TransactionCase):
 
+class TestStockAutoMove(common.TransactionCase):
     def setUp(self):
         super(TestStockAutoMove, self).setUp()
         self.product_a1232 = self.browse_ref("product.product_product_6")
@@ -66,10 +66,8 @@ class TestStockAutoMove(common.TransactionCase):
         })
         move.action_confirm()
         self.assertTrue(move.picking_id)
-        self.assertEqual(move.group_id.id, self.auto_group_id)
         move1.action_confirm()
         self.assertTrue(move1.picking_id)
-        self.assertEqual(move1.group_id.id, self.auto_group_id)
         move2.action_confirm()
         self.assertTrue(move2.picking_id)
         self.assertFalse(move2.group_id)
@@ -129,9 +127,9 @@ class TestStockAutoMove(common.TransactionCase):
         })
         move3.action_confirm()
         move3.action_done()
-        quants_in_3 = self.env['stock.quant'].search([('product_id','=',self.product_a1232.id),
-                                                      ('location_id','=',self.location_3.id)])
-        quants_in_1 = self.env['stock.quant'].search([('product_id','=',self.product_a1232.id),
-                                                      ('location_id','=',self.location_1.id)])
+        quants_in_3 = self.env['stock.quant'].search([('product_id', '=', self.product_a1232.id),
+                                                      ('location_id', '=', self.location_3.id)])
+        quants_in_1 = self.env['stock.quant'].search([('product_id', '=', self.product_a1232.id),
+                                                      ('location_id', '=', self.location_1.id)])
         self.assertEqual(len(quants_in_3), 0)
         self.assertGreater(len(quants_in_1), 0)
