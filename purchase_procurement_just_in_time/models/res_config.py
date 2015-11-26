@@ -59,4 +59,3 @@ class purchase_jit_config(models.TransientModel):
         for record in self:
             config_parameters.set_param("purchase_procurement_just_in_time.opmsg_min_early_delay",
                                         record.opmsg_min_early_delay or "7")
-

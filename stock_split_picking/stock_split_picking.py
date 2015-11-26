@@ -90,3 +90,9 @@ class StockSplitPicking(models.Model):
     def do_prepare_partial(self):
         pickings = self.filtered(lambda p: not p.packing_details_saved)
         return super(StockSplitPicking, pickings).do_prepare_partial()
+
+    @api.multi
+    def rereserve_pick(self):
+        result = super(StockSplitPicking, self).rereserve_pick()
+        self.do_prepare_partial()
+        return result
