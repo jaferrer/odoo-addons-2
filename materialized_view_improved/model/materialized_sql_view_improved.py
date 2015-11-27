@@ -92,6 +92,24 @@ class MaterializedViewImproved(models.Model):
         session = ConnectorSession(self._cr, uid, self._context)
         refresh_materialized_view_job.delay(session, 'materialized.sql.view', ids, description="")
 
+    @api.model
+    def create_if_not_exist(self, values):
+
+        if self.search_count([('model_id.model', '=', values['model_name']),
+                              ('view_name', '=', values['view_name']),
+                              ('matview_name', '=', values['matview_name']),
+                              ]) == 0:
+
+            super(MaterializedViewImproved, self).create_if_not_exist(values)
+            result = self.search([('model_id', '=', values['model_id']),
+                                  ('view_name', '=', values['view_name']),
+                                  ('matview_name', '=', values['matview_name']),
+                                  ])
+
+            for item in result:
+                if item.cron_id == 0:
+                    item.create_schedul_refresh_materialized_sql_view()
+
 
 class AbstractMaterializedSqlViewImproved(models.AbstractModel):
     _inherit = "abstract.materialized.sql.view"
@@ -122,3 +140,19 @@ class AbstractMaterializedSqlViewImproved(models.AbstractModel):
 
         result = super(AbstractMaterializedSqlViewImproved, self).create_materialized_view(cr, uid, context=context)
         return result
+
+    def change_matview_state(self, cr, uid, method_name, pg_version, context=None):
+        matview_mdl = self.pool.get('materialized.sql.view')
+        # Make sure object exist or create it
+        values = {
+            'name': self._description,
+            'model_name': self._name,
+            'view_name': self._sql_view_name,
+            'matview_name': self._sql_mat_view_name,
+            'sql_definition': self._sql_view_definition,
+            'pg_version': pg_version,
+        }
+        matview_mdl.create_if_not_exist(cr, uid, values, context=context)
+        method = getattr(matview_mdl, method_name)
+        context.update({'values': values})
+        return method(cr, uid, self._sql_mat_view_name, context=context)
