@@ -1,8 +1,21 @@
-'''
-Created on 20 oct. 2015
-
-@author: asalaun
-'''
+# -*- coding: utf8 -*-
+#
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
 
 from openerp import models, fields, api
 from datetime import datetime, timedelta
@@ -92,6 +105,24 @@ class MaterializedViewImproved(models.Model):
         session = ConnectorSession(self._cr, uid, self._context)
         refresh_materialized_view_job.delay(session, 'materialized.sql.view', ids, description="")
 
+    @api.model
+    def create_if_not_exist(self, values):
+
+        if self.search_count([('model_id.model', '=', values['model_name']),
+                              ('view_name', '=', values['view_name']),
+                              ('matview_name', '=', values['matview_name']),
+                              ]) == 0:
+
+            super(MaterializedViewImproved, self).create_if_not_exist(values)
+            result = self.search([('model_id', '=', values['model_id']),
+                                  ('view_name', '=', values['view_name']),
+                                  ('matview_name', '=', values['matview_name']),
+                                  ])
+
+            for item in result:
+                if item.cron_id == 0:
+                    item.create_schedul_refresh_materialized_sql_view()
+
 
 class AbstractMaterializedSqlViewImproved(models.AbstractModel):
     _inherit = "abstract.materialized.sql.view"
@@ -122,3 +153,19 @@ class AbstractMaterializedSqlViewImproved(models.AbstractModel):
 
         result = super(AbstractMaterializedSqlViewImproved, self).create_materialized_view(cr, uid, context=context)
         return result
+
+    def change_matview_state(self, cr, uid, method_name, pg_version, context=None):
+        matview_mdl = self.pool.get('materialized.sql.view')
+        # Make sure object exist or create it
+        values = {
+            'name': self._description,
+            'model_name': self._name,
+            'view_name': self._sql_view_name,
+            'matview_name': self._sql_mat_view_name,
+            'sql_definition': self._sql_view_definition,
+            'pg_version': pg_version,
+        }
+        matview_mdl.create_if_not_exist(cr, uid, values, context=context)
+        method = getattr(matview_mdl, method_name)
+        context.update({'values': values})
+        return method(cr, uid, self._sql_mat_view_name, context=context)
