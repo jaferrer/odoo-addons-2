@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,23 +17,20 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 {
-    'name': 'Materialized Sql View improved',
+    'name': 'define the subtotal in eur for purchase order line',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Usability',
-    'depends': [
-                'materialized_sql_view', 'connector_improved'
-    ],
+    'category': 'Purchase',
+    'depends': ['purchase'],
     'description': """
+define the subtotal in eur
+==========================
+This module calcul the purchase order lines subtotal in eur
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'data/materialized_view.xml',
-        "view/materialized_sql_view_improved.xml"
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,

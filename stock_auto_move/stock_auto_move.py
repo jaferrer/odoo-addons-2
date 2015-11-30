@@ -38,14 +38,6 @@ class stock_auto_move_move(models.Model):
         moves.action_done()
 
 
-    @api.multi
-    def action_confirm(self):
-        for move in self:
-            if move.auto_move and move.group_id != self.env.ref('stock_auto_move.automatic_group'):
-                move.group_id = self.env.ref('stock_auto_move.automatic_group')
-        return super(stock_auto_move_move, self).action_confirm()
-
-
 class stock_auto_move_procurement_rule(models.Model):
     _inherit = 'procurement.rule'
 

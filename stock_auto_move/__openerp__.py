@@ -33,13 +33,9 @@ move source location.
 It also adds the possibility to define the move as being automatic in a procurement rule.
 
 Automatic moves are triggered by previous move when the move is chained or by the scheduler otherwise.
-
-Note that automatic moves are given a procurement group name "Automatic", whatever the user or the procurement rule
-selects.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'stock_auto_move_data.xml',
         'stock_auto_move_view.xml',
     ],
     'demo': [
