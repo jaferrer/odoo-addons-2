@@ -93,6 +93,8 @@ class StockSplitPicking(models.Model):
 
     @api.multi
     def rereserve_pick(self):
+        for rec in self:
+            rec.delete_packops()
         result = super(StockSplitPicking, self).rereserve_pick()
         self.do_prepare_partial()
         return result
