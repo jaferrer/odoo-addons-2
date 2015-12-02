@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase'],
+    'depends': ['purchase', 'purchase_procurement_just_in_time'],
     'description': """
 define the subtotal in eur
 ==========================
