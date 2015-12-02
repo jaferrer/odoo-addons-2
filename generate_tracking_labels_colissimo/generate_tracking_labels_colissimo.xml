@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="generate_tracking_labels_wizard_form_view">
+            <field name="name">generate_tracking_labels_wizard_form_view</field>
+            <field name="model">generate.tracking.labels.wizard</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Print colissimo label">
+                    <separator string="Données générales"/>
+                    <group>
+                        <field name="type"/>
+                        <field name="direction"/>
+                        <field name="save_tracking_number"/>
+                    </group>
+                    <separator string="Données colis"/>
+                    <group>
+                        <group>
+                            <field name="productCode"/>
+                            <field name="adresseeParcelRef"/>
+                            <field name="codeBarForReference"/>
+                            <field name="serviceInfo"/>
+                            <field name="weight"/>
+                            <field name="outputPrintingType"/>
+                            <field name="returnTypeChoice"/>
+                            <field name="ftd"/>
+                            <field name="instructions"/>
+                        </group>
+                    </group>
+                    <separator string="Données client"/>
+                    <group>
+                        <group>
+                            <field name="companyName"/>
+                            <field name="firstName"/>
+                            <field name="lastName"/>
+                            <field name="email"/>
+                            <field name="phoneNumber"/>
+                            <field name="mobileNumber"/>
+                            <field name="doorCode1"/>
+                            <field name="doorCode2"/>
+                            <field name="intercom"/>
+                        </group>
+                        <group>
+                            <field name="line0"/>
+                            <field name="line1"/>
+                            <field name="line2"/>
+                            <field name="line3"/>
+                            <field name="countryCode"/>
+                            <field name="city"/>
+                            <field name="zipCode"/>
+                            <field name="language"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="generate_label" string="Générer l'étiquette" type="object" class="oe_highlight" />
+                        or
+                        <button string="Annuler" class="oe_link"
+                            special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="tracking_label_colissimo_attachment_form">
+            <field name="name">tracking_label_colissimo_attachment_form</field>
+            <field name="model">ir.attachment</field>
+            <field name="inherit_id" ref="base.view_attachment_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="datas" position="after">
+                    <field name="direction" attrs="{'invisible': [('direction', '=', False)]}" />
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
