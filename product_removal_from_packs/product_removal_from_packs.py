@@ -42,8 +42,8 @@ class StockQuantRemovalFromPacks(models.Model):
                     for pack in packs:
                         qty_available_in_pack = sum([x.qty for x in pack.quant_ids if x.product_id == product])
                         if qty_available_in_pack >= qty_to_remove_for_each_pack:
-                           list_removals += super(StockQuantRemovalFromPacks, self).\
-                                apply_removal_strategy(location,product,qty_to_remove_for_each_pack,
+                           list_removals += super(StockQuantRemovalFromPacks, self).sudo().\
+                                apply_removal_strategy(location, product, qty_to_remove_for_each_pack,
                                                        domain + [('package_id', '=', pack.id)], 'fifo')
                         else:
                             for quant in pack.quant_ids:
