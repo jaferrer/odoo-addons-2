@@ -60,10 +60,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     returnTypeChoice = fields.Selection([('2', u"Retour payant en prioritaire"),
                                          ('3', u"Ne pas retourner")],
                                         string=u"Retour à l'expéditeur", default='3')
-    productCode = fields.Selection([('CORE', u"Retour Colissimo - France"),
-                                    ('CORI', u"Retour Colissimo - International")],
-                                   string=u"Produit souhaité", default='CORE', required=True)
-    #TODO: manque un type d'envoi ?
+    productCode = fields.Many2one('type.produit.colissimo', string=u"Produit souhaité", required=True)
     nonMachinable = fields.Selection([('false', "Dimensions standards"),
                                       ('true', "Dimensions non standards")],
                                      string="Dimensions", default='false')
@@ -101,10 +98,10 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             get_param('generate_tracking_labels_colissimo.login_colissimo', default='')
         password = self.env['ir.config_parameter'].\
             get_param('generate_tracking_labels_colissimo.password_colissimo', default='')
-        if self.codeBarForReference == 'true' and self.productCode != 'CORE':
+        if self.codeBarForReference == 'true' and self.productCode.code != 'CORE':
             raise exceptions.except_orm('Erreur!', "Impossible d'afficher le code barre retour pour un autre "
                                                    "produit que Colissimo retour")
-        if self.serviceInfo and self.productCode != 'CORE':
+        if self.serviceInfo and self.productCode.code != 'CORE':
             raise exceptions.except_orm('Erreur!', "Impossible de définir un nom de service en retour pour un "
                                                    "autre produit que Colissimo retour")
         depositDate = fields.Date.today()
@@ -142,7 +139,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
 #TODO: pickuplocationid (identifiant du point de retrait), bloc custom (douane)
 
 
-        first_part = (contractNumber,password, x, y, self.outputPrintingType, self.productCode, depositDate,
+        first_part = (contractNumber,password, x, y, self.outputPrintingType, self.productCode.code, depositDate,
                       mailBoxPicking, transportationAmount, totalAmount, orderNumber, commercialName,
                       self.returnTypeChoice, self.weight, self.nonMachinable, self.instructions, self.ftd,
                       senderParcelRef)
@@ -268,8 +265,16 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             raise exceptions.except_orm('Erreur!', "Impossible de générer l'étiquette")
 
 
+class TypeProduitColissimo(models.Model):
+    _name = 'type.produit.colissimo'
+
+    name = fields.Char(u"Type de bordereau")
+    code = fields.Char(u"Code Colissimo")
+    used_from_customer = fields.Boolean(u"Utilisé pour les retours depuis le client")
+    used_to_customer = fields.Boolean(u"Utilisé pour les envois vers le client")
+
+
 class GenerateTrackingLabelsIrAttachment(models.Model):
     _inherit = 'ir.attachment'
 
-    direction = fields.Selection([('to_customer', "Va vers le client"), ('from_customer', "Vient du client")],
-                                 required=True)
+    direction = fields.Selection([('to_customer', "Va vers le client"), ('from_customer', "Vient du client")])

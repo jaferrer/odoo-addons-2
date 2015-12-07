@@ -62,6 +62,30 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="tracking_label_colissimo_type_produit_tree">
+            <field name="name">tracking_label_colissimo_type_produit_tree</field>
+            <field name="model">type.produit.colissimo</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree string="Types de bordereaux" create="false" delete="false" edit="true">
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="used_from_customer"/>
+                    <field name="used_to_customer"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_tracking_label_colissimo_type_produit">
+            <field name="name">Types de bordereaux</field>
+            <field name="res_model">type.produit.colissimo</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
         <record model="ir.ui.view" id="tracking_label_colissimo_attachment_form">
             <field name="name">tracking_label_colissimo_attachment_form</field>
             <field name="model">ir.attachment</field>
