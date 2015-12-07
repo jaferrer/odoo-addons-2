@@ -12,7 +12,7 @@
                     <separator string="Génération des étiquettes d'envoi Colissimo"/>
                     <group>
                         <field name="login_colissimo"/>
-                        <field name="password_colissimo"/>
+                        <field name="password_colissimo" password="1"/>
                     </group>
                 </form>
             </field>
