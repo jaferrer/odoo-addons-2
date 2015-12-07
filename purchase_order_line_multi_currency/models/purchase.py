@@ -34,5 +34,4 @@ class PurchaseOrderLine(models.Model):
             company_cur = self.env.user.company_id.currency_id
             remaining = rec.order_id.currency_id.with_context(date=rec.order_id.date_order).compute(
                 cur.round(line_price * rec.remaining_qty), company_cur, round=True)
-            if remaining != rec.remaining_subtotal_cur:
-                rec.remaining_subtotal_cur = remaining
+            rec.remaining_subtotal_cur = remaining
