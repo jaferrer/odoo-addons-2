@@ -20,7 +20,7 @@
 from openerp import fields, models, api
 
 
-class GenerateTrackingLabelsColissimoConfig(models.TransientModel):
+class ColissimoBaseConfigSettings(models.TransientModel):
     _inherit = 'base.config.settings'
 
     login_colissimo = fields.Char(string=u"Numéro client",
@@ -31,25 +31,25 @@ class GenerateTrackingLabelsColissimoConfig(models.TransientModel):
     @api.multi
     def get_default_login_colissimo(self):
         login_colissimo = self.env['ir.config_parameter'].get_param(
-            "generate_tracking_labels_colissimo.login_colissimo", default='')
+            'generate_tracking_labels_colissimo.login_colissimo', default='')
         return {'login_colissimo': str(login_colissimo)}
 
     @api.multi
     def set_login_colissimo(self):
-        config_parameters = self.env["ir.config_parameter"]
+        config_parameters = self.env['ir.config_parameter']
         for record in self:
-            config_parameters.set_param("generate_tracking_labels_colissimo.login_colissimo",
+            config_parameters.set_param('generate_tracking_labels_colissimo.login_colissimo',
                                         record.login_colissimo or '')
 
     @api.multi
     def get_default_password_colissimo(self):
         password_colissimo = self.env['ir.config_parameter'].get_param(
-            "generate_tracking_labels_colissimo.password_colissimo", default='')
+            'generate_tracking_labels_colissimo.password_colissimo', default='')
         return {'password_colissimo': str(password_colissimo)}
 
     @api.multi
     def set_password_colissimo(self):
-        config_parameters = self.env["ir.config_parameter"]
+        config_parameters = self.env['ir.config_parameter']
         for record in self:
-            config_parameters.set_param("generate_tracking_labels_colissimo.password_colissimo",
+            config_parameters.set_param('generate_tracking_labels_colissimo.password_colissimo',
                                         record.password_colissimo or '')
