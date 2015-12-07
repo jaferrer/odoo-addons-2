@@ -27,7 +27,8 @@ class StockQuantRemovalFromPacks(models.Model):
     def apply_removal_strategy(self, location, product, quantity, domain, removal_strategy):
         if removal_strategy == 'rss':
             apply_rss = True
-            pack_or_lot_or_reservation_domain = [x for x in domain if x[0] == 'package_id' or x[0] == 'lot_id' or x[0] == 'reservation_id']
+            pack_or_lot_or_reservation_domain = [x for x in domain if x[0] == 'package_id' or x[0] == 'lot_id' or
+                                                 x[0] == 'reservation_id']
             domain += [('location_id', '=', location.id)] + pack_or_lot_or_reservation_domain
             for cond in pack_or_lot_or_reservation_domain:
                 if cond[2]:
