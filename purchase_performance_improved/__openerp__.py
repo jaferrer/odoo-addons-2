@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,20 +18,21 @@
 #
 
 {
-    'name': 'define the subtotal in eur for purchase order line',
+    'name': 'Purchase Performance Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase_performance_improved'],
+    'category': 'Technical Settings',
+    'depends': ['purchase', 'decimal_precision'],
     'description': """
-define the subtotal in eur
-==========================
-This module calcul the purchase order lines subtotal in eur
+Purchase Performance Improved
+=============================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
-    'demo': [],
+    'data': [
+    ],
+    'demo': [
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,

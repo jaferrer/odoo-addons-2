@@ -23,15 +23,16 @@ from openerp import fields, models, api
 class PurchaseOrderLine(models.Model):
     _inherit = "purchase.order.line"
 
-    remaining_subtotal_cur = fields.Float(
+    subtotal_cur = fields.Float(
         string=u"remaining subtotal devise local", compute='_compute_subtotal_cur', store=True, default=0)
 
-    @api.depends('price_unit', 'remaining_qty')
+    @api.depends('price_unit', 'product_qty')
     def _compute_subtotal_cur(self):
         for rec in self:
             line_price = self._calc_line_base_price(rec)
+            line_qty = self._calc_line_quantity(rec)
+            taxes = rec.taxes_id.compute_all(line_price, line_qty, rec.product_id, rec.order_id.partner_id)
             cur = rec.order_id.pricelist_id.currency_id
             company_cur = self.env.user.company_id.currency_id
-            remaining = rec.order_id.currency_id.with_context(date=rec.order_id.date_order).compute(
-                cur.round(line_price * rec.remaining_qty), company_cur, round=True)
-            rec.remaining_subtotal_cur = remaining
+            rec.subtotal_cur = rec.order_id.currency_id.with_context(date=rec.order_id.date_order).compute(
+                cur.round(taxes['total']), company_cur, round=True)

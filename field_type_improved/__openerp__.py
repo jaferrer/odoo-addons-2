@@ -18,17 +18,14 @@
 #
 
 {
-    'name': 'define the subtotal in eur for purchase order line',
+    'name': 'Field type improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase_performance_improved'],
+    'category': '',
+    'depends': ['base'],
     'description': """
-define the subtotal in eur
-==========================
-This module calcul the purchase order lines subtotal in eur
-""",
+    """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
     'demo': [],
