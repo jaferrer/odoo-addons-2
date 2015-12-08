@@ -27,7 +27,8 @@ class StockQuantRemovalFromPacks(models.Model):
     def apply_removal_strategy(self, location, product, quantity, domain, removal_strategy):
         if removal_strategy == 'rss':
             apply_rss = True
-            pack_or_lot_or_reservation_domain = [x for x in domain if x[0] == 'package_id' or x[0] == 'lot_id' or x[0] == 'reservation_id']
+            pack_or_lot_or_reservation_domain = [x for x in domain if x[0] == 'package_id' or x[0] == 'lot_id' or
+                                                 x[0] == 'reservation_id']
             domain += [('location_id', '=', location.id)] + pack_or_lot_or_reservation_domain
             for cond in pack_or_lot_or_reservation_domain:
                 if cond[2]:
@@ -43,7 +44,7 @@ class StockQuantRemovalFromPacks(models.Model):
                         qty_available_in_pack = sum([x.qty for x in pack.quant_ids if x.product_id == product])
                         if qty_available_in_pack >= qty_to_remove_for_each_pack:
                            list_removals += super(StockQuantRemovalFromPacks, self).\
-                                apply_removal_strategy(location,product,qty_to_remove_for_each_pack,
+                                apply_removal_strategy(location, product, qty_to_remove_for_each_pack,
                                                        domain + [('package_id', '=', pack.id)], 'fifo')
                         else:
                             for quant in pack.quant_ids:
