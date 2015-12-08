@@ -84,7 +84,7 @@ class MaterializedViewImproved(models.Model):
             'interval_type': 'days',
             'numbercall': -1,
             'nextcall': now,
-            'doall': True,
+            'doall': False,
             'model': self._name,
             'function': '_refresh_model',
             'args': repr([self.ids]),
