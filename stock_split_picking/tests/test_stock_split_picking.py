@@ -29,6 +29,9 @@ class TestStockSplitPicking(common.TransactionCase):
         self.move = self.browse_ref('stock_split_picking.test_stock_move')
 
     def test_10_stock_split_picking_without_saving(self):
+
+        self.env['stock.quant'].search([('product_id', '=', self.product.id)]).unlink()
+
         self.assertTrue(self.product and self.picking and self.move)
         self.picking.action_confirm()
         self.picking.force_assign()
@@ -89,6 +92,7 @@ class TestStockSplitPicking(common.TransactionCase):
         self.test_20_stock_split_picking_with_saving()
         self.picking.delete_packops()
         self.assertFalse(self.picking.packing_details_saved)
+        self.picking.force_assign()
         self.picking.do_prepare_partial()
         self.assertEqual(len(self.picking.pack_operation_ids), 1)
         self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
