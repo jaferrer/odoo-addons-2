@@ -30,7 +30,8 @@ Génération des étiquettes de suivi (colissimo)
 Ce module permet de générer des étiquettes d'envoi avec Colissimo.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['generate_tracking_labels_colissimo.xml',
+    'data': ['ir.model.access.csv',
+             'generate_tracking_labels_colissimo.xml',
              'res_config.xml'],
     'demo': [],
     'test': [],
