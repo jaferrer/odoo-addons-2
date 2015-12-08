@@ -97,3 +97,14 @@ class StockSplitPicking(models.Model):
         pickings_saved = self.filtered(lambda p: p.packing_details_saved)
         pickings_not_saved.recheck_availability()
         return super(StockSplitPicking, pickings_saved).rereserve_pick()
+
+
+class SplitPickingStockQuantPackage(models.Model):
+    _inherit = 'stock.quant.package'
+
+    @api.multi
+    def unpack(self):
+        if self.check_access_rights('write'):
+            return super(SplitPickingStockQuantPackage, self.sudo()).unpack()
+        else:
+            return super(SplitPickingStockQuantPackage, self).unpack()
