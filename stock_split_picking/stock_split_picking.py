@@ -93,5 +93,7 @@ class StockSplitPicking(models.Model):
 
     @api.multi
     def rereserve_pick(self):
-        self.do_prepare_partial()
-        return super(StockSplitPicking, self).rereserve_pick()
+        pickings_not_saved = self.filtered(lambda p: not p.packing_details_saved)
+        pickings_saved = self.filtered(lambda p: p.packing_details_saved)
+        pickings_not_saved.recheck_availability()
+        return super(StockSplitPicking, pickings_saved).rereserve_pick()
