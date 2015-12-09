@@ -35,21 +35,21 @@
 
         <record id="product_test_product" model="product.product">
             <field name="name">Test Product (JIT)</field>
-            <field name="default_code">TP</field>
+            <field name="default_code">TP-JIT-1</field>
             <field name="type">product</field>
             <field name="route_ids" eval="[(4,ref('test_route'))]"/>
         </record>
 
         <record id="product_test_product2" model="product.product">
             <field name="name">Test Product 2 (JIT)</field>
-            <field name="default_code">TP2</field>
+            <field name="default_code">TP-JIT-2</field>
             <field name="type">product</field>
             <field name="route_ids" eval="[(4,ref('test_route'))]"/>
         </record>
 
         <record id="product_test_product3" model="product.product">
             <field name="name">Test Product 3 (JIT)</field>
-            <field name="default_code">TP3</field>
+            <field name="default_code">TP-JIT-3</field>
             <field name="type">product</field>
         </record>
 
