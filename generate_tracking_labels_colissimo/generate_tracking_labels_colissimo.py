@@ -268,8 +268,8 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
 class TypeProduitColissimo(models.Model):
     _name = 'type.produit.colissimo'
 
-    name = fields.Char(u"Type de bordereau")
-    code = fields.Char(u"Code Colissimo")
+    name = fields.Char(u"Type de bordereau", readonly=True)
+    code = fields.Char(u"Code Colissimo", readonly=True)
     used_from_customer = fields.Boolean(u"Utilisé pour les retours depuis le client")
     used_to_customer = fields.Boolean(u"Utilisé pour les envois vers le client")
 

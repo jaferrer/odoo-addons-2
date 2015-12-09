@@ -67,7 +67,7 @@
             <field name="model">type.produit.colissimo</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree string="Types de bordereaux" create="false" delete="false" edit="true">
+                <tree string="Types de bordereaux" create="false" delete="false" editable="top">
                     <field name="name"/>
                     <field name="code"/>
                     <field name="used_from_customer"/>
