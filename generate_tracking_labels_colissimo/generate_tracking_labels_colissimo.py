@@ -259,7 +259,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             return tracking_number, self.save_tracking_number, self.direction, url
         elif len(response.text.encode('utf-8').split('<messageContent>')) == 2 and\
             len(response.text.encode('utf-8').split('<messageContent>')[1].split('</messageContent>')) == 2:
-            raise exceptions.except_orm('Erreur!', response.text.encode('utf-8').
+            raise exceptions.except_orm('Erreur!', 'Colissimo : ' + response.text.encode('utf-8').
                                         split('<messageContent>')[1].split('</messageContent>')[0])
         else:
             raise exceptions.except_orm('Erreur!', "Impossible de générer l'étiquette")
