@@ -30,7 +30,7 @@ msgid ""
 msgstr ""
 "\n"
 "Différenciation des types d'appels CRM\n"
-"===========================\n"
+"======================================\n"
 "Ce module permet de différencier les types d'appels téléphoniques.\n"
 
 #. module: crm_phonecall_types
