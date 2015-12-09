@@ -273,8 +273,3 @@ class TypeProduitColissimo(models.Model):
     used_from_customer = fields.Boolean(u"Utilisé pour les retours depuis le client")
     used_to_customer = fields.Boolean(u"Utilisé pour les envois vers le client")
 
-
-class GenerateTrackingLabelsIrAttachment(models.Model):
-    _inherit = 'ir.attachment'
-
-    direction = fields.Selection([('to_customer', "Va vers le client"), ('from_customer', "Vient du client")])

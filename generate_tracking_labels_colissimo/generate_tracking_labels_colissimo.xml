@@ -86,17 +86,5 @@
             <field name="help"></field>
         </record>
 
-        <record model="ir.ui.view" id="tracking_label_colissimo_attachment_form">
-            <field name="name">tracking_label_colissimo_attachment_form</field>
-            <field name="model">ir.attachment</field>
-            <field name="inherit_id" ref="base.view_attachment_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <field name="datas" position="after">
-                    <field name="direction" attrs="{'invisible': [('direction', '=', False)]}" />
-                </field>
-            </field>
-        </record>
-
     </data>
 </openerp>
