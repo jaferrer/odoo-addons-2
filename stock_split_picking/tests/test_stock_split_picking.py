@@ -28,7 +28,11 @@ class TestStockSplitPicking(common.TransactionCase):
         self.picking = self.browse_ref('stock_split_picking.test_picking')
         self.move = self.browse_ref('stock_split_picking.test_stock_move')
 
-    def test_10_stock_split_picking_without_saving(self):
+    def test_10_stock_split_picking(self):
+
+        ##############################################
+        # First, without saving packops
+        ##############################################
 
         self.env['stock.quant'].search([('product_id', '=', self.product.id)]).unlink()
 
@@ -61,8 +65,9 @@ class TestStockSplitPicking(common.TransactionCase):
         self.assertEqual(len(self.picking.pack_operation_ids), 1)
         self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
 
-    def test_20_stock_split_picking_with_saving(self):
-        self.test_10_stock_split_picking_without_saving()
+        ##############################################
+        # Now, let's save packops
+        ##############################################
 
         # Preparing packops and saving it
         popup = self.env['stock.transfer_details'].\
@@ -88,8 +93,10 @@ class TestStockSplitPicking(common.TransactionCase):
         self.assertEqual(len(self.picking.pack_operation_ids), 1)
         self.assertEqual(self.picking.pack_operation_ids.product_qty, 50)
 
-    def test_30_stock_split_picking_deleting(self):
-        self.test_20_stock_split_picking_with_saving()
+        ##############################################
+        # Deleting packops
+        ##############################################
+
         self.picking.delete_packops()
         self.assertFalse(self.picking.packing_details_saved)
         self.picking.force_assign()
