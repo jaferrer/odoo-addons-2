@@ -7,7 +7,7 @@
     .then(function(data){
     	$('body').addClass("ndp-systemes");
     	for(i in data) {
-    		$('head').prepend('<link rel="stylesheet" type="text/css" href="/portail_ndp/static/src/css/'+data[i]+'" />')
+    		$('head').prepend('<link rel="stylesheet" type="text/css" href="/'+data[i]+'" />')
     	}
     });
 })();
