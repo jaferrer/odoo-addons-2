@@ -27,7 +27,8 @@
     'description': """
 Purchase Performance Improved
 =============================
-This module redefine compute fields amount_untaxed, amount_taxand  amount_total of initial purchase module.
+This module redefine compute fields amount_untaxed, amount_tax and amount_total of initial purchase module to
+improve update speed.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
