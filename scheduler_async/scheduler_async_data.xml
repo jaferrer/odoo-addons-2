@@ -19,7 +19,7 @@
             <field name="doall"/>
             <field name="model">procurement.order</field>
             <field name="function">run_assign_moves</field>
-            <field name="args"/>
+            <field name="args">([{'jobify': True}])</field>
         </record>
 
     </data>
