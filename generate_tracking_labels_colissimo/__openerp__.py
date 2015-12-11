@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,29 +18,22 @@
 #
 
 {
-    'name': 'Stock Split Picking',
+    'name': 'Génération des étiquettes de suivi (colissimo)',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Warehouse',
-    'depends': ['stock'],
+    'category': 'Delivery Tracking',
+    'depends': ['base', 'base_setup', 'project'],
     'description': """
-Stock Split Picking
-===================
-This module adds a button to the transfer wizard of a stock operation to create a backorder without validating the
-current operation.
-
-It also adds a "Save" button which saves the current transfer wizard lines to the picking's pack operations and reloads
-the wizard.
+Génération des étiquettes de suivi (colissimo)
+=============================================
+Ce module permet de générer des étiquettes d'envoi avec Colissimo.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'stock_split_picking.xml'
-    ],
-    'qweb': [
-        'static/src/xml/stock_split_picking.xml'
-    ],
-    'demo': ['stock_split_picking_demo.xml'],
+    'data': ['security/ir.model.access.csv',
+             'generate_tracking_labels_colissimo.xml',
+             'res_config.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

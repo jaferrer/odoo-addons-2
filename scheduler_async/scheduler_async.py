@@ -115,7 +115,7 @@ class ProcurementOrderAsync(models.Model):
                                                         order='priority desc, date_expected asc')
 
         while confirmed_moves:
-            if self.env.context.get("jobify"):
+            if self.env.context.get('jobify'):
                 assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:100].ids,
                                    self.env.context)
             else:
