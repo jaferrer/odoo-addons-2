@@ -23,7 +23,8 @@ from openerp import fields, models, api
 class PurchaseOrderLine(models.Model):
     _inherit = "purchase.order.line"
 
-    subtotal_cur = fields.Float(string=u"subtotal euro", compute='_compute_subtotal_cur', store=True)
+    subtotal_cur = fields.Float(
+        string=u"remaining subtotal devise local", compute='_compute_subtotal_cur', store=True, default=0)
 
     @api.depends('price_unit', 'product_qty')
     def _compute_subtotal_cur(self):
