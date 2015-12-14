@@ -29,7 +29,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
                                  required=True)
     type = fields.Selection([('france', "France (ou OM)"), ('alien', "Etranger")], string=u"Type d'envoi",
                             required=True, default='france')
-    save_tracking_number = fields.Boolean(string=u"Enregistrer le numéro de suivi pour ce cas", default=True)
+    save_tracking_number = fields.Boolean(string=u"Enregistrer le numéro de suivi pour l'objet courant", default=True)
     companyName = fields.Char(string=u"Raison sociale", required=True)
     lastName = fields.Char(string=u"Nom", required=True)
     firstName = fields.Char(string=u"Prénom", required=True)
