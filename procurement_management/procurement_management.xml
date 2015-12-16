@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+         <record model="ir.actions.server" id="ir_actions_server_mass_confirmation">
+            <field name="name">Mass confirmation</field>
+            <field name="model_id" ref="stock.model_stock_move"/>
+            <field name="code">
+self.action_confirm(cr, uid, context.get('active_ids'), context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_mass_confirmation">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">stock.move</field>
+            <field name="name">Mass confirmation</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_mass_confirmation)"/>
+        </record>
+
 
         <record model="ir.actions.server" id="ir_actions_server_restart_procurements">
             <field name="name">Run procurements</field>
@@ -79,6 +95,19 @@ self.action_reschedule(cr, uid, context.get('active_ids'), context)
                 </notebook>
             </field>
         </record>
+
+        <record model="ir.ui.view" id="procurement_management_stock_move_view_form_">
+            <field name="name">procurement.management.stock.move.view.form</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="date" position="after">
+                    <field name="procurement_id"/>
+                </field>
+            </field>
+        </record>
+
 
     </data>
 </openerp>
