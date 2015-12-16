@@ -68,5 +68,23 @@ self.delete_field_translations(cr, uid, context.get('active_ids'), False, contex
             </field>
         </record>
 
+        <!-- Ajout du filtre "NDP Systèmes" dans la vue des modules -->
+
+        <record model="ir.ui.view" id="admin_config_modules_view_kanban">
+            <field name="name">admin_config_modules_view_kanban</field>
+            <field name="model">ir.module.module</field>
+            <field name="inherit_id" ref="base.view_module_filter"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="category_id" position="after">
+                    <filter name="ndp" string="NDP Systèmes" domain="[('author', '=', 'NDP Systèmes')]"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="base.open_module_tree">
+            <field name="context">{'search_default_ndp': True}</field>
+        </record>
+
     </data>
 </openerp>

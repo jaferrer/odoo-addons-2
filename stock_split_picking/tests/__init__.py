@@ -17,24 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'define the subtotal in eur for purchase order line',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase_performance_improved'],
-    'description': """
-define the subtotal in eur
-==========================
-This module calcul the purchase order lines subtotal in eur
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+import test_stock_split_picking

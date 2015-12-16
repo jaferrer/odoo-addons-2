@@ -18,23 +18,24 @@
 #
 
 {
-    'name': 'define the subtotal in eur for purchase order line',
+    'name': 'Account Invoice Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase_performance_improved'],
+    'category': 'Account',
+    'depends': ['account'],
     'description': """
-define the subtotal in eur
-==========================
-This module calcul the purchase order lines subtotal in eur
+Account Invoice Improved
+========================
+This modules improves a few settings for account objects.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': ['account_invoice_improved.xml'],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    'sequence': 999,
 }

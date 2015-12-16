@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,19 +18,21 @@
 #
 
 {
-    'name': 'define the subtotal in eur for purchase order line',
+    'name': 'Génération des étiquettes de suivi (colissimo)',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase_performance_improved'],
+    'category': 'Delivery Tracking',
+    'depends': ['base', 'base_setup', 'project'],
     'description': """
-define the subtotal in eur
-==========================
-This module calcul the purchase order lines subtotal in eur
+Génération des étiquettes de suivi (colissimo)
+=============================================
+Ce module permet de générer des étiquettes d'envoi avec Colissimo.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': ['security/ir.model.access.csv',
+             'generate_tracking_labels_colissimo.xml',
+             'res_config.xml'],
     'demo': [],
     'test': [],
     'installable': True,
