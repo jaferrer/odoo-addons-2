@@ -17,19 +17,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 {
-    'name': "Web graph update",
+    'name': "Web list fixed headers",
 
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
-    'description': """A module that lets the user sort a
-        pivot table
+    'depends': ['web'],
+    'description': """A module that fix list headers
         """,
-
-    'depends': [
-        'web_graph_improved',
-    ],
     'qweb': [
     ],
     'data': [
