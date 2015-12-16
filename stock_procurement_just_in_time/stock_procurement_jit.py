@@ -79,9 +79,11 @@ class ProcurementOrderQuantity(models.Model):
         if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
             dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
         orderpoint_ids = orderpoint_env.search(dom)
-        while orderpoint_ids:
-            orderpoints = orderpoint_ids[:ORDERPOINT_CHUNK]
-            orderpoint_ids = orderpoint_ids - orderpoints
+        product_ids = orderpoint_ids.mapped('product_id')
+        while product_ids:
+            products = product_ids[:ORDERPOINT_CHUNK]
+            product_ids = product_ids - products
+            orderpoints = orderpoint_ids.filtered(lambda o: o.product_id in products)
             if self.env.context.get('without_job'):
                 for op in orderpoints:
                     op.process()
