@@ -72,7 +72,6 @@ msgstr "Lancer les approvisionnements"
 msgid "Mass confirmation"
 msgstr "Confirmation en masse"
 
-
 #. module: procurement_management
 #: model:ir.actions.server,name:procurement_management.ir_actions_server_cancel_procurements
 msgid "Cancel procurements"
@@ -82,3 +81,8 @@ msgstr "Annuler les approvisionnements"
 #: model:ir.actions.server,name:procurement_management.ir_actions_server_reschedule_procurements
 msgid "Reschedule procurements"
 msgstr "Replanifier les approvisionnements"
+
+#. module: procurement_management
+#: view:stock.move:0
+msgid "Links"
+msgstr "Liens"
