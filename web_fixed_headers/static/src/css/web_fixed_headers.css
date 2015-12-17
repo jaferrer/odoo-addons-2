@@ -1,0 +1,37 @@
+table .fixed_headers {
+	overflow-y: auto;
+    overflow-x: hidden;
+    display:block;
+}
+
+table .oe_list_header_custom > thead {
+    background: #eee none repeat scroll 0 0;
+    border-bottom: 2px solid #cacaca;
+    vertical-align: top;
+}
+
+table .oe_list_header_custom td, table .oe_list_header_custom th {
+    line-height: 18px;
+    padding: 3px 6px;
+}
+
+/*table.fixed_headers tbody,
+table.fixed_headers thead,
+table.fixed_headers tfoot {
+	display: block; 
+	width:100%;
+}
+
+table.fixed_headers tbody {
+    height: 200px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+table.fixed_headers tfoot {
+	position:absolute;
+}
+
+table .fixed_headers td.oe_number {
+	max-width:300px !important;
+}*/
