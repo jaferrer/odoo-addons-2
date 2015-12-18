@@ -783,7 +783,7 @@ Interactive Layer
         """
         options["filter"]
 
-        contenthtml = """<html><head><head><body style="width:100%;height:100%;">""" + \
+        contenthtml = """<html><head><head><body style="width:100%;height:100%;padding-right:10px;">""" + \
             """<div style="width:100%;border:1px solid black;text-align:center;"><h2>""" + title + """</h2></div>""" + \
             """<div style="width:100%;border:2px solid black;text-align:center;margin-top:10px;margin-bottom:20px;border-radius: 25px;background-color: #f1f1f1;">""" + \
             """<div><span style="font-weight:bold;">Filtres : </span>""" + str(options["filter"]) + """</div>""" + \
