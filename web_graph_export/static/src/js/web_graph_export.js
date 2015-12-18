@@ -27,6 +27,7 @@ openerp.web_graph_export = function(instance) {
 	    export_current_graph: function() {
 	        var c = openerp.webclient.crashmanager;
 	        var s = new XMLSerializer();
+
 	        var html=s.serializeToString(this.svg);
 	        console.log(html.replace("width=\""+this.width+"\"","").replace("height=\""+this.height+"\"","height=\"400\"").replace("<svg ","<svg viewBox=\"0 0 "+this.width+" "+this.height+"\" "));
 	        html=html.replace("width=\""+this.width+"\"","").replace("height=\""+this.height+"\"","height=\"400\"").replace("<svg ","<svg viewBox=\"0 0 "+this.width+" "+this.height+"\" ");
