@@ -10,7 +10,7 @@
         <record id="sirail_assign_moves_auto" model="ir.cron">
             <field name="name">Automatic assignation of stock moves</field>
             <field name="user_id" ref="base.user_root"/>
-            <field name="active" eval="True"/>
+            <field name="active"/>
             <field name="priority">5</field>
             <field name="interval_number">10</field>
             <field name="interval_type">minutes</field>
