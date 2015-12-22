@@ -56,7 +56,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     weight = fields.Float(string=u"Poids du colis", required=True)
     outputPrintingType = fields.Selection([('PDF_10x15_300dpi', "10X15 300 DPI"),
                                            ('PDF_A4_300dpi', "A4 300 DPI")],
-                                          string=u"Format de l'étiquette", default='PDF_10x15_300dpi')
+                                          string=u"Format de l'étiquette", default='PDF_A4_300dpi')
     returnTypeChoice = fields.Selection([('2', u"Retour payant en prioritaire"),
                                          ('3', u"Ne pas retourner")],
                                         string=u"Retour à l'expéditeur", default='3')

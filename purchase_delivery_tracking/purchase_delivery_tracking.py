@@ -91,7 +91,7 @@ class TrackingNumber(models.Model):
     status_ids = fields.One2many('tracking.status', 'tracking_id', string="Status history")
     date = fields.Datetime(string="Date of the last status", compute='_compute_date_and_status')
     status = fields.Char(string="Last status", compute='_compute_date_and_status')
-    order_id = fields.Many2one('purchase.order', string="Linked purchase order")
+    order_id = fields.Many2one('purchase.order', string="Linked purchase order", groups='purchase.group_purchase_user')
     transporter_id = fields.Many2one('tracking.transporter', string="Transporter")
     partner_id = fields.Many2one('res.partner', string="Supplier", related='order_id.partner_id')
     last_status_update = fields.Datetime(string="Date of the last update")
