@@ -58,7 +58,7 @@ self.action_reschedule(cr, uid, context.get('active_ids'), context)
             <field name="arch" type="xml">
                 <group string="Group By" position="inside">
                     <filter string="Location" domain="[]" context="{'group_by':'location_id'}"/>
-                    <filter string="Date planned" domain="[]" context="{'group_by':'date_planned'}"/>
+                    <filter string="Date planned" domain="[]" context="{'group_by':'date_planned:day'}"/>
                 </group>
             </field>
         </record>
