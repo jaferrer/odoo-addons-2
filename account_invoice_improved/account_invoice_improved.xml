@@ -10,7 +10,7 @@
             <field name="arch" type="xml">
                 <filter help="My Invoices" position="after">
                     <separator/>
-                    <filter name="late" string="Late" domain="[('state', '=', 'open'), ('date_invoice', '&lt;=', current_date)]"/>
+                    <filter name="late" string="Late" domain="[('state', '=', 'open'), ('date_due', '&lt;', current_date)]"/>
                 </filter>
                 <group string="Group By" position="inside">
                     <filter string="Fiscal position" context="{'group_by':'fiscal_position'}"/>
