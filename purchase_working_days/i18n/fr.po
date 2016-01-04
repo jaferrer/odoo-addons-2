@@ -84,3 +84,15 @@ msgstr "Ressource du fournisseur"
 #: help:res.partner,resource_id:0
 msgid "The supplier resource is used to define the working days of the supplier when calculating lead times. If undefined here the system will consider working days of the supplier being Monday to Friday."
 msgstr "La resource du fournisseur est utilisée pour déterminer les jours travaillés de celui-ci lors du calcul des temps de livraison. Si la ressource n'est pas définie, le système considérera que les jours travaillés sont du lundi au vendredi."
+
+#. module: purchase_working_days
+#: model:ir.actions.act_window,name:purchase_working_days.working_days_open_partner_leaves
+#: field:res.partner,partner_leaves_count:0
+msgid "Partner leaves"
+msgstr "Congés du partenaire"
+
+#. module: purchase_working_days
+#: model:ir.actions.act_window,name:purchase_working_days.working_days_act_resource_purchase
+#: model:ir.ui.menu,name:purchase_working_days.working_days_menu_resource_purchase
+msgid "Resource"
+msgstr "Calendriers fournisseurs"

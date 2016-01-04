@@ -16,10 +16,17 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import time
 
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, drop_view_if_exists
-from openerp import fields, models, api, exceptions, _
+from openerp.tools import drop_view_if_exists
+from openerp import fields, models, api
+
+from openerp.addons.scheduler_async import scheduler_async
+from openerp.addons.connector.session import ConnectorSession
+
+assign_moves = scheduler_async.assign_moves
+
+
+MOVE_CHUNK = 100
 
 
 class StockPicking(models.Model):
@@ -128,13 +135,6 @@ class StockMove(models.Model):
         moves_no_pick.action_confirm()
         super(StockMove, self).action_assign()
 
-    @api.multi
-    def action_done(self):
-        """Overridden here to process prereservations once a move has been done."""
-        res = super(StockMove, self).action_done()
-        self.env['stock.picking'].with_context(skip_moves=self.ids).assign_moves_to_picking()
-        return res
-
 
 class ProcurementRule(models.Model):
     _inherit = 'procurement.rule'
@@ -155,6 +155,19 @@ class ProcurementOrder(models.Model):
         res.update({'defer_picking_assign': procurement.rule_id.defer_picking_assign})
         return res
 
+    @api.model
+    def run_assign_moves(self):
+        confirmed_moves = self.env['stock.prereservation'].search([('reserved', '=', False)]).mapped('move_id')
+
+        while confirmed_moves:
+            if self.env.context.get('jobify'):
+                assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:MOVE_CHUNK].ids,
+                                   self.env.context)
+            else:
+                assign_moves(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:MOVE_CHUNK].ids,
+                             self.env.context)
+            confirmed_moves = confirmed_moves[MOVE_CHUNK:]
+
 
 class StockPrereservation(models.Model):
     _name = 'stock.prereservation'
@@ -163,6 +176,7 @@ class StockPrereservation(models.Model):
 
     move_id = fields.Many2one('stock.move', readonly=True, index=True)
     picking_id = fields.Many2one('stock.picking', readonly=True, index=True)
+    reserved = fields.Boolean("Move has reserved quants", readonly=True, index=True)
 
     def init(self, cr):
         drop_view_if_exists(cr, "stock_prereservation")
@@ -204,11 +218,13 @@ class StockPrereservation(models.Model):
             select
                 foo.move_id as id,
                 foo.move_id,
-                foo.picking_id
+                foo.picking_id,
+                foo.reserved
             from (
                     select
                         sm.id as move_id,
-                        sm.picking_id as picking_id
+                        sm.picking_id as picking_id,
+                        TRUE as reserved
                     from
                         stock_move sm
                     where
@@ -218,7 +234,8 @@ class StockPrereservation(models.Model):
                 union all
                     select distinct
                         sm.id as move_id,
-                        sm.picking_id as picking_id
+                        sm.picking_id as picking_id,
+                        FALSE as reserved
                     from
                         stock_move sm
                         left join stock_move smp on smp.move_dest_id = sm.id
@@ -231,21 +248,22 @@ class StockPrereservation(models.Model):
                 union all
                     select
                         mq.move_id,
-                        mq.picking_id
+                        mq.picking_id,
+                        FALSE as reserved
                     from
                         move_qties mq
                     where
-                            mq.qty <= (
-                                select
-                                    sum(qty)
-                                from
-                                    stock_quant sq
-                                where
-                                    sq.reservation_id is null
-                                    and sq.location_id in (
-                                        select loc_id from top_parent where top_parent_id=mq.location_id
-                                    )
-                                    and sq.product_id = mq.product_id)
+                        mq.qty <= (
+                            select
+                                sum(qty)
+                            from
+                                stock_quant sq
+                            where
+                                sq.reservation_id is null
+                                and sq.location_id in (
+                                    select loc_id from top_parent where top_parent_id=mq.location_id
+                                )
+                                and sq.product_id = mq.product_id)
             ) foo
         )
         """)

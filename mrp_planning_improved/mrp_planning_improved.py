@@ -57,7 +57,10 @@ class ManufacturingOrderPlanningImproved(models.Model):
         result = super(ManufacturingOrderPlanningImproved, self).write(vals)
         if vals.get('date_planned'):
             for rec in self:
-                rec.move_created_ids.write({'date_expected': vals['date_planned']})
+                # Add time if we get only date (e.g. if we have date widget on view)
+                date_planned = vals['date_planned'] + " 12:00:00" if len(vals['date_planned']) == 10 \
+                    else vals['date_planned']
+                rec.move_created_ids.write({'date_expected': date_planned})
         return result
 
     @api.multi
@@ -87,18 +90,21 @@ class ProcurementOrderPlanningImproved(models.Model):
         """Reschedules the moves associated to this procurement."""
         for proc in self:
             if proc.state not in ['done', 'cancel'] and proc.rule_id and proc.rule_id.action == 'manufacture':
-                if proc.production_id:
+                production = proc.production_id
+                if production:
                     prod_start_date = self.env['procurement.order']._get_date_planned(proc)
-                    prod_end_date = proc.production_id.location_dest_id.schedule_working_days(
+                    prod_end_date = production.location_dest_id.schedule_working_days(
                         -proc.company_id.manufacturing_lead,
                         fields.Datetime.from_string(proc.date_planned)
                     )
                     # Updating the dates of the created moves of the corresponding manufacturing order
-                    proc.production_id.move_created_ids.write({'date': prod_end_date})
+                    production.move_created_ids.write({'date': prod_end_date})
                     # Updating the date_required of the corresponding manufacturing order
-                    proc.production_id.date_required = prod_start_date
+                    production.date_required = prod_start_date
                     # Updating the date_planned of the corresponding manufacturing order
-                    if self.env.context.get('reschedule_planned_date') and not proc.production_id.taken_into_account:
-                        proc.production_id.date_planned = prod_start_date
-                    proc.production_id.action_reschedule()
+                    if not production.taken_into_account:
+                        # If the production order is not taken into account, then we reschedule date_planned as well
+                        production = production.with_context(reschedule_planned_date=True)
+                        production.date_planned = prod_start_date
+                    production.action_reschedule()
         super(ProcurementOrderPlanningImproved, self).action_reschedule()

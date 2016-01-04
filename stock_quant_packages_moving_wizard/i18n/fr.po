@@ -60,6 +60,12 @@ msgid "Destination Location"
 msgstr "Emplacement destination"
 
 #. module: stock_quant_packages_moving_wizard
+#: field:stock.quant.move,is_manual_op:0
+#: field:stock.quant.package.move,is_manual_op:0
+msgid "Manual Operation"
+msgstr "Opération Manuelle"
+
+#. module: stock_quant_packages_moving_wizard
 #: field:stock.quant.move,id:0 field:stock.quant.move_items,id:0
 #: field:stock.quant.package.move,id:0
 #: field:stock.quant.package.move_items,id:0
@@ -114,6 +120,11 @@ msgstr "Mode de prélèvement"
 #: model:ir.model,name:stock_quant_packages_moving_wizard.model_stock_quants_move_items
 msgid "Picking wizard items"
 msgstr "Fenêtre de prélèvement d'objets"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.quant.move_items,qty:0
+msgid "Quantity"
+msgstr "Quantité"
 
 #. module: stock_quant_packages_moving_wizard
 #: field:stock.quant.move_items,quant:0

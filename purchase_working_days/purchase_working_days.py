@@ -30,6 +30,7 @@ class res_partner_with_calendar(models.Model):
                                   help="The supplier resource is used to define the working days of the supplier when "
                                        "calculating lead times. If undefined here the system will consider working "
                                        "days of the supplier being Monday to Friday.")
+    partner_leaves_count = fields.Integer(string="Partner leaves", compute='_compute_supplier_leaves_count')
 
     @api.multi
     def schedule_working_days(self, nb_days, day_date):
@@ -59,6 +60,15 @@ class res_partner_with_calendar(models.Model):
         if isinstance(newdate, (list, tuple)):
             newdate = newdate[0]
         return newdate
+
+    @api.multi
+    def _compute_supplier_leaves_count(self):
+        for rec in self:
+            supplier_leaves = rec.resource_id.leave_ids
+            if supplier_leaves:
+                rec.partner_leaves_count = len(supplier_leaves)
+            else:
+                rec.partner_leaves_count = 0
 
 
 class purchase_order_line_working_days(models.Model):
@@ -122,5 +132,3 @@ class purchase_working_days(models.Model):
         partner = procurement.product_id.seller_id
         order_date = partner.schedule_working_days(-seller_delay, schedule_date)
         return order_date
-
-

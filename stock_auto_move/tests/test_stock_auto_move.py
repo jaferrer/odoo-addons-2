@@ -19,8 +19,8 @@
 
 from openerp.tests import common
 
-class TestStockAutoMove(common.TransactionCase):
 
+class TestStockAutoMove(common.TransactionCase):
     def setUp(self):
         super(TestStockAutoMove, self).setUp()
         self.product_a1232 = self.browse_ref("product.product_product_6")
@@ -30,7 +30,6 @@ class TestStockAutoMove(common.TransactionCase):
         self.location_3 = self.browse_ref("stock_auto_move.stock_location_c")
         self.product_uom_unit_id = self.ref("product.product_uom_unit")
         self.picking_type_id = self.ref("stock.picking_type_internal")
-        self.auto_group_id = self.ref("stock_auto_move.automatic_group")
 
     def test_10_auto_move(self):
         """Check automatic processing of move with auto_move set."""
@@ -66,10 +65,8 @@ class TestStockAutoMove(common.TransactionCase):
         })
         move.action_confirm()
         self.assertTrue(move.picking_id)
-        self.assertEqual(move.group_id.id, self.auto_group_id)
         move1.action_confirm()
         self.assertTrue(move1.picking_id)
-        self.assertEqual(move1.group_id.id, self.auto_group_id)
         move2.action_confirm()
         self.assertTrue(move2.picking_id)
         self.assertFalse(move2.group_id)
@@ -129,9 +126,9 @@ class TestStockAutoMove(common.TransactionCase):
         })
         move3.action_confirm()
         move3.action_done()
-        quants_in_3 = self.env['stock.quant'].search([('product_id','=',self.product_a1232.id),
-                                                      ('location_id','=',self.location_3.id)])
-        quants_in_1 = self.env['stock.quant'].search([('product_id','=',self.product_a1232.id),
-                                                      ('location_id','=',self.location_1.id)])
+        quants_in_3 = self.env['stock.quant'].search([('product_id', '=', self.product_a1232.id),
+                                                      ('location_id', '=', self.location_3.id)])
+        quants_in_1 = self.env['stock.quant'].search([('product_id', '=', self.product_a1232.id),
+                                                      ('location_id', '=', self.location_1.id)])
         self.assertEqual(len(quants_in_3), 0)
         self.assertGreater(len(quants_in_1), 0)

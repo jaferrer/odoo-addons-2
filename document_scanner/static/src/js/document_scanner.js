@@ -18,7 +18,7 @@ openerp.document_scanner = function (instance) {
 	            	
 	                if(data && data.error!=undefined) {
 	                	console.log(data);
-	                	self.do_warn(_t('Scanning Error'), "Document ne s'est pas enregistré \nMessage"+data.error);
+	                	alert("Document ne s'est pas enregistré \nMessage"+data.error);
 	                } else {
 	                	self.do_notify(_t("Scanning information"),"Le Document s'est enregistré correctement sous : "+data.file);
 	                	self.do_attachement_update(self.getParent().dataset, self.getParent().get_selected_ids()[0],false);

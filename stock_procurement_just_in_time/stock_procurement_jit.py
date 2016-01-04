@@ -20,8 +20,9 @@
 from dateutil.relativedelta import relativedelta
 import logging
 import openerp.addons.decimal_precision as dp
-from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
+from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
+
 from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 from openerp import fields, models, api
@@ -35,11 +36,8 @@ _logger = logging.getLogger(__name__)
 def process_orderpoints(session, model_name, ids):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
-    with handler.session() as s:
-        for op in s.env[model_name].browse(ids):
-            op.process()
-        s.commit()
+    for op in session.env[model_name].browse(ids):
+        op.process()
 
 
 class ProcurementOrderQuantity(models.Model):
@@ -81,9 +79,11 @@ class ProcurementOrderQuantity(models.Model):
         if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
             dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
         orderpoint_ids = orderpoint_env.search(dom)
-        while orderpoint_ids:
-            orderpoints = orderpoint_ids[:ORDERPOINT_CHUNK]
-            orderpoint_ids = orderpoint_ids - orderpoints
+        product_ids = orderpoint_ids.mapped('product_id')
+        while product_ids:
+            products = product_ids[:ORDERPOINT_CHUNK]
+            product_ids = product_ids - products
+            orderpoints = orderpoint_ids.filtered(lambda o: o.product_id in products)
             if self.env.context.get('without_job'):
                 for op in orderpoints:
                     op.process()
@@ -118,7 +118,8 @@ class StockWarehouseOrderPointJit(models.Model):
         need = self.compute_stock_levels_requirements(product_id=self.product_id.id, location_id=self.location_id.id,
                                                       list_move_types=('out',), limit=False, parameter_to_sort='date',
                                                       to_reverse=False)
-        need = [x for x in need if x['qty'] < self.product_min_qty]
+        need = [x for x in need if float_compare(x['qty'], self.product_min_qty,
+                                                 precision_rounding=self.product_uom.rounding) < 0]
         if need:
             need = need[0]
             if need.get('id') or need.get('proc_id') or need.get('product_id') or need.get('location_id') or \
@@ -148,8 +149,8 @@ class StockWarehouseOrderPointJit(models.Model):
                 date_domain += [('date_planned', '>=', fields.Datetime.to_string(date_start))]
             procs = self.env['procurement.order'].search([('product_id', '=', op.product_id.id),
                                                           ('location_id', '=', op.location_id.id),
-                                                          ('state', 'in', ['confirmed', 'running', 'exception'])]
-                                                         + date_domain,
+                                                          ('state', 'in', ['confirmed', 'running', 'exception'])] +
+                                                         date_domain,
                                                          order="date_planned DESC")
             for proc in procs:
                 stock_date = min(
@@ -209,7 +210,7 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                 list_move_types=['in', 'out', 'existing'], limit=1,
                                                                 parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-              fields.Datetime.from_string(last_schedule[0].get('date')) or False
+            fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -232,7 +233,7 @@ class StockWarehouseOrderPointJit(models.Model):
                                                           ('date_planned', '<=', fields.Datetime.to_string(timestamp))],
                                                          order='qty DESC')
             if last_outgoing:
-                procs = procs.filtered(lambda x: x.date_planned > last_outgoing[0]['date'])
+                procs = procs.filtered(lambda y: y.date_planned > last_outgoing[0]['date'])
             _logger.debug("Removing not needed procurements: %s", procs.ids)
             procs.cancel()
             procs.unlink()
@@ -241,7 +242,8 @@ class StockWarehouseOrderPointJit(models.Model):
     def process(self):
         """Process this orderpoint."""
         for op in self:
-            _logger.debug("Computing orderpoint %s (%s, %s)" % (op.id, op.product_id.name, op.location_id.name))
+            _logger.debug("Computing orderpoint %s (%s, %s, %s)" % (op.id, op.name, op.product_id.name,
+                                                                    op.location_id.name))
             need = op.get_next_need()
             date_cursor = False
             while need:
@@ -268,7 +270,6 @@ class StockWarehouseOrderPointJit(models.Model):
     @api.model
     def compute_stock_levels_requirements(self, product_id, location_id, list_move_types, limit=1,
                                           parameter_to_sort='date', to_reverse=False):
-
         """
         Computes stock level report
         :param product_id: int
@@ -296,7 +297,7 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                  ('location_id', 'child_of', location_id)])
         procurement_order_restricted = self.env['procurement.order'].search([('product_id', '=', product_id),
                                                                              ('location_id', 'child_of', location_id),
-                                                                             ('state', 'not in', ['cancel','done'])
+                                                                             ('state', 'not in', ['cancel', 'done'])
                                                                              ], order='date_planned')
         dates = []
         if stock_move_restricted_in:
@@ -388,18 +389,6 @@ class StockWarehouseOrderPointJit(models.Model):
             return result[:limit]
         else:
             return result
-
-
-class StockComputeAll(models.TransientModel):
-    _inherit = 'procurement.order.compute.all'
-
-    compute_all = fields.Boolean(string=u"Traiter l'ensemble des produits", default=True)
-    product_ids = fields.Many2many('product.product', string=u"Produits à traiter")
-
-    @api.multi
-    def procure_calculation(self):
-        return super(StockComputeAll, self.with_context(compute_product_ids=self.product_ids.ids,
-                                                        compute_all_products=self.compute_all)).procure_calculation()
 
 
 class StockLevelsReport(models.Model):
@@ -513,3 +502,5 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
         LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
 )
         """)
+
+

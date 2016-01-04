@@ -20,6 +20,7 @@
 from datetime import datetime
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp import fields, models, api, _, exceptions
+from openerp.tools.float_utils import float_compare
 
 
 class PurchaseOrderJustInTime(models.Model):
@@ -94,7 +95,6 @@ class PurchaseOrderLineJustInTime(models.Model):
     father_line_id = fields.Many2one('purchase.order.line', string="Very first line splited", readonly=True)
     children_line_ids = fields.One2many('purchase.order.line', 'father_line_id', string="Children lines")
     children_number = fields.Integer(string="Number of children", readonly=True, compute='_compute_children_number')
-    location_id = fields.Many2one(related='order_id.location_id')
 
     @api.depends('date_planned', 'date_required', 'to_delete', 'product_qty', 'opmsg_reduce_qty')
     def _compute_opmsg(self):
@@ -220,7 +220,7 @@ class PurchaseOrderLineJustInTime(models.Model):
             vals['line_no'] = str(theo_value)
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
 
-        if result.order_id.state not in ['draft', 'done', 'cancel']:
+        if result.order_id.state not in ['draft', 'sent', 'bid', 'confirmed', 'done', 'cancel']:
             result.order_id.set_order_line_status('confirmed')
             if result.product_qty != 0 and not result.move_ids and not self.env.context.get('no_update_moves'):
                 # We create associated moves
@@ -228,8 +228,8 @@ class PurchaseOrderLineJustInTime(models.Model):
                 running_moves_with_group = order_lines.mapped(lambda l: l.move_ids).filtered(
                     lambda m: m.state not in ['done', 'cancel'] and m.group_id
                 )
-                group = running_moves_with_group and running_moves_with_group[0].group_id or False
-                result.order_id._create_stock_moves_improved(result.order_id, result, group_id=group.id)
+                group_id = running_moves_with_group and running_moves_with_group[0].group_id.id or False
+                result.order_id._create_stock_moves_improved(result.order_id, result, group_id=group_id)
 
         return result
 
@@ -350,6 +350,20 @@ class PurchaseOrderLineJustInTime(models.Model):
                 active_moves.write({'price_unit': vals['price_unit']})
         return result
 
+    @api.multi
+    def act_windows_view_graph(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.levels.report',
+            'name': _("Stock Evolution"),
+            'view_type': 'form',
+            'view_mode': 'graph,tree',
+            'res_id': self.id,
+            'context': {'search_default_location_id': self.order_id.location_id.id,
+                        'search_default_product_id': self.product_id.id}
+        }
+
 
 class ProcurementOrderPurchaseJustInTime(models.Model):
     _inherit = 'procurement.order'
@@ -359,49 +373,38 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
         """
         Improves the original propagate_cancel function. If the corresponding purchase order is draft, it eventually
-        cancels and/or deletes tho purchase order line and the purchase order.
+        cancels and/or deletes the purchase order line and the purchase order.
         """
 
         result = None
-        qty = 0
+        to_delete = False
         if procurement.rule_id.action == 'buy' and procurement.purchase_line_id:
-            if procurement.purchase_line_id.state not in ['draft', 'cancel']:
-                qty = procurement.purchase_line_id.product_qty
-            try:
-                result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
-            except exceptions.except_orm:
-                # Canceling a confirmed procurement order
-                if procurement.purchase_line_id.state not in ['draft', 'cancel']:
-                    procurement.purchase_line_id.product_qty = qty
-                    total_need = sum([x.product_qty for x in procurement.purchase_line_id.procurement_ids
-                                     if x.state != 'cancel' and x != procurement])
-                    if total_need != 0:
-                        total_need = self.with_context({'cancelling_active_proc': True}).\
-                                                                                    _calc_new_qty_price(procurement)[0]
-                    procurement.purchase_line_id.opmsg_reduce_qty = total_need
-                    if total_need == 0:
-                        procurement.purchase_line_id.to_delete = True
-                    procurement.purchase_line_id.product_qty = qty
-        else:
-            result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
-        # Checking what should be cancelled
-        qty = False
-        if procurement.purchase_line_id and procurement.purchase_line_id.order_id.state != 'draft':
-            qty = procurement.purchase_line_id.product_qty
-        if procurement.purchase_line_id and procurement.purchase_line_id.order_id.state == 'draft':
-            # in this case, purchase order is not yet confirmed
+            # Canceling a confirmed procurement order if needed
             line = procurement.purchase_line_id
             order = line.order_id
-            global_qty = 0
+            total_need = 0
             for order_line in order.order_line:
-                global_qty += sum([x.product_qty for x in order_line.procurement_ids if x.product_id == line.product_id
-                                   and x != procurement and x.state != 'cancel'])
-            if line.state == 'draft' and global_qty == 0:
-                line.unlink()
-            if not order.order_line:
-                order.unlink()
-        if qty:
-            procurement.purchase_line_id.product_qty = qty
+                total_need += sum(
+                    [x.product_qty for x in order_line.procurement_ids if x.product_id == line.product_id
+                     and x != procurement and x.state != 'cancel'])
+            if float_compare(total_need, 0.0, precision_rounding=procurement.product_uom.rounding) != 0:
+                total_need = self.with_context(cancelling_active_proc=True). \
+                    _calc_new_qty_price(procurement)[0]
+            # Considering the case of different lines with same product in one order
+            total_need = total_need - sum([l.product_qty for l in order.order_line if l != line and
+                                           l.product_id == line.product_id])
+            if procurement.purchase_line_id.order_id.state not in ['draft', 'cancel']:
+                opmsg_reduce_qty = total_need
+                if float_compare(total_need, 0.0, precision_rounding=procurement.product_uom.rounding) == 0:
+                    to_delete = True
+                procurement.purchase_line_id.write({'opmsg_reduce_qty': opmsg_reduce_qty,
+                                                    'to_delete': to_delete})
+            else:
+                result = super(ProcurementOrderPurchaseJustInTime,
+                               self.with_context(cancelling_active_proc=True)).\
+                    propagate_cancel(procurement)
+        else:
+            result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
         return result
 
 

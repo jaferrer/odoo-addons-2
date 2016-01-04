@@ -22,22 +22,32 @@ from urllib2 import urlopen
 from lxml import etree
 
 
-class ChronopostPurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
+class ChronopostTrackingTransporter(models.Model):
+    _inherit = 'tracking.transporter'
+
+    @api.multi
+    def _compute_logo(self):
+        super(ChronopostTrackingTransporter, self)._compute_logo()
+        for rec in self:
+            if rec.name == 'Chronopost':
+                rec.logo = "/purchase_delivery_tracking_chronopost/static/img/chronopost.png"
+
+
+class ChronopostTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
 
     @api.multi
     def update_delivery_status(self):
-        super(ChronopostPurchaseOrder, self).update_delivery_status()
+        super(ChronopostTrackingNumber, self).update_delivery_status()
         for rec in self:
-            if rec.transporter_id.name == 'Chronopost' and rec.state not in ['draft', 'cancel', 'done']:
-                for track in rec.tracking_ids:
-                    track.status_ids.unlink()
-                    file = urlopen(_('https://www.chronopost.fr/tracking-cxf/TrackingServiceWS/trackSkybill?language=en_US&skybillNumber=') + track.name)
-                    if file:
-                        list_status = etree.fromstring(file.read()).findall(".//events")
-                        for c in list_status:
-                            date = c.find(".//eventDate").text
-                            date = date[:10] + ' ' + date[11:19]
-                            self.env['tracking.status'].create({'date': date,
-                                                                'status': c.find(".//eventLabel").text,
-                                                                'tracking_id': track.id})
+            if rec.transporter_id.name == 'Chronopost':
+                rec.status_ids.unlink()
+                file = urlopen(_('https://www.chronopost.fr/tracking-cxf/TrackingServiceWS/trackSkybill?language=en_US&skybillNumber=') + rec.name)
+                if file:
+                    list_status = etree.fromstring(file.read()).findall(".//events")
+                    for c in list_status:
+                        date = c.find(".//eventDate").text
+                        date = date[:10] + ' ' + date[11:19]
+                        self.env['tracking.status'].create({'date': date,
+                                                            'status': c.find(".//eventLabel").text,
+                                                            'tracking_id': rec.id})

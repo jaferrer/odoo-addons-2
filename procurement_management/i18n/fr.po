@@ -1,4 +1,4 @@
-# Translation of Odoo Server.
+﻿# Translation of Odoo Server.
 # This file contains the translation of the following modules:
 # 	* procurement_management
 #
@@ -48,19 +48,29 @@ msgid "Location"
 msgstr "Location"
 
 #. module: procurement_management
+#: view:procurement.order:0
+msgid "Date planned"
+msgstr "Date planifiée"
+
+#. module: procurement_management
 #: model:ir.model,name:procurement_management.model_procurement_order
 msgid "Procurement"
 msgstr "Approvisionnement"
 
 #. module: procurement_management
-#: model:ir.actions.server,name:procurement_management.ir_actions_server_run_procurements
+#: view:procurement.order:0
+msgid "Upstream and Downstream Moves"
+msgstr "Mouvements aval/amont"
+
+#. module: procurement_management
+#: model:ir.actions.server,name:procurement_management.ir_actions_server_restart_procurements
 msgid "Run procurements"
 msgstr "Lancer les approvisionnements"
 
 #. module: procurement_management
-#: view:procurement.order:0
-msgid "Upstream and Downstream Moves"
-msgstr "Mouvements aval/amont"
+#: model:ir.actions.server,name:procurement_management.ir_actions_server_mass_confirmation
+msgid "Mass confirmation"
+msgstr "Confirmation en masse"
 
 #. module: procurement_management
 #: model:ir.actions.server,name:procurement_management.ir_actions_server_cancel_procurements
@@ -70,4 +80,9 @@ msgstr "Annuler les approvisionnements"
 #. module: procurement_management
 #: model:ir.actions.server,name:procurement_management.ir_actions_server_reschedule_procurements
 msgid "Reschedule procurements"
-msgstr "Plannifier les approvisionnements"
+msgstr "Replanifier les approvisionnements"
+
+#. module: procurement_management
+#: view:stock.move:0
+msgid "Links"
+msgstr "Liens"

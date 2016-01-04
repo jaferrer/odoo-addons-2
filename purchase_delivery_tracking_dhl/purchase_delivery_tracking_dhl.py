@@ -23,33 +23,43 @@ import json
 from dateutil.parser import parse
 
 
-class DhlPurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
+class DhlTrackingTransporter(models.Model):
+    _inherit = 'tracking.transporter'
+
+    @api.multi
+    def _compute_logo(self):
+        super(DhlTrackingTransporter, self)._compute_logo()
+        for rec in self:
+            if rec.name == 'DHL':
+                rec.logo = "/purchase_delivery_tracking_dhl/static/img/dhl.jpg"
+
+
+class DhlTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
 
     @api.multi
     def update_delivery_status(self):
-        super(DhlPurchaseOrder, self).update_delivery_status()
+        super(DhlTrackingNumber, self).update_delivery_status()
         for rec in self:
-            if rec.transporter_id.name == 'DHL' and rec.state not in ['draft', 'cancel', 'done']:
-                for track in rec.tracking_ids:
-                    track.status_ids.unlink()
-                    file_translated = urlopen('http://www.dhl.fr/shipmentTracking?AWB=' + track.name +
-                                   _('&countryCode=fr&languageCode=en'))
-                    file_english = urlopen('http://www.dhl.fr/shipmentTracking?AWB=' + track.name +
-                                         '&countryCode=fr&languageCode=en')
-                    if file_english and file_translated:
-                        list_status_english = json.loads(file_english.read())
-                        list_status_translated = json.loads(file_translated.read())
-                        if list_status_english.get('results') and list_status_english['results'][0].get('checkpoints'):
-                            for c in list_status_english['results'][0]['checkpoints']:
-                                date = False
-                                status = c.get('description') or ''
-                                if c.get('date') and c.get('time'):
-                                    date = fields.Date.to_string(parse(c['date'])) + ' ' + c['time'] + ':00'
-                                for item in list_status_translated['results'][0]['checkpoints']:
-                                    if item.get('counter') == c['counter']:
-                                        status = item.get('description') or status
-                                        break
-                                self.env['tracking.status'].create({'date': date,
-                                                                    'status': status,
-                                                                    'tracking_id': track.id})
+            if rec.transporter_id.name == 'DHL':
+                rec.status_ids.unlink()
+                file_translated = urlopen('http://www.dhl.fr/shipmentTracking?AWB=' + rec.name +
+                               _('&countryCode=fr&languageCode=en'))
+                file_english = urlopen('http://www.dhl.fr/shipmentTracking?AWB=' + rec.name +
+                                     '&countryCode=fr&languageCode=en')
+                if file_english and file_translated:
+                    list_status_english = json.loads(file_english.read())
+                    list_status_translated = json.loads(file_translated.read())
+                    if list_status_english.get('results') and list_status_english['results'][0].get('checkpoints'):
+                        for c in list_status_english['results'][0]['checkpoints']:
+                            date = False
+                            status = c.get('description') or ''
+                            if c.get('date') and c.get('time'):
+                                date = fields.Date.to_string(parse(c['date'])) + ' ' + c['time'] + ':00'
+                            for item in list_status_translated['results'][0]['checkpoints']:
+                                if item.get('counter') == c['counter']:
+                                    status = item.get('description') or status
+                                    break
+                            self.env['tracking.status'].create({'date': date,
+                                                                'status': status,
+                                                                'tracking_id': rec.id})

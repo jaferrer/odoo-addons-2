@@ -24,8 +24,19 @@ from urllib import urlencode
 from dateutil.parser import parse
 
 
-class UpsPurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
+class UpsTrackingTransporter(models.Model):
+    _inherit = 'tracking.transporter'
+
+    @api.multi
+    def _compute_logo(self):
+        super(UpsTrackingTransporter, self)._compute_logo()
+        for rec in self:
+            if rec.name == 'UPS':
+                rec.logo = "/purchase_delivery_tracking_ups/static/img/ups.jpg"
+
+
+class UpsTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
 
     @api.multi
     def update_delivery_status(self):
@@ -41,15 +52,16 @@ class UpsPurchaseOrder(models.Model):
                     return day_split[2] + '-' + day_split[1] + '-' + day_split[0]
             return False
 
-        super(UpsPurchaseOrder, self).update_delivery_status()
+        super(UpsTrackingNumber, self).update_delivery_status()
         for rec in self:
-            if rec.transporter_id.name == 'UPS' and rec.state not in ['draft', 'cancel', 'done']:
-                for track in rec.tracking_ids:
-                    track.status_ids.unlink()
+            if rec.transporter_id.name == 'UPS':
+                rec.status_ids.unlink()
 
-                    # First get
+                # First get
+                file = False
+                try:
                     file = urlopen('http://wwwapps.ups.com/WebTracking/track?HTMLVersion=5.0&loc=' + lang +
-                                   '&track.x=Suivi&trackNums=' + track.name)
+                                   '&track.x=Suivi&trackNums=' + rec.name)
                     file_etree = etree.parse(file, etree.HTMLParser())
 
                     # Parsing the response to get the values
@@ -71,32 +83,38 @@ class UpsPurchaseOrder(models.Model):
                               "multiship": input_multiship and input_multiship[0].get('value') or ''}
 
                     # Next, posting with good values
-                    post_response = urlopen('http://wwwapps.ups.com/WebTracking/detail', urlencode(values))
-                    response_etree = etree.parse(post_response, etree.HTMLParser())
+                    post_response = False
+                    try:
+                        post_response = urlopen('http://wwwapps.ups.com/WebTracking/detail', urlencode(values))
+                        response_etree = etree.parse(post_response, etree.HTMLParser())
 
-                    list_status = response_etree.xpath(".//table[@class='dataTable']")
-                    if list_status:
-                        list_status = list_status[0].findall(".//tr[@class='odd']")
-                        list_status_strings = []
-                        current_location = ''
+                        list_status = response_etree.xpath(".//table[@class='dataTable']")
+                        if list_status:
+                            list_status = list_status[0].findall(".//tr[@class='odd']")
+                            list_status_strings = []
+                            current_location = ''
 
-                        # Formating the result and creating status lines
-                        for status in list_status:
-                            properties = status.findall(".//td")
-                            if properties:
-                                property_strings = []
-                                for property in properties:
-                                    new_prop = ' '.join(property.text.split())
-                                    if new_prop:
-                                        property_strings += [new_prop]
-                                if len(property_strings) == 4:
-                                    current_location = property_strings[0]
-                                if len(property_strings) == 3:
-                                    property_strings = [current_location] + property_strings
-                                list_status_strings += [property_strings]
-                        for status in list_status_strings:
-                            string_time = status[2]
-                            string_date = format(status[1])
-                            self.env['tracking.status'].create({'date': parse(string_date + ' ' + string_time),
-                                                                'status': status[0] + ' - '+ status[3],
-                                                                'tracking_id': track.id})
+                            # Formating the result and creating status lines
+                            for status in list_status:
+                                properties = status.findall(".//td")
+                                if properties:
+                                    property_strings = []
+                                    for property in properties:
+                                        new_prop = ' '.join(property.text.split())
+                                        if new_prop:
+                                            property_strings += [new_prop]
+                                    if len(property_strings) == 4:
+                                        current_location = property_strings[0]
+                                    if len(property_strings) == 3:
+                                        property_strings = [current_location] + property_strings
+                                    list_status_strings += [property_strings]
+                            for status in list_status_strings:
+                                string_time = status[2]
+                                string_date = format(status[1])
+                                self.env['tracking.status'].create({'date': parse(string_date + ' ' + string_time),
+                                                                    'status': status[0] + ' - '+ status[3],
+                                                                    'tracking_id': rec.id})
+                    except:
+                        pass
+                except:
+                    pass

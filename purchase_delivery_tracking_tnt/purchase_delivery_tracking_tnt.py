@@ -24,40 +24,50 @@ from lxml import etree
 from dateutil.parser import parse
 
 
-class TntPurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
+class TntTrackingTransporter(models.Model):
+    _inherit = 'tracking.transporter'
+
+    @api.multi
+    def _compute_logo(self):
+        super(TntTrackingTransporter, self)._compute_logo()
+        for rec in self:
+            if rec.name == 'TNT':
+                rec.logo = "/purchase_delivery_tracking_tnt/static/img/tnt.png"
+
+
+class TntTrackingNumber(models.Model):
+    _inherit = 'tracking.number'
 
     @api.multi
     def update_delivery_status(self):
-        super(TntPurchaseOrder, self).update_delivery_status()
+        super(TntTrackingNumber, self).update_delivery_status()
         for rec in self:
-            if rec.transporter_id.name == 'TNT' and rec.state not in ['draft', 'cancel', 'done']:
-                for track in rec.tracking_ids:
-                    track.status_ids.unlink()
-                    file = urlopen('http://www.tnt.com/webtracker/tracking.do',
-                                              urlencode({"cons": str(track.name),
-                                                         "genericSiteIdent": "",
-                                                         "navigation": "0",
-                                                         "page": "1",
-                                                         "plazakey": "",
-                                                         "refs": str(track.name),
-                                                         "requestType": "GEN",
-                                                         "respCountry": "us",
-                                                         "respLang": "en",
-                                                         "searchType": "con",
-                                                         "sourceCountry": "ww",
-                                                         "sourceID": "1",
-                                                         "trackType": "CON"}))
-                    html_file = etree.parse(file, etree.HTMLParser())
-                    list_status = html_file.xpath(".//table[@class='appTable']")
-                    if len(list_status) == 3:
-                        list_status = list_status[1].findall("./tbody/tr")
-                        for status in list_status:
-                            status_items = status.findall(".//td")
-                            if len(status_items) == 4 and status_items[0].text != 'Date':
-                                date = parse('-'.join((status_items[0].text).split()) + ' ' +
-                                             status_items[1].text.split()[0])
-                                self.env['tracking.status'].create({'date': date,
-                                                                    'status': status_items[2].text + ' - ' +
-                                                                              status_items[3].text,
-                                                                    'tracking_id': track.id})
+            if rec.transporter_id.name == 'TNT':
+                rec.status_ids.unlink()
+                file = urlopen('http://www.tnt.com/webtracker/tracking.do',
+                                          urlencode({"cons": str(rec.name),
+                                                     "genericSiteIdent": "",
+                                                     "navigation": "0",
+                                                     "page": "1",
+                                                     "plazakey": "",
+                                                     "refs": str(rec.name),
+                                                     "requestType": "GEN",
+                                                     "respCountry": "us",
+                                                     "respLang": "en",
+                                                     "searchType": "con",
+                                                     "sourceCountry": "ww",
+                                                     "sourceID": "1",
+                                                     "trackType": "CON"}))
+                html_file = etree.parse(file, etree.HTMLParser())
+                list_status = html_file.xpath(".//table[@class='appTable']")
+                if len(list_status) == 3:
+                    list_status = list_status[1].findall("./tbody/tr")
+                    for status in list_status:
+                        status_items = status.findall(".//td")
+                        if len(status_items) == 4 and status_items[0].text != 'Date':
+                            date = parse('-'.join((status_items[0].text).split()) + ' ' +
+                                         status_items[1].text.split()[0])
+                            self.env['tracking.status'].create({'date': date,
+                                                                'status': status_items[2].text + ' - ' +
+                                                                          status_items[3].text,
+                                                                'tracking_id': rec.id})

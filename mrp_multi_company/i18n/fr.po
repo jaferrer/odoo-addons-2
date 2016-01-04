@@ -20,7 +20,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_mrp_multi_company
 msgid "MRP Fixes for multi-company"
-msgstr "Améliorations MRP pour le multi-société"
+msgstr "AmÃ©liorations MRP pour le multi-sociÃ©tÃ©"
 
 #. module: base
 #: model:ir.module.module,description:base.module_mrp_multi_company
@@ -31,6 +31,6 @@ msgid ""
 "- Fixes the production sale order reference when sale is in other company\n"
 msgstr ""
 "\n"
-"Améliorations MRP pour le multi-société\n"
+"AmÃ©liorations MRP pour le multi-sociÃ©tÃ©\n"
 "=======================================\n"
-"- Résoud le pb de la référence de vente lorsque l'envoi est fait dans une autre société\n"
+"- RÃ©soud le pb de la rÃ©fÃ©rence de vente lorsque l'envoi est fait dans une autre sociÃ©tÃ©\n"

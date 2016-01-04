@@ -28,41 +28,53 @@ class mrp_production(models.Model):
     @api.multi
     def update_moves(self):
         for mrp in self:
+            post = ''
             changes_to_do = []
             list_products_to_change = []
             needed_new_moves = []
-            useless_moves = mrp.move_lines.filtered(lambda m: m.product_id not in [x.product_id for x in mrp.product_lines])
+            useless_moves = mrp.move_lines.filtered(lambda m: m.product_id not in
+                                                              [x.product_id for x in mrp.product_lines])
+            for product in list(set([x.product_id for x in useless_moves])):
+                post += _("Product %s: not needed anymore<br>") % (product.name)
             useless_moves.with_context({'cancel_procurement': True}).action_cancel()
             for item in mrp.move_lines:
                 if not item.product_id in list_products_to_change:
                     total_old_need = sum([x.product_uom_qty for x in mrp.move_lines if x.product_id == item.product_id])
                     total_new_need = sum([x.product_qty for x in mrp.product_lines if x.product_id == item.product_id])
                     if total_new_need != total_old_need and total_new_need != 0:
-                        changes_to_do += [(item.product_id, total_new_need - total_old_need, total_new_need, total_old_need)]
+                        changes_to_do += [(item.product_id, total_new_need - total_old_need, total_new_need,
+                                           total_old_need)]
                         list_products_to_change += [item.product_id]
             for product, qty, total_new_need, total_old_need in changes_to_do:
                 if qty > 0:
                     move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, qty, False, 0)
                     self.env['stock.move'].browse(move).action_confirm()
                 else:
-                    moves = mrp.move_lines.filtered(lambda m: m.product_id==product).sorted(key=lambda m: m.product_qty, reverse=True)
+                    moves = mrp.move_lines.filtered(lambda m: m.product_id==product).\
+                        sorted(key=lambda m: m.product_qty, reverse=True)
                     _sum = sum([x.product_qty for x in moves])
                     while _sum > total_new_need:
                         moves[0].with_context({'cancel_procurement': True}).action_cancel()
                         _sum -= moves[0].product_qty
                         moves -= moves[0]
                     if _sum < total_new_need:
-                        move = self._make_consume_line_from_data(mrp, product, product.uom_id.id, total_new_need - _sum, False, 0)
+                        move = self._make_consume_line_from_data(mrp, product, product.uom_id.id,
+                                                                 total_new_need - _sum, False, 0)
                         self.env['stock.move'].browse(move).action_confirm()
+                post += _("Product %s: quantity changed from %s to %s<br>") % (product.name, total_old_need,
+                                                                               total_new_need)
 
             for item in mrp.product_lines:
                 if item.product_id not in [y.product_id for y in mrp.move_lines if y.state != 'cancel']:
                     needed_new_moves += [item]
+                    post += _("Raw material move created of quantity %s for product %s<br>") % \
+                            (item.product_qty, item.product_id.name)
 
             for item in needed_new_moves:
                 product = item.product_id
                 move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, item.product_qty, False, 0)
                 self.env['stock.move'].browse(move).action_confirm()
+            mrp.message_post(post)
 
     @api.multi
     def write(self, vals):

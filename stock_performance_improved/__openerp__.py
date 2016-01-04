@@ -42,6 +42,7 @@ stock picking. It can also be definied in procurement rules so that the resultin
     'data': [
         'security/ir.model.access.csv',
         'stock_performance_improved_view.xml',
+        'stock_performance_improved_data.xml',
     ],
     'demo': [
         'stock_performance_improved_demo.xml',

@@ -82,6 +82,21 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="procurement_management_orderpoint_compute_form">
+            <field name="name">procurement.management.orderpoint.compute.form</field>
+            <field name="model">procurement.orderpoint.compute</field>
+            <field name="inherit_id" ref="stock.view_procurement_compute_wizard"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form position="inside">
+                    <group>
+                        <field name="compute_all"/>
+                        <field name="product_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="procurement_management_compute_all_form">
             <field name="name">procurement.management.compute.all.form</field>
             <field name="model">procurement.order.compute.all</field>
@@ -94,6 +109,19 @@
                         <field name="product_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
                     </group>
                 </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="stock_quant_view_search">
+            <field name="name">stock.quant.view.search</field>
+            <field name="model">stock.quant</field>
+            <field name="inherit_id" ref="stock.quant_search_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <filter name="internal_loc" position="after">
+                    <separator/>
+                    <filter string="Non Reserved Quants" domain="[('reservation_id' ,'=',False )]"/>
+                </filter>
             </field>
         </record>
 

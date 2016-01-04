@@ -24,6 +24,57 @@ class TrackingTransporter(models.Model):
     _name = 'tracking.transporter'
 
     name = fields.Char(string="Name")
+    image = fields.Binary(string="Image")
+    number_ids = fields.One2many('tracking.number', 'transporter_id', domain=[('order_id', '!=', False)],
+                                 string="List of related tracking numbers")
+    order_ids = fields.One2many('purchase.order', 'transporter_id', groups='purchase.group_purchase_user',
+                                string="List of related purchase orders")
+    number_trackings = fields.Integer(string="Number of related tracking numbers", compute='_compute_number_trackings',
+                                      store=True)
+    number_orders = fields.Integer(string="Number of related purchase orders", compute='_compute_number_orders',
+                                   groups='purchase.group_purchase_user', store=True)
+    logo = fields.Char(compute='_compute_logo', string="Logo")
+
+    @api.depends('number_ids')
+    def _compute_number_trackings(self):
+        for rec in self:
+            rec.number_trackings = len(rec.number_ids)
+
+    @api.depends('order_ids')
+    def _compute_number_orders(self):
+        for rec in self:
+            rec.number_orders = len(rec.order_ids)
+
+    # Function to overwrite for each transporter.
+    @api.multi
+    def _compute_logo(self):
+        for rec in self:
+            rec.logo = False
+
+
+    @api.multi
+    def open_transporter_numbers(self):
+        self.ensure_one()
+        return {
+            'name': _('Tracking numbers related to transporter %s' % self.name),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'tracking.number',
+            'domain': [('transporter_id', '=', self.id)]
+        }
+
+    @api.multi
+    def open_purchase_orders(self):
+        self.ensure_one()
+        return {
+            'name': _('Purchase orders related to transporter %s' % self.name),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'purchase.order',
+            'domain': [('id', 'in', self.order_ids.ids)]
+        }
 
 
 class TrackingStatus(models.Model):
@@ -37,11 +88,17 @@ class TrackingStatus(models.Model):
 class TrackingNumber(models.Model):
     _name = 'tracking.number'
 
-    name = fields.Char(string="Tracking number")
+    name = fields.Char(string="Tracking number", required=True)
     status_ids = fields.One2many('tracking.status', 'tracking_id', string="Status history")
-    date = fields.Datetime(string="Date of the status", compute='_compute_date_and_status')
-    status = fields.Char(string="Status", compute='_compute_date_and_status')
-    order_id = fields.Many2one('purchase.order', string="Linked purchase order")
+    date = fields.Datetime(string="Date of the last status", compute='_compute_date_and_status')
+    status = fields.Char(string="Last status", compute='_compute_date_and_status')
+    order_id = fields.Many2one('purchase.order', string="Linked purchase order",
+                               groups='purchase.group_purchase_user')
+    transporter_id = fields.Many2one('tracking.transporter', string="Transporter")
+    partner_id = fields.Many2one('res.partner', string="Supplier", related='order_id.partner_id')
+    last_status_update = fields.Datetime(string="Date of the last update")
+    logo = fields.Char(string="Logo", related='transporter_id.logo')
+    image = fields.Binary(string="Image", related='transporter_id.image')
 
     @api.multi
     def _compute_date_and_status(self):
@@ -58,26 +115,32 @@ class TrackingNumber(models.Model):
     def open_status_ids(self):
         self.ensure_one()
         return {
-            'name': _('List of status corresponding to this tracking number'),
+            'name': _('List of status corresponding to tracking number %s' % self.name),
             'type': 'ir.actions.act_window',
             'view_type': 'form',
-            'view_mode': 'list',
+            'view_mode': 'tree',
             'res_model': 'tracking.status',
             'domain': [('tracking_id', '=', self.id)]
         }
-
-
-class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
-
-    transporter_id = fields.Many2one('tracking.transporter', string="Transporter used")
-    last_status_update = fields.Datetime(string="Date of the last update")
-    tracking_ids = fields.One2many('tracking.number', 'order_id', string="Delivery Tracking")
 
     # Function to overwrite for each transporter.
     @api.multi
     def update_delivery_status(self):
         for rec in self:
             rec.last_status_update = fields.Datetime.now()
-            rec.status_date = False
-            rec.delivery_status = False
+
+
+class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
+    _inherit = 'purchase.order'
+
+    transporter_id = fields.Many2one('tracking.transporter', string="Transporter used",
+                                     related='tracking_ids.transporter_id', store=True, readonly=True)
+    last_status_update = fields.Datetime(string="Date of the last update")
+    tracking_ids = fields.One2many('tracking.number', 'order_id', string="Delivery Tracking")
+
+    @api.multi
+    def update_delivery_status(self):
+        for rec in self:
+            if rec.state not in ['draft', 'cancel', 'done']:
+                rec.last_status_update = fields.Datetime.now()
+                rec.tracking_ids.update_delivery_status()

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="transporter_dpd" model="tracking.transporter">
+            <field name="name">DPD</field>
+            <field name="image" type="base64" file="purchase_delivery_tracking_dpd/static/img/dpd.png"/>
+        </record>
+
+    </data>
+</openerp>

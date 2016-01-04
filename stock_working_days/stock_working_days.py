@@ -268,3 +268,19 @@ class stock_location_path_working_days(models.Model):
         else:
             super(stock_location_path_working_days, self)._apply(rule, move)
 
+
+class ResourceWorkingDays(models.Model):
+    _inherit = 'resource.resource'
+
+    leave_ids = fields.One2many('resource.calendar.leaves', 'resource_id', string="List of related leaves")
+
+
+class LeavesWorkingDays(models.Model):
+    _inherit = 'resource.calendar.leaves'
+
+    @api.multi
+    def onchange_resource(self, resource):
+        result = super(LeavesWorkingDays, self).onchange_resource(resource)
+        if self.env.context.get('default_resource_id'):
+            return{'calendar_id': self.env.context['default_resource_id']}
+        return result

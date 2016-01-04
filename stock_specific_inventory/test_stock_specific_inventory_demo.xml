@@ -4,17 +4,15 @@
 
     	<record id="inv_product_test_product_1" model="product.product">
             <field name="name">Test Product 1</field>
-            <field name="default_code">TP</field>
+            <field name="default_code">TP-SSI-1</field>
             <field name="type">product</field>
         </record>
 
         <record id="inv_product_test_product_2" model="product.product">
             <field name="name">Test Product 2</field>
-            <field name="default_code">TP2</field>
+            <field name="default_code">TP-SSI-2</field>
             <field name="type">product</field>
         </record>
-        
-		
         
     </data>
 </openerp>

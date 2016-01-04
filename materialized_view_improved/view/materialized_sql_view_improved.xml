@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <record id="view_materialized_sql_view_form_improved" model="ir.ui.view">
+            <field name="name">materialized.sql.view.form.improved</field>
+            <field name="inherit_id" ref="materialized_sql_view.view_materialized_sql_view_form" />
+            <field name="model">materialized.sql.view</field>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+            	<field name="state" position="before">
+            		<field name="cron_id" invisible="1"/>
+            		<button name="create_schedul_refresh_materialized_sql_view"
+                                string="Schedul"
+                                type="object" 
+                                attrs="{'invisible':[('cron_id','!=',0)]}"
+                                groups="materialized_sql_view.manager_group"/>
+                    <button name="delete_schedul_refresh_materialized_sql_view"
+                                string="Delete Scheduler"
+                                type="object" 
+                                attrs="{'invisible':[('cron_id','=',0)]}"
+                                groups="materialized_sql_view.manager_group"/>
+            	</field>
+                  <sheet position="inside">
+                      <group name="info_refresh_auto">
+                      	<group>
+	                      <button name="open_cron_window"
+                                string="Scheduler update"
+                                type="object" attrs="{'invisible':[('cron_id','=',0)]}"/>
+                         </group>
+
+                      </group>
+                  </sheet>
+            </field>
+        </record>
+        <record id="view_materialized_sql_view_search_improved" model="ir.ui.view">
+            <field name="name">materialized.sql.view.search.improved</field>
+            <field name="inherit_id" ref="materialized_sql_view.view_materialized_sql_view_search" />
+            <field name="model">materialized.sql.view</field>
+            <field name="arch" type="xml">
+                <search string="Materialized SQL View" position="inside">
+                    <field name="cron_id" widget="boolean" readonly="1"/>
+                </search>
+            </field>
+        </record>
+
+    </data>
+</openerp>
