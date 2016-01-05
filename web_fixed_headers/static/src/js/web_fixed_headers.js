@@ -41,6 +41,15 @@ openerp.web_fixed_headers = function(instance) {
 			    });
 			    $('div.fixedwrapper').height($active_view.find("div.oe_view_manager_body:first").height()-this.$header.height()-2);
 				$active_view.find('.oe_view_manager_view_list table.oe_list_header_custom:first').css({"display":this.$table.css("display")});
+				
+				this.$header.find('.oe_list_record_selector').click(function(){
+					self.group.view.$el.find('.oe_list_record_selector input').prop('checked',
+							self.group.view.$el.find('.oe_list_record_selector').prop('checked')  || false);
+		            var selection = self.group.view.groups.get_selection();
+		            $(self.group.view.groups).trigger(
+		                'selected', [selection.ids, selection.records]);
+		        });
+				
 			    //console.log("resize");
 			} else {
 				var self=this;

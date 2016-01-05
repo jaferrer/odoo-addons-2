@@ -59,4 +59,3 @@ class stock_transfer_details_items_select(models.TransientModel):
             to_delete_lines = self.search([('transfer_id','=',transfer_id.id)]) - self
             to_delete_lines.unlink()
             return False
-
