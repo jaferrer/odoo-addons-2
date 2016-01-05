@@ -28,12 +28,12 @@ class StockChangeQuantPicking(models.TransientModel):
         quants = self.env['stock.quant'].browse(self.env.context['active_ids'])
         products = quants.mapped('product_id')
         if len(products) != 1:
-            raise exceptions.except_orm(_("Error!"), _("Impossible to reserve quants of different products"))
+            raise exceptions.except_orm(_("Error!"), _("Impossible to reserve quants of different products."))
         return {}
 
     partner_id = fields.Many2one('res.partner', string='Partner')
     picking_id = fields.Many2one('stock.picking', string='Picking')
-    move_id = fields.Many2one('stock.move', string='Move', required=True)
+    move_id = fields.Many2one('stock.move', string='Stock move', required=True)
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
