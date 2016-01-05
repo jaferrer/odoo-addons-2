@@ -61,7 +61,6 @@ class StockChangeQuantPicking(models.TransientModel):
             self.move_id.action_confirm()
             quant.quants_reserve([(quant, self.move_id.product_uom_qty)], self.move_id)
             break
-        print self.move_id, self.move_id.reserved_quant_ids
         if self.picking_id.pack_operation_ids:
             self.move_id.picking_id.do_prepare_partial()
         return {
