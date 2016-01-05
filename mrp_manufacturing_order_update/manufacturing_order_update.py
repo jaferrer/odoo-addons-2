@@ -35,7 +35,7 @@ class mrp_production(models.Model):
             useless_moves = mrp.move_lines.filtered(lambda m: m.product_id not in
                                                               [x.product_id for x in mrp.product_lines])
             for product in list(set([x.product_id for x in useless_moves])):
-                post += _("Product %s: not needed anymore<br>") % (product.name)
+                post += _("Product %s: not needed anymore<br>") % (product.default_code + ' - ' + product.name)
             useless_moves.with_context({'cancel_procurement': True}).action_cancel()
             for item in mrp.move_lines:
                 if not item.product_id in list_products_to_change:
@@ -61,14 +61,14 @@ class mrp_production(models.Model):
                         move = self._make_consume_line_from_data(mrp, product, product.uom_id.id,
                                                                  total_new_need - _sum, False, 0)
                         self.env['stock.move'].browse(move).action_confirm()
-                post += _("Product %s: quantity changed from %s to %s<br>") % (product.name, total_old_need,
-                                                                               total_new_need)
+                post += _("Product %s: quantity changed from %s to %s<br>") % \
+                        (product.default_code + ' - ' + product.name, total_old_need, total_new_need)
 
             for item in mrp.product_lines:
                 if item.product_id not in [y.product_id for y in mrp.move_lines if y.state != 'cancel']:
                     needed_new_moves += [item]
                     post += _("Raw material move created of quantity %s for product %s<br>") % \
-                            (item.product_qty, item.product_id.name)
+                            (item.product_qty, product.default_code + ' - ' + product.name)
 
             for item in needed_new_moves:
                 product = item.product_id
