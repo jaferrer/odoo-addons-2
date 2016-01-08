@@ -22,7 +22,7 @@ from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 
 
-MOVE_CHUNK = 25
+MOVE_CHUNK = 100
 
 
 @job
