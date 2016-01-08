@@ -32,8 +32,8 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     save_tracking_number = fields.Boolean(string=u"Enregistrer le numéro de suivi pour l'objet courant", default=True)
     transportationAmount = fields.Float(string=u"Prix du transport", help=u"En euros")
     totalAmount = fields.Float(string=u"Prix TTC de l’envoi", help=u"En euros")
-    orderNumber = fields.Char(string=u"Référence client", help=u"Numéro de commande tel que renseigné dans votre SI "
-                                                               u"Peut être utile pour rechercher des colis selon ce "
+    senderParcelRef = fields.Char(string=u"Référence client", help=u"Numéro de commande tel que renseigné dans votre SI"
+                                                               u" Peut être utile pour rechercher des colis selon ce "
                                                                u"champ sur le suivi ColiView (apparaît dans le champ "
                                                                u"'Réf. client')")
     companyName = fields.Char(string=u"Raison sociale", required=True)
@@ -113,7 +113,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         #TODO: veut-on faire du mailBoxPicking ?
 
         commercialName = company.name or ''
-        senderParcelRef = ''
+        orderNumber = ''
 
         # Destinataire
         companyName2 = company.name or ''
@@ -140,8 +140,8 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
 
         first_part = (contractNumber,password, x, y, self.outputPrintingType, self.productCode.code, depositDate,
                       mailBoxPicking, int(self.transportationAmount * 100), int(self.totalAmount * 100),
-                      self.orderNumber, commercialName, self.returnTypeChoice, self.weight, self.nonMachinable,
-                      self.instructions, self.ftd, senderParcelRef)
+                      orderNumber, commercialName, self.returnTypeChoice, self.weight, self.nonMachinable,
+                      self.instructions, self.ftd, self.senderParcelRef)
 
         customer_data = (self.companyName or '', self.lastName or '', self.firstName or '', self.line0 or '',
                          self.line1 or '', self.line2 or '', self.line3 or '', self.countryCode or '', self.city or '',

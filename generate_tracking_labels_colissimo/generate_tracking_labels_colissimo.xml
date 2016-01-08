@@ -13,7 +13,7 @@
                         <field name="type"/>
                         <field name="direction"/>
                         <field name="save_tracking_number"/>
-                        <field name="orderNumber"/>
+                        <field name="senderParcelRef"/>
                     </group>
                     <separator string="Données colis"/>
                     <group>
