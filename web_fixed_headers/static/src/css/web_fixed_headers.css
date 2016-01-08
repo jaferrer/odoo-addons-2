@@ -16,6 +16,12 @@ table .oe_list_header_custom td, table .oe_list_header_custom th {
     padding: 3px 6px;
 }
 
+table .oe_list_header_custom th.oe_list_header_handle {
+    font-size: 1px;
+    overflow: hidden;
+    text-indent: -9001px;
+}
+
 table .oe_list_header_custom th.sortdown div::after {
     border-color: #000 transparent !important;
     border-style: solid solid none !important;
