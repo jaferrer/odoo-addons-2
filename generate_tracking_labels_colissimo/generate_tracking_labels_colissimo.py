@@ -113,7 +113,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         #TODO: veut-on faire du mailBoxPicking ?
 
         commercialName = company.name or ''
-        senderParcelRef = self.orderNumber
+        senderParcelRef = ''
 
         # Destinataire
         companyName2 = company.name or ''
