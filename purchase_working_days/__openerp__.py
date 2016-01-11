@@ -44,6 +44,7 @@ Notes:
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
+        'security/security.xml',
         'purchase_working_days_view.xml',
     ],
     'demo': [
