@@ -43,6 +43,9 @@ class TestStockSplitPicking(common.TransactionCase):
         self.assertEqual(self.picking.state, 'assigned')
         self.assertFalse(self.picking.packing_details_saved)
 
+        self.picking.rereserve_pick()
+        self.assertFalse(self.picking.pack_operation_ids)
+
         # Preparing packops without saving it
         popup = self.env['stock.transfer_details'].\
             with_context(self.picking.do_enter_transfer_details().get('context')).\
@@ -54,6 +57,11 @@ class TestStockSplitPicking(common.TransactionCase):
         # Decreasing qty and then rereserve_pick
         self.picking.pack_operation_ids.product_qty = 20
         self.assertFalse(self.picking.packing_details_saved)
+        self.picking.rereserve_pick()
+        self.assertEqual(len(self.picking.pack_operation_ids), 1)
+        self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
+
+        # Rereserve pick again and check that nothing has changed
         self.picking.rereserve_pick()
         self.assertEqual(len(self.picking.pack_operation_ids), 1)
         self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
