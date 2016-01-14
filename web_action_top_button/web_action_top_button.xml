@@ -8,5 +8,17 @@
             </xpath>
         </template>
 
+        <record model="ir.ui.view" id="web_action_top_button_action_server_form">
+            <field name="name">web_action_top_button_action_server_form</field>
+            <field name="model">ir.actions.server</field>
+            <field name="inherit_id" ref="base.view_server_action_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="state" position="after">
+                    <field name="usage"/>
+                </field>
+            </field>
+        </record>
+
     </data>
 </openerp>

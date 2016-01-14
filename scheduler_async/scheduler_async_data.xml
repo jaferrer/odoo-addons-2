@@ -7,20 +7,5 @@
             <field name="args"/>
         </record>
 
-        <record id="sirail_assign_moves_auto" model="ir.cron">
-            <field name="name">Automatic assignation of stock moves</field>
-            <field name="user_id" ref="base.user_root"/>
-            <field name="active" eval="True"/>
-            <field name="priority">5</field>
-            <field name="interval_number">10</field>
-            <field name="interval_type">minutes</field>
-            <field name="nextcall">2015-10-01 00:00:00</field>
-            <field name="numbercall">-1</field>
-            <field name="doall"/>
-            <field name="model">procurement.order</field>
-            <field name="function">run_assign_moves</field>
-            <field name="args">([{'jobify': True}])</field>
-        </record>
-
     </data>
 </openerp>
