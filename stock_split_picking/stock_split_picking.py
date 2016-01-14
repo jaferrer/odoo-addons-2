@@ -95,8 +95,8 @@ class StockSplitPicking(models.Model):
     def rereserve_pick(self):
         pickings_not_saved = self.filtered(lambda p: not p.packing_details_saved)
         pickings_saved = self.filtered(lambda p: p.packing_details_saved)
-        pickings_not_saved.filtered(lambda p: not p.pack_operation_ids).action_assign()
-        pickings_not_saved.filtered(lambda p: p.pack_operation_ids).recheck_availability()
+        pickings_not_saved.filtered(lambda p: not p.pack_operation_ids).with_context(rereserving_pick=True).action_assign()
+        pickings_not_saved.filtered(lambda p: p.pack_operation_ids).with_context(rereserving_pick=True).recheck_availability()
         return super(StockSplitPicking, pickings_saved).rereserve_pick()
 
 
@@ -109,3 +109,14 @@ class SplitPickingStockQuantPackage(models.Model):
             return super(SplitPickingStockQuantPackage, self.sudo()).unpack()
         else:
             return super(SplitPickingStockQuantPackage, self).unpack()
+
+
+class SplitPickingStockMove(models.Model):
+    _inherit = 'stock.move'
+
+    @api.multi
+    def action_assign(self):
+        if self.env.context.get('rereserving_pick'):
+            moves_without_quants = self.filtered(lambda m: not m.reserved_quant_ids)
+            return super(SplitPickingStockMove, moves_without_quants).action_assign()
+        return super(SplitPickingStockMove, self).action_assign()

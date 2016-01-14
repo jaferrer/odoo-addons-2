@@ -43,6 +43,7 @@ class TestStockSplitPicking(common.TransactionCase):
         self.assertEqual(self.picking.state, 'assigned')
         self.assertFalse(self.picking.packing_details_saved)
 
+        # Checking that nothing is changed when rereserving a picking with no pack operations
         self.picking.rereserve_pick()
         self.assertFalse(self.picking.pack_operation_ids)
 
@@ -61,7 +62,7 @@ class TestStockSplitPicking(common.TransactionCase):
         self.assertEqual(len(self.picking.pack_operation_ids), 1)
         self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
 
-        # Rereserve pick again and check that nothing has changed
+        # Checking that rereserving again does not change anything
         self.picking.rereserve_pick()
         self.assertEqual(len(self.picking.pack_operation_ids), 1)
         self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
