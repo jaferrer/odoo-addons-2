@@ -1,4 +1,4 @@
-from openerp import http
+from openerp import http, tools
 import simplejson
 from openerp.http import request, serialize_exception as _serialize_exception
 from cStringIO import StringIO
@@ -781,20 +781,20 @@ Interactive Layer
   stroke: #ccc;
 }
         """
-        options["filter"]
+        contenthtml = u"""<html><head><head><body style="width:100%%;height:100%%;padding-right:10px;">
+            <div style="width:100%%;border:1px solid black;text-align:center;"><h2>""" + tools.ustr(title) + u"""</h2></div>
+            <div style="width:100%%;border:2px solid black;text-align:center;margin-top:10px;margin-bottom:20px;border-radius: 25px;background-color: #f1f1f1;">
+            <div><span style="font-weight:bold;">Filtres : </span>""" + tools.ustr(options["filter"]) + u"""</div>
+            <div><span style="font-weight:bold;">Colonnes : </span>""" + tools.ustr(options["col"]) + u"""</div>
+            <div><span style="font-weight:bold;">Lignes : </span>""" + tools.ustr(options["row"]) + u"""</div>
+            </div>
+            %s
+            <div style="width:100%%;border:1px solid black;text-align:center;margin-top:20px;">
+            <h4>""" + tools.ustr(datetime.now()) + u"""</h4>
+            </div>
+            </body></html>"""
 
-        contenthtml = """<html><head><head><body style="width:100%;height:100%;padding-right:10px;">""" + \
-            """<div style="width:100%;border:1px solid black;text-align:center;"><h2>""" + title + """</h2></div>""" + \
-            """<div style="width:100%;border:2px solid black;text-align:center;margin-top:10px;margin-bottom:20px;border-radius: 25px;background-color: #f1f1f1;">""" + \
-            """<div><span style="font-weight:bold;">Filtres : </span>""" + str(options["filter"]) + """</div>""" + \
-            """<div><span style="font-weight:bold;">Colonnes : </span>""" + str(options["col"]) + """</div>""" + \
-            """<div><span style="font-weight:bold;">Lignes : </span>""" + str(options["row"]) + """</div>""" + \
-            """</div>""" + \
-            data + \
-            """<div style="width:100%;border:1px solid black;text-align:center;margin-top:20px;">""" + \
-            """<h4>""" + str(datetime.now()) + """</h4>""" + \
-            """</div>""" + \
-            """</body></html>"""
+        contenthtml = contenthtml % tools.ustr(data)
 
         base_url = request.env["ir.config_parameter"].get_param(
             'report.url') or request.env["ir.config_parameter"].get_param('web.base.url')
