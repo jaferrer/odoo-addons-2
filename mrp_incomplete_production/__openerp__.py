@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Product',
-    'depends': ['mrp_manufacturing_order_update'],
+    'depends': ['mrp_manufacturing_order_update', 'stock_quant_packages_moving_wizard'],
     'description': """
 Partial Productions
 ===================
@@ -35,11 +35,11 @@ It also creates another MO, with the products needed but not available at the co
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-             'mrp_incomplete_production.xml'
-             ,'mrp_incomplete_production_workflow.xml'
+        'views/mrp_incomplete_production.xml',
+        'data/mrp_incomplete_production_workflow.xml'
     ],
     'demo': [
-        'test_mrp_incomplete_production.xml'
+        'data/test_mrp_incomplete_production.xml'
     ],
     'test': [],
     'installable': True,

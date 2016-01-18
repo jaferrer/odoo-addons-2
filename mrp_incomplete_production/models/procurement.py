@@ -17,4 +17,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import models
+from openerp import fields, models, api
+
+
+class IncompleteProductionProcurementRule(models.Model):
+    _inherit = 'procurement.rule'
+
+    child_loc_id = fields.Many2one('stock.location', string="Child location", help="Source and destination locations of"
+                                                                    " the automatically generated manufacturing order")
+
+
+class IncompleteProductionProcurementOrder(models.Model):
+    _inherit = 'procurement.order'
+
+    @api.model
+    def _prepare_mo_vals(self,procurement):
+        result = super(IncompleteProductionProcurementOrder, self)._prepare_mo_vals(procurement)
+        if procurement.rule_id.child_loc_id.id:
+            result['child_location_id'] = procurement.rule_id.child_loc_id.id
+        return result
