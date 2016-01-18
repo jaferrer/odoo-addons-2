@@ -32,6 +32,9 @@ class ManufacturingOrderPlanningImproved(models.Model):
                                         states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
     procurement_id = fields.Many2one('procurement.order', string="Corresponding procurement order",
                                                                                     compute='_compute_procurement_id')
+    final_order_id = fields.Many2one('mrp.production', string="Top parent order",
+                                     help="Final parent order in the chain of raw materials and produced products",
+                                     compute='_compute_final_order_id')
 
     @api.multi
     def _compute_procurement_id(self):
@@ -39,6 +42,19 @@ class ManufacturingOrderPlanningImproved(models.Model):
             list_procurements = self.env['procurement.order'].search([('production_id', '=', rec.id)])
             if list_procurements and len(list_procurements) == 1:
                 rec.procurement_id = list_procurements[0]
+
+    @api.multi
+    def _compute_final_order_id(self):
+        for rec in self:
+            production = rec
+            move = rec.move_created_ids and rec.move_created_ids[0] or False
+            while move.move_dest_id:
+                move = move.move_dest_id
+                if not move.move_dest_id and move.raw_material_production_id:
+                    production = move.raw_material_production_id
+                    move = move.raw_material_production_id.move_created_ids and \
+                           move.raw_material_production_id.move_created_ids[0] or False
+            rec.final_order_id = production
 
     @api.model
     def _make_production_produce_line(self, production):
