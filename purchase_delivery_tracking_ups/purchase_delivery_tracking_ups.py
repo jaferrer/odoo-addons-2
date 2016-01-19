@@ -22,6 +22,7 @@ from urllib2 import urlopen
 from lxml import etree
 from urllib import urlencode
 from dateutil.parser import parse
+import requests
 
 
 class UpsTrackingTransporter(models.Model):
@@ -58,63 +59,58 @@ class UpsTrackingNumber(models.Model):
                 rec.status_ids.unlink()
 
                 # First get
-                file = False
-                try:
-                    file = urlopen('http://wwwapps.ups.com/WebTracking/track?HTMLVersion=5.0&loc=' + lang +
-                                   '&track.x=Suivi&trackNums=' + rec.name)
-                    file_etree = etree.parse(file, etree.HTMLParser())
+                params = {'HTMLVersion': '5.0', 'loc': lang, 'track.x': 'Suivi', 'trackNums': rec.name}
+                r = requests.get('http://wwwapps.ups.com/WebTracking/track', params=params)
+                file_etree = etree.fromstring(r.content, etree.HTMLParser())
+                input_loc = file_etree.xpath(".//form[@id='detailFormid']/input[@name='loc']")
+                input_USER_HISTORY_LIST = file_etree.xpath(".//form[@id='detailFormid']/input[@name='USER_HISTORY_LIST']")
+                input_progressIsLoaded = file_etree.xpath(".//form[@id='detailFormid']/input[@name='progressIsLoaded']")
+                input_refresh_sii_id = file_etree.xpath(".//form[@id='detailFormid']/input[@name='refresh_sii_id']")
+                input_datakey = file_etree.xpath(".//form[@id='detailFormid']/input[@name='datakey']")
+                input_HIDDEN_FIELD_SESSION = file_etree.xpath(".//form[@id='detailFormid']/input[@name='HIDDEN_FIELD_SESSION']")
+                input_multiship = file_etree.xpath(".//form[@id='detailFormid']/input[@name='multiship']")
 
-                    # Parsing the response to get the values
-                    input_loc = file_etree.xpath(".//form[@id='detailFormid']/input[@name='loc']")
-                    input_USER_HISTORY_LIST = file_etree.xpath(".//form[@id='detailFormid']/input[@name='USER_HISTORY_LIST']")
-                    input_progressIsLoaded = file_etree.xpath(".//form[@id='detailFormid']/input[@name='progressIsLoaded']")
-                    input_refresh_sii_id = file_etree.xpath(".//form[@id='detailFormid']/input[@name='refresh_sii_id']")
-                    input_datakey = file_etree.xpath(".//form[@id='detailFormid']/input[@name='datakey']")
-                    input_HIDDEN_FIELD_SESSION = file_etree.xpath(".//form[@id='detailFormid']/input[@name='HIDDEN_FIELD_SESSION']")
-                    input_multiship = file_etree.xpath(".//form[@id='detailFormid']/input[@name='multiship']")
+                new_key = 'descValue' + rec.name
 
-                    values = {"loc": input_loc and input_loc[0].get('value') or '',
-                              "USER_HISTORY_LIST": input_USER_HISTORY_LIST and input_USER_HISTORY_LIST[0].get('value') or '',
-                              "progressIsLoaded": input_progressIsLoaded and input_progressIsLoaded[0].get('value') or '',
-                              "refresh_sii_id": input_refresh_sii_id and input_refresh_sii_id[0].get('value') or '',
-                              "showSpPkgProg_id": 'true',
-                              "datakey": input_datakey and input_datakey[0].get('value') or '',
-                              "HIDDEN_FIELD_SESSION": input_HIDDEN_FIELD_SESSION and input_HIDDEN_FIELD_SESSION[0].get('value') or '',
-                              "multiship": input_multiship and input_multiship[0].get('value') or ''}
+                values = {"loc": input_loc and input_loc[0].get('value') or '',
+                          "USER_HISTORY_LIST": input_USER_HISTORY_LIST and input_USER_HISTORY_LIST[0].get('value') or '',
+                          "progressIsLoaded": input_progressIsLoaded and input_progressIsLoaded[0].get('value') or '',
 
-                    # Next, posting with good values
-                    post_response = False
-                    try:
-                        post_response = urlopen('http://wwwapps.ups.com/WebTracking/detail', urlencode(values))
-                        response_etree = etree.parse(post_response, etree.HTMLParser())
+                          "refresh_sii": input_refresh_sii_id and input_refresh_sii_id[0].get('value') or '',
+                          "showSpPkgProg1": 'true',
+                          "datakey": input_datakey and input_datakey[0].get('value') or '',
+                          "HIDDEN_FIELD_SESSION": input_HIDDEN_FIELD_SESSION and input_HIDDEN_FIELD_SESSION[0].get('value') or '',
+                          "multiship": input_multiship and input_multiship[0].get('value') or '',
+                          'trackNums': '1ZA15Y100491770839',
+                          new_key: ''}
 
-                        list_status = response_etree.xpath(".//table[@class='dataTable']")
-                        if list_status:
-                            list_status = list_status[0].findall(".//tr[@class='odd']")
-                            list_status_strings = []
-                            current_location = ''
+                r = requests.post('https://wwwapps.ups.com/WebTracking/detail', data=values)
+                response_etree = etree.fromstring(r.content, etree.HTMLParser())
 
-                            # Formating the result and creating status lines
-                            for status in list_status:
-                                properties = status.findall(".//td")
-                                if properties:
-                                    property_strings = []
-                                    for property in properties:
-                                        new_prop = ' '.join(property.text.split())
-                                        if new_prop:
-                                            property_strings += [new_prop]
-                                    if len(property_strings) == 4:
-                                        current_location = property_strings[0]
-                                    if len(property_strings) == 3:
-                                        property_strings = [current_location] + property_strings
-                                    list_status_strings += [property_strings]
-                            for status in list_status_strings:
-                                string_time = status[2]
-                                string_date = format(status[1])
-                                self.env['tracking.status'].create({'date': parse(string_date + ' ' + string_time),
-                                                                    'status': status[0] + ' - '+ status[3],
-                                                                    'tracking_id': rec.id})
-                    except:
-                        pass
-                except:
-                    pass
+                dataTable = response_etree.xpath(".//table[@class='dataTable']")
+                if dataTable:
+                    list_status = dataTable[0].findall(".//tr")
+                    list_status = list_status and list_status[1:] or list_status
+                    list_status_strings = []
+                    current_location = ''
+
+                    # Formating the result and creating status lines
+                    for status in list_status:
+                        properties = status.findall(".//td")
+                        if properties:
+                            property_strings = []
+                            for property in properties:
+                                new_prop = ' '.join(property.text.split())
+                                if new_prop:
+                                    property_strings += [new_prop]
+                            if len(property_strings) == 4:
+                                current_location = property_strings[0]
+                            if len(property_strings) == 3:
+                                property_strings = [current_location] + property_strings
+                            list_status_strings += [property_strings]
+                    for status in list_status_strings:
+                        string_time = status[2]
+                        string_date = format(status[1])
+                        self.env['tracking.status'].create({'date': parse(string_date + ' ' + string_time),
+                                                            'status': status[0] + ' - '+ status[3],
+                                                            'tracking_id': rec.id})
