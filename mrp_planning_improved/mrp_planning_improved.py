@@ -48,12 +48,13 @@ class ManufacturingOrderPlanningImproved(models.Model):
         for rec in self:
             production = rec
             move = rec.move_created_ids and rec.move_created_ids[0] or False
-            while move.move_dest_id:
-                move = move.move_dest_id
-                if not move.move_dest_id and move.raw_material_production_id:
-                    production = move.raw_material_production_id
-                    move = move.raw_material_production_id.move_created_ids and \
-                           move.raw_material_production_id.move_created_ids[0] or False
+            if move:
+                while move.move_dest_id:
+                    move = move.move_dest_id
+                    if not move.move_dest_id and move.raw_material_production_id:
+                        production = move.raw_material_production_id
+                        move = move.raw_material_production_id.move_created_ids and \
+                               move.raw_material_production_id.move_created_ids[0] or False
             rec.final_order_id = production
 
     @api.model
