@@ -42,7 +42,7 @@ def run_procure_orderpoint_async(session, model_name, company_id, context):
 
 @job
 def run_or_check_procurements(session, model_name, domain, action, context):
-    """Tries to confirms all procurements that can be found with domain"""
+    """Confirm or check procurements"""
     proc_obj = session.env[model_name].with_context(context)
     prev_procs = proc_obj
     while True:
