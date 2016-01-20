@@ -40,7 +40,7 @@ the wizard.
     'qweb': [
         'static/src/xml/stock_split_picking.xml'
     ],
-    'demo': [],
+    'demo': ['stock_split_picking_demo.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,

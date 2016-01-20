@@ -71,8 +71,8 @@
         </record>
 
         <record id="product_test_product" model="product.product">
-            <field name="name">Test Product</field>
-            <field name="default_code">TP</field>
+            <field name="name">Test Product (Working days)</field>
+            <field name="default_code">TP-WD</field>
             <field name="type">product</field>
             <field name="route_ids" eval="[(4,ref('test_route'))]"/>
         </record>

@@ -10,6 +10,33 @@ self.assign_moves_to_picking(cr, uid, context)
             </field>
         </record>
 
+        <record model="ir.actions.server" id="ir_actions_server_confirm_procurements">
+            <field name="name">Run Procurements</field>
+            <field name="model_id" ref="procurement.model_procurement_order"/>
+            <field name="code">
+context.update({'jobify': True})
+self.run_confirm_procurements(cr, uid, context=context)
+            </field>
+        </record>
+
+        <record model="ir.actions.server" id="ir_actions_server_check_procurements">
+            <field name="name">Check Procurements</field>
+            <field name="model_id" ref="procurement.model_procurement_order"/>
+            <field name="code">
+context.update({'jobify': True})
+self.run_check_procurements(cr, uid, context=context)
+            </field>
+        </record>
+
+        <record model="ir.actions.server" id="ir_actions_server_assign_moves">
+            <field name="name">Assign Moves</field>
+            <field name="model_id" ref="procurement.model_procurement_order"/>
+            <field name="code">
+context.update({'jobify': True})
+self.run_assign_moves(cr, uid, context=context)
+            </field>
+        </record>
+
         <record model="ir.values" id="ir_value_process_prereservation">
             <field name="key">action</field>
             <field name="key2">client_action_multi</field>
@@ -44,6 +71,35 @@ self.assign_moves_to_picking(cr, uid, context)
                     </field>
                 </data>
             </field>
+        </record>
+
+        <record model="ir.ui.view" id="stock_performance_improved_picking_form">
+            <field name="name">stock.performance.improved.picking.form</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <button name="rereserve_pick" position="attributes">
+                    <attribute name="attrs">{'invisible': [('state', 'not in', ('waiting', 'partially_available', 'assigned'))]}</attribute>
+                </button>
+            </field>
+        </record>
+
+        <menuitem id="menu_process_prereservations" name="Process Prereservations"
+                  action="ir_actions_server_process_prereservations"
+                  parent="stock.menu_stock_warehouse_mgmt" sequence="10"/>
+        <menuitem id="menu_confirm_procurements" name="Confirm Procurements"
+                  action="ir_actions_server_confirm_procurements"
+                  parent="stock.menu_stock_sched" sequence="14"/>
+        <menuitem id="menu_check_procurements" name="Check Procurements"
+                  action="ir_actions_server_check_procurements"
+                  parent="stock.menu_stock_sched" sequence="15"/>
+        <menuitem id="menu_assign_moves" name="Assign Moves"
+                  action="ir_actions_server_assign_moves"
+                  parent="stock.menu_stock_sched" sequence="16"/>
+
+        <record id="stock.menu_stock_proc_schedulers" model="ir.ui.menu">
+            <field name="groups_id" eval="[(4, ref('base.group_no_one'))]"/>
         </record>
 
     </data>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="account_improved_invoice_search">
+            <field name="name">account_improved_invoice_search</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.view_account_invoice_filter"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <filter help="My Invoices" position="after">
+                    <separator/>
+                    <filter name="late" string="Late" domain="[('state', '=', 'open'), ('date_due', '&lt;', current_date)]"/>
+                </filter>
+                <group string="Group By" position="inside">
+                    <filter string="Fiscal position" context="{'group_by':'fiscal_position'}"/>
+                    <filter string="Company" context="{'group_by':'company_id'}"/>
+                </group>
+            </field>
+        </record>
+
+    </data>
+</openerp>

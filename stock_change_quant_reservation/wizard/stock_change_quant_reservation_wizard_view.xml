@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <openerp>
     <data>
+
         <record id="stock_change_quant_reservation_wizard" model="ir.ui.view">
             <field name="name">Picking list containing selected quants</field>
             <field name="model">stock.quant.picking</field>
             <field name="arch" type="xml">
                 <form string="Transfer details" version="7">
                     <group groups="stock.group_tracking_lot">
-						<field name="picking_id"></field>
+						<field name="partner_id"/>
+						<field name="picking_id"/>
+						<field name="move_id"/>
                     </group>
                     <footer>
                         <button name="do_apply"
@@ -22,6 +25,7 @@
 
         <act_window name="Affect Quant" groups="stock.group_tracking_lot"
             res_model="stock.quant.picking" src_model="stock.quant"
-            view_mode="form" target="new" key2="client_action_multi" id="action_change_quants" />
+            view_mode="form" target="new" key2="client_action_multi" id="action_change_quants"/>
+
     </data>
 </openerp>

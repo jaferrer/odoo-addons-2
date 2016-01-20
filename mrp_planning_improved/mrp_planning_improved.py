@@ -32,6 +32,9 @@ class ManufacturingOrderPlanningImproved(models.Model):
                                         states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
     procurement_id = fields.Many2one('procurement.order', string="Corresponding procurement order",
                                                                                     compute='_compute_procurement_id')
+    final_order_id = fields.Many2one('mrp.production', string="Top parent order",
+                                     help="Final parent order in the chain of raw materials and produced products",
+                                     compute='_compute_final_order_id')
 
     @api.multi
     def _compute_procurement_id(self):
@@ -39,6 +42,20 @@ class ManufacturingOrderPlanningImproved(models.Model):
             list_procurements = self.env['procurement.order'].search([('production_id', '=', rec.id)])
             if list_procurements and len(list_procurements) == 1:
                 rec.procurement_id = list_procurements[0]
+
+    @api.multi
+    def _compute_final_order_id(self):
+        for rec in self:
+            production = rec
+            move = rec.move_created_ids and rec.move_created_ids[0] or False
+            if move:
+                while move.move_dest_id:
+                    move = move.move_dest_id
+                    if not move.move_dest_id and move.raw_material_production_id:
+                        production = move.raw_material_production_id
+                        move = move.raw_material_production_id.move_created_ids and \
+                               move.raw_material_production_id.move_created_ids[0] or False
+            rec.final_order_id = production
 
     @api.model
     def _make_production_produce_line(self, production):
@@ -90,18 +107,21 @@ class ProcurementOrderPlanningImproved(models.Model):
         """Reschedules the moves associated to this procurement."""
         for proc in self:
             if proc.state not in ['done', 'cancel'] and proc.rule_id and proc.rule_id.action == 'manufacture':
-                if proc.production_id:
+                production = proc.production_id
+                if production:
                     prod_start_date = self.env['procurement.order']._get_date_planned(proc)
-                    prod_end_date = proc.production_id.location_dest_id.schedule_working_days(
+                    prod_end_date = production.location_dest_id.schedule_working_days(
                         -proc.company_id.manufacturing_lead,
                         fields.Datetime.from_string(proc.date_planned)
                     )
                     # Updating the dates of the created moves of the corresponding manufacturing order
-                    proc.production_id.move_created_ids.write({'date': prod_end_date})
+                    production.move_created_ids.write({'date': prod_end_date})
                     # Updating the date_required of the corresponding manufacturing order
-                    proc.production_id.date_required = prod_start_date
+                    production.date_required = prod_start_date
                     # Updating the date_planned of the corresponding manufacturing order
-                    if self.env.context.get('reschedule_planned_date') and not proc.production_id.taken_into_account:
-                        proc.production_id.date_planned = prod_start_date
-                    proc.production_id.action_reschedule()
+                    if not production.taken_into_account:
+                        # If the production order is not taken into account, then we reschedule date_planned as well
+                        production = production.with_context(reschedule_planned_date=True)
+                        production.date_planned = prod_start_date
+                    production.action_reschedule()
         super(ProcurementOrderPlanningImproved, self).action_reschedule()

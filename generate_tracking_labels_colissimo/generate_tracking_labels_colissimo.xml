@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="generate_tracking_labels_wizard_form_view">
+            <field name="name">generate_tracking_labels_wizard_form_view</field>
+            <field name="model">generate.tracking.labels.wizard</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Print colissimo label">
+                    <separator string="Données générales"/>
+                    <group>
+                        <field name="type"/>
+                        <field name="direction"/>
+                        <field name="save_tracking_number"/>
+                        <field name="senderParcelRef"/>
+                    </group>
+                    <separator string="Données colis"/>
+                    <group>
+                        <group>
+                            <field name="productCode"/>
+                            <field name="adresseeParcelRef"/>
+                            <field name="codeBarForReference"/>
+                            <field name="serviceInfo"/>
+                            <field name="weight"/>
+                            <field name="outputPrintingType"/>
+                            <field name="returnTypeChoice"/>
+                            <field name="ftd"/>
+                            <field name="instructions"/>
+                        </group>
+                    </group>
+                    <separator string="Données client"/>
+                    <group>
+                        <group>
+                            <field name="companyName"/>
+                            <field name="firstName"/>
+                            <field name="lastName"/>
+                            <field name="email"/>
+                            <field name="phoneNumber"/>
+                            <field name="mobileNumber"/>
+                            <field name="doorCode1"/>
+                            <field name="doorCode2"/>
+                            <field name="intercom"/>
+                        </group>
+                        <group>
+                            <field name="line0"/>
+                            <field name="line1"/>
+                            <field name="line2"/>
+                            <field name="line3"/>
+                            <field name="countryCode"/>
+                            <field name="city"/>
+                            <field name="zipCode"/>
+                            <field name="language"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="generate_label" string="Générer l'étiquette" type="object" class="oe_highlight" />
+                        or
+                        <button string="Annuler" class="oe_link"
+                            special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="tracking_label_colissimo_type_produit_tree">
+            <field name="name">tracking_label_colissimo_type_produit_tree</field>
+            <field name="model">type.produit.colissimo</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree string="Types de bordereaux" create="false" delete="false" editable="top">
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="used_from_customer"/>
+                    <field name="used_to_customer"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_tracking_label_colissimo_type_produit">
+            <field name="name">Types de bordereaux</field>
+            <field name="res_model">type.produit.colissimo</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+    </data>
+</openerp>

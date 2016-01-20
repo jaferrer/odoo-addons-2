@@ -128,6 +128,9 @@ class procurement_order_group_by_period(models.Model):
                                         ('date_order', '<=', purchase_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT))])
                 if available_draft_po_ids:
                     po_rec = available_draft_po_ids[0]
+                    #if the product has to be ordered earlier those in the existing PO, we replace the purchase date on the order to avoid ordering it too late
+                    if datetime.strptime(po_rec.date_order, DEFAULT_SERVER_DATETIME_FORMAT) > purchase_date:
+                        po_rec.date_order = purchase_date.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
                     # look for any other PO line in the selected PO with same product and UoM to sum quantities instead
                     # of creating a new po line
                     available_po_line_ids = po_line_obj.search([('order_id', '=', po_rec.id),
@@ -135,13 +138,13 @@ class procurement_order_group_by_period(models.Model):
                                                                 ('product_uom', '=', line_vals['product_uom'])])
                     if available_po_line_ids:
                         po_line = available_po_line_ids[0]
-                        date_planned = min(line_vals['date_planned'], po_line.date_planned)
-                        po_line.sudo().write({
-                            'product_qty': po_line.product_qty + line_vals['product_qty'],
-                            'date_planned': date_planned,
-                        })
                         po_line_id = po_line.id
-                        sum_po_line_ids.append(procurement)
+                        new_qty, new_price = self._calc_new_qty_price(procurement, po_line=po_line)
+
+                        if new_qty > po_line.product_qty:
+                            po_line.write({'product_qty': new_qty, 'price_unit': new_price})
+                            self.update_origin_po(po_line, procurement)
+                            sum_po_line_ids.append(procurement)
                     else:
                         line_vals.update(order_id=po_rec.id)
                         po_line_id = po_line_obj.sudo().create(line_vals).id
@@ -167,7 +170,7 @@ class procurement_order_group_by_period(models.Model):
                         'payment_term_id': partner.property_supplier_payment_term.id or False,
                         'dest_address_id': procurement.partner_dest_id.id,
                     }
-                    po_id = self.create_procurement_purchase_order(procurement, po_vals, line_vals)
+                    po_id = self.sudo().create_procurement_purchase_order(procurement, po_vals, line_vals)
                     po_line_id = self.env['purchase.order'].browse(po_id).order_line[0].id
                     pass_ids.append(procurement)
                 res[procurement.id] = po_line_id
@@ -179,4 +182,3 @@ class procurement_order_group_by_period(models.Model):
         for proc in sum_po_line_ids:
             proc.message_post(body=_("Quantity added in existing Purchase Order Line"))
         return res
-

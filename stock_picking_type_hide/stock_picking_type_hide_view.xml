@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="stock_picking_type_form_hidden">
+            <field name="name">stock.picking.type.form.hidden</field>
+            <field name="model">stock.picking.type</field>
+            <field name="inherit_id" ref="stock.view_picking_type_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="return_picking_type_id" position="after">
+                    <field name="hidden"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="stock.action_picking_type_form">
+            <field name="domain">[('hidden', '=', False)]</field>
+        </record>
+
+    </data>
+</openerp>

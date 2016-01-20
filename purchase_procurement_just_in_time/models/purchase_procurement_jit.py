@@ -95,7 +95,6 @@ class PurchaseOrderLineJustInTime(models.Model):
     father_line_id = fields.Many2one('purchase.order.line', string="Very first line splited", readonly=True)
     children_line_ids = fields.One2many('purchase.order.line', 'father_line_id', string="Children lines")
     children_number = fields.Integer(string="Number of children", readonly=True, compute='_compute_children_number')
-    location_id = fields.Many2one(related='order_id.location_id')
 
     @api.depends('date_planned', 'date_required', 'to_delete', 'product_qty', 'opmsg_reduce_qty')
     def _compute_opmsg(self):
@@ -167,7 +166,7 @@ class PurchaseOrderLineJustInTime(models.Model):
             'context': {}
         }
 
-    @api.depends('move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
+    @api.depends('product_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
     def _get_remaining_qty(self):
 
         """
@@ -350,6 +349,20 @@ class PurchaseOrderLineJustInTime(models.Model):
                                                               ('state', 'not in', ['draft', 'cancel', 'done'])])
                 active_moves.write({'price_unit': vals['price_unit']})
         return result
+
+    @api.multi
+    def act_windows_view_graph(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.levels.report',
+            'name': _("Stock Evolution"),
+            'view_type': 'form',
+            'view_mode': 'graph,tree',
+            'res_id': self.id,
+            'context': {'search_default_location_id': self.order_id.location_id.id,
+                        'search_default_product_id': self.product_id.id}
+        }
 
 
 class ProcurementOrderPurchaseJustInTime(models.Model):

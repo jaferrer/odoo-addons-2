@@ -30,9 +30,14 @@
                     <attribute name="attrs"/>
                 </page>
                 <field name="pack_operation_ids" position="before">
-                    <button type="object" name="delete_packops" string="Delete Packing Operations"
-                            confirm="All existing packing operations will be removed.
-                            Are you sure you want to continue?"/>
+                    <group>
+                        <button type="object" name="delete_packops" string="Delete Packing Operations"
+                                confirm="All existing packing operations will be removed.
+                                Are you sure you want to continue?"/>
+                        <group>
+                            <field name="packing_details_saved" readonly="1"/>
+                        </group>
+                    </group>
                 </field>
             </field>
         </record>

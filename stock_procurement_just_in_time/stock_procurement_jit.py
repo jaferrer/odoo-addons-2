@@ -23,11 +23,11 @@ import openerp.addons.decimal_precision as dp
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 
-from openerp.tools import float_compare, float_round
+from openerp.tools import float_compare, float_round, flatten
 from openerp.tools.sql import drop_view_if_exists
 from openerp import fields, models, api
 
-ORDERPOINT_CHUNK = 50
+ORDERPOINT_CHUNK = 25
 
 _logger = logging.getLogger(__name__)
 
@@ -79,15 +79,25 @@ class ProcurementOrderQuantity(models.Model):
         if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
             dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
         orderpoint_ids = orderpoint_env.search(dom)
-        while orderpoint_ids:
-            orderpoints = orderpoint_ids[:ORDERPOINT_CHUNK]
-            orderpoint_ids = orderpoint_ids - orderpoints
+        op_product_ids = orderpoint_ids.read(['id', 'product_id'], load=False)
+
+        result = dict()
+        for row in op_product_ids:
+            if row['product_id'] not in result:
+                result[row['product_id']] = list()
+            result[row['product_id']].append(row['id'])
+        product_ids = result.values()
+
+        while product_ids:
+            products = product_ids[:ORDERPOINT_CHUNK]
+            product_ids = product_ids[ORDERPOINT_CHUNK:]
+            orderpoints = flatten(products)
             if self.env.context.get('without_job'):
-                for op in orderpoints:
+                for op in self.env['stock.warehouse.orderpoint'].browse(orderpoints):
                     op.process()
             else:
                 process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                          orderpoints.ids, description="Computing orderpoints %s" % orderpoints.ids)
+                                          orderpoints, description="Computing orderpoints %s" % orderpoints)
         return {}
 
 
@@ -500,3 +510,5 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
         LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
 )
         """)
+
+

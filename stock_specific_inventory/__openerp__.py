@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -22,12 +22,15 @@
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Warehouse Management',
+    'category': 'Warehouse',
     'depends': ['stock'],
     'description': """
 Stock Specific Inventory
 ==========================
+This module adds the possibility to make inventories on a product selection.
 
+It also improves the view of last inventories per product. Products can be selected directly from this view and a new
+inventory on these products be made.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
@@ -43,4 +46,3 @@ Stock Specific Inventory
     'license': 'AGPL-3',
     'application': False,
 }
-

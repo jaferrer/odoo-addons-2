@@ -41,9 +41,7 @@ class StockQuant(models.Model):
             })
             new_move.action_confirm()
             self.quants_reserve([(item, new_move.product_uom_qty)], new_move)
-            
             move_recordset = move_recordset | new_move
-                
         if move_recordset:
             picking = move_recordset[0].picking_id
             picking.do_prepare_partial()

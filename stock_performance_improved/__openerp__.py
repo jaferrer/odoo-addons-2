@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['stock'],
+    'depends': ['scheduler_async'],
     'description': """
 Stock Performance Improved
 ==========================
@@ -37,11 +37,18 @@ procurement.
 This module applies performance improvements by giving the possibility to assign stock moves to a stock picking at
 latest, that is only when it can be reserved. This is done by setting the defer_picking_assign parameter to True in a
 stock picking. It can also be definied in procurement rules so that the resulting moves have this parameter set.
+
+This module also removes the 'Run all schedulers' since this can lead to memory outages. Instead, we now have 3 new
+menus to finely control the scheduler:
+- one to run confirmed procurements,
+- one to check running procurements,
+- one to try to assign moves
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
         'stock_performance_improved_view.xml',
+        'stock_performance_improved_data.xml',
     ],
     'demo': [
         'stock_performance_improved_demo.xml',

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-extend="GraphWidget">
+        <t t-jquery='div[class="btn-group graph_options_selection"]' t-operation="append">
+        	<label class="btn btn-default" data-choice="export_graph" title="Export Graph">
+                <span class="fa fa-graph-download"></span>
+            </label>
+        </t>
+    </t>
+</templates>

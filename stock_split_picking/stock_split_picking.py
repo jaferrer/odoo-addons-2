@@ -16,9 +16,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from datetime import datetime
 
-from openerp import models, api
+from datetime import datetime
+from openerp import models, fields, api
 
 
 class StockSplitOnlyTransferDetails(models.TransientModel):
@@ -62,11 +62,14 @@ class StockSplitOnlyTransferDetails(models.TransientModel):
                                                            '!', ('id', 'in', processed_ids)])
         for packop in packops:
             packop.unlink()
+        self.picking_id.packing_details_saved = True
         return self.wizard_view()
 
 
 class StockSplitPicking(models.Model):
     _inherit = 'stock.picking'
+
+    packing_details_saved = fields.Boolean(string="Packing operations saved")
 
     @api.one
     def action_split_from_ui(self):
@@ -81,3 +84,27 @@ class StockSplitPicking(models.Model):
         """Removes packing operations from this picking."""
         self.ensure_one()
         self.pack_operation_ids.unlink()
+        self.packing_details_saved = False
+
+    @api.multi
+    def do_prepare_partial(self):
+        pickings = self.filtered(lambda p: not p.packing_details_saved)
+        return super(StockSplitPicking, pickings).do_prepare_partial()
+
+    @api.multi
+    def rereserve_pick(self):
+        pickings_not_saved = self.filtered(lambda p: not p.packing_details_saved)
+        pickings_saved = self.filtered(lambda p: p.packing_details_saved)
+        pickings_not_saved.recheck_availability()
+        return super(StockSplitPicking, pickings_saved).rereserve_pick()
+
+
+class SplitPickingStockQuantPackage(models.Model):
+    _inherit = 'stock.quant.package'
+
+    @api.multi
+    def unpack(self):
+        if self.check_access_rights('write'):
+            return super(SplitPickingStockQuantPackage, self.sudo()).unpack()
+        else:
+            return super(SplitPickingStockQuantPackage, self).unpack()

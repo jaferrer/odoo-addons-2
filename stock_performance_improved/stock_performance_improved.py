@@ -16,10 +16,16 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import time
 
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, drop_view_if_exists
-from openerp import fields, models, api, exceptions, _
+from openerp.tools import drop_view_if_exists
+from openerp import fields, models, api
+
+from openerp.addons.scheduler_async import scheduler_async
+from openerp.addons.connector.session import ConnectorSession
+
+assign_moves = scheduler_async.assign_moves
+
+MOVE_CHUNK = 100
 
 
 class StockPicking(models.Model):
@@ -128,13 +134,6 @@ class StockMove(models.Model):
         moves_no_pick.action_confirm()
         super(StockMove, self).action_assign()
 
-    @api.multi
-    def action_done(self):
-        """Overridden here to process prereservations once a move has been done."""
-        res = super(StockMove, self).action_done()
-        self.env['stock.picking'].with_context(skip_moves=self.ids).assign_moves_to_picking()
-        return res
-
 
 class ProcurementRule(models.Model):
     _inherit = 'procurement.rule'
@@ -155,6 +154,19 @@ class ProcurementOrder(models.Model):
         res.update({'defer_picking_assign': procurement.rule_id.defer_picking_assign})
         return res
 
+    @api.model
+    def run_assign_moves(self):
+        confirmed_moves = self.env['stock.prereservation'].search([('reserved', '=', False)]).mapped('move_id')
+
+        while confirmed_moves:
+            if self.env.context.get('jobify'):
+                assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:MOVE_CHUNK].ids,
+                                   self.env.context)
+            else:
+                assign_moves(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:MOVE_CHUNK].ids,
+                             self.env.context)
+            confirmed_moves = confirmed_moves[MOVE_CHUNK:]
+
 
 class StockPrereservation(models.Model):
     _name = 'stock.prereservation'
@@ -163,89 +175,94 @@ class StockPrereservation(models.Model):
 
     move_id = fields.Many2one('stock.move', readonly=True, index=True)
     picking_id = fields.Many2one('stock.picking', readonly=True, index=True)
+    reserved = fields.Boolean("Move has reserved quants", readonly=True, index=True)
 
     def init(self, cr):
         drop_view_if_exists(cr, "stock_prereservation")
         cr.execute("""
-        create or replace view stock_prereservation as (
-            with recursive top_parent(loc_id, top_parent_id) as (
-                    select
-                        sl.id as loc_id, sl.id as top_parent_id
-                    from
+        CREATE OR REPLACE VIEW stock_prereservation AS (
+            WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
+                    SELECT
+                        sl.id AS loc_id, sl.id AS top_parent_id
+                    FROM
                         stock_location sl
-                        left join stock_location slp on sl.location_id = slp.id
-                    where
+                        LEFT JOIN stock_location slp ON sl.location_id = slp.id
+                    WHERE
                         sl.usage='internal'
-                union
-                    select
-                        sl.id as loc_id, tp.top_parent_id
-                    from
+                UNION
+                    SELECT
+                        sl.id AS loc_id, tp.top_parent_id
+                    FROM
                         stock_location sl, top_parent tp
-                    where
-                        sl.usage='internal' and sl.location_id=tp.loc_id
-            ), move_qties as (
-                select
-                    sm.id as move_id,
+                    WHERE
+                        sl.usage='internal' AND sl.location_id=tp.loc_id
+            ), move_qties AS (
+                SELECT
+                    sm.id AS move_id,
                     sm.picking_id,
                     sm.location_id,
                     sm.product_id,
-                    sum(sm.product_qty) over (
+                    sum(sm.product_qty) OVER (
                         PARTITION BY sm.product_id, COALESCE(sm.picking_id, sm.location_id)
                         ORDER BY priority DESC, date_expected
-                    ) as qty
-                from
+                    ) AS qty
+                FROM
                     stock_move sm
-                where
+                WHERE
                     sm.state = 'confirmed'
-                    and sm.picking_type_id is not null
-                    and sm.id not in (
-                    select reservation_id from stock_quant where reservation_id is not null)
+                    AND sm.picking_type_id IS NOT NULL
+                    AND sm.id NOT IN (
+                    SELECT reservation_id FROM stock_quant WHERE reservation_id IS NOT NULL)
             )
-            select
-                foo.move_id as id,
+            SELECT
+                foo.move_id AS id,
                 foo.move_id,
-                foo.picking_id
-            from (
-                    select
-                        sm.id as move_id,
-                        sm.picking_id as picking_id
-                    from
+                foo.picking_id,
+                foo.reserved
+            FROM (
+                    SELECT
+                        sm.id AS move_id,
+                        sm.picking_id AS picking_id,
+                        TRUE AS reserved
+                    FROM
                         stock_move sm
-                    where
-                        sm.id in (
-                            select sq.reservation_id from stock_quant sq where sq.reservation_id is not null)
-                        and sm.picking_type_id is not null
-                union all
-                    select distinct
-                        sm.id as move_id,
-                        sm.picking_id as picking_id
-                    from
+                    WHERE
+                        sm.id IN (
+                            SELECT sq.reservation_id FROM stock_quant sq WHERE sq.reservation_id IS NOT NULL)
+                        AND sm.picking_type_id IS NOT NULL
+                UNION ALL
+                    SELECT DISTINCT
+                        sm.id AS move_id,
+                        sm.picking_id AS picking_id,
+                        FALSE AS reserved
+                    FROM
                         stock_move sm
-                        left join stock_move smp on smp.move_dest_id = sm.id
-                        left join stock_move sms on sm.split_from = sms.id
-                        left join stock_move smps on smps.move_dest_id = sms.id
-                    where
+                        LEFT JOIN stock_move smp ON smp.move_dest_id = sm.id
+                        LEFT JOIN stock_move sms ON sm.split_from = sms.id
+                        LEFT JOIN stock_move smps ON smps.move_dest_id = sms.id
+                    WHERE
                         sm.state = 'waiting'
-                        and sm.picking_type_id is not null
-                        and (smp.state = 'done' or smps.state = 'done')
-                union all
-                    select
+                        AND sm.picking_type_id IS NOT NULL
+                        AND (smp.state = 'done' OR smps.state = 'done')
+                UNION ALL
+                    SELECT
                         mq.move_id,
-                        mq.picking_id
-                    from
+                        mq.picking_id,
+                        FALSE AS reserved
+                    FROM
                         move_qties mq
-                    where
-                            mq.qty <= (
-                                select
-                                    sum(qty)
-                                from
-                                    stock_quant sq
-                                where
-                                    sq.reservation_id is null
-                                    and sq.location_id in (
-                                        select loc_id from top_parent where top_parent_id=mq.location_id
-                                    )
-                                    and sq.product_id = mq.product_id)
+                    WHERE
+                        mq.qty <= (
+                            SELECT
+                                sum(qty)
+                            FROM
+                                stock_quant sq
+                            WHERE
+                                sq.reservation_id IS NULL
+                                AND sq.location_id IN (
+                                    SELECT loc_id FROM top_parent WHERE top_parent_id=mq.location_id
+                                )
+                                AND sq.product_id = mq.product_id)
             ) foo
         )
         """)
