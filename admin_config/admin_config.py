@@ -39,3 +39,10 @@ class IrTranslationImproved(models.Model):
     def delete_field_translations(self):
         for rec in self:
             self.env['ir.translation'].search([('name', '=', rec.name)]).unlink()
+
+
+class AdminConfigLanguageInstall(models.TransientModel):
+    _inherit = 'base.language.install'
+
+    lang = fields.Selection(default='fr_FR')
+    overwrite = fields.Boolean(default=True)
