@@ -24,7 +24,7 @@ from openerp.addons.connector.queue.job import job
 from openerp.tools import flatten
 
 MOVE_CHUNK = 100
-PRODUCT_CHUNK = 100
+PRODUCT_CHUNK = 10
 
 
 @job
