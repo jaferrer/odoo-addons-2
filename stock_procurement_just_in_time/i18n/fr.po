@@ -112,7 +112,7 @@ msgstr "Entrant"
 #: view:stock.levels.report:0
 #: field:stock.levels.report,warehouse_id:0
 msgid "Location"
-msgstr "Emplacement"
+msgstr "Entrepôt"
 
 #. module: stock_procurement_just_in_time
 #: field:stock.levels.requirements,location_id:0
