@@ -110,7 +110,11 @@ msgstr "Entrant"
 
 #. module: stock_procurement_just_in_time
 #: view:stock.levels.report:0
-#: field:stock.levels.report,location_id:0
+#: field:stock.levels.report,warehouse_id:0
+msgid "Location"
+msgstr "Emplacement"
+
+#. module: stock_procurement_just_in_time
 #: field:stock.levels.requirements,location_id:0
 msgid "Location"
 msgstr "Emplacement"
@@ -133,7 +137,7 @@ msgid "Moved quantity"
 msgstr "Quantité déplacée"
 
 #. module: stock_procurement_just_in_time
-#: field:stock.levels.report,other_location_id:0
+#: field:stock.levels.report,other_warehouse_id:0
 #: field:stock.levels.requirements,other_location_id:0
 msgid "Origin/Destination"
 msgstr "Origine/Destination"
