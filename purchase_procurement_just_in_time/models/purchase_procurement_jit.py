@@ -166,7 +166,7 @@ class PurchaseOrderLineJustInTime(models.Model):
             'context': {}
         }
 
-    @api.depends('move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
+    @api.depends('product_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
     def _get_remaining_qty(self):
 
         """

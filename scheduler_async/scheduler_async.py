@@ -21,8 +21,8 @@ from openerp import fields, models, api
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 
-
 MOVE_CHUNK = 100
+PROC_CHUNK = 100
 
 
 @job
@@ -52,11 +52,13 @@ def run_or_check_procurements(session, model_name, domain, action, context):
             break
         else:
             prev_procs = procs
-        if action == 'run':
-            procs.sudo().run(autocommit=True)
-        elif action == 'check':
-            procs.sudo().check(autocommit=True)
-        session.commit()
+        for i in range(0, len(procs), PROC_CHUNK):
+            procs_chunk = procs[i:i + PROC_CHUNK]
+            if action == 'run':
+                procs_chunk.sudo().run()
+            elif action == 'check':
+                procs_chunk.sudo().check()
+            session.commit()
 
 
 @job
@@ -124,6 +126,32 @@ class ProcurementOrderAsync(models.Model):
             confirmed_moves = confirmed_moves[100:]
 
     @api.model
+    def run_confirm_procurements(self, company_id=None):
+        """Launches the job to confirm all procurements."""
+        dom = [('state', '=', 'confirmed')]
+        if company_id:
+            dom += [('company_id', '=', company_id)]
+        if self.env.context.get("jobify", False):
+            run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                            'run', self.env.context)
+        else:
+            run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                      'run', self.env.context)
+
+    @api.model
+    def run_check_procurements(self, company_id=None):
+        """Launches the job to check all procurements."""
+        dom = [('state', '=', 'running')]
+        if company_id:
+            dom += [('company_id', '=', company_id)]
+        if self.env.context.get("jobify", False):
+            run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                            'check', self.env.context)
+        else:
+            run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                      'check', self.env.context)
+
+    @api.model
     def run_scheduler_async(self, use_new_cursor=False, company_id=False):
         proc_compute = self.env['procurement.order.compute.all'].create({})
         proc_compute.procure_calculation()
@@ -133,18 +161,9 @@ class ProcurementOrderAsync(models.Model):
         """New scheduler function to run async jobs.
 
         This function overwrites the function with the same name from modules stock and procurement."""
-        dom = []
-        if company_id:
-            dom += [('company_id', '=', company_id)]
 
         # Run confirmed procurements
-        run_dom = dom + [('state', '=', 'confirmed')]
-        if self.env.context.get("jobify", False):
-            run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', run_dom, 'run',
-                                            self.env.context)
-        else:
-            run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', run_dom, 'run',
-                                      self.env.context)
+        self.run_confirm_procurements(company_id)
 
         # Run minimum stock rules
         without_job = not self.env.context.get("jobify", False)
@@ -152,13 +171,7 @@ class ProcurementOrderAsync(models.Model):
                                                                                       company_id=company_id)
 
         # Check if running procurements are done
-        check_dom = dom + [('state', '=', 'running')]
-        if self.env.context.get("jobify", False):
-            run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', check_dom,
-                                            'check', self.env.context)
-        else:
-            run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', check_dom,
-                                      'check', self.env.context)
+        self.run_check_procurements(company_id)
 
         # Try to assign moves
         self.run_assign_moves()

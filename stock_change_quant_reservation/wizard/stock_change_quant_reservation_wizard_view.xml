@@ -10,7 +10,7 @@
                     <group groups="stock.group_tracking_lot">
 						<field name="partner_id"/>
 						<field name="picking_id"/>
-						<field name="move_id"/>
+						<field name="move_id" options="{'no_create':True,'no_edit':True}"/>
                     </group>
                     <footer>
                         <button name="do_apply"

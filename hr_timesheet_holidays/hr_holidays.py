@@ -1,6 +1,8 @@
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
+##############################################################################
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Author: JB Aubort
+#    Copyright 2008 Camptocamp SA
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -8,7 +10,6 @@
 #    License, or (at your option) any later version.
 #
 #    This program is distributed in the hope that it will be useful,
-#
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU Affero General Public License for more details.
@@ -16,5 +17,15 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+##############################################################################
+from openerp.osv import orm, fields
 
-import models
+
+class HrHolidaysStatus(orm.Model):
+
+    """Add analytic account to holiday status"""
+    _inherit = 'hr.holidays.status'
+    _columns = {
+        'analytic_account_id': fields.many2one(
+            'account.analytic.account', 'Analytic Account'),
+    }
