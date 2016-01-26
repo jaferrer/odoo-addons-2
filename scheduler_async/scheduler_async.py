@@ -21,10 +21,8 @@ from openerp import fields, models, api
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 
-from openerp.tools import flatten
-
 MOVE_CHUNK = 100
-PRODUCT_CHUNK = 10
+PROC_CHUNK = 100
 
 
 @job
@@ -54,11 +52,13 @@ def run_or_check_procurements(session, model_name, domain, action, context):
             break
         else:
             prev_procs = procs
-        if action == 'run':
-            procs.sudo().run()
-        elif action == 'check':
-            procs.sudo().check()
-        session.commit()
+        for i in range(0, len(procs), PROC_CHUNK):
+            procs_chunk = procs[i:i + PROC_CHUNK]
+            if action == 'run':
+                procs_chunk.sudo().run()
+            elif action == 'check':
+                procs_chunk.sudo().check()
+            session.commit()
 
 
 @job
@@ -126,47 +126,30 @@ class ProcurementOrderAsync(models.Model):
             confirmed_moves = confirmed_moves[100:]
 
     @api.model
-    def _confirm_check_procurements(self, action, company_id=None):
-        """Schedule procurement run or check jobs by chunk.
-        This is to allow parallel computation of procurements."""
-        if action == 'run':
-            dom = [('state', '=', 'confirmed')]
-        elif action == 'check':
-            dom = [('state', '=', 'running')]
-        else:
-            return
+    def run_confirm_procurements(self, company_id=None):
+        """Launches the job to confirm all procurements."""
+        dom = [('state', '=', 'confirmed')]
         if company_id:
             dom += [('company_id', '=', company_id)]
-
-        procs = self.search(dom)
-        # We use read here instead of recordset mapped because procs can have millions of lines
-        proc_product_ids = procs.read(['id', 'product_id'], load=False)
-
-        product_ids = []
-        for row in proc_product_ids:
-            if row['product_id'] not in product_ids:
-                product_ids.append(row['product_id'])
-
-        while product_ids:
-            products = product_ids[:PRODUCT_CHUNK]
-            product_ids = product_ids[PRODUCT_CHUNK:]
-            domain = dom + [('product_id', 'in', flatten(products))]
-            if self.env.context.get('jobify', False):
-                run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', domain,
-                                                action, self.env.context)
-            else:
-                run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', domain,
-                                          action, self.env.context)
-
-    @api.model
-    def run_confirm_procurements(self, company_id=None):
-        """Launches the jobs to check all procurements."""
-        self._confirm_check_procurements('run', company_id=company_id)
+        if self.env.context.get("jobify", False):
+            run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                            'run', self.env.context)
+        else:
+            run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                      'run', self.env.context)
 
     @api.model
     def run_check_procurements(self, company_id=None):
-        """Launches the jobs to check all procurements."""
-        self._confirm_check_procurements('check', company_id=company_id)
+        """Launches the job to check all procurements."""
+        dom = [('state', '=', 'running')]
+        if company_id:
+            dom += [('company_id', '=', company_id)]
+        if self.env.context.get("jobify", False):
+            run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                            'check', self.env.context)
+        else:
+            run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                      'check', self.env.context)
 
     @api.model
     def run_scheduler_async(self, use_new_cursor=False, company_id=False):
