@@ -134,6 +134,21 @@ msgid "Create a child manufacturing order"
 msgstr "Générer un OF reliquat"
 
 #. module: mrp_incomplete_production
+#: field:mrp.product.produce,return_raw_materials:0
+msgid "Return raw materials"
+msgstr "Réintégration des surplus"
+
+#. module: mrp_incomplete_production
+#: help:mrp.product.produce,return_raw_materials:0
+msgid "Return not consumed raw materials and then create the child manufacturing order"
+msgstr "Réintégrer les matières premières non consommées avant de créer l'OF reliquat"
+
+#. module: mrp_incomplete_production
+#: field:mrp.product.produce,return_location_id:0
+msgid "Return location"
+msgstr "Emplacement de réintégration"
+
+#. module: mrp_incomplete_production
 #: field:mrp.product.produce,child_src_loc_id:0
 msgid "Child source location"
 msgstr "Emplacement source du reliquat"
