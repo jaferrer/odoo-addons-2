@@ -111,7 +111,7 @@ msgstr "Entrant"
 #. module: stock_procurement_just_in_time
 #: view:stock.levels.report:0
 #: field:stock.levels.report,warehouse_id:0
-msgid "Location"
+msgid "Warehouse"
 msgstr "Entrepôt"
 
 #. module: stock_procurement_just_in_time

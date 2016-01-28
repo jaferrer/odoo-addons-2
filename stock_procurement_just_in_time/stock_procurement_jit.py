@@ -475,7 +475,7 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
                 LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
             WHERE
-                link_dest.warehouse_id IS NOT NULL AND link.warehouse_id != link_dest.warehouse_id
+                link.warehouse_id != link_dest.warehouse_id
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT
@@ -503,5 +503,3 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
         LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
 )
         """)
-
-
