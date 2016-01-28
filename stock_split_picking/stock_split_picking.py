@@ -96,10 +96,8 @@ class StockSplitPicking(models.Model):
         pickings_not_saved = self.filtered(lambda p: not p.packing_details_saved)
         picks_packops = {}
         for picking in pickings_not_saved:
-            pick_has_packops = bool(picking.pack_operation_ids)
-            if not picking.packing_details_saved and pick_has_packops:
-                picking.pack_operation_ids.unlink()
-            picks_packops[picking] = pick_has_packops
+            picks_packops[picking] = bool(picking.pack_operation_ids)
+            picking.delete_packops()
         result = super(StockSplitPicking, pickings_not_saved).rereserve_pick()
         for picking in pickings_not_saved:
             if picks_packops[picking]:
