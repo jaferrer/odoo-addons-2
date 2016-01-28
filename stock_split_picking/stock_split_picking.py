@@ -116,14 +116,3 @@ class SplitPickingStockQuantPackage(models.Model):
             return super(SplitPickingStockQuantPackage, self.sudo()).unpack()
         else:
             return super(SplitPickingStockQuantPackage, self).unpack()
-
-
-class SplitPickingStockMove(models.Model):
-    _inherit = 'stock.move'
-
-    @api.multi
-    def action_assign(self):
-        if self.env.context.get('rereserving_pick'):
-            moves_without_quants = self.filtered(lambda m: not m.reserved_quant_ids)
-            return super(SplitPickingStockMove, moves_without_quants).action_assign()
-        return super(SplitPickingStockMove, self).action_assign()
