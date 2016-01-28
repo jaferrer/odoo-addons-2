@@ -421,14 +421,12 @@ class StockLevelsReport(models.Model):
         cr.execute("""
 CREATE OR REPLACE VIEW stock_levels_report AS (
     WITH link_location_warehouse AS (
-	SELECT
+        SELECT
 		sl.id AS location_id,
-		min(sw.id) AS warehouse_id
-	FROM stock_location sl
-	CROSS JOIN stock_warehouse sw
+		sw.id AS warehouse_id
+	FROM stock_warehouse sw
 	LEFT JOIN stock_location sl_view ON sl_view.id = sw.view_location_id
-	WHERE sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right
-	GROUP BY sl.id)
+	LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right)
 
     SELECT
         foo.product_id :: TEXT || '-'
