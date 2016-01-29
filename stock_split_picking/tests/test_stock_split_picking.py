@@ -87,14 +87,14 @@ class TestStockSplitPicking(common.TransactionCase):
         self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
         self.assertTrue(self.picking.packing_details_saved)
 
-        # Cas du picking saved mais sans aucun packops (n'est pas sensé se produire)
+        # Case of a picking saved but with no  packops (what should not happen)
         self.picking.pack_operation_ids.unlink()
         self.assertTrue(self.picking.packing_details_saved)
         self.picking.rereserve_pick()
         self.assertFalse(self.picking.pack_operation_ids)
         self.assertTrue(self.picking.packing_details_saved)
 
-        # Retour au cas général
+        # Back to the normal situation
         self.picking.do_prepare_partial()
         self.assertFalse(self.picking.pack_operation_ids)
         self.picking.packing_details_saved = False
