@@ -33,6 +33,17 @@ msgstr ""
 "=================================\n"
 "Ce module donne la possibilité de changer la réservation des quants et de les réaffecter sur une autre opération.\n"
 
+#. module: stock_change_quant_reservation
+#: code:addons\stock_change_quant_reservation\wizard\stock_change_quant_reservation_wizard.py:31
+#, python-format
+msgid "Error!"
+msgstr "Erreur !"
+
+#. module: stock_change_quant_reservation
+#: code:addons\stock_change_quant_reservation\wizard\stock_change_quant_reservation_wizard.py:31
+#, python-format
+msgid "Impossible to reserve quants of different products."
+msgstr "Impossible de réserver ensemble des quants correspondant à des produits différents."
 
 #. module: stock_change_quant_reservation
 #: model:ir.actions.act_window,name:stock_change_quant_reservation.action_change_quants
@@ -65,9 +76,19 @@ msgid "Last Updated on"
 msgstr "Modifié le"
 
 #. module: stock_change_quant_reservation
+#: field:stock.quant.picking,partner_id:0
+msgid "Partner"
+msgstr "Partenaire"
+
+#. module: stock_change_quant_reservation
 #: field:stock.quant.picking,picking_id:0
 msgid "Picking"
 msgstr "Bon d'expédition"
+
+#. module: stock_change_quant_reservation
+#: field:stock.quant.picking,move_id:0
+msgid "Stock move"
+msgstr "Mouvement de stock"
 
 #. module: stock_change_quant_reservation
 #: view:stock.quant.picking:stock_change_quant_reservation.stock_change_quant_reservation_wizard
