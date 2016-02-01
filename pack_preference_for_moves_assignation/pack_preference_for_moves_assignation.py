@@ -17,28 +17,19 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, _
+from openerp import models, api, _
 from openerp.osv import osv
 
 
 class PackPreferenceStockQuant(models.Model):
     _inherit = 'stock.quant'
 
-    fake_lot_id = fields.Integer(string=u"Fake lot id", compute='_compute_fake_data', store=True)
-    fake_package_id = fields.Integer(string=u"Fake package id", compute='_compute_fake_data', store=True)
-
-    @api.depends('lot_id', 'package_id')
-    def _compute_fake_data(self):
-        for rec in self:
-            rec.fake_lot_id = rec.lot_id or 0
-            rec.fake_package_id = rec.package_id or 0
-
     @api.model
     def apply_removal_strategy(self, location, product, quantity, domain, removal_strategy):
         if removal_strategy == 'fifo':
-            order = 'in_date, fake_package_id, fake_lot_id, id'
+            order = 'in_date, package_id, lot_id, id'
             return self._quants_get_order(location, product, quantity, domain, order)
         elif removal_strategy == 'lifo':
-            order = 'in_date desc, fake_package_id desc, fake_lot_id desc, id desc'
+            order = 'in_date desc, package_id desc, lot_id desc, id desc'
             return self._quants_get_order(location, product, quantity, domain, order)
         raise osv.except_osv(_('Error!'), _('Removal strategy %s not implemented.' % (removal_strategy,)))

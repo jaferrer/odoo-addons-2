@@ -91,7 +91,7 @@
         </record>
 
         <record model="stock.quant" id="quant7">
-            <field name="qty" eval="4"/>
+            <field name="qty" eval="5"/>
             <field name="package_id"/>
             <field name="in_date">2016-02-01 14:13:00</field>
             <field name="lot_id"/>
@@ -100,7 +100,7 @@
         </record>
 
         <record model="stock.quant" id="quant8">
-            <field name="qty" eval="8"/>
+            <field name="qty" eval="10"/>
             <field name="package_id"/>
             <field name="in_date">2016-02-03 14:13:00</field>
             <field name="lot_id"/>
@@ -109,7 +109,7 @@
         </record>
 
         <record model="stock.quant" id="quant9">
-            <field name="qty" eval="13"/>
+            <field name="qty" eval="15"/>
             <field name="package_id"/>
             <field name="in_date">2016-02-05 14:13:00</field>
             <field name="lot_id" ref="lot3"/>
