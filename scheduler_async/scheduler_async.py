@@ -22,7 +22,6 @@ from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 
 MOVE_CHUNK = 100
-PROC_CHUNK = 100
 
 
 @job
@@ -52,13 +51,11 @@ def run_or_check_procurements(session, model_name, domain, action, context):
             break
         else:
             prev_procs = procs
-        for i in range(0, len(procs), PROC_CHUNK):
-            procs_chunk = procs[i:i + PROC_CHUNK]
-            if action == 'run':
-                procs_chunk.sudo().run()
-            elif action == 'check':
-                procs_chunk.sudo().check()
-            session.commit()
+        if action == 'run':
+            procs.sudo().run(autocommit=True)
+        elif action == 'check':
+            procs.sudo().check(autocommit=True)
+        session.commit()
 
 
 @job
