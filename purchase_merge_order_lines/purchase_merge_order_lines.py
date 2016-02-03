@@ -55,8 +55,10 @@ class MergePolPurchaseOrder(models.Model):
                     lignes_to_delete = lines_current_product.filtered(lambda l: l != line_to_keep)
                     for line in lignes_to_delete:
                         line_to_keep.procurement_ids = line_to_keep.procurement_ids + line.procurement_ids
-                    (qty, price) = self.env['procurement.order']._calc_new_qty_price(line_to_keep.procurement_ids[0],
-                                                                                     po_line=line_to_keep, cancel=True)
+                    (qty, price) = line_to_keep.procurement_ids and self.env['procurement.order']. \
+                        _calc_new_qty_price(line_to_keep.procurement_ids[0] ,po_line=line_to_keep, cancel=True) or\
+                                   (line_to_keep.product_qty + sum([x.product_qty for x in lignes_to_delete]),
+                                    line_to_keep.price_unit)
                     line_to_keep.write({'product_qty': qty, 'price_unit': price})
                     lignes_to_delete.unlink()
             if result.get(key):
@@ -70,4 +72,5 @@ class MergePolPurchaseOrder(models.Model):
                             if hasattr(field_value, "id"):
                                 field_value = field_value.id
                             dict_fields_to_keep[field_name] = field_value
+                    order.write(dict_fields_to_keep)
         return result
