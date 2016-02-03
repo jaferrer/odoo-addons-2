@@ -63,10 +63,6 @@ class TestIncompleteProduction(common.TransactionCase):
         self.assertEqual(len(list_reservations), len(move.reserved_quant_ids))
         for q in move.reserved_quant_ids:
             self.assertIn((q, q.qty), list_reservations)
-        picking.do_unreserve()
-        picking.action_cancel()
-        picking.unlink()
-        return picking
 
     def test_01_pack_preference(self):
         self.create_and_test(1, [(self.quant2, 1)])

@@ -17,8 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api, _
-from openerp.osv import osv
+from openerp import models, api, exceptions, _
 
 
 class PackPreferenceStockQuant(models.Model):
@@ -32,4 +31,4 @@ class PackPreferenceStockQuant(models.Model):
         elif removal_strategy == 'lifo':
             order = 'in_date desc, package_id desc, lot_id desc, id desc'
             return self._quants_get_order(location, product, quantity, domain, order)
-        raise osv.except_osv(_('Error!'), _('Removal strategy %s not implemented.' % (removal_strategy,)))
+        raise exceptions.except_orm(_('Error!'), _('Removal strategy %s not implemented.' % (removal_strategy,)))
