@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="bill_of_specifications_line_tree">
+            <field name="name">bill_of_specifications_line_tree</field>
+            <field name="model">bill.of.specifications.line</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree string="Bill of specifications line">
+                    <field name="sequence" widget="handle"/>
+                    <field name="parent_line_id"/>
+                    <field name="template_line"/>
+                    <field name="name"/>
+                    <field name="bos_id"/>
+                    <field name="cost"/>
+                    <field name="amount_subtotal"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="bill_of_specifications_line_form">
+            <field name="name">bill_of_specifications_line_form</field>
+            <field name="model">bill.of.specifications.line</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Bill of specifications line">
+                    <sheet>
+                        <group>
+                            <field name="template_line"/>
+                            <field name="description"/>
+                            <field name="name"/>
+                            <field name="bos_id"/>
+                            <field name="cost"/>
+                            <field name="amount_subtotal"/>
+                        </group>
+                        <notebook>
+                            <page string="Children lines">
+                                <field name="children_line_ids"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_bill_of_specifications_lines_template">
+            <field name="name">Template specification line</field>
+            <field name="res_model">bill.of.specifications.line</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('template_line', '=', True)]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <record model="ir.ui.view" id="bill_of_specifications_tree">
+            <field name="name">bill_of_specifications_tree</field>
+            <field name="model">bill.of.specifications</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree string="Bill of specifications">
+                    <field name="name"/>
+                    <field name="validation_date"/>
+                    <field name="amount_total"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="bill_of_specifications_form">
+            <field name="name">bill_of_specifications_form</field>
+            <field name="model">bill.of.specifications</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Bill of specifications">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="validation_date"/>
+                            <field name="amount_total"/>
+                        </group>
+                        <notebook>
+                            <page string="Specification lines">
+                                <field name="bos_line_ids"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_bill_of_specifications">
+            <field name="name">Bills of specification</field>
+            <field name="res_model">bill.of.specifications</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="base_menu_bill_of_specifications" name="Bill of specifications"
+                  parent="base.menu_base_partner" sequence="5"/>
+
+        <menuitem id="menu_bill_of_specifications" name="Bill of specifications"
+                  action="act_window_bill_of_specifications"
+                  parent="base_menu_bill_of_specifications" sequence="10"/>
+
+        <menuitem id="menu_template_specification_lines" name="Template lines"
+                  action="act_window_bill_of_specifications_lines_template"
+                  parent="base_menu_bill_of_specifications" sequence="20"/>
+
+    </data>
+</openerp>
