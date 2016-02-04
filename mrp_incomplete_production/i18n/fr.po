@@ -169,6 +169,16 @@ msgid "Child Manufacturing Order"
 msgstr "Ordre de fabrication reliquat"
 
 #. module: mrp_incomplete_production
+#: field:mrp.production,warehouse_id:0
+msgid "Warehouse"
+msgstr "Entrepôt"
+
+#. module: mrp_incomplete_production
+#: field:stock.warehouse,return_location_id:0
+msgid "Default return location"
+msgstr "Emplacement de réintégration par défaut"
+
+#. module: mrp_incomplete_production
 #: view:mrp.production:0
 msgid "Cancel Starting"
 msgstr "Annuler le démarrage de l'OF"
