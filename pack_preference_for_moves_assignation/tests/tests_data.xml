@@ -57,7 +57,7 @@
         <record model="stock.quant" id="quant3">
             <field name="qty" eval="15"/>
             <field name="package_id" ref="pack1"/>
-            <field name="in_date">2016-02-05 14:13:00</field>
+            <field name="in_date">2016-02-01 14:13:00</field>
             <field name="lot_id"/>
             <field name="product_id" ref="test_product"/>
             <field name="location_id" ref="stock.stock_location_stock"/>

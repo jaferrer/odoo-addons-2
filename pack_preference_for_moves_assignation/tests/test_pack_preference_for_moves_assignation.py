@@ -65,6 +65,8 @@ class TestIncompleteProduction(common.TransactionCase):
             self.assertIn((q, q.qty), list_reservations)
 
     def test_01_pack_preference(self):
+        print self.quant1, self.quant2, self.quant3, self.quant4, self.quant5
+        print self.quant6, self.quant7, self.quant8, self.quant9
         self.create_and_test(1, [(self.quant2, 1)])
 
     def test_02_pack_preference(self):
@@ -77,32 +79,32 @@ class TestIncompleteProduction(common.TransactionCase):
         self.create_and_test(15, [(self.quant2, 10), (self.quant1, 5)])
 
     def test_05_pack_preference(self):
-        self.create_and_test(16, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 1)])
+        self.create_and_test(16, [(self.quant2, 10), (self.quant1, 5), (self.quant3, 1)])
 
     def test_06_pack_preference(self):
-        self.create_and_test(20, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5)])
+        self.create_and_test(30, [(self.quant2, 10), (self.quant1, 5), (self.quant3, 15)])
 
     def test_07_pack_preference(self):
-        self.create_and_test(21, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5), (self.quant4, 1)])
+        self.create_and_test(31, [(self.quant2, 10), (self.quant1, 5), (self.quant3, 15), (self.quant7, 1)])
 
     def test_08_pack_preference(self):
-        self.create_and_test(40, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5), (self.quant4, 20)])
+        self.create_and_test(35, [(self.quant2, 10), (self.quant1, 5), (self.quant3, 15), (self.quant7, 5)])
 
     def test_09_pack_preference(self):
-        self.create_and_test(41, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5), (self.quant4, 20),
-                                  (self.quant8, 1)])
+        self.create_and_test(36, [(self.quant2, 10), (self.quant1, 5), (self.quant3, 15), (self.quant7, 5),
+                                  (self.quant4, 1)])
 
     def test_10_pack_preference(self):
-        self.create_and_test(50, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5), (self.quant4, 20),
-                                  (self.quant8, 10)])
+        self.create_and_test(55, [(self.quant2, 10), (self.quant1, 5), (self.quant3, 15), (self.quant7, 5),
+                                  (self.quant4, 20)])
 
     def test_11_pack_preference(self):
-        self.create_and_test(51, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5), (self.quant4, 20),
-                                  (self.quant8, 10), (self.quant3, 1)])
+        self.create_and_test(56, [(self.quant2, 10), (self.quant1, 5), (self.quant3, 15), (self.quant7, 5),
+                                  (self.quant4, 20), (self.quant8, 1)])
 
     def test_12_pack_preference(self):
-        self.create_and_test(65, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5), (self.quant4, 20),
-                                  (self.quant8, 10), (self.quant3, 15)])
+        self.create_and_test(65, [(self.quant2, 10), (self.quant1, 5), (self.quant3, 15), (self.quant7, 5),
+                                  (self.quant4, 20), (self.quant8, 10)])
 
     def test_13_pack_preference(self):
         self.create_and_test(66, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5), (self.quant4, 20),

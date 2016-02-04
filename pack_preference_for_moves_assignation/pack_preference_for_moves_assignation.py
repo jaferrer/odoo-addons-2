@@ -49,6 +49,7 @@ class PackPreferenceStockQuant(models.Model):
         res = []
         while float_compare(quantity, 0, precision_rounding=product.uom_id.rounding) > 0:
             quants = self.search(domain, order=orderby)
+            print quants
             if not quants:
                 res.append((None, quantity))
                 break
