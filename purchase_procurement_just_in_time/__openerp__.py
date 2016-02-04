@@ -64,4 +64,5 @@ Notes
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    'sequence': 50,
 }
