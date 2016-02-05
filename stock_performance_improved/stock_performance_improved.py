@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp.tools import drop_view_if_exists
+from openerp.tools import drop_view_if_exists, flatten
 from openerp import fields, models, api
 
 from openerp.addons.scheduler_async import scheduler_async
@@ -157,15 +157,24 @@ class ProcurementOrder(models.Model):
     @api.model
     def run_assign_moves(self):
         confirmed_moves = self.env['stock.prereservation'].search([('reserved', '=', False)]).mapped('move_id')
+        cm_product_ids = confirmed_moves.read(['id', 'product_id'], load=False)
 
-        while confirmed_moves:
+        # Create a dict of moves with same product {product_id: [move_id, move_id], product_id: []}
+        result = dict()
+        for row in cm_product_ids:
+            if row['product_id'] not in result:
+                result[row['product_id']] = list()
+            result[row['product_id']].append(row['id'])
+        product_ids = result.values()
+
+        while product_ids:
+            products = product_ids[:MOVE_CHUNK]
+            product_ids = product_ids[MOVE_CHUNK:]
+            move_ids = flatten(products)
             if self.env.context.get('jobify'):
-                assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:MOVE_CHUNK].ids,
-                                   self.env.context)
+                assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', move_ids, self.env.context)
             else:
-                assign_moves(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:MOVE_CHUNK].ids,
-                             self.env.context)
-            confirmed_moves = confirmed_moves[MOVE_CHUNK:]
+                assign_moves(ConnectorSession.from_env(self.env), 'stock.move', move_ids, self.env.context)
 
 
 class StockPrereservation(models.Model):
@@ -205,7 +214,7 @@ class StockPrereservation(models.Model):
                     sum(sm.product_qty) OVER (
                         PARTITION BY sm.product_id, COALESCE(sm.picking_id, sm.location_id)
                         ORDER BY priority DESC, date_expected
-                    ) AS qty
+                    ) - sm.product_qty AS qty
                 FROM
                     stock_move sm
                 WHERE

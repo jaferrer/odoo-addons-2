@@ -47,17 +47,23 @@ class IncompeteProductionMrpProduction(models.Model):
 
     @api.multi
     def _get_child_order_id(self):
-        self.ensure_one()
-        child_order_id = False
-        list_ids = self.env['mrp.production'].search([('backorder_id', '=', self.id)])
-        if len(list_ids) >= 1:
-            child_order_id = list_ids[0]
-        self.child_order_id = child_order_id
+        for rec in self:
+            child_order_id = False
+            list_ids = self.env['mrp.production'].search([('backorder_id', '=', rec.id)])
+            if len(list_ids) >= 1:
+                child_order_id = list_ids[0]
+            rec.child_order_id = child_order_id
 
     @api.multi
     def _get_child_moves(self):
-        self.ensure_one()
-        self.left_products = bool(self.child_move_ids)
+        for rec in self:
+            rec.left_products = bool(rec.child_move_ids)
+
+    @api.multi
+    @api.depends('location_dest_id')
+    def _compute_warehouse_id(self):
+        for rec in self:
+            rec.warehouse_id = rec.location_dest_id and rec.location_dest_id.get_warehouse(rec.location_dest_id)
 
     @api.multi
     @api.depends('location_dest_id')
