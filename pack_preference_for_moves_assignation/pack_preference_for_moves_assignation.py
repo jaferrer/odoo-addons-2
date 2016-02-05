@@ -27,9 +27,9 @@ class PackPreferenceStockQuant(models.Model):
     @api.model
     def apply_removal_strategy(self, location, product, quantity, domain, removal_strategy):
         if removal_strategy == 'fifo':
-            order = 'in_date, package_id, lot_id, id'
+            order = 'in_date, package_id, lot_id'
             return self._quants_get_order(location, product, quantity, domain, order)
         elif removal_strategy == 'lifo':
-            order = 'in_date desc, package_id desc, lot_id desc, id desc'
+            order = 'in_date desc, package_id desc, lot_id desc'
             return self._quants_get_order(location, product, quantity, domain, order)
         raise exceptions.except_orm(_('Error!'), _('Removal strategy %s not implemented.' % (removal_strategy,)))
