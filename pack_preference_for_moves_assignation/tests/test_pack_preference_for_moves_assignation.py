@@ -45,7 +45,6 @@ class TestIncompleteProduction(common.TransactionCase):
         picking = self.env['stock.picking'].create({
             'name': "Test picking (Pack Preference)",
             'picking_type_id': self.picking_type_out.id,
-            'invoice_state': 'none',
         })
         move = self.env['stock.move'].create({
             'name': "Test move (Pack Preference)",
