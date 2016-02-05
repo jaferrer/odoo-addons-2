@@ -2,6 +2,11 @@
 <openerp>
     <data>
 
+        <!-- Activation of packages -->
+        <record model="stock.config.settings" id="stock_config_settings_defaults">
+            <field name="group_stock_tracking_lot">1</field>
+        </record>
+
         <!-- 1 product-->
         <record model="product.product" id="test_product">
             <field name="name">Test product (Pack Preference)</field>
