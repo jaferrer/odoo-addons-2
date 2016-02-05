@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Stock',
-    'depends': ['stock', 'stock_account'],
+    'depends': ['stock'],
     'description': """
 Package preference for moves assignation
 ========================================
