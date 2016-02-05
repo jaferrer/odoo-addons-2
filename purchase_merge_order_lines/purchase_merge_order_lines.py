@@ -56,7 +56,7 @@ class MergePolPurchaseOrder(models.Model):
                     for line in lignes_to_delete:
                         line_to_keep.procurement_ids = line_to_keep.procurement_ids + line.procurement_ids
                     (qty, price) = self.env['procurement.order']._calc_new_qty_price(line_to_keep.procurement_ids[0],
-                                                                                     po_line=line_to_keep, cancel=False)
+                                                                                     po_line=line_to_keep, cancel=True)
                     line_to_keep.write({'product_qty': qty, 'price_unit': price})
                     lignes_to_delete.unlink()
             if result.get(key):

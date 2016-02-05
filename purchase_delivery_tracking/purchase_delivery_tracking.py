@@ -27,17 +27,22 @@ class TrackingTransporter(models.Model):
     image = fields.Binary(string="Image")
     number_ids = fields.One2many('tracking.number', 'transporter_id', domain=[('order_id', '!=', False)],
                                  string="List of related tracking numbers")
-    order_ids = fields.One2many('purchase.order', 'transporter_id', string="List of related purchase orders")
-    number_trackings = fields.Integer(string="Number of related tracking numbers", compute='_compute_numbers',
+    order_ids = fields.One2many('purchase.order', 'transporter_id', groups='purchase.group_purchase_user',
+                                string="List of related purchase orders")
+    number_trackings = fields.Integer(string="Number of related tracking numbers", compute='_compute_number_trackings',
                                       store=True)
-    number_orders = fields.Integer(string="Number of related purchase orders", compute='_compute_numbers',
-                                   store=True)
+    number_orders = fields.Integer(string="Number of related purchase orders", compute='_compute_number_orders',
+                                   groups='purchase.group_purchase_user', store=True)
     logo = fields.Char(compute='_compute_logo', string="Logo")
 
-    @api.depends('number_ids', 'order_ids')
-    def _compute_numbers(self):
+    @api.depends('number_ids')
+    def _compute_number_trackings(self):
         for rec in self:
             rec.number_trackings = len(rec.number_ids)
+
+    @api.depends('order_ids')
+    def _compute_number_orders(self):
+        for rec in self:
             rec.number_orders = len(rec.order_ids)
 
     # Function to overwrite for each transporter.
@@ -87,7 +92,8 @@ class TrackingNumber(models.Model):
     status_ids = fields.One2many('tracking.status', 'tracking_id', string="Status history")
     date = fields.Datetime(string="Date of the last status", compute='_compute_date_and_status')
     status = fields.Char(string="Last status", compute='_compute_date_and_status')
-    order_id = fields.Many2one('purchase.order', string="Linked purchase order")
+    order_id = fields.Many2one('purchase.order', string="Linked purchase order",
+                               groups='purchase.group_purchase_user')
     transporter_id = fields.Many2one('tracking.transporter', string="Transporter")
     partner_id = fields.Many2one('res.partner', string="Supplier", related='order_id.partner_id')
     last_status_update = fields.Datetime(string="Date of the last update")

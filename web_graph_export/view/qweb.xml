@@ -1,0 +1,10 @@
+<openerp>
+    <data>
+       <template id="assets_backend" name="web_graph_export assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/web_graph_export/static/src/css/web_graph_export.css"/>
+                <script type="text/javascript" src="/web_graph_export/static/src/js/web_graph_export.js"></script>
+            </xpath>
+        </template>
+    </data>
+</openerp>
