@@ -4,6 +4,7 @@
 
         <!-- Activation of packages -->
         <record model="stock.config.settings" id="stock_config_settings_defaults">
+            <field name="group_stock_production_lot">1</field>
             <field name="group_stock_tracking_lot">1</field>
         </record>
 
@@ -41,86 +42,86 @@
         </record>
 
         <!-- 9 quants -->
-        <record model="stock.quant" id="quant1">
-            <field name="qty" eval="5"/>
-            <field name="package_id" ref="pack1"/>
-            <field name="in_date">2016-02-01 14:13:00</field>
-            <field name="lot_id" ref="lot2"/>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-        </record>
+        <!--<record model="stock.quant" id="quant1">-->
+            <!--<field name="qty" eval="5"/>-->
+            <!--<field name="package_id" ref="pack1"/>-->
+            <!--<field name="in_date">2016-02-01 14:13:00</field>-->
+            <!--<field name="lot_id" ref="lot2"/>-->
+            <!--<field name="product_id" ref="test_product"/>-->
+            <!--<field name="location_id" ref="stock.stock_location_stock"/>-->
+        <!--</record>-->
 
-        <record model="stock.quant" id="quant2">
-            <field name="qty" eval="10"/>
-            <field name="package_id" ref="pack1"/>
-            <field name="in_date">2016-02-01 14:13:00</field>
-            <field name="lot_id" ref="lot1"/>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-        </record>
+        <!--<record model="stock.quant" id="quant2">-->
+            <!--<field name="qty" eval="10"/>-->
+            <!--<field name="package_id" ref="pack1"/>-->
+            <!--<field name="in_date">2016-02-01 14:13:00</field>-->
+            <!--<field name="lot_id" ref="lot1"/>-->
+            <!--<field name="product_id" ref="test_product"/>-->
+            <!--<field name="location_id" ref="stock.stock_location_stock"/>-->
+        <!--</record>-->
 
-        <record model="stock.quant" id="quant3">
-            <field name="qty" eval="15"/>
-            <field name="package_id" ref="pack1"/>
-            <field name="in_date">2016-02-01 14:13:00</field>
-            <field name="lot_id"/>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-        </record>
+        <!--<record model="stock.quant" id="quant3">-->
+            <!--<field name="qty" eval="15"/>-->
+            <!--<field name="package_id" ref="pack1"/>-->
+            <!--<field name="in_date">2016-02-01 14:13:00</field>-->
+            <!--<field name="lot_id"/>-->
+            <!--<field name="product_id" ref="test_product"/>-->
+            <!--<field name="location_id" ref="stock.stock_location_stock"/>-->
+        <!--</record>-->
 
-        <record model="stock.quant" id="quant4">
-            <field name="qty" eval="20"/>
-            <field name="package_id" ref="pack2"/>
-            <field name="in_date">2016-02-03 14:13:00</field>
-            <field name="lot_id"/>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-        </record>
+        <!--<record model="stock.quant" id="quant4">-->
+            <!--<field name="qty" eval="20"/>-->
+            <!--<field name="package_id" ref="pack2"/>-->
+            <!--<field name="in_date">2016-02-03 14:13:00</field>-->
+            <!--<field name="lot_id"/>-->
+            <!--<field name="product_id" ref="test_product"/>-->
+            <!--<field name="location_id" ref="stock.stock_location_stock"/>-->
+        <!--</record>-->
 
-        <record model="stock.quant" id="quant5">
-            <field name="qty" eval="25"/>
-            <field name="package_id" ref="pack2"/>
-            <field name="in_date">2016-02-05 14:13:00</field>
-            <field name="lot_id" ref="lot3"/>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-        </record>
+        <!--<record model="stock.quant" id="quant5">-->
+            <!--<field name="qty" eval="25"/>-->
+            <!--<field name="package_id" ref="pack2"/>-->
+            <!--<field name="in_date">2016-02-05 14:13:00</field>-->
+            <!--<field name="lot_id" ref="lot3"/>-->
+            <!--<field name="product_id" ref="test_product"/>-->
+            <!--<field name="location_id" ref="stock.stock_location_stock"/>-->
+        <!--</record>-->
 
-        <record model="stock.quant" id="quant6">
-            <field name="qty" eval="30"/>
-            <field name="package_id" ref="pack2"/>
-            <field name="in_date">2016-02-05 14:13:00</field>
-            <field name="lot_id"/>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-        </record>
+        <!--<record model="stock.quant" id="quant6">-->
+            <!--<field name="qty" eval="30"/>-->
+            <!--<field name="package_id" ref="pack2"/>-->
+            <!--<field name="in_date">2016-02-05 14:13:00</field>-->
+            <!--<field name="lot_id"/>-->
+            <!--<field name="product_id" ref="test_product"/>-->
+            <!--<field name="location_id" ref="stock.stock_location_stock"/>-->
+        <!--</record>-->
 
-        <record model="stock.quant" id="quant7">
-            <field name="qty" eval="5"/>
-            <field name="package_id"/>
-            <field name="in_date">2016-02-01 14:13:00</field>
-            <field name="lot_id"/>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-        </record>
+        <!--<record model="stock.quant" id="quant7">-->
+            <!--<field name="qty" eval="5"/>-->
+            <!--<field name="package_id"/>-->
+            <!--<field name="in_date">2016-02-01 14:13:00</field>-->
+            <!--<field name="lot_id"/>-->
+            <!--<field name="product_id" ref="test_product"/>-->
+            <!--<field name="location_id" ref="stock.stock_location_stock"/>-->
+        <!--</record>-->
 
-        <record model="stock.quant" id="quant8">
-            <field name="qty" eval="10"/>
-            <field name="package_id"/>
-            <field name="in_date">2016-02-03 14:13:00</field>
-            <field name="lot_id"/>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-        </record>
+        <!--<record model="stock.quant" id="quant8">-->
+            <!--<field name="qty" eval="10"/>-->
+            <!--<field name="package_id"/>-->
+            <!--<field name="in_date">2016-02-03 14:13:00</field>-->
+            <!--<field name="lot_id"/>-->
+            <!--<field name="product_id" ref="test_product"/>-->
+            <!--<field name="location_id" ref="stock.stock_location_stock"/>-->
+        <!--</record>-->
 
-        <record model="stock.quant" id="quant9">
-            <field name="qty" eval="15"/>
-            <field name="package_id"/>
-            <field name="in_date">2016-02-05 14:13:00</field>
-            <field name="lot_id" ref="lot3"/>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-        </record>
+        <!--<record model="stock.quant" id="quant9">-->
+            <!--<field name="qty" eval="15"/>-->
+            <!--<field name="package_id"/>-->
+            <!--<field name="in_date">2016-02-05 14:13:00</field>-->
+            <!--<field name="lot_id" ref="lot3"/>-->
+            <!--<field name="product_id" ref="test_product"/>-->
+            <!--<field name="location_id" ref="stock.stock_location_stock"/>-->
+        <!--</record>-->
 
     </data>
 </openerp>

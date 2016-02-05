@@ -33,33 +33,3 @@ class PackPreferenceStockQuant(models.Model):
             order = 'in_date desc, package_id desc, lot_id desc, id desc'
             return self._quants_get_order(location, product, quantity, domain, order)
         raise exceptions.except_orm(_('Error!'), _('Removal strategy %s not implemented.' % (removal_strategy,)))
-
-    @api.model
-    def _quants_get_order(self, location, product, quantity, domain=[], orderby='in_date'):
-        """
-        Implementation of removal strategies.
-        If it can not reserve, it will return a tuple (None, qty)
-        """
-        domain += location and [('location_id', 'child_of', location.id)] or []
-        domain += [('product_id', '=', product.id)]
-        if self.env.context.get('force_company'):
-            domain += [('company_id', '=', self.env.context['force_company'])]
-        else:
-            domain += [('company_id', '=', self.env.user.company_id.id)]
-        res = []
-        while float_compare(quantity, 0, precision_rounding=product.uom_id.rounding) > 0:
-            quants = self.search(domain, order=orderby)
-            print quants
-            if not quants:
-                res.append((None, quantity))
-                break
-            for quant in quants:
-                rounding = product.uom_id.rounding
-                if float_compare(quantity, abs(quant.qty), precision_rounding=rounding) >= 0:
-                    res += [(quant, abs(quant.qty))]
-                    quantity -= abs(quant.qty)
-                elif float_compare(quantity, 0.0, precision_rounding=rounding) != 0:
-                    res += [(quant, quantity)]
-                    quantity = 0
-                    break
-        return res

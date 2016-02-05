@@ -21,25 +21,39 @@ from openerp.tests import common
 
 
 class TestIncompleteProduction(common.TransactionCase):
+
+    def create_quant(self, qty, package, lot, in_date, product, location):
+        quant = self.env['stock.quant'].create({
+            'qty': qty,
+            'package_id': package and package.id or False,
+            'lot_id': lot and lot.id or False,
+            'in_date': in_date,
+            'product_id': product.id,
+            'location_id': location.id,
+        })
+        return quant
+
     def setUp(self):
         super(TestIncompleteProduction, self).setUp()
         self.product = self.browse_ref('pack_preference_for_moves_assignation.test_product')
         self.pack1 = self.browse_ref('pack_preference_for_moves_assignation.pack1')
-        self.quant1 = self.browse_ref('pack_preference_for_moves_assignation.quant1')
-        self.quant2 = self.browse_ref('pack_preference_for_moves_assignation.quant2')
-        self.quant3 = self.browse_ref('pack_preference_for_moves_assignation.quant3')
-        self.quant4 = self.browse_ref('pack_preference_for_moves_assignation.quant4')
-        self.quant5 = self.browse_ref('pack_preference_for_moves_assignation.quant5')
-        self.quant6 = self.browse_ref('pack_preference_for_moves_assignation.quant6')
-        self.quant7 = self.browse_ref('pack_preference_for_moves_assignation.quant7')
-        self.quant8 = self.browse_ref('pack_preference_for_moves_assignation.quant8')
-        self.quant9 = self.browse_ref('pack_preference_for_moves_assignation.quant9')
+        self.pack2 = self.browse_ref('pack_preference_for_moves_assignation.pack2')
         self.lot1 = self.browse_ref('pack_preference_for_moves_assignation.lot1')
         self.lot2 = self.browse_ref('pack_preference_for_moves_assignation.lot2')
+        self.lot3 = self.browse_ref('pack_preference_for_moves_assignation.lot3')
         self.picking_type_out = self.browse_ref('stock.picking_type_out')
         self.unit = self.browse_ref('product.product_uom_unit')
         self.stock = self.browse_ref('stock.stock_location_stock')
         self.customer = self.browse_ref('stock.stock_location_customers')
+        self.quant1 = self.create_quant(5, self.pack1, self.lot2, '2016-02-01 14:13:00', self.product, self.stock)
+        self.quant2 = self.create_quant(10, self.pack1, self.lot1, '2016-02-01 14:13:00', self.product, self.stock)
+        self.quant3 = self.create_quant(15, self.pack1, False, '2016-02-01 14:13:00', self.product, self.stock)
+        self.quant4 = self.create_quant(20, self.pack2, False, '2016-02-03 14:13:00', self.product, self.stock)
+        self.quant5 = self.create_quant(25, self.pack2, self.lot3, '2016-02-05 14:13:00', self.product, self.stock)
+        self.quant6 = self.create_quant(30, self.pack2, False, '2016-02-05 14:13:00', self.product, self.stock)
+        self.quant7 = self.create_quant(5, False, False, '2016-02-01 14:13:00', self.product, self.stock)
+        self.quant8 = self.create_quant(10, False, False, '2016-02-03 14:13:00', self.product, self.stock)
+        self.quant9 = self.create_quant(15, False, self.lot3, '2016-02-05 14:13:00', self.product, self.stock)
 
     def create_and_test(self, qty, list_reservations):
         picking = self.env['stock.picking'].create({
