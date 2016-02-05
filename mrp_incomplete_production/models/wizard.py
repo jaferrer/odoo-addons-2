@@ -30,6 +30,13 @@ class IncompleteProductionProductProduce(models.TransientModel):
             order = self.env['mrp.production'].browse(c.get("active_id"))
         return order
 
+    def _get_return_location_id(self):
+        order=False
+        c = self.env.context
+        if c and c.get("active_id"):
+            order = self.env['mrp.production'].browse(c.get("active_id"))
+        return order.warehouse_id.return_location_id
+
     def _get_default_src_location(self):
         order=False
         c = self.env.context
@@ -82,7 +89,8 @@ class IncompleteProductionProductProduce(models.TransientModel):
     return_raw_materials = fields.Boolean(string="Return raw materials", default=True,
                                           help="Return not consumed raw materials and "
                                                "then create the child manufacturing order")
-    return_location_id = fields.Many2one('stock.location', string="Return location")
+    return_location_id = fields.Many2one('stock.location', string="Return location",
+                                         default=_get_return_location_id)
     child_production_product_id = fields.Many2one('product.product', default=_get_default_product_id,
                                                   string='Product of the child Manufacturing Order')
     child_src_loc_id = fields.Many2one('stock.location', string="Child source location",

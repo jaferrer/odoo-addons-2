@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from openerp import models, fields, api
 
 
 class IncompleteProductionStockMove(models.Model):
@@ -27,3 +27,9 @@ class IncompleteProductionStockMove(models.Model):
     @api.multi
     def get_return_picking_id(self):
         return False
+
+
+class IncompleteProductionStockWarehouse(models.Model):
+    _inherit = 'stock.warehouse'
+
+    return_location_id = fields.Many2one('stock.location', string="Default return location")

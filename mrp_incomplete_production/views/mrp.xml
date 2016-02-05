@@ -34,6 +34,9 @@
                           </field>
                       </group>
                   </page>
+                  <field name="company_id" position="after">
+                      <field name="warehouse_id"/>
+                  </field>
               </field>
         </record>
 
@@ -65,15 +68,20 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="view_procurement_rule_form2">
-            <field name="name">procurement.rule.form2</field>
-            <field name="model">procurement.rule</field>
-            <field name="inherit_id" ref="procurement.view_procurement_rule_form"/>
+        <record model="ir.ui.view" id="mrp_production_search_view_sirail">
+            <field name="name">mrp.production.search.view.sirail</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.view_mrp_production_filter"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <field name="action" position="after">
-                    <field name="child_loc_id" attrs="{'invisible': [('action', '!=', 'manufacture')]}"/>
-                </field>
+                <data>
+                    <field name="name" position="after">
+                        <field name="warehouse_id"/>
+                    </field>
+                    <group string="Group By..." position="inside">
+                        <filter string="Entrepôt" icon="terp-stock" domain="[]" context="{'group_by':'warehouse_id'}"/>
+                    </group>
+                </data>
             </field>
         </record>
 
