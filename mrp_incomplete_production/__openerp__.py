@@ -35,7 +35,8 @@ It also creates another MO, with the products needed but not available at the co
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/mrp_incomplete_production.xml',
+        'views/mrp.xml',
+        'views/stock.xml',
         'data/mrp_incomplete_production_workflow.xml'
     ],
     'demo': [
