@@ -42,7 +42,6 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.assertTrue(self.procurement1.purchase_line_id)
         order1 = self.procurement1.purchase_line_id.order_id
         self.assertEqual(order1, self.procurement1.purchase_id)
-        # order1.action_cancel()
 
         self.procurement2.run()
         self.assertTrue(self.procurement2.purchase_line_id)
@@ -53,7 +52,6 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.assertEqual(len(order2.order_line), 1)
         self.assertEqual(order2.order_line.product_qty, 100)
         self.assertEqual(order2, self.procurement2.purchase_id)
-        # order1.action_cancel_draft()
 
         self.assertEqual(order1.state, 'draft')
         self.assertEqual(order2.state, 'draft')
