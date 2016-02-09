@@ -53,6 +53,7 @@
             <field name="product_qty" eval="80"/>
             <field name="product_uom" ref="product.product_uom_unit"/>
             <field name="date_planned">2016-02-08 14:37:00</field>
+            <field name="rule_id" ref="buy_rule"/>
         </record>
 
         <record model="procurement.order" id="procurement2">
@@ -62,6 +63,7 @@
             <field name="product_qty" eval="80"/>
             <field name="product_uom" ref="product.product_uom_unit"/>
             <field name="date_planned">2015-02-08 14:37:00</field>
+            <field name="rule_id" ref="buy_rule"/>
         </record>
 
     </data>
