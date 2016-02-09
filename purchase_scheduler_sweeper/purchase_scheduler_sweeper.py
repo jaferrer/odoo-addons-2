@@ -22,6 +22,8 @@ import logging
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSessionHandler, ConnectorSession
 
+PURCHASE_CHUNK = 100
+
 _logger = logging.getLogger(__name__)
 
 
@@ -48,10 +50,11 @@ class SweeperPurchaseOrder(models.Model):
         orders = self.env['purchase.order'].search([('state', '=', 'draft')])
         session = ConnectorSession.from_env(self.env)
         while orders:
-            chunk_orders = orders[:100]
-            orders = orders[100:]
+            chunk_orders = orders[:PURCHASE_CHUNK]
+            orders = orders[PURCHASE_CHUNK:]
             description = _('Chunk of %s purchase orders to sweep') % len(chunk_orders)
-            job_purchase_order_sweeper.delay(session, 'purchase.order', chunk_orders.ids, description=description, priority=1)
+            job_purchase_order_sweeper.delay(session, 'purchase.order', chunk_orders.ids, description=description,
+                                             priority=1)
 
     @api.multi
     def sweep(self):
@@ -59,7 +62,8 @@ class SweeperPurchaseOrder(models.Model):
         for order in self:
             for line in order.order_line:
                 if line.procurement_ids:
+                    procs = line.procurement_ids
                     line.unlink()
-        self.env['procurement.order'].search([('state', '=', 'exception')]).run()
+                    procs.run()
         self.env['purchase.order'].search([('state', '=', 'draft'), ('order_line', '=', False)]).unlink()
         _logger.info(_(">>> End of chunk"))

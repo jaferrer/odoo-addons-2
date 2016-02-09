@@ -49,8 +49,10 @@ openerp.web_fixed_headers = function(instance) {
 					
 					this.$header=this.group.view.$el.find('table.oe_list_header_custom thead');
 					this.$fixWrapper=this.view.$el.find('div.fixedwrapper');
-					this.$fixWrapper.css({"height":this.view.$el.parent().parent().get(0).clientHeight-this.$header.height()-22,"width": "100%","position":"absolute"});
-				    this.$header.find('tr').children().each(function(i, v) {
+					if(this.view.$el.parent().parent().get(0) !=undefined) {
+						this.$fixWrapper.css({"height":this.view.$el.parent().parent().get(0).clientHeight-this.$header.height()-22,"width": "100%","position":"absolute"});
+					}
+					this.$header.find('tr').children().each(function(i, v) {
 				    	if($(v).attr("width")!="1"){
 				    		var node;
 				    		if($(v).attr('class')==undefined){

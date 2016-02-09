@@ -57,6 +57,10 @@ table .oe_list_header_custom th.oe_sortable div::after {
 	z-index:99999 !important;
 }
 
+.openerp .oe_searchview .oe-autocomplete {
+	z-index:99999 !important;
+}
+
 .openerp .oe_collapse_invisibility {
 	border-bottom:none !important;
 }

@@ -121,7 +121,7 @@ class TestPurchaseGroupByPeriod(common.TransactionCase):
         self.assertEqual(order1_id.date_order[0:10], "2015-02-06")
         self.assertEqual(order1_id.date_order_max[0:10], "2015-02-09")
 
-    def test_20_group_by_months(self):
+    def test_30_group_by_months(self):
         """Check grouping by months."""
         tf = self.env['procurement.time.frame'].create({
             'name': "Quarter",
@@ -145,7 +145,7 @@ class TestPurchaseGroupByPeriod(common.TransactionCase):
         self.assertEqual(order1_id.date_order[0:10], "2015-07-01")
         self.assertEqual(order1_id.date_order_max[0:10], "2015-09-30")
 
-    def test_20_group_by_years(self):
+    def test_40_group_by_years(self):
         """Check grouping by years."""
         tf = self.env['procurement.time.frame'].create({
             'name': "Two years",

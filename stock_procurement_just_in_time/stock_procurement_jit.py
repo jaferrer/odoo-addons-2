@@ -458,7 +458,9 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 LEFT JOIN link_location_warehouse link ON link.location_id = sl.location_id
             WHERE link.warehouse_id IS NOT NULL
             GROUP BY sq.product_id, link.warehouse_id
+
             UNION ALL
+
             SELECT
                 sm.product_id    AS product_id,
                 'in' :: TEXT     AS move_type,
@@ -472,12 +474,13 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
                 LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
                 LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
-            WHERE
-                link.warehouse_id != link_dest.warehouse_id
+            WHERE link_dest.warehouse_id IS NOT NULL AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT
+
             UNION ALL
+
             SELECT
                 sm.product_id       AS product_id,
                 'out' :: TEXT       AS move_type,
@@ -491,8 +494,7 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 LEFT JOIN stock_location sl ON sm.location_id = sl.id
                 LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
                 LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
-            WHERE
-                link.warehouse_id != link_dest.warehouse_id
+            WHERE link.warehouse_id IS NOT NULL AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT
