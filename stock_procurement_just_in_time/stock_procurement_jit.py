@@ -408,8 +408,8 @@ class StockLevelsReport(models.Model):
     id = fields.Integer("ID", readonly=True)
     product_id = fields.Many2one("product.product", string="Product", index=True)
     product_categ_id = fields.Many2one("product.category", string="Product Category")
-    location_id = fields.Many2one("stock.location", string="Location", index=True)
-    other_location_id = fields.Many2one("stock.location", string="Origin/Destination")
+    warehouse_id = fields.Many2one("stock.warehouse", string="Warehouse", index=True)
+    other_warehouse_id = fields.Many2one("stock.warehouse", string="Origin/Destination")
     move_type = fields.Selection([('existing', 'Existing'), ('in', 'Incoming'), ('out', 'Outcoming')],
                                  string="Move Type", index=True)
     date = fields.Datetime("Date", index=True)
@@ -420,88 +420,81 @@ class StockLevelsReport(models.Model):
         drop_view_if_exists(cr, "stock_levels_report")
         cr.execute("""
 CREATE OR REPLACE VIEW stock_levels_report AS (
-    WITH RECURSIVE top_parent(id, top_parent_id) AS (
+    WITH link_location_warehouse AS (
         SELECT
-            sl.id,
-            sl.id AS top_parent_id
-        FROM
-            stock_location sl
-            LEFT JOIN stock_location slp ON sl.location_id = slp.id
-        WHERE
-            sl.usage = 'internal' AND (sl.location_id IS NULL OR slp.usage <> 'internal')
-        UNION
-        SELECT
-            sl.id,
-            tp.top_parent_id
-        FROM
-            stock_location sl, top_parent tp
-        WHERE
-            sl.usage = 'internal' AND sl.location_id = tp.id
-    )
+		sl.id AS location_id,
+		sw.id AS warehouse_id
+	FROM stock_warehouse sw
+	LEFT JOIN stock_location sl_view ON sl_view.id = sw.view_location_id
+	LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right)
+
     SELECT
         foo.product_id :: TEXT || '-'
-        || foo.location_id :: TEXT || '-'
+        || foo.warehouse_id :: TEXT || '-'
         || coalesce(foo.move_id :: TEXT, 'existing') AS id,
         foo.product_id,
         pt.categ_id                                  AS product_categ_id,
-        foo.location_id                              AS location_id,
-        foo.other_location_id,
         foo.move_type,
         sum(foo.qty)
-        OVER (PARTITION BY foo.location_id, foo.product_id
+        OVER (PARTITION BY foo.warehouse_id, foo.product_id
             ORDER BY date)                           AS qty,
         foo.date                                     AS date,
-        foo.qty                                      AS move_qty
+        foo.qty                                      AS move_qty,
+        foo.warehouse_id,
+        foo.other_warehouse_id
     FROM
         (
             SELECT
                 sq.product_id      AS product_id,
-                tp.top_parent_id   AS location_id,
-                NULL               AS other_location_id,
                 'existing' :: TEXT AS move_type,
                 max(sq.in_date)    AS date,
                 sum(sq.qty)        AS qty,
-                NULL               AS move_id
+                NULL               AS move_id,
+                link.warehouse_id,
+                NULL               AS other_warehouse_id
             FROM
                 stock_quant sq
                 LEFT JOIN stock_location sl ON sq.location_id = sl.id
-                LEFT JOIN top_parent tp ON sq.location_id = tp.id
-            WHERE
-                sl.usage = 'internal' :: TEXT OR sl.usage = 'transit' :: TEXT
-            GROUP BY sq.product_id, tp.top_parent_id
+                LEFT JOIN link_location_warehouse link ON link.location_id = sl.location_id
+            WHERE link.warehouse_id IS NOT NULL
+            GROUP BY sq.product_id, link.warehouse_id
+
             UNION ALL
+
             SELECT
                 sm.product_id    AS product_id,
-                tp.top_parent_id AS location_id,
-                sm.location_id   AS other_location_id,
                 'in' :: TEXT     AS move_type,
                 sm.date_expected AS date,
                 sm.product_qty   AS qty,
-                sm.id            AS move_id
+                sm.id            AS move_id,
+                link_dest.warehouse_id,
+                link.warehouse_id AS other_warehouse_id
             FROM
                 stock_move sm
                 LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
-                LEFT JOIN top_parent tp ON sm.location_dest_id = tp.id
-            WHERE
-                (sl.usage = 'internal' :: TEXT OR sl.usage = 'transit' :: TEXT)
+                LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
+                LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
+            WHERE link_dest.warehouse_id IS NOT NULL AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT
+
             UNION ALL
+
             SELECT
                 sm.product_id       AS product_id,
-                tp.top_parent_id    AS location_id,
-                sm.location_dest_id AS other_location_id,
                 'out' :: TEXT       AS move_type,
                 sm.date_expected    AS date,
                 -sm.product_qty     AS qty,
-                sm.id               AS move_id
+                sm.id               AS move_id,
+                link.warehouse_id,
+                link_dest.warehouse_id AS other_warehouse_id
             FROM
                 stock_move sm
                 LEFT JOIN stock_location sl ON sm.location_id = sl.id
-                LEFT JOIN top_parent tp ON sm.location_id = tp.id
-            WHERE
-                (sl.usage = 'internal' :: TEXT OR sl.usage = 'transit' :: TEXT)
+                LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
+                LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
+            WHERE link.warehouse_id IS NOT NULL AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT
@@ -510,5 +503,3 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
         LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
 )
         """)
-
-

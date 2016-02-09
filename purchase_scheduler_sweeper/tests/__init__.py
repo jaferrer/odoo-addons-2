@@ -17,19 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api
-
-
-class IncompleteProductionStockMove(models.Model):
-    _inherit = 'stock.move'
-
-    # Function to overwrite for each company
-    @api.multi
-    def get_return_picking_id(self):
-        return False
-
-
-class IncompleteProductionStockWarehouse(models.Model):
-    _inherit = 'stock.warehouse'
-
-    return_location_id = fields.Many2one('stock.location', string="Default return location")
+from . import test_purchase_scheduler_sweeper

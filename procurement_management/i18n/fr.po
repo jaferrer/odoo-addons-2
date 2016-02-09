@@ -45,7 +45,7 @@ msgstr "Regrouper par"
 #. module: procurement_management
 #: view:procurement.order:0
 msgid "Location"
-msgstr "Location"
+msgstr "Emplacement"
 
 #. module: procurement_management
 #: view:procurement.order:0
