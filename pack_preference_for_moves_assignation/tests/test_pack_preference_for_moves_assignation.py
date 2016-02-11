@@ -53,8 +53,9 @@ class TestIncompleteProduction(common.TransactionCase):
         self.quant7 = self.create_quant(5, False, False, '2016-02-01 14:13:00', self.product, self.stock)
         self.quant8 = self.create_quant(10, False, False, '2016-02-03 14:13:00', self.product, self.stock)
         self.quant9 = self.create_quant(15, False, self.lot3, '2016-02-05 14:13:00', self.product, self.stock)
-        print self.quant1, self.quant2, self.quant3, self.quant4, self.quant5
-        print self.quant6, self.quant7, self.quant8, self.quant9
+        for indice in range(9):
+            q = [self.quant1, self.quant2, self.quant3, self.quant4, self.quant5, self.quant6, self.quant7, self.quant8, self.quant9][indice]
+            print indice + 1, q, q.qty, q.package_id, q.lot_id
 
     def create_and_test(self, qty, list_reservations):
         picking = self.env['stock.picking'].create({
