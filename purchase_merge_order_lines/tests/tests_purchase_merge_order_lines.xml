@@ -9,7 +9,7 @@
 
         <record model="res.partner" id="supplier">
             <field name="name">Test supplier (Merge Order Lines)</field>
-            <field name="order_group_period" ref="purchase_group_by_period.fortnight"/>
+            <field name="order_group_period" ref="purchase_group_by_period.day"/>
         </record>
 
         <record model="product.supplierinfo" id="supploierinfo">
