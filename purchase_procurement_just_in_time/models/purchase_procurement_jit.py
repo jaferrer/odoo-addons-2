@@ -97,7 +97,7 @@ class PurchaseOrderJustInTime(models.Model):
                 else:
                     final_uom_qty = qty_needed - qty_received
             r['product_uom_qty'] = min(final_uom_qty, remaining_qty)
-            r['product_uos_qty'] = min(final_uom_qty, remaining_qty)
+            r['product_uos_qty'] = min(final_uom_qty, remaining_qty) * order_line.product_id.uos_coeff
             remaining_qty -= min(final_uom_qty, remaining_qty)
         for r in to_remove:
             res.remove(r)
