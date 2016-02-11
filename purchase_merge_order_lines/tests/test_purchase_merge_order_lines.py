@@ -33,6 +33,9 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.payment_term_2 = self.browse_ref('account.account_payment_term')
 
     def test_10_purchase_merge_order_lines(self):
+
+        self.assertEqual(self.procurement1.state, 'confirmed')
+        self.assertEqual(self.procurement2.state, 'confirmed')
         self.assertFalse(self.procurement1.purchase_line_id)
         self.assertFalse(self.procurement1.purchase_id)
         self.assertFalse(self.procurement2.purchase_line_id)
