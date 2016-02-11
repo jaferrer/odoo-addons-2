@@ -29,21 +29,21 @@ class purchase_jit_config(models.TransientModel):
                                                "number of days beyond the required date, no message will be displayed."
                                                "\nDefaults to 1 day.")
     opmsg_min_early_delay = fields.Integer("Delay to be early (in days)",
-                                          help="Minimum delay to create an operational message specifying that the "
-                                               "purchase order line is early. If the planned date is less than this "
-                                               "number of days before the required date, no message will be displayed."
-                                               "\nDefaults to 7 days.")
+                                           help="Minimum delay to create an operational message specifying that the "
+                                                "purchase order line is early. If the planned date is less than this "
+                                                "number of days before the required date, no message will be displayed."
+                                                "\nDefaults to 7 days.")
 
     @api.multi
     def get_default_opmsg_min_late_delay(self):
         opmsg_min_late_delay = self.env['ir.config_parameter'].get_param(
-                                                   "purchase_procurement_just_in_time.opmsg_min_late_delay", default=1)
+            "purchase_procurement_just_in_time.opmsg_min_late_delay", default=1)
         return {'opmsg_min_late_delay': int(opmsg_min_late_delay)}
 
     @api.multi
     def get_default_opmsg_min_early_delay(self):
         opmsg_min_early_delay = self.env['ir.config_parameter'].get_param(
-                                                   "purchase_procurement_just_in_time.opmsg_min_early_delay", default=7)
+            "purchase_procurement_just_in_time.opmsg_min_early_delay", default=7)
         return {'opmsg_min_early_delay': int(opmsg_min_early_delay)}
 
     @api.multi
