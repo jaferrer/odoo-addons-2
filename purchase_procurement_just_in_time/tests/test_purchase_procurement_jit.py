@@ -394,9 +394,12 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
 
         self.assertEqual(procurement_order_2.product_qty, 10)
         self.assertEqual(len(line1.move_ids), 3)
-        self.assertIn([m4, 10, procurement_order_2, 'done'], [[x, x.product_uom_qty, x.procurement_id, x.state] for x in line1.move_ids])
-        self.assertIn([7, procurement_order_1, 'assigned'], [[x.product_uom_qty, x.procurement_id, x.state] for x in line1.move_ids])
-        self.assertIn([31, self.env['procurement.order'], 'assigned'], [[x.product_uom_qty, x.procurement_id, x.state] for x in line1.move_ids])
+        self.assertIn([m4, 10, procurement_order_2, 'done'],
+                      [[x, x.product_uom_qty, x.procurement_id, x.state] for x in line1.move_ids])
+        self.assertIn([7, procurement_order_1, 'assigned'],
+                      [[x.product_uom_qty, x.procurement_id, x.state] for x in line1.move_ids])
+        self.assertIn([31, self.env['procurement.order'], 'assigned'],
+                      [[x.product_uom_qty, x.procurement_id, x.state] for x in line1.move_ids])
 
         self.assertEqual(procurement_order_2.product_qty, 10)
         self.assertEqual(procurement_order_2.state, 'done')

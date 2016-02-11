@@ -81,7 +81,8 @@ class PurchaseOrderJustInTime(models.Model):
         for r in res:
             final_uom_qty = r['product_uom_qty']
             line = self.env['purchase.order.line'].browse(r['purchase_line_id'])
-            qty_needed = line.product_qty - sum([x.product_qty for x in line.procurement_ids if x.state not in ['done', 'cancel']])
+            qty_needed = line.product_qty - sum([x.product_qty for x in line.procurement_ids
+                                                 if x.state not in ['done', 'cancel']])
             qty_received = sum([x.product_uom_qty for x in line.move_ids if x.state == 'done'])
             if r.get('procurement_id'):
                 procurement = self.env['procurement.order'].browse(r['procurement_id'])
