@@ -21,7 +21,6 @@ from openerp.tests import common
 
 
 class TestIncompleteProduction(common.TransactionCase):
-
     def create_quant(self, qty, package, lot, in_date, product, location):
         quant = self.env['stock.quant'].create({
             'qty': qty,
@@ -133,14 +132,14 @@ class TestIncompleteProduction(common.TransactionCase):
 
     def test_16_pack_preference(self):
         self.create_and_test(120, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5), (self.quant4, 20),
-                                  (self.quant8, 10), (self.quant3, 15), (self.quant5, 25), (self.quant6, 30)])
+                                   (self.quant8, 10), (self.quant3, 15), (self.quant5, 25), (self.quant6, 30)])
 
     def test_17_pack_preference(self):
         self.create_and_test(121, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5), (self.quant4, 20),
-                                  (self.quant8, 10), (self.quant3, 15), (self.quant5, 25), (self.quant6, 30),
+                                   (self.quant8, 10), (self.quant3, 15), (self.quant5, 25), (self.quant6, 30),
                                    (self.quant9, 1)])
 
     def test_18_pack_preference(self):
         self.create_and_test(135, [(self.quant2, 10), (self.quant1, 5), (self.quant7, 5), (self.quant4, 20),
-                                  (self.quant8, 10), (self.quant3, 15), (self.quant5, 25), (self.quant6, 30),
+                                   (self.quant8, 10), (self.quant3, 15), (self.quant5, 25), (self.quant6, 30),
                                    (self.quant9, 15)])
