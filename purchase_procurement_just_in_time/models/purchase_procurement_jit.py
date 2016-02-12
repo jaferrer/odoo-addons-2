@@ -73,6 +73,36 @@ class PurchaseOrderJustInTime(models.Model):
         children_po.renumerate_lines()
         return result
 
+    @api.model
+    def _prepare_order_line_move(self, order, order_line, picking_id, group_id):
+        res = super(PurchaseOrderJustInTime, self)._prepare_order_line_move(order, order_line, picking_id, group_id)
+        to_remove = []
+        remaining_qty = order_line.product_qty
+        for r in res:
+            final_uom_qty = r['product_uom_qty']
+            line = self.env['purchase.order.line'].browse(r['purchase_line_id'])
+            qty_needed = line.product_qty - sum([x.product_uom_qty for x in line.move_ids
+                                                 if x.procurement_id and x.state not in ['done', 'cancel']])
+            if r.get('procurement_id'):
+                procurement = self.env['procurement.order'].browse(r['procurement_id'])
+                qty_ordered = sum([x.product_uom_qty for x in procurement.move_ids if x.state != 'cancel'])
+                if procurement.state == 'cancel' or qty_ordered == procurement.product_qty:
+                    to_remove += [r]
+                else:
+                    final_uom_qty = procurement.product_qty - qty_ordered
+            else:
+                qty_received = sum([x.product_uom_qty for x in line.move_ids if x.state == 'done'])
+                if qty_received == qty_needed:
+                    to_remove += [r]
+                else:
+                    final_uom_qty = qty_needed - qty_received
+            r['product_uom_qty'] = min(final_uom_qty, remaining_qty)
+            r['product_uos_qty'] = min(final_uom_qty, remaining_qty) * order_line.product_id.uos_coeff
+            remaining_qty -= min(final_uom_qty, remaining_qty)
+        for r in to_remove:
+            res.remove(r)
+        return res
+
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
@@ -252,7 +282,13 @@ class PurchaseOrderLineJustInTime(models.Model):
                 new_move.action_assign()
             else:
                 move = move_without_proc_id[0]
-                move.product_uom_qty = move.product_uom_qty + diff
+                if move.state not in ['done', 'cancel']:
+                    move.product_uom_qty = move.product_uom_qty + diff
+                else:
+                    new_move = move.copy({'state': 'draft', 'product_uom_qty': diff})
+                    new_move.purchase_line_id = move.purchase_line_id
+                    new_move.action_confirm()
+                    new_move.action_assign()
         else:
             self.order_id._create_stock_moves_improved(self.order_id, self)
 
@@ -309,6 +345,8 @@ class PurchaseOrderLineJustInTime(models.Model):
         """
 
         self.ensure_one()
+        if vals['product_qty'] < sum([x.product_uom_qty for x in self.move_ids if x.state == 'done']):
+            raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
         global_qty_ordered = sum(x.product_uom_qty for x in self.move_ids if x.state != 'cancel')
         if self.state == 'confirmed':
             if vals['product_qty'] == 0:
@@ -337,11 +375,9 @@ class PurchaseOrderLineJustInTime(models.Model):
         """
 
         result = super(PurchaseOrderLineJustInTime, self).write(vals)
-        if vals.get('product_qty') and not self.env.context.get('no_update_moves'):
-            if vals['product_qty'] < sum([x.product_uom_qty for x in self.move_ids if x.state == 'done']):
-                raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
-            for item in self:
-                item.update_moves(vals)
+        for rec in self:
+            if vals.get('product_qty') and not self.env.context.get('no_update_moves'):
+                rec.update_moves(vals)
         if vals.get('price_unit'):
             for rec in self:
                 active_moves = self.env['stock.move'].search([('product_id', '=', rec.product_id.id),
@@ -393,12 +429,24 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             # Considering the case of different lines with same product in one order
             total_need = total_need - sum([l.product_qty for l in order.order_line if l != line and
                                            l.product_id == line.product_id])
-            if procurement.purchase_line_id.order_id.state not in ['draft', 'cancel']:
+            if procurement.purchase_line_id.order_id.state not in ['draft', 'cancel', 'done']:
                 opmsg_reduce_qty = total_need
                 if float_compare(total_need, 0.0, precision_rounding=procurement.product_uom.rounding) == 0:
                     to_delete = True
+                line = procurement.purchase_line_id
                 procurement.purchase_line_id.write({'opmsg_reduce_qty': opmsg_reduce_qty,
                                                     'to_delete': to_delete})
+                vals_to_write = {'purchase_id': False, 'purchase_line_id': False}
+                if [x for x in procurement.move_ids if x.state == 'done']:
+                    vals_to_write['product_qty'] = sum([x.product_qty for x in procurement.move_ids if x.state == 'done'])
+                moves_to_unlink = line.move_ids.filtered(lambda x: x.state not in ['done', 'cancel'] and
+                                                                   (not x.procurement_id or
+                                                                    x.procurement_id == procurement))
+                moves_to_unlink.action_cancel()
+                moves_to_unlink.unlink()
+                procurement.check()
+                procurement.write(vals_to_write)
+                line.order_id._create_stock_moves(line.order_id, line)
             else:
                 result = super(ProcurementOrderPurchaseJustInTime,
                                self.with_context(cancelling_active_proc=True)).\
