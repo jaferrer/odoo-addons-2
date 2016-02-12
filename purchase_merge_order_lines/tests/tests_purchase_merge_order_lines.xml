@@ -46,23 +46,5 @@
             <field name="picking_type_id" ref="stock_picking_type_reception"/>
         </record>
 
-        <record model="procurement.order" id="procurement1">
-            <field name="name">Test procurement 1 (Merge Order Lines)</field>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-            <field name="product_qty" eval="80"/>
-            <field name="product_uom" ref="product.product_uom_unit"/>
-            <field name="date_planned">2016-02-08 14:37:00</field>
-        </record>
-
-        <record model="procurement.order" id="procurement2">
-            <field name="name">Test procurement 2 (Merge Order Lines)</field>
-            <field name="product_id" ref="test_product"/>
-            <field name="location_id" ref="stock.stock_location_stock"/>
-            <field name="product_qty" eval="80"/>
-            <field name="product_uom" ref="product.product_uom_unit"/>
-            <field name="date_planned">2015-02-08 14:37:00</field>
-        </record>
-
     </data>
 </openerp>
