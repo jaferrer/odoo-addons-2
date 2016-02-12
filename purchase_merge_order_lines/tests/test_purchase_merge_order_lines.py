@@ -25,8 +25,6 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
     def setUp(self):
         super(TestPurchaseMergeOrderLines, self).setUp()
         self.product = self.browse_ref('purchase_merge_order_lines.test_product')
-        self.procurement1 = self.browse_ref('purchase_merge_order_lines.procurement1')
-        self.procurement2 = self.browse_ref('purchase_merge_order_lines.procurement2')
         self.incoterm1 = self.browse_ref('stock.incoterm_EXW')
         self.incoterm2 = self.browse_ref('stock.incoterm_FCA')
         self.payment_term_1 = self.browse_ref('account.account_payment_term_15days')
