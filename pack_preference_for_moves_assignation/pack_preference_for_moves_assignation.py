@@ -26,7 +26,6 @@ class PackPreferenceStockQuant(models.Model):
 
     @api.model
     def apply_removal_strategy(self, location, product, quantity, domain, removal_strategy):
-        print 'apply_removal_strategy', location, product, quantity, domain, removal_strategy
         if removal_strategy == 'fifo':
             order = 'in_date, package_id, lot_id'
             return self._quants_get_order(location, product, quantity, domain, order)
