@@ -31,27 +31,57 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.incoterm2 = self.browse_ref('stock.incoterm_FCA')
         self.payment_term_1 = self.browse_ref('account.account_payment_term_15days')
         self.payment_term_2 = self.browse_ref('account.account_payment_term')
+        self.stock = self.browse_ref('stock.stock_location_stock')
+        self.buy_rule = self.browse_ref('purchase_merge_order_lines.buy_rule')
+
+    def create_procurement_order_1(self):
+        return self.env['procurement.order'].create({
+            'name': 'Procurement order 5 (Sirail Achats)',
+            'product_id': self.product.id,
+            'product_qty': 80,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.stock.id,
+            'date_planned': '2016-02-08 14:37:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+            'rule_id': self.buy_rule.id
+        })
+
+    def create_procurement_order_2(self):
+        return self.env['procurement.order'].create({
+            'name': 'Procurement order 6 (Sirail Achats)',
+            'product_id': self.product.id,
+            'product_qty': 80,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.stock.id,
+            'date_planned': '2015-02-08 14:37:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+            'rule_id': self.buy_rule.id
+        })
 
     def test_10_purchase_merge_order_lines(self):
-        self.assertFalse(self.procurement1.purchase_line_id)
-        self.assertFalse(self.procurement1.purchase_id)
-        self.assertFalse(self.procurement2.purchase_line_id)
-        self.assertFalse(self.procurement2.purchase_id)
-        self.procurement1.run()
-        self.assertTrue(self.procurement1.purchase_id)
-        self.assertTrue(self.procurement1.purchase_line_id)
-        order1 = self.procurement1.purchase_line_id.order_id
-        self.assertEqual(order1, self.procurement1.purchase_id)
 
-        self.procurement2.run()
-        self.assertTrue(self.procurement2.purchase_line_id)
-        order2 = self.procurement2.purchase_line_id.order_id
+        procurement1 = self.create_procurement_order_1()
+        procurement2 = self.create_procurement_order_2()
+
+        self.assertFalse(procurement1.purchase_line_id)
+        self.assertFalse(procurement1.purchase_id)
+        self.assertFalse(procurement2.purchase_line_id)
+        self.assertFalse(procurement2.purchase_id)
+        procurement1.run()
+        self.assertTrue(procurement1.purchase_id)
+        self.assertTrue(procurement1.purchase_line_id)
+        order1 = procurement1.purchase_line_id.order_id
+        self.assertEqual(order1, procurement1.purchase_id)
+
+        procurement2.run()
+        self.assertTrue(procurement2.purchase_line_id)
+        order2 = procurement2.purchase_line_id.order_id
         self.assertNotEqual(order1, order2)
         self.assertEqual(len(order1.order_line), 1)
         self.assertEqual(order1.order_line.product_qty, 100)
         self.assertEqual(len(order2.order_line), 1)
         self.assertEqual(order2.order_line.product_qty, 100)
-        self.assertEqual(order2, self.procurement2.purchase_id)
+        self.assertEqual(order2, procurement2.purchase_id)
 
         self.assertEqual(order1.state, 'draft')
         self.assertEqual(order2.state, 'draft')
@@ -71,8 +101,8 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.assertEqual(len(merged_order.order_line), 1)
         self.assertEqual(merged_order.order_line.product_qty, 160)
         self.assertEqual(len(merged_order.order_line.procurement_ids), 2)
-        self.assertIn(self.procurement1, merged_order.order_line.procurement_ids)
-        self.assertIn(self.procurement2, merged_order.order_line.procurement_ids)
+        self.assertIn(procurement1, merged_order.order_line.procurement_ids)
+        self.assertIn(procurement2, merged_order.order_line.procurement_ids)
 
         self.assertEqual(merged_order.incoterm_id, self.incoterm2)
         self.assertEqual(merged_order.payment_term_id, self.payment_term_2)
