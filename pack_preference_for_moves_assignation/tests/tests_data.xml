@@ -3,10 +3,15 @@
     <data>
 
         <!-- Activation of packages -->
-        <record model="stock.config.settings" id="stock_config_settings_defaults">
+        <record model="stock.config.settings" id="pack_reservation_config">
             <field name="group_stock_production_lot">1</field>
             <field name="group_stock_tracking_lot">1</field>
         </record>
+
+        <function
+            model="stock.config.settings"
+            name="execute"
+            eval="[[ref('pack_reservation_config')]]" />
 
         <!-- 1 product-->
         <record model="product.product" id="test_product">
