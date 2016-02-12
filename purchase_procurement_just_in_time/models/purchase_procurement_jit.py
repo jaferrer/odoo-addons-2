@@ -81,17 +81,17 @@ class PurchaseOrderJustInTime(models.Model):
         for r in res:
             final_uom_qty = r['product_uom_qty']
             line = self.env['purchase.order.line'].browse(r['purchase_line_id'])
-            qty_needed = line.product_qty - sum([x.product_qty for x in line.procurement_ids
-                                                 if x.state not in ['done', 'cancel']])
-            qty_received = sum([x.product_uom_qty for x in line.move_ids if x.state == 'done'])
+            qty_needed = line.product_qty - sum([x.product_uom_qty for x in line.move_ids
+                                                 if x.procurement_id and x.state not in ['done', 'cancel']])
             if r.get('procurement_id'):
                 procurement = self.env['procurement.order'].browse(r['procurement_id'])
-                qty_received = sum([x.product_uom_qty for x in procurement.move_ids if x.state == 'done'])
-                if procurement.state == 'cancel' or qty_received == procurement.product_qty:
+                qty_ordered = sum([x.product_uom_qty for x in procurement.move_ids if x.state != 'cancel'])
+                if procurement.state == 'cancel' or qty_ordered == procurement.product_qty:
                     to_remove += [r]
                 else:
-                    final_uom_qty = procurement.product_qty - qty_received
+                    final_uom_qty = procurement.product_qty - qty_ordered
             else:
+                qty_received = sum([x.product_uom_qty for x in line.move_ids if x.state == 'done'])
                 if qty_received == qty_needed:
                     to_remove += [r]
                 else:
@@ -436,14 +436,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 line = procurement.purchase_line_id
                 procurement.purchase_line_id.write({'opmsg_reduce_qty': opmsg_reduce_qty,
                                                     'to_delete': to_delete})
+                vals_to_write = {'purchase_id': False, 'purchase_line_id': False}
                 if [x for x in procurement.move_ids if x.state == 'done']:
-                    procurement.product_qty = sum([x.product_qty for x in procurement.move_ids if x.state == 'done'])
+                    vals_to_write['product_qty'] = sum([x.product_qty for x in procurement.move_ids if x.state == 'done'])
                 moves_to_unlink = line.move_ids.filtered(lambda x: x.state not in ['done', 'cancel'] and
-                                                                   x.procurement_id.state != 'cancel')
+                                                                   (not x.procurement_id or
+                                                                    x.procurement_id == procurement))
                 moves_to_unlink.action_cancel()
                 moves_to_unlink.unlink()
                 procurement.check()
-                procurement.write({'purchase_id': False, 'purchase_line_id': False})
+                procurement.write(vals_to_write)
                 line.order_id._create_stock_moves(line.order_id, line)
             else:
                 result = super(ProcurementOrderPurchaseJustInTime,
