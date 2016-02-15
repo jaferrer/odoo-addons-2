@@ -21,7 +21,6 @@ from openerp.tests import common
 
 
 class TestPurchaseProcurementJIT(common.TransactionCase):
-
     def setUp(self):
         super(TestPurchaseProcurementJIT, self).setUp()
         self.supplier1 = self.browse_ref('purchase_procurement_just_in_time.supplier1')
@@ -460,7 +459,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(purchase_order_1.order_line), 1)
         self.assertIn(line, purchase_order_1.order_line)
         self.assertEqual(len(line.move_ids), 4)
-        [m1, m2, m3, m4] = [False]*4
+        [m1, m2, m3, m4] = [False] * 4
         for move in line.move_ids:
             if move.product_qty == 7:
                 m1 = move
@@ -583,13 +582,13 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         """
 
         def test_decreasing_line_qty(line_tested, new_qty, number_moves, list_quantities):
-                line_tested.write({'product_qty': new_qty})
-                self.assertEqual(len(line_tested.move_ids), number_moves)
-                for item in list_quantities:
-                    self.assertIn(item, [x.product_qty for x in line_tested.move_ids])
-                for item in line_tested.move_ids:
-                    if item.product_qty == 0 and item.procurement_id:
-                        self.assertNotEqual(item.state, 'cancel')
+            line_tested.write({'product_qty': new_qty})
+            self.assertEqual(len(line_tested.move_ids), number_moves)
+            for item in list_quantities:
+                self.assertIn(item, [x.product_qty for x in line_tested.move_ids])
+            for item in line_tested.move_ids:
+                if item.product_qty == 0 and item.procurement_id:
+                    self.assertNotEqual(item.state, 'cancel')
 
         def test_procurement_id(list_moves_procurements):
             for item in list_moves_procurements:
@@ -611,7 +610,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(purchase_order_1.order_line), 1)
         line = purchase_order_1.order_line[0]
 
-        [m1, m2, m3, m4] = [False]*4
+        [m1, m2, m3, m4] = [False] * 4
         for move in line.move_ids:
             if move.product_qty == 7:
                 m1 = move
@@ -659,10 +658,10 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         """
 
         def test_increasing_line_qty(line_tested, new_qty, number_moves, list_moves_quantities):
-                line_tested.write({'product_qty': new_qty})
-                self.assertEqual(len(line_tested.move_ids), number_moves)
-                for item in list_moves_quantities:
-                    self.assertEqual(item[0].product_qty, item[1])
+            line_tested.write({'product_qty': new_qty})
+            self.assertEqual(len(line_tested.move_ids), number_moves)
+            for item in list_moves_quantities:
+                self.assertEqual(item[0].product_qty, item[1])
 
         def test_procurement_id(list_moves_procurements):
             for item in list_moves_procurements:
@@ -684,7 +683,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(purchase_order_1.order_line), 1)
         line = purchase_order_1.order_line[0]
 
-        [m1, m2, m3, m4] = [False]*4
+        [m1, m2, m3, m4] = [False] * 4
         for move in line.move_ids:
             if move.product_qty == 7:
                 m1 = move
@@ -797,7 +796,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         purchase_order_1.signal_workflow('purchase_confirm')
 
         self.assertEqual(len(line.move_ids), 2)
-        [m1, m2] = [False]*2
+        [m1, m2] = [False] * 2
         for move in line.move_ids:
             if move.product_qty == 5:
                 m1 = move
@@ -888,7 +887,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         for m in line1.move_ids:
             self.assertIn(m.product_uom_qty, [3, 12])
 
-        [m1, m2] = [False]*2
+        [m1, m2] = [False] * 2
         for move in line.move_ids:
             if move.product_qty == 1:
                 m1 = move
@@ -899,7 +898,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(m2.procurement_id, procurement_order_1)
 
         self.assertEqual(len(line1.move_ids), 2)
-        [m1, m2] = [False]*2
+        [m1, m2] = [False] * 2
         for move in line1.move_ids:
             if move.product_qty == 3:
                 m1 = move

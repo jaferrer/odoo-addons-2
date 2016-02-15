@@ -64,6 +64,10 @@ class TestProductRemovalFromPacks(common.TransactionCase):
         Testing via moves.
         """
 
+        if self.env['ir.module.module'].search([('name', '=', 'pack_preference_for_moves_assignation'),
+                                                ('state', '=', 'installed')]):
+            self.skipTest("Package preference for moves assignation module is installed")
+
         # Testing integer final values
         self.create_move_out_and_test(4.0, [[self.package1, self.lot1, 3.0],
                                             [self.package1, self.lot2, 10.0],
