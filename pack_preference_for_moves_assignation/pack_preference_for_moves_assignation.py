@@ -17,8 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api, exceptions, _
-from openerp.tools.float_utils import float_compare
+from openerp import models, api
 
 
 class PackPreferenceStockQuant(models.Model):
@@ -32,4 +31,5 @@ class PackPreferenceStockQuant(models.Model):
         elif removal_strategy == 'lifo':
             order = 'in_date desc, package_id desc, lot_id desc'
             return self._quants_get_order(location, product, quantity, domain, order)
-        raise exceptions.except_orm(_('Error!'), _('Removal strategy %s not implemented.' % (removal_strategy,)))
+        else:
+            super(PackPreferenceStockQuant, self).apply_removal_strategy()

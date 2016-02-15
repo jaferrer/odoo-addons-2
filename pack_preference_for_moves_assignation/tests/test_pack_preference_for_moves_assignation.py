@@ -57,10 +57,6 @@ class TestIncompleteProduction(common.TransactionCase):
         # Let's force the system to compute parents left and right for table stock_quant_package
         self.env['stock.quant.package']._parent_store_compute()
 
-        for indice in range(9):
-            q = [self.quant1, self.quant2, self.quant3, self.quant4, self.quant5, self.quant6, self.quant7, self.quant8, self.quant9][indice]
-            print indice + 1, q, q.qty, q.package_id, q.package_id.parent_left, q.lot_id
-
     def create_and_test(self, qty, list_reservations):
         picking = self.env['stock.picking'].create({
             'name': "Test picking (Pack Preference)",
