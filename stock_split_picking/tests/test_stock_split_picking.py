@@ -34,8 +34,6 @@ class TestStockSplitPicking(common.TransactionCase):
         # First, without saving packops
         ##############################################
 
-        self.env['stock.quant'].search([('product_id', '=', self.product.id)]).unlink()
-
         self.assertTrue(self.product and self.picking and self.move)
         self.picking.action_confirm()
         self.picking.force_assign()

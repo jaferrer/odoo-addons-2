@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase'],
+    'depends': ['purchase', 'purchase_group_by_period'],
     'description': """
 Merge purchase order lines
 ==========================
@@ -32,10 +32,8 @@ This module allows to merge the purchase order lines when merging purchase order
 When the date planned of two lines to merge are different, it holds ths minimal value.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'purchase_merge_order_lines.xml',
-    ],
-    'demo': [],
+    'data': ['purchase_merge_order_lines.xml'],
+    'demo': ['tests/tests_purchase_merge_order_lines.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,
