@@ -65,6 +65,12 @@ class IncompeteProductionMrpProduction(models.Model):
         for rec in self:
             rec.warehouse_id = rec.location_dest_id and rec.location_dest_id.get_warehouse(rec.location_dest_id)
 
+    @api.multi
+    @api.depends('location_dest_id')
+    def _compute_warehouse_id(self):
+        for rec in self:
+            rec.warehouse_id = rec.location_dest_id and rec.location_dest_id.get_warehouse(rec.location_dest_id)
+
     @api.model
     def _calculate_qty(self, production, product_qty=0.0):
         consume_lines = super(IncompeteProductionMrpProduction, self)._calculate_qty(production, product_qty)

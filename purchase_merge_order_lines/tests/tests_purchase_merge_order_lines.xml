@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="product.product" id="test_product">
+            <field name="name">Test product (Merge Order Lines)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="res.partner" id="supplier">
+            <field name="name">Test supplier (Merge Order Lines)</field>
+            <field name="order_group_period" ref="purchase_group_by_period.day"/>
+        </record>
+
+        <record model="product.supplierinfo" id="supploierinfo">
+            <field name="product_tmpl_id" ref="test_product_product_template"/>
+            <field name="name" ref="supplier"/>
+            <field name="min_qty" eval="100"/>
+        </record>
+
+        <record model="ir.sequence" id="ir_sequence_reception">
+            <field name="name">Sequence reception</field>
+            <field name="prefix">REC/</field>
+            <field name="padding">5</field>
+            <field name="active" eval="True"/>
+            <field name="suffix"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record model="stock.picking.type" id="stock_picking_type_reception">
+            <field name="name">Reception</field>
+            <field name="active">1</field>
+            <field name="sequence">1</field>
+            <field name="color">3</field>
+            <field name="code">incoming</field>
+            <field name="warehouse_id" ref="stock.warehouse0"/>
+            <field name="default_location_dest_id" ref="stock.stock_location_stock"/>
+            <field name="default_location_src_id" ref="stock.stock_location_suppliers"/>
+            <field name="return_picking_type_id"/>
+            <field name="sequence_id" ref="ir_sequence_reception"/>
+        </record>
+
+        <record model="procurement.rule" id="buy_rule">
+            <field name="name">Buy rule (Merge Order Lines)</field>
+            <field name="action">buy</field>
+            <field name="picking_type_id" ref="stock_picking_type_reception"/>
+        </record>
+
+    </data>
+</openerp>

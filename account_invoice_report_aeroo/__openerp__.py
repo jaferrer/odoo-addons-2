@@ -17,4 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import purchase_procurement_jit, res_config
+{
+    'name': 'Account Invoice Report Aeroo',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Account',
+    'depends': ['account', 'report_aeroo', 'l10n_fr'],
+    'description': """
+Account Invoice Report Aeroo
+============================
+Replaces the basic report by a improved one.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': ['account_invoice_report_aeroo.xml'],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

@@ -18,22 +18,25 @@
 #
 
 {
-    'name': 'Merge purchase order lines',
+    'name': 'Package preference for moves assignation',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase', 'purchase_group_by_period'],
+    'category': 'Stock',
+    'depends': ['stock'],
     'description': """
-Merge purchase order lines
-==========================
-This module allows to merge the purchase order lines when merging purchase orders.
+Package preference for moves assignation
+========================================
+This modules overwrites removal strategies FIFO and LIFO. Stock moves are now forced to reserve all the quants in the
+package of the first quant reserved (youngest or oldest, according to the removal strategy of the location), even if
+the native preference should be given to another one.
 
-When the date planned of two lines to merge are different, it holds ths minimal value.
+It also reserves the quants which are not in a package or not in a lot first, if the given order implies to choose
+between one of them.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['purchase_merge_order_lines.xml'],
-    'demo': ['tests/tests_purchase_merge_order_lines.xml'],
+    'data': [],
+    'demo': ['tests/tests_data.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,

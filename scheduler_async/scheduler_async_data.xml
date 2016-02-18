@@ -7,5 +7,10 @@
             <field name="args"/>
         </record>
 
+        <record model="queue.job.channel" id="root_confirm_procs">
+            <field name="name">confprocs</field>
+            <field name="parent_id" ref="connector.channel_root"/>
+        </record>
+
     </data>
 </openerp>

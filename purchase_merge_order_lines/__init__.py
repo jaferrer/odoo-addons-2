@@ -17,4 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import purchase_merge_order_lines
+from . import purchase_merge_order_lines
