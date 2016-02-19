@@ -28,13 +28,23 @@ class stock_auto_move_move(models.Model):
     @api.multi
     def action_assign(self):
         super(stock_auto_move_move, self).action_assign()
-        # picking_env = self.env['stock.picking']
         # Transfer all pickings which have an auto move assigned
         moves = self.filtered(lambda m: m.state == 'assigned' and m.auto_move)
         picking_ids = {m.picking_id.id for m in moves}
         todo_pickings = self.env['stock.picking'].browse(picking_ids)
         # We create packing operations to keep packing if any
-        todo_pickings.do_prepare_partial()
+        pickings_to_prepare_partial = self.env['stock.picking']
+        for picking in todo_pickings:
+            moves_to_change_of_picking = picking.move_lines.filtered(lambda move: move in moves)
+            # We change the moves of picking only if the move_lines of the current picking contain mixed moves from
+            # list 'moves' and other ones
+            if moves_to_change_of_picking and moves_to_change_of_picking != picking.move_lines:
+                new_picking = picking.copy()
+                moves_to_change_of_picking.write({'picking_id': new_picking.id})
+                # We call 'do_prepare_partial' on pickings with packops which lost moves in action.
+                if picking.pack_operation_ids:
+                    pickings_to_prepare_partial = pickings_to_prepare_partial + picking
+        pickings_to_prepare_partial.do_prepare_partial()
         moves.action_done()
 
 
