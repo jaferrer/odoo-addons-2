@@ -39,8 +39,19 @@ class StockChangeQuantPicking(models.TransientModel):
     def onchange_partner_id(self):
         self.ensure_one()
         self.picking_id = False
-        groups = self.env['procurement.group'].search([('partner_id', '=', self.partner_id.id)])
-        return self.partner_id and {'domain': {'picking_id': [('group_id', 'in', groups.ids)]}} or {}
+        self.move_id = False
+        quant = self.env['stock.quant'].browse(self.env.context['active_ids'][0])
+        groups = self.partner_id and self.env['procurement.group'].search([('partner_id', '=', self.partner_id.id)]) or False
+        domain = [('picking_id', '!=', False),
+                  ('product_id', '=', quant.product_id.id),
+                  ('state', 'in', ['confirmed', 'waiting'])]
+        if groups:
+            domain += [('picking_id.group_id', 'in', groups.ids)]
+        moves = self.env['stock.move'].search(domain)
+        return {'domain': {'picking_id': [('id', 'in', moves.mapped('picking_id').ids)],
+                           'move_id': [('group_id', '=', self.picking_id.group_id.id),
+                                       ('product_id', '=', quant.product_id.id),
+                                       ('state', 'in', ['confirmed', 'waiting'])]}} or {}
 
     @api.onchange('picking_id')
     def onchange_picking_id(self):
