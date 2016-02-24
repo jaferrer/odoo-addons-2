@@ -1,0 +1,11 @@
+<openerp>
+    <data>
+       <template id="assets_backend" name="web_drawing_free assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+            	<script type="text/javascript" src="/web_drawing_free/static/lib/sketch.js"></script>
+                <link rel="stylesheet" href="/web_drawing_free/static/src/css/drawing_free.css"/>
+                <script type="text/javascript" src="/web_drawing_free/static/src/js/drawing_free.js"></script>
+            </xpath>
+        </template>
+    </data>
+</openerp>
