@@ -118,7 +118,7 @@ class ProcurementOrderAsync(models.Model):
 
     @api.model
     def run_confirm_moves(self):
-        group_draft_moves = []
+        group_draft_moves = {}
         all_draft_moves = self.env['stock.move'].search([('state', '=', 'draft')], limit=None,
                                                         order='priority desc, date_expected asc')
 
@@ -130,10 +130,10 @@ class ProcurementOrderAsync(models.Model):
 
         for draft_move_ids in group_draft_moves:
             if self.env.context.get('jobify'):
-                confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', draft_move_ids,
+                confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', group_draft_moves[draft_move_ids],
                                     self.env.context)
             else:
-                confirm_moves(ConnectorSession.from_env(self.env), 'stock.move', draft_move_ids,
+                confirm_moves(ConnectorSession.from_env(self.env), 'stock.move', group_draft_moves[draft_move_ids],
                               self.env.context)
 
     @api.model
