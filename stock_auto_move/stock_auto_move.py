@@ -39,11 +39,14 @@ class stock_auto_move_move(models.Model):
             # We change the moves of picking only if the move_lines of the current picking contain mixed moves from
             # list 'moves' and other ones
             if moves_to_change_of_picking and moves_to_change_of_picking != picking.move_lines:
-                new_picking = picking.copy()
+                new_picking = picking.copy({'move_lines': [], 'pack_operation_ids': []})
                 moves_to_change_of_picking.write({'picking_id': new_picking.id})
                 # We call 'do_prepare_partial' on pickings with packops which lost moves in action.
                 if picking.pack_operation_ids:
-                    pickings_to_prepare_partial = pickings_to_prepare_partial + picking
+                    pickings_to_prepare_partial |= picking
+                pickings_to_prepare_partial |= new_picking
+            else:
+                pickings_to_prepare_partial |= picking
         pickings_to_prepare_partial.do_prepare_partial()
         moves.action_done()
 
