@@ -17,11 +17,11 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <tree edit="false" create="false">
-                    <field name="location_id"/>
+                    <field name="warehouse_id"/>
                     <field name="product_id"/>
                     <field name="date"/>
                     <field name="move_type"/>
-                    <field name="other_location_id"/>
+                    <field name="other_warehouse_id"/>
                     <field name="move_qty"/>
                     <field name="qty"/>
                 </tree>
@@ -34,15 +34,15 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <search>
-                    <field name="location_id"/>
+                    <field name="warehouse_id"/>
                     <field name="product_id"/>
                     <field name="product_categ_id"/>
                     <field name="date"/>
                     <group string="Group by...">
                         <filter name="group_product" string="Product" domain="[]"
                                 context="{'group_by': 'product_id'}"/>
-                        <filter name="group_location" string="Location" domain="[]"
-                                context="{'group_by': 'location_id'}"/>
+                        <filter name="group_warehouse" string="Warehouse" domain="[]"
+                                context="{'group_by': 'warehouse_id'}"/>
                         <filter name="group_category" string="Category" domain="[]"
                                 context="{'group_by': 'product_categ_id'}"/>
                     </group>
@@ -56,7 +56,7 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <graph type="pivot">
-                    <field name="location_id" type="row"/>
+                    <field name="warehouse_id" type="row"/>
                     <field name="date" interval="week" type="row"/>
                     <field name="move_qty" type="measure"/>
                     <field name="qty" type="measure"/>

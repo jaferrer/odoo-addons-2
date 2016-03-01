@@ -1,0 +1,27 @@
+image: debian:jessie
+
+before_script:
+  - export GITLAB_SERVER=`echo $CI_BUILD_REPO| sed "s/\(.*\)@\([^\/]*\)\/\(.*\)$/\2/"`
+  - apt-get update -y > /dev/null
+  - 'which ssh-agent || apt-get install -y --no-install-recommends openssh-client > /dev/null'
+  - 'which git || apt-get install -y --no-install-recommends git > /dev/null'
+  - eval $(ssh-agent -s)
+  - ssh-add <(echo "$SSH_PRIVATE_KEY")
+  - mkdir -p ~/.ssh
+  - '[[ -f /.dockerinit ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+
+lint:
+  stage: test
+  script:
+    - git clone git@gitlab.ndp-systemes.fr:odoo-addons/ci-config.git /opt/ci-config
+    - "##########################################################################################"
+    - "#                            DEBUT DU TEST FLAKE8                                        #"
+    - "##########################################################################################"
+    - /opt/ci-config/test-flake8.sh /opt/ci-config/conf/flake8-ndp.conf $CI_PROJECT_DIR
+    - "##########################################################################################"
+    - "#                            DEBUT DU TEST PYLINT                                        #"
+    - "##########################################################################################"
+    - /opt/ci-config/test-pylint.sh /opt/ci-config/conf/pylint-ndp.conf $CI_PROJECT_DIR
+  tags:
+    - odoo
+  allow_failure: true

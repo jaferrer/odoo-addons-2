@@ -56,7 +56,7 @@ openerp.web_dialog_size= function (instance) {
     	
     	ir_actions_act_window: function (action, options) {
             var self = this;
-            console.log(action);
+            //console.log(action);
             this.action_context=action;
             return this._super(action, options);
         }

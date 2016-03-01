@@ -22,7 +22,7 @@ from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 
 MOVE_CHUNK = 100
-PROC_CHUNK = 100
+PRODUCT_CHUNK = 1000
 
 
 @job
@@ -41,7 +41,7 @@ def run_procure_orderpoint_async(session, model_name, company_id, context):
     return "Scheduler ended compute_orderpoint job."
 
 
-@job
+@job(default_channel='root.confprocs')
 def run_or_check_procurements(session, model_name, domain, action, context):
     """Confirm or check procurements"""
     proc_obj = session.env[model_name].with_context(context)
@@ -52,13 +52,11 @@ def run_or_check_procurements(session, model_name, domain, action, context):
             break
         else:
             prev_procs = procs
-        for i in range(0, len(procs), PROC_CHUNK):
-            procs_chunk = procs[i:i + PROC_CHUNK]
-            if action == 'run':
-                procs_chunk.sudo().run()
-            elif action == 'check':
-                procs_chunk.sudo().check()
-            session.commit()
+        if action == 'run':
+            procs.sudo().run(autocommit=True)
+        elif action == 'check':
+            procs.sudo().check(autocommit=True)
+        session.commit()
 
 
 @job
@@ -131,12 +129,18 @@ class ProcurementOrderAsync(models.Model):
         dom = [('state', '=', 'confirmed')]
         if company_id:
             dom += [('company_id', '=', company_id)]
-        if self.env.context.get("jobify", False):
-            run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
-                                            'run', self.env.context)
-        else:
-            run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
-                                      'run', self.env.context)
+        products = self.env['product.product'].search([], limit=PRODUCT_CHUNK)
+        offset = 0
+        while products:
+            dom += [('product_id', 'in', products.ids)]
+            if self.env.context.get("jobify", False):
+                run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                                'run', self.env.context)
+            else:
+                run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                          'run', self.env.context)
+            offset += PRODUCT_CHUNK
+            products = self.env['product.product'].search([], limit=PRODUCT_CHUNK, offset=offset)
 
     @api.model
     def run_check_procurements(self, company_id=None):
@@ -144,12 +148,18 @@ class ProcurementOrderAsync(models.Model):
         dom = [('state', '=', 'running')]
         if company_id:
             dom += [('company_id', '=', company_id)]
-        if self.env.context.get("jobify", False):
-            run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
-                                            'check', self.env.context)
-        else:
-            run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
-                                      'check', self.env.context)
+        products = self.env['product.product'].search([], limit=PRODUCT_CHUNK)
+        offset = 0
+        while products:
+            dom += [('product_id', 'in', products.ids)]
+            if self.env.context.get("jobify", False):
+                run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                                'check', self.env.context)
+            else:
+                run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                          'check', self.env.context)
+            offset += PRODUCT_CHUNK
+            products = self.env['product.product'].search([], limit=PRODUCT_CHUNK, offset=offset)
 
     @api.model
     def run_scheduler_async(self, use_new_cursor=False, company_id=False):
