@@ -61,7 +61,7 @@ class SweeperPurchaseOrder(models.Model):
         _logger.info(_("<<< Started chunk of %s purchase orders to sweep") % len(self))
         for order in self:
             for line in order.order_line:
-                if line.procurement_ids:
+                if line.procurement_ids and line.state == 'draft':
                     procs = line.procurement_ids
                     line.unlink()
                     procs.run()
