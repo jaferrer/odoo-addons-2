@@ -60,6 +60,13 @@ def run_or_check_procurements(session, model_name, domain, action, context):
 
 
 @job
+def confirm_moves(session, model_name, ids, context):
+    """Confirm draft moves"""
+    moves = session.env[model_name].with_context(context).browse(ids)
+    moves.action_confirm()
+
+
+@job
 def assign_moves(session, model_name, ids, context):
     """Assign confirmed moves"""
     moves = session.env[model_name].with_context(context).browse(ids)
@@ -108,6 +115,26 @@ class ProcurementOrderPointComputeAsync(models.TransientModel):
 
 class ProcurementOrderAsync(models.Model):
     _inherit = 'procurement.order'
+
+    @api.model
+    def run_confirm_moves(self):
+        group_draft_moves = {}
+        all_draft_moves = self.env['stock.move'].search([('state', '=', 'draft')], limit=None,
+                                                        order='priority desc, date_expected asc')
+
+        for move in all_draft_moves:
+            key = (move.group_id.id, move.location_id.id, move.location_dest_id.id)
+            if key not in group_draft_moves:
+                group_draft_moves[key] = []
+            group_draft_moves[key].append(move.id)
+
+        for draft_move_ids in group_draft_moves:
+            if self.env.context.get('jobify'):
+                confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', group_draft_moves[draft_move_ids],
+                                    self.env.context)
+            else:
+                confirm_moves(ConnectorSession.from_env(self.env), 'stock.move', group_draft_moves[draft_move_ids],
+                              self.env.context)
 
     @api.model
     def run_assign_moves(self):
