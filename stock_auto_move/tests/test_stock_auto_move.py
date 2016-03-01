@@ -92,6 +92,10 @@ class TestStockAutoMove(common.TransactionCase):
         self.assertEqual(move.state, 'done')
         self.assertEqual(move1.state, 'done')
 
+        self.assertTrue(move1.picking_id)
+        self.assertTrue(move2.picking_id)
+        self.assertNotEqual(move1.picking_id, move2.picking_id)
+
     def test_20_procurement_auto_move(self):
         """Check that move generated with procurement rule have auto_move set."""
         self.product_a1232.route_ids = [(4, self.ref("stock_auto_move.test_route"))]
@@ -132,3 +136,87 @@ class TestStockAutoMove(common.TransactionCase):
                                                       ('location_id', '=', self.location_1.id)])
         self.assertEqual(len(quants_in_3), 0)
         self.assertGreater(len(quants_in_1), 0)
+
+    def test_40_picking_split(self):
+        """
+        Testing the picking split for auto_moves in same picking which are children of moves from different pickings
+        """
+        self.env['stock.quant'].create({
+            'product_id': self.product_a1232.id,
+            'qty': 15,
+            'location_id': self.location_1.id,
+        })
+        picking1 = self.env['stock.picking'].create({
+            'name': "Picking 1",
+            'picking_type_id': self.picking_type_id,
+        })
+        picking2 = self.env['stock.picking'].create({
+            'name': "Picking 2",
+            'picking_type_id': self.picking_type_id,
+        })
+        picking3 = self.env['stock.picking'].create({
+            'name': "Picking 3",
+            'picking_type_id': self.picking_type_id,
+        })
+        move2 = self.env["stock.move"].create({
+            'name': "Move 2",
+            'product_id': self.product_a1232.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 5,
+            'location_id': self.location_2.id,
+            'location_dest_id': self.location_3.id,
+            'picking_type_id': self.picking_type_id,
+            'auto_move': True,
+            'picking_id': picking3.id
+        })
+        move1 = self.env["stock.move"].create({
+            'name': "Move 1",
+            'product_id': self.product_a1232.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 5,
+            'location_id': self.location_1.id,
+            'location_dest_id': self.location_2.id,
+            'picking_type_id': self.picking_type_id,
+            'auto_move': False,
+            'move_dest_id': move2.id,
+            'picking_id': picking1.id
+        })
+        move4 = self.env["stock.move"].create({
+            'name': "Move 4",
+            'product_id': self.product_a1232.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 10,
+            'location_id': self.location_2.id,
+            'location_dest_id': self.location_3.id,
+            'picking_type_id': self.picking_type_id,
+            'auto_move': True,
+            'picking_id': picking3.id
+        })
+        move3 = self.env["stock.move"].create({
+            'name': "Move 3",
+            'product_id': self.product_a1232.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 10,
+            'location_id': self.location_1.id,
+            'location_dest_id': self.location_2.id,
+            'picking_type_id': self.picking_type_id,
+            'auto_move': False,
+            'move_dest_id': move4.id,
+            'picking_id': picking2.id
+        })
+
+        move1.action_confirm()
+        move2.action_confirm()
+        move3.action_confirm()
+        move4.action_confirm()
+
+        picking1.do_transfer()
+        self.assertEqual(move1.state, 'done')
+        self.assertEqual(move2.state, 'done')
+        self.assertEqual(move1.picking_id, picking1)
+        self.assertEqual(move3.picking_id, picking2)
+        self.assertEqual(move4.picking_id, picking3)
+        self.assertTrue(move2.picking_id)
+        self.assertNotIn(move2.picking_id, [picking1, picking2, picking3])
+        self.assertEqual(move3.state, 'confirmed')
+        self.assertEqual(move4.state, 'waiting')
