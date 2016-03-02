@@ -32,8 +32,8 @@ class StockQuantPackageMove(models.TransientModel):
         comodel_name='stock.location', string='Destination Location',
         required=True)
 
-    picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type',required=True)
-    
+    picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type', required=True)
+
     is_manual_op = fields.Boolean(string=u"Manual Operation")
 
     def default_get(self, cr, uid, fields, context=None):
@@ -58,24 +58,27 @@ class StockQuantPackageMove(models.TransientModel):
     @api.multi
     def do_detailed_transfer(self):
         self.ensure_one()
-        quants = self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc).mapped(lambda x: x.package.quant_ids)
-        quants2 = (self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc)).mapped(lambda x: x.package.children_ids.quant_ids)
-        quants= quants + quants2
+        quants = self.pack_move_items.filtered(
+            lambda x: x.dest_loc != x.source_loc).mapped(lambda x: x.package.quant_ids)
+        packageChild = (self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc)).package.children_ids
+        quants2 = packageChild.mapped(
+            lambda x: x.quant_ids)
+        quants = quants + quants2
         result = quants.move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
         if self.is_manual_op:
             return {
-                    'name': 'picking_form',
-                    'type': 'ir.actions.act_window',
-                    'view_type': 'form',
-                    'view_mode': 'form',
-                    'res_model': 'stock.picking',
-                    'res_id':result[0].picking_id.id
-                }
-        else :
+                'name': 'picking_form',
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'stock.picking',
+                'res_id': result[0].picking_id.id
+            }
+        else:
             return result
         return True
 
-    
+
 class StockQuantPackageMoveItems(models.TransientModel):
     _name = 'stock.quant.package.move_items'
     _description = 'Picking wizard items'
