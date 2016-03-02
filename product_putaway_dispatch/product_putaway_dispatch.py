@@ -17,7 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, _, exceptions
+from openerp import fields, models, api, _
+
 
 class product_putaway_dispatch_strategy(models.Model):
     _inherit = 'product.putaway'
@@ -25,7 +26,7 @@ class product_putaway_dispatch_strategy(models.Model):
     @api.cr_uid_context
     def _get_putaway_options(self, cr, uid, context=None):
         res = super(product_putaway_dispatch_strategy, self)._get_putaway_options(cr, uid, context)
-        res.append(('dispatch',_("Dispatch where needed")))
+        res.append(('dispatch', _("Dispatch where needed")))
         return res
 
     method = fields.Selection(_get_putaway_options, "Method", required=True)
@@ -44,7 +45,6 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
     @api.multi
     def action_dispatch(self):
         for transfer in self:
-            moves = {}
             qty_to_dispatch = {}
             # Get the quantity to dispatch for each product
             for op in transfer.packop_ids:
@@ -70,9 +70,9 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
             # Iterate on each product
             for product_id, qty_todo in qty_to_dispatch.iteritems():
                 need_moves = self.env['stock.move'].search(
-                                                [('location_id','child_of',transfer.picking_destination_location_id.id),
-                                                 ('product_id','=',product_id.id),('state','=','confirmed')],
-                                                order="priority DESC, date")
+                    [('location_id', 'child_of', transfer.picking_destination_location_id.id),
+                     ('product_id', '=', product_id.id), ('state', '=', 'confirmed')],
+                    order="priority DESC, date")
                 qty_todo = min(sum([m.product_qty for m in need_moves]), qty_todo)
                 location_qty = {}
                 qty_left = qty_todo
@@ -90,9 +90,12 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                 # First try to dispatch entire packs
                 # We only have packs with a single product since we prepared unpacking for the others
                 remaining_packops = transfer.packop_ids.filtered(lambda x:
-                                self.env['stock.quant'].browse(x.package_id.get_content())[0].product_id == product_id)
-                remaining_packops = remaining_packops.sorted(key=lambda x:sum([q.qty for q in
-                                                        self.env['stock.quant'].browse(x.package_id.get_content())]),
+                                                                 self.env['stock.quant'].browse(
+                                                                     x.package_id.get_content())[
+                                                                     0].product_id == product_id)
+                remaining_packops = remaining_packops.sorted(key=lambda x: sum([q.qty for q in
+                                                                                self.env['stock.quant'].browse(
+                                                                                    x.package_id.get_content())]),
                                                              reverse=True)
                 for op in remaining_packops:
                     # We try to find a location where we need at least the whole qty of the pack
@@ -110,7 +113,8 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                 # We prepare unpacking for the remaining packs to handle them as bulk products
                 remaining_packops.prepare_unpack()
                 # Then we fetch the bulk product operation lines
-                op_items = transfer.item_ids.search([('product_id','=',product_id.id),('transfer_id','=',transfer.id)])
+                op_items = transfer.item_ids.search(
+                    [('product_id', '=', product_id.id), ('transfer_id', '=', transfer.id)])
                 # Iterate on each bulk product operations to dispatch them
                 for op in op_items:
                     # We get the quantity to dispatch and set the quantity of the operation to 0
@@ -145,7 +149,7 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                         op_qty_todo -= qty
                     # We send back to the source location undispatched moves
                     if op_qty_todo > 0.0:
-                        unneede_op = op.copy({
+                        op.copy({
                             'destinationloc_id': op.sourceloc_id.id,
                             'quantity': op_qty_todo,
                             'packop_id': False,
@@ -154,7 +158,6 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                     # We delete op if it has not been allocated some quantity in between
                     if op.quantity <= 0.0:
                         op.unlink()
-
         return self.wizard_view()
 
 
@@ -167,19 +170,29 @@ class product_putaway_dispatch_transfer_details_items(models.TransientModel):
         This is done with keeping source package and destination package to the items current pack."""
         for line in self:
             quants = self.env['stock.quant'].browse(line.package_id.get_content())
+            dict_quants_unpacked = {}
             for quant in quants:
-                new_id = self.create({
+                quant_tuple = (quant.package_id,
+                               quant.lot_id,
+                               quant.owner_id,
+                               quant.product_id)
+                if dict_quants_unpacked.get(quant_tuple):
+                    dict_quants_unpacked[quant_tuple] += quant.qty
+                else:
+                    dict_quants_unpacked[quant_tuple] = quant.qty
+            for key in dict_quants_unpacked.keys():
+                self.create({
                     'transfer_id': line.transfer_id.id,
                     'packop_id': False,
-                    'quantity': quant.qty,
-                    'product_id': quant.product_id.id,
-                    'product_uom_id': quant.product_id.uom_id.id,
-                    'package_id': quant.package_id.id,
-                    'lot_id': quant.lot_id.id,
+                    'quantity': dict_quants_unpacked[key],
+                    'product_id': key[3] and key[3].id or False,
+                    'product_uom_id': key[3] and key[3].uom_id and key[3].uom_id.id or False,
+                    'package_id': key[0] and key[0].id or False,
+                    'lot_id': key[1] and key[1].id or False,
                     'sourceloc_id': line.sourceloc_id.id,
                     'destinationloc_id': line.destinationloc_id.id,
-                    'result_package_id': quant.package_id.id,
+                    'result_package_id': key[0] and key[0].id or False,
                     'date': line.date,
-                    'owner_id': quant.owner_id.id,
+                    'owner_id': key[2] and key[2].id or False,
                 })
             line.unlink()
