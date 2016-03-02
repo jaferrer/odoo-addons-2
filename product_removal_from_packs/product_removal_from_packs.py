@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import api, models
+from openerp import api, models, exceptions, _
 
 
 class StockQuantRemovalFromPacks(models.Model):
@@ -49,6 +49,11 @@ class StockQuantRemovalFromPacks(models.Model):
                             for quant in pack.quant_ids:
                                 if quant.product_id == product:
                                     list_removals += [(quant, quant.qty)]
+                else:
+                    raise exceptions.except_orm(
+                        _("Error!"), _("Impossible to decrease the quantity of product %s in location %s, "
+                                       "because this location applies RSS strategy and no package includes the "
+                                       "requested product.") % (product.display_name, location.display_name))
                 return list_removals
             else:
                 return self.apply_removal_strategy(location, product, quantity, domain, 'fifo')
