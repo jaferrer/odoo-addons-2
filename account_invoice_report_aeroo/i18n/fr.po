@@ -28,12 +28,12 @@ msgstr "Factures"
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Customer code:"
-msgstr "Code client :"
+msgstr "N° client :"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "TIN:"
-msgstr "VAT :"
+msgstr "N° TVA :"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
