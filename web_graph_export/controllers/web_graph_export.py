@@ -780,6 +780,7 @@ Interactive Layer
 .nvd3 line.nv-guideline {
   stroke: #ccc;
 }
+
         """
         col = options["col"] and tools.ustr(','.join(options["col"])) or tools.ustr("")
         filters = tools.ustr(','.join('[' + (','.join('(' + (','.join(str(li) for li in op)) + ')' if isinstance(
