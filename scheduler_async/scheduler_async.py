@@ -66,7 +66,7 @@ def confirm_moves(session, model_name, ids, context):
     moves.action_confirm()
 
 
-@job
+@job(default_channel='root.asgnmoves')
 def assign_moves(session, model_name, ids, context):
     """Assign confirmed moves"""
     moves = session.env[model_name].with_context(context).browse(ids)
