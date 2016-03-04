@@ -17,7 +17,6 @@
 			<field name="report_rml">account_invoice_report_aeroo/account_invoice_report.odt</field>
 			<field name="parser_state">default</field>
 			<field name="styles_mode">specified</field>
-			<field name="orientation">Landscape</field>
             <field name="stylesheet_id" ref="report_stylesheet_account_invoice"/>
             <field name="attachment">(object.state in ('open','paid')) and ('INV'+(object.number or '').replace('/','')+'.pdf')</field>
 			<field name="tml_source">file</field>
