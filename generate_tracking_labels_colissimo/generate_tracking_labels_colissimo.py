@@ -101,10 +101,10 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         password = self.env['ir.config_parameter'].\
             get_param('generate_tracking_labels_colissimo.password_colissimo', default='')
         if self.codeBarForReference == 'true' and self.productCode.code != 'CORE':
-            raise exceptions.except_orm('Erreur!', "Impossible d'afficher le code barre retour pour un autre "
+            raise exceptions.except_orm('Erreur !', "Impossible d'afficher le code barre retour pour un autre "
                                                    "produit que Colissimo retour")
         if self.serviceInfo and self.productCode.code != 'CORE':
-            raise exceptions.except_orm('Erreur!', "Impossible de définir un nom de service en retour pour un "
+            raise exceptions.except_orm('Erreur !', "Impossible de définir un nom de service en retour pour un "
                                                    "autre produit que Colissimo retour")
         depositDate = fields.Date.today()
         x = 0
@@ -257,10 +257,10 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             return tracking_number, self.save_tracking_number, self.direction, url
         elif len(response.text.encode('utf-8').split('<messageContent>')) == 2 and\
             len(response.text.encode('utf-8').split('<messageContent>')[1].split('</messageContent>')) == 2:
-            raise exceptions.except_orm('Erreur!', 'Colissimo : ' + response.text.encode('utf-8').
+            raise exceptions.except_orm('Erreur !', 'Colissimo : ' + response.text.encode('utf-8').
                                         split('<messageContent>')[1].split('</messageContent>')[0])
         else:
-            raise exceptions.except_orm('Erreur!', "Impossible de générer l'étiquette")
+            raise exceptions.except_orm('Erreur !', "Impossible de générer l'étiquette")
 
 
 class TypeProduitColissimo(models.Model):
