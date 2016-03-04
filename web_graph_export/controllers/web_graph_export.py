@@ -780,18 +780,19 @@ Interactive Layer
 .nvd3 line.nv-guideline {
   stroke: #ccc;
 }
+
         """
-        col = tools.ustr(','.join(options["col"]))
+        col = options["col"] and tools.ustr(','.join(options["col"])) or tools.ustr("")
         filters = tools.ustr(','.join('[' + (','.join('(' + (','.join(str(li) for li in op)) + ')' if isinstance(
             op, list) else str(op) for op in fil)) + ']' if isinstance(fil, list) else str(fil) for fil in options["filter"]))
-        row = tools.ustr(','.join(options["row"]))
+        row = options["row"] and tools.ustr(','.join(options["row"])) or tools.ustr("")
 
         contenthtml = u"""<div style="width:100%%;height:100%%;padding-right:10px;">
             <div style="width:100%%;border:1px solid black;text-align:center;"><h2>%s</h2></div>
             <div style="width:100%%;border:2px solid black;text-align:center;margin-top:10px;margin-bottom:20px;border-radius: 25px;background-color: #f1f1f1;">
             <div><span style="font-weight:bold;">Filtres : </span>%s</div>
             <div><span style="font-weight:bold;">Colonnes : </span>%s</div>
-            <div><span style="font-weight:bold;">Lignes : </span>"%s</div>
+            <div><span style="font-weight:bold;">Lignes : </span>%s</div>
             </div>
             %s
             <div style="width:100%%;border:1px solid black;text-align:center;margin-top:20px;">

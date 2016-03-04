@@ -22,7 +22,6 @@ from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 
 class TestIncompleteProduction(common.TransactionCase):
-
     def setUp(self):
         super(TestIncompleteProduction, self).setUp()
         self.company = self.browse_ref('base.main_company')
@@ -31,6 +30,8 @@ class TestIncompleteProduction(common.TransactionCase):
         self.location1 = self.browse_ref('stock.stock_location_stock')
         self.location2 = self.browse_ref('stock.location_dispatch_zone')
         self.location3 = self.browse_ref('stock.location_order')
+        self.return_location = self.browse_ref('mrp_incomplete_production.return_location')
+        self.stock_picking_type_return = self.browse_ref('mrp_incomplete_production.stock_picking_type_return')
         self.product1 = self.browse_ref('mrp_incomplete_production.product1')
         self.product2 = self.browse_ref('mrp_incomplete_production.product2')
         self.product3 = self.browse_ref('mrp_incomplete_production.product3')
@@ -82,8 +83,8 @@ class TestIncompleteProduction(common.TransactionCase):
             'production_id': mrp_production1.id,
             'consume_lines': [(0, 0, vals) for vals in mrp_production1._calculate_qty(mrp_production1)]
         }
-        mrp_product_produce1 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production1.id}).\
-                                                                                    create(mrp_product_produce1_data)
+        mrp_product_produce1 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production1.id}). \
+            create(mrp_product_produce1_data)
         self.assertEqual(len(mrp_product_produce1.consume_lines), 1)
         self.assertEqual(mrp_product_produce1.consume_lines[0].product_id, self.product1)
         self.assertEqual(mrp_product_produce1.consume_lines[0].product_qty, self.line1.product_qty)
@@ -134,8 +135,8 @@ class TestIncompleteProduction(common.TransactionCase):
             'production_id': mrp_production1.id,
             'consume_lines': [(0, 0, vals) for vals in mrp_production1._calculate_qty(mrp_production1)]
         }
-        mrp_product_produce1 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production1.id}).\
-                                                                                    create(mrp_product_produce1_data)
+        mrp_product_produce1 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production1.id}). \
+            create(mrp_product_produce1_data)
         self.assertEqual(len(mrp_product_produce1.consume_lines), 2)
         liste_consume = [(x.product_id, x.product_qty) for x in mrp_product_produce1.consume_lines]
         self.assertIn((self.product1, 5), liste_consume)
@@ -183,8 +184,8 @@ class TestIncompleteProduction(common.TransactionCase):
             'production_id': mrp_production1.id,
             'consume_lines': [(0, 0, vals) for vals in mrp_production1._calculate_qty(mrp_production1)]
         }
-        mrp_product_produce1 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production1.id}).\
-                                                                            create(mrp_product_produce1_data)
+        mrp_product_produce1 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production1.id}). \
+            create(mrp_product_produce1_data)
         mrp_product_produce1.do_produce()
         self.assertEqual(mrp_production1.state, 'done')
         self.assertEqual(len(mrp_production1.child_move_ids), 2)
@@ -201,8 +202,8 @@ class TestIncompleteProduction(common.TransactionCase):
             'production_id': mrp_production2.id,
             'consume_lines': [(0, 0, vals) for vals in mrp_production2._calculate_qty(mrp_production2)]
         }
-        mrp_product_produce2 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production2.id}).\
-                                                                            create(mrp_product_produce2_data)
+        mrp_product_produce2 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production2.id}). \
+            create(mrp_product_produce2_data)
         mrp_product_produce2.do_produce()
         self.assertEqual(mrp_production2.state, 'done')
         self.assertEqual(len(mrp_production2.child_move_ids), 1)
@@ -219,8 +220,8 @@ class TestIncompleteProduction(common.TransactionCase):
             'production_id': mrp_production3.id,
             'consume_lines': [(0, 0, vals) for vals in mrp_production3._calculate_qty(mrp_production3)]
         }
-        mrp_product_produce3 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production3.id}).\
-                                                                            create(mrp_product_produce3_data)
+        mrp_product_produce3 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production3.id}). \
+            create(mrp_product_produce3_data)
         mrp_product_produce3.do_produce()
         self.assertFalse(mrp_production3.child_order_id)
         self.assertFalse(mrp_production3.child_move_ids)
@@ -244,11 +245,90 @@ class TestIncompleteProduction(common.TransactionCase):
             'production_id': mrp_production1.id,
             'consume_lines': [(0, 0, vals) for vals in mrp_production1._calculate_qty(mrp_production1)]
         }
-        mrp_product_produce1 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production1.id}).\
-                                                                            create(mrp_product_produce1_data)
+        mrp_product_produce1 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production1.id}). \
+            create(mrp_product_produce1_data)
         mrp_product_produce1.do_produce()
         self.assertTrue(mrp_production1.child_order_id)
         mrp_production2 = mrp_production1.child_order_id
         self.assertEqual(mrp_production2.product_id, self.product_to_manufacture1)
         mrp_production2.button_update()
         self.assertEqual(len(mrp_production2.move_lines), 2)
+
+    def test_60_incomplete_production(self):
+        """Returning raw materials provided by several quants."""
+
+        def create_service_move(move, qty):
+            return self.env['stock.move'].create({
+                'name': "Service move for move %s" % move.name,
+                'product_id': move.product_id.id,
+                'product_uom_qty': qty,
+                'product_uom': self.unit.id,
+                'move_dest_id': move.id,
+                'location_id': self.browse_ref('stock.stock_location_suppliers').id,
+                'location_dest_id': move.location_id.id,
+            }).action_done()
+
+        mrp_production1, move1, move2, move3 = self.production_check()
+        self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.product_to_manufacture1.id)]))
+        self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.product1.id)]))
+        self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.product2.id)]))
+        self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.product3.id)]))
+        # Creation of service moves
+        create_service_move(move1, 2)
+        create_service_move(move1, 3)
+
+        create_service_move(move2, 1)
+        create_service_move(move2, 3)
+        create_service_move(move2, 2)
+        create_service_move(move2, 4)
+
+        create_service_move(move3, 5)
+        create_service_move(move3, 3)
+        create_service_move(move3, 7)
+
+        mrp_production1.action_assign()
+        self.assertEqual(mrp_production1.state, 'ready')
+
+        mrp_product_produce1_data = {
+            'production_id': mrp_production1.id,
+            'consume_lines': [(0, 0, vals) for vals in mrp_production1._calculate_qty(mrp_production1)]
+        }
+        mrp_product_produce1 = self.env['mrp.product.produce'].with_context({'active_id': mrp_production1.id}). \
+            create(mrp_product_produce1_data)
+
+        self.assertTrue(mrp_product_produce1.create_child)
+        self.assertTrue(mrp_product_produce1.return_raw_materials)
+        mrp_product_produce1.return_location_id = self.return_location.id
+        self.assertEqual(len(mrp_product_produce1.consume_lines), 3)
+        self.assertIn(self.product1, [cl.product_id for cl in mrp_product_produce1.consume_lines])
+        self.assertIn(self.product2, [cl.product_id for cl in mrp_product_produce1.consume_lines])
+        self.assertIn(self.product3, [cl.product_id for cl in mrp_product_produce1.consume_lines])
+        for line in mrp_product_produce1.consume_lines:
+            if line.product_id == self.product1:
+                line.product_qty = 1
+            elif line.product_id == self.product2:
+                line.product_qty = 1.5
+            elif line.product_id == self.product3:
+                line.product_qty = 11
+
+        mrp_product_produce1.with_context(force_return_picking_type=self.stock_picking_type_return).do_produce()
+
+        # Checking child order data
+        self.assertTrue(mrp_production1.child_order_id)
+        self.assertEqual(len(mrp_production1.child_order_id.move_lines), 3)
+        self.assertIn((self.product1, 4),
+                      [(move.product_id, move.product_uom_qty) for move in mrp_production1.child_order_id.move_lines])
+        self.assertIn((self.product2, 8.5),
+                      [(move.product_id, move.product_uom_qty) for move in mrp_production1.child_order_id.move_lines])
+        self.assertIn((self.product3, 4),
+                      [(move.product_id, move.product_uom_qty) for move in mrp_production1.child_order_id.move_lines])
+
+        # Checking return picking data
+        picking = self.env['stock.picking'].search([('picking_type_id', '=', self.stock_picking_type_return.id)])
+        self.assertEqual(len(picking.move_lines), 6)
+        self.assertIn((self.product1, 1), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
+        self.assertIn((self.product1, 3), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
+        self.assertIn((self.product2, 2), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
+        self.assertIn((self.product2, 4), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
+        self.assertIn((self.product2, 2.5), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
+        self.assertIn((self.product3, 4), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])

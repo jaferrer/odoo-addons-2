@@ -22,7 +22,7 @@ from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 
 MOVE_CHUNK = 100
-PRODUCT_CHUNK = 1000
+PRODUCT_CHUNK = 100
 
 
 @job
@@ -66,7 +66,7 @@ def confirm_moves(session, model_name, ids, context):
     moves.action_confirm()
 
 
-@job
+@job(default_channel='root.asgnmoves')
 def assign_moves(session, model_name, ids, context):
     """Assign confirmed moves"""
     moves = session.env[model_name].with_context(context).browse(ids)
@@ -130,7 +130,8 @@ class ProcurementOrderAsync(models.Model):
 
         for draft_move_ids in group_draft_moves:
             if self.env.context.get('jobify'):
-                confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', group_draft_moves[draft_move_ids],
+                confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move',
+                                    group_draft_moves[draft_move_ids],
                                     self.env.context)
             else:
                 confirm_moves(ConnectorSession.from_env(self.env), 'stock.move', group_draft_moves[draft_move_ids],
@@ -153,13 +154,13 @@ class ProcurementOrderAsync(models.Model):
     @api.model
     def run_confirm_procurements(self, company_id=None):
         """Launches the job to confirm all procurements."""
-        dom = [('state', '=', 'confirmed')]
+        base_dom = [('state', '=', 'confirmed')]
         if company_id:
-            dom += [('company_id', '=', company_id)]
+            base_dom += [('company_id', '=', company_id)]
         products = self.env['product.product'].search([], limit=PRODUCT_CHUNK)
         offset = 0
         while products:
-            dom += [('product_id', 'in', products.ids)]
+            dom = base_dom + [('product_id', 'in', products.ids)]
             if self.env.context.get("jobify", False):
                 run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
                                                 'run', self.env.context)
@@ -172,13 +173,13 @@ class ProcurementOrderAsync(models.Model):
     @api.model
     def run_check_procurements(self, company_id=None):
         """Launches the job to check all procurements."""
-        dom = [('state', '=', 'running')]
+        base_dom = [('state', '=', 'running')]
         if company_id:
-            dom += [('company_id', '=', company_id)]
+            base_dom += [('company_id', '=', company_id)]
         products = self.env['product.product'].search([], limit=PRODUCT_CHUNK)
         offset = 0
         while products:
-            dom += [('product_id', 'in', products.ids)]
+            dom = base_dom + [('product_id', 'in', products.ids)]
             if self.env.context.get("jobify", False):
                 run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
                                                 'check', self.env.context)

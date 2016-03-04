@@ -27,7 +27,7 @@ PURCHASE_CHUNK = 100
 _logger = logging.getLogger(__name__)
 
 
-@job
+@job(default_channel='root.posweeper')
 def job_purchase_order_sweeper(session, model_name, ids):
     model_instance = session.pool[model_name]
     model_instance.sweep(session.cr, session.uid, ids, context=session.context)
@@ -61,7 +61,7 @@ class SweeperPurchaseOrder(models.Model):
         _logger.info(_("<<< Started chunk of %s purchase orders to sweep") % len(self))
         for order in self:
             for line in order.order_line:
-                if line.procurement_ids:
+                if line.procurement_ids and line.state == 'draft':
                     procs = line.procurement_ids
                     line.unlink()
                     procs.run()

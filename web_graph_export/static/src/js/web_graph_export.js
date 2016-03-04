@@ -29,7 +29,7 @@ openerp.web_graph_export = function(instance) {
 	        var s = new XMLSerializer();
 
 	        var html=s.serializeToString(this.svg);
-	        console.log(html.replace("width=\""+this.width+"\"","").replace("height=\""+this.height+"\"","height=\"400\"").replace("<svg ","<svg viewBox=\"0 0 "+this.width+" "+this.height+"\" "));
+	        //console.log(html.replace("width=\""+this.width+"\"","").replace("height=\""+this.height+"\"","height=\"400\"").replace("<svg ","<svg viewBox=\"0 0 "+this.width+" "+this.height+"\" "));
 	        html=html.replace("width=\""+this.width+"\"","").replace("height=\""+this.height+"\"","height=\"400\"").replace("<svg ","<svg viewBox=\"0 0 "+this.width+" "+this.height+"\" ");
 	        //openerp.web.blockUI();
 	        this.session.get_file({
@@ -39,8 +39,8 @@ openerp.web_graph_export = function(instance) {
 	            	pivot_options: JSON.stringify({
 	            		'measures':this.pivot_options.measures,
 	            		'filter':this.graph_view.dataset.domain,
-	            		'col':this._build_field_list(this.pivot.rows.groupby),
-	            		'row':this._build_field_list(this.pivot.cols.groupby)}),
+	            		'col':this._build_field_list(this.pivot.cols.groupby),
+	            		'row':this._build_field_list(this.pivot.rows.groupby)}),
 	            	title:this.title
 	            },
 	            complete: openerp.web.unblockUI,

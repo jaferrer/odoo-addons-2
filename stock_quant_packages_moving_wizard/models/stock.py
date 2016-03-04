@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api
+from openerp import models, fields, api, _
 
 
 class StockQuant(models.Model):
@@ -27,6 +27,7 @@ class StockQuant(models.Model):
     @api.multi
     def move_to(self, dest_location, picking_type_id, move_items=False, is_manual_op=False):
         move_recordset = self.env['stock.move']
+        list_reservation = {}
         for item in self:
             new_move = self.env['stock.move'].create({
                 'name': 'Move %s to %s' % (item.product_id.name, dest_location.name),
@@ -37,13 +38,17 @@ class StockQuant(models.Model):
                 'product_uom': item.product_id.uom_id.id,
                 'date_expected': fields.Datetime.now(),
                 'date': fields.Datetime.now(),
-                'picking_type_id': picking_type_id.id
+                'picking_type_id': picking_type_id.id,
             })
-            new_move.action_confirm()
-            self.quants_reserve([(item, new_move.product_uom_qty)], new_move)
+            list_reservation[new_move] = [(item, new_move.product_uom_qty)]
             move_recordset = move_recordset | new_move
         if move_recordset:
+            move_recordset.action_confirm()
             picking = move_recordset[0].picking_id
+            for new_move in list_reservation.keys():
+                assert new_move.picking_id == picking, \
+                    _("The moves of all the quants could not be assigned to the same picking.")
+                self.quants_reserve(list_reservation[new_move], new_move)
             picking.do_prepare_partial()
             packops = picking.pack_operation_ids
             packops.write({'location_dest_id': dest_location.id})
