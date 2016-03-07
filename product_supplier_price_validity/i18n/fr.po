@@ -67,6 +67,11 @@ msgid "Validity date"
 msgstr "Date de début de validité de la liste de prix"
 
 #. module: product_supplier_price_validity
+#: field:pricelist.partnerinfo,active_line:0
+msgid "True if this rule is used"
+msgstr "Vrai si cette règle est utilisée"
+
+#. module: product_supplier_price_validity
 #: field:product.supplierinfo,validity_date_2:0
 msgid "Validity date"
 msgstr "Date de fin de validité de la liste de prix"

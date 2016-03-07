@@ -28,12 +28,17 @@ msgstr "Factures"
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Customer code:"
-msgstr "Code client :"
+msgstr "N° client :"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "TIN:"
-msgstr "VAT :"
+msgstr "TVA :"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "N° VAT"
+msgstr "N° TVA :"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
@@ -97,6 +102,11 @@ msgstr "Montant net"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Taxes"
+msgstr "Total TVA"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Tax"
 msgstr "Taxe"
 
@@ -124,3 +134,13 @@ msgstr "Date de facture"
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "with a registred capital of"
 msgstr "au capital de"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Net Total"
+msgstr "Total HT"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Total"
+msgstr "Total TTC"

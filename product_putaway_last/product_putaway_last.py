@@ -55,7 +55,7 @@ class product_putway_last_strategy(models.Model):
         if putaway_strat.method == 'last' and location is not None:
             quants = self.env["stock.quant"].search([('product_id','=',product.id),
                                                      ('location_id','child_of',location.id)],
-                                                    order='in_date DESC', limit=1)
+                                                    order='in_date DESC, id desc', limit=1)
             if len(quants) == 1:
                 return quants[0].location_id.id
         else:

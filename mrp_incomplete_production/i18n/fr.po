@@ -182,3 +182,15 @@ msgstr "Emplacement de réintégration par défaut"
 #: view:mrp.production:0
 msgid "Cancel Starting"
 msgstr "Annuler le démarrage de l'OF"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\mrp_incomplete_production\models\mrp.py:148
+#, python-format
+msgid "Error!"
+msgstr "Erreur !"
+
+#. module: mrp_incomplete_production
+#: code:addons\mrp_incomplete_production\models\mrp.py:148
+#, python-format
+msgid "Impossible to determine return picking type"
+msgstr "Impossible de déterminer le type de l'opération de réintégration"

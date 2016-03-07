@@ -73,6 +73,7 @@
                     <field name="code"/>
                     <field name="used_from_customer"/>
                     <field name="used_to_customer"/>
+                    <field name="used_on_demand"/>
                 </tree>
             </field>
         </record>

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,25 +18,25 @@
 #
 
 {
-    'name': 'Génération des étiquettes de suivi (colissimo)',
+    'name': 'Stock Reservation Priority',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Delivery Tracking',
-    'depends': ['base', 'base_setup', 'project'],
+    "summary": "",
+    "category": "Warehouse Management",
+    "depends": [
+        "stock",
+    ],
     'description': """
-Génération des étiquettes de suivi (colissimo)
-==============================================
-Ce module permet de générer des étiquettes d'envoi avec Colissimo.
+Stock Reservation Priority
+===================================
+This module introduces priority in (re)reservation of quants for pickings. A move with no quant reserved will always
+have priority over another one if it has higher priority or same priority and earlier date. This is still true if the
+less prioritary move has to be unassigned.
 """,
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['security/ir.model.access.csv',
-             'generate_tracking_labels_colissimo.xml',
-             'res_config.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
+    "website": "http://www.ndp-systemes.fr",
+    "contributors": [],
+    "data": [],
+    "demo": ['tests/test_stock_reservation_priority.xml'],
+    "installable": True,
 }

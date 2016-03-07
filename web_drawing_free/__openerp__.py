@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,27 +16,20 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Génération des étiquettes de suivi (colissimo)',
+    'name': "Web drawing free",
+
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Delivery Tracking',
-    'depends': ['base', 'base_setup', 'project'],
-    'description': """
-Génération des étiquettes de suivi (colissimo)
-==============================================
-Ce module permet de générer des étiquettes d'envoi avec Colissimo.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['security/ir.model.access.csv',
-             'generate_tracking_labels_colissimo.xml',
-             'res_config.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
+    'category': 'Technical',
+    'depends': ['web'],
+    'description': """A module that draw a picture
+        """,
+    'qweb': [
+        'static/src/xml/template.xml',
+    ],
+    'data': [
+        'view/qweb.xml',
+    ],
 }
