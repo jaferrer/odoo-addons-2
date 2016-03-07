@@ -31,6 +31,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.payment_term_2 = self.browse_ref('account.account_payment_term')
         self.stock = self.browse_ref('stock.stock_location_stock')
         self.buy_rule = self.browse_ref('purchase_merge_order_lines.buy_rule')
+        self.supplierinfo = self.browse_ref('purchase_merge_order_lines.supplierinfo')
 
     def create_procurement_order_1(self):
         return self.env['procurement.order'].create({
@@ -56,7 +57,59 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
             'rule_id': self.buy_rule.id
         })
 
+    def create_procurement_order_3(self):
+        return self.env['procurement.order'].create({
+            'name': 'Procurement order 5 (Sirail Achats)',
+            'product_id': self.product.id,
+            'product_qty': 80,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.stock.id,
+            'date_planned': '2016-02-08 14:37:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+            'rule_id': self.buy_rule.id
+        })
+
+    def create_procurement_order_4(self):
+        return self.env['procurement.order'].create({
+            'name': 'Procurement order 6 (Sirail Achats)',
+            'product_id': self.product.id,
+            'product_qty': 50,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.stock.id,
+            'date_planned': '2015-02-08 14:37:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+            'rule_id': self.buy_rule.id
+        })
+
+    def create_procurement_order_5(self):
+        return self.env['procurement.order'].create({
+            'name': 'Procurement order 5 (Sirail Achats)',
+            'product_id': self.product.id,
+            'product_qty': 30,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.stock.id,
+            'date_planned': '2016-02-08 14:37:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+            'rule_id': self.buy_rule.id
+        })
+
+    def create_procurement_order_6(self):
+        return self.env['procurement.order'].create({
+            'name': 'Procurement order 6 (Sirail Achats)',
+            'product_id': self.product.id,
+            'product_qty': 50,
+            'warehouse_id': self.ref('stock.warehouse0'),
+            'location_id': self.stock.id,
+            'date_planned': '2015-02-08 14:37:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+            'rule_id': self.buy_rule.id
+        })
+
     def test_10_purchase_merge_order_lines(self):
+
+        """
+        Test with two procurements of same quantities
+        """
 
         procurement1 = self.create_procurement_order_1()
         procurement2 = self.create_procurement_order_2()
@@ -98,6 +151,169 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.assertEqual(len(merged_order), 1)
         self.assertEqual(len(merged_order.order_line), 1)
         self.assertEqual(merged_order.order_line.product_qty, 160)
+        self.assertEqual(len(merged_order.order_line.procurement_ids), 2)
+        self.assertIn(procurement1, merged_order.order_line.procurement_ids)
+        self.assertIn(procurement2, merged_order.order_line.procurement_ids)
+
+        self.assertEqual(merged_order.incoterm_id, self.incoterm2)
+        self.assertEqual(merged_order.payment_term_id, self.payment_term_2)
+
+    def test_20_purchase_merge_order_lines(self):
+
+        """
+        Test with two procurements of different quantities
+        """
+
+        procurement1 = self.create_procurement_order_3()
+        procurement2 = self.create_procurement_order_4()
+
+        self.assertFalse(procurement1.purchase_line_id)
+        self.assertFalse(procurement1.purchase_id)
+        self.assertFalse(procurement2.purchase_line_id)
+        self.assertFalse(procurement2.purchase_id)
+        procurement1.run()
+        self.assertTrue(procurement1.purchase_id)
+        self.assertTrue(procurement1.purchase_line_id)
+        order1 = procurement1.purchase_line_id.order_id
+        self.assertEqual(order1, procurement1.purchase_id)
+
+        procurement2.run()
+        self.assertTrue(procurement2.purchase_line_id)
+        order2 = procurement2.purchase_line_id.order_id
+        self.assertNotEqual(order1, order2)
+        self.assertEqual(len(order1.order_line), 1)
+        self.assertEqual(order1.order_line.product_qty, 100)
+        self.assertEqual(len(order2.order_line), 1)
+        self.assertEqual(order2.order_line.product_qty, 100)
+        self.assertEqual(order2, procurement2.purchase_id)
+
+        self.assertEqual(order1.state, 'draft')
+        self.assertEqual(order2.state, 'draft')
+        order1.write({'incoterm_id': self.incoterm1.id, 'payment_term_id': self.payment_term_1.id})
+        order2.write({'incoterm_id': self.incoterm2.id, 'payment_term_id': self.payment_term_2.id})
+        self.assertGreater(order1.date_order, order2.date_order)
+
+        result = order1.search([('id', 'in', [order1.id, order2.id])]). \
+            with_context(merge_different_dates=True).do_merge()
+        lst = result.get(order2.id + 1)
+        self.assertEqual(len(lst), 2)
+        self.assertIn(order1.id, lst)
+        self.assertIn(order2.id, lst)
+        merged_order = order1.search([('id', '=', order2.id + 1)])
+
+        self.assertEqual(len(merged_order), 1)
+        self.assertEqual(len(merged_order.order_line), 1)
+        self.assertEqual(merged_order.order_line.product_qty, 130)
+        self.assertEqual(len(merged_order.order_line.procurement_ids), 2)
+        self.assertIn(procurement1, merged_order.order_line.procurement_ids)
+        self.assertIn(procurement2, merged_order.order_line.procurement_ids)
+
+        self.assertEqual(merged_order.incoterm_id, self.incoterm2)
+        self.assertEqual(merged_order.payment_term_id, self.payment_term_2)
+
+    def test_30_purchase_merge_order_lines(self):
+
+        """
+        Test with two procurements of different quantities.
+        Their sum is below the minimum quantity.
+        """
+
+        procurement1 = self.create_procurement_order_5()
+        procurement2 = self.create_procurement_order_6()
+
+        self.assertFalse(procurement1.purchase_line_id)
+        self.assertFalse(procurement1.purchase_id)
+        self.assertFalse(procurement2.purchase_line_id)
+        self.assertFalse(procurement2.purchase_id)
+        procurement1.run()
+        self.assertTrue(procurement1.purchase_id)
+        self.assertTrue(procurement1.purchase_line_id)
+        order1 = procurement1.purchase_line_id.order_id
+        self.assertEqual(order1, procurement1.purchase_id)
+
+        procurement2.run()
+        self.assertTrue(procurement2.purchase_line_id)
+        order2 = procurement2.purchase_line_id.order_id
+        self.assertNotEqual(order1, order2)
+        self.assertEqual(len(order1.order_line), 1)
+        self.assertEqual(order1.order_line.product_qty, 100)
+        self.assertEqual(len(order2.order_line), 1)
+        self.assertEqual(order2.order_line.product_qty, 100)
+        self.assertEqual(order2, procurement2.purchase_id)
+
+        self.assertEqual(order1.state, 'draft')
+        self.assertEqual(order2.state, 'draft')
+        order1.write({'incoterm_id': self.incoterm1.id, 'payment_term_id': self.payment_term_1.id})
+        order2.write({'incoterm_id': self.incoterm2.id, 'payment_term_id': self.payment_term_2.id})
+        self.assertGreater(order1.date_order, order2.date_order)
+
+        result = order1.search([('id', 'in', [order1.id, order2.id])]). \
+            with_context(merge_different_dates=True).do_merge()
+        lst = result.get(order2.id + 1)
+        self.assertEqual(len(lst), 2)
+        self.assertIn(order1.id, lst)
+        self.assertIn(order2.id, lst)
+        merged_order = order1.search([('id', '=', order2.id + 1)])
+
+        self.assertEqual(len(merged_order), 1)
+        self.assertEqual(len(merged_order.order_line), 1)
+        self.assertEqual(merged_order.order_line.product_qty, 100)
+        self.assertEqual(len(merged_order.order_line.procurement_ids), 2)
+        self.assertIn(procurement1, merged_order.order_line.procurement_ids)
+        self.assertIn(procurement2, merged_order.order_line.procurement_ids)
+
+        self.assertEqual(merged_order.incoterm_id, self.incoterm2)
+        self.assertEqual(merged_order.payment_term_id, self.payment_term_2)
+
+    def test_40_purchase_merge_order_lines(self):
+
+        """
+        Test with two procurements of different quantities and no min qty
+        """
+
+        self.supplierinfo.min_qty = 0
+        self.product.seller_qty = 0
+
+        procurement1 = self.create_procurement_order_3()
+        procurement2 = self.create_procurement_order_4()
+
+        self.assertFalse(procurement1.purchase_line_id)
+        self.assertFalse(procurement1.purchase_id)
+        self.assertFalse(procurement2.purchase_line_id)
+        self.assertFalse(procurement2.purchase_id)
+        procurement1.run()
+        self.assertTrue(procurement1.purchase_id)
+        self.assertTrue(procurement1.purchase_line_id)
+        order1 = procurement1.purchase_line_id.order_id
+        self.assertEqual(order1, procurement1.purchase_id)
+
+        procurement2.run()
+        self.assertTrue(procurement2.purchase_line_id)
+        order2 = procurement2.purchase_line_id.order_id
+        self.assertNotEqual(order1, order2)
+        self.assertEqual(len(order1.order_line), 1)
+        self.assertEqual(order1.order_line.product_qty, 80)
+        self.assertEqual(len(order2.order_line), 1)
+        self.assertEqual(order2.order_line.product_qty, 50)
+        self.assertEqual(order2, procurement2.purchase_id)
+
+        self.assertEqual(order1.state, 'draft')
+        self.assertEqual(order2.state, 'draft')
+        order1.write({'incoterm_id': self.incoterm1.id, 'payment_term_id': self.payment_term_1.id})
+        order2.write({'incoterm_id': self.incoterm2.id, 'payment_term_id': self.payment_term_2.id})
+        self.assertGreater(order1.date_order, order2.date_order)
+
+        result = order1.search([('id', 'in', [order1.id, order2.id])]). \
+            with_context(merge_different_dates=True).do_merge()
+        lst = result.get(order2.id + 1)
+        self.assertEqual(len(lst), 2)
+        self.assertIn(order1.id, lst)
+        self.assertIn(order2.id, lst)
+        merged_order = order1.search([('id', '=', order2.id + 1)])
+
+        self.assertEqual(len(merged_order), 1)
+        self.assertEqual(len(merged_order.order_line), 1)
+        self.assertEqual(merged_order.order_line.product_qty, 130)
         self.assertEqual(len(merged_order.order_line.procurement_ids), 2)
         self.assertIn(procurement1, merged_order.order_line.procurement_ids)
         self.assertIn(procurement2, merged_order.order_line.procurement_ids)

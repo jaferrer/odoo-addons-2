@@ -186,3 +186,9 @@ msgstr "stock.quant.package.move"
 #: model:ir.model,name:stock_quant_packages_moving_wizard.model_stock_quants_move
 msgid "stock.quants.move"
 msgstr "stock.quants.move"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:50
+#, python-format
+msgid "The moves of all the quants could not be assigned to the same picking."
+msgstr "Les mouvements de tous les quants n'ont pas pu être rattachés à la même opération."

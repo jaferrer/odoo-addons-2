@@ -17,19 +17,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
-
-
-class PackPreferenceStockQuant(models.Model):
-    _inherit = 'stock.quant'
-
-    @api.model
-    def apply_removal_strategy(self, location, product, quantity, domain, removal_strategy):
-        if removal_strategy == 'fifo':
-            order = 'in_date, package_id, lot_id, id'
-            return self._quants_get_order(location, product, quantity, domain, order)
-        elif removal_strategy == 'lifo':
-            order = 'in_date desc, package_id desc, lot_id desc, id desc'
-            return self._quants_get_order(location, product, quantity, domain, order)
-        else:
-            super(PackPreferenceStockQuant, self).apply_removal_strategy()
+{
+    'name': 'Stock Reservation Priority',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    "summary": "",
+    "category": "Warehouse Management",
+    "depends": [
+        "stock",
+    ],
+    'description': """
+Stock Reservation Priority
+===================================
+This module introduces priority in (re)reservation of quants for pickings. A move with no quant reserved will always
+have priority over another one if it has higher priority or same priority and earlier date. This is still true if the
+less prioritary move has to be unassigned.
+""",
+    "website": "http://www.ndp-systemes.fr",
+    "contributors": [],
+    "data": [],
+    "demo": ['tests/test_stock_reservation_priority.xml'],
+    "installable": True,
+}

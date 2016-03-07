@@ -27,7 +27,7 @@ PURCHASE_CHUNK = 100
 _logger = logging.getLogger(__name__)
 
 
-@job
+@job(default_channel='root.posweeper')
 def job_purchase_order_sweeper(session, model_name, ids):
     model_instance = session.pool[model_name]
     model_instance.sweep(session.cr, session.uid, ids, context=session.context)
