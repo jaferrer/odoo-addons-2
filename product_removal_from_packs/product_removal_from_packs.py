@@ -17,7 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import api, models, exceptions, _
+from openerp import api, models
+from openerp.tools.float_utils import float_compare
 
 
 class StockQuantRemovalFromPacks(models.Model):
@@ -35,9 +36,10 @@ class StockQuantRemovalFromPacks(models.Model):
                     apply_rss = False
                     break
             if apply_rss:
-                list_removals = []
                 packs = self.env['stock.quant.package'].search([('location_id', '=', location.id)]).\
                     filtered(lambda p: product in [x.product_id for x in p.quant_ids])
+                list_removals = []
+                qty_reserved = 0
                 if packs:
                     qty_to_remove_for_each_pack = float(quantity) / len(packs)
                     for pack in packs:
@@ -45,15 +47,15 @@ class StockQuantRemovalFromPacks(models.Model):
                         if qty_available_in_pack >= qty_to_remove_for_each_pack:
                            list_removals += self.apply_removal_strategy(location, product, qty_to_remove_for_each_pack,
                                                        domain + [('package_id', '=', pack.id)], 'fifo')
+                           qty_reserved += qty_to_remove_for_each_pack
                         else:
                             for quant in pack.quant_ids:
                                 if quant.product_id == product:
+                                    qty_reserved += quant.qty
                                     list_removals += [(quant, quant.qty)]
-                else:
-                    raise exceptions.except_orm(
-                        _("Error!"), _("Impossible to decrease the quantity of product %s in location %s, "
-                                       "because this location applies RSS strategy and no package includes the "
-                                       "requested product.") % (product.display_name, location.display_name))
+                if float_compare(qty_reserved, quantity, precision_rounding=product.uom_id.rounding) < 0:
+                    list_removals += self.apply_removal_strategy(location, product, quantity - qty_reserved,
+                                                                 domain + [('package_id', '=', False)], 'fifo')
                 return list_removals
             else:
                 return self.apply_removal_strategy(location, product, quantity, domain, 'fifo')

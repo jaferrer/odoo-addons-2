@@ -29,11 +29,11 @@ class StockReservationPriorityStockMove(models.Model):
         to_assign_ids = self and self.ids or []
         for move_to_assign in self.search([('id', 'in', to_assign_ids)],order='priority asc, date desc, id desc'):
             qty_available = sum([quant.qty for quant in self.env['stock.quant'].
-                                search([('location_id', '=', move_to_assign.location_id.id),
+                                search([('location_id', 'child_of', move_to_assign.location_id.id),
                                         ('product_id', '=', move_to_assign.product_id.id),
                                         ('reservation_id', '=', False)])])
             running_moves_ordered_reverse = self.env['stock.move']. \
-                search([('location_id', '=', move_to_assign.location_id.id),
+                search([('location_id', 'child_of', move_to_assign.location_id.id),
                         ('product_id', '=', move_to_assign.product_id.id),
                         '|', ('reserved_quant_ids', '!=', False),
                         ('id', '=', move_to_assign.id)],

@@ -42,7 +42,10 @@ class PurchaseOrderJustInTime(models.Model):
         self.ensure_one()
         todo_moves = self.env['stock.move']
         if not group_id:
-            group = self.env['procurement.group'].create({'name': order.name, 'partner_id': order.partner_id.id})
+            group = self.env['procurement.group'].search([('name', '=', order.name),
+                                                          ('partner_id', '=', order.partner_id.id)], limit=1)
+            if not group:
+                group = self.env['procurement.group'].create({'name': order.name, 'partner_id': order.partner_id.id})
             group_id = group.id
 
         for order_line in order_lines:
@@ -439,14 +442,17 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 vals_to_write = {'purchase_id': False, 'purchase_line_id': False}
                 if [x for x in procurement.move_ids if x.state == 'done']:
                     vals_to_write['product_qty'] = sum([x.product_qty for x in procurement.move_ids if x.state == 'done'])
-                moves_to_unlink = line.move_ids.filtered(lambda x: x.state not in ['done', 'cancel'] and
-                                                                   (not x.procurement_id or
-                                                                    x.procurement_id == procurement))
-                moves_to_unlink.action_cancel()
-                moves_to_unlink.unlink()
+                if line:
+                    moves_to_unlink = line.move_ids.filtered(lambda x: x.state not in ['done', 'cancel'] and
+                                                                       x.procurement_id == procurement)
+                    new_moves = moves_to_unlink.copy({'state': 'draft', 'procurement_id': False, 'move_dest_id': False})
+                    new_moves.write({'purchase_line_id': line.id})
+                    moves_to_unlink.action_cancel()
+                    moves_to_unlink.unlink()
+                    new_moves.action_confirm()
+                    new_moves.action_assign()
                 procurement.check()
                 procurement.write(vals_to_write)
-                line.order_id._create_stock_moves(line.order_id, line)
             else:
                 result = super(ProcurementOrderPurchaseJustInTime,
                                self.with_context(cancelling_active_proc=True)). \
