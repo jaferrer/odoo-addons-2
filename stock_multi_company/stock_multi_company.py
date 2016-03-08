@@ -33,8 +33,6 @@ class StockQuant(models.Model):
         domain += [('product_id', '=', product.id)]
         if self.env.context.get('force_company'):
             domain += [('company_id', '=', self.env.context.get('force_company'))]
-        else:
-            domain += [('company_id', 'child_of', self.env.user.company_id.id)]
         res = []
         offset = 0
         while float_compare(quantity, 0, precision_rounding=product.uom_id.rounding) > 0:
