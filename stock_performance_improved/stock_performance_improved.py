@@ -213,7 +213,7 @@ class StockPrereservation(models.Model):
                     sm.product_id,
                     sum(sm.product_qty) OVER (
                         PARTITION BY sm.product_id, COALESCE(sm.picking_id, sm.location_id)
-                        ORDER BY priority DESC, date_expected
+                        ORDER BY priority DESC, date_expected, id
                     ) - sm.product_qty AS qty
                 FROM
                     stock_move sm
