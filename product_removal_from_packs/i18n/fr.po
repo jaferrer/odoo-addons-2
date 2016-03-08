@@ -34,18 +34,6 @@ msgstr "\n"
 ""
 
 #. module: product_removal_from_packs
-#: code:addons\product_removal_from_packs\product_removal_from_packs.py:36
-#, python-format
-msgid "Error!"
-msgstr "Erreur !"
-
-#. module: product_removal_from_packs
-#: code:addons\product_removal_from_packs\product_removal_from_packs.py:36
-#, python-format
-msgid "The location %s applies RSS strategy, but some quants of product %s are not in a package. Please solve this problem and try again."
-msgstr "L'emplacement %s est en stratégie RSS, mais certains quants du produit %s ne sont pas dans un colis. Faites le nécessaire puis ré-essayez."
-
-#. module: product_removal_from_packs
 #: model:ir.model,name:product_removal_from_packs.model_stock_quant
 msgid "Quants"
 msgstr "Quants"
