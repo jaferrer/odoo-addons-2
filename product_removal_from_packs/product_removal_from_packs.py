@@ -27,6 +27,14 @@ class StockQuantRemovalFromPacks(models.Model):
     def apply_removal_strategy(self, location, product, quantity, domain, removal_strategy):
         if removal_strategy == 'rss':
             apply_rss = True
+            quant_out_of_packages = self.env['stock.quant'].search([('location_id', 'child_of', location.id),
+                                                                    ('product_id', '=', product.id),
+                                                                    ('package_id', '=', False)], limit=1)
+            if quant_out_of_packages:
+                raise exceptions.except_orm(
+                        _("Error!"), _("The location %s applies RSS strategy, but some quants of product %s are "
+                                       "not in a package. Please solve this problem and try again.") %
+                                     (location.display_name, product.display_name))
             pack_or_lot_or_reservation_domain = [x for x in domain if x[0] == 'package_id' or x[0] == 'lot_id' or
                                                  x[0] == 'reservation_id']
             domain += [('location_id', '=', location.id)] + pack_or_lot_or_reservation_domain
@@ -50,10 +58,7 @@ class StockQuantRemovalFromPacks(models.Model):
                                 if quant.product_id == product:
                                     list_removals += [(quant, quant.qty)]
                 else:
-                    raise exceptions.except_orm(
-                        _("Error!"), _("Impossible to decrease the quantity of product %s in location %s, "
-                                       "because this location applies RSS strategy and no package includes the "
-                                       "requested product.") % (product.display_name, location.display_name))
+                    return [(None, quantity)]
                 return list_removals
             else:
                 return self.apply_removal_strategy(location, product, quantity, domain, 'fifo')
