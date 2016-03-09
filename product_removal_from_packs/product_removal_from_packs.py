@@ -30,14 +30,14 @@ class StockQuantRemovalFromPacks(models.Model):
             apply_rss = True
             pack_or_lot_or_reservation_domain = [x for x in domain if x[0] == 'package_id' or x[0] == 'lot_id' or
                                                  x[0] == 'reservation_id']
-            domain += [('location_id', '=', location.id)] + pack_or_lot_or_reservation_domain
+            domain += [('location_id', '=', location.id)]
             for cond in pack_or_lot_or_reservation_domain:
                 if cond[2]:
                     apply_rss = False
                     break
             if apply_rss:
                 packs = self.env['stock.quant.package'].search([('location_id', '=', location.id)]).\
-                    filtered(lambda p: product in [x.product_id for x in p.quant_ids])
+                    filtered(lambda p: sum([x.qty for x in p.quant_ids if x.product_id == product]) > 0)
                 list_removals = []
                 qty_reserved = 0
                 if packs:
