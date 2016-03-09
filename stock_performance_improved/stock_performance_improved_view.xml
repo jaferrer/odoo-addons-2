@@ -82,6 +82,19 @@ self.run_assign_moves(cr, uid, context=context)
             </field>
         </record>
 
+        <record model="ir.ui.view" id="stock_location_path_form_improved">
+            <field name="name">stock_location_path_form_improved</field>
+            <field name="model">stock.location.path</field>
+            <field name="inherit_id" ref="stock.stock_location_path_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="location_dest_id" position="after">
+                    <field name="defer_picking_assign"/>
+                </field>
+            </field>
+        </record>
+
+
         <record model="ir.ui.view" id="stock_performance_improved_picking_form">
             <field name="name">stock.performance.improved.picking.form</field>
             <field name="model">stock.picking</field>
