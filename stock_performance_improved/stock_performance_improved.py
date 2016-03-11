@@ -97,7 +97,7 @@ class StockMove(models.Model):
             query = """
                 SELECT stock_picking.id FROM stock_picking, stock_move
                 WHERE
-                    stock_picking.state in ('draft','waiting','confirmed','partially_available','assigned') AND
+                    stock_picking.state IN ('draft','waiting','confirmed','partially_available','assigned') AND
                     stock_move.picking_id = stock_picking.id AND
                     stock_picking.picking_type_id = %s AND
                     stock_move.location_id = %s AND
@@ -144,6 +144,7 @@ class ProcurementRule(models.Model):
                                                "a picking only if there is available quants in the source location. "
                                                "Otherwise, it will be assigned a picking as soon as the move is "
                                                "confirmed.")
+
 
 class StockLocationPath(models.Model):
     _inherit = 'stock.location.path'
@@ -207,43 +208,45 @@ class StockPrereservation(models.Model):
         cr.execute("""
         CREATE OR REPLACE VIEW stock_prereservation AS (
             WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
-                    SELECT
-                        sl.id AS loc_id, sl.id AS top_parent_id
-                    FROM
-                        stock_location sl
-                        LEFT JOIN stock_location slp ON sl.location_id = slp.id
-                    WHERE
-                        sl.usage='internal'
-                UNION
-                    SELECT
-                        sl.id AS loc_id, tp.top_parent_id
-                    FROM
-                        stock_location sl, top_parent tp
-                    WHERE
-                        sl.usage='internal' AND sl.location_id=tp.loc_id
+                SELECT
+                    sl.id AS loc_id, sl.id AS top_parent_id
+                FROM
+                    stock_location sl
+                    LEFT JOIN stock_location slp ON sl.location_id = slp.id
+                WHERE
+                    sl.usage='internal'
+            UNION
+                SELECT
+                    sl.id AS loc_id, tp.top_parent_id
+                FROM
+                    stock_location sl, top_parent tp
+                WHERE
+                    sl.usage='internal' AND sl.location_id=tp.loc_id
             ),
 
             confirmed_moves_with_picking_type AS (
-		SELECT
-			id,
-			state,
-			picking_id,
-			location_id,
-			product_id,
-			product_qty,
-			priority,
-			date_expected
-		FROM stock_move
-		WHERE picking_type_id IS NOT NULL AND state='confirmed'),
+                SELECT
+                    id,
+                    state,
+                    picking_id,
+                    location_id,
+                    product_id,
+                    product_qty,
+                    priority,
+                    date_expected
+                FROM stock_move
+                WHERE picking_type_id IS NOT NULL AND state='confirmed'
+            ),
 
-	moves_with_quants_reserved AS (
-		SELECT
-			sm.id,
-			sm.picking_type_id,
-			sm.picking_id
-		FROM stock_move sm
-		INNER JOIN stock_quant sq ON sq.reservation_id=sm.id
-		GROUP BY sm.id),
+            moves_with_quants_reserved AS (
+                SELECT
+                    sm.id,
+                    sm.picking_type_id,
+                    sm.picking_id
+                FROM stock_move sm
+                INNER JOIN stock_quant sq ON sq.reservation_id=sm.id
+                GROUP BY sm.id
+            ),
 
             move_qties_interm AS (
                 SELECT
@@ -257,26 +260,30 @@ class StockPrereservation(models.Model):
                     ) - sm.product_qty AS qty
                 FROM confirmed_moves_with_picking_type sm
                 LEFT JOIN stock_quant sq ON sq.reservation_id=sm.id
-                WHERE sq.id IS NULL),
+                WHERE sq.id IS NULL
+            ),
 
-          not_reserved_quantities AS (
-		SELECT
-			tp.top_parent_id AS location_id,
-			sq.product_id,
-			sum(sq.qty) AS qty
-		FROM stock_quant sq
-		LEFT JOIN top_parent tp ON tp.loc_id=sq.location_id
-		WHERE tp.top_parent_id IN (SELECT location_id FROM move_qties_interm) AND sq.reservation_id IS NULL
-		GROUP BY tp.top_parent_id, sq.product_id),
+            not_reserved_quantities AS (
+                SELECT
+                    tp.top_parent_id AS location_id,
+                    sq.product_id,
+                    sum(sq.qty) AS qty
+                FROM stock_quant sq
+                LEFT JOIN top_parent tp ON tp.loc_id=sq.location_id
+                WHERE tp.top_parent_id IN (SELECT location_id FROM move_qties_interm) AND sq.reservation_id IS NULL
+                GROUP BY tp.top_parent_id, sq.product_id
+            ),
 
-	move_qties AS (
-		SELECT
-			mqi.*,
-			nrq.qty AS sum_qty
-		FROM move_qties_interm mqi
-		LEFT JOIN not_reserved_quantities nrq ON nrq.product_id=mqi.product_id AND nrq.location_id=mqi.location_id)
+            move_qties AS (
+                SELECT
+                    mqi.*,
+                    nrq.qty AS sum_qty
+                FROM move_qties_interm mqi
+                LEFT JOIN
+                  not_reserved_quantities nrq ON nrq.product_id=mqi.product_id AND nrq.location_id=mqi.location_id
+            )
 
-SELECT
+            SELECT
                 foo.move_id AS id,
                 foo.move_id,
                 foo.picking_id,
