@@ -37,10 +37,66 @@ class AccountInvoiceResCompany(models.Model):
     capital_stock = fields.Float(string=u"Capital stock")
 
 
+class PaiementMode(models.Model):
+    _name = 'paiement.mode'
+    _description = "Paiement Mode"
+
+    name = fields.Char(string="Name")
+
+
 class AccountInvoice(models.Model):
     _inherit = 'account.invoice'
+
+    paiement_mode_id = fields.Many2one('paiement.mode', string=u"Paiement mode")
+    invoice_comment = fields.Text(string=u"Default invoice comment", compute='_compute_invoice_comment')
 
     @api.multi
     def invoice_print(self):
         super(AccountInvoice, self).invoice_print()
         return self.env['report'].with_context(active_ids=self.ids).get_action(self, 'invoice.report.aeroo')
+
+    @api.multi
+    def _compute_invoice_comment(self):
+        invoice_comment = self.env['ir.config_parameter'].get_param('account_invoice_report_aeroo.invoice_comment')
+        for rec in self:
+            rec.invoice_comment = invoice_comment
+
+
+class ResPartnerReportAeroo(models.Model):
+    _inherit = 'res.partner'
+
+    @api.model
+    def _display_address(self, address, without_company=False):
+
+        '''
+        The purpose of this function is to build and return an address formatted accordingly to the
+        standards of the country where it belongs.
+
+        :param address: browse record of the res.partner to format
+        :returns: the address formatted in a display that fit its country habits (or the default ones
+            if not country is specified)
+        :rtype: string
+        '''
+
+        # get the information that will be injected into the display format
+        # get the address format
+
+        address_format = address.country_id.address_format or \
+              "%(street)s\n" + (address.street2 and "%(street2)s\n" or "") + "%(city)s %(state_code)s %(zip)s\n%(country_name)s"
+        if "%(street2)s\n" in address_format and not address.street2:
+            address_format = address_format.replace("%(street2)s\n", "")
+        args = {
+            'state_code': address.state_id.code or '',
+            'state_name': address.state_id.name or '',
+            'country_code': address.country_id.code or '',
+            'country_name': address.country_id.name or '',
+            'company_name': address.parent_name or '',
+        }
+        for field in self._address_fields():
+            if address.street2 or field != 'street2':
+                args[field] = getattr(address, field) or ''
+        if without_company:
+            args['company_name'] = ''
+        elif address.parent_id:
+            address_format = '%(company_name)s\n' + address_format
+        return address_format % args

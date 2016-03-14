@@ -17,5 +17,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import account_invoice_report_aeroo
-from . import res_config
+from openerp import models, fields, api
+
+
+class InvoiceReportAerooResConfig(models.TransientModel):
+    _inherit = 'account.config.settings'
+
+    invoice_comment = fields.Text(string="Default Invoice Comment")
+
+    @api.multi
+    def get_default_invoice_comment(self):
+        invoice_comment = self.env['ir.config_parameter']. \
+            get_param('account_invoice_report_aeroo.invoice_comment', default='')
+        return {'invoice_comment': str(invoice_comment)}
+
+    @api.multi
+    def set_invoice_comment(self):
+        for record in self:
+            self.env['ir.config_parameter'].set_param('account_invoice_report_aeroo.invoice_comment',
+                                                      record.invoice_comment or '')
