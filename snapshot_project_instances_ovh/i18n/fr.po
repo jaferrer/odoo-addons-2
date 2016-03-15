@@ -146,9 +146,13 @@ msgstr "Nombre maximal de snapshot à conserver"
 
 #. module: snapshot_project_instances_ovh
 #: field:ovh.instance,name:0
-#: field:ovh.project,name:0
 msgid "Name"
 msgstr "Nom"
+
+#. module: snapshot_project_instances_ovh
+#: field:ovh.project,name:0
+msgid "OVH ID"
+msgstr "ID OVH"
 
 #. module: snapshot_project_instances_ovh
 #: field:snapshot.request.line,next_snapshot_date:0
