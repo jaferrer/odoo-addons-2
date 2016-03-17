@@ -34,19 +34,13 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
         client = Client(endpoint=area, application_key=app_key,
                         application_secret=app_secret, consumer_key=consumer_key)
         project_ids = client.get('/cloud/project')
-        project_id = project_ids and project_ids[0] or []
-        for project in project_ids:
-            properties = client.get('/cloud/project/%s' % project)
-            if properties.get('description') == rec.project_id.name:
-                project_id = project
-                break
-        if project_id:
-            instances = project_id and client.get('/cloud/project/%s/instance' % project_id) or []
+        if rec.project_id.name in project_ids:
+            instances = rec.project_id.name and client.get('/cloud/project/%s/instance' % rec.project_id.name) or []
             instance = [instance for instance in instances if instance.get('name') == rec.instance_id.name]
             instance = instance and instances[0].get('id') or False
             result = _("Instance %s not found.") % rec.instance_id.name
             if instance:
-                snapshots = project_id and client.get('/cloud/project/%s/snapshot' % project_id) or []
+                snapshots = rec.project_id.name and client.get('/cloud/project/%s/snapshot' % rec.project_id.name) or []
                 for s in snapshots:
                     s['formated_date'] = s.get('creationDate') and \
                                          fields.Datetime.from_string(
@@ -59,11 +53,12 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
                     if to_delete_ids:
                         for to_delete_id in to_delete_ids:
                             try:
-                                client.delete('/cloud/project/%s/snapshot/%s' % (project_id, to_delete_id,))
+                                client.delete('/cloud/project/%s/snapshot/%s' % (rec.project_id.name, to_delete_id,))
                             except APIError:
                                 pass
                         time.sleep(120)
-                        snapshots = project_id and client.get('/cloud/project/%s/snapshot' % project_id) or []
+                        snapshots = rec.project_id.name and \
+                                    client.get('/cloud/project/%s/snapshot' % rec.project_id.name) or []
                         not_deleted_id = []
                         for to_delete_id in to_delete_ids:
                             if [snapshot.get('id') for snapshot in snapshots] and \
@@ -73,7 +68,7 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
                             raise exceptions.except_orm(_("Error!"),
                                                         _("Snapshot deletion could not be checked for ids %s.") %
                                                         ', '.join(not_deleted_id))
-                client.post('/cloud/project/%s/instance/%s/snapshot' % (project_id, instance),
+                client.post('/cloud/project/%s/instance/%s/snapshot' % (rec.project_id.name, instance),
                             snapshotName=' - '.join([rec.project_id.name, rec.instance_id.name, fields.Datetime.now()]))
                 rec.last_snapshot_date = fields.Date.today()
                 rec.update_next_snapshot_date()
@@ -85,7 +80,7 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
 class OvhProject(models.Model):
     _name = 'ovh.project'
 
-    name = fields.Char(string="Name")
+    name = fields.Char(string="OVH ID")
 
 
 class OvhInstance(models.Model):
