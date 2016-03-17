@@ -17,8 +17,8 @@ msgstr ""
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_invoice_report_aeroo
-msgid "Account Invoice Improved"
-msgstr "Amélioration de la facturation"
+msgid "Account Invoice Report Aeroo"
+msgstr "Rapport Aeroo pour les factures"
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_invoice_report_aeroo
@@ -26,12 +26,12 @@ msgid ""
 "\n"
 "Account Invoice Report Aeroo\n"
 "============================\n"
-"Replaces the basic report by a improved one.\n"
+"This module replaces the basic report by a improved one.\n"
 msgstr ""
 "\n"
 "Rapport Aeroo pour les factures\n"
 "===============================\n"
-"Ce module remplace le rapport de base par un autre, amélioré\n"
+"Ce module remplace le rapport de base par un autre, amélioré.\n"
 
 #. module: account_invoice_report_aeroo
 #: field:res.company,capital_stock:0
