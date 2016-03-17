@@ -27,10 +27,12 @@
     'description': """
 Account Invoice Report Aeroo
 ============================
-Replaces the basic report by a improved one.
+This module replaces the basic report by a improved one.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['account_invoice_report_aeroo.xml'],
+    'data': ['security/ir.model.access.csv',
+             'res_config.xml',
+             'account_invoice_report_aeroo.xml'],
     'demo': [],
     'test': [],
     'installable': True,
