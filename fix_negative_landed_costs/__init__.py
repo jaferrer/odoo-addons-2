@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp.tools import float_round
+from openerp.tools import float_round, float_compare
 from openerp.osv import osv
 import openerp.addons.decimal_precision as dp
 
@@ -42,6 +42,9 @@ class StockLandedCostsFixed(osv.osv):
             total_line = 0.0
             vals = self.get_valuation_lines(cr, uid, [cost.id], picking_ids=picking_ids, context=context)
             for v in vals:
+                product = self.pool.get('product.product').browse(cr, uid, [v['product_id']], context=context)
+                if float_compare(v['quantity'], 0.0, precision_rounding=product.uom_id.rounding) == 0:
+                    continue
                 for line in cost.cost_lines:
                     v.update({'cost_id': cost.id, 'cost_line_id': line.id})
                     self.pool.get('stock.valuation.adjustment.lines').create(cr, uid, v, context=context)
