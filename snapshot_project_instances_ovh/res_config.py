@@ -78,5 +78,9 @@ class OvhParameters(models.TransientModel):
             config_parameters.set_param("snapshot_project_instances_ovh.consumer_key", record.consumer_key or '')
 
     @api.multi
-    def ask_for_snapshots(self):
+    def ask_for_snapshots_multi(self):
+        self.ask_for_snapshots_model()
+
+    @api.model
+    def ask_for_snapshots_model(self):
         self.env['snapshot.request.line'].search([]).ask_for_snapshots()

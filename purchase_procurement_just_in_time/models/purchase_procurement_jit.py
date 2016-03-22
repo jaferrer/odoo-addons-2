@@ -392,14 +392,19 @@ class PurchaseOrderLineJustInTime(models.Model):
     @api.multi
     def act_windows_view_graph(self):
         self.ensure_one()
+        warehouses = self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)])
+        if warehouses:
+            wid = warehouses[0].id
+        else:
+            raise exceptions.except_orm(_("Error"), _("Your company does not have a warehouse"))
+
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'stock.levels.report',
             'name': _("Stock Evolution"),
             'view_type': 'form',
             'view_mode': 'graph,tree',
-            'res_id': self.id,
-            'context': {'search_default_location_id': self.order_id.location_id.id,
+            'context': {'search_default_warehouse_id': wid,
                         'search_default_product_id': self.product_id.id}
         }
 

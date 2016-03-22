@@ -18,14 +18,15 @@
 #
 
 from openerp.tools import drop_view_if_exists, flatten
-from openerp import fields, models, api
+from openerp import fields, models, api, osv
 
+from openerp.addons.procurement import procurement
 from openerp.addons.scheduler_async import scheduler_async
 from openerp.addons.connector.session import ConnectorSession
 
 assign_moves = scheduler_async.assign_moves
 
-MOVE_CHUNK = 100
+PRODUCT_CHUNK = 10
 
 
 class StockPicking(models.Model):
@@ -67,6 +68,71 @@ class StockPicking(models.Model):
         """
         self.assign_moves_to_picking()
         super(StockPicking, self).rereserve_pick()
+
+    @api.cr_uid_ids_context
+    def get_min_max_date(self, cr, uid, ids, field_name, arg, context=None):
+        """ Finds minimum and maximum dates for picking.
+        @return: Dictionary of values
+        """
+        res = super(StockPicking, self).get_min_max_date(cr, uid, ids, field_name, arg, context=context)
+        for k, v in res.iteritems():
+            picking = self.browse(cr, uid, [k], context)
+            defer = picking.move_lines and picking.move_lines[0].defer_picking_assign or False
+            if defer:
+                res[k] = {}
+        return res
+
+    @api.cr_uid_ids_context
+    def _get_pickings_dates_priority(self, cr, uid, ids, context=None):
+        res = set()
+        for move in self.browse(cr, uid, ids, context=context):
+            if move.picking_id and (not (
+                            move.picking_id.min_date < move.date_expected < move.picking_id.max_date) or
+                                            move.priority > move.picking_id.priority):
+                res.add(move.picking_id.id)
+        return list(res)
+
+    @api.cr_uid_id_context
+    def _set_priority(self, cr, uid, id, field, value, arg, context=None):
+        move_obj = self.pool.get("stock.move")
+        if value:
+            move_ids = [move.id for move in self.browse(cr, uid, id, context=context).move_lines]
+            move_obj.write(cr, uid, move_ids, {'priority': value}, context=context)
+
+    @api.cr_uid_id_context
+    def _set_min_date(self, cr, uid, id, field, value, arg, context=None):
+        move_obj = self.pool.get("stock.move")
+        if value:
+            move_ids = [move.id for move in self.browse(cr, uid, id, context=context).move_lines]
+            move_obj.write(cr, uid, move_ids, {'date_expected': value}, context=context)
+
+    _columns = {
+        'priority': osv.fields.function(get_min_max_date, multi="min_max_date", fnct_inv=_set_priority,
+                                        type='selection',
+                                        selection=procurement.PROCUREMENT_PRIORITIES, string='Priority',
+                                        store={
+                                            'stock.move': (
+                                                _get_pickings_dates_priority, ['priority', 'picking_id'], 20)},
+                                        states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}, select=1,
+                                        help="Priority for this picking. Setting manually a value here would set it as "
+                                             "priority for all the moves",
+                                        track_visibility='onchange', required=True),
+        'min_date': osv.fields.function(get_min_max_date, multi="min_max_date", fnct_inv=_set_min_date,
+                                        store={'stock.move': (
+                                            _get_pickings_dates_priority, ['date_expected', 'picking_id'], 20)},
+                                        type='datetime',
+                                        states={'done': [('readonly', True)], 'cancel': [('readonly', True)]},
+                                        string='Scheduled Date', select=1,
+                                        help="Scheduled time for the first part of the shipment to be processed. "
+                                             "Setting manually a value here would set it as expected date for all the "
+                                             "stock moves.",
+                                        track_visibility='onchange'),
+        'max_date': osv.fields.function(get_min_max_date, multi="min_max_date",
+                                        store={'stock.move': (
+                                            _get_pickings_dates_priority, ['date_expected', 'picking_id'], 20)},
+                                        type='datetime', string='Max. Expected Date', select=2,
+                                        help="Scheduled time for the last part of the shipment to be processed"),
+    }
 
 
 class StockMove(models.Model):
@@ -173,7 +239,10 @@ class ProcurementOrder(models.Model):
 
     @api.model
     def run_assign_moves(self):
-        confirmed_moves = self.env['stock.prereservation'].search([('reserved', '=', False)]).mapped('move_id')
+        prereservations = self.env['stock.prereservation'].search([('reserved', '=', False)])
+        confirmed_move_ids = prereservations.read(['move_id'], load=False)
+        move_ids = [cm['id'] for cm in confirmed_move_ids]
+        confirmed_moves = self.env['stock.move'].search([('id', 'in', move_ids)])
         cm_product_ids = confirmed_moves.read(['id', 'product_id'], load=False)
 
         # Create a dict of moves with same product {product_id: [move_id, move_id], product_id: []}
@@ -185,8 +254,8 @@ class ProcurementOrder(models.Model):
         product_ids = result.values()
 
         while product_ids:
-            products = product_ids[:MOVE_CHUNK]
-            product_ids = product_ids[MOVE_CHUNK:]
+            products = product_ids[:PRODUCT_CHUNK]
+            product_ids = product_ids[PRODUCT_CHUNK:]
             move_ids = flatten(products)
             if self.env.context.get('jobify'):
                 assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', move_ids, self.env.context)

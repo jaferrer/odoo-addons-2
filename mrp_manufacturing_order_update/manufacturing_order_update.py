@@ -68,7 +68,7 @@ class MoUpdateMrpProduction(models.Model):
                 if item.product_id not in [y.product_id for y in mrp.move_lines if y.state != 'cancel']:
                     needed_new_moves += [item]
                     post += _("Raw material move created of quantity %s for product %s<br>") % \
-                            (item.product_qty, product.display_name)
+                            (item.product_qty, item.product_id.display_name)
 
             for item in needed_new_moves:
                 product = item.product_id
