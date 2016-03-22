@@ -74,12 +74,13 @@ class StockPicking(models.Model):
         """ Finds minimum and maximum dates for picking.
         @return: Dictionary of values
         """
-        move_lines = self.browse(cr, uid, ids, context).move_lines
-        defer = move_lines and move_lines[0].defer_picking_assign or False
-        if defer:
-            return {}
-        else:
-            return super(StockPicking, self).get_min_max_date(cr, uid, ids, field_name, arg, context=context)
+        res = super(StockPicking, self).get_min_max_date(cr, uid, ids, field_name, arg, context=context)
+        for k, v in res.iteritems():
+            picking = self.browse(cr, uid, [k], context)
+            defer = picking.move_lines and picking.move_lines[0].defer_picking_assign or False
+            if defer:
+                res[k] = {}
+        return res
 
     @api.cr_uid_ids_context
     def _get_pickings_dates_priority(self, cr, uid, ids, context=None):
