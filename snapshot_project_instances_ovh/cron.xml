@@ -13,7 +13,7 @@
             <field name="numbercall">-1</field>
             <field name="doall"/>
             <field name="model">ovh.parameters</field>
-            <field name="function">ask_for_snapshots</field>
+            <field name="function">ask_for_snapshots_model</field>
             <field name="args"></field>
         </record>
 
