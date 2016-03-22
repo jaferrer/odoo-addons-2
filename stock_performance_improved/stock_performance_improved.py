@@ -25,7 +25,7 @@ from openerp.addons.connector.session import ConnectorSession
 
 assign_moves = scheduler_async.assign_moves
 
-MOVE_CHUNK = 100
+PRODUCT_CHUNK = 10
 
 
 class StockPicking(models.Model):
@@ -173,7 +173,10 @@ class ProcurementOrder(models.Model):
 
     @api.model
     def run_assign_moves(self):
-        confirmed_moves = self.env['stock.prereservation'].search([('reserved', '=', False)]).mapped('move_id')
+        prereservations = self.env['stock.prereservation'].search([('reserved', '=', False)])
+        confirmed_move_ids = prereservations.read(['move_id'], load=False)
+        move_ids = [cm['id'] for cm in confirmed_move_ids]
+        confirmed_moves = self.env['stock.move'].search([('id', 'in', move_ids)])
         cm_product_ids = confirmed_moves.read(['id', 'product_id'], load=False)
 
         # Create a dict of moves with same product {product_id: [move_id, move_id], product_id: []}
@@ -185,8 +188,8 @@ class ProcurementOrder(models.Model):
         product_ids = result.values()
 
         while product_ids:
-            products = product_ids[:MOVE_CHUNK]
-            product_ids = product_ids[MOVE_CHUNK:]
+            products = product_ids[:PRODUCT_CHUNK]
+            product_ids = product_ids[PRODUCT_CHUNK:]
             move_ids = flatten(products)
             if self.env.context.get('jobify'):
                 assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', move_ids, self.env.context)
