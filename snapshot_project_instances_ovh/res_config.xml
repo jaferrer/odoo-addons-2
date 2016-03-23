@@ -14,7 +14,7 @@
                         <button string="Cancel" type="object" name="cancel" class="oe_link"/>
                     </header>
                     <group string="Snapshots parameters">
-                        <button name="ask_for_snapshots" string="Ask for snapshots" type="object" class="oe_highlight" confirm="Pay attention, you will be charged for each snapshot."/>
+                        <button name="ask_for_snapshots_multi" string="Ask for snapshots" type="object" class="oe_highlight" confirm="Pay attention, you will be charged for each snapshot."/>
                     </group>
                     <group>
                         <field name="area"/>

@@ -31,7 +31,9 @@ Implements various fixes for multi-company
 - Quants can be reserved whatever their company in a multi-company environment
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': [
+        'stock_multi_company_data.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,

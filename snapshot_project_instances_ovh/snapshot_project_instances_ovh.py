@@ -116,7 +116,7 @@ class SnapshotRequestLine(models.Model):
         consumer_key = self.env['ir.config_parameter'].get_param('snapshot_project_instances_ovh.consumer_key')
         self.update_next_snapshot_date()
         if area and app_key and app_secret and consumer_key:
-            requests = self.filtered(lambda req: req.next_snapshot_date >= fields.Date.today())
+            requests = self.filtered(lambda req: req.next_snapshot_date <= fields.Date.today())
             if requests:
                 for rec in requests:
                     session = ConnectorSession(self.env.cr, self.env.user.id, self.env.context)

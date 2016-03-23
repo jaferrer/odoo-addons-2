@@ -27,7 +27,8 @@
     'description': """
 Fix Negative Landed Costs
 =========================
-Temporary fix to https://github.com/odoo/odoo/pull/8210 until it is pulled upstream.
+- Temporary fix to https://github.com/odoo/odoo/pull/8210 until it is pulled upstream.
+- Also enables pickings with moves of qty 0 to be properly discarded by landed stock calculation
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
