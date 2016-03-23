@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.rule" id="stock.stock_quant_rule">
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+    </data>
+</openerp>
