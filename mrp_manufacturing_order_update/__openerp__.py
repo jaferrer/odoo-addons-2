@@ -37,7 +37,7 @@ It also allows to update a manufacturing order after a modification of the BOM u
         'test_manufacturing_order_update.xml'
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

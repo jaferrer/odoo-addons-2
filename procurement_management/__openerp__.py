@@ -36,7 +36,7 @@ time, group the procurements by location, and see the moves existing before and 
     ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

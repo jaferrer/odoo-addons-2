@@ -42,7 +42,7 @@ the wizard.
     ],
     'demo': ['stock_split_picking_demo.xml'],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

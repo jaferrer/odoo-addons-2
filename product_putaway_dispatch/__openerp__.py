@@ -45,7 +45,7 @@ This button only appears if the original destination location has its putaway st
         'product_putaway_dispatch_demo.xml'
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

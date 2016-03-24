@@ -33,7 +33,7 @@ This module allows to track the TNT deliveries
     'data': ['purchase_delivery_tracking_tnt_data.xml'],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

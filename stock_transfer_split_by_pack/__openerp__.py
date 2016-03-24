@@ -43,7 +43,7 @@ This module is largely inspired from Akretion & Odoo Community Association (OCA)
         'stock_transfer_split_by_pack_demo.xml',
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

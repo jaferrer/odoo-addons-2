@@ -46,7 +46,7 @@ Depending on this time frame, the purchase order lines are grouped into one purc
     ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

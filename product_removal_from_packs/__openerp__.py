@@ -33,7 +33,7 @@ This module creates a new removal strategy, which shares the removal of the cons
     'data': ['product_removal_from_packs_data.xml'],
     'demo': ['tests/test_product_removal_from_packs.xml'],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

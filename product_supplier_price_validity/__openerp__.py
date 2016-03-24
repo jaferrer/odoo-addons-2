@@ -35,7 +35,7 @@ Makes prices dependant on time, not only on purchase quantity.
         'test_supplier_articles.xml'
         ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

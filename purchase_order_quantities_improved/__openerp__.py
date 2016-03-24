@@ -39,7 +39,7 @@ Furthermore, it sets the purchase quantity to a multiple of the number of articl
         'test_order_quantities_demo.xml'
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

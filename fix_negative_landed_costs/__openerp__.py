@@ -33,7 +33,7 @@ Temporary fix to https://github.com/odoo/odoo/pull/8210 until it is pulled upstr
     'data': [],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

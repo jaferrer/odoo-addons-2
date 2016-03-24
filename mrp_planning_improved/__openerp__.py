@@ -37,7 +37,7 @@ Creation of a new field for manufacturing order, date required, and a new button
         'test_mrp_planning_improved.xml',
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

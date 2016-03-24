@@ -35,7 +35,7 @@ Ce module permet de générer des étiquettes d'envoi avec Colissimo.
              'res_config.xml'],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

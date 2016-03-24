@@ -38,7 +38,7 @@ process only a few. In this case, it avoids to press on the trash bin icon of hu
     ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

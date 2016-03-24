@@ -51,7 +51,7 @@ Notes:
         'purchase_working_days_demo.xml',
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

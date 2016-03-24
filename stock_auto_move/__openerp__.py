@@ -42,7 +42,7 @@ Automatic moves are triggered by previous move when the move is chained or by th
         'stock_auto_move_demo.xml',
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

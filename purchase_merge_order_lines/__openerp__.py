@@ -35,7 +35,7 @@ When the date planned of two lines to merge are different, it holds ths minimal 
     'data': ['purchase_merge_order_lines.xml'],
     'demo': ['tests/tests_purchase_merge_order_lines.xml'],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

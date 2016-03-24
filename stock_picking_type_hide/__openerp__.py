@@ -35,7 +35,7 @@ This module adds a field that allow to hide a picking type in all operations men
     ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

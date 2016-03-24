@@ -41,7 +41,7 @@ inventory on these products be made.
         'test_stock_specific_inventory_demo.xml'
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

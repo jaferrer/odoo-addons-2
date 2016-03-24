@@ -34,7 +34,7 @@ This module allows to upload the status of a purchase order, knowing the transpo
              'purchase_delivery_tracking.xml'],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

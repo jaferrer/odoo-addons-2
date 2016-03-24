@@ -35,7 +35,7 @@ This tyically prevents customers from being automatically subscribed to their qu
     'data': [],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

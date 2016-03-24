@@ -43,5 +43,5 @@ This module gives two possibilities to deplace quants. In one hand, you can do i
         "wizard/quant_move_wizard_view.xml",
         "wizard/quant_packages_move_wizard_view.xml",
     ],
-    "installable": True,
+    "installable": False,
 }

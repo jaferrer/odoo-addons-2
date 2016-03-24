@@ -33,7 +33,7 @@ This module allows to track the GLS deliveries
     'data': ['purchase_delivery_tracking_gls_data.xml'],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

@@ -41,7 +41,7 @@ not.
         'stock_push_propagation_demo.xml',
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
