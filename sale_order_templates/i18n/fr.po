@@ -1,0 +1,315 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* sale_order_templates
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 9.0c\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-03-24 12:39+0000\n"
+"PO-Revision-Date: 2016-03-24 12:39+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_sale_order_quantities_modifications
+msgid "Sale Order Templates"
+msgstr "Templates de bons de commande"
+
+#. module: base
+#: model:ir.module.module,description:base.module_sale_order_quantities_modifications
+msgid "\n"
+"Sale Order Templates\n"
+"====================\n"
+"This module allows to generate sale orders from templates.\n"
+""
+msgstr "\n"
+"Templates de bons de commande\n"
+"=============================\n"
+"Ce module permet de générer des bons de commande à partir de templates.\n"
+""
+
+#. module: sale_order_templates
+#: model:ir.ui.view,arch_db:sale_order_templates.sale_templates_sale_order_form
+msgid "<?xml version=\"1.0\"?>\n"
+"<data><header position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </header>\n"
+"                <button name=\"action_cancel\" position=\"before\">\n"
+"                    <button name=\"create_from_template\" string=\"Generate a sale order from this template\" type=\"object\"/>\n"
+"                </button>\n"
+"                <field name=\"name\" position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </field>\n"
+"                <field name=\"name\" position=\"after\">\n"
+"                    <field name=\"template_name\" attrs=\"{'invisible': [('is_template', '=', False)]}\"/>\n"
+"                </field>\n"
+"                <div class=\"oe_title\" position=\"after\">\n"
+"                    <button name=\"create_from_template\" class=\"oe_highlight\" string=\"Generate a sale order from this template\" type=\"object\" attrs=\"{'invisible': [('is_template', '=', False)]}\"/>\n"
+"                </div>\n"
+"                <field name=\"partner_id\" position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </field>\n"
+"                <field name=\"partner_id\" position=\"after\">\n"
+"                    <field name=\"is_template\" invisible=\"1\"/>\n"
+"                    <field name=\"created_from_template_id\" attrs=\"{'invisible': [('created_from_template_id', '=', False)]}\"/>\n"
+"                </field>\n"
+"                <field name=\"validity_date\" position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </field>\n"
+"                <field name=\"client_order_ref\" position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </field>\n"
+"                <field name=\"origin\" position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </field>\n"
+"                <notebook position=\"inside\">\n"
+"                    <page string=\"Sale orders generated from this template\">\n"
+"                        <field name=\"created_order_ids\"/>\n"
+"                    </page>\n"
+"                </notebook>\n"
+"            </data>"
+msgstr "<?xml version=\"1.0\"?>\n"
+"<data><header position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </header>\n"
+"                <button name=\"action_cancel\" position=\"before\">\n"
+"                    <button name=\"create_from_template\" string=\"Générer un bon de commande à partir de ce template\" type=\"object\"/>\n"
+"                </button>\n"
+"                <field name=\"name\" position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </field>\n"
+"                <field name=\"name\" position=\"after\">\n"
+"                    <field name=\"template_name\" attrs=\"{'invisible': [('is_template', '=', False)]}\"/>\n"
+"                </field>\n"
+"                <div class=\"oe_title\" position=\"after\">\n"
+"                    <button name=\"create_from_template\" class=\"oe_highlight\" string=\"Générer un bon de commande à partir de ce template\" type=\"object\" attrs=\"{'invisible': [('is_template', '=', False)]}\"/>\n"
+"                </div>\n"
+"                <field name=\"partner_id\" position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </field>\n"
+"                <field name=\"partner_id\" position=\"after\">\n"
+"                    <field name=\"is_template\" invisible=\"1\"/>\n"
+"                    <field name=\"created_from_template_id\" attrs=\"{'invisible': [('created_from_template_id', '=', False)]}\"/>\n"
+"                </field>\n"
+"                <field name=\"validity_date\" position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </field>\n"
+"                <field name=\"client_order_ref\" position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </field>\n"
+"                <field name=\"origin\" position=\"attributes\">\n"
+"                    <attribute name=\"attrs\">{'invisible': [('is_template', '=', True)]}</attribute>\n"
+"                </field>\n"
+"                <notebook position=\"inside\">\n"
+"                    <page string=\"Bons de commande générés à partir de ce template\">\n"
+"                        <field name=\"created_order_ids\"/>\n"
+"                    </page>\n"
+"                </notebook>\n"
+"            </data>"
+
+#. module: sale_order_templates
+#: model:ir.ui.view,arch_db:sale_order_templates.sale_order_template_generation_form
+msgid "<?xml version=\"1.0\"?>\n"
+"<form string=\"Generate sale orders from template\">\n"
+"                    <group>\n"
+"                        <field name=\"template_id\" options=\"{'no_create':True,'no_edit':True}\"/>\n"
+"                        <field name=\"partner_ids\" widget=\"many2many_tags\"/>\n"
+"                    </group>\n"
+"                    <footer>\n"
+"                        <button name=\"generate_sale_orders\" string=\"Generate\" type=\"object\" class=\"oe_highlight\"/>\n"
+"                        ou\n"
+"                        <button string=\"Cancel\" class=\"oe_link\" special=\"cancel\"/>\n"
+"                    </footer>\n"
+"                </form>\n"
+"            "
+msgstr "<?xml version=\"1.0\"?>\n"
+"<form string=\"Générer des bons de commande depuis un template\">\n"
+"                    <group>\n"
+"                        <field name=\"template_id\" options=\"{'no_create':True,'no_edit':True}\"/>\n"
+"                        <field name=\"partner_ids\" widget=\"many2many_tags\"/>\n"
+"                    </group>\n"
+"                    <footer>\n"
+"                        <button name=\"generate_sale_orders\" string=\"Générer\" type=\"object\" class=\"oe_highlight\"/>\n"
+"                        ou\n"
+"                        <button string=\"Annuler\" class=\"oe_link\" special=\"cancel\"/>\n"
+"                    </footer>\n"
+"                </form>\n"
+"            "
+
+#. module: sale_order_templates
+#: model:ir.ui.view,arch_db:sale_order_templates.view_quotation_templates_search
+msgid "<?xml version=\"1.0\"?>\n"
+"<search string=\"Templates of sale order\">\n"
+"                    <field name=\"template_name\"/>\n"
+"                    <field name=\"team_id\"/>\n"
+"                </search>\n"
+"            "
+msgstr "<?xml version=\"1.0\"?>\n"
+"<search string=\"Templates de devis\">\n"
+"                    <field name=\"template_name\"/>\n"
+"                    <field name=\"team_id\"/>\n"
+"                </search>\n"
+"            "
+
+#. module: sale_order_templates
+#: model:ir.ui.view,arch_db:sale_order_templates.view_quotation_templates_tree
+msgid "<?xml version=\"1.0\"?>\n"
+"<tree string=\"Templates of sale orders\">\n"
+"                    <field name=\"template_name\"/>\n"
+"                    <field name=\"payment_term_id\"/>\n"
+"                    <field name=\"team_id\"/>\n"
+"                </tree>\n"
+"            "
+msgstr "<?xml version=\"1.0\"?>\n"
+"<tree string=\"Templates de devis\">\n"
+"                    <field name=\"template_name\"/>\n"
+"                    <field name=\"payment_term_id\"/>\n"
+"                    <field name=\"team_id\"/>\n"
+"                </tree>\n"
+"            "
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_template_generation_create_uid
+#: field:sale.order.template.generation,create_uid:0
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_template_generation_create_date
+#: field:sale.order.template.generation,create_date:0
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: sale_order_templates
+#: code:addons\sale_order_templates\sale_order_templates.py:69
+#, python-format
+msgid "Generate sale orders from template %s"
+msgstr "Générer des bons de commande à partir du template %s"
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_template_generation_id
+#: field:sale.order.template.generation,id:0
+msgid "ID"
+msgstr "ID"
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_is_template
+#: field:sale.order,is_template:0
+msgid "Is a template"
+msgstr "Est un template"
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_template_generation_write_uid
+#: field:sale.order.template.generation,write_uid:0
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_template_generation_write_date
+#: field:sale.order.template.generation,write_date:0
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_template_generation_partner_ids
+#: field:sale.order.template.generation,partner_ids:0
+msgid "Partners"
+msgstr "Clients"
+
+#. module: sale_order_templates
+#: code:addons\sale_order_templates\wizard.py:44
+#, python-format
+msgid "Sale order generated from template %s"
+msgstr "Bon de commande générée à partir du template %s"
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_template_generation_template_id
+#: field:sale.order.template.generation,template_id:0
+msgid "Sale order template"
+msgstr "Template de bon de commande"
+
+#. module: sale_order_templates
+#: code:addons\sale_order_templates\wizard.py:55
+#, python-format
+msgid "Sale orders generated from template %s"
+msgstr "Bons de commande générées à partir du template %s"
+
+#. module: sale_order_templates
+#: model:ir.model,name:sale_order_templates.model_sale_order
+msgid "Sales Order"
+msgstr "Bon de commande"
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_template_name
+#: field:sale.order,template_name:0
+msgid "Template name"
+msgstr "Nom du template"
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_created_from_template_id
+#: field:sale.order,created_from_template_id:0
+msgid "Generated from template"
+msgstr "Généré à partir du template"
+
+#. module: sale_order_templates
+#: model:ir.model.fields,field_description:sale_order_templates.field_sale_order_created_order_ids
+#: field:sale.order,created_order_ids:0
+msgid "Sale orders generated from this template"
+msgstr "Bons de commande générés à partir de ce template"
+
+#. module: sale_order_templates
+#: model:ir.actions.act_window,name:sale_order_templates.action_template_quotations
+msgid "Template of sale orders"
+msgstr "Template de bons de commande"
+
+#. module: sale_order_templates
+#: model:ir.ui.menu,name:sale_order_templates.menu_quotation_templates
+msgid "Templates of sale orders"
+msgstr "Templates de devis"
+
+#. module: sale_order_templates
+#: code:addons\sale_order_templates\sale_order_templates.py:44
+#, python-format
+msgid "This sale order is a template, please fill the name template field."
+msgstr "Ce bon de commande est un template, veuillez renseigner le nom du template."
+
+#. module: sale_order_templates
+#: code:addons\sale_order_templates\sale_order_templates.py:54
+#, python-format
+msgid "This sale order is not a template, please fill the currency field."
+msgstr "Ce bon de commande n'est pas un template, veuillez renseigner la devise."
+
+#. module: sale_order_templates
+#: code:addons\sale_order_templates\sale_order_templates.py:46
+#, python-format
+msgid "This sale order is not a template, please fill the customer field."
+msgstr "Ce bon de commande n'est pas un template, veuillez renseigner le client."
+
+#. module: sale_order_templates
+#: code:addons\sale_order_templates\sale_order_templates.py:50
+#, python-format
+msgid "This sale order is not a template, please fill the delivery adress field."
+msgstr "Ce bon de commande n'est pas un template, veuillez renseigner l'adresse de livraison."
+
+#. module: sale_order_templates
+#: code:addons\sale_order_templates\sale_order_templates.py:48
+#, python-format
+msgid "This sale order is not a template, please fill the invoice adress field."
+msgstr "Ce bon de commande n'est pas un template, veuillez renseigner l'adresse de facturation."
+
+#. module: sale_order_templates
+#: code:addons\sale_order_templates\sale_order_templates.py:56
+#, python-format
+msgid "This sale order is not a template, please fill the order date field."
+msgstr "Ce bon de commande n'est pas un template, veuillez renseigner la date d'expiration."
+
+#. module: sale_order_templates
+#: code:addons\sale_order_templates\sale_order_templates.py:52
+#, python-format
+msgid "This sale order is not a template, please fill the pricelist field."
+msgstr "Ce bon de commande n'est pas un template, veuillez renseigner la liste de prix."
