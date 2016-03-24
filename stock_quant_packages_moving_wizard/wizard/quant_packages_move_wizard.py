@@ -55,11 +55,8 @@ class StockQuantPackageMove(models.TransientModel):
                 }
                 items.append(item)
         if loc:
-            while loc.location_id and not loc.company_id:
-                loc = loc.location_id
-            ware_ids = self.pool['stock.warehouse'].search(
-                cr, uid, [('company_id', '=', loc.company_id.id)], context=context)
-            warehouses = self.pool['stock.warehouse'].browse(cr, uid, ware_ids, context=context)
+            warehouses = self.pool['stock.warehouse'].browse(
+                cr, uid, self.pool['stock.location'].get_warehouse(cr, uid, loc, context=context), context=context)
             if warehouses:
                 res.update(picking_type_id=warehouses[0].picking_type_id.id)
 
