@@ -45,13 +45,24 @@ class StockQuantPackageMove(models.TransientModel):
         packages_obj = self.pool['stock.quant.package']
         packages = packages_obj.browse(cr, uid, packages_ids, context=context)
         items = []
+        loc = False
         for package in packages:
+            loc = package.location_id
             if not package.parent_id and package.location_id:
                 item = {
                     'package': package.id,
                     'source_loc': package.location_id.id,
                 }
                 items.append(item)
+        if loc:
+            while loc.location_id and not loc.company_id:
+                loc = loc.location_id
+            ware_ids = self.pool['stock.warehouse'].search(
+                cr, uid, [('company_id', '=', loc.company_id.id)], context=context)
+            warehouses = self.pool['stock.warehouse'].browse(cr, uid, ware_ids, context=context)
+            if warehouses:
+                res.update(picking_type_id=warehouses[0].picking_type_id.id)
+
         res.update(pack_move_items=items)
         return res
 
