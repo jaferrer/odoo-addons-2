@@ -35,7 +35,7 @@ It also tries to improve speed by fetching stock locations only when necessary.
     ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

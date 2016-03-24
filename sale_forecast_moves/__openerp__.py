@@ -32,7 +32,7 @@ Sales Forecast Moves
     'data': ['sale_forecast_moves.xml'],
     'demo': ['sale_forecast_demo.xml'],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

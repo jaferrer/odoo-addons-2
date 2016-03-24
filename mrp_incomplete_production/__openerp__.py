@@ -43,7 +43,7 @@ It also creates another MO, with the products needed but not available at the co
         'data/test_mrp_incomplete_production.xml'
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

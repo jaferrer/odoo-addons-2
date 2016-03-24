@@ -38,5 +38,5 @@ This module gives the possibilitie to change quants reservations to assign them 
     "data": [
         "wizard/stock_change_quant_reservation_wizard_view.xml",
     ],
-    "installable": True,
+    "installable": False,
 }

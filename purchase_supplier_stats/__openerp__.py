@@ -33,7 +33,7 @@ This module adds supplier stats to the partner form.
     ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

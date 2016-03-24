@@ -38,7 +38,7 @@ This module adds a button in the transfer window of a stock operation in front o
     ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

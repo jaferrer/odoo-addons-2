@@ -34,7 +34,7 @@ weights of the products inside the package and of the logistic unit weight.
     'data': ['package_weight_view.xml'],
     'demo': [],
     'test': ['package_weight_demo.xml'],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

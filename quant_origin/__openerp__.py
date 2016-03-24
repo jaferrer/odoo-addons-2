@@ -33,7 +33,7 @@ This modules creates a new field for stock quants, corresponding to the field 'o
     'data': ['quant_origin.xml'],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

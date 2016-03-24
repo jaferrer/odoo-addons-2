@@ -39,7 +39,7 @@ parent BoM is itself a component of another BoM, it is also displayed as a tree 
     ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

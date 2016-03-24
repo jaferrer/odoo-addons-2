@@ -40,7 +40,7 @@ as warehouse barcode UI.
 
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

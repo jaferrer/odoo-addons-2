@@ -33,7 +33,7 @@ This module allows to assign different types to a phonecall.
     'data': ['crm_phonecall_types.xml'],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

@@ -35,7 +35,7 @@ This module recreates a procurement for scrapped products when they are scrapped
         'stock_scrap_resupply_demo.xml',
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

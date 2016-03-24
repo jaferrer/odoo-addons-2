@@ -37,7 +37,7 @@ attachments of the object will be added to the email attachments.
     ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

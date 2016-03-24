@@ -54,7 +54,7 @@ menus to finely control the scheduler:
         'stock_performance_improved_demo.xml',
     ],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

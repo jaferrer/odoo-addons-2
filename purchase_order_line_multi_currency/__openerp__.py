@@ -33,7 +33,7 @@ This module calcul the purchase order lines subtotal in eur
     'data': [],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

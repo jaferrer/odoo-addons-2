@@ -33,7 +33,7 @@ This module allows to change quantities of confirmed sale orders.
     'data': ['sale_order_quantities_modifications.xml'],
     'demo': ['test_quantities_modifications.xml'],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

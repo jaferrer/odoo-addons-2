@@ -61,7 +61,7 @@ Notes
     ],
     'demo': ['test_purchase_procurement_jit.xml'],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,22 +18,23 @@
 #
 
 {
-    'name': 'Purchase delivery tracking (GLS)',
+    'name': 'Sale Order Templates',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase_delivery_tracking'],
+    'category': 'Sale',
+    'depends': ['sale'],
     'description': """
-Purchase delivery tracking (GLS)
-================================
-This module allows to track the GLS deliveries
+Sale Order Templates
+====================
+This module allows to generate sale orders from templates.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['purchase_delivery_tracking_gls_data.xml'],
+    'data': ['sale_order_templates.xml',
+             'wizard.xml'],
     'demo': [],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
