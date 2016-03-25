@@ -204,7 +204,8 @@ class StockWarehouseOrderPointJit(models.Model):
                 'date_planned': fields.Datetime.to_string(proc_date)
             })
             proc = proc_obj.create(proc_vals)
-            proc.run()
+            if not self.env.context.get("procurement_no_run"):
+                proc.run()
             _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
                           (proc, proc.date_planned, proc.product_qty, orderpoint.product_id, orderpoint.location_id))
 
