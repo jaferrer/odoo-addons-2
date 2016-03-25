@@ -39,7 +39,7 @@
             <field name="name">sale_templates_sale_order_form</field>
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
-            <field name="priority" eval="16"/>
+            <field name="priority" eval="10"/>
             <field name="arch" type="xml">
                 <header position="attributes">
                     <attribute name="attrs">{'invisible': [('is_template', '=', True)]}</attribute>
