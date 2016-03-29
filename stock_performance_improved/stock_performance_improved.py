@@ -170,6 +170,13 @@ class StockPicking(models.Model):
                 res.add(move.picking_id.id)
         return list(res)
 
+    def _get_pickings_group_id(self, cr, uid, ids, context=None):
+        res = set()
+        for move in self.browse(cr, uid, ids, context=context):
+            if move.picking_id and move.picking_id.group_id != move.group_id:
+                res.add(move.picking_id.id)
+        return list(res)
+
     @api.cr_uid_id_context
     def _set_priority(self, cr, uid, id, field, value, arg, context=None):
         move_obj = self.pool.get("stock.move")
@@ -210,6 +217,11 @@ class StockPicking(models.Model):
                                             _get_pickings_dates_priority, ['date_expected', 'picking_id'], 20)},
                                         type='datetime', string='Max. Expected Date', select=2,
                                         help="Scheduled time for the last part of the shipment to be processed"),
+        'group_id': osv.fields.related('move_lines', 'group_id', type='many2one', relation='procurement.group', string='Procurement Group', readonly=True,
+              store={
+                  'stock.picking': (lambda self, cr, uid, ids, ctx: ids, ['move_lines'], 10),
+                  'stock.move': (_get_pickings_group_id, ['group_id', 'picking_id'], 10),
+              }),
     }
 
 
