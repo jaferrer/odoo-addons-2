@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <menuitem id="menu_portal_purchase_requisitions" name="Purchase Requisitions"
+                  parent="portal.portal_menu" sequence="10" groups="portal_purchase.group_portal_purchase"/>
+
+        <record model="ir.ui.view" id="portal_purchase_order_tree">
+            <field name="name">portal_purchase_order_tree</field>
+            <field name="model">purchase.order</field>
+            <field name="priority" eval="999"/>
+            <field name="arch" type="xml">
+                <tree string="Orders" create="false" delete="false">
+                    <field name="display_name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="original_purchase_order_search">
+            <field name="name">reanova_purchase_order_search</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search position="inside">
+                    <filter name="to_validate_by_supplier" string="To validate" domain="[('validated_by_supplier', '=', False)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="portal_purchase_order_search">
+            <field name="name">portal_purchase_order_search</field>
+            <field name="model">purchase.order</field>
+            <field name="priority" eval="999"/>
+            <field name="arch" type="xml">
+                <search>
+                    <filter name="to_validate_by_supplier" string="To validate" domain="[('validated_by_supplier', '=', False)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="original_purchase_order_tree">
+            <field name="name">portal_purchase_order_tree</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field name="validated_by_supplier"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="purchase_order_form">
+            <field name="name">purchase_order_form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <header position="inside">
+                    <button name="action_supplier_validate" groups="portal_purchase.group_portal_purchase" string="Validate the quotation" type="object" confirm="Are you sure ? This action is generally reserved to suppliers themselves" attrs="{'invisible': ['|', ('validated_by_supplier', '=', True), ('state', '!=', 'draft')]}"/>
+                </header>
+                <field name="partner_id" position="after">
+                    <field name="validated_by_supplier"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="portal_purchase_order_form">
+            <field name="name">portal_purchase_order_form</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id"/>
+            <field name="priority" eval="999"/>
+            <field name="arch" type="xml">
+                <form string="Purchase Order">
+                    <sheet>
+                        <div class="oe_title">
+                            <field name="state" invisible="1"/>
+                            <label string="Request for Quotation " attrs="{'invisible': [('state','not in',('draft','sent','bid'))]}"/>
+                            <label string="Purchase Order " attrs="{'invisible': [('state','in',('draft','sent','bid'))]}"/>
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+                        <button name="action_supplier_validate" groups="portal_purchase.group_portal_purchase" string="Validate the quotation" type="object" class="oe_highlight oe_view_only" confirm="If you are a supplier, pay attention: you will not be able to modify this quotation again." attrs="{'invisible': ['|', ('validated_by_supplier', '=', True), ('state', '!=', 'draft')]}"/>
+                        <group>
+                            <group>
+                                <field name="partner_id" readonly="1"/>
+                                <field name="validated_by_supplier"/>
+                                <field name="partner_ref" readonly="1"/>
+                                <field name="currency_id" groups="base.group_multi_currency" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="date_order" readonly="1"/>
+                                <field name="origin" attrs="{'invisible': [('origin','=',False)]}" readonly="1"/>
+                                <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Products">
+                                <field name="order_line">
+                                    <tree string="Purchase Order Lines" editable="bottom">
+                                        <field name="validated_by_supplier" invisible="1"/>
+                                        <field name="state" invisible="1"/>
+                                        <field name="product_id" readonly="1"/>
+                                        <field name="name" readonly="1"/>
+                                        <field name="date_planned" readonly="1"/>
+                                        <field name="company_id" groups="base.group_multi_company" readonly="1"/>
+                                        <field name="account_analytic_id" context="{'default_partner_id':parent.partner_id}" groups="purchase.group_analytic_accounting" readonly="1"/>
+                                        <field name="product_qty" readonly="1"/>
+                                        <field name="qty_received" invisible="not context.get('show_purchase', False)" readonly="1"/>
+                                        <field name="qty_invoiced" invisible="not context.get('show_purchase', False)" readonly="1"/>
+                                        <field name="product_uom" groups="product.group_uom" readonly="1"/>
+                                        <field name="price_unit" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('validated_by_supplier', '=', True)]}"/>
+                                        <field name="taxes_id" widget="many2many_tags" domain="[('type_tax_use','=','purchase')]" options="{'no_open': True, 'no_create': True}" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('validated_by_supplier', '=', True)]}"/>
+                                        <field name="price_subtotal" widget="monetary"/>
+                                    </tree>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right">
+                                    <field name="amount_untaxed" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                                    <field name="amount_tax" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                                    <div class="oe_subtotal_footer_separator oe_inline">
+                                        <label for="amount_total" readonly="1"/>
+                                    </div>
+                                    <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" options="{'currency_field': 'currency_id'}" readonly="1"/>
+                                </group>
+                                <div class="oe_clear"/>
+                            </page>
+                            <page string="Deliveries &amp; Invoices">
+                                <group>
+                                    <group>
+                                        <field name="date_planned" readonly="1"/>
+                                        <field name="dest_address_id" groups="stock.group_locations" attrs="{'invisible': [('default_location_dest_id_usage', '!=', 'customer')], 'required': [('default_location_dest_id_usage', '=', 'customer')]}" readonly="1"/>
+                                    </group>
+                                    <group>
+                                        <field name="invoice_status"/>
+                                        <field name="payment_term_id" options="{'no_open': True, 'no_create': True}" readonly="1"/>
+                                        <field name="fiscal_position_id" attrs="{'readonly': [('invoice_status','=', 'invoiced')]}" readonly="1"/>
+                                        <field name="date_approve" groups="base.group_no_one" readonly="1"/>
+                                    </group>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="act_window_portal_draft_purchase_orders" model="ir.actions.act_window">
+            <field name="name">Draft quotation</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">purchase.order</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_to_validate_by_supplier': True}</field>
+            <field name="domain">[('state', '=', 'draft')]</field>
+            <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'tree', 'view_id': ref('portal_purchase_order_tree')}), (0, 0, {'view_mode': 'form', 'view_id': ref('portal_purchase_order_form')})]"/>
+            <field name="search_view_id" ref="portal_purchase_order_search"/>
+            <field name="help">We did not sell you any purchase order</field>
+        </record>
+
+        <menuitem id="menu_portal_purchase_order_draft" name="Draft quotations" action="act_window_portal_draft_purchase_orders"
+                  parent="menu_portal_purchase_requisitions" sequence="10"/>
+
+        <record id="act_window_portal_running_purchase_orders" model="ir.actions.act_window">
+            <field name="name">Running orders</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">purchase.order</field>
+            <field name="view_mode">tree,form</field>
+            <field name="context">{}</field>
+            <field name="domain">[('state', 'not in', ['draft', 'cancel'])]</field>
+            <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'tree', 'view_id': ref('portal_purchase_order_tree')}), (0, 0, {'view_mode': 'form', 'view_id': ref('portal_purchase_order_form')})]"/>
+            <field name="search_view_id" ref="portal_purchase_order_search"/>
+            <field name="help">Nothing to show</field>
+        </record>
+
+        <menuitem id="menu_portal_purchase_order" name="Running orders" action="act_window_portal_running_purchase_orders"
+                  parent="menu_portal_purchase_requisitions" sequence="20"/>
+
+    </data>
+</openerp>

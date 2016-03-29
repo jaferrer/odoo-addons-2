@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="res.groups" id="group_portal_purchase">
+            <field name="name">Portal: access for suppliers</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="is_portal" eval="True"/>
+        </record>
+
+        <record model="res.groups" id="group_portal_sale">
+            <field name="name">Portal: access for customers</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="is_portal" eval="True"/>
+        </record>
+
+        <record model="ir.ui.menu" id="portal.portal_orders">
+            <field name="groups_id" eval="[(6,0,[ref('portal_purchase.group_portal_sale')])]"/>
+        </record>
+
+        <record model="ir.rule" id="purchase.purchase_order_comp_rule">
+            <field name="global"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record model="ir.rule" id="purchase.purchase_order_line_comp_rule">
+            <field name="global"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record model="ir.rule" id="rule_portal_purchase">
+            <field name="name">Portal: see purchase orders for suppliers</field>
+            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="global"/>
+            <field name="groups" eval="[(4, ref('group_portal_purchase'))]"/>
+            <field name="domain_force">['|', ('partner_id', '=', user.partner_id.parent_id.id), ('partner_id', '=', user.partner_id.id)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_create"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_unlink"/>
+        </record>
+
+    </data>
+</openerp>
