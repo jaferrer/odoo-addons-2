@@ -24,20 +24,35 @@ class SaleOrderTemplateGeneration(models.TransientModel):
     _name = 'sale.order.template.generation'
 
     template_id = fields.Many2one('sale.order', string="Sale order template")
-    partner_ids = fields.Many2many('res.partner', string="Partners", required=True)
+    partner_ids = fields.Many2many('res.partner', string="Partners", required=True, domain=[('customer', '=', True)],
+                                   context={'default_customer': True})
 
     @api.multi
     def generate_sale_orders(self):
         self.ensure_one()
         new_sale_orders = []
         for partner in self.partner_ids:
-            new_sale_order = self.template_id.copy({
+            vals = {
                 'partner_id': partner.id,
                 'is_template': False,
                 'template_name': False,
                 'created_from_template_id': self.template_id.id,
                 'user_id': self.env.user.id
-            })
+            }
+            addr = partner.address_get(['delivery', 'invoice'])
+            values = {
+                'pricelist_id': partner.property_product_pricelist and partner.property_product_pricelist.id or False,
+                'payment_term_id': partner.property_payment_term_id and partner.property_payment_term_id.id or False,
+                'partner_invoice_id': addr['invoice'],
+                'partner_shipping_id': addr['delivery'],
+                'note': self.with_context(lang=partner.lang).env.user.company_id.sale_note,
+            }
+            if partner.user_id:
+                values['user_id'] = self.partner_id.user_id.id
+            if partner.team_id:
+                values['team_id'] = self.partner_id.team_id.id
+            vals.update(values)
+            new_sale_order = self.template_id.copy(vals)
             new_sale_orders += [new_sale_order]
         if len(new_sale_orders) == 1:
             return {
