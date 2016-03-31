@@ -27,7 +27,7 @@ from openerp.tools import float_compare, float_round, flatten
 from openerp.tools.sql import drop_view_if_exists
 from openerp import fields, models, api, exceptions, _
 
-ORDERPOINT_CHUNK = 10
+ORDERPOINT_CHUNK = 1
 
 _logger = logging.getLogger(__name__)
 
