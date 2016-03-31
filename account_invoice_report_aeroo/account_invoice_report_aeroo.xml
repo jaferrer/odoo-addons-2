@@ -62,5 +62,32 @@
 			</field>
 		</record>
 
+		<record model="ir.ui.view" id="res_company_report_aeroo">
+			<field name="name">res_company_report_aeroo</field>
+			<field name="model">res.company</field>
+			<field name="inherit_id" ref="base.view_company_form"/>
+			<field name="priority" eval="16"/>
+			<field name="arch" type="xml">
+				<group string="Configuration" position="inside">
+					<field name="invoice_comment"/>
+				</group>
+			</field>
+		</record>
+
+		<record model="ir.ui.view" id="account_payment_term_report_aeroo">
+			<field name="name">account_payment_term_report_aeroo</field>
+			<field name="model">account.payment.term</field>
+			<field name="inherit_id" ref="account.view_payment_term_form"/>
+			<field name="priority" eval="16"/>
+			<field name="arch" type="xml">
+				<field name="note" position="after">
+					<label for="description_for_invoices_1"/>
+                    <field name="description_for_invoices_1"/>
+					<label for="description_for_invoices_2"/>
+                    <field name="description_for_invoices_2"/>
+				</field>
+			</field>
+		</record>
+
 	</data>
 </openerp>
