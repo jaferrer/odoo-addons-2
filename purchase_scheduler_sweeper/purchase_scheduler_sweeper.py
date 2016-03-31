@@ -45,10 +45,6 @@ class PurchaseOrderSweeper(models.TransientModel):
 class SweeperPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
-    minimum_planned_date = fields.Date(string='Expected Date', index=True,
-                                       help="This is computed as the minimum scheduled date of all purchase order "
-                                            "lines' products.")
-
     @api.model
     def chunk_sweep(self):
         orders = self.env['purchase.order'].search([('state', '=', 'draft')])
@@ -70,15 +66,6 @@ class SweeperPurchaseOrder(models.Model):
                     procs = line.procurement_ids
                     line.unlink()
                     procs.run()
-            if order.order_line:
-                # Update minimum planned date that is no longer a function
-                min_date = order.order_line[0].date_planned
-                for line in order.order_line:
-                    if line.state == 'cancel':
-                        continue
-                    if line.date_planned < min_date:
-                        min_date = line.date_planned
-                order.minimum_planned_date = min_date
         # Now delete empty purchase orders
         self.env['purchase.order'].search([('state', '=', 'draft'), ('order_line', '=', False)]).unlink()
         _logger.info(_(">>> End of chunk"))
