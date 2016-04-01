@@ -137,6 +137,28 @@ class stock_warehouse_with_calendar(models.Model):
 class stock_working_days_location(models.Model):
     _inherit = 'stock.location'
 
+    @api.model
+    def get_warehouse(self, location):
+        """
+            Returns warehouse id of warehouse that contains location
+            :param location: browse record (stock.location)
+
+            overridden here for improved performance
+        """
+        query = """
+            SELECT swh.id
+            FROM
+                stock_warehouse swh
+                LEFT JOIN stock_location sl ON swh.view_location_id = sl.id
+            WHERE
+                sl.parent_left <= %s AND sl.parent_right >= %s
+            ORDER BY swh.id
+            LIMIT 1
+        """
+        self.env.cr.execute(query, (location.parent_left, location.parent_left))
+        whs = self.env.cr.fetchone()
+        return whs and whs[0] or False
+
     @api.multi
     def schedule_working_days(self, nb_days, day_date, days_of_week=False):
         """Returns the date that is nb_days working days after day_date in the context of the current location.
