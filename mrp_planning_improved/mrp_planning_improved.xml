@@ -39,8 +39,7 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <field name="date_planned" position="before">
-                    <field name="procurement_id" invisible="1"/>
-                    <field name="date_required" attrs="{'readonly': [('procurement_id', '!=', False)]}"/>
+                    <field name="date_required"/>
                 </field>
                 <field name="date_planned" position="after">
                     <field name="taken_into_account"/>

@@ -48,6 +48,36 @@
             </field>
         </record>
 
+        <record model="ir.actions.server" id="ir_actions_server_compute_date_due">
+            <field name="name">Compute Date Due</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="code">
+self.compute_date_due(cr, uid, context.get('active_ids'), context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_compute_date_due">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">stock.picking</field>
+            <field name="name">Compute Date Due</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_compute_date_due)"/>
+        </record>
+
+        <record id="ir_cron_compute_date_due" model="ir.cron">
+            <field name="name">Compute pickings' dates due</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall">2015-10-01 00:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">stock.picking</field>
+            <field name="function">compute_date_due_auto</field>
+            <field name="args"/>
+        </record>
 
     </data>
 </openerp>
