@@ -49,7 +49,6 @@ class StockMove(models.Model):
 class ProcurementOrderQuantity(models.Model):
     _inherit = 'procurement.order'
 
-
     move_dest_id = fields.Many2one('stock.move', index=True)
     product_id = fields.Many2one('product.product', index=True)
     state = fields.Selection(index=True)
@@ -308,7 +307,7 @@ class StockWarehouseOrderPointJit(models.Model):
             SELECT
                 sm.id,
                 sm.product_qty,
-                min(COALESCE(po.date_planned, sm.date)) as date,
+                min(COALESCE(po.date_planned, sm.date)) AS date,
                 min(po.id)
             FROM
                 stock_move sm
@@ -329,7 +328,7 @@ class StockWarehouseOrderPointJit(models.Model):
             SELECT
                 sm.id,
                 sm.product_qty,
-                min(sm.date) as date
+                min(sm.date) AS date
             FROM
                 stock_move sm
                 LEFT JOIN stock_location sl ON sm.location_id = sl.id
@@ -360,7 +359,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 AND sl.parent_left >= %s
                 AND sl.parent_left < %s
                 AND po.state NOT IN ('done', 'cancel')
-                AND (sm.state = 'draft' or sm.id is null)
+                AND (sm.state = 'draft' OR sm.id IS NULL)
             GROUP BY po.id
             ORDER BY po.date_planned
         """
@@ -466,11 +465,11 @@ class StockLevelsReport(models.Model):
 CREATE OR REPLACE VIEW stock_levels_report AS (
     WITH link_location_warehouse AS (
         SELECT
-		sl.id AS location_id,
-		sw.id AS warehouse_id
-	FROM stock_warehouse sw
-	LEFT JOIN stock_location sl_view ON sl_view.id = sw.view_location_id
-	LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right)
+            sl.id AS location_id,
+            sw.id AS warehouse_id
+        FROM stock_warehouse sw
+        LEFT JOIN stock_location sl_view ON sl_view.id = sw.view_location_id
+        LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right)
 
     SELECT
         foo.product_id :: TEXT || '-'
@@ -518,7 +517,8 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
                 LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
                 LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
-            WHERE link_dest.warehouse_id IS NOT NULL AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
+            WHERE link_dest.warehouse_id IS NOT NULL
+                AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT
@@ -538,7 +538,8 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 LEFT JOIN stock_location sl ON sm.location_id = sl.id
                 LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
                 LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
-            WHERE link.warehouse_id IS NOT NULL AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
+            WHERE link.warehouse_id IS NOT NULL
+                AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT

@@ -136,22 +136,6 @@ class stock_warehouse_with_calendar(models.Model):
 class stock_working_days_location(models.Model):
     _inherit = 'stock.location'
 
-    @api.model
-    def get_warehouse(self, location):
-        """
-            Returns warehouse id of warehouse that contains location
-            :param location: browse record (stock.location)
-
-            Overridden here to have an implementation that checks at all levels of location tree.
-        """
-        wh_views = {w.view_location_id.id: w for w in self.env['stock.warehouse'].search([])}
-        loc = location
-        while loc:
-            if loc.id in wh_views.keys():
-                return wh_views[loc.id].id
-            loc = loc.location_id
-        return False
-
     @api.multi
     def schedule_working_days(self, nb_days, day_date, days_of_week=False):
         """Returns the date that is nb_days working days after day_date in the context of the current location.
