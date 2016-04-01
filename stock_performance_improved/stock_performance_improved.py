@@ -346,7 +346,8 @@ class ProcurementOrder(models.Model):
         prereservations = self.env['stock.prereservation'].search([('reserved', '=', False)])
         confirmed_move_ids = prereservations.read(['move_id'], load=False)
         move_ids = [cm['id'] for cm in confirmed_move_ids]
-        confirmed_moves = self.env['stock.move'].search([('id', 'in', move_ids)])
+        confirmed_moves = self.env['stock.move'].search([('id', 'in', move_ids)], limit=None,
+                                                        order='priority desc, date_expected asc, id')
         cm_product_ids = confirmed_moves.read(['id', 'product_id'], load=False)
 
         # Create a dict of moves with same product {product_id: [move_id, move_id], product_id: []}
