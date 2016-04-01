@@ -128,6 +128,7 @@ class res_company_with_calendar(models.Model):
 class stock_warehouse_with_calendar(models.Model):
     _inherit = "stock.warehouse"
 
+    view_location_id = fields.Many2one('stock.location', index=True)
     resource_id = fields.Many2one("resource.resource", "Warehouse resource",
                                   help="The resource is used to define the working days of the warehouse. If undefined "
                                        "the system will fall back to the default company calendar.")
