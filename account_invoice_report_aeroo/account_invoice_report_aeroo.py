@@ -48,18 +48,11 @@ class AccountInvoice(models.Model):
     _inherit = 'account.invoice'
 
     paiement_mode_id = fields.Many2one('paiement.mode', string=u"Paiement mode")
-    invoice_comment = fields.Text(string=u"Default invoice comment", compute='_compute_invoice_comment')
 
     @api.multi
     def invoice_print(self):
         super(AccountInvoice, self).invoice_print()
         return self.env['report'].with_context(active_ids=self.ids).get_action(self, 'invoice.report.aeroo')
-
-    @api.multi
-    def _compute_invoice_comment(self):
-        invoice_comment = self.env['ir.config_parameter'].get_param('account_invoice_report_aeroo.invoice_comment')
-        for rec in self:
-            rec.invoice_comment = invoice_comment
 
 
 class ResPartnerReportAeroo(models.Model):
@@ -100,3 +93,16 @@ class ResPartnerReportAeroo(models.Model):
         elif address.parent_id:
             address_format = '%(company_name)s\n' + address_format
         return address_format % args
+
+
+class ResCompanyReportAeroo(models.Model):
+    _inherit = 'res.company'
+
+    invoice_comment = fields.Text(string="Invoice Comment")
+
+
+class AccountPaymentTermReportAeroo(models.Model):
+    _inherit = 'account.payment.term'
+
+    description_for_invoices_1 = fields.Text(string="Description for invoices 1")
+    description_for_invoices_2 = fields.Text(string="Description for invoices 2")

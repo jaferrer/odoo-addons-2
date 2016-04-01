@@ -106,12 +106,12 @@ msgstr "Quantité"
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Unit Price"
-msgstr "Prix Unitaire"
+msgstr "PU HT"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Price"
-msgstr "Prix"
+msgstr "Montant HT"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
@@ -169,9 +169,19 @@ msgid "Amount total:"
 msgstr "Net à payer :"
 
 #. module: account_invoice_report_aeroo
-#: field:account.config.settings,invoice_comment:0
-msgid "Default Invoice Comment"
-msgstr "Commentaire facture par défaut"
+#: field:res.company,invoice_comment:0
+msgid "Invoice Comment"
+msgstr "Commentaire facture"
+
+#. module: account_invoice_report_aeroo
+#: field:account.payment.term,description_for_invoices_1:0
+msgid "Description for invoices 1"
+msgstr "Description pour les factures 1"
+
+#. module: account_invoice_report_aeroo
+#: field:account.payment.term,description_for_invoices_2:0
+msgid "Description for invoices 2"
+msgstr "Description pour les factures 2"
 
 #. module: account_invoice_report_aeroo
 #: field:paiement.mode,name:0
