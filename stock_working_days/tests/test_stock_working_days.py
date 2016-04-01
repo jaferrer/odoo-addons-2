@@ -23,7 +23,8 @@ class TestStockWorkingDays(common.TransactionCase):
 
     def setUp(self):
         super(TestStockWorkingDays, self).setUp()
-
+        # Compute parent left and right for location so that test don't fail
+        self.env['stock.location']._parent_store_compute()
 
     def test_10_default_calendar_schedule(self):
         """Test scheduling when no specific calendar is defined."""
