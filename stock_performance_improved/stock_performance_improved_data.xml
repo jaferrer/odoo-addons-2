@@ -2,18 +2,63 @@
 <openerp>
     <data>
 
+        <record id="confirm_procs_auto" model="ir.cron">
+            <field name="name">Automatic confirmation of procurements</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active"/>
+            <field name="priority">5</field>
+            <field name="interval_number">15</field>
+            <field name="interval_type">minutes</field>
+            <field name="nextcall">2015-10-01 00:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">procurement.order</field>
+            <field name="function">run_confirm_procurements</field>
+            <field name="args">([{'jobify': True}])</field>
+        </record>
+
         <record id="assign_moves_auto" model="ir.cron">
             <field name="name">Automatic assignation of stock moves</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="active"/>
             <field name="priority">5</field>
-            <field name="interval_number">10</field>
+            <field name="interval_number">15</field>
             <field name="interval_type">minutes</field>
             <field name="nextcall">2015-10-01 00:00:00</field>
             <field name="numbercall">-1</field>
             <field name="doall"/>
             <field name="model">procurement.order</field>
             <field name="function">run_assign_moves</field>
+            <field name="args">([{'jobify': True}])</field>
+        </record>
+
+        <record id="check_procs_auto" model="ir.cron">
+            <field name="name">Automatic checking of procurements</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="nextcall">2015-10-01 00:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">procurement.order</field>
+            <field name="function">run_check_procurements</field>
+            <field name="args">([{'jobify': True}])</field>
+        </record>
+
+        <record id="confirm_moves_auto" model="ir.cron">
+            <field name="name">Automatic confirmation of stock moves</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active"/>
+            <field name="priority">5</field>
+            <field name="interval_number">30</field>
+            <field name="interval_type">minutes</field>
+            <field name="nextcall">2015-10-01 00:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">procurement.order</field>
+            <field name="function">run_confirm_moves</field>
             <field name="args">([{'jobify': True}])</field>
         </record>
 
