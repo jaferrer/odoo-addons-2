@@ -5,19 +5,22 @@ odoo.define('web.fieldsketch', function (require) {
    var utils = require('web.utils');
    var _t = core._t;
    var QWeb = core.qweb;
-   console.log(core);
 
-    var FieldSketch = core.form_widget_registry.get("binary").extend({
+    var FieldSketch = core.form_widget_registry.get("image").extend({
 	    template: 'FieldSketch',
 	    placeholder: "/web/static/src/img/placeholder.png",
 	    currentPicture:null,
+	    effective_readonly:true,
 
 	    init: function(field_manager, node) {
+
 	    	this._super(field_manager, node);
+	    	this.useFileAPI=false;
 	    	var self = this;
 	        this.fileupload_id = _.uniqueId('oe_fileupload');
+	        this.canvas_id=_.uniqueId('simple_sketch')
+	        this.imgpreview_id=_.uniqueId('imgpreview')
             $(window).on(this.fileupload_id, function() {
-            	
                 var args = [].slice.call(arguments).slice(1);
                 self.on_file_uploaded_and_valid.apply(self, args);
             });
@@ -62,8 +65,18 @@ odoo.define('web.fieldsketch', function (require) {
 	        $img.load(function() {
 	            if (! self.options.size)
 	                return;
-	            $img.css("width", "" + self.options.size[0] + "px");
-	            $img.css("height", "" + self.options.size[1] + "px");
+	            var width=self.options.size[0];
+	            var height=self.options.size[1];
+	            if ((self.options.size[0]).toString().indexOf("%")>=0) {
+	            	width=self.$el.parent().width()*(self.options.size[0].replace("%","")/100);
+	            }
+	            if ((self.options.size[1]).toString().indexOf("%")>=0) {
+	            	height=self.$el.parent().height()*(self.options.size[1].replace("%","")/100);
+	            }
+	            self.$el.find('> img').css("width", "" + width);
+	            self.$el.find('> img').css("height", "" + height);
+	            self.$el.find('> canvas').attr("width", "" + width);
+	            self.$el.find('> canvas').attr("height", "" + height);
 	        });
 	        $img.on('error', function() {
 	            $img.attr('src', self.placeholder);
@@ -74,8 +87,8 @@ odoo.define('web.fieldsketch', function (require) {
 	    		if (self.options!=undefined) {
 	    			if(self.options.size!=undefined){
 	    				console.log(self.options);
-	    				self.$el.find('#simple_sketch').width(self.options.size[0]);
-	    				self.$el.find('#simple_sketch').height(self.options.size[1]);
+	    				self.$el.find('#'+this.canvas_id).width(self.options.size[0]);
+	    				self.$el.find('#'+this.canvas_id).height(self.options.size[1]);
 	    			}
 	    		}
 	    	}
@@ -117,10 +130,11 @@ odoo.define('web.fieldsketch', function (require) {
 		    	this.$el.find('.oe_form_binary_file_edit').css("display","none");
 		        this.$el.find('.oe_form_binary_file_clear').css("display","none");
 		        this.$el.find('.oe_form_binary_file_cancel').css("display","");
-		        this.$el.find('#simple_sketch').css("display","");
-		    	this.$el.find('#imgpreview').css("display","none");
-		    	this.$el.find('#simple_sketch').sketch();
-		    	this.$el.find('#simple_sketch').on({
+		        console.log('#'+this.canvas_id);
+		        this.$el.find('#'+this.canvas_id).css("display","");
+		    	this.$el.find('#'+this.imgpreview_id).css("display","none");
+		    	this.$el.find('#'+this.canvas_id).sketch();
+		    	this.$el.find('#'+this.canvas_id).on({
 		    		mouseup:function(){
 		    			self.on_valid_sketch();
 		    		}
@@ -128,6 +142,37 @@ odoo.define('web.fieldsketch', function (require) {
 	    	} else {
 	    		this.on_cancel();
 	    	}
+	    },
+	    
+	    dataURItoBlob: function (dataURI) {
+	        // convert base64 to raw binary data held in a string
+	        // doesn't handle URLEncoded DataURIs
+
+	        var byteString;
+	        if (dataURI.split(',')[0].indexOf('base64') >= 0) {
+	            byteString = atob(dataURI.split(',')[1]);
+	        } else {
+	            byteString = unescape(dataURI.split(',')[1]);
+	        }
+
+	        // separate out the mime component
+	        var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+	        // write the bytes of the string to an ArrayBuffer
+	        var ab = new ArrayBuffer(byteString.length);
+	        var ia = new Uint8Array(ab);
+	        for (var i = 0; i < byteString.length; i++) {
+	            ia[i] = byteString.charCodeAt(i);
+	        }
+
+	        try {
+	            return new Blob([ab], {type: mimeString});
+	        } catch (e) {
+	            var BlobBuilder = window.WebKitBlobBuilder || window.MozBlobBuilder;
+	            var bb = new BlobBuilder();
+	            bb.append(ab);
+	            return bb.getBlob(mimeString);
+	        }
 	    },
 	    
 	    
@@ -139,7 +184,13 @@ odoo.define('web.fieldsketch', function (require) {
 	    		data.append('session_id', "");
 	    	}
 	    	data.append('callback',self.fileupload_id );
-	    	data.append('ufile', document.getElementById("simple_sketch").mozGetAsFile('sign.png'));
+	    	if(document.getElementById(this.canvas_id).mozGetAsFile) {
+	    		data.append('ufile', document.getElementById(this.canvas_id).mozGetAsFile('sign_'+(new Date()).getTime()+'.png'));
+	    	} else {
+	    		var imgtmp = document.getElementById(this.canvas_id).toDataURL('image/png', 0.7);
+	            var blob = this.dataURItoBlob(imgtmp);
+	            data.append('ufile',blob);
+	    	}
 	    	data.append('csrf_token',core.csrf_token);
 	    	
 	    	$.ajax({
@@ -157,7 +208,6 @@ odoo.define('web.fieldsketch', function (require) {
 	    
 	    set_value: function(value_){
 	        var changed = value_ !== this.get_value();
-	        this._super.apply(this, arguments);
 	        // By default, on binary images read, the server returns the binary size
 	        // This is possible that two images have the exact same size
 	        // Therefore we trigger the change in case the image value hasn't changed

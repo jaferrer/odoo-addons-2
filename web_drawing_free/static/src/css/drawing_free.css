@@ -1,3 +1,8 @@
 .openerp .oe_form .oe_form_field_phone input{
   width: 100%;
 }
+
+.openerp .oe_form .oe_form_field_sketch img {
+    max-height: 100%;
+    max-width: 100%;
+}
