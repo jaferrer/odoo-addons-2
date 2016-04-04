@@ -22,7 +22,7 @@ import logging
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSessionHandler, ConnectorSession
 
-PURCHASE_CHUNK = 100
+PURCHASE_CHUNK = 10
 
 _logger = logging.getLogger(__name__)
 
