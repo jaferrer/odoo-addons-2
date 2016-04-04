@@ -61,11 +61,11 @@ class SweeperPurchaseOrder(models.Model):
         _logger.info(_("<<< Started chunk of %s purchase orders to sweep") % len(self))
         for order in self:
             for line in order.order_line:
-                # Clean lines and rerun procurements
+                # Clean line
                 if line.procurement_ids and line.state == 'draft':
-                    procs = line.procurement_ids
                     line.unlink()
-                    procs.run()
+        # Rerun procurements
+        self.env['procurement.order'].search([('state', '=', 'exception')]).run()
         # Now delete empty purchase orders
         self.env['purchase.order'].search([('state', '=', 'draft'), ('order_line', '=', False)]).unlink()
         _logger.info(_(">>> End of chunk"))
