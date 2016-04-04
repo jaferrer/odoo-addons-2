@@ -198,6 +198,11 @@ class ProcurementOrderAsync(models.Model):
         proc_compute.procure_calculation()
 
     @api.model
+    def run_compute_orderpoints(self, use_new_cursor=False, company_id=False):
+        proc_compute = self.env['procurement.orderpoint.compute'].create({})
+        proc_compute.procure_calculation()
+
+    @api.model
     def run_scheduler(self, use_new_cursor=False, company_id=False):
         """New scheduler function to run async jobs.
 
