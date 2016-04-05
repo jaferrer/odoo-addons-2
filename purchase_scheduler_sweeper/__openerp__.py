@@ -24,7 +24,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase_procurement_just_in_time'],
+    'depends': ['purchase_procurement_just_in_time', 'scheduler_async'],
     'description': """
 Purchase Scheduler Sweeper
 ==========================
