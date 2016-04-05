@@ -70,14 +70,11 @@ class SweeperPurchaseOrder(models.Model):
                 if line.procurement_ids and line.state == 'draft':
                     line_to_delete |= line
                     procs_to_run |= line.procurement_ids
-        print "%s: unlinking %s lines" % (fields.Datetime.now(), len(line_to_delete))
         line_to_delete.unlink()
-        print "%s: fin des unlink(). running %s procs" % (fields.Datetime.now(), len(procs_to_run))
         # Rerun procurements
         dom = [('id', 'in', procs_to_run.ids)]
         run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
                                         'run', self.env.context)
-        print "%s: fin des run()" % fields.Datetime.now()
         # Now delete empty purchase orders
         self.env['purchase.order'].search([('state', '=', 'draft'), ('order_line', '=', False)]).unlink()
         _logger.info(_(">>> End of chunk"))
