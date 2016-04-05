@@ -26,7 +26,7 @@ from openerp.addons.connector.session import ConnectorSession
 
 assign_moves = scheduler_async.assign_moves
 
-PRODUCT_CHUNK = 10
+PRODUCT_CHUNK = 1
 
 SQL_REQUEST_BY_MOVE = """
 WITH
