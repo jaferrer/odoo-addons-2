@@ -35,9 +35,10 @@ odoo.define('web.fieldsketch', function (require) {
 	    render_value: function() {
 	        var self = this;
 	        var url;
+	        console.log(this.get('value'));
 	        if (this.get('value') && !utils.is_bin_size(this.get('value'))) {
 	            url = 'data:image/png;base64,' + this.get('value');
-	        } else if (this.get('value')) {
+	        } else {
 	            var id = JSON.stringify(this.view.datarecord.id || null);
 	            var field = this.name;
 	            if (this.options.preview_image)
@@ -48,8 +49,6 @@ odoo.define('web.fieldsketch', function (require) {
 	                                        field: field,
 	                                        t: (new Date().getTime()),
 	            });
-	        } else {
-	            url = this.placeholder;
 	        }
 	        var $img = $(QWeb.render("FieldSketch-img", { widget: this, url: url }));
 	        $($img).click(function(e) {
