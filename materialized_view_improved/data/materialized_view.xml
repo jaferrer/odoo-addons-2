@@ -1,7 +1,0 @@
-<openerp>
-    <data noupdate="0">
-		<record id="base.user_root" model="res.users">
-            <field name="groups_id" eval="[(4, ref('materialized_sql_view.manager_group'))]"/>
-        </record>
-   </data>
-</openerp>

@@ -1,4 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_ovh_project,access_ovh_project,model_ovh_project,connector.group_connector_manager,1,1,1,1
-access_ovh_instance,access_ovh_instance,model_ovh_instance,connector.group_connector_manager,1,1,1,1
-access_snapshot_request_line,access_snapshot_request_line,model_snapshot_request_line,connector.group_connector_manager,1,1,1,1
