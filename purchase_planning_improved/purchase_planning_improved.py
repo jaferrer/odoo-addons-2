@@ -34,6 +34,8 @@ class ProcurementOrderPurchasePlanningImproved(models.Model):
                 schedule_date = self._get_purchase_schedule_date(proc, proc.company_id)
                 order_date = self._get_purchase_order_date(proc, proc.company_id, schedule_date)
                 date_planned = proc.purchase_line_id.date_planned
+                # We sudo because the user has not necessarily the rights to update PO and PO lines
+                proc = proc.sudo()
                 if proc.purchase_id.state in ['draft', 'sent', 'bid']:
                     # If the purchase line is not confirmed yet, try to set planned date to schedule_date
                     if order_date > datetime.now():

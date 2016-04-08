@@ -25,9 +25,9 @@ from openerp.addons.connector.queue.job import job
 
 from openerp.tools import float_compare, float_round, flatten
 from openerp.tools.sql import drop_view_if_exists
-from openerp import fields, models, api
+from openerp import fields, models, api, exceptions, _
 
-ORDERPOINT_CHUNK = 10
+ORDERPOINT_CHUNK = 1
 
 _logger = logging.getLogger(__name__)
 
@@ -40,9 +40,18 @@ def process_orderpoints(session, model_name, ids):
         op.process()
 
 
+class StockMove(models.Model):
+    _inherit = 'stock.move'
+
+    procurement_id = fields.Many2one('procurement.order', index=True)
+
+
 class ProcurementOrderQuantity(models.Model):
     _inherit = 'procurement.order'
 
+    move_dest_id = fields.Many2one('stock.move', index=True)
+    product_id = fields.Many2one('product.product', index=True)
+    state = fields.Selection(index=True)
     qty = fields.Float(string="Quantity", digits_compute=dp.get_precision('Product Unit of Measure'),
                        help='Quantity in the default UoM of the product', compute="_compute_qty", store=True)
 
@@ -132,7 +141,7 @@ class StockWarehouseOrderPointJit(models.Model):
         """Returns the next procurement.order after this line which date is not the line's date."""
         self.ensure_one()
         next_line = self.compute_stock_levels_requirements(product_id=self.product_id.id,
-                                                           location_id=self.location_id.id,
+                                                           location=self.location_id,
                                                            list_move_types=('existing', 'in', 'out', 'planned',),
                                                            limit=False, parameter_to_sort='date', to_reverse=False)
         next_line = [x for x in next_line if x.get('date') and x['date'] > need['date'] and x['proc_id']]
@@ -145,7 +154,7 @@ class StockWarehouseOrderPointJit(models.Model):
         """Returns a dict of stock level requirements where the stock level is below minimum qty for the product and
         the location of the orderpoint."""
         self.ensure_one()
-        need = self.compute_stock_levels_requirements(product_id=self.product_id.id, location_id=self.location_id.id,
+        need = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
                                                       list_move_types=('out',), limit=False, parameter_to_sort='date',
                                                       to_reverse=False)
         need = [x for x in need if float_compare(x['qty'], self.product_min_qty,
@@ -187,9 +196,9 @@ class StockWarehouseOrderPointJit(models.Model):
                     fields.Datetime.from_string(proc.date_planned) + relativedelta(days=days),
                     date_end)
                 stock_level = self.env['stock.warehouse.orderpoint'].compute_stock_levels_requirements(
-                                                        product_id=proc.product_id.id, location_id=proc.location_id.id,
-                                                        list_move_types=('in', 'out', 'existing', 'planned',),
-                                                        parameter_to_sort='date', to_reverse=True, limit=False)
+                    product_id=proc.product_id.id, location=proc.location_id,
+                    list_move_types=('in', 'out', 'existing', 'planned',),
+                    parameter_to_sort='date', to_reverse=True, limit=False)
                 stock_level = [x for x in stock_level if x.get('date') and x['date'] <
                                fields.Datetime.to_string(stock_date)]
                 if stock_level and stock_level[0]['qty'] > op.get_max_qty(stock_date):
@@ -226,7 +235,8 @@ class StockWarehouseOrderPointJit(models.Model):
                 'date_planned': fields.Datetime.to_string(proc_date)
             })
             proc = proc_obj.create(proc_vals)
-            proc.run()
+            if not self.env.context.get("procurement_no_run"):
+                proc.run()
             _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
                           (proc, proc.date_planned, proc.product_qty, orderpoint.product_id, orderpoint.location_id))
 
@@ -235,12 +245,12 @@ class StockWarehouseOrderPointJit(models.Model):
         """Returns the last scheduled date for this order point."""
         self.ensure_one()
         last_schedule = self.env['stock.warehouse.orderpoint'].compute_stock_levels_requirements(
-                                                                product_id=self.product_id.id,
-                                                                location_id=self.location_id.id,
-                                                                list_move_types=['in', 'out', 'existing'], limit=1,
-                                                                parameter_to_sort='date', to_reverse=True)
+            product_id=self.product_id.id,
+            location=self.location_id,
+            list_move_types=['in', 'out', 'existing'], limit=1,
+            parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-            fields.Datetime.from_string(last_schedule[0].get('date')) or False
+              fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -252,7 +262,7 @@ class StockWarehouseOrderPointJit(models.Model):
         """
         for orderpoint in self:
             last_outgoing = self.env['stock.warehouse.orderpoint'].compute_stock_levels_requirements(
-                product_id=orderpoint.product_id.id, location_id=orderpoint.location_id.id,
+                product_id=orderpoint.product_id.id, location=orderpoint.location_id,
                 list_move_types=('out',), limit=1, parameter_to_sort='date', to_reverse=True
             )
             last_outgoing = [x for x in last_outgoing if x['date'] <= fields.Datetime.to_string(timestamp)]
@@ -298,12 +308,12 @@ class StockWarehouseOrderPointJit(models.Model):
                 op.remove_unecessary_procurements(date_end)
 
     @api.model
-    def compute_stock_levels_requirements(self, product_id, location_id, list_move_types, limit=1,
+    def compute_stock_levels_requirements(self, product_id, location, list_move_types, limit=1,
                                           parameter_to_sort='date', to_reverse=False):
         """
         Computes stock level report
         :param product_id: int
-        :param location_id: int
+        :param location: recordset
         :param list_move_types: tuple or list of strings (move types)
         :param limit: maximum number of lines in the result
         :param parameter_to_sort: str
@@ -315,30 +325,75 @@ class StockWarehouseOrderPointJit(models.Model):
         min_date = False
         result = []
         intermediate_result = []
-        stock_move_restricted_in = self.env['stock.move'].search([('product_id', '=', product_id),
-                                                                  ('state', 'not in', ['cancel', 'done', 'draft']),
-                                                                  ('location_dest_id', 'child_of', location_id)],
-                                                                 order='date')
-        stock_move_restricted_out = self.env['stock.move'].search([('product_id', '=', product_id),
-                                                                   ('state', 'not in', ['cancel', 'done', 'draft']),
-                                                                   ('location_id', 'child_of', location_id)],
-                                                                  order='date')
+        query_moves_in = """
+            SELECT
+                sm.id,
+                sm.product_qty,
+                min(COALESCE(po.date_planned, sm.date)) AS date,
+                min(po.id)
+            FROM
+                stock_move sm
+                LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
+                LEFT JOIN procurement_order po ON sm.procurement_id = po.id
+            WHERE
+                sm.product_id = %s
+                AND sm.state NOT IN ('cancel', 'done', 'draft')
+                AND sl.parent_left >= %s
+                AND sl.parent_left < %s
+            GROUP BY sm.id, sm.product_qty
+            ORDER BY date
+        """
+        self.env.cr.execute(query_moves_in, (product_id, location.parent_left, location.parent_right))
+        moves_in_tuples = self.env.cr.fetchall()
+
+        query_moves_out = """
+            SELECT
+                sm.id,
+                sm.product_qty,
+                min(sm.date) AS date
+            FROM
+                stock_move sm
+                LEFT JOIN stock_location sl ON sm.location_id = sl.id
+            WHERE
+                sm.product_id = %s
+                AND sm.state NOT IN ('cancel', 'done', 'draft')
+                AND sl.parent_left >= %s
+                AND sl.parent_left < %s
+            GROUP BY sm.id, sm.product_qty
+            ORDER BY date
+        """
+        self.env.cr.execute(query_moves_out, (product_id, location.parent_left, location.parent_right))
+        moves_out_tuples = self.env.cr.fetchall()
+
         stock_quant_restricted = self.env['stock.quant'].search([('product_id', '=', product_id),
-                                                                 ('location_id', 'child_of', location_id)])
-        procurement_order_restricted = self.env['procurement.order'].search([('product_id', '=', product_id),
-                                                                             ('location_id', 'child_of', location_id),
-                                                                             ('state', 'not in', ['cancel', 'done'])
-                                                                             ], order='date_planned')
+                                                                 ('location_id', 'child_of', location.id)])
+        query_procs = """
+            SELECT
+                po.id,
+                min(po.date_planned),
+                min(po.qty)
+            FROM
+                procurement_order po
+                LEFT JOIN stock_location sl ON po.location_id = sl.id
+                LEFT JOIN stock_move sm ON po.id = sm.procurement_id
+            WHERE
+                po.product_id = %s
+                AND sl.parent_left >= %s
+                AND sl.parent_left < %s
+                AND po.state NOT IN ('done', 'cancel')
+                AND (sm.state = 'draft' OR sm.id IS NULL)
+            GROUP BY po.id
+            ORDER BY po.date_planned
+        """
+        self.env.cr.execute(query_procs, (product_id, location.parent_left, location.parent_right))
+        procurement_tuples = self.env.cr.fetchall()
         dates = []
-        if stock_move_restricted_in:
-            dates += [stock_move_restricted_in[0].date]
-        if stock_move_restricted_out:
-            dates += [stock_move_restricted_out[0].date]
-        procurement_order_restricted = procurement_order_restricted.filtered(
-            lambda p: not p.move_ids or any([(m.state == 'draft') for m in p.move_ids])
-        )
-        if procurement_order_restricted:
-            dates += [procurement_order_restricted[0].date_planned]
+        if moves_in_tuples:
+            dates += [moves_in_tuples[0][2]]
+        if moves_out_tuples:
+            dates += [moves_out_tuples[0][2]]
+        if procurement_tuples:
+            dates += [procurement_tuples[0][1]]
         if dates:
             min_date = min(dates)
 
@@ -346,7 +401,7 @@ class StockWarehouseOrderPointJit(models.Model):
         existing_qty = sum([x.qty for x in stock_quant_restricted])
         intermediate_result += [{
             'proc_id': False,
-            'location_id': location_id,
+            'location_id': location.id,
             'move_type': 'existing',
             'date': min_date,
             'qty': existing_qty,
@@ -354,49 +409,37 @@ class StockWarehouseOrderPointJit(models.Model):
         }]
 
         # incoming items
-        for sm in stock_move_restricted_in:
-            procurement = sm.procurement_id
-            date = False
-            if procurement and procurement.date_planned:
-                date = procurement.date_planned
-            elif sm.date:
-                date = sm.date
+        for sm in moves_in_tuples:
             intermediate_result += [{
-                    'proc_id': procurement.id,
-                    'location_id': location_id,
-                    'move_type': 'in',
-                    'date': date,
-                    'qty': sm.product_qty,
-                    'move_id': sm.id,
-                }]
+                'proc_id': sm[3],
+                'location_id': location.id,
+                'move_type': 'in',
+                'date': sm[2],
+                'qty': sm[1],
+                'move_id': sm[0],
+            }]
 
         # outgoing items
-        for sm in stock_move_restricted_out:
-            procurement = sm.procurement_id
-            date = False
-            if procurement and procurement.date_planned:
-                date = procurement.date_planned
-            elif sm.date:
-                date = sm.date
+        for sm in moves_out_tuples:
             intermediate_result += [{
-                    'proc_id': False,
-                    'location_id': location_id,
-                    'move_type': 'out',
-                    'date': date,
-                    'qty': - sm.product_qty,
-                    'move_id': sm.id,
-                }]
+                'proc_id': False,
+                'location_id': location.id,
+                'move_type': 'out',
+                'date': sm[2],
+                'qty': - sm[1],
+                'move_id': sm[0],
+            }]
 
         # planned items
-        for po in procurement_order_restricted:
+        for po in procurement_tuples:
             intermediate_result += [{
-                    'proc_id': po.id,
-                    'location_id': location_id,
-                    'move_type': 'planned',
-                    'date': po.date_planned,
-                    'qty': po.qty,
-                    'move_id': False,
-                }]
+                'proc_id': po[0],
+                'location_id': location.id,
+                'move_type': 'planned',
+                'date': po[1],
+                'qty': po[2],
+                'move_id': False,
+            }]
 
         intermediate_result = sorted(intermediate_result, key=lambda a: a['date'])
         qty = existing_qty
@@ -444,11 +487,11 @@ class StockLevelsReport(models.Model):
 CREATE OR REPLACE VIEW stock_levels_report AS (
     WITH link_location_warehouse AS (
         SELECT
-		sl.id AS location_id,
-		sw.id AS warehouse_id
-	FROM stock_warehouse sw
-	LEFT JOIN stock_location sl_view ON sl_view.id = sw.view_location_id
-	LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right)
+            sl.id AS location_id,
+            sw.id AS warehouse_id
+        FROM stock_warehouse sw
+        LEFT JOIN stock_location sl_view ON sl_view.id = sw.view_location_id
+        LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right)
 
     SELECT
         foo.product_id :: TEXT || '-'
@@ -496,7 +539,8 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
                 LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
                 LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
-            WHERE link_dest.warehouse_id IS NOT NULL AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
+            WHERE link_dest.warehouse_id IS NOT NULL
+                AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT
@@ -516,7 +560,8 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 LEFT JOIN stock_location sl ON sm.location_id = sl.id
                 LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
                 LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
-            WHERE link.warehouse_id IS NOT NULL AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
+            WHERE link.warehouse_id IS NOT NULL
+                AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT
@@ -525,3 +570,29 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
         LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
 )
         """)
+
+
+class ProductProduct(models.Model):
+    _inherit = 'product.product'
+
+    @api.multi
+    def action_show_evolution(self):
+        self.ensure_one()
+        warehouses = self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)])
+        if warehouses:
+            wid = warehouses[0].id
+        else:
+            raise exceptions.except_orm(_("Error"), _("Your company does not have a warehouse"))
+        ctx = dict(self.env.context)
+        ctx.update({
+            'search_default_warehouse_id': wid,
+            'search_default_product_id': self.id,
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _("Stock Evolution"),
+            'res_model': 'stock.levels.report',
+            'view_type': 'form',
+            'view_mode': 'graph,tree',
+            'context': ctx,
+        }

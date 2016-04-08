@@ -114,7 +114,7 @@ class product_pricelist_improved(models.Model):
                                             good_pricelist = item
                                 else:
                                     break
-                            price = good_pricelist.price
+                            price = good_pricelist and good_pricelist.price or 0.0
                         break
                 if price_uom_id and qty_uom_id and rule_id:
                     price = product_uom_obj._compute_price(price_uom_id, price, qty_uom_id)

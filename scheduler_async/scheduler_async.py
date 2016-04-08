@@ -119,14 +119,17 @@ class ProcurementOrderAsync(models.Model):
     @api.model
     def run_confirm_moves(self):
         group_draft_moves = {}
+
         all_draft_moves = self.env['stock.move'].search([('state', '=', 'draft')], limit=None,
                                                         order='priority desc, date_expected asc')
 
-        for move in all_draft_moves:
-            key = (move.group_id.id, move.location_id.id, move.location_dest_id.id)
+        all_draft_moves_ids = all_draft_moves.read(['id', 'group_id', 'location_id', 'location_dest_id'], load=False)
+
+        for move in all_draft_moves_ids:
+            key = (move['group_id'], move['location_id'], move['location_dest_id'])
             if key not in group_draft_moves:
                 group_draft_moves[key] = []
-            group_draft_moves[key].append(move.id)
+            group_draft_moves[key].append(move['id'])
 
         for draft_move_ids in group_draft_moves:
             if self.env.context.get('jobify'):
@@ -192,6 +195,11 @@ class ProcurementOrderAsync(models.Model):
     @api.model
     def run_scheduler_async(self, use_new_cursor=False, company_id=False):
         proc_compute = self.env['procurement.order.compute.all'].create({})
+        proc_compute.procure_calculation()
+
+    @api.model
+    def run_compute_orderpoints(self, use_new_cursor=False, company_id=False):
+        proc_compute = self.env['procurement.orderpoint.compute'].create({})
         proc_compute.procure_calculation()
 
     @api.model

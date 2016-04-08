@@ -21,7 +21,6 @@ from openerp.tests import common
 
 
 class TestStockProcurementJIT(common.TransactionCase):
-
     def setUp(self):
         super(TestStockProcurementJIT, self).setUp()
         self.test_product = self.browse_ref("stock_procurement_just_in_time.product_test_product")
@@ -36,6 +35,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.customer = self.browse_ref('stock.stock_location_customers')
         self.supplier = self.browse_ref('stock.stock_location_suppliers')
         self.rule_move = self.browse_ref('purchase_procurement_just_in_time.rule_move')
+        # Compute parent left and right for location so that test don't fail
+        self.env['stock.location']._parent_store_compute()
 
     def process_orderpoints(self):
         """Function to call the scheduler without needing connector to work."""
