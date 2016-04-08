@@ -100,6 +100,28 @@ class ProcurementOrderQuantity(models.Model):
                                           orderpoints, description="Computing orderpoints %s" % orderpoints)
         return {}
 
+    @api.model
+    def propagate_cancel(self, procurement):
+
+        """
+        Improves the original propagate_cancel, in order to cancel it even if one of its moves is done.
+        """
+
+        ignore_move_ids = procurement.rule_id.action == 'move' and procurement.move_ids and \
+                          procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
+        return super(ProcurementOrderQuantity,
+                     self.with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
+
+
+class StockMoveJustInTime(models.Model):
+    _inherit = 'stock.move'
+
+    @api.multi
+    def action_cancel(self):
+        return super(StockMoveJustInTime,self.filtered(lambda move: move.id not in
+                                                                    (self.env.context.get('ignore_move_ids') or []))).\
+            action_cancel()
+
 
 class StockWarehouseOrderPointJit(models.Model):
     _inherit = 'stock.warehouse.orderpoint'

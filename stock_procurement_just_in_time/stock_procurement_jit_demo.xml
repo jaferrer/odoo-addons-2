@@ -200,5 +200,12 @@
             <field name="product_uom_qty">10</field>
         </record>
 
+        <!-- Rule -->
+        <record id="rule_move" model="procurement.rule">
+            <field name="name">Rule procurement (type move)</field>
+            <field name="action">move</field>
+            <field name="picking_type_id" ref="stock.picking_type_internal"/>
+        </record>
+
     </data>
 </openerp>
