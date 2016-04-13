@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['base'],
+    'depends': ['base', 'web'],
     'description': """
 Admin Config
 ============

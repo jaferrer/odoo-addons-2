@@ -15,7 +15,7 @@ odoo.define('web.DebugManager_always', function (require) {
 	   var wid= require('web.Widget').extend({
 		   start: function() {
 	           if(session.uid === 1){
-	        	   window.location="?debug=";
+	        	   window.location.href="?debug=";
 	           }
 	       }
 	   });
