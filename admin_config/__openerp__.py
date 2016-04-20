@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['base'],
+    'depends': ['base', 'web'],
     'description': """
 Admin Config
 ============
@@ -31,6 +31,9 @@ Implements a few configurations item which should help to administrate the ERP.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': ['admin_config.xml'],
+    'qweb': [
+        'static/src/xml/template.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,
