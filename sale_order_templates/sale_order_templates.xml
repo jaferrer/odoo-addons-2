@@ -44,9 +44,6 @@
                 <header position="attributes">
                     <attribute name="attrs">{'invisible': [('is_template', '=', True)]}</attribute>
                 </header>
-                <button name="action_cancel" position="before">
-                    <button name="create_from_template" string="Generate a sale order from this template" type="object"/>
-                </button>
                 <field name="name" position="attributes">
                     <attribute name="attrs">{'invisible': [('is_template', '=', True)]}</attribute>
                 </field>
@@ -73,7 +70,7 @@
                     <attribute name="attrs">{'invisible': [('is_template', '=', True)]}</attribute>
                 </field>
                 <notebook position="inside">
-                    <page string="Sale orders generated from this template">
+                    <page string="Sale orders generated from this template" attrs="{'invisible': [('is_template', '=', False)]}">
                         <field name="created_order_ids"/>
                     </page>
                 </notebook>
