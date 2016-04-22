@@ -55,3 +55,10 @@ class StockQuant(models.Model):
             if not is_manual_op:
                 picking.do_transfer()
         return move_recordset
+
+
+class StockWarehouse(models.Model):
+    _inherit = 'stock.warehouse'
+
+    picking_type_id = fields.Many2one(
+        "stock.picking.type", string=u"Mouvement de déplacement par défault")

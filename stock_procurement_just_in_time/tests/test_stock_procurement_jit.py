@@ -21,7 +21,6 @@ from openerp.tests import common
 
 
 class TestStockProcurementJIT(common.TransactionCase):
-
     def setUp(self):
         super(TestStockProcurementJIT, self).setUp()
         self.test_product = self.browse_ref("stock_procurement_just_in_time.product_test_product")
@@ -31,6 +30,13 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.location_b = self.browse_ref("stock_procurement_just_in_time.stock_location_b")
         self.location_inv = self.browse_ref("stock.location_inventory")
         self.product_uom_unit_id = self.ref("product.product_uom_unit")
+        self.unit = self.browse_ref('product.product_uom_unit')
+        self.stock = self.browse_ref('stock.stock_location_stock')
+        self.customer = self.browse_ref('stock.stock_location_customers')
+        self.supplier = self.browse_ref('stock.stock_location_suppliers')
+        self.rule_move = self.browse_ref('stock_procurement_just_in_time.rule_move')
+        # Compute parent left and right for location so that test don't fail
+        self.env['stock.location']._parent_store_compute()
 
     def process_orderpoints(self):
         """Function to call the scheduler without needing connector to work."""
@@ -436,3 +442,98 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[3].product_qty, 12)
         self.assertEqual(procs[3].product_id, self.test_product3)
         self.assertEqual(procs[3].state, 'exception')
+
+    def test_70_procurement_jit(self):
+
+        """
+        Cancelling procurement of a move which parent is done.
+        """
+
+        proc1 = self.env['procurement.order'].create({
+            'name': "Test procurement",
+            'product_id': self.test_product.id,
+            'product_qty': 1,
+            'product_uom': self.unit.id,
+            'location_id': self.customer.id,
+            'rule_id': self.rule_move.id,
+        })
+        proc1.run()
+        move_dest = self.env['stock.move'].create({
+            'name': "Move dest",
+            'product_id': self.test_product.id,
+            'product_uom_qty': 1,
+            'product_uom': self.unit.id,
+            'location_id': self.stock.id,
+            'location_dest_id': self.customer.id,
+            'procurement_id': proc1.id,
+            'propagate': True,
+        })
+        move_dest.action_confirm()
+        self.assertEqual(move_dest.state, 'confirmed')
+        move_parent = self.env['stock.move'].create({
+            'name': "Move parent",
+            'product_id': self.test_product.id,
+            'product_uom_qty': 1,
+            'product_uom': self.unit.id,
+            'location_id': self.supplier.id,
+            'location_dest_id': self.stock.id,
+            'move_dest_id': move_dest.id,
+            'propagate': True,
+        })
+        move_parent.action_confirm()
+        self.assertEqual(move_parent.state, 'confirmed')
+
+        move_parent.action_done()
+        self.assertEqual(move_parent.state, 'done')
+        self.assertEqual(move_dest.state, 'assigned')
+        proc1.with_context(cancel_procurement=True).cancel()
+        self.assertEqual(proc1.state, 'cancel')
+        self.assertEqual(move_dest.state, 'cancel')
+
+    def test_80_procurement_jit(self):
+
+        """
+        Cancelling a procurement with several moves and one of them is done.
+        """
+
+        proc1 = self.env['procurement.order'].create({
+            'name': "Test procurement",
+            'product_id': self.test_product.id,
+            'product_qty': 1,
+            'product_uom': self.unit.id,
+            'location_id': self.customer.id,
+            'rule_id': self.rule_move.id,
+        })
+
+        proc1.run()
+        move1 = self.env['stock.move'].create({
+            'name': "Move dest",
+            'product_id': self.test_product.id,
+            'product_uom_qty': 1,
+            'product_uom': self.unit.id,
+            'location_id': self.stock.id,
+            'location_dest_id': self.customer.id,
+            'procurement_id': proc1.id,
+            'propagate': True,
+        })
+        move1.action_confirm()
+        self.assertEqual(move1.state, 'confirmed')
+        move2 = self.env['stock.move'].create({
+            'name': "Move parent",
+            'product_id': self.test_product.id,
+            'product_uom_qty': 1,
+            'product_uom': self.unit.id,
+            'location_id': self.stock.id,
+            'location_dest_id': self.customer.id,
+            'procurement_id': proc1.id,
+            'propagate': True,
+        })
+        move2.action_confirm()
+        self.assertEqual(move2.state, 'confirmed')
+
+        move2.action_done()
+        self.assertEqual(move2.state, 'done')
+        self.assertEqual(move1.state, 'confirmed')
+        proc1.cancel()
+        self.assertEqual(proc1.state, 'cancel')
+        self.assertEqual(move1.state, 'cancel')

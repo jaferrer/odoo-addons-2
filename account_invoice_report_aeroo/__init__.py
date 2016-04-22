@@ -18,4 +18,3 @@
 #
 
 from . import account_invoice_report_aeroo
-from . import res_config

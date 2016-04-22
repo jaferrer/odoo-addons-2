@@ -34,27 +34,21 @@ class Purchase(osv.osv):
     _columns = {
         'amount_untaxed': fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'), string='Untaxed Amount',
                                           store={
-            'purchase.order.line': (_get_order_improved, ['product_qty', 'date_planned', 'taxes_id',
-                                                          'product_uom', 'product_id', 'move_ids', 'price_unit',
-                                                          'order_id', 'account_analytic_id',
-                                                          'company_id', 'state', 'invoice_lines', 'invoiced',
-                                                          'partner_id', 'date_order', 'procurement_ids'], 10),
+            'purchase.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
+                                                          'product_uom', 'product_id', 'price_unit',
+                                                          'order_id'], 10),
         }, multi="sums", help="The amount without tax", track_visibility='always'),
         'amount_tax': fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'), string='Taxes',
                                       store={
-            'purchase.order.line': (_get_order_improved, ['product_qty', 'date_planned', 'taxes_id',
-                                                          'product_uom', 'product_id', 'move_ids', 'price_unit',
-                                                          'order_id', 'account_analytic_id',
-                                                          'company_id', 'state', 'invoice_lines', 'invoiced',
-                                                          'partner_id', 'date_order', 'procurement_ids'], 10),
+            'purchase.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
+                                                          'product_uom', 'product_id', 'price_unit',
+                                                          'order_id'], 10),
         }, multi="sums", help="The tax amount"),
         'amount_total': fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'), string='Total',
                                         store={
-            'purchase.order.line': (_get_order_improved, ['product_qty', 'date_planned', 'taxes_id',
-                                                          'product_uom', 'product_id', 'move_ids', 'price_unit',
-                                                          'order_id', 'account_analytic_id',
-                                                          'company_id', 'state', 'invoice_lines', 'invoiced',
-                                                          'partner_id', 'date_order', 'procurement_ids'], 10),
+            'purchase.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
+                                                          'product_uom', 'product_id', 'price_unit',
+                                                          'order_id'], 10),
         }, multi="sums", help="The total amount")
     }
     _inherit = ['purchase.order']

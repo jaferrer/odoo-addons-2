@@ -128,6 +128,7 @@ class res_company_with_calendar(models.Model):
 class stock_warehouse_with_calendar(models.Model):
     _inherit = "stock.warehouse"
 
+    view_location_id = fields.Many2one('stock.location', index=True)
     resource_id = fields.Many2one("resource.resource", "Warehouse resource",
                                   help="The resource is used to define the working days of the warehouse. If undefined "
                                        "the system will fall back to the default company calendar.")
@@ -142,15 +143,21 @@ class stock_working_days_location(models.Model):
             Returns warehouse id of warehouse that contains location
             :param location: browse record (stock.location)
 
-            Overridden here to have an implementation that checks at all levels of location tree.
+            overridden here for improved performance
         """
-        wh_views = {w.view_location_id.id: w for w in self.env['stock.warehouse'].search([])}
-        loc = location
-        while loc:
-            if loc.id in wh_views.keys():
-                return wh_views[loc.id].id
-            loc = loc.location_id
-        return False
+        query = """
+            SELECT swh.id
+            FROM
+                stock_warehouse swh
+                LEFT JOIN stock_location sl ON swh.view_location_id = sl.id
+            WHERE
+                sl.parent_left <= %s AND sl.parent_right >= %s
+            ORDER BY swh.id
+            LIMIT 1
+        """
+        self.env.cr.execute(query, (location.parent_left, location.parent_left))
+        whs = self.env.cr.fetchone()
+        return whs and whs[0] or False
 
     @api.multi
     def schedule_working_days(self, nb_days, day_date, days_of_week=False):
