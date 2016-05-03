@@ -7,9 +7,6 @@
             <field name="inherit_id" ref="sale_stock.view_order_form_inherit"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-            	<field name="order_line" position="attributes">
-            		<attribute name="context">{'default_date_planned':date_order}</attribute>
-            	</field>
             	<xpath expr="//page[@string='Order Lines']/field[@name='order_line']/form[@string='Sales Order Lines']/group/group/field[@name='tax_id']" position="after">
                     <label for="date_planned"/>
                     <div>

@@ -26,7 +26,7 @@ from openerp.exceptions import ValidationError
 class SaleOrderLineDatePlanned(models.Model):
     _inherit = 'sale.order.line'
 
-    date_planned = fields.Datetime(string=u"Date planned", required=True)
+    date_planned = fields.Datetime(string=u"Date planned", required=True, default=fields.Datetime.now)
 
 
 class SaleOrderDatePlanned(models.Model):
