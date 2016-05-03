@@ -111,13 +111,12 @@ class ProcurementOrderQuantity(models.Model):
 
     @api.model
     def propagate_cancel(self, procurement):
-
         """
         Improves the original propagate_cancel, in order to cancel it even if one of its moves is done.
         """
 
         ignore_move_ids = procurement.rule_id.action == 'move' and procurement.move_ids and \
-                          procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
+            procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
         return super(ProcurementOrderQuantity,
                      self.with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
 
@@ -127,8 +126,8 @@ class StockMoveJustInTime(models.Model):
 
     @api.multi
     def action_cancel(self):
-        return super(StockMoveJustInTime,self.filtered(lambda move: move.id not in
-                                                                    (self.env.context.get('ignore_move_ids') or []))).\
+        return super(StockMoveJustInTime, self.filtered(lambda move: move.id not in
+                                                        (self.env.context.get('ignore_move_ids') or []))).\
             action_cancel()
 
 
@@ -250,7 +249,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-              fields.Datetime.from_string(last_schedule[0].get('date')) or False
+            fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -491,9 +490,28 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
             sw.id AS warehouse_id
         FROM stock_warehouse sw
         LEFT JOIN stock_location sl_view ON sl_view.id = sw.view_location_id
-        LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right)
+        LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right),
 
+
+      min_product as (
     SELECT
+                min(sm.date_expected)- interval '1 second' as min_date,
+                sm.product_id as product_id
+            FROM
+                stock_move sm
+                LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
+                LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
+                LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
+            WHERE ((link_dest.warehouse_id IS NOT NULL
+                AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)) OR (link.warehouse_id IS NOT NULL
+                AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)))
+                AND sm.state :: TEXT <> 'cancel' :: TEXT
+                AND sm.state :: TEXT <> 'done' :: TEXT
+                AND sm.state :: TEXT <> 'draft' :: TEXT
+            group by sm.product_id
+      )
+
+SELECT
         foo.product_id :: TEXT || '-'
         || foo.warehouse_id :: TEXT || '-'
         || coalesce(foo.move_id :: TEXT, 'existing') AS id,
@@ -509,10 +527,10 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
         foo.other_warehouse_id
     FROM
         (
-            SELECT
+SELECT
                 sq.product_id      AS product_id,
                 'existing' :: TEXT AS move_type,
-                max(sq.in_date)    AS date,
+                coalesce(min(mp.min_date),max(sq.in_date)) AS date,
                 sum(sq.qty)        AS qty,
                 NULL               AS move_id,
                 link.warehouse_id,
@@ -521,12 +539,13 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 stock_quant sq
                 LEFT JOIN stock_location sl ON sq.location_id = sl.id
                 LEFT JOIN link_location_warehouse link ON link.location_id = sl.location_id
+                LEFT JOIN min_product mp on mp.product_id=sq.product_id
             WHERE link.warehouse_id IS NOT NULL
             GROUP BY sq.product_id, link.warehouse_id
 
             UNION ALL
-
-            SELECT
+        
+SELECT
                 sm.product_id    AS product_id,
                 'in' :: TEXT     AS move_type,
                 sm.date_expected AS date,
@@ -565,7 +584,7 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT
-        ) foo
+) foo
         LEFT JOIN product_product pp ON foo.product_id = pp.id
         LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
 )
