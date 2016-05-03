@@ -70,14 +70,23 @@ class ManufacturingOrderPlanningImproved(models.Model):
         return move_id
 
     @api.multi
+    def get_date_expected_for_moves(self):
+        self.ensure_one()
+        days = self.product_id.produce_delay + 1
+        format_date_planned = fields.Datetime.from_string(self.date_planned)
+        date_expected = self.location_dest_id.schedule_working_days(days, format_date_planned)
+        return date_expected
+
+    @api.multi
     def write(self, vals):
         result = super(ManufacturingOrderPlanningImproved, self).write(vals)
         if vals.get('date_planned'):
             for rec in self:
                 # Add time if we get only date (e.g. if we have date widget on view)
-                date_planned = vals['date_planned'] + " 12:00:00" if len(vals['date_planned']) == 10 \
-                    else vals['date_planned']
-                rec.move_created_ids.write({'date_expected': date_planned})
+                if not rec.taken_into_account:
+                    date_expected = rec.get_date_expected_for_moves()
+                    if date_expected:
+                        rec.move_created_ids.write({'date_expected': fields.Datetime.to_string(date_expected)})
         return result
 
     @api.multi

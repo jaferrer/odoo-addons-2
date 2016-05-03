@@ -44,6 +44,10 @@ class PurchaseOrderSweeper(models.TransientModel):
     def launch_job_purchase_order_sweeper(self):
         self.env['purchase.order'].chunk_sweep()
 
+    @api.model
+    def launch_job_purchase_order_sweeper_model(self):
+        self.env['purchase.order.sweeper'].create({}).launch_job_purchase_order_sweeper()
+
 
 class SweeperPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
