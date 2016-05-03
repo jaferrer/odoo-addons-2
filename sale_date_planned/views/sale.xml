@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="sale_order_view_form_line_date_planned">
+            <field name="name">sale.order.view.form.line.date_planned</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale_stock.view_order_form_inherit"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+            	<field name="order_line" position="attributes">
+            		<attribute name="context">{'default_date_planned':date_order}</attribute>
+            	</field>
+            	<xpath expr="//page[@string='Order Lines']/field[@name='order_line']/form[@string='Sales Order Lines']/group/group/field[@name='tax_id']" position="after">
+                    <label for="date_planned"/>
+                    <div>
+                        <field name="date_planned" widget="date" class="oe_inline"/>
+                    </div>
+                </xpath>
+                <xpath expr="//form[@string='Sales Order Lines']//label[@for='delay']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//form[@string='Sales Order Lines']//field[@name='delay']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>
