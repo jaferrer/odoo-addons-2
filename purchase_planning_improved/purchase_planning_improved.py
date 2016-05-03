@@ -33,14 +33,12 @@ class ProcurementOrderPurchasePlanningImproved(models.Model):
             if proc.state not in ['done', 'cancel', 'exception'] and proc.rule_id and proc.rule_id.action == 'buy':
                 schedule_date = self._get_purchase_schedule_date(proc, proc.company_id)
                 order_date = self._get_purchase_order_date(proc, proc.company_id, schedule_date)
-                date_planned = proc.purchase_line_id.date_planned
-                if proc.purchase_id.state in ['draft', 'sent', 'bid']:
-                    # If the purchase line is not confirmed yet, try to set planned date to schedule_date
-                    if order_date > datetime.now():
-                        date_planned = fields.Date.to_string(schedule_date)
-                proc.purchase_line_id.write({
-                    'date_planned': date_planned,
-                })
+                # We sudo because the user has not necessarily the rights to update PO and PO lines
+                proc = proc.sudo()
+                # If the purchase line is not confirmed yet, try to set planned date to schedule_date
+                if proc.purchase_id.state in ['sent', 'bid'] and order_date > datetime.now() or \
+                                proc.purchase_id.state == 'draft':
+                    proc.purchase_line_id.date_planned = fields.Date.to_string(schedule_date)
                 if proc.purchase_id and fields.Datetime.from_string(proc.purchase_id.date_order) > order_date:
                     proc.purchase_id.date_order = fields.Datetime.to_string(order_date)
                 proc.purchase_line_id.set_moves_dates(proc.purchase_line_id.date_required)

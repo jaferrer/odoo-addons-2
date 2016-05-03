@@ -15,6 +15,24 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_account_invoice_report_aeroo
+msgid "Account Invoice Report Aeroo"
+msgstr "Rapport Aeroo pour les factures"
+
+#. module: base
+#: model:ir.module.module,description:base.module_account_invoice_report_aeroo
+msgid ""
+"\n"
+"Account Invoice Report Aeroo\n"
+"============================\n"
+"This module replaces the basic report by a improved one.\n"
+msgstr ""
+"\n"
+"Rapport Aeroo pour les factures\n"
+"===============================\n"
+"Ce module remplace le rapport de base par un autre, amélioré.\n"
+
 #. module: account_invoice_report_aeroo
 #: field:res.company,capital_stock:0
 msgid "Capital Stock"
@@ -28,12 +46,17 @@ msgstr "Factures"
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Customer code:"
-msgstr "Code client :"
+msgstr "Compte client :"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "TIN:"
-msgstr "VAT :"
+msgstr "TVA :"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "N° VAT"
+msgstr "N° TVA :"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
@@ -63,7 +86,7 @@ msgstr "Avoir Fournisseur"
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Dated"
-msgstr "Document daté du"
+msgstr "Date : "
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
@@ -83,17 +106,22 @@ msgstr "Quantité"
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Unit Price"
-msgstr "Prix Unitaire"
+msgstr "PU HT"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Price"
-msgstr "Prix"
+msgstr "Montant HT"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Amount duty"
 msgstr "Montant net"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Taxes"
+msgstr "Total TVA"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
@@ -107,8 +135,8 @@ msgstr "Montant"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Due date"
-msgstr "Date d'échéance"
+msgid "Due date:"
+msgstr "Date d'échéance :"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
@@ -124,3 +152,48 @@ msgstr "Date de facture"
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "with a registred capital of"
 msgstr "au capital de"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Net Total"
+msgstr "Total HT"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Total"
+msgstr "Total TTC"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Amount total:"
+msgstr "Net à payer :"
+
+#. module: account_invoice_report_aeroo
+#: field:res.company,invoice_comment:0
+msgid "Invoice Comment"
+msgstr "Commentaire facture"
+
+#. module: account_invoice_report_aeroo
+#: field:account.payment.term,description_for_invoices_1:0
+msgid "Description for invoices 1"
+msgstr "Description pour les factures 1"
+
+#. module: account_invoice_report_aeroo
+#: field:account.payment.term,description_for_invoices_2:0
+msgid "Description for invoices 2"
+msgstr "Description pour les factures 2"
+
+#. module: account_invoice_report_aeroo
+#: field:paiement.mode,name:0
+msgid "Name"
+msgstr "Nom"
+
+#. module: account_invoice_report_aeroo
+#: model:ir.model,name:account_invoice_report_aeroo.model_paiement_mode
+msgid "Paiement Mode"
+msgstr "Mode de paiement"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Paiement mode:"
+msgstr "Mode de paiement :"

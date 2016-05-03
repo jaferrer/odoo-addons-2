@@ -19,8 +19,8 @@
 
 from openerp.tests import common
 
-class TestProductPutawayWhereNeeded(common.TransactionCase):
 
+class TestProductPutawayWhereNeeded(common.TransactionCase):
     def setUp(self):
         super(TestProductPutawayWhereNeeded, self).setUp()
         self.picking1 = self.browse_ref("product_putaway_dispatch.picking_to_stock")
@@ -32,8 +32,9 @@ class TestProductPutawayWhereNeeded(common.TransactionCase):
         self.location_bin_2 = self.browse_ref("product_putaway_dispatch.stock_location_bin_2")
         self.product_uom_unit_id = self.ref("product.product_uom_unit")
         # Confirm need moves
-        self.need_moves = self.env['stock.move'].search([('location_id','in',[self.location_bin_1.id, self.location_bin_2.id]),
-                                                    ('product_id','=',self.product_a1232.id)])
+        self.need_moves = self.env['stock.move'].search(
+            [('location_id', 'in', [self.location_bin_1.id, self.location_bin_2.id]),
+             ('product_id', '=', self.product_a1232.id)])
         self.need_moves.action_confirm()
 
     def test_10_simple_dispatch(self):
@@ -50,10 +51,10 @@ class TestProductPutawayWhereNeeded(common.TransactionCase):
         wizard.action_dispatch()
         wizard.do_detailed_transfer()
         self.assertEqual(self.picking1.state, 'done')
-        quants_stock_1 = self.env["stock.quant"].search([('product_id','=',self.product_a1232.id),
-                                                         ('location_id','=',self.location_bin_1.id)])
-        quants_stock_2 = self.env["stock.quant"].search([('product_id','=',self.product_a1232.id),
-                                                         ('location_id','=',self.location_bin_2.id)])
+        quants_stock_1 = self.env["stock.quant"].search([('product_id', '=', self.product_a1232.id),
+                                                         ('location_id', '=', self.location_bin_1.id)])
+        quants_stock_2 = self.env["stock.quant"].search([('product_id', '=', self.product_a1232.id),
+                                                         ('location_id', '=', self.location_bin_2.id)])
         self.assertGreaterEqual(len(quants_stock_1), 1)
         self.assertGreaterEqual(len(quants_stock_2), 1)
         qty_1 = sum([q.qty for q in quants_stock_1])
@@ -87,10 +88,10 @@ class TestProductPutawayWhereNeeded(common.TransactionCase):
         wizard.action_dispatch()
         wizard.do_detailed_transfer()
         self.assertEqual(self.picking1.state, 'done')
-        quants_stock_1 = self.env["stock.quant"].search([('product_id','=',self.product_a1232.id),
-                                                         ('location_id','=',self.location_bin_1.id)])
-        quants_stock_2 = self.env["stock.quant"].search([('product_id','=',self.product_a1232.id),
-                                                         ('location_id','=',self.location_bin_2.id)])
+        quants_stock_1 = self.env["stock.quant"].search([('product_id', '=', self.product_a1232.id),
+                                                         ('location_id', '=', self.location_bin_1.id)])
+        quants_stock_2 = self.env["stock.quant"].search([('product_id', '=', self.product_a1232.id),
+                                                         ('location_id', '=', self.location_bin_2.id)])
         self.assertGreaterEqual(len(quants_stock_1), 1)
         self.assertIn(pack.location_id, [self.location_bin_1, self.location_bin_2])
         # Check that pack 2 has not been moved and that it is empty
@@ -101,4 +102,3 @@ class TestProductPutawayWhereNeeded(common.TransactionCase):
         self.assertEqual(qty_1, 8)
         qty_2 = sum([q.qty for q in quants_stock_2])
         self.assertEqual(qty_2, 12)
-

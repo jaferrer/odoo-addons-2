@@ -18,14 +18,98 @@
 #
 
 from openerp.tools import drop_view_if_exists, flatten
-from openerp import fields, models, api
+from openerp import fields, models, api, osv
 
+from openerp.addons.procurement import procurement
 from openerp.addons.scheduler_async import scheduler_async
 from openerp.addons.connector.session import ConnectorSession
 
 assign_moves = scheduler_async.assign_moves
 
-MOVE_CHUNK = 100
+PRODUCT_CHUNK = 1
+
+SQL_REQUEST_BY_MOVE = """
+WITH
+    RECURSIVE top_parent(loc_id, top_parent_id) AS (
+        SELECT
+            sl.id AS loc_id,
+            sl.id AS top_parent_id
+        FROM
+            stock_location sl
+            LEFT JOIN stock_location slp ON sl.location_id = slp.id
+        WHERE
+            sl.usage = 'internal'
+        UNION
+        SELECT
+            sl.id AS loc_id,
+            tp.top_parent_id
+        FROM
+            stock_location sl, top_parent tp
+        WHERE
+            sl.usage = 'internal' AND sl.location_id = tp.loc_id
+    ),
+
+    move_qties_interm AS (
+        SELECT
+            sm.id              AS move_id,
+            sm.picking_id,
+            sm.location_id,
+            sm.product_id,
+            sum(sm.product_qty)
+            OVER (
+                PARTITION BY sm.product_id, sm.picking_id, sm.location_id
+                ORDER BY sm.priority DESC, sm.date_expected, sm.id
+            ) - sm.product_qty AS qty
+        FROM stock_move sm
+            INNER JOIN (SELECT
+                            sm.picking_id,
+                            sm.location_id,
+                            sm.product_id
+                        FROM stock_move sm
+                        WHERE sm.id IN %s
+                        GROUP BY sm.picking_id,
+                            sm.location_id,
+                            sm.product_id) sms
+                ON coalesce(sms.picking_id, -1) = coalesce(sm.picking_id, -1) AND sm.location_id = sms.location_id AND
+                   sm.product_id = sms.product_id
+        WHERE sm.picking_type_id IS NOT NULL AND sm.state = 'confirmed' AND NOT exists(
+            SELECT 1
+            FROM stock_quant sq
+            WHERE sq.reservation_id = sm.id
+        )
+    ),
+
+    not_reserved_quantities AS (
+        SELECT
+            tp.top_parent_id AS location_id,
+            sq.product_id,
+            sum(sq.qty)      AS qty
+        FROM stock_quant sq
+            LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
+        WHERE sq.reservation_id IS NULL
+        GROUP BY tp.top_parent_id, sq.product_id
+    )
+
+SELECT DISTINCT
+    sm.id         AS move_id
+FROM
+    stock_move sm
+    LEFT JOIN stock_move smp ON smp.move_dest_id = sm.id
+    LEFT JOIN stock_move sms ON sm.split_from = sms.id
+    LEFT JOIN stock_move smps ON smps.move_dest_id = sms.id
+WHERE
+    sm.state = 'waiting'
+    AND sm.picking_type_id IS NOT NULL
+    AND (smp.state = 'done' OR smps.state = 'done')
+    AND sm.id IN %s
+UNION ALL
+SELECT
+    mqi.move_id
+FROM
+    move_qties_interm mqi
+    LEFT JOIN
+    not_reserved_quantities nrq ON nrq.product_id = mqi.product_id AND nrq.location_id = mqi.location_id
+WHERE mqi.qty <= nrq.qty AND mqi.move_id IN %s"""
 
 
 class StockPicking(models.Model):
@@ -33,19 +117,14 @@ class StockPicking(models.Model):
 
     @api.model
     def assign_moves_to_picking(self):
-        """Assign prereserved moves that do not belong to a picking yet to a picking by reconfirming them.
+        """Assign prereserved moves that do not belong to a picking yet to a picking.
         """
         # We skip moves given in context not create infinite recursion
         skip_move_ids = self.env.context.get('skip_moves', [])
         prereservations = self.env['stock.prereservation'].search([('picking_id', '=', False),
                                                                    ('move_id', 'not in', skip_move_ids)])
         todo_moves = prereservations.mapped(lambda p: p.move_id)
-        to_assign_moves = todo_moves.filtered(lambda m: m.state == 'assigned')
-        if todo_moves:
-            # We check if we have todo_moves to prevent infinite recursion
-            todo_moves.action_confirm()
-            # We reassign moves that were assigned beforehand because action_confirmed changed the state
-            to_assign_moves.action_assign()
+        todo_moves.assign_to_picking()
 
     @api.multi
     def action_assign(self):
@@ -68,6 +147,83 @@ class StockPicking(models.Model):
         self.assign_moves_to_picking()
         super(StockPicking, self).rereserve_pick()
 
+    @api.cr_uid_ids_context
+    def get_min_max_date(self, cr, uid, ids, field_name, arg, context=None):
+        """ Finds minimum and maximum dates for picking.
+        @return: Dictionary of values
+        """
+        res = super(StockPicking, self).get_min_max_date(cr, uid, ids, field_name, arg, context=context)
+        for k, v in res.iteritems():
+            picking = self.browse(cr, uid, [k], context)
+            defer = picking.move_lines and picking.move_lines[0].defer_picking_assign or False
+            if defer:
+                res[k] = {}
+        return res
+
+    @api.cr_uid_ids_context
+    def _get_pickings_dates_priority(self, cr, uid, ids, context=None):
+        res = set()
+        for move in self.browse(cr, uid, ids, context=context):
+            if move.picking_id and (not (
+                            move.picking_id.min_date < move.date_expected < move.picking_id.max_date) or
+                                            move.priority > move.picking_id.priority):
+                res.add(move.picking_id.id)
+        return list(res)
+
+    def _get_pickings_group_id(self, cr, uid, ids, context=None):
+        res = set()
+        for move in self.browse(cr, uid, ids, context=context):
+            if move.picking_id and move.picking_id.group_id != move.group_id:
+                res.add(move.picking_id.id)
+        return list(res)
+
+    @api.cr_uid_id_context
+    def _set_priority(self, cr, uid, id, field, value, arg, context=None):
+        move_obj = self.pool.get("stock.move")
+        if value:
+            move_ids = [move.id for move in self.browse(cr, uid, id, context=context).move_lines]
+            move_obj.write(cr, uid, move_ids, {'priority': value}, context=context)
+
+    @api.cr_uid_id_context
+    def _set_min_date(self, cr, uid, id, field, value, arg, context=None):
+        move_obj = self.pool.get("stock.move")
+        if value:
+            move_ids = [move.id for move in self.browse(cr, uid, id, context=context).move_lines]
+            move_obj.write(cr, uid, move_ids, {'date_expected': value}, context=context)
+
+    _columns = {
+        'priority': osv.fields.function(get_min_max_date, multi="min_max_date", fnct_inv=_set_priority,
+                                        type='selection',
+                                        selection=procurement.PROCUREMENT_PRIORITIES, string='Priority',
+                                        store={
+                                            'stock.move': (
+                                                _get_pickings_dates_priority, ['priority', 'picking_id'], 20)},
+                                        states={'done': [('readonly', True)], 'cancel': [('readonly', True)]}, select=1,
+                                        help="Priority for this picking. Setting manually a value here would set it as "
+                                             "priority for all the moves",
+                                        track_visibility='onchange', required=True),
+        'min_date': osv.fields.function(get_min_max_date, multi="min_max_date", fnct_inv=_set_min_date,
+                                        store={'stock.move': (
+                                            _get_pickings_dates_priority, ['date_expected', 'picking_id'], 20)},
+                                        type='datetime',
+                                        states={'done': [('readonly', True)], 'cancel': [('readonly', True)]},
+                                        string='Scheduled Date', select=1,
+                                        help="Scheduled time for the first part of the shipment to be processed. "
+                                             "Setting manually a value here would set it as expected date for all the "
+                                             "stock moves.",
+                                        track_visibility='onchange'),
+        'max_date': osv.fields.function(get_min_max_date, multi="min_max_date",
+                                        store={'stock.move': (
+                                            _get_pickings_dates_priority, ['date_expected', 'picking_id'], 20)},
+                                        type='datetime', string='Max. Expected Date', select=2,
+                                        help="Scheduled time for the last part of the shipment to be processed"),
+        'group_id': osv.fields.related('move_lines', 'group_id', type='many2one', relation='procurement.group', string='Procurement Group', readonly=True,
+              store={
+                  'stock.picking': (lambda self, cr, uid, ids, ctx: ids, ['move_lines'], 10),
+                  'stock.move': (_get_pickings_group_id, ['group_id', 'picking_id'], 10),
+              }),
+    }
+
 
 class StockMove(models.Model):
     _inherit = 'stock.move'
@@ -86,10 +242,11 @@ class StockMove(models.Model):
         :param location_from: The source location of the moves
         :param location_to: The destination lcoation of the moves
         """
-        prereservations = self.env['stock.prereservation'].search([('move_id', 'in', self.ids)])
-        prereserved_moves = prereservations.mapped(lambda p: p.move_id)
+        self.env.cr.execute(SQL_REQUEST_BY_MOVE, (tuple(self.ids), tuple(self.ids), tuple(self.ids)))
+        prereservations = self.env.cr.fetchall()
+        prereserved_move_ids = [p[0] for p in prereservations]
         not_deferred_moves = self.filtered(lambda m: m.defer_picking_assign is False)
-        todo_moves = not_deferred_moves | prereserved_moves
+        todo_moves = not_deferred_moves | self.browse(prereserved_move_ids)
         # Only assign prereserved or outgoing moves to pickings
         if todo_moves:
             # Use a SQL query as doing with the ORM will split it in different queries with id IN (,,)
@@ -97,12 +254,13 @@ class StockMove(models.Model):
             query = """
                 SELECT stock_picking.id FROM stock_picking, stock_move
                 WHERE
-                    stock_picking.state in ('draft','waiting','confirmed','partially_available','assigned') AND
+                    stock_picking.state IN ('draft','waiting','confirmed','partially_available','assigned') AND
                     stock_move.picking_id = stock_picking.id AND
+                    stock_picking.picking_type_id = %s AND
                     stock_move.location_id = %s AND
                     stock_move.location_dest_id = %s AND
             """
-            params = (location_from, location_to)
+            params = (todo_moves[0].picking_type_id.id, location_from, location_to)
             if not procurement_group:
                 query += "stock_picking.group_id IS NULL LIMIT 1"
             else:
@@ -126,12 +284,25 @@ class StockMove(models.Model):
             return True
 
     @api.multi
+    def assign_to_picking(self):
+        """Assign the moves to an appropriate picking (or not)."""
+        todo_map = {}
+        for move in self:
+            key = (move.group_id.id, move.location_id.id, move.location_dest_id.id, move.picking_type_id.id)
+            if key not in todo_map:
+                todo_map[key] = self.env['stock.move']
+            todo_map[key] |= move
+        for key, moves in todo_map.iteritems():
+            procurement_group, location_from, location_to, _ = key
+            moves._picking_assign(procurement_group, location_from, location_to)
+
+    @api.multi
     def action_assign(self):
         """ Checks the product type and accordingly writes the state.
         Overridden here to also assign a picking if it is not done yet.
         """
         moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
-        moves_no_pick.action_confirm()
+        moves_no_pick.assign_to_picking()
         super(StockMove, self).action_assign()
 
 
@@ -145,6 +316,22 @@ class ProcurementRule(models.Model):
                                                "confirmed.")
 
 
+class StockLocationPath(models.Model):
+    _inherit = 'stock.location.path'
+
+    defer_picking_assign = fields.Boolean("Defer Picking Assignement", default=False,
+                                          help="If checked, the stock move generated by this rule will be assigned to "
+                                               "a picking only if there is available quants in the source location. "
+                                               "Otherwise, it will be assigned a picking as soon as the move is "
+                                               "confirmed.")
+
+    @api.model
+    def _prepare_push_apply(self, rule, move):
+        res = super(StockLocationPath, self)._prepare_push_apply(rule, move)
+        res.update({'defer_picking_assign': rule.defer_picking_assign})
+        return res
+
+
 class ProcurementOrder(models.Model):
     _inherit = 'procurement.order'
 
@@ -156,7 +343,11 @@ class ProcurementOrder(models.Model):
 
     @api.model
     def run_assign_moves(self):
-        confirmed_moves = self.env['stock.prereservation'].search([('reserved', '=', False)]).mapped('move_id')
+        prereservations = self.env['stock.prereservation'].search([('reserved', '=', False)])
+        confirmed_move_ids = prereservations.read(['move_id'], load=False)
+        move_ids = [cm['id'] for cm in confirmed_move_ids]
+        confirmed_moves = self.env['stock.move'].search([('id', 'in', move_ids)], limit=None,
+                                                        order='priority desc, date_expected asc, id')
         cm_product_ids = confirmed_moves.read(['id', 'product_id'], load=False)
 
         # Create a dict of moves with same product {product_id: [move_id, move_id], product_id: []}
@@ -168,8 +359,8 @@ class ProcurementOrder(models.Model):
         product_ids = result.values()
 
         while product_ids:
-            products = product_ids[:MOVE_CHUNK]
-            product_ids = product_ids[MOVE_CHUNK:]
+            products = product_ids[:PRODUCT_CHUNK]
+            product_ids = product_ids[PRODUCT_CHUNK:]
             move_ids = flatten(products)
             if self.env.context.get('jobify'):
                 assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', move_ids, self.env.context)
@@ -191,38 +382,81 @@ class StockPrereservation(models.Model):
         cr.execute("""
         CREATE OR REPLACE VIEW stock_prereservation AS (
             WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
-                    SELECT
-                        sl.id AS loc_id, sl.id AS top_parent_id
-                    FROM
-                        stock_location sl
-                        LEFT JOIN stock_location slp ON sl.location_id = slp.id
-                    WHERE
-                        sl.usage='internal'
-                UNION
-                    SELECT
-                        sl.id AS loc_id, tp.top_parent_id
-                    FROM
-                        stock_location sl, top_parent tp
-                    WHERE
-                        sl.usage='internal' AND sl.location_id=tp.loc_id
-            ), move_qties AS (
+                SELECT
+                    sl.id AS loc_id, sl.id AS top_parent_id
+                FROM
+                    stock_location sl
+                    LEFT JOIN stock_location slp ON sl.location_id = slp.id
+                WHERE
+                    sl.usage='internal'
+            UNION
+                SELECT
+                    sl.id AS loc_id, tp.top_parent_id
+                FROM
+                    stock_location sl, top_parent tp
+                WHERE
+                    sl.usage='internal' AND sl.location_id=tp.loc_id
+            ),
+
+            confirmed_moves_with_picking_type AS (
+                SELECT
+                    id,
+                    state,
+                    picking_id,
+                    location_id,
+                    product_id,
+                    product_qty,
+                    priority,
+                    date_expected
+                FROM stock_move
+                WHERE picking_type_id IS NOT NULL AND state='confirmed'
+            ),
+
+            moves_with_quants_reserved AS (
+                SELECT
+                    sm.id,
+                    sm.picking_type_id,
+                    sm.picking_id
+                FROM stock_move sm
+                INNER JOIN stock_quant sq ON sq.reservation_id=sm.id
+                GROUP BY sm.id
+            ),
+
+            move_qties_interm AS (
                 SELECT
                     sm.id AS move_id,
                     sm.picking_id,
                     sm.location_id,
                     sm.product_id,
                     sum(sm.product_qty) OVER (
-                        PARTITION BY sm.product_id, COALESCE(sm.picking_id, sm.location_id)
-                        ORDER BY priority DESC, date_expected
+                        PARTITION BY sm.product_id, sm.picking_id, sm.location_id
+                        ORDER BY sm.priority DESC, sm.date_expected, sm.id
                     ) - sm.product_qty AS qty
-                FROM
-                    stock_move sm
-                WHERE
-                    sm.state = 'confirmed'
-                    AND sm.picking_type_id IS NOT NULL
-                    AND sm.id NOT IN (
-                    SELECT reservation_id FROM stock_quant WHERE reservation_id IS NOT NULL)
+                FROM confirmed_moves_with_picking_type sm
+                LEFT JOIN stock_quant sq ON sq.reservation_id=sm.id
+                WHERE sq.id IS NULL
+            ),
+
+            not_reserved_quantities AS (
+                SELECT
+                    tp.top_parent_id AS location_id,
+                    sq.product_id,
+                    sum(sq.qty) AS qty
+                FROM stock_quant sq
+                LEFT JOIN top_parent tp ON tp.loc_id=sq.location_id
+                WHERE tp.top_parent_id IN (SELECT location_id FROM move_qties_interm) AND sq.reservation_id IS NULL
+                GROUP BY tp.top_parent_id, sq.product_id
+            ),
+
+            move_qties AS (
+                SELECT
+                    mqi.*,
+                    nrq.qty AS sum_qty
+                FROM move_qties_interm mqi
+                LEFT JOIN
+                  not_reserved_quantities nrq ON nrq.product_id=mqi.product_id AND nrq.location_id=mqi.location_id
             )
+
             SELECT
                 foo.move_id AS id,
                 foo.move_id,
@@ -234,11 +468,8 @@ class StockPrereservation(models.Model):
                         sm.picking_id AS picking_id,
                         TRUE AS reserved
                     FROM
-                        stock_move sm
-                    WHERE
-                        sm.id IN (
-                            SELECT sq.reservation_id FROM stock_quant sq WHERE sq.reservation_id IS NOT NULL)
-                        AND sm.picking_type_id IS NOT NULL
+                        moves_with_quants_reserved sm
+                    WHERE sm.picking_type_id IS NOT NULL
                 UNION ALL
                     SELECT DISTINCT
                         sm.id AS move_id,
@@ -258,20 +489,8 @@ class StockPrereservation(models.Model):
                         mq.move_id,
                         mq.picking_id,
                         FALSE AS reserved
-                    FROM
-                        move_qties mq
-                    WHERE
-                        mq.qty <= (
-                            SELECT
-                                sum(qty)
-                            FROM
-                                stock_quant sq
-                            WHERE
-                                sq.reservation_id IS NULL
-                                AND sq.location_id IN (
-                                    SELECT loc_id FROM top_parent WHERE top_parent_id=mq.location_id
-                                )
-                                AND sq.product_id = mq.product_id)
+                    FROM move_qties mq
+                    WHERE mq.qty <= mq.sum_qty
             ) foo
         )
         """)

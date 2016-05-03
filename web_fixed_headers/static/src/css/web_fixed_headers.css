@@ -83,6 +83,10 @@ table .oe_list_header_custom th.oe_sortable div::after {
     padding-bottom: 0px;
 }
 
+.oe_im {
+	z-index: 1000 !important;
+}
+
 /*table.fixed_headers tbody,
 table.fixed_headers thead,
 table.fixed_headers tfoot {

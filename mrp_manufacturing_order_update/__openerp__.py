@@ -31,8 +31,8 @@ This module allows to change manually the list of scheduled products, and to gen
 It also allows to update a manufacturing order after a modification of the BOM used. In this case, it does not take account of the possible changes in the list of scheduled products before the update.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-             'manufacturing_order_update.xml'],
+    'data': ['manufacturing_order_update.xml',
+             'cron.xml'],
     'demo': [
         'test_manufacturing_order_update.xml'
     ],

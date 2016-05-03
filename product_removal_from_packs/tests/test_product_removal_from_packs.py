@@ -86,12 +86,11 @@ class TestProductRemovalFromPacks(common.TransactionCase):
                                             [self.env['stock.quant.package'], self.env['stock.production.lot'], 15.0]])
 
         # Trying to consume more than available, losing a package
-        self.create_move_out_and_test(8.0, [[self.package2, self.env['stock.production.lot'], 8.0],
-                                            [self.package2, self.env['stock.production.lot'], 1.0],
-                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], 15.0]])
+        self.create_move_out_and_test(8.0, [[self.package2, self.env['stock.production.lot'], 9.0],
+                                            [self.env['stock.quant.package'], self.env['stock.production.lot'], 14.0]])
 
         # Again, no more package
-        self.create_move_out_and_test(10.0, [[self.env['stock.quant.package'], self.env['stock.production.lot'], 15.0]])
+        self.create_move_out_and_test(10.0, [[self.env['stock.quant.package'], self.env['stock.production.lot'], 13.0]])
 
     def create_inventory_and_test(self, list_lines_to_create, list_quants):
         inventaire = self.env['stock.inventory'].create({
@@ -102,17 +101,11 @@ class TestProductRemovalFromPacks(common.TransactionCase):
             'company_id': self.browse_ref('base.main_company').id})
         inventaire.prepare_inventory()
         for line_data in list_lines_to_create:
-            pack_id = False
-            if line_data[1]:
-                pack_id = line_data[1].id
-            lot_id = False
-            if line_data[2]:
-                lot_id = line_data[2].id
             self.env['stock.inventory.line'].create({
                 'inventory_id': inventaire.id,
                 'product_id': line_data[0].id,
-                'package_id': pack_id,
-                'prod_lot_id': lot_id,
+                'package_id': line_data[1] and line_data[1].id or False,
+                'prod_lot_id': line_data[2] and line_data[2].id or False,
                 'product_qty': line_data[3],
                 'product_uom_id': self.browse_ref('product.product_uom_unit').id,
                 'location_id': self.location1.id})

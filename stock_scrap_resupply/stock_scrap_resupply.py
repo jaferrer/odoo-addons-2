@@ -37,6 +37,9 @@ class StockMove(models.Model):
                     'product_qty': quantity,
                     'product_uos_qty': quantity * move.product_uos_qty / move.product_uom_qty,
                 })
-                self.env['procurement.order'].create(proc_vals)
+                new_proc = self.env['procurement.order'].create(proc_vals)
+                # We run the procurement immediately because when we scrap
+                # in real life we need to resupply immediately
+                new_proc.run()
 
         return res

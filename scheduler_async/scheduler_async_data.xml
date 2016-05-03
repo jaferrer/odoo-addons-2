@@ -7,8 +7,28 @@
             <field name="args"/>
         </record>
 
+        <record id="compute_orderpoints_auto" model="ir.cron">
+            <field name="name">Automatic computing of orderpoints</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall">2015-10-01 01:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">procurement.order</field>
+            <field name="function">run_compute_orderpoints</field>
+            <field name="args">()</field>
+        </record>
+
         <record model="queue.job.channel" id="root_confirm_procs">
             <field name="name">confprocs</field>
+            <field name="parent_id" ref="connector.channel_root"/>
+        </record>
+
+        <record model="queue.job.channel" id="root_asgn_moves">
+            <field name="name">asgnmoves</field>
             <field name="parent_id" ref="connector.channel_root"/>
         </record>
 

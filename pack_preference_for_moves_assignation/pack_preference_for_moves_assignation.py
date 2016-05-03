@@ -26,10 +26,10 @@ class PackPreferenceStockQuant(models.Model):
     @api.model
     def apply_removal_strategy(self, location, product, quantity, domain, removal_strategy):
         if removal_strategy == 'fifo':
-            order = 'in_date, package_id, lot_id'
+            order = 'in_date, package_id, lot_id, id'
             return self._quants_get_order(location, product, quantity, domain, order)
         elif removal_strategy == 'lifo':
-            order = 'in_date desc, package_id desc, lot_id desc'
+            order = 'in_date desc, package_id desc, lot_id desc, id desc'
             return self._quants_get_order(location, product, quantity, domain, order)
         else:
             super(PackPreferenceStockQuant, self).apply_removal_strategy()
