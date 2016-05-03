@@ -10,7 +10,7 @@
             	<xpath expr="//page[@string='Order Lines']/field[@name='order_line']/form[@string='Sales Order Lines']/group/group/field[@name='tax_id']" position="after">
                     <label for="date_planned"/>
                     <div>
-                        <field name="date_planned" widget="date" class="oe_inline"/>
+                        <field name="date_planned" widget="date" required="True" class="oe_inline"/>
                     </div>
                 </xpath>
                 <xpath expr="//form[@string='Sales Order Lines']//label[@for='delay']" position="attributes">
