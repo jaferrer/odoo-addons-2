@@ -258,7 +258,7 @@ class TestIncompleteProduction(common.TransactionCase):
         """Returning raw materials provided by several quants."""
 
         def create_service_move(move, qty):
-            return self.env['stock.move'].create({
+            new_move = self.env['stock.move'].create({
                 'name': "Service move for move %s" % move.name,
                 'product_id': move.product_id.id,
                 'product_uom_qty': qty,
@@ -266,7 +266,9 @@ class TestIncompleteProduction(common.TransactionCase):
                 'move_dest_id': move.id,
                 'location_id': self.browse_ref('stock.stock_location_suppliers').id,
                 'location_dest_id': move.location_id.id,
-            }).action_done()
+            })
+            new_move.action_assign()
+            new_move.action_done()
 
         mrp_production1, move1, move2, move3 = self.production_check()
         self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.product_to_manufacture1.id)]))
