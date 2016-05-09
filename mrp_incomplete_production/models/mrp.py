@@ -164,9 +164,10 @@ class IncompeteProductionMrpProduction(models.Model):
 
     @api.multi
     def action_assign(self):
-        super(IncompeteProductionMrpProduction, self).action_assign()
+        result = super(IncompeteProductionMrpProduction, self).action_assign()
         for order in self:
             for move in order.move_lines:
                 if move.state == 'assigned':
                     order.signal_workflow('moves_ready')
                     break
+        return result
