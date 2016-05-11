@@ -22,7 +22,6 @@ import logging
 import openerp.addons.decimal_precision as dp
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
-
 from openerp.tools import float_compare, float_round, flatten
 from openerp.tools.sql import drop_view_if_exists
 from openerp import fields, models, api, exceptions, _
@@ -116,7 +115,7 @@ class ProcurementOrderQuantity(models.Model):
         """
 
         ignore_move_ids = procurement.rule_id.action == 'move' and procurement.move_ids and \
-            procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
+                          procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
         return super(ProcurementOrderQuantity,
                      self.with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
 
@@ -127,7 +126,7 @@ class StockMoveJustInTime(models.Model):
     @api.multi
     def action_cancel(self):
         return super(StockMoveJustInTime, self.filtered(lambda move: move.id not in
-                                                        (self.env.context.get('ignore_move_ids') or []))).\
+                                                                     (self.env.context.get('ignore_move_ids') or []))). \
             action_cancel()
 
 
@@ -203,13 +202,20 @@ class StockWarehouseOrderPointJit(models.Model):
                 if stock_level and stock_level[0]['qty'] > op.get_max_qty(stock_date):
                     # We have too much of products: so we reschedule the procurement at end date
                     proc.date_planned = fields.Datetime.to_string(date_end + relativedelta(seconds=-1))
-                    proc.with_context(reschedule_planned_date=True).action_reschedule()
+                    proc.with_context(reschedule_planned_date=True,
+                                      do_not_propagate_rescheduling=True,
+                                      do_not_propagate=True,
+                                      mail_notrack=True).action_reschedule()
                     # Then we reschedule back to the next need if any
                     need = op.get_next_need()
                     if need and fields.Datetime.from_string(need['date']) < date_end:
                         # Our rescheduling ended in creating a need before our procurement, so we move it to this date
-                        proc.reschedule_for_need(need)
+                        proc.with_context(reschedule_planned_date=True,
+                                          do_not_propagate_rescheduling=True,
+                                          do_not_propagate=True,
+                                          mail_notrack=True).reschedule_for_need(need)
                     _logger.debug("Rescheduled procurement %s, new date: %s" % (proc, proc.date_planned))
+            procs.with_context(reschedule_planned_date=True).action_reschedule()
 
     @api.multi
     def create_from_need(self, need):
@@ -249,7 +255,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-            fields.Datetime.from_string(last_schedule[0].get('date')) or False
+              fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -282,7 +288,7 @@ class StockWarehouseOrderPointJit(models.Model):
         """Process this orderpoint."""
         for op in self:
             _logger.debug("Computing orderpoint %s (%s, %s, %s)" % (op.id, op.name, op.product_id.name,
-                                                                    op.location_id.name))
+                                                                    op.location_id.display_name))
             need = op.get_next_need()
             date_cursor = False
             while need:
