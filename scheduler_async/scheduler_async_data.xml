@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <data>
+    <data noupdate="1">
 
         <record model="ir.cron" id="procurement.ir_cron_scheduler_action">
             <field name="function">run_scheduler_async</field>
