@@ -40,10 +40,21 @@
             <field name="location_dest_id" ref="stock.stock_location_customers"/>
         </record>
 
-        <record model="stock.quant" id="quant">
-            <field name="product_id" ref="product"/>
-            <field name="qty" eval="30"/>
+        <record model="stock.location" id="stock_child">
+            <field name="name">Child location for Stock (Stock Reservation Priority)</field>
             <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <record model="stock.quant" id="quant1">
+            <field name="product_id" ref="product"/>
+            <field name="qty" eval="20"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <record model="stock.quant" id="quant2">
+            <field name="product_id" ref="product"/>
+            <field name="qty" eval="10"/>
+            <field name="location_id" ref="stock_child"/>
         </record>
 
     </data>
