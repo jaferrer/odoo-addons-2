@@ -30,7 +30,8 @@ class ProcurementOrderPurchasePlanningImproved(models.Model):
     def action_reschedule(self):
         """Reschedules the moves associated to this procurement."""
         for proc in self:
-            if proc.state not in ['done', 'cancel', 'exception'] and proc.rule_id and proc.rule_id.action == 'buy':
+            if proc.state not in ['done', 'cancel', 'exception'] and proc.rule_id and proc.rule_id.action == 'buy' and \
+                    not self.env.context.get('do_not_propagate_rescheduling'):
                 schedule_date = self._get_purchase_schedule_date(proc, proc.company_id)
                 order_date = self._get_purchase_order_date(proc, proc.company_id, schedule_date)
                 # We sudo because the user has not necessarily the rights to update PO and PO lines

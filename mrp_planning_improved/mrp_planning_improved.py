@@ -117,7 +117,7 @@ class ProcurementOrderPlanningImproved(models.Model):
         for proc in self:
             if proc.state not in ['done', 'cancel'] and proc.rule_id and proc.rule_id.action == 'manufacture':
                 production = proc.production_id
-                if production:
+                if production and not self.env.context.get('do_not_propagate_rescheduling'):
                     prod_start_date = self.env['procurement.order']._get_date_planned(proc)
                     prod_end_date = production.location_dest_id.schedule_working_days(
                         -proc.company_id.manufacturing_lead,

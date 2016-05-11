@@ -27,7 +27,7 @@ class stock_auto_move_move(models.Model):
 
     @api.multi
     def action_assign(self):
-        super(stock_auto_move_move, self).action_assign()
+        result = super(stock_auto_move_move, self).action_assign()
         # Transfer all pickings which have an auto move assigned
         moves = self.filtered(lambda m: m.state == 'assigned' and m.auto_move)
         picking_ids = {m.picking_id.id for m in moves}
@@ -49,6 +49,7 @@ class stock_auto_move_move(models.Model):
                 pickings_to_prepare_partial |= picking
         pickings_to_prepare_partial.do_prepare_partial()
         moves.action_done()
+        return result
 
 
 class stock_auto_move_procurement_rule(models.Model):

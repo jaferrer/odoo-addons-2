@@ -303,7 +303,7 @@ class StockMove(models.Model):
         """
         moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
         moves_no_pick.assign_to_picking()
-        super(StockMove, self).action_assign()
+        return super(StockMove, self).action_assign()
 
 
 class ProcurementRule(models.Model):
