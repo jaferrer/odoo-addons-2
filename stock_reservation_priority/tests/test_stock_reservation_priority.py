@@ -28,10 +28,11 @@ class TestStockPushPropagation(common.TransactionCase):
         self.move2 = self.browse_ref('stock_reservation_priority.move2')
         self.move3 = self.browse_ref('stock_reservation_priority.move3')
         self.stock = self.browse_ref('stock.stock_location_stock')
+        self.stock_child = self.browse_ref('stock_reservation_priority.stock_child')
         self.customers = self.browse_ref('stock.stock_location_customers')
         self.unit = self.browse_ref('product.product_uom_unit')
 
-    def create_move_and_test(self, move_priority, move_qty, move_date, dict1, dict2, dict3, dict4):
+    def create_move_and_test(self, move_priority, move_qty, move_date, dict1, dict2, dict3, dict4, location=False):
         self.move1.action_confirm()
         self.move2.action_confirm()
         self.move3.action_confirm()
@@ -48,7 +49,7 @@ class TestStockPushPropagation(common.TransactionCase):
             'product_uom_qty': move_qty,
             'date': move_date,
             'product_id': self.product.id,
-            'location_id': self.stock.id,
+            'location_id': location and location.id or self.stock.id,
             'location_dest_id': self.customers.id,
         })
         new_move.action_confirm()
@@ -320,3 +321,20 @@ class TestStockPushPropagation(common.TransactionCase):
                                   {'state': 'confirmed', 'reserved_qty': 0},
                                   {'state': 'assigned', 'reserved_qty': 15},
                                   {'state': 'confirmed', 'reserved_qty': 5})
+
+    # Testing assignation of an outgoing move of a child location
+
+    def test_38_stock_reservation_priority(self):
+        self.create_move_and_test('1', 7, '2016-02-20 12:00:00',
+                                  {'state': 'assigned', 'reserved_qty': 10},
+                                  {'state': 'confirmed', 'reserved_qty': 0},
+                                  {'state': 'confirmed', 'reserved_qty': 13},
+                                  {'state': 'assigned', 'reserved_qty': 7}, location=self.stock_child)
+
+    def test_39_stock_reservation_priority(self):
+        self.create_move_and_test('1', 12, '2016-02-20 12:00:00',
+                                  {'state': 'assigned', 'reserved_qty': 10},
+                                  {'state': 'confirmed', 'reserved_qty': 0},
+                                  {'state': 'confirmed', 'reserved_qty': 10},
+                                  {'state': 'confirmed', 'reserved_qty': 10}, location=self.stock_child)
+
