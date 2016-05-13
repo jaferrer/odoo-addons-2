@@ -34,7 +34,8 @@ class procurement_order_planning_improved(models.Model):
                 vals = {'date': fields.Datetime.to_string(newdate)}
                 if self.env.context.get('reschedule_planned_date'):
                     vals.update({'date_expected': fields.Datetime.to_string(newdate)})
-                proc.move_ids.write(vals)
+                proc.move_ids.filtered(lambda move: move.date != vals['date'] or
+                                                    move.date_expected != vals['date_expected']).write(vals)
 
 
 class stock_move_planning_improved(models.Model):
