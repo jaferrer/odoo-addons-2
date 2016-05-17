@@ -71,7 +71,8 @@ class IncompeteProductionMrpProduction(models.Model):
     @api.depends('location_dest_id')
     def _compute_warehouse_id(self):
         for rec in self:
-            rec.warehouse_id = rec.location_dest_id and rec.location_dest_id.get_warehouse(rec.location_dest_id)
+            warehouse_id = rec.location_dest_id and rec.sudo().location_dest_id.get_warehouse(rec.location_dest_id) or False
+            rec.warehouse_id = warehouse_id
 
     @api.model
     def _calculate_qty(self, production, product_qty=0.0):
@@ -164,9 +165,10 @@ class IncompeteProductionMrpProduction(models.Model):
 
     @api.multi
     def action_assign(self):
-        super(IncompeteProductionMrpProduction, self).action_assign()
+        result = super(IncompeteProductionMrpProduction, self).action_assign()
         for order in self:
             for move in order.move_lines:
                 if move.state == 'assigned':
                     order.signal_workflow('moves_ready')
                     break
+        return result

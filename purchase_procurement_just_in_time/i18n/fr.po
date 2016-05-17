@@ -306,6 +306,12 @@ msgid "Partial Reception"
 msgstr "Réception partielle"
 
 #. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:399
+#, python-format
+msgid "Your company does not have a warehouse"
+msgstr "Votre société n'a aucun entrepôt"
+
+#. module: purchase_procurement_just_in_time
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:318
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:332
 #, python-format

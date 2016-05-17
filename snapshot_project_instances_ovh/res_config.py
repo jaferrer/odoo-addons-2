@@ -31,6 +31,8 @@ class OvhParameters(models.TransientModel):
     app_secret = fields.Char(string="Application secret",
                              help="Extra informations at https://eu.api.ovh.com/createApp/")
     consumer_key = fields.Char(string="Consumer key")
+    min_hour_snapshot = fields.Integer(string="Minimum hour for snapshot (GMT)")
+    max_hour_snapshot = fields.Integer(string="Maximum hour for snapshot (GMT)")
 
     @api.multi
     def get_default_area(self):
@@ -64,6 +66,31 @@ class OvhParameters(models.TransientModel):
         config_parameters = self.env["ir.config_parameter"]
         for record in self:
             config_parameters.set_param("snapshot_project_instances_ovh.app_secret", record.app_secret or '')
+
+    @api.multi
+    def get_default_max_hour_snapshot(self):
+        max_hour_snapshot = self.env['ir.config_parameter'].get_param("snapshot_project_instances_ovh.max_hour_snapshot",
+                                                                 default=0)
+        return {'max_hour_snapshot': int(max_hour_snapshot)}
+
+    @api.multi
+    def set_max_hour_snapshot(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("snapshot_project_instances_ovh.max_hour_snapshot", record.max_hour_snapshot or '0')
+
+    @api.multi
+    def get_default_min_hour_snapshot(self):
+        min_hour_snapshot = self.env['ir.config_parameter']. \
+            get_param("snapshot_project_instances_ovh.min_hour_snapshot", default=0)
+        return {'min_hour_snapshot': int(min_hour_snapshot)}
+
+    @api.multi
+    def set_min_hour_snapshot(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("snapshot_project_instances_ovh.min_hour_snapshot",
+                                        record.min_hour_snapshot or '0')
 
     @api.multi
     def get_default_consumer_key(self):

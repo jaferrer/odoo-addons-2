@@ -34,7 +34,9 @@ class procurement_order_planning_improved(models.Model):
                 vals = {'date': fields.Datetime.to_string(newdate)}
                 if self.env.context.get('reschedule_planned_date'):
                     vals.update({'date_expected': fields.Datetime.to_string(newdate)})
-                proc.move_ids.write(vals)
+                proc.move_ids.filtered(lambda move: move.date != vals['date'] or
+                                                    (vals.get('date_expected') and
+                                                    move.date_expected != vals['date_expected'])).write(vals)
 
 
 class stock_move_planning_improved(models.Model):
@@ -66,7 +68,7 @@ class stock_move_planning_improved(models.Model):
                 # If the date is changed and moves are chained, propagate to the previous procurement if any
                 proc = self.env['procurement.order'].search([('move_dest_id','=',move.id),
                                                              ('state','not in',['done','cancel'])], limit=1)
-                if proc:
+                if proc and not self.env.context.get('do_not_propagate_rescheduling'):
                     proc.date_planned = vals.get('date')
                     proc.action_reschedule()
         return super(stock_move_planning_improved, self).write(vals)
