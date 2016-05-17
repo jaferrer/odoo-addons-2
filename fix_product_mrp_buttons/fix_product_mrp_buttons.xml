@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="fix_product_mrp_buttons_product_form">
+            <field name="name">fix_product_mrp_buttons_product_form</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="mrp.product_product_form_view_bom_button"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <button name="action_view_bom" position="attributes">
+                    <attribute name="groups">mrp_viewer.group_mrp_viewer</attribute>
+                </button>
+                <button name="%(mrp.act_product_mrp_production)d" position="attributes">
+                    <attribute name="groups">mrp_viewer.group_mrp_viewer</attribute>
+                </button>
+            </field>
+        </record>
+
+    </data>
+</openerp>

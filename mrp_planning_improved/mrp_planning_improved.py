@@ -124,7 +124,8 @@ class ProcurementOrderPlanningImproved(models.Model):
                         fields.Datetime.from_string(proc.date_planned)
                     )
                     # Updating the dates of the created moves of the corresponding manufacturing order
-                    production.move_created_ids.write({'date': prod_end_date})
+                    production.move_created_ids.filtered(lambda move: move.date != prod_end_date). \
+                        write({'date': prod_end_date})
                     # Updating the date_required of the corresponding manufacturing order
                     production.date_required = prod_start_date
                     # Updating the date_planned of the corresponding manufacturing order

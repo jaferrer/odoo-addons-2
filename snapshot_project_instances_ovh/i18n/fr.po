@@ -64,6 +64,16 @@ msgid "Consumer key"
 msgstr "Clé client"
 
 #. module: snapshot_project_instances_ovh
+#: field:ovh.parameters,min_hour_snapshot:0
+msgid "Minimum hour for snapshot (GMT)"
+msgstr "Heure min pour les snapshots (GMT)"
+
+#. module: snapshot_project_instances_ovh
+#: field:ovh.parameters,max_hour_snapshot:0
+msgid "Maximum hour for snapshot (GMT)"
+msgstr "Heure max pour les snapshots (GMT)"
+
+#. module: snapshot_project_instances_ovh
 #: field:ovh.instance,create_uid:0
 #: field:ovh.parameters,create_uid:0
 #: field:ovh.project,create_uid:0
@@ -109,14 +119,32 @@ msgstr "ID"
 
 #. module: snapshot_project_instances_ovh
 #: field:snapshot.request.line,instance_id:0
-msgid "Instance"
-msgstr "Instance"
+msgid "Instance ID"
+msgstr "ID de l'instance"
 
 #. module: snapshot_project_instances_ovh
-#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:47
+#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:44
 #, python-format
 msgid "Instance %s not found."
 msgstr "Instance %s non trouvée."
+
+#. module: snapshot_project_instances_ovh
+#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:46
+#, python-format
+msgid "Nothing to do."
+msgstr "Aucune action à effectuer."
+
+#. module: snapshot_project_instances_ovh
+#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:61
+#, python-format
+msgid "Snapshot request created for project %s on instance %s."
+msgstr "Snapshot demandé pour le projet %s sur l'instance %s."
+
+#. module: snapshot_project_instances_ovh
+#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:74
+#, python-format
+msgid "Deletion request created for snapshots %s"
+msgstr "Demande de suppression effectuée pour le(s) snapshot(s) %s"
 
 #. module: snapshot_project_instances_ovh
 #: field:ovh.instance,write_uid:0
@@ -160,12 +188,6 @@ msgid "Next snapshot date"
 msgstr "Date du prochain snapshot"
 
 #. module: snapshot_project_instances_ovh
-#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:133
-#, python-format
-msgid "No snapshot required."
-msgstr "Aucun snapshot demandé."
-
-#. module: snapshot_project_instances_ovh
 #: field:snapshot.request.line,nb_days_between_snapshots:0
 msgid "Number of days between two snapshots"
 msgstr "Nombre de jours entre deux snapshots"
@@ -197,8 +219,8 @@ msgstr "Projet %s non trouvé"
 
 #. module: snapshot_project_instances_ovh
 #: field:snapshot.request.line,project_id:0
-msgid "Project"
-msgstr "Projet"
+msgid "Project name"
+msgstr "Nom du projet"
 
 #. module: snapshot_project_instances_ovh
 #: view:ovh.parameters:snapshot_project_instances_ovh.ovh_parameters_form
@@ -210,12 +232,6 @@ msgstr "Sauvegarder"
 #: model:ir.ui.menu,name:snapshot_project_instances_ovh.menu_ovh_snapshot_project_instances
 msgid "Snapshot Project Instances"
 msgstr "Snapshot des instances de projets"
-
-#. module: snapshot_project_instances_ovh
-#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:80
-#, python-format
-msgid "Snapshot created for project %s on instance %s."
-msgstr "Snapshot créé pour le projet %s sur l'instance %s."
 
 #. module: snapshot_project_instances_ovh
 #: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:75
