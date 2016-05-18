@@ -21,6 +21,8 @@
                         <field name="app_key"/>
                         <field name="app_secret"/>
                         <field name="consumer_key"/>
+                        <field name="min_hour_snapshot"/>
+                        <field name="max_hour_snapshot"/>
                     </group>
                 </form>
             </field>

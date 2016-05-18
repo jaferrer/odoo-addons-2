@@ -35,6 +35,7 @@
             <field name="model">product.product</field>
             <field name="inherit_id" ref="product.product_normal_form_view"/>
             <field name="priority" eval="16"/>
+            <field name="groups_id" eval="[(6, 0, [ref('mrp.group_mrp_user')])]"/>
             <field name="arch" type="xml">
                 <xpath expr="//div[@name='buttons']" position="inside">
                     <button class="oe_stat_button"

@@ -18,15 +18,18 @@
 #
 
 from openerp import models, fields, api, exceptions, _
-from datetime import timedelta
-import time
+from datetime import timedelta, datetime as dt
 from ovh import Client, APIError
 from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
 from openerp.addons.connector.queue.job import job
 
 
 @job(default_channel='root')
-def snapshot(session, model_name, request_id, area, app_key, app_secret, consumer_key):
+def snapshot(session, model_name, request_id, area, app_key, app_secret, consumer_key, min_hour_snapshot, max_hour_snapshot):
+    hour = dt.now().hour
+    if hour < min_hour_snapshot or hour > max_hour_snapshot:
+        return _("Snapshot request aborted: forbidden to snapshot at %s h. "
+                 "Snapshot are allowed only between %s h and %s h (GMT)" % (hour, min_hour_snapshot, max_hour_snapshot))
     rec = session.pool[model_name].browse(session.cr, session.uid, request_id, session.context)
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
     with handler.session() as s:
@@ -40,11 +43,23 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
             instance = instance and instances[0].get('id') or False
             result = _("Instance %s not found.") % rec.instance_id.name
             if instance:
+                result = _("Nothing to do.")
                 snapshots = rec.project_id.name and client.get('/cloud/project/%s/snapshot' % rec.project_id.name) or []
                 for s in snapshots:
                     s['formated_date'] = s.get('creationDate') and \
                                          fields.Datetime.from_string(
                                              s['creationDate'][:10] + ' ' + s['creationDate'][11:19]) or False
+                max_snap_date = snapshots and max([snap['formated_date'] for snap in snapshots]) or False
+                max_snap_date = max_snap_date and fields.Datetime.to_string(max_snap_date)[:10] or False
+                if max_snap_date and max_snap_date > rec.next_snapshot_date:
+                    rec.last_snapshot_date = max_snap_date
+                    rec.update_next_snapshot_date()
+                if rec.next_snapshot_date <= fields.Date.today():
+                    client.post('/cloud/project/%s/instance/%s/snapshot' % (rec.project_id.name, instance),
+                                snapshotName=' - '.join([rec.project_id.name, rec.instance_id.name,
+                                                         fields.Datetime.now()]))
+                    return _("Snapshot request created for project %s on instance %s.") % \
+                           (rec.project_id.name, rec.instance_id.name)
                 if rec.nb_max_snapshots and len(snapshots) > rec.nb_max_snapshots - 1:
                     snapshots_to_delete = sorted(snapshots,key=lambda dictionnary: \
                         dictionnary.get('formated_date'))[:rec.nb_max_snapshots]
@@ -56,24 +71,8 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
                                 client.delete('/cloud/project/%s/snapshot/%s' % (rec.project_id.name, to_delete_id,))
                             except APIError:
                                 pass
-                        time.sleep(120)
-                        snapshots = rec.project_id.name and \
-                                    client.get('/cloud/project/%s/snapshot' % rec.project_id.name) or []
-                        not_deleted_id = []
-                        for to_delete_id in to_delete_ids:
-                            if [snapshot.get('id') for snapshot in snapshots] and \
-                                    to_delete_id in [snapshot.get('id') for snapshot in snapshots]:
-                                not_deleted_id += [to_delete_id]
-                        if not_deleted_id:
-                            raise exceptions.except_orm(_("Error!"),
-                                                        _("Snapshot deletion could not be checked for ids %s.") %
-                                                        ', '.join(not_deleted_id))
-                client.post('/cloud/project/%s/instance/%s/snapshot' % (rec.project_id.name, instance),
-                            snapshotName=' - '.join([rec.project_id.name, rec.instance_id.name, fields.Datetime.now()]))
-                rec.last_snapshot_date = fields.Date.today()
-                rec.update_next_snapshot_date()
-                result = _("Snapshot created for project %s on instance %s.") % \
-                         (rec.project_id.name, rec.instance_id.name)
+                        result = _("Deletion request created for snapshots %s" %
+                                    ', '.join([snap_id for snap_id in to_delete_ids]))
     return result
 
 
@@ -92,8 +91,8 @@ class OvhInstance(models.Model):
 class SnapshotRequestLine(models.Model):
     _name = 'snapshot.request.line'
 
-    project_id = fields.Many2one('ovh.project', string="Project", required=True)
-    instance_id = fields.Many2one('ovh.instance', string="Instance", required=True)
+    project_id = fields.Many2one('ovh.project', string="Project name", required=True)
+    instance_id = fields.Many2one('ovh.instance', string="Instance ID", required=True)
     nb_days_between_snapshots = fields.Integer(string="Number of days between two snapshots")
     nb_max_snapshots = fields.Integer(string="Maximal number of snapshots to keep")
     last_snapshot_date = fields.Date(string="Last snapshot date", readonly=True)
@@ -114,17 +113,17 @@ class SnapshotRequestLine(models.Model):
         app_key = self.env['ir.config_parameter'].get_param('snapshot_project_instances_ovh.app_key')
         app_secret = self.env['ir.config_parameter'].get_param('snapshot_project_instances_ovh.app_secret')
         consumer_key = self.env['ir.config_parameter'].get_param('snapshot_project_instances_ovh.consumer_key')
+        min_hour_snapshot = int(self.env['ir.config_parameter']. \
+            get_param('snapshot_project_instances_ovh.min_hour_snapshot') or 0)
+        max_hour_snapshot = int(self.env['ir.config_parameter']. \
+            get_param('snapshot_project_instances_ovh.max_hour_snapshot') or 0)
         self.update_next_snapshot_date()
         if area and app_key and app_secret and consumer_key:
-            requests = self.filtered(lambda req: req.next_snapshot_date <= fields.Date.today())
-            if requests:
-                for rec in requests:
-                    session = ConnectorSession(self.env.cr, self.env.user.id, self.env.context)
-                    description = _("Creation of snapshot for project %s on instance %s.") % \
-                                  (rec.project_id.name, rec.instance_id.name)
-                    snapshot.delay(session, 'snapshot.request.line', rec.id, area, app_key, app_secret, consumer_key,
-                                   description=description, priority=1)
-            else:
-                raise exceptions.except_orm(_("Error!"), _("No snapshot required."))
+            for rec in self:
+                session = ConnectorSession(self.env.cr, self.env.user.id, self.env.context)
+                description = _("Creation of snapshot for project %s on instance %s.") % \
+                              (rec.project_id.name, rec.instance_id.name)
+                snapshot.delay(session, 'snapshot.request.line', rec.id, area, app_key, app_secret, consumer_key,
+                               min_hour_snapshot, max_hour_snapshot, description=description, priority=1)
         else:
             raise exceptions.except_orm(_("Error!"), _("Please fill entirely the OVH hosting configuration."))
