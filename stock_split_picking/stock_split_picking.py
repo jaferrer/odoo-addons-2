@@ -69,7 +69,7 @@ class StockSplitOnlyTransferDetails(models.TransientModel):
 class StockSplitPicking(models.Model):
     _inherit = 'stock.picking'
 
-    packing_details_saved = fields.Boolean(string="Packing operations saved")
+    packing_details_saved = fields.Boolean(string="Packing operations saved", copy=False)
 
     @api.one
     def action_split_from_ui(self):

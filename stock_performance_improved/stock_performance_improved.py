@@ -70,9 +70,9 @@ WITH
                         GROUP BY sm.picking_id,
                             sm.location_id,
                             sm.product_id) sms
-                ON coalesce(sms.picking_id, -1) = coalesce(sm.picking_id, -1) AND sm.location_id = sms.location_id AND
+                ON COALESCE(sms.picking_id, -1) = COALESCE(sm.picking_id, -1) AND sm.location_id = sms.location_id AND
                    sm.product_id = sms.product_id
-        WHERE sm.picking_type_id IS NOT NULL AND sm.state = 'confirmed' AND NOT exists(
+        WHERE sm.picking_type_id IS NOT NULL AND sm.state = 'confirmed' AND NOT EXISTS(
             SELECT 1
             FROM stock_quant sq
             WHERE sq.reservation_id = sm.id
@@ -119,12 +119,25 @@ class StockPicking(models.Model):
     def assign_moves_to_picking(self):
         """Assign prereserved moves that do not belong to a picking yet to a picking.
         """
-        # We skip moves given in context not create infinite recursion
+        # We skip moves given in context not to create infinite recursion
         skip_move_ids = self.env.context.get('skip_moves', [])
         prereservations = self.env['stock.prereservation'].search([('picking_id', '=', False),
                                                                    ('move_id', 'not in', skip_move_ids)])
         todo_moves = prereservations.mapped(lambda p: p.move_id)
         todo_moves.assign_to_picking()
+
+    @api.model
+    def process_prereservations(self):
+        """Remove picking_id from confirmed moves (i.e. not assigned) that should be defered and that are bound to a
+        picking. Then call assign_moves_to_picking to get everything back in place.
+        """
+        # We skip moves given in context not create infinite recursion
+        skip_move_ids = self.env.context.get('skip_moves', [])
+        todo_moves = self.env['stock.move'].search(
+            [('picking_id', '!=', False), ('defer_picking_assign', '=', True), ('state', '=', 'confirmed')]
+        )
+        todo_moves.with_context(mail_notrack=True).write({'picking_id': False})
+        self.assign_moves_to_picking()
 
     @api.multi
     def action_assign(self):
@@ -217,11 +230,12 @@ class StockPicking(models.Model):
                                             _get_pickings_dates_priority, ['date_expected', 'picking_id'], 20)},
                                         type='datetime', string='Max. Expected Date', select=2,
                                         help="Scheduled time for the last part of the shipment to be processed"),
-        'group_id': osv.fields.related('move_lines', 'group_id', type='many2one', relation='procurement.group', string='Procurement Group', readonly=True,
-              store={
-                  'stock.picking': (lambda self, cr, uid, ids, ctx: ids, ['move_lines'], 10),
-                  'stock.move': (_get_pickings_group_id, ['group_id', 'picking_id'], 10),
-              }),
+        'group_id': osv.fields.related('move_lines', 'group_id', type='many2one', relation='procurement.group',
+                                       string='Procurement Group', readonly=True,
+                                       store={
+                                           'stock.picking': (lambda self, cr, uid, ids, ctx: ids, ['move_lines'], 10),
+                                           'stock.move': (_get_pickings_group_id, ['group_id', 'picking_id'], 10),
+                                       }),
     }
 
 
@@ -279,7 +293,7 @@ class StockMove(models.Model):
                 }
                 pick = self.env['stock.picking'].create(values)
                 pick_id = pick.id
-            return self.write({'picking_id': pick_id})
+            return self.with_context(mail_notrack=True).write({'picking_id': pick_id})
         else:
             return True
 
