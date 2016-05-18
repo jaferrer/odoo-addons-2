@@ -62,5 +62,20 @@
             <field name="args">([{'jobify': True}])</field>
         </record>
 
+        <record id="process_prereservations_auto" model="ir.cron">
+            <field name="name">Automatic processing/cleaning of stock prereservations</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active"/>
+            <field name="priority">5</field>
+            <field name="interval_number">30</field>
+            <field name="interval_type">minutes</field>
+            <field name="nextcall">2015-10-01 00:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">stock.picking</field>
+            <field name="function">process_prereservations</field>
+            <field name="args">()</field>
+        </record>
+
     </data>
 </openerp>

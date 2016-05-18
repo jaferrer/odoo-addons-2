@@ -31,6 +31,8 @@ class TestStockPerformanceImproved(common.TransactionCase):
         self.location_inv = self.browse_ref("stock.location_inventory")
         self.product_uom_unit_id = self.ref("product.product_uom_unit")
         self.picking_type_id = self.ref("stock.picking_type_internal")
+        # Call process_prereservations here to test it in all tests
+        self.env['stock.picking'].process_prereservations()
 
     def test_10_simple_moves(self):
         """Basic checks of picking assignment."""

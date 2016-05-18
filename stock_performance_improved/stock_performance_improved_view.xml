@@ -6,7 +6,7 @@
             <field name="name">Process Prereservations</field>
             <field name="model_id" ref="stock.model_stock_picking"/>
             <field name="code">
-self.assign_moves_to_picking(cr, uid, context)
+self.process_prereservations(cr, uid, context)
             </field>
         </record>
 
