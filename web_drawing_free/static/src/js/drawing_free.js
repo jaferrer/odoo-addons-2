@@ -85,7 +85,6 @@ odoo.define('web.fieldsketch', function (require) {
 	    	if (!self.get("effective_readonly")) {
 	    		if (self.options!=undefined) {
 	    			if(self.options.size!=undefined){
-	    				console.log(self.options);
 	    				self.$el.find('#'+this.canvas_id).width(self.options.size[0]);
 	    				self.$el.find('#'+this.canvas_id).height(self.options.size[1]);
 	    			}
@@ -138,6 +137,10 @@ odoo.define('web.fieldsketch', function (require) {
 		    			self.on_valid_sketch();
 		    		}
 		    	});
+		    	
+		    	this.$el.find('#'+this.canvas_id).on("touchend",function(){
+		    			self.on_valid_sketch();
+		    		});
 	    	} else {
 	    		this.on_cancel();
 	    	}
@@ -191,7 +194,6 @@ odoo.define('web.fieldsketch', function (require) {
 	            data.append('ufile',blob);
 	    	}
 	    	data.append('csrf_token',core.csrf_token);
-	    	
 	    	$.ajax({
 	            type: 'POST',
 	            url: this.fileupload_action || '/web/binary/upload',
