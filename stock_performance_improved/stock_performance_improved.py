@@ -160,6 +160,10 @@ class StockPicking(models.Model):
         self.assign_moves_to_picking()
         super(StockPicking, self).rereserve_pick()
 
+    @api.model
+    def rereserve_quants(self, picking, move_ids=[]):
+        super(StockPicking, self.with_context(mail_notrack=True)).rereserve_quants(picking, move_ids)
+
     @api.cr_uid_ids_context
     def get_min_max_date(self, cr, uid, ids, field_name, arg, context=None):
         """ Finds minimum and maximum dates for picking.
