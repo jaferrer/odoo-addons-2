@@ -92,6 +92,16 @@ msgid "<p>We did not sell you any purchase order</p>"
 msgstr "<p>Nous ne vous avons envoyé aucun devis</p>"
 
 #. module: portal_purchase
+#: model:ir.actions.act_window,help:portal_purchase.act_window_portal_purchase_orders_to_validate
+msgid "<p>Nothing to show</p>"
+msgstr "<p>Rien à afficher</p>"
+
+#. module: portal_purchase
+#: model:ir.actions.act_window,help:portal_purchase.act_window_portal_cancelled_purchase_orders
+msgid "<p>Nothing to show</p>"
+msgstr "<p>Rien à afficher</p>"
+
+#. module: portal_purchase
 #: model:ir.actions.act_window,name:portal_purchase.act_window_portal_draft_purchase_orders
 msgid "Draft quotation"
 msgstr "Devis brouillon"
@@ -100,6 +110,26 @@ msgstr "Devis brouillon"
 #: model:ir.ui.menu,name:portal_purchase.menu_portal_purchase_order_draft
 msgid "Draft quotations"
 msgstr "Devis brouillon"
+
+#. module: portal_purchase
+#: model:ir.actions.act_window,name:portal_purchase.act_window_portal_purchase_orders_to_validate
+msgid "Quotations waiting for validation"
+msgstr "Devis soumis en attente d'approbation"
+
+#. module: portal_purchase
+#: model:ir.ui.menu,name:portal_purchase.menu_portal_purchase_order_to_validate
+msgid "Quotations waiting for validation"
+msgstr "Devis soumis en attente d'approbation"
+
+#. module: portal_purchase
+#: model:ir.actions.act_window,name:portal_purchase.act_window_portal_cancelled_purchase_orders
+msgid "Cancelled orders"
+msgstr "Devis annulés"
+
+#. module: portal_purchase
+#: model:ir.ui.menu,name:portal_purchase.menu_portal_purchase_cancelled_order
+msgid "Cancelled orders"
+msgstr "Devis annulés"
 
 #. module: portal_purchase
 #: code:addons\portal_purchase\models\wizard.py:35
