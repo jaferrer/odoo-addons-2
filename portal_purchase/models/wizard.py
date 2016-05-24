@@ -56,7 +56,6 @@ class PortalPurchasePortalWizard(models.TransientModel):
         error_msg = self.get_error_messages()
         if error_msg:
             raise UserError( "\n\n".join(error_msg))
-        portal_purchase_group, portal_sale_group = self.get_purchase_sale_groups()
         for wizard_user in self.sudo().with_context(active_test=False):
             portal = wizard_user.wizard_id.portal_id
             list_groups = self.get_groups_to_add_or_remove(force_group=portal)
@@ -79,7 +78,7 @@ class PortalPurchasePortalWizard(models.TransientModel):
                 for group in list_groups:
                     if group not in wizard_user.user_id.groups_id:
                         wizard_user.user_id.write({'groups_id': [(4, group.id)]})
-                self.remove_useless_groups()
+                wizard_user.remove_useless_groups()
             else:
                 # remove the user (if it exists) from the portal group
                 if user and (portal in user.groups_id):
