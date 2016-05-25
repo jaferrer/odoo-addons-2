@@ -27,7 +27,7 @@ from openerp.addons.connector.queue.job import job
 @job(default_channel='root')
 def snapshot(session, model_name, request_id, area, app_key, app_secret, consumer_key, min_hour_snapshot, max_hour_snapshot):
     hour = dt.now().hour
-    if hour < min_hour_snapshot or hour > max_hour_snapshot:
+    if hour > min_hour_snapshot and hour < max_hour_snapshot:
         return _("Snapshot request aborted: forbidden to snapshot at %s h. "
                  "Snapshot are allowed only between %s h and %s h (GMT)" % (hour, min_hour_snapshot, max_hour_snapshot))
     rec = session.pool[model_name].browse(session.cr, session.uid, request_id, session.context)
