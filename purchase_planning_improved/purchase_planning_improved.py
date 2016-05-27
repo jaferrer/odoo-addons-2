@@ -30,17 +30,16 @@ class ProcurementOrderPurchasePlanningImproved(models.Model):
     def action_reschedule(self):
         """Reschedules the moves associated to this procurement."""
         for proc in self:
-            if proc.state not in ['done', 'cancel', 'exception'] and proc.rule_id and proc.rule_id.action == 'buy':
+            if proc.state not in ['done', 'cancel', 'exception'] and proc.rule_id and proc.rule_id.action == 'buy' and \
+                    not self.env.context.get('do_not_propagate_rescheduling'):
                 schedule_date = self._get_purchase_schedule_date(proc, proc.company_id)
                 order_date = self._get_purchase_order_date(proc, proc.company_id, schedule_date)
-                date_planned = proc.purchase_line_id.date_planned
-                if proc.purchase_id.state in ['draft', 'sent', 'bid']:
-                    # If the purchase line is not confirmed yet, try to set planned date to schedule_date
-                    if order_date > datetime.now():
-                        date_planned = fields.Date.to_string(schedule_date)
-                proc.purchase_line_id.write({
-                    'date_planned': date_planned,
-                })
+                # We sudo because the user has not necessarily the rights to update PO and PO lines
+                proc = proc.sudo()
+                # If the purchase line is not confirmed yet, try to set planned date to schedule_date
+                if proc.purchase_id.state in ['sent', 'bid'] and order_date > datetime.now() or \
+                                proc.purchase_id.state == 'draft':
+                    proc.purchase_line_id.date_planned = fields.Date.to_string(schedule_date)
                 if proc.purchase_id and fields.Datetime.from_string(proc.purchase_id.date_order) > order_date:
                     proc.purchase_id.date_order = fields.Datetime.to_string(order_date)
                 proc.purchase_line_id.set_moves_dates(proc.purchase_line_id.date_required)
@@ -78,7 +77,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     def set_moves_dates(self, date_required):
         for rec in self:
             moves = rec.move_ids.filtered(lambda m: m.state not in ['draft', 'cancel'])
-            moves.write({'date': date_required})
+            moves.filtered(lambda move: move.date != date_required).write({'date': date_required})
 
     @api.multi
     @api.depends('procurement_ids', 'procurement_ids.date_planned', 'date_planned')

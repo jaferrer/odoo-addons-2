@@ -70,14 +70,23 @@ class ManufacturingOrderPlanningImproved(models.Model):
         return move_id
 
     @api.multi
+    def get_date_expected_for_moves(self):
+        self.ensure_one()
+        days = self.product_id.produce_delay + 1
+        format_date_planned = fields.Datetime.from_string(self.date_planned)
+        date_expected = self.location_dest_id.schedule_working_days(days, format_date_planned)
+        return date_expected
+
+    @api.multi
     def write(self, vals):
         result = super(ManufacturingOrderPlanningImproved, self).write(vals)
         if vals.get('date_planned'):
             for rec in self:
                 # Add time if we get only date (e.g. if we have date widget on view)
-                date_planned = vals['date_planned'] + " 12:00:00" if len(vals['date_planned']) == 10 \
-                    else vals['date_planned']
-                rec.move_created_ids.write({'date_expected': date_planned})
+                if not rec.taken_into_account:
+                    date_expected = rec.get_date_expected_for_moves()
+                    if date_expected:
+                        rec.move_created_ids.write({'date_expected': fields.Datetime.to_string(date_expected)})
         return result
 
     @api.multi
@@ -108,14 +117,15 @@ class ProcurementOrderPlanningImproved(models.Model):
         for proc in self:
             if proc.state not in ['done', 'cancel'] and proc.rule_id and proc.rule_id.action == 'manufacture':
                 production = proc.production_id
-                if production:
+                if production and not self.env.context.get('do_not_propagate_rescheduling'):
                     prod_start_date = self.env['procurement.order']._get_date_planned(proc)
                     prod_end_date = production.location_dest_id.schedule_working_days(
                         -proc.company_id.manufacturing_lead,
                         fields.Datetime.from_string(proc.date_planned)
                     )
                     # Updating the dates of the created moves of the corresponding manufacturing order
-                    production.move_created_ids.write({'date': prod_end_date})
+                    production.move_created_ids.filtered(lambda move: move.date != prod_end_date). \
+                        write({'date': prod_end_date})
                     # Updating the date_required of the corresponding manufacturing order
                     production.date_required = prod_start_date
                     # Updating the date_planned of the corresponding manufacturing order

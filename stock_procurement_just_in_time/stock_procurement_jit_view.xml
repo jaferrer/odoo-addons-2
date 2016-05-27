@@ -2,26 +2,17 @@
 <openerp>
     <data>
 
-        <record model="ir.actions.act_window" id="act_window_stock_levels_report">
-            <field name="name">Stock Levels Report</field>
-            <field name="res_model">stock.levels.report</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">graph,tree</field>
-            <field name="domain">[]</field>
-            <field name="context">{}</field>
-        </record>
-
         <record model="ir.ui.view" id="stock_levels_report_tree">
             <field name="name">stock.levels.report.tree</field>
             <field name="model">stock.levels.report</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <tree edit="false" create="false">
-                    <field name="location_id"/>
+                    <field name="warehouse_id"/>
                     <field name="product_id"/>
                     <field name="date"/>
                     <field name="move_type"/>
-                    <field name="other_location_id"/>
+                    <field name="other_warehouse_id"/>
                     <field name="move_qty"/>
                     <field name="qty"/>
                 </tree>
@@ -34,15 +25,15 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <search>
-                    <field name="location_id"/>
+                    <field name="warehouse_id"/>
                     <field name="product_id"/>
                     <field name="product_categ_id"/>
                     <field name="date"/>
                     <group string="Group by...">
                         <filter name="group_product" string="Product" domain="[]"
                                 context="{'group_by': 'product_id'}"/>
-                        <filter name="group_location" string="Location" domain="[]"
-                                context="{'group_by': 'location_id'}"/>
+                        <filter name="group_warehouse" string="Warehouse" domain="[]"
+                                context="{'group_by': 'warehouse_id'}"/>
                         <filter name="group_category" string="Category" domain="[]"
                                 context="{'group_by': 'product_categ_id'}"/>
                     </group>
@@ -55,8 +46,7 @@
             <field name="model">stock.levels.report</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <graph type="pivot">
-                    <field name="location_id" type="row"/>
+                <graph type="bar">
                     <field name="date" interval="week" type="row"/>
                     <field name="move_qty" type="measure"/>
                     <field name="qty" type="measure"/>
@@ -72,10 +62,9 @@
             <field name="arch" type="xml">
                 <xpath expr="//div[@name='buttons']" position="inside">
                     <button class="oe_stat_button"
-                            name="%(act_window_stock_levels_report)d"
+                            name="action_show_evolution"
                             icon="fa-bar-chart"
-                            type="action"  attrs="{'invisible':[('type', '=', 'service')]}"
-                            context="{'default_product_id': active_id, 'search_default_product_id': active_id}">
+                            type="object"  attrs="{'invisible':[('type', '=', 'service')]}">
                         <div>Stock<br/>Evolution</div>
                     </button>
                 </xpath>

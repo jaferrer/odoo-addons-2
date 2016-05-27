@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+
+		 <record model="report.stylesheets" id="report_stylesheet_account_invoice">
+            <field name="name">stylesheet</field>
+            <field name="report_styles" type="base64" file="account_invoice_report_aeroo/stylesheet.odt"/>
+        </record>
+
+		<record id="account_invoice_report_aeroo" model="ir.actions.report.xml">
+			<field name="name">Invoices</field>
+			<field name="type">ir.actions.report.xml</field>
+			<field name="model">account.invoice</field>
+			<field name="report_name">invoice.report.aeroo</field>
+			<field name="auto" eval="True"/>
+			<field name="report_type">aeroo</field>
+			<field name="report_rml">account_invoice_report_aeroo/account_invoice_report.odt</field>
+			<field name="parser_state">default</field>
+			<field name="styles_mode">specified</field>
+            <field name="stylesheet_id" ref="report_stylesheet_account_invoice"/>
+            <field name="attachment">(object.state in ('open','paid')) and ('INV'+(object.number or '').replace('/','')+'.pdf')</field>
+			<field name="tml_source">file</field>
+			<field name="in_format">oo-odt</field>
+			<field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+		</record>
+
+		<record id="value_report_invoice_aeroo" model="ir.values">
+			<field name="name">invoice.report.aeroo</field>
+			<field name="key">action</field>
+			<field name="key2">client_print_multi</field>
+			<field name="model">account.invoice</field>
+			<field name="value" eval="'ir.actions.report.xml,'+str(ref('account_invoice_report_aeroo.account_invoice_report_aeroo'))"/>
+		</record>
+
+        <function model="account.invoice.delete.report" name="delete_report"/>
+
+		<record model="ir.ui.view" id="account_invoice_report_aeroo_res_company_form">
+			<field name="name">account_invoice_report_aeroo_res_company_form</field>
+			<field name="model">res.company</field>
+			<field name="inherit_id" ref="base.view_company_form"/>
+			<field name="priority" eval="16"/>
+			<field name="arch" type="xml">
+				<field name="company_registry" position="after">
+					<field name="capital_stock"/>
+				</field>
+			</field>
+		</record>
+
+		<record id="account.email_template_edi_invoice" model="email.template">
+			<field name="report_template" ref="account_invoice_report_aeroo"/>
+		</record>
+
+		<record model="ir.ui.view" id="account_invoice_form_improved">
+			<field name="name">account_invoice_form_improved</field>
+			<field name="model">account.invoice</field>
+			<field name="inherit_id" ref="account.invoice_form"/>
+			<field name="priority" eval="16"/>
+			<field name="arch" type="xml">
+				<field name="date_invoice" position="after">
+					<field name="paiement_mode_id" attrs="{'readonly': [('state', 'in', ['paid', 'cancel'])]}"/>
+				</field>
+			</field>
+		</record>
+
+		<record model="ir.ui.view" id="res_company_report_aeroo">
+			<field name="name">res_company_report_aeroo</field>
+			<field name="model">res.company</field>
+			<field name="inherit_id" ref="base.view_company_form"/>
+			<field name="priority" eval="16"/>
+			<field name="arch" type="xml">
+				<group string="Configuration" position="inside">
+					<field name="invoice_comment"/>
+				</group>
+			</field>
+		</record>
+
+		<record model="ir.ui.view" id="account_payment_term_report_aeroo">
+			<field name="name">account_payment_term_report_aeroo</field>
+			<field name="model">account.payment.term</field>
+			<field name="inherit_id" ref="account.view_payment_term_form"/>
+			<field name="priority" eval="16"/>
+			<field name="arch" type="xml">
+				<field name="note" position="after">
+					<label for="description_for_invoices_1"/>
+                    <field name="description_for_invoices_1"/>
+					<label for="description_for_invoices_2"/>
+                    <field name="description_for_invoices_2"/>
+				</field>
+			</field>
+		</record>
+
+	</data>
+</openerp>

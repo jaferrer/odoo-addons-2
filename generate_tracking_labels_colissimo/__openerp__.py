@@ -26,7 +26,7 @@
     'depends': ['base', 'base_setup', 'project'],
     'description': """
 Génération des étiquettes de suivi (colissimo)
-=============================================
+==============================================
 Ce module permet de générer des étiquettes d'envoi avec Colissimo.
 """,
     'website': 'http://www.ndp-systemes.fr',

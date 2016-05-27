@@ -69,7 +69,7 @@ class StockSplitOnlyTransferDetails(models.TransientModel):
 class StockSplitPicking(models.Model):
     _inherit = 'stock.picking'
 
-    packing_details_saved = fields.Boolean(string="Packing operations saved")
+    packing_details_saved = fields.Boolean(string="Packing operations saved", copy=False)
 
     @api.one
     def action_split_from_ui(self):
@@ -94,9 +94,15 @@ class StockSplitPicking(models.Model):
     @api.multi
     def rereserve_pick(self):
         pickings_not_saved = self.filtered(lambda p: not p.packing_details_saved)
-        pickings_saved = self.filtered(lambda p: p.packing_details_saved)
-        pickings_not_saved.recheck_availability()
-        return super(StockSplitPicking, pickings_saved).rereserve_pick()
+        picks_packops = {}
+        for picking in pickings_not_saved:
+            picks_packops[picking] = bool(picking.pack_operation_ids)
+            picking.delete_packops()
+        result = super(StockSplitPicking, pickings_not_saved).rereserve_pick()
+        for picking in pickings_not_saved:
+            if picks_packops[picking]:
+                picking.do_prepare_partial()
+        return result
 
 
 class SplitPickingStockQuantPackage(models.Model):

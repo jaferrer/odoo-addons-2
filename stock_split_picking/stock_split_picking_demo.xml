@@ -22,5 +22,12 @@
             <field name="picking_id" ref="test_picking"/>
         </record>
 
+        <record model="stock.quant" id="quant_test">
+            <field name="name">Test quant (Stock Split Picking)</field>
+            <field name="product_id" ref="product_test_stock_split_picking"/>
+            <field name="qty" eval="1000"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
     </data>
 </openerp>

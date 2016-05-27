@@ -15,7 +15,7 @@ class WebGraphExporter(http.Controller):
         data = base64.decodestring(data)
         options = simplejson.loads(pivot_options)
 
-        css = """
+        css = u"""
         .chartWrap {
   margin: 0;
   padding: 0;
@@ -780,21 +780,28 @@ Interactive Layer
 .nvd3 line.nv-guideline {
   stroke: #ccc;
 }
+
         """
-        contenthtml = u"""<html><head><head><body style="width:100%%;height:100%%;padding-right:10px;">
-            <div style="width:100%%;border:1px solid black;text-align:center;"><h2>""" + tools.ustr(title) + u"""</h2></div>
+        col = options["col"] and tools.ustr(','.join(options["col"])) or tools.ustr("")
+        filters = tools.ustr(','.join('[' + (','.join('(' + (','.join(str(li) for li in op)) + ')' if isinstance(
+            op, list) else str(op) for op in fil)) + ']' if isinstance(fil, list) else str(fil) for fil in options["filter"]))
+        row = options["row"] and tools.ustr(','.join(options["row"])) or tools.ustr("")
+
+        contenthtml = u"""<div style="width:100%%;height:100%%;padding-right:10px;">
+            <div style="width:100%%;border:1px solid black;text-align:center;"><h2>%s</h2></div>
             <div style="width:100%%;border:2px solid black;text-align:center;margin-top:10px;margin-bottom:20px;border-radius: 25px;background-color: #f1f1f1;">
-            <div><span style="font-weight:bold;">Filtres : </span>""" + tools.ustr(options["filter"]) + u"""</div>
-            <div><span style="font-weight:bold;">Colonnes : </span>""" + tools.ustr(options["col"]) + u"""</div>
-            <div><span style="font-weight:bold;">Lignes : </span>""" + tools.ustr(options["row"]) + u"""</div>
+            <div><span style="font-weight:bold;">Filtres : </span>%s</div>
+            <div><span style="font-weight:bold;">Colonnes : </span>%s</div>
+            <div><span style="font-weight:bold;">Lignes : </span>%s</div>
             </div>
             %s
             <div style="width:100%%;border:1px solid black;text-align:center;margin-top:20px;">
-            <h4>""" + tools.ustr(datetime.now()) + u"""</h4>
+            <h4>%s</h4>
             </div>
-            </body></html>"""
+            </div>"""
 
-        contenthtml = contenthtml % tools.ustr(data)
+        contenthtml = contenthtml % (tools.ustr(title), filters, col, row, tools.ustr(
+            data), tools.ustr(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
         base_url = request.env["ir.config_parameter"].get_param(
             'report.url') or request.env["ir.config_parameter"].get_param('web.base.url')
@@ -810,6 +817,11 @@ Interactive Layer
         paperformat.margin_left = 5
         paperformat.margin_right = 5
         spec_paperformat_args = {}
+
+        index = node.find('</head>')
+
+        node = (tools.ustr(
+            node[:index]) + u"""<meta http-equiv="content-type" content="text/html; charset=UTF-8"/>""" + tools.ustr(node[index:])).encode("utf-8")
 
         content = request.env["report"]._run_wkhtmltopdf(
             None, None, [(0, node)], True, paperformat, spec_paperformat_args=spec_paperformat_args, save_in_attachment={})

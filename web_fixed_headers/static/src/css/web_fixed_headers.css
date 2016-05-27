@@ -4,6 +4,11 @@ table .fixed_headers {
     display:block;
 }
 
+table .oe_list_header_custom {
+	position:relative;
+	z-index:1000;
+}
+
 table .oe_list_header_custom > thead {
     background: #eee none repeat scroll 0 0;
     border-bottom: 2px solid #cacaca;
@@ -48,6 +53,39 @@ table .oe_list_header_custom th.oe_sortable div::after {
     visibility: hidden;
 }
 
+.openerp .oe_dropdown_menu {
+	z-index:99999 !important;
+}
+
+.openerp .oe_searchview .oe-autocomplete {
+	z-index:99999 !important;
+}
+
+.openerp .oe_collapse_invisibility {
+	border-bottom:none !important;
+}
+
+.openerp .oe_collapse_invisibility div, .openerp .oe_collapse_invisibility input{
+	height: 0px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    line-height: 0px;
+}
+
+.openerp .oe_collapse_invisibility input{
+	position: absolute;
+}
+
+.openerp .oe_collapse_invisibility th{
+	padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.oe_im {
+	z-index: 1000 !important;
+}
 
 /*table.fixed_headers tbody,
 table.fixed_headers thead,

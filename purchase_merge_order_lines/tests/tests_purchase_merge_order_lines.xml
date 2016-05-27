@@ -12,7 +12,7 @@
             <field name="order_group_period" ref="purchase_group_by_period.day"/>
         </record>
 
-        <record model="product.supplierinfo" id="supploierinfo">
+        <record model="product.supplierinfo" id="supplierinfo">
             <field name="product_tmpl_id" ref="test_product_product_template"/>
             <field name="name" ref="supplier"/>
             <field name="min_qty" eval="100"/>

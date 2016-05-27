@@ -18,15 +18,16 @@
 #
 
 from datetime import datetime
-from openerp import fields, models, api
+from openerp import fields, models, api, exceptions, _
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 
 class IncompleteProductionProductLine(models.Model):
     _inherit = 'mrp.production.product.line'
 
-    parent_production_id = fields.Many2one('mrp.production',
-                string="This Manufacturing Order has generated a child with this move as raw material", readonly=True)
+    parent_production_id = fields.Many2one('mrp.production', readonly=True,
+                                           string="This Manufacturing Order has generated a child with this move "
+                                                  "as raw material")
 
 
 class IncompeteProductionMrpProduction(models.Model):
@@ -34,27 +35,44 @@ class IncompeteProductionMrpProduction(models.Model):
 
     backorder_id = fields.Many2one('mrp.production', string="Parent Manufacturing Order", readonly=True)
     child_location_id = fields.Many2one('stock.location', string="Children Location",
-        help="If this field is empty, potential children of this Manufacturing Order will have the same source and "
-             "destination locations as their parent. If it is filled, the children will have this location as source "
-             "and destination locations.")
+                                        help="If this field is empty, potential children of this Manufacturing Order "
+                                             "will have the same source and destination locations as their parent. If "
+                                             "it is filled, the children will have this location as source "
+                                             "and destination locations.")
     child_order_id = fields.Many2one('mrp.production', string="Child Manufacturing Order",
                                      compute="_get_child_order_id", readonly=True, store=False)
     child_move_ids = fields.One2many('mrp.production.product.line', 'parent_production_id',
                                      string="Not consumed products", readonly=True)
     left_products = fields.Boolean(string="True if child_move_ids is not empty", compute="_get_child_moves",
                                    readonly=True, store=False)
+    warehouse_id = fields.Many2one('stock.warehouse', string="Warehouse", compute='_compute_warehouse_id', store=True)
 
-    @api.one
+    @api.multi
     def _get_child_order_id(self):
-        child_order_id = False
-        list_ids = self.env['mrp.production'].search([('backorder_id', '=', self.id)])
-        if len(list_ids) >= 1:
-            child_order_id = list_ids[0]
-        self.child_order_id = child_order_id
+        for rec in self:
+            child_order_id = False
+            list_ids = self.env['mrp.production'].search([('backorder_id', '=', rec.id)])
+            if len(list_ids) >= 1:
+                child_order_id = list_ids[0]
+            rec.child_order_id = child_order_id
 
-    @api.one
+    @api.multi
     def _get_child_moves(self):
-        self.left_products = bool(self.child_move_ids)
+        for rec in self:
+            rec.left_products = bool(rec.child_move_ids)
+
+    @api.multi
+    @api.depends('location_dest_id')
+    def _compute_warehouse_id(self):
+        for rec in self:
+            rec.warehouse_id = rec.location_dest_id and rec.location_dest_id.get_warehouse(rec.location_dest_id)
+
+    @api.multi
+    @api.depends('location_dest_id')
+    def _compute_warehouse_id(self):
+        for rec in self:
+            warehouse_id = rec.location_dest_id and rec.sudo().location_dest_id.get_warehouse(rec.location_dest_id) or False
+            rec.warehouse_id = warehouse_id
 
     @api.model
     def _calculate_qty(self, production, product_qty=0.0):
@@ -103,13 +121,11 @@ class IncompeteProductionMrpProduction(models.Model):
     @api.model
     def action_produce(self, production_id, production_qty, production_mode, wiz=False):
         production = self.browse(production_id)
-        list_cancelled_moves1 = [m for m in production.move_lines2]
-        result = super(IncompeteProductionMrpProduction, self.with_context(cancel_procurement=True)).\
-            action_produce(production_id,production_qty, production_mode, wiz=wiz)
-        list_cancelled_moves = []
-        for move in production.move_lines2:
-            if move.state == 'cancel' and move not in list_cancelled_moves1:
-                list_cancelled_moves += [move]
+        list_cancelled_moves_1 = production.move_lines2
+        result = super(IncompeteProductionMrpProduction, self.with_context(cancel_procurement=True)). \
+            action_produce(production_id, production_qty, production_mode, wiz=wiz)
+        list_cancelled_moves = production.move_lines2. \
+            filtered(lambda move: move.state == 'cancel' and move not in list_cancelled_moves_1)
         if len(list_cancelled_moves) != 0 and wiz.create_child:
             production_data = production._get_child_order_data(wiz)
             production.action_production_end()
@@ -122,11 +138,22 @@ class IncompeteProductionMrpProduction(models.Model):
                 new_production.product_lines = new_production.product_lines + new_production_line
             new_production.signal_workflow('button_confirm')
         if len(list_cancelled_moves) != 0 and wiz.return_raw_materials and wiz.return_location_id:
+            picking_to_change_origin = self.env['stock.picking']
+            quants_to_return = self.env['stock.quant']
             for move in list_cancelled_moves:
-                quants_to_return = self.env['stock.quant'].search([('location_id', '=', move.location_id.id)]).\
+                quants_to_return |= self.env['stock.quant'].search([('location_id', '=', move.location_id.id),
+                                                                    ('product_id', '=', move.product_id.id)]). \
                     filtered(lambda q: any([m.move_dest_id.raw_material_production_id == \
                                             move.raw_material_production_id for m in q.history_ids]))
-                quants_to_return.move_to(dest_location=wiz.return_location_id, picking_type_id=move.get_return_picking_id())
+            return_picking_type = self.env.context.get('force_return_picking_type') or \
+                                  move.get_return_picking_id()
+            if not return_picking_type:
+                raise exceptions.except_orm(_("Error!"), _("Impossible to determine return picking type"))
+            return_moves = quants_to_return.move_to(dest_location=wiz.return_location_id,
+                                                    picking_type_id=return_picking_type)
+            for item in return_moves:
+                picking_to_change_origin |= item.picking_id
+            picking_to_change_origin.write({'origin': production.name})
         return result
 
     @api.multi
@@ -138,9 +165,10 @@ class IncompeteProductionMrpProduction(models.Model):
 
     @api.multi
     def action_assign(self):
-        super(IncompeteProductionMrpProduction, self).action_assign()
+        result = super(IncompeteProductionMrpProduction, self).action_assign()
         for order in self:
             for move in order.move_lines:
                 if move.state == 'assigned':
                     order.signal_workflow('moves_ready')
                     break
+        return result

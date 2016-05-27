@@ -42,7 +42,7 @@ This module gives two possibilities to deplace quants. In one hand, you can do i
     "data": [
         "wizard/quant_move_wizard_view.xml",
         "wizard/quant_packages_move_wizard_view.xml",
-        "models/stock_move.xml",
+        "views/stock.xml"
     ],
     "installable": True,
 }

@@ -32,7 +32,7 @@ class StockQuantMove(models.TransientModel):
     global_dest_loc = fields.Many2one(
         comodel_name='stock.location', string='Destination Location',
         required=True)
-    
+
     is_manual_op = fields.Boolean(string=u"Manual Operation")
 
     picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type', required=True)
@@ -46,7 +46,9 @@ class StockQuantMove(models.TransientModel):
         quant_obj = self.pool['stock.quant']
         quants = quant_obj.browse(cr, uid, quants_ids, context=context)
         items = []
+        loc = False
         for quant in quants:
+            loc = quant.location_id
             if not quant.package_id:
                 item = {
                     'quant': quant.id,
@@ -54,6 +56,11 @@ class StockQuantMove(models.TransientModel):
                     'qty': quant.qty
                 }
                 items.append(item)
+        if loc:
+            warehouses = self.pool['stock.warehouse'].browse(
+                cr, uid, self.pool['stock.location'].get_warehouse(cr, uid, loc, context=context), context=context)
+            if warehouses:
+                res.update(picking_type_id=warehouses[0].picking_type_id.id)
         res.update(pack_move_items=items)
         return res
 
@@ -64,17 +71,17 @@ class StockQuantMove(models.TransientModel):
         qty_items = {}
         for item in self.pack_move_items:
             qty_items[item.quant.id] = item
-        result = quants.move_to(self.global_dest_loc, self.picking_type_id, qty_items,self.is_manual_op)
+        result = quants.move_to(self.global_dest_loc, self.picking_type_id, qty_items, self.is_manual_op)
         if self.is_manual_op:
             return {
-                    'name': 'picking_form',
-                    'type': 'ir.actions.act_window',
-                    'view_type': 'form',
-                    'view_mode': 'form',
-                    'res_model': 'stock.picking',
-                    'res_id': result[0].picking_id.id
-                }
-        else :
+                'name': 'picking_form',
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'stock.picking',
+                'res_id': result[0].picking_id.id
+            }
+        else:
             return result
 
 
@@ -91,7 +98,7 @@ class StockQuantMoveItems(models.TransientModel):
         comodel_name='stock.location', string='Source Location', required=True)
     dest_loc = fields.Many2one(
         comodel_name='stock.location', string='Destination Location')
-    
+
     qty = fields.Float(string='Quantity', required=True)
 
     @api.one

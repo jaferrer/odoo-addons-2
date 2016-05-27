@@ -30,11 +30,13 @@ class procurement_order_planning_improved(models.Model):
             if proc.state not in ['done', 'cancel'] and proc.rule_id and proc.rule_id.action == 'move':
                 location = proc.location_id or proc.warehouse_id.location_id
                 proc_date = fields.Datetime.from_string(proc.date_planned)
-                newdate = location.schedule_working_days(-proc.rule_id.delay or 0, proc_date)
+                newdate = location.schedule_working_days(-proc.rule_id.delay or 0, proc_date, proc.rule_id.days_of_week)
                 vals = {'date': fields.Datetime.to_string(newdate)}
                 if self.env.context.get('reschedule_planned_date'):
                     vals.update({'date_expected': fields.Datetime.to_string(newdate)})
-                proc.move_ids.write(vals)
+                proc.move_ids.filtered(lambda move: move.date != vals['date'] or
+                                                    (vals.get('date_expected') and
+                                                    move.date_expected != vals['date_expected'])).write(vals)
 
 
 class stock_move_planning_improved(models.Model):
@@ -66,7 +68,7 @@ class stock_move_planning_improved(models.Model):
                 # If the date is changed and moves are chained, propagate to the previous procurement if any
                 proc = self.env['procurement.order'].search([('move_dest_id','=',move.id),
                                                              ('state','not in',['done','cancel'])], limit=1)
-                if proc:
+                if proc and not self.env.context.get('do_not_propagate_rescheduling'):
                     proc.date_planned = vals.get('date')
                     proc.action_reschedule()
         return super(stock_move_planning_improved, self).write(vals)
@@ -75,12 +77,11 @@ class stock_move_planning_improved(models.Model):
 class stock_picking_planning_improved(models.Model):
     _inherit = 'stock.picking'
 
-    date_due = fields.Datetime("Due Date", compute="_compute_date_due", store=True,
-                               help="Date before which the first moves of this picking must be made so as not to be "
-                                    "late on schedule.")
+    date_due = fields.Datetime("Due Date", help="Date before which the first moves of this picking must be made so as "
+                                                "not to be late on schedule.")
 
-    @api.depends('move_lines.date')
-    def _compute_date_due(self):
+    @api.multi
+    def compute_date_due(self):
         if not self.ids:
             return
         cr = self.env.cr
@@ -96,3 +97,8 @@ class stock_picking_planning_improved(models.Model):
         dates = dict(cr.fetchall())
         for picking in self:
             picking.date_due = dates.get(picking.id, False)
+
+    @api.model
+    def compute_date_due_auto(self):
+        pickings = self.search([('state', 'not in', ['cancel', 'done'])])
+        pickings.compute_date_due()

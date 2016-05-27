@@ -21,11 +21,16 @@ from openerp import models, api, fields, _
 import logging
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSessionHandler, ConnectorSession
+from openerp.addons.scheduler_async import scheduler_async
+
+PURCHASE_CHUNK = 10
+
+run_or_check_procurements = scheduler_async.run_or_check_procurements
 
 _logger = logging.getLogger(__name__)
 
 
-@job
+@job(default_channel='root.posweeper')
 def job_purchase_order_sweeper(session, model_name, ids):
     model_instance = session.pool[model_name]
     model_instance.sweep(session.cr, session.uid, ids, context=session.context)
@@ -39,6 +44,10 @@ class PurchaseOrderSweeper(models.TransientModel):
     def launch_job_purchase_order_sweeper(self):
         self.env['purchase.order'].chunk_sweep()
 
+    @api.model
+    def launch_job_purchase_order_sweeper_model(self):
+        self.env['purchase.order.sweeper'].create({}).launch_job_purchase_order_sweeper()
+
 
 class SweeperPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
@@ -48,18 +57,28 @@ class SweeperPurchaseOrder(models.Model):
         orders = self.env['purchase.order'].search([('state', '=', 'draft')])
         session = ConnectorSession.from_env(self.env)
         while orders:
-            chunk_orders = orders[:100]
-            orders = orders[100:]
+            chunk_orders = orders[:PURCHASE_CHUNK]
+            orders = orders[PURCHASE_CHUNK:]
             description = _('Chunk of %s purchase orders to sweep') % len(chunk_orders)
-            job_purchase_order_sweeper.delay(session, 'purchase.order', chunk_orders.ids, description=description, priority=1)
+            job_purchase_order_sweeper.delay(session, 'purchase.order', chunk_orders.ids, description=description,
+                                             priority=1)
 
     @api.multi
     def sweep(self):
         _logger.info(_("<<< Started chunk of %s purchase orders to sweep") % len(self))
+        line_to_delete = self.env['purchase.order.line']
+        procs_to_run = self.env['procurement.order']
         for order in self:
             for line in order.order_line:
-                if line.procurement_ids:
-                    line.unlink()
-        self.env['procurement.order'].search([('state', '=', 'exception')]).run()
+                # Clean line
+                if line.procurement_ids and line.state == 'draft':
+                    line_to_delete |= line
+                    procs_to_run |= line.procurement_ids
+        line_to_delete.unlink()
+        # Rerun procurements
+        dom = [('id', 'in', procs_to_run.ids)]
+        run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                                        'run', self.env.context)
+        # Now delete empty purchase orders
         self.env['purchase.order'].search([('state', '=', 'draft'), ('order_line', '=', False)]).unlink()
         _logger.info(_(">>> End of chunk"))

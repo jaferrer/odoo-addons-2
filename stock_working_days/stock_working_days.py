@@ -128,6 +128,7 @@ class res_company_with_calendar(models.Model):
 class stock_warehouse_with_calendar(models.Model):
     _inherit = "stock.warehouse"
 
+    view_location_id = fields.Many2one('stock.location', index=True)
     resource_id = fields.Many2one("resource.resource", "Warehouse resource",
                                   help="The resource is used to define the working days of the warehouse. If undefined "
                                        "the system will fall back to the default company calendar.")
@@ -142,23 +143,31 @@ class stock_working_days_location(models.Model):
             Returns warehouse id of warehouse that contains location
             :param location: browse record (stock.location)
 
-            Overridden here to have an implementation that checks at all levels of location tree.
+            overridden here for improved performance
         """
-        wh_views = {w.view_location_id.id: w for w in self.env['stock.warehouse'].search([])}
-        loc = location
-        while loc:
-            if loc.id in wh_views.keys():
-                return wh_views[loc.id].id
-            loc = loc.location_id
-        return False
+        query = """
+            SELECT swh.id
+            FROM
+                stock_warehouse swh
+                LEFT JOIN stock_location sl ON swh.view_location_id = sl.id
+            WHERE
+                sl.parent_left <= %s AND sl.parent_right >= %s
+            ORDER BY swh.id
+            LIMIT 1
+        """
+        self.env.cr.execute(query, (location.parent_left, location.parent_left))
+        whs = self.env.cr.fetchone()
+        return whs and whs[0] or False
 
     @api.multi
-    def schedule_working_days(self, nb_days, day_date):
+    def schedule_working_days(self, nb_days, day_date, days_of_week=False):
         """Returns the date that is nb_days working days after day_date in the context of the current location.
 
         :param nb_days: int: The number of working days to add to day_date. If nb_days is negative, counting is done
                              backwards.
         :param day_date: datetime: The starting date for the scheduling calculation.
+        :param days_of_week: a recorset of resource.day_of_week on which the returned date must be. If it is not, it
+        will increase abs(nb_days) until it does if nb_days.
         :return: The scheduled date nb_days after (or before) day_date.
         :rtype : datetime
         """
@@ -179,6 +188,22 @@ class stock_working_days_location(models.Model):
                                                   compute_leaves=True)
         if isinstance(newdate, (list, tuple)):
             newdate = newdate[0]
+
+        # Check if this is to be done only on some days of the week
+        if days_of_week:
+            day_codes = [d.code for d in days_of_week]
+            if len(day_codes) != 0:
+                dates = []
+                for dow in day_codes:
+                    if newdate + relativedelta(weekday=weekdays[dow]) == newdate:
+                        dates=[newdate]
+                        break
+                    if nb_days > 0:
+                        dates.append(newdate + relativedelta(weekday=weekdays[dow]))
+                    else:
+                        dates.append(newdate + relativedelta(weekday=weekdays[dow](-1)))
+                newdate = max(dates)
+
         return newdate
 
 
@@ -213,17 +238,9 @@ class procurement_working_days(models.Model):
         vals = super(procurement_working_days, self)._run_move_create(procurement)
         proc_date = datetime.strptime(procurement.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
         location = procurement.location_id or procurement.warehouse_id.view_location_id
-        newdate = location.schedule_working_days(-procurement.rule_id.delay or 0, proc_date)
-        # Check if this is to be done only on some days of the week
-        day_codes = [d.code for d in procurement.rule_id.days_of_week]
-        if len(day_codes) != 0:
-            dates = []
-            for dow in day_codes:
-                if newdate + relativedelta(weekday=weekdays[dow]) == newdate:
-                    dates=[newdate]
-                    break
-                dates.append(newdate + relativedelta(weekday=weekdays[dow](-1)))
-            newdate = max(dates)
+        newdate = location.schedule_working_days(-procurement.rule_id.delay or 0,
+                                                 proc_date,
+                                                 procurement.rule_id.days_of_week)
         if newdate:
             vals.update({'date': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                          'date_expected': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT)})

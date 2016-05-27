@@ -41,13 +41,12 @@
 
         <record id="stock_location_transfer" model="stock.location">
             <field name="name">Transfer location</field>
-            <field name="location_id" ref="stock_location_stock"/>
             <field name="active">1</field>
             <field name="usage">internal</field>
         </record>
 
         <!-- ### Needs ### -->
-        <record id="need_in_bin_1" model="stock.move">
+        <record id="need_in_bin_1_1" model="stock.move">
             <field name="name">Need in bin 1</field>
             <field name="picking_id"/>
             <field name="product_id" ref="product.product_product_6"/>
@@ -59,7 +58,7 @@
             <field name="priority">1</field>
         </record>
 
-        <record id="need_in_bin_2" model="stock.move">
+        <record id="need_in_bin_2_1" model="stock.move">
             <field name="name">Need in bin 2</field>
             <field name="picking_id"/>
             <field name="product_id" ref="product.product_product_6"/>
@@ -83,7 +82,7 @@
             <field name="priority">1</field>
         </record>
 
-        <record id="need_in_bin_1_u" model="stock.move">
+        <record id="need_in_bin_1_2" model="stock.move">
             <field name="name">Need in bin 1 (urgent)</field>
             <field name="picking_id"/>
             <field name="product_id" ref="product.product_product_6"/>

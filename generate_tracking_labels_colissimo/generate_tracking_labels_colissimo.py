@@ -20,6 +20,7 @@
 from openerp import models, api, fields, exceptions, _
 from urllib2 import urlopen
 import requests
+from openerp.tools import ustr
 
 
 class GenerateTrackingLabelsWizard(models.TransientModel):
@@ -59,7 +60,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     serviceInfo = fields.Char(string=u"Nom du service de réception retour",
                               help=u"Pour les colissimo retours uniquement")
     instructions = fields.Char(string=u"Motif du retour")
-    weight = fields.Float(string=u"Poids du colis", required=True)
+    weight = fields.Float(string=u"Poids du colis", required=True, help=u"En kg")
     outputPrintingType = fields.Selection([('PDF_10x15_300dpi', "10X15 300 DPI"),
                                            ('PDF_A4_300dpi', "A4 300 DPI")],
                                           string=u"Format de l'étiquette", default='PDF_A4_300dpi')
@@ -101,10 +102,10 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         password = self.env['ir.config_parameter'].\
             get_param('generate_tracking_labels_colissimo.password_colissimo', default='')
         if self.codeBarForReference == 'true' and self.productCode.code != 'CORE':
-            raise exceptions.except_orm('Erreur!', "Impossible d'afficher le code barre retour pour un autre "
+            raise exceptions.except_orm('Erreur !', "Impossible d'afficher le code barre retour pour un autre "
                                                    "produit que Colissimo retour")
         if self.serviceInfo and self.productCode.code != 'CORE':
-            raise exceptions.except_orm('Erreur!', "Impossible de définir un nom de service en retour pour un "
+            raise exceptions.except_orm('Erreur !', "Impossible de définir un nom de service en retour pour un "
                                                    "autre produit que Colissimo retour")
         depositDate = fields.Date.today()
         x = 0
@@ -240,6 +241,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
 </soapenv:Body>
 </soapenv:Envelope>
         """ % (parameters)
+
         encoded_request = xml_post_parameter.encode('utf-8')
         headers = {"Content-Type": "text/xml; charset=UTF-8",
                    "Content-Length": len(encoded_request)}
@@ -247,27 +249,42 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
                                  headers = headers,
                                  data = encoded_request,
                                  verify=False)
-        if len(response.text.encode('utf-8').split('<pdfUrl>')) == 2 and\
-            len(response.text.encode('utf-8').split('<pdfUrl>')[1].split('</pdfUrl>')) == 2:
-            tracking_number = response.text.encode('utf-8').split('<parcelNumber>')[1].split('</parcelNumber>')[0]
-            url = response.text.encode('utf-8').split('<pdfUrl>')[1].split('</pdfUrl>')[0].replace('amp;', '')
-            file = urlopen(url)
+        tracking_number = False
+        if len(response.content.split('<parcelNumber>')) > 1 and \
+                response.content.split('<parcelNumber>')[1].split('</parcelNumber>'):
+            tracking_number = response.content.split('<parcelNumber>')[1].split('</parcelNumber>')[0]
+
+        if tracking_number:
             outputfile = self.get_output_file(self.direction)
-            self.create_attachment(outputfile, file, self.direction)
-            return tracking_number, self.save_tracking_number, self.direction, url
-        elif len(response.text.encode('utf-8').split('<messageContent>')) == 2 and\
-            len(response.text.encode('utf-8').split('<messageContent>')[1].split('</messageContent>')) == 2:
-            raise exceptions.except_orm('Erreur!', 'Colissimo : ' + response.text.encode('utf-8').
+            response_string = response.content
+            if len(response.content.split('<pdfUrl>')) == 2 and\
+                len(response.content.split('<pdfUrl>')[1].split('</pdfUrl>')) == 2:
+                url = response.content.split('<pdfUrl>')[1].split('</pdfUrl>')[0].replace('amp;', '')
+                file = requests.get(url)
+                outputfile = self.get_output_file(self.direction)
+                self.create_attachment(outputfile, self.direction, file=file.content)
+                return tracking_number, self.save_tracking_number, self.direction, url
+            elif len(response_string.split('%PDF')) == 2 and response_string.split('%PDF')[1].split('%EOF'):
+                pdf_binary_string = '%PDF' + response_string.split('%PDF')[1].split('%EOF')[0] + '%EOF' + '\n'
+                self.create_attachment(outputfile, self.direction, pdf_binary_string=pdf_binary_string)
+                return tracking_number, self.save_tracking_number, self.direction, False
+        if len(response.content.split('<messageContent>')) == 2 and\
+            len(response.content.split('<messageContent>')[1].split('</messageContent>')) == 2:
+            raise exceptions.except_orm(u"Erreur !", u'Colissimo : ' + ustr(response.content).
                                         split('<messageContent>')[1].split('</messageContent>')[0])
-        else:
-            raise exceptions.except_orm('Erreur!', "Impossible de générer l'étiquette")
+        raise exceptions.except_orm(u"Erreur !", u"Impossible de générer l'étiquette")
 
 
 class TypeProduitColissimo(models.Model):
     _name = 'type.produit.colissimo'
 
-    name = fields.Char(u"Type de bordereau", readonly=True)
-    code = fields.Char(u"Code Colissimo", readonly=True)
-    used_from_customer = fields.Boolean(u"Utilisé pour les retours depuis le client")
-    used_to_customer = fields.Boolean(u"Utilisé pour les envois vers le client")
+    name = fields.Char(string=u"Type de bordereau", readonly=True)
+    code = fields.Char(string=u"Code Colissimo", readonly=True)
+    used_from_customer = fields.Boolean(string=u"Utilisé pour les retours depuis le client")
+    used_to_customer = fields.Boolean(string=u"Utilisé pour les envois vers le client")
+    used_on_demand = fields.Boolean(string=u"Utilisé à la carte", compute='_compute_used_on_demand', store=True)
 
+    @api.depends('used_from_customer', 'used_to_customer')
+    def _compute_used_on_demand(self):
+        for rec in self:
+            rec.used_on_demand = rec.used_from_customer or rec.used_to_customer

@@ -27,6 +27,7 @@ class TestStockSplitPicking(common.TransactionCase):
         self.product = self.browse_ref('stock_split_picking.product_test_stock_split_picking')
         self.picking = self.browse_ref('stock_split_picking.test_picking')
         self.move = self.browse_ref('stock_split_picking.test_stock_move')
+        self.quant_test = self.browse_ref('stock_split_picking.quant_test')
 
     def test_10_stock_split_picking(self):
 
@@ -36,10 +37,14 @@ class TestStockSplitPicking(common.TransactionCase):
 
         self.assertTrue(self.product and self.picking and self.move)
         self.picking.action_confirm()
-        self.picking.force_assign()
+        self.picking.action_assign()
         self.assertEqual(self.picking.move_lines, self.move)
         self.assertEqual(self.picking.state, 'assigned')
         self.assertFalse(self.picking.packing_details_saved)
+
+        # Checking that nothing is changed when rereserving a picking with no pack operations
+        self.picking.rereserve_pick()
+        self.assertFalse(self.picking.pack_operation_ids)
 
         # Preparing packops without saving it
         popup = self.env['stock.transfer_details'].\
@@ -52,6 +57,11 @@ class TestStockSplitPicking(common.TransactionCase):
         # Decreasing qty and then rereserve_pick
         self.picking.pack_operation_ids.product_qty = 20
         self.assertFalse(self.picking.packing_details_saved)
+        self.picking.rereserve_pick()
+        self.assertEqual(len(self.picking.pack_operation_ids), 1)
+        self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
+
+        # Checking that rereserving again does not change anything
         self.picking.rereserve_pick()
         self.assertEqual(len(self.picking.pack_operation_ids), 1)
         self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
@@ -76,6 +86,22 @@ class TestStockSplitPicking(common.TransactionCase):
         self.assertEqual(len(self.picking.pack_operation_ids), 1)
         self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
         self.assertTrue(self.picking.packing_details_saved)
+
+        # Case of a picking saved but with no  packops (what should not happen)
+        self.picking.pack_operation_ids.unlink()
+        self.assertTrue(self.picking.packing_details_saved)
+        self.picking.rereserve_pick()
+        self.assertFalse(self.picking.pack_operation_ids)
+        self.assertTrue(self.picking.packing_details_saved)
+
+        # Back to the normal situation
+        self.picking.do_prepare_partial()
+        self.assertFalse(self.picking.pack_operation_ids)
+        self.picking.packing_details_saved = False
+        self.picking.do_prepare_partial()
+        self.picking.packing_details_saved = True
+        self.assertEqual(len(self.picking.pack_operation_ids), 1)
+        self.assertEqual(self.picking.pack_operation_ids.product_qty, 30)
 
         # Decreasing qty and then rereserve_pick
         self.picking.pack_operation_ids.product_qty = 10

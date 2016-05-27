@@ -18,6 +18,17 @@
 #
 
 from openerp import fields, models, api, _
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+
+@job
+def run_mrp_production_update(session, model_name, context):
+    mrp = session.env[model_name].with_context(context).search([("state", "in", ['ready', 'confirmed'])])
+    for rec in mrp:
+        rec.button_update()
+    return "End update"
+
 
 class MoUpdateMrpProduction(models.Model):
     _inherit = "mrp.production"
@@ -68,7 +79,7 @@ class MoUpdateMrpProduction(models.Model):
                 if item.product_id not in [y.product_id for y in mrp.move_lines if y.state != 'cancel']:
                     needed_new_moves += [item]
                     post += _("Raw material move created of quantity %s for product %s<br>") % \
-                            (item.product_qty, product.display_name)
+                            (item.product_qty, item.product_id.display_name)
 
             for item in needed_new_moves:
                 product = item.product_id
@@ -91,3 +102,7 @@ class MoUpdateMrpProduction(models.Model):
         self.ensure_one()
         self._action_compute_lines()
         self.update_moves()
+
+    @api.model
+    def run_schedule_button_update(self):
+        run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', self.env.context)

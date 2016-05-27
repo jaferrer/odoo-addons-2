@@ -62,10 +62,11 @@ class TestStockScrapResupply(common.TransactionCase):
         move.action_scrap(1, self.ref('stock.stock_location_scrapped'))
         move.action_assign()
         self.assertEqual(move.state, 'waiting')
-        self.run_procs(move)
+        # No need to run_procs here, the resupply proc should be running
         self.assertEqual(len(move.move_orig_ids), 2)
         move_resupply = move.move_orig_ids.filtered(lambda m: m.state != 'done')
         self.assertTrue(move_resupply.procurement_id)
+        self.assertEqual(move_resupply.procurement_id.state, 'running')
         self.assertEqual(move_resupply.product_uom_qty, 1)
         move_resupply.action_assign()
         move_resupply.action_done()
