@@ -134,9 +134,12 @@ class StockPicking(models.Model):
         # We skip moves given in context not create infinite recursion
         skip_move_ids = self.env.context.get('skip_moves', [])
         todo_moves = self.env['stock.move'].search(
-            [('picking_id', '!=', False), ('defer_picking_assign', '=', True), ('state', '=', 'confirmed')]
+            [('picking_id', '!=', False), ('defer_picking_assign', '=', True), ('state', '=', 'confirmed'),
+             ('id', 'not in', skip_move_ids)]
         )
         todo_moves.with_context(mail_notrack=True).write({'picking_id': False})
+        links = self.env['stock.move.operation.link'].search([('move_id', 'in', todo_moves.ids)])
+        links.unlink()
         self.assign_moves_to_picking()
 
     @api.multi
