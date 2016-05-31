@@ -400,14 +400,15 @@ class StockMove(models.Model):
     reserved_availability = fields.Float(compute='_get_reserved_availability')
 
     @api.multi
+    @api.depends('reserved_quant_ids')
     def _get_reserved_availability(self):
         """Rewritten here to have the database do the sum for us through read_group."""
-        precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
         values = self.env['stock.quant'].read_group([('reservation_id', 'in', self.ids)], ['reservation_id', 'qty'],
                                                     ['reservation_id'])
         for val in values:
             move = self.search([('id', '=', val['reservation_id'][0])])
-            move.reserved_availability = float_round(val['qty'], precision_digits=precision)
+            rounding = move.product_id.uom_id.rounding
+            move.reserved_availability = float_round(val['qty'], precision_rounding=rounding)
 
     @api.multi
     def _picking_assign(self, procurement_group, location_from, location_to):
