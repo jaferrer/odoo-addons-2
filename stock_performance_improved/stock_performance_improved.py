@@ -112,8 +112,8 @@ FROM
 WHERE mqi.qty <= nrq.qty AND mqi.move_id IN %s"""
 
 SQL_REQUEST_NO_PICKING = """
-WITH
-    RECURSIVE top_parent(loc_id, top_parent_id) AS (
+WITH RECURSIVE
+        top_parent(loc_id, top_parent_id) AS (
         SELECT
             sl.id AS loc_id,
             sl.id AS top_parent_id
@@ -138,6 +138,7 @@ WITH
             state,
             picking_id,
             location_id,
+            location_dest_id,
             product_id,
             product_qty,
             priority,
@@ -145,10 +146,10 @@ WITH
         FROM stock_move
         WHERE picking_type_id IS NOT NULL
               AND state = 'confirmed'
-              AND picking_id IS NULL
+              AND defer_picking_assign = TRUE
     ),
 
-        test AS (
+        reserved_quants AS (
         SELECT
             DISTINCT sq.reservation_id
         FROM stock_quant sq
@@ -161,7 +162,7 @@ WITH
             sm.picking_type_id,
             sm.picking_id
         FROM stock_move sm
-            INNER JOIN test sq ON sq.reservation_id = sm.id
+            INNER JOIN reserved_quants sq ON sq.reservation_id = sm.id
         WHERE sm.picking_id IS NULL
               AND sm.picking_type_id IS NOT NULL
     ),
@@ -174,7 +175,7 @@ WITH
             sm.product_id,
             sum(sm.product_qty)
             OVER (
-                PARTITION BY sm.product_id, sm.picking_id, sm.location_id
+                PARTITION BY sm.product_id, sm.location_id, sm.location_dest_id
                 ORDER BY sm.priority DESC, sm.date_expected, sm.id
             ) - sm.product_qty AS qty
         FROM confirmed_moves_with_picking_type sm
@@ -183,7 +184,6 @@ WITH
             FROM stock_quant sq
             WHERE sq.reservation_id = sm.id
         )
-
     ),
 
         ordered_quants AS (
@@ -196,6 +196,7 @@ WITH
         WHERE sq.reservation_id IS NULL
         ORDER BY product_id
     ),
+
         not_reserved_quantities AS (
         SELECT
             tp.top_parent_id AS location_id,
@@ -218,6 +219,7 @@ WITH
         FROM move_qties_interm mqi
             INNER JOIN not_reserved_quantities nrq ON nrq.product_id = mqi.product_id
                                                       AND nrq.location_id = mqi.location_id
+        WHERE mqi.picking_id IS NULL
     )
 
 SELECT
@@ -255,8 +257,17 @@ FROM (
              FALSE AS reserved
          FROM move_qties mq
          WHERE flag = TRUE
-     ) foo
-"""
+         UNION ALL
+         SELECT
+             sm.id         AS move_id,
+             sm.picking_id AS picking_id,
+             FALSE         AS reserved
+         FROM stock_move sm
+         WHERE sm.state = 'confirmed'
+               AND sm.picking_type_id IS NOT NULL
+               AND sm.picking_id IS NULL
+               AND sm.defer_picking_assign = FALSE
+     ) foo"""
 
 
 class StockPicking(models.Model):
@@ -319,7 +330,9 @@ class StockPicking(models.Model):
         for k, v in res.iteritems():
             move_ids = self.pool.get('stock.move').search(cr, uid, [('picking_id', '=', k)], limit=1, context=context)
             if move_ids:
-                defer = self.pool.get('stock.move').read(cr, uid, move_ids, ['defer_picking_assign'], context=context)[0]['defer_picking_assign']
+                defer = \
+                    self.pool.get('stock.move').read(cr, uid, move_ids, ['defer_picking_assign'], context=context)[0][
+                        'defer_picking_assign']
                 if defer:
                     res[k] = {}
         return res
@@ -407,8 +420,7 @@ class StockMove(models.Model):
                                                     ['reservation_id'])
         for val in values:
             move = self.search([('id', '=', val['reservation_id'][0])])
-            rounding = move.product_id.uom_id.rounding
-            move.reserved_availability = float_round(val['qty'], precision_rounding=rounding)
+            move.reserved_availability = val['qty']
 
     @api.multi
     def _picking_assign(self, procurement_group, location_from, location_to):
@@ -581,12 +593,15 @@ class StockPrereservation(models.Model):
                     state,
                     picking_id,
                     location_id,
+                    location_dest_id,
                     product_id,
                     product_qty,
                     priority,
                     date_expected
                 FROM stock_move
-                WHERE picking_type_id IS NOT NULL AND state='confirmed'
+                WHERE picking_type_id IS NOT NULL
+                      AND state='confirmed'
+                      AND defer_picking_assign = TRUE
             ),
 
             moves_with_quants_reserved AS (
@@ -606,7 +621,7 @@ class StockPrereservation(models.Model):
                     sm.location_id,
                     sm.product_id,
                     sum(sm.product_qty) OVER (
-                        PARTITION BY sm.product_id, sm.picking_id, sm.location_id
+                        PARTITION BY sm.product_id, sm.location_id, sm.location_dest_id
                         ORDER BY sm.priority DESC, sm.date_expected, sm.id
                     ) - sm.product_qty AS qty
                 FROM confirmed_moves_with_picking_type sm
@@ -668,6 +683,16 @@ class StockPrereservation(models.Model):
                         FALSE AS reserved
                     FROM move_qties mq
                     WHERE mq.qty <= mq.sum_qty
+                UNION ALL
+                    SELECT
+                        sm.id         AS move_id,
+                        sm.picking_id AS picking_id,
+                        FALSE         AS reserved
+                    FROM stock_move sm
+                    WHERE sm.state = 'confirmed'
+                        AND sm.picking_type_id IS NOT NULL
+                        AND sm.picking_id IS NULL
+                        AND sm.defer_picking_assign = FALSE
             ) foo
         )
         """)
