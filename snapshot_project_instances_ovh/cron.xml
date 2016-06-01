@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <data>
+    <data noupdate="1">
 
         <record id="snapshot_project_instances_odoo" model="ir.cron">
             <field name="name">Automatic snapshot of project instances</field>
             <field name="user_id" ref="base.user_root"/>
-            <field name="active" eval="True"/>
+            <field name="active"/>
             <field name="priority">5</field>
             <field name="interval_number">1</field>
             <field name="interval_type">hours</field>
