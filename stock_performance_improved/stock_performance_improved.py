@@ -407,8 +407,7 @@ class StockMove(models.Model):
                                                     ['reservation_id'])
         for val in values:
             move = self.search([('id', '=', val['reservation_id'][0])])
-            rounding = move.product_id.uom_id.rounding
-            move.reserved_availability = float_round(val['qty'], precision_rounding=rounding)
+            move.reserved_availability = val['qty']
 
     @api.multi
     def _picking_assign(self, procurement_group, location_from, location_to):
