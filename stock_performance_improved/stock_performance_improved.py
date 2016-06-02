@@ -305,7 +305,7 @@ class StockPicking(models.Model):
         Overridden here to assign prereserved moves to pickings beforehand.
         :return: True
         """
-        self.assign_moves_to_picking()
+        self.with_context(only_pickings=self.ids).assign_moves_to_picking()
         return super(StockPicking, self).action_assign()
 
     @api.multi
@@ -314,11 +314,12 @@ class StockPicking(models.Model):
         This can be used to provide a button that rereserves taking into account the existing pack operations
         Overridden here to assign prereserved moves to pickings beforehand
         """
-        self.assign_moves_to_picking()
+        self.with_context(only_pickings=self.ids).assign_moves_to_picking()
         super(StockPicking, self).rereserve_pick()
 
     @api.model
     def rereserve_quants(self, picking, move_ids=[]):
+        """Speed up quant rereservation by not tracking modifications."""
         super(StockPicking, self.with_context(mail_notrack=True)).rereserve_quants(picking, move_ids)
 
     @api.cr_uid_ids_context
@@ -468,6 +469,10 @@ class StockMove(models.Model):
                 }
                 pick = self.env['stock.picking'].create(values)
                 pick_id = pick.id
+            pick_list = self.env.context.get('only_pickings')
+            if pick_list and pick_id not in pick_list:
+                # Don't assign the move to a picking that is not our picking.
+                return True
             return self.with_context(mail_notrack=True).write({'picking_id': pick_id})
         else:
             return True
