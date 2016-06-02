@@ -1,0 +1,97 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* purchase_resize_orders
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-06-02 14:45+0000\n"
+"PO-Revision-Date: 2016-06-02 14:45+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_purchase_resize_orders
+msgid "Purchase Order Resizer"
+msgstr "Re-sizer les commandes d'achat"
+
+#. module: base
+#: model:ir.module.module,description:base.module_purchase_resize_orders
+msgid ""
+"\n"
+"Purchase Order Resizer\n"
+"======================\n"
+"This module allows to resize purchase orders (decreasing it or increasing it).\n"
+"The final result still abides by the rules of minimum quantity, packaging quantity, etc.\n"
+msgstr ""
+"\n"
+"Re-sizer les commandes d'achat\n"
+"==============================\n"
+"Ce module permet de re-sizer les commandes d'achat (en augmentant ou en diminuant).\n"
+"Le résultat final vérifie systématiquement \n"
+
+#. module: purchase_resize_orders
+#: view:purchase.order.resizer:purchase_resize_orders.purchase_order_resizer_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: purchase_resize_orders
+#: field:purchase.order.resizer,create_uid:0
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: purchase_resize_orders
+#: field:purchase.order.resizer,create_date:0
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: purchase_resize_orders
+#: field:purchase.order.resizer,id:0
+msgid "ID"
+msgstr "ID"
+
+#. module: purchase_resize_orders
+#: code:addons\purchase_resize_orders\purchase_resize_orders.py:44
+#, python-format
+msgid "Impossible to resize a not-draft purchase order."
+msgstr "Impossible de re-sizer une commande d'achat qui n'est pas à l'état brouillon"
+
+#. module: purchase_resize_orders
+#: field:purchase.order.resizer,write_uid:0
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: purchase_resize_orders
+#: field:purchase.order.resizer,write_date:0
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: purchase_resize_orders
+#: field:purchase.order.resizer,order_ids:0
+msgid "Orders to resize"
+msgstr "Commandes à re-sizer"
+
+#. module: purchase_resize_orders
+#: model:ir.actions.act_window,name:purchase_resize_orders.act_window_purchase_order_resizer
+msgid "Re-size Orders"
+msgstr "Re-sizer les commandes"
+
+#. module: purchase_resize_orders
+#: field:purchase.order.resizer,resizing_ratio:0
+msgid "Resizing ratio (%)"
+msgstr "Ratio (%)"
+
+#. module: purchase_resize_orders
+#: view:purchase.order.resizer:purchase_resize_orders.purchase_order_resizer_form
+msgid "Validate resizing"
+msgstr "Re-sizer"
+
+#. module: purchase_resize_orders
+#: view:purchase.order.resizer:purchase_resize_orders.purchase_order_resizer_form
+msgid "or"
+msgstr "ou"

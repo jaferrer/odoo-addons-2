@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="purchase_order_resizer_form">
+            <field name="name">purchase_order_resizer_form</field>
+            <field name="model">purchase.order.resizer</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="order_ids" widget="many2many_tags"/>
+                        <field name="resizing_ratio"/>
+                    </group>
+                    <footer>
+                        <button name="validate_resizing" type="object" string="Validate resizing" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_purchase_order_resizer">
+            <field name="name">Re-size Orders</field>
+            <field name="res_model">purchase.order.resizer</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+            <field name="target">new</field>
+        </record>
+
+        <record model="ir.values" id="ir_value_purchase_order_resize">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">purchase.order</field>
+            <field name="name">Re-size Orders</field>
+            <field name="value" eval="'ir.actions.act_window,'+str(act_window_purchase_order_resizer)"/>
+        </record>
+
+    </data>
+</openerp>
