@@ -87,11 +87,16 @@ class ProcurementOrderQuantity(models.Model):
         dom = company_id and [('company_id', '=', company_id)] or []
         if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
             dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
+        if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
+            supplierinfo_ids = self.env['product.supplierinfo']. \
+                search([('name', 'in', self.env.context['compute_supplier_ids'])])
+            read_supplierinfos = supplierinfo_ids.read(['id', 'product_tmpl_id'], load=False)
+            dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
         orderpoint_ids = orderpoint_env.search(dom)
-        op_product_ids = orderpoint_ids.read(['id', 'product_id'], load=False)
+        op_ids = orderpoint_ids.read(['id', 'product_id'], load=False)
 
         result = dict()
-        for row in op_product_ids:
+        for row in op_ids:
             if row['product_id'] not in result:
                 result[row['product_id']] = list()
             result[row['product_id']].append(row['id'])
@@ -334,7 +339,7 @@ class StockWarehouseOrderPointJit(models.Model):
         move_in_date_clause = max_date and " AND COALESCE(po.date_planned, sm.date) <= %s " or ""
         params = (product_id, location.parent_left, location.parent_right)
         if max_date:
-            params += (max_date, )
+            params += (max_date,)
 
         # Computing the top parent location
         first_date = False
@@ -355,9 +360,9 @@ class StockWarehouseOrderPointJit(models.Model):
                 AND sm.state NOT IN ('cancel', 'done', 'draft')
                 AND sl.parent_left >= %s
                 AND sl.parent_left < %s""" + \
-            move_in_date_clause + \
-            """GROUP BY sm.id, sm.product_qty
-            ORDER BY date"""
+                         move_in_date_clause + \
+                         """GROUP BY sm.id, sm.product_qty
+                         ORDER BY DATE"""
         self.env.cr.execute(query_moves_in, params)
         moves_in_tuples = self.env.cr.fetchall()
 
@@ -374,11 +379,11 @@ class StockWarehouseOrderPointJit(models.Model):
                 AND sm.state NOT IN ('cancel', 'done', 'draft')
                 AND sl.parent_left >= %s
                 AND sl.parent_left < %s""" + \
-            move_out_date_clause + \
-            """
-            GROUP BY sm.id, sm.product_qty
-            ORDER BY date
-        """
+                          move_out_date_clause + \
+                          """
+                          GROUP BY sm.id, sm.product_qty
+                          ORDER BY date
+                      """
         self.env.cr.execute(query_moves_out, params)
         moves_out_tuples = self.env.cr.fetchall()
 
@@ -399,11 +404,11 @@ class StockWarehouseOrderPointJit(models.Model):
                 AND sl.parent_left < %s
                 AND po.state NOT IN ('done', 'cancel')
                 AND (sm.state = 'draft' OR sm.id IS NULL)""" + \
-            procurement_date_clause + \
-            """
-            GROUP BY po.id
-            ORDER BY po.date_planned
-        """
+                      procurement_date_clause + \
+                      """
+                      GROUP BY po.id
+                      ORDER BY po.date_planned
+                  """
         self.env.cr.execute(query_procs, params)
         procurement_tuples = self.env.cr.fetchall()
         dates = []
@@ -523,10 +528,10 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
         LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right),
 
 
-      min_product as (
+      min_product AS (
     SELECT
-                min(sm.date_expected)- interval '1 second' as min_date,
-                sm.product_id as product_id
+                min(sm.date_expected)- INTERVAL '1 second' AS min_date,
+                sm.product_id AS product_id
             FROM
                 stock_move sm
                 LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
@@ -538,7 +543,7 @@ CREATE OR REPLACE VIEW stock_levels_report AS (
                 AND sm.state :: TEXT <> 'cancel' :: TEXT
                 AND sm.state :: TEXT <> 'done' :: TEXT
                 AND sm.state :: TEXT <> 'draft' :: TEXT
-            group by sm.product_id
+            GROUP BY sm.product_id
       )
 
 SELECT
@@ -569,7 +574,7 @@ SELECT
                 stock_quant sq
                 LEFT JOIN stock_location sl ON sq.location_id = sl.id
                 LEFT JOIN link_location_warehouse link ON link.location_id = sl.location_id
-                LEFT JOIN min_product mp on mp.product_id=sq.product_id
+                LEFT JOIN min_product mp ON mp.product_id=sq.product_id
             WHERE link.warehouse_id IS NOT NULL
             GROUP BY sq.product_id, link.warehouse_id
 
