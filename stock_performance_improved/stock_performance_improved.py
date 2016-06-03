@@ -289,7 +289,8 @@ class StockPicking(models.Model):
         picking. Then call assign_moves_to_picking to get everything back in place.
         """
         todo_moves = self.env['stock.move'].search(
-            [('picking_id', '!=', False), ('defer_picking_assign', '=', True), ('state', '=', 'confirmed')]
+            [('picking_id', '!=', False), ('defer_picking_assign', '=', True), ('state', '=', 'confirmed'),
+             ('partially_available', '=', False)]
         )
         todo_moves.with_context(mail_notrack=True).write({'picking_id': False})
         links = self.env['stock.move.operation.link'].search([('move_id', 'in', todo_moves.ids)])
