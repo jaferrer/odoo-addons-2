@@ -81,6 +81,7 @@
                     <group>
                         <field name="compute_all"/>
                         <field name="product_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
+                        <field name="supplier_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
                     </group>
                 </form>
             </field>
@@ -96,6 +97,7 @@
                     <group>
                         <field name="compute_all"/>
                         <field name="product_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
+                        <field name="supplier_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
                     </group>
                 </form>
             </field>

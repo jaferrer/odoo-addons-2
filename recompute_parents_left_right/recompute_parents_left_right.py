@@ -17,19 +17,21 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api
-from openerp.tools.float_utils import float_round
+from openerp import models, api
 
 
-class FixReservedAvailabilityStockMove(models.Model):
-    _inherit = 'stock.move'
-
-    reserved_availability = fields.Float(compute='_get_reserved_availability')
+class RecomputeIrModel(models.Model):
+    _inherit = 'ir.model'
 
     @api.multi
-    @api.depends('reserved_quant_ids')
-    def _get_reserved_availability(self):
-        precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
-        for move in self:
-            move.reserved_availability = float_round(sum([quant.qty for quant in move.reserved_quant_ids]),
-                                                     precision_digits=precision)
+    def compute_parent_left_right(self):
+        for rec in self:
+            self.env[rec.model]._parent_store_compute()
+
+
+class RecomputeParentPackages(models.Model):
+    _inherit = 'stock.quant.package'
+
+    @api.model
+    def compute_parent_left_right(self):
+        self.env['stock.quant.package']._parent_store_compute()

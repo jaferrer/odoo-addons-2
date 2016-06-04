@@ -34,9 +34,12 @@ class procurement_order_planning_improved(models.Model):
                 vals = {'date': fields.Datetime.to_string(newdate)}
                 if self.env.context.get('reschedule_planned_date'):
                     vals.update({'date_expected': fields.Datetime.to_string(newdate)})
-                proc.move_ids.filtered(lambda move: move.date != vals['date'] or
-                                                    (vals.get('date_expected') and
-                                                    move.date_expected != vals['date_expected'])).write(vals)
+                # We do not write in moves which dest loc is not the same as the procurement's location
+                # (ex: return moves, which are linked to the same procurements as the original ones)
+                proc.move_ids.filtered(lambda move: (move.location_dest_id == proc.location_id and
+                                                     (move.date != vals['date'] or
+                                                      vals.get('date_expected') and
+                                                      move.date_expected != vals['date_expected']))).write(vals)
 
 
 class stock_move_planning_improved(models.Model):
@@ -66,8 +69,8 @@ class stock_move_planning_improved(models.Model):
                 # del vals['date']
             if vals.get('date') and move.procure_method == 'make_to_order':
                 # If the date is changed and moves are chained, propagate to the previous procurement if any
-                proc = self.env['procurement.order'].search([('move_dest_id','=',move.id),
-                                                             ('state','not in',['done','cancel'])], limit=1)
+                proc = self.env['procurement.order'].search([('move_dest_id', '=', move.id),
+                                                             ('state', 'not in', ['done', 'cancel'])], limit=1)
                 if proc and not self.env.context.get('do_not_propagate_rescheduling'):
                     proc.date_planned = vals.get('date')
                     proc.action_reschedule()
@@ -85,14 +88,14 @@ class stock_picking_planning_improved(models.Model):
         if not self.ids:
             return
         cr = self.env.cr
-        cr.execute("""select
+        cr.execute("""SELECT
             picking_id,
             min(date)
-        from
+        FROM
             stock_move
-        where
+        WHERE
             picking_id IN %s
-        group by
+        GROUP BY
             picking_id""", (tuple(self.ids),))
         dates = dict(cr.fetchall())
         for picking in self:
