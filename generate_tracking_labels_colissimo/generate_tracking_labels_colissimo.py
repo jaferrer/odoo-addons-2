@@ -18,7 +18,6 @@
 #
 
 from openerp import models, api, fields, exceptions, _
-from urllib2 import urlopen
 import requests
 from openerp.tools import ustr
 

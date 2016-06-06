@@ -220,6 +220,11 @@ msgid "Products to compute"
 msgstr "Produits à traiter"
 
 #. module: stock_procurement_just_in_time
+#: field:procurement.order.compute.all,supplier_ids:0
+msgid "Suppliers"
+msgstr "Fournisseurs"
+
+#. module: stock_procurement_just_in_time
 #: field:procurement.orderpoint.compute,compute_all:0
 msgid "Compute all the products"
 msgstr "Traiter l'ensemble des produits"
@@ -228,6 +233,11 @@ msgstr "Traiter l'ensemble des produits"
 #: field:procurement.orderpoint.compute,product_ids:0
 msgid "Products to compute"
 msgstr "Produits à traiter"
+
+#. module: stock_procurement_just_in_time
+#: field:procurement.orderpoint.compute,supplier_ids:0
+msgid "Suppliers"
+msgstr "Fournisseurs"
 
 #. module: stock_procurement_just_in_time
 #: view:stock.quant:stock_procurement_just_in_time.stock_quant_view_search
