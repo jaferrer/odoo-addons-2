@@ -17,9 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp.tools import drop_view_if_exists, flatten, float_round
+from openerp.tools import drop_view_if_exists, flatten
 from openerp import fields, models, api, osv
-
+from openerp.osv import fields as old_api_fields
 from openerp.addons.procurement import procurement
 from openerp.addons.scheduler_async import scheduler_async
 from openerp.addons.connector.session import ConnectorSession
@@ -408,21 +408,26 @@ class StockPicking(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
+    def _get_reserved_availability(self, cr, uid, ids, field_name, args, context=None):
+        """Rewritten here to have the database do the sum for us through read_group."""
+        res = dict.fromkeys(ids, 0)
+        values = self.pool.get('stock.quant').read_group(cr, uid, [('reservation_id', 'in', ids)],
+                                                         ['reservation_id', 'qty'], ['reservation_id'], context=context)
+        for val in values:
+            if val['reservation_id']:
+                res[val['reservation_id'][0]] = val['qty']
+        return res
+
+    _columns = {
+        'reserved_availability': old_api_fields.function(_get_reserved_availability, type='float',
+                                                         string='Quantity Reserved', readonly=True,
+                                                         help='Quantity that has already been reserved for this move')
+    }
+
     defer_picking_assign = fields.Boolean("Defer Picking Assignement", default=False,
                                           help="If checked, the stock move will be assigned to a picking only if there "
                                                "is available quants in the source location. Otherwise, it will be "
                                                "assigned a picking as soon as the move is confirmed.")
-    reserved_availability = fields.Float(compute='_get_reserved_availability')
-
-    @api.multi
-    @api.depends('reserved_quant_ids')
-    def _get_reserved_availability(self):
-        """Rewritten here to have the database do the sum for us through read_group."""
-        values = self.env['stock.quant'].read_group([('reservation_id', 'in', self.ids)], ['reservation_id', 'qty'],
-                                                    ['reservation_id'])
-        for val in values:
-            move = self.search([('id', '=', val['reservation_id'][0])])
-            move.reserved_availability = val['qty']
 
     @api.multi
     def _picking_assign(self, procurement_group, location_from, location_to):
