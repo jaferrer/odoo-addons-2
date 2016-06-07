@@ -189,7 +189,6 @@ class TestStockPerformanceImproved(common.TransactionCase):
 
     def test_40_check_procurements(self):
         """Test that procurements and rules correctly forward defer_picking_assign parameter"""
-        location1_id = self.ref('stock_performance_improved.stock_location_a')
         location2_id = self.ref('stock_performance_improved.stock_location_b')
         route_id = self.ref('stock_performance_improved.test_route')
         self.product.route_ids = [(6, 0, [route_id])]

@@ -68,9 +68,16 @@ class StockChangeQuantPicking(models.TransientModel):
         quants_ids = self.env.context.get('active_ids', [])
         quants = self.env['stock.quant'].browse(quants_ids)
         for quant in quants:
+            move = quant.reservation_id
             self.env['stock.quant'].quants_unreserve(self.move_id)
+            parent_move = quant.history_ids.filtered(lambda sm: sm.state == 'done' and
+                                                                sm.location_dest_id == quant.location_id)
+            if parent_move and len(parent_move) == 1 and parent_move.move_dest_id and self.move_id.state == 'waiting':
+                parent_move.move_dest_id = self.move_id
             self.move_id.action_confirm()
             quant.quants_reserve([(quant, self.move_id.product_uom_qty)], self.move_id)
+            if move:
+                move.recalculate_move_state()
             break
         if self.picking_id.pack_operation_ids:
             self.move_id.picking_id.do_prepare_partial()
