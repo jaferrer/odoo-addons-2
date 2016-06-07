@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="product.product" id="test_product">
+            <field name="name">Test product (Perf improved)</field>
+            <field name="type">product</field>
+        </record>
+
+    </data>
+</openerp>

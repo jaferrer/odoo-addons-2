@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,25 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Change Quants Reservation',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    "summary": "",
-    "category": "Warehouse",
-    "depends": [
-        "stock"
-    ],
-    'description': """
-Change Quants Reservation
-=========================
-This module gives the possibilitie to change quants reservations to assign them to another picking.
-""",
-    "website": "http://www.ndp-systemes.fr",
-    "contributors": [
-    ],
-    "data": ["wizard/stock_change_quant_reservation_wizard_view.xml"],
-    "demo": ["tests/demo.xml"],
-    "installable": True,
-}
+from . import test_stock_change_quant_reservation
