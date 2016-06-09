@@ -26,7 +26,7 @@ class RecomputeIrModel(models.Model):
     @api.multi
     def compute_parent_left_right(self):
         for rec in self:
-            self.env[rec.model]._parent_store_compute()
+            self.env[rec.model].sudo()._parent_store_compute()
 
 
 class RecomputeParentPackages(models.Model):
@@ -34,4 +34,4 @@ class RecomputeParentPackages(models.Model):
 
     @api.model
     def compute_parent_left_right(self):
-        self.env['stock.quant.package']._parent_store_compute()
+        self.env['stock.quant.package'].sudo()._parent_store_compute()
