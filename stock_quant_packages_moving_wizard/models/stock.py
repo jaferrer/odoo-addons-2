@@ -17,7 +17,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from datetime import datetime
 
 from openerp import models, fields, api, _
 
@@ -90,6 +89,7 @@ class StockQuant(models.Model):
             if not is_manual_op:
                 new_picking.do_transfer()
         return move_recordset
+
 
 class StockWarehouse(models.Model):
     _inherit = 'stock.warehouse'
