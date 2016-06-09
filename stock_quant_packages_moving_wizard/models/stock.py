@@ -89,7 +89,7 @@ class StockQuant(models.Model):
             packops.write({'location_dest_id': dest_location.id})
             if not is_manual_op:
                 new_picking.do_transfer()
-            return move_recordset
+        return move_recordset
 
     class StockWarehouse(models.Model):
         _inherit = 'stock.warehouse'
