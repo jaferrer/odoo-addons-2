@@ -91,9 +91,9 @@ class StockQuant(models.Model):
                 new_picking.do_transfer()
         return move_recordset
 
-    class StockWarehouse(models.Model):
-        _inherit = 'stock.warehouse'
+class StockWarehouse(models.Model):
+    _inherit = 'stock.warehouse'
 
-        picking_type_id = fields.Many2one(
-            "stock.picking.type", string=u"Mouvement de déplacement par défault")
+    picking_type_id = fields.Many2one(
+        "stock.picking.type", string=u"Mouvement de déplacement par défault")
 

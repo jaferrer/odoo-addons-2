@@ -192,3 +192,17 @@ msgstr "stock.quants.move"
 #, python-format
 msgid "The moves of all the quants could not be assigned to the same picking."
 msgstr "Les mouvements de tous les quants n'ont pas pu être rattachés à la même opération."
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons/stock_quant_packages_moving_wizard/wizard/quant_move_wizard.py:77
+#: code:addons/stock_quant_packages_moving_wizard/wizard/quant_packages_move_wizard.py:78
+#, python-format
+msgid "error"
+msgstr "Erreur"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons/stock_quant_packages_moving_wizard/wizard/quant_move_wizard.py:77
+#: code:addons/stock_quant_packages_moving_wizard/wizard/quant_packages_move_wizard.py:78
+#, python-format
+msgid "no lines selected."
+msgstr "Aucunes lignes sélectionnés."

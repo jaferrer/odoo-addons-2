@@ -74,6 +74,8 @@ class StockQuantPackageMove(models.TransientModel):
         if quantsglob:
             result = quantsglob.move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
             if self.is_manual_op:
+                if not result:
+                    raise exceptions.except_orm(_(u"error"), _("no lines selected."))
                 return {
                     'name': 'picking_form',
                     'type': 'ir.actions.act_window',
