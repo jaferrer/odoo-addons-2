@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,24 +18,23 @@
 #
 
 {
-    'name': 'Change Quants Reservation',
+    'name': 'Fix inventory with packs',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    "summary": "",
-    "category": "Warehouse",
-    "depends": [
-        "stock"
-    ],
+    'category': '',
+    'depends': ['stock'],
     'description': """
-Change Quants Reservation
-=========================
-This module gives the possibilitie to change quants reservations to assign them to another picking.
+Fix inventory with packs
+========================
+Allow non admin users to make inventory with packs.
 """,
-    "website": "http://www.ndp-systemes.fr",
-    "contributors": [
-    ],
-    "data": ["wizard/stock_change_quant_reservation_wizard_view.xml"],
-    "demo": ["tests/demo.xml"],
-    "installable": True,
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
 }

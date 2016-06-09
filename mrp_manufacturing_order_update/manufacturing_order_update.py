@@ -26,7 +26,10 @@ from openerp.addons.connector.session import ConnectorSession
 def run_mrp_production_update(session, model_name, context):
     mrp = session.env[model_name].with_context(context).search([("state", "in", ['ready', 'confirmed'])])
     for rec in mrp:
-        rec.button_update()
+        if not session.env['stock.move'].search([('state', '=', 'done'), ('raw_material_production_id', '=', rec.id)]):
+            if not any([move.move_orig_ids and any([orig.state == 'done' for orig in move.move_orig_ids])
+                        for move in rec.move_lines]):
+                rec.button_update()
     return "End update"
 
 

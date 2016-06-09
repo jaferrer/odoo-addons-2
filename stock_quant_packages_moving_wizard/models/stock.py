@@ -28,32 +28,36 @@ class StockQuant(models.Model):
     def move_to(self, dest_location, picking_type_id, move_items=False, is_manual_op=False):
         move_recordset = self.env['stock.move']
         list_reservation = {}
-        for item in self:
-            new_move = self.env['stock.move'].create({
-                'name': 'Move %s to %s' % (item.product_id.name, dest_location.name),
-                'product_id': item.product_id.id,
-                'location_id': item.location_id.id,
-                'location_dest_id': dest_location.id,
-                'product_uom_qty': item.qty if not move_items else move_items[item.id].qty,
-                'product_uom': item.product_id.uom_id.id,
-                'date_expected': fields.Datetime.now(),
-                'date': fields.Datetime.now(),
+        if self:
+            new_picking = self.env['stock.picking'].create({
                 'picking_type_id': picking_type_id.id,
             })
-            list_reservation[new_move] = [(item, new_move.product_uom_qty)]
-            move_recordset = move_recordset | new_move
+            for item in self:
+                new_move = self.env['stock.move'].create({
+                    'name': 'Move %s to %s' % (item.product_id.name, dest_location.name),
+                    'product_id': item.product_id.id,
+                    'location_id': item.location_id.id,
+                    'location_dest_id': dest_location.id,
+                    'product_uom_qty': item.qty if not move_items else move_items[item.id].qty,
+                    'product_uom': item.product_id.uom_id.id,
+                    'date_expected': fields.Datetime.now(),
+                    'date': fields.Datetime.now(),
+                    'picking_type_id': picking_type_id.id,
+                    'picking_id': new_picking.id,
+                })
+                list_reservation[new_move] = [(item, new_move.product_uom_qty)]
+                move_recordset = move_recordset | new_move
         if move_recordset:
             move_recordset.action_confirm()
-            picking = move_recordset[0].picking_id
             for new_move in list_reservation.keys():
-                assert new_move.picking_id == picking, \
+                assert new_move.picking_id == new_picking, \
                     _("The moves of all the quants could not be assigned to the same picking.")
                 self.quants_reserve(list_reservation[new_move], new_move)
-            picking.do_prepare_partial()
-            packops = picking.pack_operation_ids
+            new_picking.do_prepare_partial()
+            packops = new_picking.pack_operation_ids
             packops.write({'location_dest_id': dest_location.id})
             if not is_manual_op:
-                picking.do_transfer()
+                new_picking.do_transfer()
         return move_recordset
 
 
