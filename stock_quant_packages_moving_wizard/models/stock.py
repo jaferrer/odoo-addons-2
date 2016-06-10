@@ -19,6 +19,7 @@
 #
 
 from openerp import models, fields, api, _
+from openerp.tools.sql import drop_view_if_exists
 
 
 class StockQuant(models.Model):
@@ -32,23 +33,53 @@ class StockQuant(models.Model):
             new_picking = self.env['stock.picking'].create({
                 'picking_type_id': picking_type_id.id,
             })
-            for item in self:
-                new_move = self.env['stock.move'].create({
-                    'name': 'Move %s to %s' % (item.product_id.name, dest_location.name),
-                    'product_id': item.product_id.id,
-                    'location_id': item.location_id.id,
-                    'location_dest_id': dest_location.id,
-                    'product_uom_qty': item.qty if not move_items else move_items[item.id].qty,
-                    'product_uom': item.product_id.uom_id.id,
-                    'date_expected': fields.Datetime.now(),
-                    'date': fields.Datetime.now(),
-                    'picking_type_id': picking_type_id.id,
-                    'picking_id': new_picking.id,
-                })
-                list_reservation[new_move] = [(item, new_move.product_uom_qty)]
-                move_recordset = move_recordset | new_move
-        if move_recordset:
-            move_recordset.action_confirm()
+
+            if move_items:
+                for item in self:
+                    new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
+                        'name': 'Move %s to %s' % (item.product_id.name, dest_location.name),
+                        'product_id': item.product_id.id,
+                        'location_id': item.location_id.id,
+                        'location_dest_id': dest_location.id,
+                        'product_uom_qty': item.qty if not move_items else move_items[item.id].qty,
+                        'product_uom': item.product_id.uom_id.id,
+                        'date_expected': fields.Datetime.now(),
+                        'date': fields.Datetime.now(),
+                        'picking_type_id': picking_type_id.id,
+                        'picking_id': new_picking.id,
+                    })
+                    list_reservation[new_move] = [(item, new_move.product_uom_qty)]
+                    move_recordset = move_recordset | new_move
+            else:
+                values = self.env['stock.quant'].read_group([('id', 'in', self.ids)],
+                                                            ['product_id', 'location_id', 'qty'],
+                                                            ['product_id', 'location_id'], lazy=False)
+                for val in values:
+                    new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
+                        'name': 'Move %s to %s' % (val['product_id'][1], dest_location.name),
+                        'product_id': val['product_id'][0],
+                        'location_id': val['location_id'][0],
+                        'location_dest_id': dest_location.id,
+                        'product_uom_qty': val['qty'],
+                        'product_uom':
+                            self.env['product.product'].search([('id', '=', val['product_id'][0])]).uom_id.id,
+                        'date_expected': fields.Datetime.now(),
+                        'date': fields.Datetime.now(),
+                        'picking_type_id': picking_type_id.id,
+                        'picking_id': new_picking.id,
+                    })
+                    quants = self.env['stock.quant'].search(
+                        [('id', 'in', self.ids), ('product_id', '=', val['product_id'][0])])
+                    qtys = quants.read(['id', 'qty'])
+                    list_reservation[new_move] = []
+                    for qt in qtys:
+                        list_reservation[new_move].append((self.env['stock.quant'].search(
+                            [('id', '=', qt['id'])]), qt['qty']))
+
+                    move_recordset = move_recordset | new_move
+
+            if move_recordset:
+                move_recordset.action_confirm()
             for new_move in list_reservation.keys():
                 assert new_move.picking_id == new_picking, \
                     _("The moves of all the quants could not be assigned to the same picking.")
@@ -66,3 +97,60 @@ class StockWarehouse(models.Model):
 
     picking_type_id = fields.Many2one(
         "stock.picking.type", string=u"Mouvement de déplacement par défault")
+
+
+class Stock(models.Model):
+    _name = "stock.product.line"
+    _auto = False
+    _order = "package_id asc, product_id desc"
+
+    product_id = fields.Many2one('product.product', readonly=True, index=True, string='Article')
+    package_id = fields.Many2one("stock.quant.package", u"Colis", index=True)
+    lot_id = fields.Many2one("stock.production.lot", string=u"Numéro de série")
+    qty = fields.Float(u"Quantité")
+    uom_id = fields.Many2one("product.uom", string=u"Unité de mesure d'article")
+    location_id = fields.Many2one("stock.location", string=u"Emplacement")
+
+    def init(self, cr):
+        drop_view_if_exists(cr, 'stock_product_line')
+        cr.execute("""select COALESCE(rqx.product_id,0)
+||'-'||COALESCE(rqx.package_id,0)||'-'||COALESCE(rqx.lot_id,0)||'-'||
+COALESCE(rqx.uom_id,0)||'-'||COALESCE(rqx.location_id,0) as id,
+rqx.*
+from
+(select
+            sq.product_id,
+            sq.package_id,
+            sq.lot_id,
+            sum(sq.qty) qty,
+            pt.uom_id,
+            sq.location_id
+from
+stock_quant sq
+left join product_product pp on pp.id=sq.product_id
+left join product_template pt on pp.product_tmpl_id=pt.id
+group by
+sq.product_id,
+sq.package_id,
+sq.lot_id,
+pt.uom_id,
+sq.location_id
+union all
+select
+            null product_id,
+            sqp.id package_id,
+            null lot_id,
+            0 qty,
+            null uom_id,
+            sqp.location_id
+from
+stock_quant_package sqp
+where exists (select 1
+from
+stock_quant sq
+left join stock_quant_package sqp_bis on sqp_bis.id=sq.package_id
+where sqp_bis.id=sqp.id
+group by sqp_bis.id
+having count(distinct sq.product_id)<>1)
+) rqx
+        """)
