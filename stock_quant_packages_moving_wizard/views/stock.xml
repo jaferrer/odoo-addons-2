@@ -31,22 +31,5 @@
             </field>
         </record>
 
-
-        <!--Menu pour modification de la table mode de livraison-->
-        <record model="ir.actions.act_window" id="sirail_act_window_mode_livraison1">
-            <field name="name">mode livraison</field>
-            <field name="res_model">stock.product.line</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
-            <field name="domain">[]</field>
-            <field name="context">{}</field>
-            <field name="help"/>
-        </record>
-
-        <menuitem id="sirail_menu_modelivraison1" name="Mode livraison"
-                  parent="purchase.menu_purchase_config_purchase" sequence="101"
-                  action="sirail_act_window_mode_livraison1"/>
-
-
     </data>
 </openerp>
