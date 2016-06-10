@@ -104,12 +104,12 @@ class Stock(models.Model):
     _auto = False
     _order = "package_id asc, product_id asc"
 
-    product_id = fields.Many2one('product.product', readonly=True, index=True, string='Article')
-    package_id = fields.Many2one("stock.quant.package", u"Colis", index=True)
-    lot_id = fields.Many2one("stock.production.lot", string=u"Numéro de série")
-    qty = fields.Float(u"Quantité")
-    uom_id = fields.Many2one("product.uom", string=u"Unité de mesure d'article")
-    location_id = fields.Many2one("stock.location", string=u"Emplacement")
+    product_id = fields.Many2one('product.product', readonly=True, index=True, string='Product')
+    package_id = fields.Many2one("stock.quant.package", u"Package", index=True)
+    lot_id = fields.Many2one("stock.production.lot", string=u"Lot")
+    qty = fields.Float(u"Quantity")
+    uom_id = fields.Many2one("product.uom", string=u"Unity")
+    location_id = fields.Many2one("stock.location", string=u"Location")
 
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_line')
