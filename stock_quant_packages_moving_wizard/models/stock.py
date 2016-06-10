@@ -19,6 +19,7 @@
 #
 
 from openerp import models, fields, api, _
+from openerp.tools.sql import drop_view_if_exists
 
 
 class StockQuant(models.Model):
@@ -97,3 +98,26 @@ class StockWarehouse(models.Model):
     picking_type_id = fields.Many2one(
         "stock.picking.type", string=u"Mouvement de déplacement par défault")
 
+
+class Stock(models.Model):
+    _name = "stock.product.line"
+    _auto = False
+
+    product_id = fields.Many2one('product.product', readonly=True, index=True, string='Article')
+    package_id = fields.Many2one("stock.quant.package", u"Colis", index=True)
+    lot_id = fields.Many2one("stock.production.lot", string=u"Numéro de série")
+    qty = fields.Float(u"Quantité")
+    uom_id = fields.Many2one("product.uom", string=u"Unité de mesure d'article")
+    location_id = fields.Many2one("stock.location", string=u"Emplacement")
+
+    def init(self, cr):
+        drop_view_if_exists(cr, 'stock_product_line')
+        cr.execute("""CREATE OR REPLACE VIEW stock_product_line AS (
+            select
+            1 as id,
+            1 as product_id,
+            1 as lot_id,
+            35 as qty,
+            1 as uom_id,
+            1 as location_id)
+        """)
