@@ -26,7 +26,7 @@
     "summary": "",
     "category": "Warehouse Management",
     "depends": [
-        "stock",
+        "stock","product",
     ],
     'description': """
 Quants and packaging moving wizards
