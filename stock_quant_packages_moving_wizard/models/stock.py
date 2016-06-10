@@ -102,7 +102,7 @@ class StockWarehouse(models.Model):
 class Stock(models.Model):
     _name = "stock.product.line"
     _auto = False
-    _order = "package_id asc, product_id desc"
+    _order = "package_id asc, product_id asc"
 
     product_id = fields.Many2one('product.product', readonly=True, index=True, string='Article')
     package_id = fields.Many2one("stock.quant.package", u"Colis", index=True)
@@ -113,7 +113,8 @@ class Stock(models.Model):
 
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_line')
-        cr.execute("""select COALESCE(rqx.product_id,0)
+        cr.execute("""CREATE OR REPLACE VIEW stock_product_line AS (
+            select COALESCE(rqx.product_id,0)
 ||'-'||COALESCE(rqx.package_id,0)||'-'||COALESCE(rqx.lot_id,0)||'-'||
 COALESCE(rqx.uom_id,0)||'-'||COALESCE(rqx.location_id,0) as id,
 rqx.*
@@ -152,5 +153,4 @@ left join stock_quant_package sqp_bis on sqp_bis.id=sq.package_id
 where sqp_bis.id=sqp.id
 group by sqp_bis.id
 having count(distinct sq.product_id)<>1)
-) rqx
-        """)
+) rqx)""")
