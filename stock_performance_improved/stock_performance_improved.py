@@ -339,6 +339,54 @@ class StockPicking(models.Model):
                     res[k] = {}
         return res
 
+    @api.cr_uid_context
+    def _get_top_level_packages(self, cr, uid, quants_suggested_locations, context=None):
+        """This method searches for the higher level packages that can be moved as a single operation, given a list of quants
+           to move and their suggested destination, and returns the list of matching packages.
+        """
+        # Try to find as much as possible top-level packages that can be moved
+        pack_obj = self.pool.get("stock.quant.package")
+        quant_obj = self.pool.get("stock.quant")
+        top_lvl_packages = set()
+        quants_to_compare = list(set([x.id for x in quants_suggested_locations.keys() if x and x.id]))
+        quants_suggested_locations_improved = {}
+        for k, v in quants_suggested_locations.iteritems():
+            quants_suggested_locations_improved[k.id] = v
+        for pack in list(set([x.package_id for x in quants_suggested_locations.keys() if x and x.package_id])):
+            loop = True
+            test_pack = pack
+            good_pack = False
+            pack_destination = False
+            while loop:
+                pack_quants = pack_obj.get_content(cr, uid, [test_pack.id], context=context)
+                all_in = True
+                for quant in pack_quants:
+                    # If the quant is not in the quants to compare and not in the common location
+                    if not quant in quants_to_compare:
+                        all_in = False
+                        break
+                    else:
+                        # if putaway strat apply, the destination location of each quant may be different (and thus the package should not be taken as a single operation)
+                        if not pack_destination:
+                            pack_destination = quants_suggested_locations_improved[quant]
+                        elif pack_destination != quants_suggested_locations_improved[quant]:
+                            all_in = False
+                            break
+                if all_in:
+                    good_pack = test_pack
+                    if test_pack.parent_id:
+                        test_pack = test_pack.parent_id
+                    else:
+                        # stop the loop when there's no parent package anymore
+                        loop = False
+                else:
+                    # stop the loop when the package test_pack is not totally reserved for moves of this picking
+                    # (some quants may be reserved for other picking or not reserved at all)
+                    loop = False
+            if good_pack:
+                top_lvl_packages.add(good_pack)
+        return list(top_lvl_packages)
+
     @api.cr_uid_ids_context
     def _get_pickings_dates_priority(self, cr, uid, ids, context=None):
         res = set()
