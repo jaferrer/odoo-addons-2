@@ -102,6 +102,7 @@ class StockWarehouse(models.Model):
 class Stock(models.Model):
     _name = "stock.product.line"
     _auto = False
+    _order = "package_id asc, product_id desc"
 
     product_id = fields.Many2one('product.product', readonly=True, index=True, string='Article')
     package_id = fields.Many2one("stock.quant.package", u"Colis", index=True)
@@ -112,12 +113,44 @@ class Stock(models.Model):
 
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_line')
-        cr.execute("""CREATE OR REPLACE VIEW stock_product_line AS (
-            select
-            1 as id,
-            1 as product_id,
-            1 as lot_id,
-            35 as qty,
-            1 as uom_id,
-            1 as location_id)
+        cr.execute("""select COALESCE(rqx.product_id,0)
+||'-'||COALESCE(rqx.package_id,0)||'-'||COALESCE(rqx.lot_id,0)||'-'||
+COALESCE(rqx.uom_id,0)||'-'||COALESCE(rqx.location_id,0) as id,
+rqx.*
+from
+(select
+            sq.product_id,
+            sq.package_id,
+            sq.lot_id,
+            sum(sq.qty) qty,
+            pt.uom_id,
+            sq.location_id
+from
+stock_quant sq
+left join product_product pp on pp.id=sq.product_id
+left join product_template pt on pp.product_tmpl_id=pt.id
+group by
+sq.product_id,
+sq.package_id,
+sq.lot_id,
+pt.uom_id,
+sq.location_id
+union all
+select
+            null product_id,
+            sqp.id package_id,
+            null lot_id,
+            0 qty,
+            null uom_id,
+            sqp.location_id
+from
+stock_quant_package sqp
+where exists (select 1
+from
+stock_quant sq
+left join stock_quant_package sqp_bis on sqp_bis.id=sq.package_id
+where sqp_bis.id=sqp.id
+group by sqp_bis.id
+having count(distinct sq.product_id)<>1)
+) rqx
         """)
