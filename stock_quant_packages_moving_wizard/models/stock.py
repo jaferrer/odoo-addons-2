@@ -19,6 +19,7 @@
 #
 
 from openerp import models, fields, api, _
+from openerp.tools.sql import drop_view_if_exists
 
 
 class StockQuant(models.Model):
@@ -97,3 +98,59 @@ class StockWarehouse(models.Model):
     picking_type_id = fields.Many2one(
         "stock.picking.type", string=u"Mouvement de déplacement par défault")
 
+
+class Stock(models.Model):
+    _name = "stock.product.line"
+    _auto = False
+    _order = "package_id asc, product_id desc"
+
+    product_id = fields.Many2one('product.product', readonly=True, index=True, string='Article')
+    package_id = fields.Many2one("stock.quant.package", u"Colis", index=True)
+    lot_id = fields.Many2one("stock.production.lot", string=u"Numéro de série")
+    qty = fields.Float(u"Quantité")
+    uom_id = fields.Many2one("product.uom", string=u"Unité de mesure d'article")
+    location_id = fields.Many2one("stock.location", string=u"Emplacement")
+
+    def init(self, cr):
+        drop_view_if_exists(cr, 'stock_product_line')
+        cr.execute("""select COALESCE(rqx.product_id,0)
+||'-'||COALESCE(rqx.package_id,0)||'-'||COALESCE(rqx.lot_id,0)||'-'||
+COALESCE(rqx.uom_id,0)||'-'||COALESCE(rqx.location_id,0) as id,
+rqx.*
+from
+(select
+            sq.product_id,
+            sq.package_id,
+            sq.lot_id,
+            sum(sq.qty) qty,
+            pt.uom_id,
+            sq.location_id
+from
+stock_quant sq
+left join product_product pp on pp.id=sq.product_id
+left join product_template pt on pp.product_tmpl_id=pt.id
+group by
+sq.product_id,
+sq.package_id,
+sq.lot_id,
+pt.uom_id,
+sq.location_id
+union all
+select
+            null product_id,
+            sqp.id package_id,
+            null lot_id,
+            0 qty,
+            null uom_id,
+            sqp.location_id
+from
+stock_quant_package sqp
+where exists (select 1
+from
+stock_quant sq
+left join stock_quant_package sqp_bis on sqp_bis.id=sq.package_id
+where sqp_bis.id=sqp.id
+group by sqp_bis.id
+having count(distinct sq.product_id)<>1)
+) rqx
+        """)
