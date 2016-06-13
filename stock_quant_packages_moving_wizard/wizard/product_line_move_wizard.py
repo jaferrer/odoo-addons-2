@@ -70,8 +70,10 @@ class ProductLineMoveWizard(models.TransientModel):
         lines = self.quant_line_ids + self.package_line_ids
         lines.check_quantities()
         is_manual_op = self.is_manual_op or lines.force_is_manual_op()
-        package_ids = [line.package_id.id for line in self.package_line_ids]
-        quants_to_move = self.env['stock.quant'].search([('package_id', 'in', package_ids)])
+        packages = self.Env['stock.quant.package']
+        for package_line in self.package_line_ids:
+            packages |= package_line.package_id
+        quants_to_move = packages.get_content()
         move_items = {}
         # Let's move quant lines
         for quant_line in self.quant_line_ids:
