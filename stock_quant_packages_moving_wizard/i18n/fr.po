@@ -122,6 +122,7 @@ msgid "Picking wizard items"
 msgstr "Fenêtre de prélèvement d'objets"
 
 #. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,qty:0
 #: field:stock.quant.move_items,qty:0
 msgid "Quantity"
 msgstr "Quantité"
@@ -199,6 +200,46 @@ msgstr "Les mouvements de tous les quants n'ont pas pu être rattachés à la m�
 #, python-format
 msgid "error"
 msgstr "Erreur"
+
+#. module: stock_quant_packages_moving_wizard
+#: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
+msgid "product+package"
+msgstr "Article + Colis"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,uom_id:0
+msgid "Unity"
+msgstr "Unité de mesure"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,product_id:0
+msgid "Product"
+msgstr "Article"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,package_id:0
+msgid "Package"
+msgstr "Colis"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,lot_id:0
+msgid "Lot"
+msgstr "Numéro de lot"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,location_id:0
+msgid "Location"
+msgstr "Emplacement"
+
+#. module: stock_quant_packages_moving_wizard
+#: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
+msgid "Bulk items"
+msgstr "Article en vrac"
+
+#. module: stock_quant_packages_moving_wizard
+#: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
+msgid "Top package"
+msgstr "Colis de tete"
 
 #. module: stock_quant_packages_moving_wizard
 #: code:addons/stock_quant_packages_moving_wizard/wizard/quant_move_wizard.py:77
