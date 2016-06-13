@@ -41,13 +41,12 @@ class StockChangeQuantPicking(models.TransientModel):
         self.picking_id = False
         self.move_id = False
         quant = self.env['stock.quant'].browse(self.env.context['active_ids'][0])
-        groups_domain = self.partner_id and [('partner_id', '=', self.partner_id.id)] or []
-        groups = self.env['procurement.group'].search(groups_domain)
         move_domain = [('picking_id', '!=', False),
                        ('product_id', '=', quant.product_id.id),
                        ('state', 'in', ['confirmed', 'waiting']),
                        ('location_id', '=', quant.location_id.id)]
-        if groups:
+        if self.partner_id:
+            groups = self.env['procurement.group'].search([('partner_id', '=', self.partner_id.id)])
             move_domain += [('picking_id.group_id', 'in', groups.ids)]
         moves = self.env['stock.move'].search(move_domain)
         picking_domain = [('id', 'in', moves.mapped('picking_id').ids)]
