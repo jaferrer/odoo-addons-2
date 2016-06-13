@@ -201,6 +201,46 @@ msgid "error"
 msgstr "Erreur"
 
 #. module: stock_quant_packages_moving_wizard
+#: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
+msgid "product+package"
+msgstr "product+package"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,uom_id:0
+msgid "Unity"
+msgstr "Unité de mesure"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,product_id:0
+msgid "Product"
+msgstr "Article"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,package_id:0
+msgid "Package"
+msgstr "Colis"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,lot_id:0
+msgid "Lot"
+msgstr "Numéro de lot"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,location_id:0
+msgid "Location"
+msgstr "Emplacement"
+
+#. module: stock_quant_packages_moving_wizard
+#: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
+msgid "Bulk items"
+msgstr "Article en vrac"
+
+#. module: stock_quant_packages_moving_wizard
+#: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
+msgid "Top package"
+msgstr "Colis de tete"
+
+#. module: stock_quant_packages_moving_wizard
 #: code:addons/stock_quant_packages_moving_wizard/wizard/quant_move_wizard.py:77
 #: code:addons/stock_quant_packages_moving_wizard/wizard/quant_packages_move_wizard.py:78
 #, python-format
