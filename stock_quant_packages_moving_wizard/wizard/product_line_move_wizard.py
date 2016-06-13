@@ -124,7 +124,7 @@ class ProductLineMoveWizardLine(models.TransientModel):
     lot_id = fields.Many2one('stock.production.lot', string="Lot", readonly=True)
     lot_name = fields.Char(string="Lot", readonly=True)
     available_qty = fields.Float(string="Available quantity", readonly=True)
-    qty = fields.Float(string="Quantity to move", readonly=True)
+    qty = fields.Float(string="Quantity to move")
     uom_id = fields.Many2one('product.uom', string="UOM", readonly=True)
     uom_name = fields.Char(string="UOM", readonly=True)
     location_id = fields.Many2one('stock.location', string="Location", readonly=True)
