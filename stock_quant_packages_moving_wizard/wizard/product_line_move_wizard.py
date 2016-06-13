@@ -97,7 +97,7 @@ class ProductLineMoveWizard(models.TransientModel):
             move_items = quant.partial_move(move_items, quant.product_id, quant.qty)
         result = quants_to_move.move_to(self.global_dest_loc, self.picking_type_id,
                                         move_items=move_items, is_manual_op=is_manual_op)
-        if self.is_manual_op:
+        if is_manual_op:
             if not result:
                 raise exceptions.except_orm(_("error"), _("No line selected"))
             return {
