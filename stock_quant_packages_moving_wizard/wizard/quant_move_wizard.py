@@ -33,7 +33,7 @@ class StockQuantMove(models.TransientModel):
         comodel_name='stock.location', string='Destination Location',
         required=True)
 
-    is_manual_op = fields.Boolean(string=u"Manual Operation")
+    is_manual_op = fields.Boolean(string="Manual Operation")
 
     picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type', required=True)
 
@@ -68,13 +68,13 @@ class StockQuantMove(models.TransientModel):
     def do_transfer(self):
         self.ensure_one()
         quants = self.pack_move_items.mapped(lambda x: x.quant)
-        qty_items = {}
+        move_items = {}
         for item in self.pack_move_items:
-            qty_items[item.quant.id] = item
-        result = quants.move_to(self.global_dest_loc, self.picking_type_id, qty_items, self.is_manual_op)
+            move_items = item.quant.partial_move(move_items, item.quant.product_id, item.quant.qty)
+        result = quants.move_to(self.global_dest_loc, self.picking_type_id, move_items, self.is_manual_op)
         if self.is_manual_op:
             if not result:
-                raise exceptions.except_orm(_(u"error"), _("no lines selected."))
+                raise exceptions.except_orm(_("error"), _("no lines selected."))
             return {
                 'name': 'picking_form',
                 'type': 'ir.actions.act_window',
@@ -112,4 +112,4 @@ class StockQuantMoveItems(models.TransientModel):
     @api.constrains('qty')
     def _check_description(self):
         if self.qty > self.quant.qty:
-            raise ValidationError("Fields qty must be letter than initial quant quantity")
+            raise ValidationError(_("Fields qty must be lower than the initial quant quantity"))
