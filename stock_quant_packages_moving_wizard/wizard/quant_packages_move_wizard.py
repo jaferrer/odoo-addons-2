@@ -26,13 +26,13 @@ class StockQuantPackageMove(models.TransientModel):
 
     pack_move_items = fields.One2many(
         comodel_name='stock.quant.package.move_items', inverse_name='move_id',
-        string='Packs')
+        string="Packages")
 
     global_dest_loc = fields.Many2one(
         comodel_name='stock.location', string='Destination Location',
         required=True)
 
-    picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type', required=True)
+    picking_type_id = fields.Many2one('stock.picking.type', 'Picking type', required=True)
 
     is_manual_op = fields.Boolean(string=u"Manual Operation")
 
@@ -75,7 +75,7 @@ class StockQuantPackageMove(models.TransientModel):
             result = quantsglob.move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
             if self.is_manual_op:
                 if not result:
-                    raise exceptions.except_orm(_(u"error"), _("no lines selected."))
+                    raise exceptions.except_orm(_(u"error"), _("No line selected"))
                 return {
                     'name': 'picking_form',
                     'type': 'ir.actions.act_window',

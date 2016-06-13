@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="product_move_wizard_form">
+            <field name="name">product_move_wizard_form</field>
+            <field name="model">product.move.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Product move">
+                    <group>
+                        <field name="global_dest_loc"/>
+                        <field name="picking_type_id"/>
+                        <field name="is_manual_op"/>
+                    </group>
+                    <separator string="Quants"/>
+                    <field name="quant_line_ids" options="{'no_open': True}">
+                        <tree string="Quants" editable="bottom" create="false">
+                            <field name="product_name"/>
+                            <field name="package_name"/>
+                            <field name="lot_name" groups="stock.group_production_lot"/>
+                            <field name="available_qty"/>
+                            <field name="qty"/>
+                            <field name="uom_name" groups="product.group_uom"/>
+                            <field name="location_name"/>
+                        </tree>
+                    </field>
+                    <separator string="Packages"/>
+                    <field name="package_line_ids" options="{'no_open': True}">
+                        <tree string="Packages" editable="bottom" create="false">
+                            <field name="package_name"/>
+                            <field name="location_name"/>
+                        </tree>
+                    </field>
+                    <footer>
+                        <button name="move_products" string="Move products" type="object" class="oe_highlight"/>
+                        or
+                        <button string="_Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>
