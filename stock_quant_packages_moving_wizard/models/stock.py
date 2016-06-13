@@ -125,17 +125,20 @@ from
             sq.lot_id,
             sum(sq.qty) qty,
             pt.uom_id,
-            sq.location_id
+            sq.location_id,
+            sqp.parent_id
 from
 stock_quant sq
 left join product_product pp on pp.id=sq.product_id
 left join product_template pt on pp.product_tmpl_id=pt.id
+left join stock_quant_package sqp on sqp.id=sq.package_id
 group by
 sq.product_id,
 sq.package_id,
 sq.lot_id,
 pt.uom_id,
-sq.location_id
+sq.location_id,
+sqp.parent_id
 union all
 select
             null product_id,
@@ -143,7 +146,8 @@ select
             null lot_id,
             0 qty,
             null uom_id,
-            sqp.location_id
+            sqp.location_id,
+            sqp.parent_id
 from
 stock_quant_package sqp
 where exists (select 1
