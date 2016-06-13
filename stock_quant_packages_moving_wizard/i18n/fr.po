@@ -208,8 +208,8 @@ msgstr "Article + Colis"
 
 #. module: stock_quant_packages_moving_wizard
 #: field:stock.product.line,uom_id:0
-msgid "Unity"
-msgstr "Unité de mesure"
+msgid "UOM"
+msgstr "UdM"
 
 #. module: stock_quant_packages_moving_wizard
 #: field:stock.product.line,product_id:0

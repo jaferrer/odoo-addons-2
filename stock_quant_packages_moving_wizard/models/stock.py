@@ -131,11 +131,11 @@ class Stock(models.Model):
     _auto = False
     _order = 'package_id asc, product_id asc'
 
-    product_id = fields.Many2one('product.product', readonly=True, index=True, string='Product')
+    product_id = fields.Many2one('product.product', readonly=True, index=True, string="Product")
     package_id = fields.Many2one("stock.quant.package", string="Package", index=True)
-    lot_id = fields.Many2one("stock.production.lot", string=u"Lot")
+    lot_id = fields.Many2one("stock.production.lot", string="Lot")
     qty = fields.Float(string="Quantity")
-    uom_id = fields.Many2one("product.uom", string="Unity")
+    uom_id = fields.Many2one("product.uom", string="UOM")
     location_id = fields.Many2one("stock.location", string="Location")
 
     def init(self, cr):
@@ -180,7 +180,7 @@ LEFT JOIN stock_quant_package sqp_bis ON sqp_bis.id=sq.package_id
 WHERE sqp_bis.id=sqp.id
 GROUP BY sqp_bis.id
 HAVING count(DISTINCT sq.product_id)<>1)
-) rqx
+) rqx)
         """)
 
     @api.multi

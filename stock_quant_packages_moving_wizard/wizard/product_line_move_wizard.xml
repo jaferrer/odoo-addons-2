@@ -17,10 +17,10 @@
                         <tree string="Quants" editable="bottom" create="false">
                             <field name="product_name"/>
                             <field name="package_name"/>
-                            <field name="lot_name"/>
+                            <field name="lot_name" groups="stock.group_production_lot"/>
                             <field name="available_qty"/>
                             <field name="qty"/>
-                            <field name="uom_name"/>
+                            <field name="uom_name" groups="product.group_uom"/>
                             <field name="location_name"/>
                         </tree>
                     </field>

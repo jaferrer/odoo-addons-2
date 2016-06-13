@@ -46,6 +46,7 @@ class ProductLineMoveWizard(models.TransientModel):
                     'product_name': line.product_id.display_name,
                     'package_id': line.package_id and line.package_id.id or False,
                     'package_name': line.package_id and line.package_id.display_name or False,
+                    'parent_id': line.parent_id and line.parent_id.id or False,
                     'lot_id': line.lot_id and line.lot_id.id or False,
                     'lot_name': line.lot_id and line.lot_id.display_name or False,
                     'available_qty': line.qty,
@@ -113,17 +114,18 @@ class ProductLineMoveWizardLine(models.TransientModel):
 
     move_wizard_id = fields.Many2one('product.move.wizard', string="Move wizard", readonly=True)
     product_id = fields.Many2one('product.product', string="Product", readonly=True)
-    product_name = fields.Char(string="Product")
+    product_name = fields.Char(string="Product", readonly=True)
     package_id = fields.Many2one('stock.quant.package', string="Package", readonly=True)
-    package_name = fields.Char(string="Package")
+    package_name = fields.Char(string="Package", readonly=True)
+    parent_id = fields.Many2one('stock.quant.package', string="Parent package", readonly=True)
     lot_id = fields.Many2one('stock.production.lot', string="Lot", readonly=True)
-    lot_name = fields.Char(string="Lot")
+    lot_name = fields.Char(string="Lot", readonly=True)
     available_qty = fields.Float(string="Available quantity", readonly=True)
-    qty = fields.Float(string="Quantity to move")
+    qty = fields.Float(string="Quantity to move", readonly=True)
     uom_id = fields.Many2one('product.uom', string="UOM", readonly=True)
-    uom_name = fields.Char(string="UOM")
+    uom_name = fields.Char(string="UOM", readonly=True)
     location_id = fields.Many2one('stock.location', string="Location", readonly=True)
-    location_name = fields.Char(string="Location")
+    location_name = fields.Char(string="Location", readonly=True)
 
     @api.multi
     def check_quantities(self):
@@ -142,5 +144,7 @@ class ProductLineMoveWizardLine(models.TransientModel):
             elif rec.package_id and rec.package_id.quant_ids:
                 rec.package_id.quant_ids[0].product_id.precision_rounding = rec.product_id.uom_id.rounding
             if float_compare(rec.qty, rec.available_qty, precision_rounding=precision_rounding) != 0:
+                return True
+            if rec.parent_id:
                 return True
         return False
