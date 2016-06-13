@@ -104,12 +104,13 @@ class Stock(models.Model):
     _auto = False
     _order = "package_id asc, product_id asc"
 
-    product_id = fields.Many2one('product.product', readonly=True, index=True, string='Article')
-    package_id = fields.Many2one("stock.quant.package", u"Colis", index=True)
-    lot_id = fields.Many2one("stock.production.lot", string=u"Numéro de série")
-    qty = fields.Float(u"Quantité")
-    uom_id = fields.Many2one("product.uom", string=u"Unité de mesure d'article")
-    location_id = fields.Many2one("stock.location", string=u"Emplacement")
+    product_id = fields.Many2one('product.product', readonly=True, index=True, string='Product')
+    package_id = fields.Many2one("stock.quant.package", u"Package", index=True)
+    lot_id = fields.Many2one("stock.production.lot", string=u"Lot")
+    qty = fields.Float(u"Quantity")
+    uom_id = fields.Many2one("product.uom", string=u"Unity")
+    location_id = fields.Many2one("stock.location", string=u"Location")
+    parent_id = fields.Many2one("stock.quant.package", u"Package parent", index=True)
 
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_line')
@@ -125,17 +126,20 @@ from
             sq.lot_id,
             sum(sq.qty) qty,
             pt.uom_id,
-            sq.location_id
+            sq.location_id,
+            sqp.parent_id
 from
 stock_quant sq
 left join product_product pp on pp.id=sq.product_id
 left join product_template pt on pp.product_tmpl_id=pt.id
+left join stock_quant_package sqp on sqp.id=sq.package_id
 group by
 sq.product_id,
 sq.package_id,
 sq.lot_id,
 pt.uom_id,
-sq.location_id
+sq.location_id,
+sqp.parent_id
 union all
 select
             null product_id,
@@ -143,7 +147,8 @@ select
             null lot_id,
             0 qty,
             null uom_id,
-            sqp.location_id
+            sqp.location_id,
+            sqp.parent_id
 from
 stock_quant_package sqp
 where exists (select 1
