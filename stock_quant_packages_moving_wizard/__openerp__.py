@@ -45,5 +45,8 @@ This module gives two possibilities to deplace quants. In one hand, you can do i
         "wizard/quant_packages_move_wizard_view.xml",
         "views/stock.xml"
     ],
+    'demo': [
+        'test_stock_quant_packages_moving_wizard.xml',
+    ],
     "installable": True,
 }
