@@ -242,6 +242,11 @@ msgid "Top package"
 msgstr "Colis de tete"
 
 #. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,parent_id:0
+msgid "Package parent"
+msgstr "Colis parent"
+
+#. module: stock_quant_packages_moving_wizard
 #: code:addons/stock_quant_packages_moving_wizard/wizard/quant_move_wizard.py:77
 #: code:addons/stock_quant_packages_moving_wizard/wizard/quant_packages_move_wizard.py:78
 #, python-format

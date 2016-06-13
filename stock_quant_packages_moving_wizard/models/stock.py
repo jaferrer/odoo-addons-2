@@ -110,6 +110,7 @@ class Stock(models.Model):
     qty = fields.Float(u"Quantity")
     uom_id = fields.Many2one("product.uom", string=u"Unity")
     location_id = fields.Many2one("stock.location", string=u"Location")
+    parent_id = fields.Many2one("stock.quant.package", u"Package parent", index=True)
 
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_line')
