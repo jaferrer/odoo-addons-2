@@ -131,17 +131,19 @@ class Stock(models.Model):
     _auto = False
     _order = 'package_id asc, product_id asc'
 
-    product_id = fields.Many2one('product.product', readonly=True, index=True, string="Product")
-    package_id = fields.Many2one("stock.quant.package", string="Package", index=True)
-    lot_id = fields.Many2one("stock.production.lot", string="Lot")
-    qty = fields.Float(string="Quantity")
-    uom_id = fields.Many2one("product.uom", string="UOM")
-    location_id = fields.Many2one("stock.location", string="Location")
+product_id = fields.Many2one('product.product', readonly=True, index=True, string="Product")
+package_id = fields.Many2one("stock.quant.package", string="Package", index=True)
+lot_id = fields.Many2one("stock.production.lot", string="Lot")
+qty = fields.Float(string="Quantity")
+uom_id = fields.Many2one("product.uom", string="UOM")
+location_id = fields.Many2one("stock.location", string="Location")
+parent_id = fields.Many2one("stock.quant.package", "Package", index=True)
 
-    def init(self, cr):
-        drop_view_if_exists(cr, 'stock_product_line')
-        cr.execute("""CREATE OR REPLACE VIEW stock_product_line AS (
-            select COALESCE(rqx.product_id,0)
+
+def init(self, cr):
+    drop_view_if_exists(cr, 'stock_product_line')
+    cr.execute("""CREATE OR REPLACE VIEW stock_product_line AS (
+            SELECT COALESCE(rqx.product_id,0)
 ||'-'||COALESCE(rqx.package_id,0)||'-'||COALESCE(rqx.lot_id,0)||'-'||
 COALESCE(rqx.uom_id,0)||'-'||COALESCE(rqx.location_id,0) AS id,
 rqx.*
@@ -152,17 +154,20 @@ FROM
             sq.lot_id,
             sum(sq.qty) qty,
             pt.uom_id,
-            sq.location_id
+            sq.location_id,
+            sqp.parent_id
 FROM
 stock_quant sq
 LEFT JOIN product_product pp ON pp.id=sq.product_id
 LEFT JOIN product_template pt ON pp.product_tmpl_id=pt.id
+LEFT JOIN stock_quant_package sqp ON sqp.id=sq.package_id
 GROUP BY
 sq.product_id,
 sq.package_id,
 sq.lot_id,
 pt.uom_id,
-sq.location_id
+sq.location_id,
+sqp.parent_id
 UNION ALL
 SELECT
             NULL product_id,
@@ -170,7 +175,8 @@ SELECT
             NULL lot_id,
             0 qty,
             NULL uom_id,
-            sqp.location_id
+            sqp.location_id,
+            sqp.parent_id
 FROM
 stock_quant_package sqp
 WHERE exists (SELECT 1
@@ -183,20 +189,21 @@ HAVING count(DISTINCT sq.product_id)<>1)
 ) rqx)
         """)
 
-    @api.multi
-    def move_products(self):
-        if self:
-            location = self[0].location_id
-            if any([line.location_id != location for line in self]):
-                raise ValidationError(_("Impossible to move simultaneously products of different locations"))
-        ctx = self.env.context.copy()
-        ctx['active_ids'] = self.ids
-        return {
-            'name': _("Move products"),
-            'type': 'ir.actions.act_window',
-            'view_type': 'form',
-            'view_mode': 'form',
-            'res_model': 'product.move.wizard',
-            'target': 'new',
-            'context': ctx,
-        }
+
+@api.multi
+def move_products(self):
+    if self:
+        location = self[0].location_id
+        if any([line.location_id != location for line in self]):
+            raise ValidationError(_("Impossible to move simultaneously products of different locations"))
+    ctx = self.env.context.copy()
+    ctx['active_ids'] = self.ids
+    return {
+        'name': _("Move products"),
+        'type': 'ir.actions.act_window',
+        'view_type': 'form',
+        'view_mode': 'form',
+        'res_model': 'product.move.wizard',
+        'target': 'new',
+        'context': ctx,
+    }
