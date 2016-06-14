@@ -76,6 +76,7 @@ class StockQuant(models.Model):
                                 tuples_reservation += [(quant, missing_qty)]
                                 break
                             tuples_reservation += [(quant, quant.qty)]
+                            qty_reserved += quant.qty
                     list_reservation[new_move] = tuples_reservation
                     move_recordset = move_recordset | new_move
             else:
