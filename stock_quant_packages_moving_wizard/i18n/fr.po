@@ -167,7 +167,6 @@ msgstr "Aucune ligne sélectionnée"
 #. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard.line,package_id:0
 #: field:product.move.wizard.line,package_name:0
-#: field:stock.product.line,parent_id:0
 msgid "Package"
 msgstr "Colis"
 
@@ -175,6 +174,12 @@ msgstr "Colis"
 #: field:stock.quant.package.move_items,move_id:0
 msgid "Package move"
 msgstr "Déplacer le colis"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:product.move.wizard.line,parent_id:0
+#: field:stock.product.line,parent_id:0
+msgid "Parent Package"
+msgstr "Colis parent"
 
 #. module: stock_quant_packages_moving_wizard
 #: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form
@@ -185,10 +190,9 @@ msgid "Packages"
 msgstr "Colis"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,parent_id:0
 #: field:stock.product.line,package_id:0
-msgid "Parent package"
-msgstr "Colis parent"
+msgid "Package"
+msgstr "Colis"
 
 #. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard,picking_type_id:0
