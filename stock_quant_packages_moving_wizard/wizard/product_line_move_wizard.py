@@ -64,6 +64,11 @@ class ProductLineMoveWizard(models.TransientModel):
         result.update(package_line_ids=package_lines)
         return result
 
+    @api.onchange('quant_line_ids', 'quant_line_ids.qty', 'package_line_ids', 'package_line_ids.qty')
+    def onchange_is_manual_op(self):
+        lines = self.quant_line_ids + self.package_line_ids
+        self.is_manual_op = self.is_manual_op or lines.force_is_manual_op()
+
     @api.multi
     def move_products(self):
         self.ensure_one()
