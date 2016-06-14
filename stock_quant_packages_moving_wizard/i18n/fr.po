@@ -38,7 +38,7 @@ msgstr "Créé par"
 #. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard.line,created_from_id:0
 msgid "Created from ID"
-msgstr "Created from ID"
+msgstr "Créé à partir de l'ID"
 
 #. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard,create_date:0
