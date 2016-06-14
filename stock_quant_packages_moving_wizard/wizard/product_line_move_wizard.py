@@ -76,6 +76,9 @@ class ProductLineMoveWizard(models.TransientModel):
         quants_to_move = packages.get_content()
         quants_to_move = self.env['stock.quant'].browse(quants_to_move)
         move_items = {}
+        # Let's add package quants
+        for quant in quants_to_move:
+            move_items = quant.partial_move(move_items, quant.product_id, quant.qty)
         # Let's move quant lines
         for quant_line in self.quant_line_ids:
             domain = [('product_id', '=', quant_line.product_id.id),
@@ -88,15 +91,13 @@ class ProductLineMoveWizard(models.TransientModel):
             if float_compare(quant_line.qty, quant_line.available_qty,
                              precision_rounding=quant_line.product_id.uom_id.rounding) == 0:
                 for quant in quants:
-                    move_items = quants.partial_move(move_items, quant.product_id, quant.qty)
+                    move_items = quant.partial_move(move_items, quant.product_id, quant.qty)
             # If not, we move enough quant to serve the requested quantity. In this case,
             # we do not try to abide by the removal strategy
-            else:
+            if float_compare(quant_line.qty, quant_line.available_qty,
+                             precision_rounding=quant_line.product_id.uom_id.rounding) != 0:
                 move_items = quants.partial_move(move_items, quant_line.product_id, quant_line.qty)
             quants_to_move |= quants
-        # Let's add quants to move to move items
-        for quant in quants_to_move:
-            move_items = quant.partial_move(move_items, quant.product_id, quant.qty)
         result = quants_to_move.move_to(self.global_dest_loc, self.picking_type_id,
                                         move_items=move_items, is_manual_op=is_manual_op)
         if is_manual_op:
