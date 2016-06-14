@@ -28,7 +28,7 @@ class ProductLineMoveWizard(models.TransientModel):
     global_dest_loc = fields.Many2one('stock.location', string="Destination Location", required=True)
     picking_type_id = fields.Many2one('stock.picking.type', string="Picking type", required=True)
     is_manual_op = fields.Boolean(string="Manual Operation")
-    quant_line_ids = fields.One2many('product.move.wizard.line', 'move_wizard_id', string="Quants",
+    quant_line_ids = fields.One2many('product.move.wizard.line', 'move_wizard_id', string="Products to move",
                                      domain=['|', ('product_id', '!=', False), ('package_id', '=', False)])
     package_line_ids = fields.One2many('product.move.wizard.line', 'move_wizard_id', string="Packages",
                                        domain=[('product_id', '=', False), ('package_id', '!=', False)])
