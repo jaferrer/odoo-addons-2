@@ -131,12 +131,12 @@ class Stock(models.Model):
     _order = 'package_id asc, product_id asc'
 
     product_id = fields.Many2one('product.product', readonly=True, index=True, string="Product")
-    package_id = fields.Many2one("stock.quant.package", string="Parent package", index=True)
+    package_id = fields.Many2one("stock.quant.package", string="Package", index=True)
     lot_id = fields.Many2one("stock.production.lot", string="Lot")
     qty = fields.Float(string="Quantity")
     uom_id = fields.Many2one("product.uom", string="UOM")
     location_id = fields.Many2one("stock.location", string="Location")
-    parent_id = fields.Many2one("stock.quant.package", "Package", index=True)
+    parent_id = fields.Many2one("stock.quant.package", "Parent Package", index=True)
 
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_line')
@@ -184,7 +184,10 @@ class Stock(models.Model):
                     LEFT JOIN stock_quant_package sqp_bis ON sqp_bis.id = sq.package_id
                   WHERE sqp_bis.id = sqp.id
                   GROUP BY sqp_bis.id
-                  HAVING count(DISTINCT sq.product_id) <> 1)
+                  HAVING count(DISTINCT sq.product_id) <> 1) or exists(SELECT 1
+                  FROM
+                    stock_quant_package sqp_bis
+                  WHERE sqp_bis.parent_id = sqp.id)
     ) rqx)
             """)
 
