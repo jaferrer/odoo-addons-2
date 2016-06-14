@@ -31,13 +31,19 @@
         <!--  #### Packages ######  -->
 
         <record id="package_header" model="stock.quant.package">
-            <field name="name">Package 1 (Product Removal From Packs)</field>
+            <field name="name">Package 1 (Quant Package Moving Wizard)</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+        </record>
+
+        <record id="package_header_2" model="stock.quant.package">
+            <field name="name">Package 2 (Quant Package Moving Wizard)</field>
             <field name="company_id" ref="base.main_company"/>
             <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
         </record>
 
         <record id="package_child" model="stock.quant.package">
-            <field name="name">Package 2 (Product Removal From Packs)</field>
+            <field name="name">Package 3 (Quant Package Moving Wizard)</field>
             <field name="company_id" ref="base.main_company"/>
             <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
             <field name="parent_id" ref="stock_quant_packages_moving_wizard.package_header"/>
@@ -53,7 +59,6 @@
             <field name="name">Lot B</field>
             <field name="product_id" ref="stock_quant_packages_moving_wizard.product_b"/>
         </record>
-
 
         <!-- #### Quants for package header ###### -->
 
@@ -71,6 +76,16 @@
             <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
             <field name="package_id" ref="stock_quant_packages_moving_wizard.package_header"/>
             <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_b"/>
+        </record>
+
+        <!-- #### Quants for package header 2 ###### -->
+
+        <record id="quant_header_2_a" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_a"/>
+            <field name="qty" eval="25.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="package_id" ref="stock_quant_packages_moving_wizard.package_header_2"/>
+            <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_a"/>
         </record>
 
         <!-- #### Quants for package child ###### -->
@@ -98,7 +113,15 @@
             <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_a"/>
         </record>
 
-        <!-- #### Quants for without package ###### -->
+        <record id="quant_child_d" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_a"/>
+            <field name="qty" eval="6.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="package_id" ref="stock_quant_packages_moving_wizard.package_child"/>
+            <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_a"/>
+        </record>
+
+        <!-- #### Quants without package ###### -->
         <record id="quant_a" model="stock.quant">
             <field name="product_id" ref="stock_quant_packages_moving_wizard.product_a"/>
             <field name="qty" eval="50.0"/>
@@ -110,6 +133,13 @@
             <field name="product_id" ref="stock_quant_packages_moving_wizard.product_b"/>
             <field name="qty" eval="2.0"/>
             <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+        </record>
+
+        <!-- #### Quant other location ###### -->
+        <record id="quant_other_loc" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_b"/>
+            <field name="qty" eval="10.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_dest"/>
         </record>
 
     </data>
