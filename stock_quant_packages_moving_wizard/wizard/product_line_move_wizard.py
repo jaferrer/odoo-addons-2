@@ -42,19 +42,19 @@ class ProductLineMoveWizard(models.TransientModel):
         package_lines = []
         for line in lines:
             line_dict = {
-                    'product_id': line.product_id.id,
-                    'product_name': line.product_id.display_name,
-                    'package_id': line.package_id and line.package_id.id or False,
-                    'package_name': line.package_id and line.package_id.display_name or False,
-                    'parent_id': line.parent_id and line.parent_id.id or False,
-                    'lot_id': line.lot_id and line.lot_id.id or False,
-                    'lot_name': line.lot_id and line.lot_id.display_name or False,
-                    'available_qty': line.qty,
-                    'qty': line.qty,
-                    'uom_id': line.uom_id and line.uom_id.id or False,
-                    'uom_name': line.uom_id and line.uom_id.display_name or False,
-                    'location_id': line.location_id.id,
-                    'location_name': line.location_id.display_name,
+                'product_id': line.product_id.id,
+                'product_name': line.product_id.display_name,
+                'package_id': line.package_id and line.package_id.id or False,
+                'package_name': line.package_id and line.package_id.display_name or False,
+                'parent_id': line.parent_id and line.parent_id.id or False,
+                'lot_id': line.lot_id and line.lot_id.id or False,
+                'lot_name': line.lot_id and line.lot_id.display_name or False,
+                'available_qty': line.qty,
+                'qty': line.qty,
+                'uom_id': line.uom_id and line.uom_id.id or False,
+                'uom_name': line.uom_id and line.uom_id.display_name or False,
+                'location_id': line.location_id.id,
+                'location_name': line.location_id.display_name,
             }
             if line.product_id or not line.package_id:
                 quant_lines.append(line_dict)
@@ -63,6 +63,12 @@ class ProductLineMoveWizard(models.TransientModel):
         result.update(quant_line_ids=quant_lines)
         result.update(package_line_ids=package_lines)
         return result
+
+    @api.onchange('quant_line_ids', 'package_line_ids')
+    def onchange_is_manual_op(self):
+        self.ensure_one()
+        lines = self.quant_line_ids + self.package_line_ids
+        self.is_manual_op = self.is_manual_op or lines.force_is_manual_op()
 
     @api.multi
     def move_products(self):
@@ -76,6 +82,9 @@ class ProductLineMoveWizard(models.TransientModel):
         quants_to_move = packages.get_content()
         quants_to_move = self.env['stock.quant'].browse(quants_to_move)
         move_items = {}
+        # Let's add package quants
+        for quant in quants_to_move:
+            move_items = quant.partial_move(move_items, quant.product_id, quant.qty)
         # Let's move quant lines
         for quant_line in self.quant_line_ids:
             domain = [('product_id', '=', quant_line.product_id.id),
@@ -87,14 +96,14 @@ class ProductLineMoveWizard(models.TransientModel):
             # If all the quants of the line are requested, we move all of them
             if float_compare(quant_line.qty, quant_line.available_qty,
                              precision_rounding=quant_line.product_id.uom_id.rounding) == 0:
-                quants_to_move |= quants
+                for quant in quants:
+                    move_items = quant.partial_move(move_items, quant.product_id, quant.qty)
             # If not, we move enough quant to serve the requested quantity. In this case,
             # we do not try to abide by the removal strategy
-            else:
+            if float_compare(quant_line.qty, quant_line.available_qty,
+                             precision_rounding=quant_line.product_id.uom_id.rounding) != 0:
                 move_items = quants.partial_move(move_items, quant_line.product_id, quant_line.qty)
-        # Let's add quants to move to move items
-        for quant in quants_to_move:
-            move_items = quant.partial_move(move_items, quant.product_id, quant.qty)
+            quants_to_move |= quants
         result = quants_to_move.move_to(self.global_dest_loc, self.picking_type_id,
                                         move_items=move_items, is_manual_op=is_manual_op)
         if is_manual_op:
@@ -141,13 +150,14 @@ class ProductLineMoveWizardLine(models.TransientModel):
         # If the requested quantity is different from the available one, we force the user to validate
         # the picking manually.
         for rec in self:
-            precision_rounding = False
-            if rec.product_id:
+            # Quant line with package
+            if rec.product_id and rec.package_id:
                 precision_rounding = rec.product_id.uom_id.rounding
-            elif rec.package_id and rec.package_id.quant_ids:
-                rec.package_id.quant_ids[0].product_id.precision_rounding = rec.product_id.uom_id.rounding
-            if float_compare(rec.qty, rec.available_qty, precision_rounding=precision_rounding) != 0:
-                return True
+                # Quant line without parent: force if the requested qty is different from the available qty
+                if rec.package_id.children_ids or not rec.parent_id and \
+                                float_compare(rec.qty, rec.available_qty,  precision_rounding=precision_rounding) != 0:
+                    return True
+            # Quant or package line with parent: force anyway
             if rec.parent_id:
                 return True
         return False

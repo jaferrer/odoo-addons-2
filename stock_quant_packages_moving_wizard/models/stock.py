@@ -18,9 +18,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, _
+from openerp import models, fields, api, exceptions, _
 from openerp.tools.sql import drop_view_if_exists
-from openerp.exceptions import ValidationError
 from openerp.tools import float_compare
 
 
@@ -71,10 +70,12 @@ class StockQuant(models.Model):
                             # If requested qty is reached, we break the loop
                             if float_compare(qty_reserved, qty_to_reserve, precision_rounding=prec) >= 0:
                                 break
-                            # If the new quant exceeds the requested qty, we split it and reserve the good qty
+                            # If the new quant exceeds the requested qty, we reserve the good qty and then break
                             elif float_compare(qty_reserved + quant.qty, qty_to_reserve, precision_rounding=prec) > 0:
-                                self.env['stock.quant']._quant_split(quant, qty_reserved + quant.qty - qty_to_reserve)
+                                tuples_reservation += [(quant, qty_to_reserve - qty_reserved)]
+                                break
                             tuples_reservation += [(quant, quant.qty)]
+                            qty_reserved += quant.qty
                     list_reservation[new_move] = tuples_reservation
                     move_recordset = move_recordset | new_move
             else:
@@ -108,8 +109,9 @@ class StockQuant(models.Model):
             if move_recordset:
                 move_recordset.action_confirm()
             for new_move in list_reservation.keys():
-                assert new_move.picking_id == new_picking, \
-                    _("The moves of all the quants could not be assigned to the same picking.")
+                if new_move.picking_id != new_picking:
+                    raise exceptions.except_orm(_("error"),_("The moves of all the quants could not be "
+                                                             "assigned to the same picking."))
                 self.quants_reserve(list_reservation[new_move], new_move)
             new_picking.do_prepare_partial()
             packops = new_picking.pack_operation_ids
@@ -196,7 +198,8 @@ class Stock(models.Model):
         if self:
             location = self[0].location_id
             if any([line.location_id != location for line in self]):
-                raise ValidationError(_("Impossible to move simultaneously products of different locations"))
+                raise exceptions.except_orm(_("error"),
+                                            _("Impossible to move simultaneously products of different locations"))
         ctx = self.env.context.copy()
         ctx['active_ids'] = self.ids
         return {
