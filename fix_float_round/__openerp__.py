@@ -1,7 +1,6 @@
 # -*- coding: utf8 -*-
-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,6 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import quant_move_wizard
-from . import quant_packages_move_wizard
-from . import product_line_move_wizard
+{
+    'name': 'Fix float_round',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': '',
+    'depends': [],
+    'description': """
+Fix float_round
+===============
+Fix float_round function that leads to '8.70000000001' type of floats from time to time.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

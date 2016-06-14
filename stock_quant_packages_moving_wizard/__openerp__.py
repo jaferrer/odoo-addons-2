@@ -26,7 +26,7 @@
     "summary": "",
     "category": "Warehouse Management",
     "depends": [
-        "stock",
+        "stock"
     ],
     'description': """
 Quants and packaging moving wizards
@@ -40,9 +40,14 @@ This module gives two possibilities to deplace quants. In one hand, you can do i
         "Ana Juaristi <ajuaristio@gmail.com>"
     ],
     "data": [
+        'security/ir.model.access.csv',
         "wizard/quant_move_wizard_view.xml",
         "wizard/quant_packages_move_wizard_view.xml",
-        "views/stock.xml"
+        "wizard/product_line_move_wizard.xml",
+        "views/stock.xml",
+    ],
+    'demo': [
+        'test_stock_quant_packages_moving_wizard.xml',
     ],
     "installable": True,
 }

@@ -327,10 +327,7 @@ class TestIncompleteProduction(common.TransactionCase):
 
         # Checking return picking data
         picking = self.env['stock.picking'].search([('picking_type_id', '=', self.stock_picking_type_return.id)])
-        self.assertEqual(len(picking.move_lines), 6)
-        self.assertIn((self.product1, 1), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
-        self.assertIn((self.product1, 3), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
-        self.assertIn((self.product2, 2), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
-        self.assertIn((self.product2, 4), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
-        self.assertIn((self.product2, 2.5), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
+        self.assertEqual(len(picking.move_lines), 3)
+        self.assertIn((self.product1, 4), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
+        self.assertIn((self.product2, 8.5), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
         self.assertIn((self.product3, 4), [(move.product_id, move.product_uom_qty) for move in picking.move_lines])
