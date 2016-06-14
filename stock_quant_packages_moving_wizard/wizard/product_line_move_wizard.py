@@ -87,11 +87,13 @@ class ProductLineMoveWizard(models.TransientModel):
             # If all the quants of the line are requested, we move all of them
             if float_compare(quant_line.qty, quant_line.available_qty,
                              precision_rounding=quant_line.product_id.uom_id.rounding) == 0:
-                quants_to_move |= quants
+                for quant in quants:
+                    move_items = quants.partial_move(move_items, quant.product_id, quant.qty)
             # If not, we move enough quant to serve the requested quantity. In this case,
             # we do not try to abide by the removal strategy
             else:
                 move_items = quants.partial_move(move_items, quant_line.product_id, quant_line.qty)
+            quants_to_move |= quants
         # Let's add quants to move to move items
         for quant in quants_to_move:
             move_items = quant.partial_move(move_items, quant.product_id, quant.qty)
