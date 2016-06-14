@@ -24,6 +24,7 @@ from openerp.tests import common
 class TestStockQuantPackagesMovingWizard(common.TransactionCase):
     def setUp(self):
         super(TestStockQuantPackagesMovingWizard, self).setUp()
+        self.env['stock.quant.package']._parent_store_compute()
 
         self.product_a = self.browse_ref("stock_quant_packages_moving_wizard.product_a")
         self.product_b = self.browse_ref("stock_quant_packages_moving_wizard.product_b")
