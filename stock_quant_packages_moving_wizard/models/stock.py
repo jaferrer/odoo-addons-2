@@ -66,14 +66,13 @@ class StockQuant(models.Model):
                         qty_reserved = 0
                         qty_to_reserve = move_tuple['qty']
                         for quant in move_tuple['quants']:
-                            missing_qty = qty_reserved + quant.qty - qty_to_reserve
                             # If the new quant does not exceed the requested qty, we move it (end of loop) and continue
                             # If requested qty is reached, we break the loop
                             if float_compare(qty_reserved, qty_to_reserve, precision_rounding=prec) >= 0:
                                 break
                             # If the new quant exceeds the requested qty, we reserve the good qty and then break
                             elif float_compare(qty_reserved + quant.qty, qty_to_reserve, precision_rounding=prec) > 0:
-                                tuples_reservation += [(quant, missing_qty)]
+                                tuples_reservation += [(quant, qty_to_reserve - qty_reserved)]
                                 break
                             tuples_reservation += [(quant, quant.qty)]
                             qty_reserved += quant.qty
