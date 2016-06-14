@@ -149,9 +149,14 @@ msgstr "Référence popup"
 #. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard.line,package_id:0
 #: field:product.move.wizard.line,package_name:0
-#: field:stock.product.line,parent_id:0
 msgid "Package"
 msgstr "Colis"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:product.move.wizard.line,parent_id:0
+#: field:stock.product.line,parent_id:0
+msgid "Parent Package"
+msgstr "Colis parent"
 
 #. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard,package_line_ids:0
@@ -169,8 +174,8 @@ msgstr "Déplacer le colis"
 #. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard.line,parent_id:0
 #: field:stock.product.line,package_id:0
-msgid "Parent package"
-msgstr "Colis parent"
+msgid "Package"
+msgstr "Colis"
 
 #. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard,picking_type_id:0
