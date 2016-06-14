@@ -18,9 +18,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, _
+from openerp import models, fields, api, exceptions, _
 from openerp.tools.sql import drop_view_if_exists
-from openerp.exceptions import ValidationError
 from openerp.tools import float_compare
 
 
@@ -108,8 +107,9 @@ class StockQuant(models.Model):
             if move_recordset:
                 move_recordset.action_confirm()
             for new_move in list_reservation.keys():
-                assert new_move.picking_id == new_picking, \
-                    _("The moves of all the quants could not be assigned to the same picking.")
+                if new_move.picking_id != new_picking:
+                    raise exceptions.except_orm(_("error"),_("The moves of all the quants could not be "
+                                                             "assigned to the same picking."))
                 self.quants_reserve(list_reservation[new_move], new_move)
             new_picking.do_prepare_partial()
             packops = new_picking.pack_operation_ids
@@ -193,7 +193,8 @@ class Stock(models.Model):
         if self:
             location = self[0].location_id
             if any([line.location_id != location for line in self]):
-                raise ValidationError(_("Impossible to move simultaneously products of different locations"))
+                raise exceptions.except_orm(_("error"),
+                                            _("Impossible to move simultaneously products of different locations"))
         ctx = self.env.context.copy()
         ctx['active_ids'] = self.ids
         return {
