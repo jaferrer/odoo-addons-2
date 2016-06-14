@@ -105,7 +105,6 @@ class StockQuant(models.Model):
                             [('id', '=', qt['id'])]), qt['qty']))
 
                     move_recordset = move_recordset | new_move
-
             if move_recordset:
                 move_recordset.action_confirm()
             for new_move in list_reservation.keys():

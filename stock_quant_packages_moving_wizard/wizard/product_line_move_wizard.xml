@@ -12,9 +12,10 @@
                         <field name="picking_type_id"/>
                         <field name="is_manual_op"/>
                     </group>
-                    <separator string="Quants"/>
+                    <separator string="Products to move"/>
+                    <div class="oe_grey">If you request all the available quantities for one package, all the package will be moved.</div>
                     <field name="quant_line_ids" options="{'no_open': True}">
-                        <tree string="Quants" editable="bottom" create="false">
+                        <tree string="Products to move" editable="bottom" create="false">
                             <field name="product_name"/>
                             <field name="package_name"/>
                             <field name="lot_name" groups="stock.group_production_lot"/>
