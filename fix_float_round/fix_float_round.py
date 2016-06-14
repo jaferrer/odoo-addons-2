@@ -1,7 +1,6 @@
 # -*- coding: utf8 -*-
-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,6 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import quant_move_wizard
-from . import quant_packages_move_wizard
-from . import product_line_move_wizard
+import openerp
+
+old_float_round = openerp.tools.float_utils.float_round
+
+
+def new_float_round(value, precision_digits=None, precision_rounding=None, rounding_method='HALF-UP'):
+    return float(str(old_float_round(value, precision_digits=precision_digits, precision_rounding=precision_rounding,
+                                     rounding_method=rounding_method)))
+
+
+openerp.tools.float_utils.float_round = new_float_round

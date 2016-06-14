@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!-- #### Locations ###### -->
+        <record id="stock_location_source" model="stock.location">
+            <field name="name">Location 1 (source)</field>
+            <field name="location_id" ref="stock.stock_location_locations"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
+        <record id="stock_location_dest" model="stock.location">
+            <field name="name">Location 2 (dest)</field>
+            <field name="location_id" ref="stock.stock_location_locations"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
+        <!--  #### products ######  -->
+        <record id="product_a" model="product.product">
+            <field name="name">Test Product A</field>
+            <field name="type">product</field>
+        </record>
+
+        <record id="product_b" model="product.product">
+            <field name="name">Test Product B</field>
+            <field name="type">product</field>
+        </record>
+
+        <!--  #### Packages ######  -->
+
+        <record id="package_header" model="stock.quant.package">
+            <field name="name">Package 1 (Quant Package Moving Wizard)</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+        </record>
+
+        <record id="package_header_2" model="stock.quant.package">
+            <field name="name">Package 2 (Quant Package Moving Wizard)</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+        </record>
+
+        <record id="package_child" model="stock.quant.package">
+            <field name="name">Package 3 (Quant Package Moving Wizard)</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="parent_id" ref="stock_quant_packages_moving_wizard.package_header"/>
+        </record>
+
+        <!-- Lot -->
+        <record id="lot_a" model="stock.production.lot">
+            <field name="name">Lot A</field>
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_a"/>
+        </record>
+
+        <record id="lot_b" model="stock.production.lot">
+            <field name="name">Lot B</field>
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_b"/>
+        </record>
+
+        <!-- #### Quants for package header ###### -->
+
+        <record id="quant_header_a" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_a"/>
+            <field name="qty" eval="15.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="package_id" ref="stock_quant_packages_moving_wizard.package_header"/>
+            <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_a"/>
+        </record>
+
+        <record id="quant_header_b" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_b"/>
+            <field name="qty" eval="7.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="package_id" ref="stock_quant_packages_moving_wizard.package_header"/>
+            <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_b"/>
+        </record>
+
+        <!-- #### Quants for package header 2 ###### -->
+
+        <record id="quant_header_2_a" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_a"/>
+            <field name="qty" eval="25.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="package_id" ref="stock_quant_packages_moving_wizard.package_header_2"/>
+            <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_a"/>
+        </record>
+
+        <!-- #### Quants for package child ###### -->
+
+        <record id="quant_child_a" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_a"/>
+            <field name="qty" eval="10.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="package_id" ref="stock_quant_packages_moving_wizard.package_child"/>
+        </record>
+
+        <record id="quant_child_b" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_b"/>
+            <field name="qty" eval="11.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="package_id" ref="stock_quant_packages_moving_wizard.package_child"/>
+            <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_b"/>
+        </record>
+
+        <record id="quant_child_c" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_a"/>
+            <field name="qty" eval="2.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="package_id" ref="stock_quant_packages_moving_wizard.package_child"/>
+            <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_a"/>
+        </record>
+
+        <record id="quant_child_d" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_a"/>
+            <field name="qty" eval="6.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="package_id" ref="stock_quant_packages_moving_wizard.package_child"/>
+            <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_a"/>
+        </record>
+
+        <!-- #### Quants without package ###### -->
+        <record id="quant_a" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_a"/>
+            <field name="qty" eval="50.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+            <field name="lot_id" ref="stock_quant_packages_moving_wizard.lot_b"/>
+        </record>
+
+        <record id="quant_b" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_b"/>
+            <field name="qty" eval="2.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+        </record>
+
+        <!-- #### Quant other location ###### -->
+        <record id="quant_other_loc" model="stock.quant">
+            <field name="product_id" ref="stock_quant_packages_moving_wizard.product_b"/>
+            <field name="qty" eval="10.0"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_dest"/>
+        </record>
+
+    </data>
+</openerp>
