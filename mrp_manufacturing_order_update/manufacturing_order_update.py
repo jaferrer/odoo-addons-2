@@ -89,6 +89,7 @@ class MoUpdateMrpProduction(models.Model):
                 move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, item.product_qty, False, 0)
                 self.env['stock.move'].browse(move).action_confirm()
             mrp.message_post(post)
+        return True
 
     @api.multi
     def write(self, vals):
@@ -104,7 +105,7 @@ class MoUpdateMrpProduction(models.Model):
     def button_update(self):
         self.ensure_one()
         self._action_compute_lines()
-        self.update_moves()
+        return self.update_moves()
 
     @api.model
     def run_schedule_button_update(self):
