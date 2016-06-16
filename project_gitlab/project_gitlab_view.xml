@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="project_project_form_gitlab">
+            <field name="name">project.project.form.gitlab</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="GitLab Integration">
+                        <group>
+                            <group>
+                                <field name="gitlab_url"/>
+                                <field name="gitlab_api_token"/>
+                            </group>
+                            <group>
+                                <button type="object" name="update_gitlab_projects"
+                                        string="Update GitLab Projects List"/>
+                                <div> </div>
+                                <field name="gitlab_integrated" invisible="1"/>
+                                <field name="gitlab_project_id" attrs="{'readonly': [('gitlab_integrated', '=', True)]}"/>
+                                <field name="gitlab_id"/>
+                            </group>
+                        </group>
+                        <button type="object" name="setup_gitlab_integration"
+                                string="Setup GitLab integration for this project"
+                                attrs="{'invisible': ['|', ('gitlab_id', '=', 0), ('gitlab_integrated', '=', True)]}"/>
+                        <button type="object" name="remove_gitlab_integration"
+                                string="Remove GitLab integration for this project"
+                                attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_task_form_gitlab">
+            <field name="name">project.task.form.gitlab</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="project_id" position="after">
+                    <field name="gitlab_integrated" invisible="1"/>
+                    <field name="gitlab_issue_id"
+                           attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_task_tree_gitlab">
+            <field name="name">project.task.tree.gitlab</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_tree2"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="name" position="before">
+                    <field name="gitlab_integrated" invisible="1"/>
+                    <field name="gitlab_issue_id"
+                           attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_issue_form_gitlab">
+            <field name="name">project.issue.form.gitlab</field>
+            <field name="model">project.issue</field>
+            <field name="inherit_id" ref="project_issue.project_issue_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="user_id" position="before">
+                    <field name="gitlab_integrated" invisible="1"/>
+                    <field name="gitlab_issue_id"
+                           attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_issue_tree_gitlab">
+            <field name="name">project.issue.tree.gitlab</field>
+            <field name="model">project.issue</field>
+            <field name="inherit_id" ref="project_issue.project_issue_tree_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="name" position="before">
+                    <field name="gitlab_integrated" invisible="1"/>
+                    <field name="gitlab_issue_id"
+                           attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
+                </field>
+                <field name="id" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_gitlab_project_tree_gitlab">
+            <field name="name">project.gitlab.project.tree.gitlab</field>
+            <field name="model">project.gitlab.project</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_project_gitlab_projects">
+            <field name="name">GitLab Projects</field>
+            <field name="res_model">project.gitlab.project</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <menuitem id="menu_project_gitlab_project" name="GitLab Projects" action="act_window_project_gitlab_projects"
+                  parent="project.menu_project_config" sequence="20"/>
+
+    </data>
+</openerp>
