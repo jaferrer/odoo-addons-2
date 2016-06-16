@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp.tools import drop_view_if_exists, flatten, float_compare
+from openerp.tools import drop_view_if_exists, flatten, float_compare, float_round
 from openerp import fields, models, api, osv
 from openerp.osv import fields as old_api_fields
 from openerp.addons.procurement import procurement
@@ -270,8 +270,68 @@ FROM (
      ) foo"""
 
 
+class StockQuantPackageImproved(models.Model):
+    _inherit = "stock.quant.package"
+
+    def _get_all_products_quantities(self, cr, uid, package_id, context=None):
+        '''This function computes the different product quantities for the given package
+        '''
+        quant_obj = self.pool.get('stock.quant')
+        res = {}
+        ids = self.get_content(cr, uid, package_id, context=context)
+        for quant in quant_obj.read(cr, uid, ids,
+                                    ["product_id", "qty"], load=False, context=context):
+            if quant["product_id"] not in res:
+                res[quant["product_id"]] = 0
+            res[quant["product_id"]] += quant["qty"]
+        return res
+
+
+class stock_pack_operation(models.Model):
+    _inherit = "stock.pack.operation"
+
+    def _get_remaining_prod_quantities(self, cr, uid, operation, context=None):
+        '''Get the remaining quantities per product on an operation with a package. This function returns a dictionary'''
+        # if the operation doesn't concern a package, it's not relevant to call this function
+        if not operation.package_id or operation.product_id:
+            return {operation.product_id.id: operation.remaining_qty}
+        # get the total of products the package contains
+        res = self.pool.get('stock.quant.package')._get_all_products_quantities(cr, uid, operation.package_id.id,
+                                                                                context=context)
+        list_ids = operation.linked_move_operation_ids.ids
+        if list_ids:
+            cr.execute("""
+            select
+                sm.product_id,
+                sum(smol.qty) qty
+            from stock_move_operation_link smol
+            inner join stock_move sm on sm.id=smol.move_id
+            where smol.id in %s
+            group by sm.product_id
+            """, (tuple(list_ids),))
+            list_linked_move_operations = cr.fetchall()
+            # reduce by the quantities linked to a move
+            for record in list_linked_move_operations:
+                if record[0] not in res:
+                    res[record[0]] = 0
+                res[record[0]] -= record[1]
+        return res
+
+
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
+
+    location_id = fields.Many2one("stock.location", string="Location", readonly=True, compute="_compute_location_id")
+    location_dest_id = fields.Many2one("stock.location", string="Destination Location", readonly=True,
+                                       compute="_compute_location_id")
+
+    @api.depends('move_lines.location_id', 'move_lines.location_dest_id')
+    def _compute_location_id(self):
+        for rec in self:
+            moves = self.env['stock.move'].search([('picking_id', '=', rec.id)], limit=1)
+            if moves:
+                rec.location_id = moves.location_id
+                rec.location_dest_id = moves.location_dest_id
 
     @api.model
     def assign_moves_to_picking(self):
@@ -615,10 +675,38 @@ class StockMove(models.Model):
                 res[val['reservation_id'][0]] = val['qty']
         return res
 
+    def _get_remaining_qty(self, cr, uid, ids, field_name, args, context=None):
+        uom_obj = self.pool.get('product.uom')
+        res = {}
+        if ids:
+            cr.execute("""
+                select sm.id,
+                max(sm.product_qty) product_qty,
+                sum(COALESCE(smol.qty,0)) qty,
+                pu.rounding
+                from stock_move sm
+                LEFT JOIN product_product pp ON pp.id = sm.product_id
+                LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
+                LEFT join stock_move_operation_link smol on sm.id=smol.move_id
+                LEFT join product_uom pu on pu.id=pt.uom_id
+                where sm.id in %s
+                group by sm.id,pu.rounding
+            """, (tuple(ids),))
+            moves = cr.fetchall()
+            for move in moves:
+                qty = move[1] - move[2]
+                # Keeping in product default UoM
+                res[move[0]] = float_round(qty, precision_rounding=move[3])
+        return res
+
     _columns = {
         'reserved_availability': old_api_fields.function(_get_reserved_availability, type='float',
                                                          string='Quantity Reserved', readonly=True,
-                                                         help='Quantity that has already been reserved for this move')
+                                                         help='Quantity that has already been reserved for this move'),
+        'remaining_qty': old_api_fields.function(_get_remaining_qty, type='float', string='Remaining Quantity',
+                                                 digits=0,
+                                                 states={'done': [('readonly', True)]},
+                                                 help="Remaining Quantity in default UoM according to operations matched with this move"),
     }
 
     defer_picking_assign = fields.Boolean("Defer Picking Assignement", default=False,
@@ -698,7 +786,9 @@ class StockMove(models.Model):
         """ Checks the product type and accordingly writes the state.
         Overridden here to also assign a picking if it is not done yet.
         """
-        moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
+        #moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
+        moves_no_pick = self.search([
+            ('id', 'in', self.ids), ('picking_type_id', '!=', False), ('picking_id', '=', False)])
         moves_no_pick.assign_to_picking()
         return super(StockMove, self).action_assign()
 
