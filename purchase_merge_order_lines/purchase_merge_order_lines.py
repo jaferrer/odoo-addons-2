@@ -39,10 +39,16 @@ class MergePolPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
     @api.multi
+    def check_line_quantities(self, merge_result):
+        self.ensure_one()
+        return merge_result
+
+    @api.multi
     def do_merge(self):
         result = super(MergePolPurchaseOrder, self).do_merge()
         for key in result.keys():
-            order = self.env['purchase.order'].search([('id', '=', key)])
+            order = self.env['purchase.order'].browse(key)
+            result = order.check_line_quantities(result)
             if self.env.context.get('merge_different_dates'):
                 lines = order.order_line
                 while lines:
