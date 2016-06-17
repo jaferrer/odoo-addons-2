@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 8.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-13 13:02+0000\n"
-"PO-Revision-Date: 2016-06-13 13:02+0000\n"
+"POT-Creation-Date: 2016-06-14 14:53+0000\n"
+"PO-Revision-Date: 2016-06-14 14:53+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -36,6 +36,11 @@ msgid "Created by"
 msgstr "Créé par"
 
 #. module: stock_quant_packages_moving_wizard
+#: field:product.move.wizard.line,created_from_id:0
+msgid "Created from ID"
+msgstr "Créé à partir de l'ID"
+
+#. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard,create_date:0
 #: field:product.move.wizard.line,create_date:0
 #: field:stock.quant.move,create_date:0
@@ -44,6 +49,11 @@ msgstr "Créé par"
 #: field:stock.quant.package.move_items,create_date:0
 msgid "Created on"
 msgstr "Créé le"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.warehouse,picking_type_id:0
+msgid "Default picking type"
+msgstr "Type d'opération par défaut"
 
 #. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard,global_dest_loc:0
@@ -55,7 +65,7 @@ msgid "Destination Location"
 msgstr "Emplacement destination"
 
 #. module: stock_quant_packages_moving_wizard
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:115
+#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:114
 #, python-format
 msgid "Fields qty must be lower than the initial quant quantity"
 msgstr "Chaque quantité demandée doit être inférieure à la quantité initiale du quant"
@@ -72,7 +82,12 @@ msgid "ID"
 msgstr "ID"
 
 #. module: stock_quant_packages_moving_wizard
-#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:197
+#: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form
+msgid "If you request all the available quantities for one package, all the package will be moved."
+msgstr "Si, pour un colis, vous demandez de déplacer la quantité disponible de chaque article, le colis sera déplacé entièrement."
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:198
 #, python-format
 msgid "Impossible to move simultaneously products of different locations"
 msgstr "Impossible de déplacer simultanément des articles situés à des emplacements différents"
@@ -119,11 +134,6 @@ msgid "Manual Operation"
 msgstr "Opération Manuelle"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:stock.warehouse,picking_type_id:0
-msgid "Default picking type"
-msgstr "Type d'opération par défaut"
-
-#. module: stock_quant_packages_moving_wizard
 #: model:ir.actions.act_window,name:stock_quant_packages_moving_wizard.action_move_quants
 msgid "Move Stock Quant"
 msgstr "Déplacer le quant"
@@ -134,7 +144,7 @@ msgid "Move Stock Quant Packages"
 msgstr "Déplacer les colis"
 
 #. module: stock_quant_packages_moving_wizard
-#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:201
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:202
 #: model:ir.actions.server,name:stock_quant_packages_moving_wizard.ir_actions_server_move_products
 #: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form
 #, python-format
@@ -147,23 +157,17 @@ msgid "Move wizard"
 msgstr "Référence popup"
 
 #. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:105
+#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:76
+#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_packages_move_wizard.py:78
+#, python-format
+msgid "No line selected"
+msgstr "Aucune ligne sélectionnée"
+
+#. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard.line,package_id:0
 #: field:product.move.wizard.line,package_name:0
 msgid "Package"
-msgstr "Colis"
-
-#. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,parent_id:0
-#: field:stock.product.line,parent_id:0
-msgid "Parent Package"
-msgstr "Colis parent"
-
-#. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard,package_line_ids:0
-#: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form
-#: field:stock.quant.move,pack_move_items:0
-#: field:stock.quant.package.move,pack_move_items:0
-msgid "Packages"
 msgstr "Colis"
 
 #. module: stock_quant_packages_moving_wizard
@@ -173,6 +177,19 @@ msgstr "Déplacer le colis"
 
 #. module: stock_quant_packages_moving_wizard
 #: field:product.move.wizard.line,parent_id:0
+#: field:stock.product.line,parent_id:0
+msgid "Parent Package"
+msgstr "Colis parent"
+
+#. module: stock_quant_packages_moving_wizard
+#: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form
+#: field:product.move.wizard,package_line_ids:0
+#: field:stock.quant.move,pack_move_items:0
+#: field:stock.quant.package.move,pack_move_items:0
+msgid "Packages"
+msgstr "Colis"
+
+#. module: stock_quant_packages_moving_wizard
 #: field:stock.product.line,package_id:0
 msgid "Package"
 msgstr "Colis"
@@ -182,7 +199,7 @@ msgstr "Colis"
 #: field:stock.quant.move,picking_type_id:0
 #: field:stock.quant.package.move,picking_type_id:0
 msgid "Picking type"
-msgstr "Picking type"
+msgstr "Type d'opération"
 
 #. module: stock_quant_packages_moving_wizard
 #: model:ir.model,name:stock_quant_packages_moving_wizard.model_stock_quant_move_items
@@ -203,16 +220,15 @@ msgid "Product move"
 msgstr "Déplacement d'articles"
 
 #. module: stock_quant_packages_moving_wizard
+#: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form
+#: field:product.move.wizard,quant_line_ids:0
+msgid "Products to move"
+msgstr "Articles à déplacer"
+
+#. module: stock_quant_packages_moving_wizard
 #: field:stock.quant.move_items,quant:0
 msgid "Quant"
 msgstr "Quant"
-
-#. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard,quant_line_ids:0
-#: model:ir.model,name:stock_quant_packages_moving_wizard.model_stock_quant
-#: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form
-msgid "Quants"
-msgstr "Quants"
 
 #. module: stock_quant_packages_moving_wizard
 #: field:stock.quant.move_items,move_id:0
@@ -236,6 +252,11 @@ msgid "Quantity to move"
 msgstr "Quantité à déplacer"
 
 #. module: stock_quant_packages_moving_wizard
+#: model:ir.model,name:stock_quant_packages_moving_wizard.model_stock_quant
+msgid "Quants"
+msgstr "Quants"
+
+#. module: stock_quant_packages_moving_wizard
 #: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
 msgid "Search Product"
 msgstr "Rechercher un article"
@@ -253,7 +274,7 @@ msgid "The moves of all the quants could not be assigned to the same picking."
 msgstr "Les mouvements de tous les quants n'ont pas pu être rattachés à la même opération."
 
 #. module: stock_quant_packages_moving_wizard
-#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:137
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:141
 #, python-format
 msgid "The quantity to move must be lower or equal to the available quantity"
 msgstr "La quantité à déplacer doit être inférieure ou égale à la quantité disponable"
@@ -295,20 +316,14 @@ msgid "_Cancel"
 msgstr "Annuler"
 
 #. module: stock_quant_packages_moving_wizard
-#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:102
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:77
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:112
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:197
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:105
+#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:76
 #: code:addons\stock_quant_packages_moving_wizard\wizard\quant_packages_move_wizard.py:78
 #, python-format
 msgid "error"
 msgstr "error"
-
-#. module: stock_quant_packages_moving_wizard
-#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:102
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:77
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_packages_move_wizard.py:78
-#, python-format
-msgid "No line selected"
-msgstr "Aucune ligne sélectionnée"
 
 #. module: stock_quant_packages_moving_wizard
 #: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form

@@ -20,7 +20,7 @@
 
 from openerp import models, fields, api, exceptions, _
 from openerp.tools.sql import drop_view_if_exists
-from openerp.tools import float_compare
+from openerp.tools import float_compare, float_round
 
 
 class StockQuant(models.Model):
@@ -46,22 +46,59 @@ class StockQuant(models.Model):
             })
             if move_items:
                 for product in move_items.keys():
+                    list_move = []
                     tuples_reservation = []
                     move_tuples = move_items[product]
                     location_from = move_tuples[0]['quants'][0].location_id
                     prec = product.uom_id.rounding
-                    new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
-                        'name': 'Move %s to %s' % (product.name, dest_location.name),
-                        'product_id': product.id,
-                        'location_id': location_from.id,
-                        'location_dest_id': dest_location.id,
-                        'product_uom_qty': sum(move_tuple['qty'] for move_tuple in move_tuples),
-                        'product_uom': product.uom_id.id,
-                        'date_expected': fields.Datetime.now(),
-                        'date': fields.Datetime.now(),
-                        'picking_type_id': picking_type_id.id,
-                        'picking_id': new_picking.id,
-                    })
+
+                    list_old_moves = {}
+                    for move_tuple in move_tuples:
+                        for quant in move_tuple['quants']:
+                            if quant.reservation_id:
+                                list_old_moves[quant.reservation_id.id] = quant.reservation_id
+
+                    split_val = sum(move_tuple['qty'] for move_tuple in move_tuples)
+                    print split_val
+
+                    for move_reserved in list_old_moves.values():
+
+                        if float_compare(split_val, move_reserved.product_uom_qty, precision_rounding=prec) >= 0:
+                            move_reserved.write({
+                                'picking_id': new_picking.id
+                            })
+
+                            split_val = split_val - move_reserved.product_uom_qty
+                            move_recordset = move_recordset | move_reserved
+                            list_move.append(move_reserved)
+                        else:
+                            diff = move_reserved.product_uom_qty - split_val
+                            move_reserved.split(move_reserved, diff)
+                            move_reserved.write({
+                                'picking_id': new_picking.id
+                            })
+                            split_val = 0
+                            move_recordset = move_recordset | move_reserved
+                            list_move.append(move_reserved)
+                            break
+
+                    for move_unreserved in list_old_moves.values():
+                        self.quants_unreserve(move_unreserved)
+
+                    if split_val > 0:
+                        new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
+                            'name': 'Move %s to %s' % (product.name, dest_location.name),
+                            'product_id': product.id,
+                            'location_id': location_from.id,
+                            'location_dest_id': dest_location.id,
+                            'product_uom_qty': split_val,
+                            'product_uom': product.uom_id.id,
+                            'date_expected': fields.Datetime.now(),
+                            'date': fields.Datetime.now(),
+                            'picking_type_id': picking_type_id.id,
+                            'picking_id': new_picking.id,
+                        })
+                        list_move.append(new_move)
                     for move_tuple in move_tuples:
                         qty_reserved = 0
                         qty_to_reserve = move_tuple['qty']
@@ -76,8 +113,46 @@ class StockQuant(models.Model):
                                 break
                             tuples_reservation += [(quant, quant.qty)]
                             qty_reserved += quant.qty
-                    list_reservation[new_move] = tuples_reservation
+                    list_reservation[tuple(list_move)] = tuples_reservation
                     move_recordset = move_recordset | new_move
+
+                if move_recordset:
+                    move_recordset.action_confirm()
+                for new_moves in list_reservation.keys():
+                    for new_move in new_moves:
+                        if new_move.picking_id != new_picking:
+                            raise exceptions.except_orm(_("error"), _("The moves of all the quants could not be "
+                                                                      "assigned to the same picking."))
+
+                        list_tuple_quant = []
+                        move_qty = new_move.product_uom_qty
+                        for quant, qty in list_reservation[new_moves]:
+                            if not quant.reservation_id:
+
+                                if float_compare(move_qty, qty,
+                                                 precision_rounding=new_move.product_id.uom_id.rounding) >= 0:
+
+                                    if float_compare(quant.qty, qty,
+                                                     precision_rounding=new_move.product_id.uom_id.rounding) > 0:
+                                        q = quant._quant_split(quant, float_round(qty,
+                                                                                  precision_rounding=new_move.product_id.uom_id.rounding))
+                                        list_reservation[new_moves].append((q, q.qty))
+                                    list_tuple_quant.append((quant, qty))
+                                    move_qty = move_qty - qty
+                                else:
+                                    if float_compare(quant.qty, move_qty,
+                                                     precision_rounding=new_move.product_id.uom_id.rounding) > 0:
+                                        q = quant._quant_split(quant, float_round(move_qty,
+                                                                                  precision_rounding=new_move.product_id.uom_id.rounding))
+                                        list_reservation[new_moves].append((q, q.qty))
+                                    list_tuple_quant.append((quant, move_qty))
+                                    break
+
+                                if float_round(move_qty, precision_rounding=new_move.product_id.uom_id.rounding) <= 0:
+                                    break
+
+                        self.quants_reserve(list_tuple_quant, new_move)
+
             else:
                 values = self.env['stock.quant'].read_group([('id', 'in', self.ids)],
                                                             ['product_id', 'location_id', 'qty'],
@@ -106,13 +181,14 @@ class StockQuant(models.Model):
 
                     move_recordset = move_recordset | new_move
 
-            if move_recordset:
-                move_recordset.action_confirm()
-            for new_move in list_reservation.keys():
-                if new_move.picking_id != new_picking:
-                    raise exceptions.except_orm(_("error"),_("The moves of all the quants could not be "
-                                                             "assigned to the same picking."))
-                self.quants_reserve(list_reservation[new_move], new_move)
+                if move_recordset:
+                    move_recordset.action_confirm()
+                for new_move in list_reservation.keys():
+                    if new_move.picking_id != new_picking:
+                        raise exceptions.except_orm(_("error"), _("The moves of all the quants could not be "
+                                                                  "assigned to the same picking."))
+                    self.quants_reserve(list_reservation[new_move], new_move)
+
             new_picking.do_prepare_partial()
             packops = new_picking.pack_operation_ids
             packops.write({'location_dest_id': dest_location.id})
