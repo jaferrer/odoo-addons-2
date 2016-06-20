@@ -59,7 +59,7 @@ class StockQuant(models.Model):
                                 list_old_moves[quant.reservation_id.id] = quant.reservation_id
 
                     split_val = sum(move_tuple['qty'] for move_tuple in move_tuples)
-                    print split_val
+                    #print split_val
 
                     for move_reserved in list_old_moves.values():
 
@@ -98,6 +98,7 @@ class StockQuant(models.Model):
                             'picking_type_id': picking_type_id.id,
                             'picking_id': new_picking.id,
                         })
+                        move_recordset = move_recordset | new_move
                         list_move.append(new_move)
                     for move_tuple in move_tuples:
                         qty_reserved = 0
@@ -114,7 +115,7 @@ class StockQuant(models.Model):
                             tuples_reservation += [(quant, quant.qty)]
                             qty_reserved += quant.qty
                     list_reservation[tuple(list_move)] = tuples_reservation
-                    move_recordset = move_recordset | new_move
+
 
                 if move_recordset:
                     move_recordset.action_confirm()
