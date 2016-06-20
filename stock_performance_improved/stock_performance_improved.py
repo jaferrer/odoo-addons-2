@@ -315,6 +315,23 @@ class stock_pack_operation(models.Model):
                 if record[0] not in res:
                     res[record[0]] = 0
                 res[record[0]] -= record[1]
+
+        if context.get("test_transfer"):
+            test = super(stock_pack_operation, self)._get_remaining_prod_quantities(cr, uid, operation,
+                                                                                    context=context)
+            if len(test) == len(res):
+
+                for item in test.keys():
+                    if float_compare(test[item], res[item],
+                                     precision_rounding=self.pool.get('product.product').browse(cr, uid, [item],
+                                                                                                context)[
+                                         0].uom_id.rounding) != 0:
+                        print item
+                        print res[item]
+                        print test[item]
+                        raise osv.except_osv(_('test non regression!'), "_get_remaining_prod_quantities")
+            else:
+                raise osv.except_osv(_('test non regression!'), "les resulta n'ont pas la meme longueur")
         return res
 
 
@@ -477,6 +494,41 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
             else:
                 prod2move_ids[move[2]].append({'move': {'id': move[0]}, 'remaining_qty': move[1]})
 
+        if context.get("test_transfer"):
+            prod2move_ids_test = {}
+            moves_test = sorted([x for x in picking.move_lines if x.state not in ('done', 'cancel')],
+                                key=lambda x: (
+                                ((x.state == 'assigned') and -2 or 0) + (x.partially_available and -1 or 0)))
+            for move_test in moves_test:
+                if not prod2move_ids_test.get(move_test.product_id.id):
+                    prod2move_ids_test[move_test.product_id.id] = [
+                        {'move': move_test, 'remaining_qty': move_test.product_qty}]
+                else:
+                    prod2move_ids_test[move_test.product_id.id].append(
+                        {'move': move_test, 'remaining_qty': move_test.product_qty})
+
+            if len(prod2move_ids) == len(prod2move_ids_test):
+                for it in prod2move_ids_test.keys():
+                    if prod2move_ids[it] and len(prod2move_ids[it]) == len(prod2move_ids_test[it]):
+                        for a,b in enumerate(prod2move_ids_test[it]):
+                            if prod2move_ids[it][a]['move']['id'] != prod2move_ids_test[it][a]['move'].id:
+                                print a
+                                print b
+                                print prod2move_ids[it][a]['move']['id']
+                                print it
+                                raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
+
+                            if float_compare(prod2move_ids[it][a]['remaining_qty'], prod2move_ids_test[it][a]['remaining_qty'],
+                                     precision_rounding=self.pool.get('stock.move').browse(cr, uid, [prod2move_ids[it][a]['move']['id']],
+                                                                                           context)[
+                                         0].product_id.uom_id.rounding) != 0:
+                                raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
+
+                    else:
+                        raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
+            else:
+                raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
+
         need_rereserve = False
         # sort the operations in order to give higher priority to those with a package, then a serial number
         operations = picking.pack_operation_ids
@@ -546,6 +598,11 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         all_op_processed = True
         for ops, product_id, remaining_qty in still_to_do:
             all_op_processed = _create_link_for_product(ops.id, product_id, remaining_qty) and all_op_processed
+
+        test = super(StockPicking, self).recompute_remaining_qty(cr, uid, picking, context=context)
+        if context.get("test_transfer"):
+            if test != (need_rereserve, all_op_processed):
+                raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
         return (need_rereserve, all_op_processed)
 
     @api.cr_uid_context
@@ -697,6 +754,24 @@ class StockMove(models.Model):
                 qty = move[1] - move[2]
                 # Keeping in product default UoM
                 res[move[0]] = float_round(qty, precision_rounding=move[3])
+
+        if context.get("test_transfer"):
+            test = super(StockMove, self)._get_remaining_qty(cr, uid, ids, field_name, args,
+                                                             context=context)
+            if len(test) == len(res):
+
+                for item in test.keys():
+                    if float_compare(test[item], res[item],
+                                     precision_rounding=self.pool.get('stock.move').browse(cr, uid, [item],
+                                                                                           context)[
+                                         0].product_id.uom_id.rounding) != 0:
+                        print item
+                        print res[item]
+                        print test[item]
+                        raise osv.except_osv(_('test non regression'), "_get_remaining_qty")
+            else:
+                raise osv.except_osv(_('test non regression!'), "la valeur n'a pas la meme longueur")
+
         return res
 
     _columns = {
@@ -786,7 +861,7 @@ class StockMove(models.Model):
         """ Checks the product type and accordingly writes the state.
         Overridden here to also assign a picking if it is not done yet.
         """
-        #moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
+        # moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
         moves_no_pick = self.search([
             ('id', 'in', self.ids), ('picking_type_id', '!=', False), ('picking_id', '=', False)])
         moves_no_pick.assign_to_picking()
