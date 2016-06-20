@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="auth_oauth_provider_form_webapp">
+            <field name="name">auth.oauth.provider.form.webapp</field>
+            <field name="model">auth.oauth.provider</field>
+            <field name="inherit_id" ref="auth_oauth.view_oauth_provider_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="type"/>
+                </field>
+                <field name="client_id" position="after">
+                    <field name="client_secret" attrs="{'invisible': [('type', '!=', 'code')]}"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
