@@ -599,8 +599,9 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         for ops, product_id, remaining_qty in still_to_do:
             all_op_processed = _create_link_for_product(ops.id, product_id, remaining_qty) and all_op_processed
 
-        test = super(StockPicking, self).recompute_remaining_qty(cr, uid, picking, context=context)
+
         if context.get("test_transfer"):
+            test = super(StockPicking, self).recompute_remaining_qty(cr, uid, picking, context=context)
             if test != (need_rereserve, all_op_processed):
                 raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
         return (need_rereserve, all_op_processed)
