@@ -64,7 +64,7 @@
                     <footer>
                         <button name="do_split" type="object" string="Confirm" class="oe_highlight"/>
                         or
-                        <button string="Cancel" class="oe_link" special="cancel" />
+                        <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
             </field>
