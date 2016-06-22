@@ -43,7 +43,7 @@ class StockChangeQuantPicking(models.TransientModel):
         quant = self.env['stock.quant'].browse(self.env.context['active_ids'][0])
         move_domain = [('picking_id', '!=', False),
                        ('product_id', '=', quant.product_id.id),
-                       ('state', 'in', ['confirmed', 'waiting']),
+                       ('state', 'in', ['confirmed', 'waiting', 'assigned']),
                        ('location_id', '=', quant.location_id.id)]
         if self.partner_id:
             groups = self.env['procurement.group'].search([('partner_id', '=', self.partner_id.id)])
@@ -58,7 +58,7 @@ class StockChangeQuantPicking(models.TransientModel):
         self.move_id = False
         quant = self.env['stock.quant'].browse(self.env.context['active_ids'][0])
         move_domain = [('product_id', '=', quant.product_id.id),
-                       ('state', 'in', ['confirmed', 'waiting']),
+                       ('state', 'in', ['confirmed', 'waiting', 'assigned']),
                        ('location_id', '=', quant.location_id.id)]
         if self.picking_id.group_id:
             move_domain += [('group_id', '=', self.picking_id.group_id.id)]
@@ -69,9 +69,9 @@ class StockChangeQuantPicking(models.TransientModel):
         self.ensure_one()
         quants_ids = self.env.context.get('active_ids', [])
         quants = self.env['stock.quant'].browse(quants_ids)
+        self.env['stock.quant'].quants_unreserve(self.move_id)
         for quant in quants:
             move = quant.reservation_id
-            self.env['stock.quant'].quants_unreserve(self.move_id)
             parent_move = quant.history_ids.filtered(lambda sm: sm.state == 'done' and
                                                                 sm.location_dest_id == quant.location_id)
             if parent_move and len(parent_move) == 1 and parent_move.move_dest_id and self.move_id.state == 'waiting':
