@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="ir_attachment_form_improved">
+            <field name="name">ir.attachment.attachment.form.improved</field>
+            <field name="model">ir.attachment</field>
+            <field name="inherit_id" ref="base.view_attachment_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <group name="description_group" position="attributes">
+                    <attribute name="groups"/>
+                </group>
+            </field>
+        </record>
+
+    </data>
+</openerp>
