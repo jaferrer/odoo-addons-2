@@ -18,35 +18,20 @@
 #
 
 {
-    'name': 'GitLab Integration for Odoo Issue Tracker',
+    'name': 'Project Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project_issue'],
+    'depends': ['project'],
     'description': """
-GitLab Integration for Odoo Issue Tracker
-=========================================
-This modules integrates Odoo Issue Tracker with GitLab.
-
-Howto use
----------
-In GitLab, create a project.
-
-In Odoo, create a project and go to the project form. In the GitLab integration tab:
-
-- Fill in "GitLabURL" with your GitLab server URL (e.g. https://gitlab.exmaple.com)
-- Fill in "API Token" with a authorized user GitLab private token (see Profile Settings->Account in GitLab).
-- Click on "Update GitLab Projects List"
-- Select the GitLab project in the list
-- Click on "Setup GitLab integration for this project" to create the link with your GitLab project.
-
-In GitLab, you can check that the "Custom Issue Tracker" service has been activated.
+Project Improved
+================
+Small improvements of the Project module
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/ir.model.access.csv',
-        'project_gitlab_view.xml',
+        'project_improved_views.xml',
     ],
     'demo': [],
     'test': [],
