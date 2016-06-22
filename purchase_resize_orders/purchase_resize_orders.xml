@@ -15,7 +15,7 @@
                     <footer>
                         <button name="validate_resizing" type="object" string="Validate resizing" class="oe_highlight"/>
                         or
-                        <button string="Cancel" class="oe_link" special="cancel" />
+                        <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
             </field>

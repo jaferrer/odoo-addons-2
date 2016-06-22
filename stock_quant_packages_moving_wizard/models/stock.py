@@ -116,7 +116,6 @@ class StockQuant(models.Model):
                             qty_reserved += quant.qty
                     list_reservation[tuple(list_move)] = tuples_reservation
 
-
                 if move_recordset:
                     move_recordset.action_confirm()
                 for new_moves in list_reservation.keys():
@@ -181,7 +180,6 @@ class StockQuant(models.Model):
                             [('id', '=', qt['id'])]), qt['qty']))
 
                     move_recordset = move_recordset | new_move
-
                 if move_recordset:
                     move_recordset.action_confirm()
                 for new_move in list_reservation.keys():
@@ -189,7 +187,6 @@ class StockQuant(models.Model):
                         raise exceptions.except_orm(_("error"), _("The moves of all the quants could not be "
                                                                   "assigned to the same picking."))
                     self.quants_reserve(list_reservation[new_move], new_move)
-
             new_picking.do_prepare_partial()
             packops = new_picking.pack_operation_ids
             packops.write({'location_dest_id': dest_location.id})
@@ -263,7 +260,7 @@ class Stock(models.Model):
                     LEFT JOIN stock_quant_package sqp_bis ON sqp_bis.id = sq.package_id
                   WHERE sqp_bis.id = sqp.id
                   GROUP BY sqp_bis.id
-                  HAVING count(DISTINCT sq.product_id) <> 1) or exists(SELECT 1
+                  HAVING count(DISTINCT sq.product_id) <> 1) OR exists(SELECT 1
                   FROM
                     stock_quant_package sqp_bis
                   WHERE sqp_bis.parent_id = sqp.id)

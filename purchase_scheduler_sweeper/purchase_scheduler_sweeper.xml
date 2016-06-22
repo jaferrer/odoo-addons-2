@@ -15,7 +15,7 @@
                     <footer>
                         <button name="launch_job_purchase_order_sweeper" type="object" string="Sweep purchase orders" class="oe_highlight"/>
                         or
-                        <button string="Cancel" class="oe_link" special="cancel" />
+                        <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
             </field>
