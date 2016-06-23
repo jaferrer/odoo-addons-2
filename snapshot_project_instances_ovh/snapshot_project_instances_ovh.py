@@ -51,7 +51,7 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
                                              s['creationDate'][:10] + ' ' + s['creationDate'][11:19]) or False
                 max_snap_date = snapshots and max([snap['formated_date'] for snap in snapshots]) or False
                 max_snap_date = max_snap_date and fields.Datetime.to_string(max_snap_date)[:10] or False
-                if max_snap_date and max_snap_date > rec.next_snapshot_date:
+                if max_snap_date and max_snap_date > rec.last_snapshot_date:
                     rec.last_snapshot_date = max_snap_date
                     rec.update_next_snapshot_date()
                 if rec.next_snapshot_date <= fields.Date.today():
