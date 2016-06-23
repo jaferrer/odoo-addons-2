@@ -25,7 +25,8 @@ from openerp.addons.connector.queue.job import job
 
 
 @job(default_channel='root')
-def snapshot(session, model_name, request_id, area, app_key, app_secret, consumer_key, min_hour_snapshot, max_hour_snapshot):
+def snapshot(session, model_name, request_id, area, app_key, app_secret, consumer_key, min_hour_snapshot,
+             max_hour_snapshot):
     hour = dt.now().hour
     if hour > max_hour_snapshot or hour < min_hour_snapshot:
         return _("Snapshot request aborted: forbidden to snapshot at %s h. "
@@ -51,7 +52,7 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
                                              s['creationDate'][:10] + ' ' + s['creationDate'][11:19]) or False
                 max_snap_date = snapshots and max([snap['formated_date'] for snap in snapshots]) or False
                 max_snap_date = max_snap_date and fields.Datetime.to_string(max_snap_date)[:10] or False
-                if max_snap_date and max_snap_date > rec.next_snapshot_date:
+                if max_snap_date and max_snap_date > rec.last_snapshot_date:
                     rec.last_snapshot_date = max_snap_date
                     rec.update_next_snapshot_date()
                 if rec.next_snapshot_date <= fields.Date.today():
@@ -61,7 +62,7 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
                     return _("Snapshot request created for project %s on instance %s.") % \
                            (rec.project_id.name, rec.instance_id.name)
                 if rec.nb_max_snapshots and len(snapshots) > rec.nb_max_snapshots - 1:
-                    snapshots_to_delete = sorted(snapshots,key=lambda dictionnary: \
+                    snapshots_to_delete = sorted(snapshots, key=lambda dictionnary: \
                         dictionnary.get('formated_date'))[:rec.nb_max_snapshots]
                     to_delete_ids = [dictionnary.get('id') for dictionnary in snapshots_to_delete if \
                                      dictionnary.get('id')]
@@ -72,7 +73,7 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
                             except APIError:
                                 pass
                         result = _("Deletion request created for snapshots %s" %
-                                    ', '.join([snap_id for snap_id in to_delete_ids]))
+                                   ', '.join([snap_id for snap_id in to_delete_ids]))
     return result
 
 
@@ -114,9 +115,9 @@ class SnapshotRequestLine(models.Model):
         app_secret = self.env['ir.config_parameter'].get_param('snapshot_project_instances_ovh.app_secret')
         consumer_key = self.env['ir.config_parameter'].get_param('snapshot_project_instances_ovh.consumer_key')
         min_hour_snapshot = int(self.env['ir.config_parameter']. \
-            get_param('snapshot_project_instances_ovh.min_hour_snapshot') or 0)
+                                get_param('snapshot_project_instances_ovh.min_hour_snapshot') or 0)
         max_hour_snapshot = int(self.env['ir.config_parameter']. \
-            get_param('snapshot_project_instances_ovh.max_hour_snapshot') or 0)
+                                get_param('snapshot_project_instances_ovh.max_hour_snapshot') or 0)
         self.update_next_snapshot_date()
         if area and app_key and app_secret and consumer_key:
             for rec in self:
