@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp.tools import drop_view_if_exists, flatten
+from openerp.tools import drop_view_if_exists, flatten, float_compare, float_round
 from openerp import fields, models, api, osv
 from openerp.osv import fields as old_api_fields
 from openerp.addons.procurement import procurement
@@ -270,8 +270,82 @@ FROM (
      ) foo"""
 
 
+class StockQuantPackageImproved(models.Model):
+    _inherit = "stock.quant.package"
+
+    def _get_all_products_quantities(self, cr, uid, package_id, context=None):
+        '''This function computes the different product quantities for the given package
+        '''
+        quant_obj = self.pool.get('stock.quant')
+        res = {}
+        ids = self.get_content(cr, uid, package_id, context=context)
+        for quant in quant_obj.read(cr, uid, ids,
+                                    ["product_id", "qty"], load=False, context=context):
+            if quant["product_id"] not in res:
+                res[quant["product_id"]] = 0
+            res[quant["product_id"]] += quant["qty"]
+        return res
+
+
+class stock_pack_operation(models.Model):
+    _inherit = "stock.pack.operation"
+
+    def _get_remaining_prod_quantities(self, cr, uid, operation, context=None):
+        '''Get the remaining quantities per product on an operation with a package. This function returns a dictionary'''
+        # if the operation doesn't concern a package, it's not relevant to call this function
+        if not operation.package_id or operation.product_id:
+            return {operation.product_id.id: operation.remaining_qty}
+        # get the total of products the package contains
+        res = self.pool.get('stock.quant.package')._get_all_products_quantities(cr, uid, operation.package_id.id,
+                                                                                context=context)
+        list_ids = operation.linked_move_operation_ids.ids
+        if list_ids:
+            cr.execute("""
+            select
+                sm.product_id,
+                sum(smol.qty) qty
+            from stock_move_operation_link smol
+            inner join stock_move sm on sm.id=smol.move_id
+            where smol.id in %s
+            group by sm.product_id
+            """, (tuple(list_ids),))
+            list_linked_move_operations = cr.fetchall()
+            # reduce by the quantities linked to a move
+            for record in list_linked_move_operations:
+                if record[0] not in res:
+                    res[record[0]] = 0
+                res[record[0]] -= record[1]
+
+        if context.get("test_transfer"):
+            test = super(stock_pack_operation, self)._get_remaining_prod_quantities(cr, uid, operation,
+                                                                                    context=context)
+            if len(test) == len(res):
+
+                for item in test.keys():
+                    if float_compare(test[item], res[item],
+                                     precision_rounding=self.pool.get('product.product').browse(cr, uid, [item],
+                                                                                                context)[
+                                         0].uom_id.rounding) != 0:
+                        raise osv.except_osv(_('test non regression!'), "_get_remaining_prod_quantities")
+            else:
+                raise osv.except_osv(_('test non regression!'), "les resulta n'ont pas la meme longueur")
+        return res
+
+
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
+
+    location_id = fields.Many2one("stock.location", string="Location", readonly=True, compute="_compute_location_id")
+    location_dest_id = fields.Many2one("stock.location", string="Destination Location", readonly=True,
+                                       compute="_compute_location_id")
+
+    @api.depends('move_lines.location_id', 'move_lines.location_dest_id')
+    def _compute_location_id(self):
+        for rec in self:
+            moves = self.env['stock.move'].search([('picking_id', '=', rec.id)], limit=1)
+            if moves:
+                rec.location_id = moves.location_id
+                rec.location_dest_id = moves.location_dest_id
 
     @api.model
     def assign_moves_to_picking(self):
@@ -339,6 +413,192 @@ class StockPicking(models.Model):
                     res[k] = {}
         return res
 
+    def recompute_remaining_qty(self, cr, uid, picking, context=None):
+        def _create_link_for_index(operation_id, index, product_id, qty_to_assign, quant_id=False):
+            move_dict = prod2move_ids[product_id][index]
+            qty_on_link = min(move_dict['remaining_qty'], qty_to_assign)
+            self.pool.get('stock.move.operation.link').create(cr, uid, {'move_id': move_dict['move']["id"],
+                                                                        'operation_id': operation_id,
+                                                                        'qty': qty_on_link,
+                                                                        'reserved_quant_id': quant_id},
+                                                              context=context)
+            if move_dict['remaining_qty'] == qty_on_link:
+                prod2move_ids[product_id].pop(index)
+            else:
+                move_dict['remaining_qty'] -= qty_on_link
+            return qty_on_link
+
+        def _create_link_for_quant(operation_id, quant, qty):
+            """create a link for given operation and reserved move of given quant, for the max quantity possible, and returns this quantity"""
+            if not quant["reservation_id"]:
+                return _create_link_for_product(operation_id, quant["product_id"], qty)
+            qty_on_link = 0
+            for i in range(0, len(prod2move_ids[quant["product_id"]])):
+                if prod2move_ids[quant["product_id"]][i]['move']['id'] != quant["reservation_id"]:
+                    continue
+                qty_on_link = _create_link_for_index(operation_id, i, quant["product_id"], qty, quant_id=quant["id"])
+                break
+            return qty_on_link
+
+        def _create_link_for_product(operation_id, product_id, qty):
+            '''method that creates the link between a given operation and move(s) of given product, for the given quantity.
+            Returns True if it was possible to create links for the requested quantity (False if there was not enough quantity on stock moves)'''
+            qty_to_assign = qty
+            prod_obj = self.pool.get("product.product")
+            product = prod_obj.browse(cr, uid, product_id)
+            rounding = product.uom_id.rounding
+            qtyassign_cmp = float_compare(qty_to_assign, 0.0, precision_rounding=rounding)
+            if prod2move_ids.get(product_id):
+                while prod2move_ids[product_id] and qtyassign_cmp > 0:
+                    qty_on_link = _create_link_for_index(operation_id, 0, product_id, qty_to_assign, quant_id=False)
+                    qty_to_assign -= qty_on_link
+                    qtyassign_cmp = float_compare(qty_to_assign, 0.0, precision_rounding=rounding)
+            return qtyassign_cmp == 0
+
+        uom_obj = self.pool.get('product.uom')
+        package_obj = self.pool.get('stock.quant.package')
+        quant_obj = self.pool.get('stock.quant')
+        link_obj = self.pool.get('stock.move.operation.link')
+        quants_in_package_done = set()
+        prod2move_ids = {}
+        still_to_do = []
+        # make a dictionary giving for each product, the moves and related quantity that can be used in operation links
+        # moves_ids = sorted([x for x in picking.move_lines if x.state not in ('done', 'cancel')],
+        #               key=lambda x: (((x.state == 'assigned') and -2 or 0) + (x.partially_available and -1 or 0)))
+
+        cr.execute(
+            """
+SELECT
+  id,
+  product_qty,
+  product_id,
+  (CASE WHEN sm.state = 'assigned'
+    THEN -2
+   ELSE 0 END) + (CASE WHEN sm.partially_available
+    THEN -1
+                  ELSE 0 END) AS poids
+FROM stock_move sm
+WHERE sm.picking_id = %s AND sm.state NOT IN ('done', 'cancel')
+ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
+            """, (picking.id,)
+        )
+
+        moves = []
+        res = cr.fetchall()
+        for move in res:
+            if not prod2move_ids.get(move[2]):
+                prod2move_ids[move[2]] = [{'move': {'id': move[0]}, 'remaining_qty': move[1]}]
+            else:
+                prod2move_ids[move[2]].append({'move': {'id': move[0]}, 'remaining_qty': move[1]})
+
+        if context.get("test_transfer"):
+            prod2move_ids_test = {}
+            moves_test = sorted([x for x in picking.move_lines if x.state not in ('done', 'cancel')],
+                                key=lambda x: (
+                                ((x.state == 'assigned') and -2 or 0) + (x.partially_available and -1 or 0)))
+            for move_test in moves_test:
+                if not prod2move_ids_test.get(move_test.product_id.id):
+                    prod2move_ids_test[move_test.product_id.id] = [
+                        {'move': move_test, 'remaining_qty': move_test.product_qty}]
+                else:
+                    prod2move_ids_test[move_test.product_id.id].append(
+                        {'move': move_test, 'remaining_qty': move_test.product_qty})
+
+            if len(prod2move_ids) == len(prod2move_ids_test):
+                for it in prod2move_ids_test.keys():
+                    if prod2move_ids[it] and len(prod2move_ids[it]) == len(prod2move_ids_test[it]):
+                        for a,b in enumerate(prod2move_ids_test[it]):
+                            if prod2move_ids[it][a]['move']['id'] != prod2move_ids_test[it][a]['move'].id:
+                                raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
+
+                            if float_compare(prod2move_ids[it][a]['remaining_qty'], prod2move_ids_test[it][a]['remaining_qty'],
+                                     precision_rounding=self.pool.get('stock.move').browse(cr, uid, [prod2move_ids[it][a]['move']['id']],
+                                                                                           context)[
+                                         0].product_id.uom_id.rounding) != 0:
+                                raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
+
+                    else:
+                        raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
+            else:
+                raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
+
+        need_rereserve = False
+        # sort the operations in order to give higher priority to those with a package, then a serial number
+        operations = picking.pack_operation_ids
+        operations = sorted(operations, key=lambda x: ((x.package_id and not x.product_id) and -4 or 0) + (
+            x.package_id and -2 or 0) + (x.lot_id and -1 or 0))
+        # delete existing operations to start again from scratch
+        links = link_obj.search(cr, uid, [('operation_id', 'in', [x.id for x in operations])], context=context)
+        if links:
+            link_obj.unlink(cr, uid, links, context=context)
+        # 1) first, try to create links when quants can be identified without any doubt
+        for ops in operations:
+            # for each operation, create the links with the stock move by seeking on the matching reserved quants,
+            # and deffer the operation if there is some ambiguity on the move to select
+            if ops.package_id and not ops.product_id:
+                # entire package
+                quant_ids = package_obj.get_content(cr, uid, [ops.package_id.id], context=context)
+                for quant in quant_obj.read(cr, uid, quant_ids,
+                                            ['id', 'qty', 'product_id', 'package_id', 'lot_id', 'owner_id',
+                                             'reservation_id'], load=False,
+                                            context=context):
+                    remaining_qty_on_quant = quant["qty"]
+                    if quant["reservation_id"]:
+                        # avoid quants being counted twice
+                        quants_in_package_done.add(quant["id"])
+                        qty_on_link = _create_link_for_quant(ops.id, quant, quant["qty"])
+                        remaining_qty_on_quant -= qty_on_link
+                    if remaining_qty_on_quant:
+                        still_to_do.append((ops, quant["product_id"], remaining_qty_on_quant))
+                        need_rereserve = True
+            elif ops.product_id.id:
+                # Check moves with same product
+                qty_to_assign = uom_obj._compute_qty_obj(cr, uid, ops.product_uom_id, ops.product_qty,
+                                                         ops.product_id.uom_id, context=context)
+                for move_dict in prod2move_ids.get(ops.product_id.id, []):
+                    move = move_dict['move']
+                    qts = quant_obj.search(cr, uid, [('reservation_id', '=', move["id"])], context=context)
+                    for quant in quant_obj.read(cr, uid, qts,
+                                                ['id', 'qty', 'product_id', 'package_id', 'lot_id', 'owner_id',
+                                                 'reservation_id'], load=False,
+                                                context=context):
+                        if not qty_to_assign > 0:
+                            break
+                        if quant["id"] in quants_in_package_done:
+                            continue
+
+                        # check if the quant is matching the operation details
+                        if ops.package_id:
+                            flag = quant["package_id"] and bool(
+                                package_obj.search(cr, uid, [('id', 'child_of', [ops.package_id.id])],
+                                                   context=context)) or False
+                        else:
+                            flag = not quant["package_id"]
+                        flag = flag and ((ops.lot_id and ops.lot_id.id == quant["lot_id"]) or not ops.lot_id)
+                        flag = flag and (ops.owner_id.id == quant["owner_id"])
+                        if flag:
+                            max_qty_on_link = min(quant["qty"], qty_to_assign)
+                            qty_on_link = _create_link_for_quant(ops.id, quant, max_qty_on_link)
+                            qty_to_assign -= qty_on_link
+                qty_assign_cmp = float_compare(qty_to_assign, 0, precision_rounding=ops.product_id.uom_id.rounding)
+                if qty_assign_cmp > 0:
+                    # qty reserved is less than qty put in operations. We need to create a link but it's deferred after we processed
+                    # all the quants (because they leave no choice on their related move and needs to be processed with higher priority)
+                    still_to_do += [(ops, ops.product_id.id, qty_to_assign)]
+                    need_rereserve = True
+
+        # 2) then, process the remaining part
+        all_op_processed = True
+        for ops, product_id, remaining_qty in still_to_do:
+            all_op_processed = _create_link_for_product(ops.id, product_id, remaining_qty) and all_op_processed
+
+
+        if context.get("test_transfer"):
+            test = super(StockPicking, self).recompute_remaining_qty(cr, uid, picking, context=context)
+            if test != (need_rereserve, all_op_processed):
+                raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
+        return (need_rereserve, all_op_processed)
+
     @api.cr_uid_context
     def _get_top_level_packages(self, cr, uid, quants_suggested_locations, context=None):
         """This method searches for the higher level packages that can be moved as a single operation, given a list of quants
@@ -392,7 +652,7 @@ class StockPicking(models.Model):
         res = set()
         for move in self.browse(cr, uid, ids, context=context):
             if move.picking_id and (not (
-                            move.picking_id.min_date < move.date_expected < move.picking_id.max_date) or
+                        move.picking_id.min_date < move.date_expected < move.picking_id.max_date) or
                                             move.priority > move.picking_id.priority):
                 res.add(move.picking_id.id)
         return list(res)
@@ -466,10 +726,53 @@ class StockMove(models.Model):
                 res[val['reservation_id'][0]] = val['qty']
         return res
 
+    def _get_remaining_qty(self, cr, uid, ids, field_name, args, context=None):
+        uom_obj = self.pool.get('product.uom')
+        res = {}
+        if ids:
+            cr.execute("""
+                select sm.id,
+                max(sm.product_qty) product_qty,
+                sum(COALESCE(smol.qty,0)) qty,
+                pu.rounding
+                from stock_move sm
+                LEFT JOIN product_product pp ON pp.id = sm.product_id
+                LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
+                LEFT join stock_move_operation_link smol on sm.id=smol.move_id
+                LEFT join product_uom pu on pu.id=pt.uom_id
+                where sm.id in %s
+                group by sm.id,pu.rounding
+            """, (tuple(ids),))
+            moves = cr.fetchall()
+            for move in moves:
+                qty = move[1] - move[2]
+                # Keeping in product default UoM
+                res[move[0]] = float_round(qty, precision_rounding=move[3])
+
+        if context.get("test_transfer"):
+            test = super(StockMove, self)._get_remaining_qty(cr, uid, ids, field_name, args,
+                                                             context=context)
+            if len(test) == len(res):
+
+                for item in test.keys():
+                    if float_compare(test[item], res[item],
+                                     precision_rounding=self.pool.get('stock.move').browse(cr, uid, [item],
+                                                                                           context)[
+                                         0].product_id.uom_id.rounding) != 0:
+                        raise osv.except_osv(_('test non regression'), "_get_remaining_qty")
+            else:
+                raise osv.except_osv(_('test non regression!'), "la valeur n'a pas la meme longueur")
+
+        return res
+
     _columns = {
         'reserved_availability': old_api_fields.function(_get_reserved_availability, type='float',
                                                          string='Quantity Reserved', readonly=True,
-                                                         help='Quantity that has already been reserved for this move')
+                                                         help='Quantity that has already been reserved for this move'),
+        'remaining_qty': old_api_fields.function(_get_remaining_qty, type='float', string='Remaining Quantity',
+                                                 digits=0,
+                                                 states={'done': [('readonly', True)]},
+                                                 help="Remaining Quantity in default UoM according to operations matched with this move"),
     }
 
     defer_picking_assign = fields.Boolean("Defer Picking Assignement", default=False,
@@ -549,7 +852,9 @@ class StockMove(models.Model):
         """ Checks the product type and accordingly writes the state.
         Overridden here to also assign a picking if it is not done yet.
         """
-        moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
+        # moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
+        moves_no_pick = self.search([
+            ('id', 'in', self.ids), ('picking_type_id', '!=', False), ('picking_id', '=', False)])
         moves_no_pick.assign_to_picking()
         return super(StockMove, self).action_assign()
 
@@ -755,3 +1060,11 @@ class StockPrereservation(models.Model):
             ) foo
         )
         """)
+
+
+class ConfirmProcessPrereservations(models.TransientModel):
+    _name = 'confirm.process.prereservations'
+
+    @api.multi
+    def confirm(self):
+        self.env['stock.picking'].process_prereservations()

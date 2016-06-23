@@ -14,7 +14,7 @@
                         <button name="save_transfer" string="Save" type="object"/>
                         <button name="do_split_only" string="Split only" type="object"/>
                         or
-                        <button string="_Cancel" class="oe_link" special="cancel" />
+                        <button string="_Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </footer>
             </field>
