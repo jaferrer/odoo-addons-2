@@ -94,6 +94,12 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                 date_required = rec.date_planned
             rec.date_required = date_required
 
+    @api.model
+    def create(self, vals):
+        if vals.get('date_planned'):
+            vals['requested_date'] = vals['date_planned']
+        return super(PurchaseOrderLinePlanningImproved, self).create(vals)
+
     @api.multi
     def write(self, vals):
         """write method overridden here to propagate date_planned to the stock_moves of the receipt."""
