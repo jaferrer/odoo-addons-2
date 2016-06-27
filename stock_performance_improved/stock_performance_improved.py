@@ -675,6 +675,8 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
     def _set_min_date(self, cr, uid, id, field, value, arg, context=None):
         move_obj = self.pool.get("stock.move")
         if value:
+            if len(value) == 10:
+                value += ' 00:00:00'
             move_ids = [move.id for move in self.browse(cr, uid, id, context=context).move_lines]
             move_obj.write(cr, uid, move_ids, {'date_expected': value}, context=context)
 
