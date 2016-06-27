@@ -194,3 +194,14 @@ msgstr "Erreur !"
 #, python-format
 msgid "Impossible to determine return picking type"
 msgstr "Impossible de déterminer le type de l'opération de réintégration"
+
+#. module: mrp_incomplete_production
+#: field:mrp.product.produce,production_id:0
+msgid "Related Manufacturing Order"
+msgstr "OF associé"
+
+#. module: mrp_incomplete_production
+#: code:addons\mrp_incomplete_production\models\wizard.py:111
+#, python-format
+msgid "If you require a child order, you must specify a product for it."
+msgstr "Si vous demandez un OF reliquat, vous devez lui attribuer un article."

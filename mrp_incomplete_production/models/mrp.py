@@ -130,8 +130,6 @@ class IncompeteProductionMrpProduction(models.Model):
             production_data = production._get_child_order_data(wiz)
             production.action_production_end()
             new_production = self.env['mrp.production'].create(production_data)
-            if wiz.product_different:
-                new_production._make_production_produce_line(new_production)
             for move in list_cancelled_moves:
                 product_line_data = production._get_child_order_product_line_data(move)
                 new_production_line = self.env['mrp.production.product.line'].create(product_line_data)
@@ -155,6 +153,13 @@ class IncompeteProductionMrpProduction(models.Model):
                 picking_to_change_origin |= item.picking_id
             picking_to_change_origin.write({'origin': production.name})
         return result
+
+    @api.model
+    def _make_production_produce_line(self, production):
+        if not production.backorder_id or production.backorder_id.product_id != production.product_id:
+            return super(IncompeteProductionMrpProduction, self)._make_production_produce_line(production)
+        else:
+            return []
 
     @api.multi
     def button_update(self):
