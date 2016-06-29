@@ -157,7 +157,13 @@ msgid "Move wizard"
 msgstr "Référence popup"
 
 #. module: stock_quant_packages_moving_wizard
-#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:105
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:103
+#, python-format
+msgid "Impossible to move a negative quant"
+msgstr "Impossible de déplacer un quant négatif"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:111
 #: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:76
 #: code:addons\stock_quant_packages_moving_wizard\wizard\quant_packages_move_wizard.py:78
 #, python-format
@@ -323,7 +329,7 @@ msgstr "Annuler"
 #: code:addons\stock_quant_packages_moving_wizard\wizard\quant_packages_move_wizard.py:78
 #, python-format
 msgid "error"
-msgstr "error"
+msgstr "Erreur"
 
 #. module: stock_quant_packages_moving_wizard
 #: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form
