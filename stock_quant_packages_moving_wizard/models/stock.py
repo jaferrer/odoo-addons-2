@@ -188,8 +188,6 @@ class StockQuant(models.Model):
                                                                   "assigned to the same picking."))
                     self.quants_reserve(list_reservation[new_move], new_move)
             new_picking.do_prepare_partial()
-            packops = new_picking.pack_operation_ids
-            packops.write({'location_dest_id': dest_location.id})
             if not is_manual_op:
                 new_picking.do_transfer()
         return move_recordset
