@@ -59,7 +59,6 @@ class StockQuant(models.Model):
                                 list_old_moves[quant.reservation_id.id] = quant.reservation_id
 
                     split_val = sum(move_tuple['qty'] for move_tuple in move_tuples)
-                    #print split_val
 
                     for move_reserved in list_old_moves.values():
 
@@ -115,7 +114,6 @@ class StockQuant(models.Model):
                             tuples_reservation += [(quant, quant.qty)]
                             qty_reserved += quant.qty
                     list_reservation[tuple(list_move)] = tuples_reservation
-
 
                 if move_recordset:
                     move_recordset.action_confirm()
@@ -181,7 +179,6 @@ class StockQuant(models.Model):
                             [('id', '=', qt['id'])]), qt['qty']))
 
                     move_recordset = move_recordset | new_move
-
                 if move_recordset:
                     move_recordset.action_confirm()
                 for new_move in list_reservation.keys():
@@ -189,10 +186,11 @@ class StockQuant(models.Model):
                         raise exceptions.except_orm(_("error"), _("The moves of all the quants could not be "
                                                                   "assigned to the same picking."))
                     self.quants_reserve(list_reservation[new_move], new_move)
-
+            # If the move has pack operations,
+            for move in new_picking.move_lines:
+                if move.linked_move_operation_ids:
+                    move.linked_move_operation_ids.unlink()
             new_picking.do_prepare_partial()
-            packops = new_picking.pack_operation_ids
-            packops.write({'location_dest_id': dest_location.id})
             if not is_manual_op:
                 new_picking.do_transfer()
         return move_recordset
@@ -263,7 +261,7 @@ class Stock(models.Model):
                     LEFT JOIN stock_quant_package sqp_bis ON sqp_bis.id = sq.package_id
                   WHERE sqp_bis.id = sqp.id
                   GROUP BY sqp_bis.id
-                  HAVING count(DISTINCT sq.product_id) <> 1) or exists(SELECT 1
+                  HAVING count(DISTINCT sq.product_id) <> 1) OR exists(SELECT 1
                   FROM
                     stock_quant_package sqp_bis
                   WHERE sqp_bis.parent_id = sqp.id)
