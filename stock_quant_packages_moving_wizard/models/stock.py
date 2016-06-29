@@ -59,7 +59,6 @@ class StockQuant(models.Model):
                                 list_old_moves[quant.reservation_id.id] = quant.reservation_id
 
                     split_val = sum(move_tuple['qty'] for move_tuple in move_tuples)
-                    #print split_val
 
                     for move_reserved in list_old_moves.values():
 
@@ -187,6 +186,10 @@ class StockQuant(models.Model):
                         raise exceptions.except_orm(_("error"), _("The moves of all the quants could not be "
                                                                   "assigned to the same picking."))
                     self.quants_reserve(list_reservation[new_move], new_move)
+            # If the move has pack operations,
+            for move in new_picking.move_lines:
+                if move.linked_move_operation_ids:
+                    move.linked_move_operation_ids.unlink()
             new_picking.do_prepare_partial()
             if not is_manual_op:
                 new_picking.do_transfer()
