@@ -71,7 +71,8 @@ class IncompeteProductionMrpProduction(models.Model):
     @api.depends('location_dest_id')
     def _compute_warehouse_id(self):
         for rec in self:
-            warehouse_id = rec.location_dest_id and rec.sudo().location_dest_id.get_warehouse(rec.location_dest_id) or False
+            warehouse_id = rec.location_dest_id and rec.sudo().location_dest_id.get_warehouse(
+                rec.location_dest_id) or False
             rec.warehouse_id = warehouse_id
 
     @api.model
@@ -121,6 +122,7 @@ class IncompeteProductionMrpProduction(models.Model):
     @api.model
     def action_produce(self, production_id, production_qty, production_mode, wiz=False):
         production = self.browse(production_id)
+        initial_raw_moves = production.move_lines
         list_cancelled_moves_1 = production.move_lines2
         result = super(IncompeteProductionMrpProduction, self.with_context(cancel_procurement=True)). \
             action_produce(production_id, production_qty, production_mode, wiz=wiz)
@@ -152,6 +154,13 @@ class IncompeteProductionMrpProduction(models.Model):
             for item in return_moves:
                 picking_to_change_origin |= item.picking_id
             picking_to_change_origin.write({'origin': production.name})
+        procurements_to_cancel = self.env['procurement.order']
+        # Let's cancel old service moves
+        for move in initial_raw_moves:
+            procurements_to_cancel |= self.env['procurement.order'].search([('move_dest_id', '=', move.id),
+                                                                            ('state', 'not in', ['cancel', 'done'])])
+        if procurements_to_cancel:
+            procurements_to_cancel.action_cancel()
         return result
 
     @api.model
