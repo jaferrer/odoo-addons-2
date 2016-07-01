@@ -98,6 +98,9 @@ class ProductLineMoveWizard(models.TransientModel):
             if quants:
                 move_items = quants.partial_move(move_items, quant_line.product_id, quant_line.qty)
                 quants_to_move |= quants
+        if any([float_compare(quant.qty, 0, precision_rounding=quant.product_id.uom_id.rounding) < 0
+                for quant in quants_to_move]):
+            raise exceptions.except_orm(_("error"), _("Impossible to move a negative quant"))
         result = quants_to_move.move_to(self.global_dest_loc, self.picking_type_id,
                                         move_items=move_items, is_manual_op=is_manual_op)
         if is_manual_op:

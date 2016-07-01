@@ -17,7 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api
+from openerp import models, fields, api, _
+from openerp.exceptions import ValidationError
 
 
 class IncompleteProductionProductProduce(models.TransientModel):
@@ -103,16 +104,8 @@ class IncompleteProductionProductProduce(models.TransientModel):
             "child will have this location as destination location.")
     production_all_available = fields.Boolean(string='True if the raw material of the related Manufacturing Order is '
                                               'entirely available', default=_get_default_availability, readonly=True)
-    product_different = fields.Boolean(string="True if the child product is different from the parent one",
-                                       compute="_is_product_different")
 
-    @api.one
-    @api.depends('child_production_product_id')
-    def _is_product_different(self):
-        order=False
-        c = self.env.context
-        if c and c.get("active_id"):
-            order = self.env['mrp.production'].browse(c.get("active_id"))
-        self.product_different = False
-        if order and order.product_id != self.child_production_product_id:
-            self.product_different = True
+    @api.constrains('create_child', 'child_production_product_id')
+    def set_child_product_constrains(self):
+        if self.create_child and not self.child_production_product_id:
+            raise ValidationError(_("If you require a child order, you must specify a product for it."))
