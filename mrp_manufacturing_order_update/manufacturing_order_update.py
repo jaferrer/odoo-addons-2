@@ -94,11 +94,10 @@ class MoUpdateMrpProduction(models.Model):
     @api.multi
     def write(self, vals):
         result = super(MoUpdateMrpProduction, self).write(vals)
-        productions_to_update = self
         if vals.get('product_lines') and ((1 in [x[0] for x in vals.get('product_lines')])
                                           or (2 in [x[0] for x in vals.get('product_lines')])
                                           or (0 in [x[0] for x in vals.get('product_lines')])):
-            productions_to_update.update_moves()
+            self.update_moves()
         return result
 
     @api.multi
