@@ -324,7 +324,6 @@ class TestPurchaseGroupByPeriod(common.TransactionCase):
         tf = self.env['procurement.time.frame'].create({
             'name': "%s %s" % (nb, type),
             'nb': nb,
-            'today_as_ref': True,
             'period_type': type
         })
         return tf
