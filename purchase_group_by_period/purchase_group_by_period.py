@@ -61,16 +61,29 @@ class procurement_time_frame(models.Model):
     nb = fields.Integer("Number")
     period_type = fields.Selection([('days',"Day(s)"),('weeks',"Week(s)"),('months',"Month(s)"),('years',"Year(s)")])
 
-    def get_start_end_dates(self, date):
+    def get_start_end_dates(self, date, date_ref = None):
+        delta = 0
+        if date_ref:
+            ds_start, ds_end = self._get_interval(date_ref)
+            delta = (date_ref - ds_start).days + 1
+
+        real_start, real_end = self._get_interval(date - relativedelta(days=delta))
+
+        real_start = real_start + relativedelta(days=delta)
+        real_end = real_end + relativedelta(days=delta)
+
+        return real_start, real_end
+
+    def _get_interval(self, date):
         """Returns the start and end dates of the time frame including date.
 
-        @param self: object pointer,
-        @param date: datetime object,
-        @return: A tuple of datetime objects."""
+                @param self: object pointer,
+                @param date: datetime object,
+                @return: A tuple of datetime objects."""
         if self.period_type == 'days':
             doy = date.timetuple().tm_yday
             date_start = date + relativedelta(days=-((doy - 1) % self.nb), hour=0, minute=0, second=0)
-            date_end = date_start + relativedelta(days=self.nb, hour=23, minute=59, second=59)
+            date_end = date_start + relativedelta(days=self.nb - 1, hour=23, minute=59, second=59)
         elif self.period_type == 'weeks':
             woy = date.isocalendar()[1]
             date_start = date + relativedelta(weeks=-((woy - 1) % self.nb) - 1, days=1, weekday=MO,
