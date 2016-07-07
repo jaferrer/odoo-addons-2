@@ -64,7 +64,6 @@ class procurement_time_frame(models.Model):
     def get_start_end_dates(self, date, date_ref = None):
         delta = 0
         if date_ref:
-            date_ref = datetime.strptime(date_ref, '%Y-%m-%d')
             ds_start, ds_end = self._get_interval(date_ref)
             delta = (date_ref - ds_start).days + 1
 
