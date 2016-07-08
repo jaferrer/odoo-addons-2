@@ -48,7 +48,7 @@
                     <attribute name="attrs">{'invisible': [('is_template', '=', True)]}</attribute>
                 </field>
                 <field name="name" position="after">
-                    <field name="template_name" attrs="{'invisible': [('is_template', '=', False)]}"/>
+                    <field name="template_name" attrs="{'invisible': [('is_template', '=', False)], 'required': [('is_template', '=', True)]}" placeholder="Template name"/>
                 </field>
                 <div class="oe_title" position="after">
                     <button name="create_from_template" class="oe_highlight" string="Generate a sale order from this template" type="object" attrs="{'invisible': [('is_template', '=', False)]}"/>
