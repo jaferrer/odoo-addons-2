@@ -33,10 +33,10 @@ _logger = logging.getLogger(__name__)
 
 
 @job
-def process_orderpoints(session, model_name, ids):
+def process_orderpoints(session, model_name, ids, context):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    for op in session.env[model_name].browse(ids):
+    for op in session.env[model_name].with_context(context).browse(ids):
         op.process()
 
 
@@ -111,7 +111,8 @@ class ProcurementOrderQuantity(models.Model):
                     op.process()
             else:
                 process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                          orderpoints, description="Computing orderpoints %s" % orderpoints)
+                                          orderpoints, self.env.context,
+                                          description="Computing orderpoints %s" % orderpoints)
         return {}
 
     @api.model
