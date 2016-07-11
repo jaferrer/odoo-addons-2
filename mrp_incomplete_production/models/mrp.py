@@ -160,7 +160,7 @@ class IncompeteProductionMrpProduction(models.Model):
             procurements_to_cancel |= self.env['procurement.order'].search([('move_dest_id', '=', move.id),
                                                                             ('state', 'not in', ['cancel', 'done'])])
         if procurements_to_cancel:
-            procurements_to_cancel.action_cancel()
+            procurements_to_cancel.cancel()
         return result
 
     @api.model
