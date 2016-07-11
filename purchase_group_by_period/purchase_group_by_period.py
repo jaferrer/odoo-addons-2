@@ -73,10 +73,10 @@ class procurement_time_frame(models.Model):
 
     def _get_interval(self, date):
         """Returns the start and end dates of the time frame including date.
-
         @param self: object pointer,
         @param date: datetime object,
         @return: A tuple of datetime objects."""
+
         if self.period_type == 'days':
             doy = date.timetuple().tm_yday
             date_start = date + relativedelta(days=-((doy - 1) % self.nb), hour=0, minute=0, second=0)
