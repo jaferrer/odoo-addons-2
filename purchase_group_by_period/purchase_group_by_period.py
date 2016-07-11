@@ -61,7 +61,17 @@ class procurement_time_frame(models.Model):
     nb = fields.Integer("Number")
     period_type = fields.Selection([('days',"Day(s)"),('weeks',"Week(s)"),('months',"Month(s)"),('years',"Year(s)")])
 
-    def get_start_end_dates(self, date):
+    def get_start_end_dates(self, date, date_ref=False):
+        delta = 0
+        if date_ref:
+            ds_start, ds_end = self._get_interval(date_ref)
+            delta = (date_ref - ds_start).days + 1
+        real_start, real_end = self._get_interval(date - relativedelta(days=delta))
+        real_start = real_start + relativedelta(days=delta)
+        real_end = real_end + relativedelta(days=delta)
+        return real_start, real_end
+
+    def _get_interval(self, date):
         """Returns the start and end dates of the time frame including date.
 
         @param self: object pointer,
@@ -150,6 +160,7 @@ class procurement_order_group_by_period(models.Model):
                         po_line_id = po_line_obj.sudo().create(line_vals).id
                         linked_po_ids.append(procurement)
                 else:
+                    print 'purchase_date', purchase_date
                     date_order, date_end = partner.order_group_period.get_start_end_dates(purchase_date)
                     name = seq_obj.next_by_code('purchase.order') or _('PO: %s') % procurement.name
                     po_vals = {
@@ -173,6 +184,7 @@ class procurement_order_group_by_period(models.Model):
                     po_id = self.sudo().create_procurement_purchase_order(procurement, po_vals, line_vals)
                     po_line_id = self.env['purchase.order'].browse(po_id).order_line[0].id
                     pass_ids.append(procurement)
+                    print 'create_order', date_order, date_end, po_line_id, po_id
                 res[procurement.id] = po_line_id
                 procurement.write({'purchase_line_id': po_line_id})
         for proc in pass_ids:
