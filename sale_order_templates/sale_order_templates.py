@@ -74,3 +74,14 @@ class TemplateSaleOrder(models.Model):
             'context': ctx,
             'domain': []
         }
+
+    @api.multi
+    def get_default_values_generated_order(self, partner):
+        self.ensure_one()
+        return {
+            'partner_id': partner.id,
+            'is_template': False,
+            'template_name': False,
+            'created_from_template_id': self.id,
+            'user_id': self.env.user.id
+        }
