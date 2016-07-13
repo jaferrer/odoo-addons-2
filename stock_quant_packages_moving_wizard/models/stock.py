@@ -33,6 +33,189 @@ class StockQuant(models.Model):
         move_items[product] += [{'quants': self, 'qty': qty}]
         return move_items
 
+    @api.model
+    def determine_list_reservations(self, product, move_items):
+        move_tuples = move_items[product]
+        prec = product.uom_id.rounding
+        list_reservations = []
+        for move_tuple in move_tuples:
+            qty_reserved = 0
+            qty_to_reserve = move_tuple['qty']
+            for quant in move_tuple['quants']:
+                # If the new quant does not exceed the requested qty, we move it (end of loop) and continue
+                # If requested qty is reached, we break the loop
+                if float_compare(qty_reserved, qty_to_reserve, precision_rounding=prec) >= 0:
+                    break
+                # If the new quant exceeds the requested qty, we reserve the good qty and then break
+                elif float_compare(qty_reserved + quant.qty, qty_to_reserve, precision_rounding=prec) > 0:
+                    list_reservations += [(quant, qty_to_reserve - qty_reserved)]
+                    break
+                list_reservations += [(quant, quant.qty)]
+                qty_reserved += quant.qty
+        return list_reservations
+
+    @api.model
+    def get_corresponding_moves(self, product, location_from, dest_location, picking_type_id, limit=False,
+                                id_not_in=False):
+        domain = [('product_id', '=', product.id),
+                  ('state', 'not in', ['draft', 'done', 'cancel']),
+                  ('location_id', '=', location_from.id),
+                  ('location_dest_id', '=', dest_location.id),
+                  ('picking_type_id', '=', picking_type_id.id)] + (id_not_in and [('id', 'not in', id_not_in)] or [])
+        return self.env['stock.move'].search(domain, order='priority desc, date asc, id', limit=limit)
+
+    @api.model
+    def unreserve_quants_wrong_moves(self, list_reservations, location_from, dest_location, picking_type_id):
+        for quant_tuple in list_reservations:
+            corresponding_moves = self.get_corresponding_moves(quant_tuple[0].product_id, location_from, dest_location,
+                                                               picking_type_id)
+            if quant_tuple[0].reservation_id and quant_tuple[0].reservation_id not in corresponding_moves:
+                quant_tuple[0].reservation_id.do_unreserve()
+
+    @api.model
+    def split_and_reserve_moves_ok(self, list_reservations, move_recordset, new_picking):
+        processed_moves = self.env['stock.move']
+        for quant_tuple in list_reservations:
+            prec = quant_tuple[0].product_id.uom_id.rounding
+            current_reservation = quant_tuple[0].reservation_id
+            # We split moves matching requirements using the list of reservations
+            if current_reservation and current_reservation not in processed_moves:
+                quant_tuples_current_reservation = [tpl for tpl in list_reservations if
+                                                    tpl[0].reservation_id == current_reservation]
+                current_reservation.do_unreserve()
+                final_qty = sum([tpl[1] for tpl in quant_tuples_current_reservation])
+                # Split move if needed
+                if float_compare(final_qty, current_reservation.product_uom_qty, precision_rounding=prec) < 0:
+                    current_reservation.split(current_reservation, current_reservation.product_uom_qty - final_qty)
+                    self.quants_reserve(quant_tuples_current_reservation, current_reservation)
+                # Assign the current move to the new picking
+                current_reservation.picking_id = new_picking
+                move_recordset |= current_reservation
+                processed_moves |= current_reservation
+        return move_recordset
+
+    @api.model
+    def process_not_reserved_tuples(self, list_reservations, move_recordset, new_picking, location_from,
+                                    dest_location, picking_type_id):
+        not_reserved_tuples = [item for item in list_reservations if not item[0].reservation_id]
+        if not_reserved_tuples:
+            done_move_ids = []
+            dict_reservations = {}
+            first_corresponding_move = self.get_corresponding_moves(not_reserved_tuples[0][0].product_id,
+                                                                    location_from, dest_location,
+                                                                    picking_type_id, limit=1)
+            while not_reserved_tuples and first_corresponding_move:
+                prec = first_corresponding_move.product_id.uom_id.rounding
+                if not dict_reservations.get(first_corresponding_move):
+                    dict_reservations[first_corresponding_move] = []
+                quant = not_reserved_tuples[0][0]
+                qty = not_reserved_tuples[0][1]
+                first_corresponding_move.do_unreserve()
+                qty_reserved_on_move = sum([tpl[1] for tpl in dict_reservations[first_corresponding_move]])
+                # If the current move can exactly assume the new reservation,
+                # we reserve the quants and pass to the next one
+                if float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_uom_qty,
+                                 precision_rounding=prec) == 0:
+                    dict_reservations[first_corresponding_move] += [(quant, qty)]
+                    done_move_ids += [first_corresponding_move.id]
+                    # self.quants_reserve([(quant, qty)], first_corresponding_move)
+                # If the current move can assume more than the new reservation,
+                # we reserve the quants and stay on this move
+                elif float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_uom_qty,
+                                   precision_rounding=prec) < 0:
+                    # first_corresponding_move.split(first_corresponding_move,
+                    # first_corresponding_move.product_uom_qty - qty)
+                    dict_reservations[first_corresponding_move] += [(quant, qty)]
+                # If the current move can not assume the new reservation, we split the quant
+                else:
+                    splitted_quant = self.env['stock.quant']. \
+                        _quant_split(quant, first_corresponding_move.product_uom_qty + qty_reserved_on_move)
+                    dict_reservations[first_corresponding_move] += [(splitted_quant, splitted_quant.qty)]
+                    not_reserved_tuples += [(splitted_quant,
+                                             qty - first_corresponding_move.product_uom_qty - qty_reserved_on_move)]
+                    done_move_ids += [first_corresponding_move.id]
+                move_recordset  |= first_corresponding_move
+                first_corresponding_move = self.get_corresponding_moves(quant.product_id, location_from, dest_location,
+                                                                   picking_type_id, limit=1, id_not_in=done_move_ids)
+                not_reserved_tuples = not_reserved_tuples[1:]
+            # Let's split the move which are not entirely_used
+            for move in dict_reservations:
+                prec = move.product_id.uom_id.rounding
+                qty_reserved = sum([tpl[1] for tpl in dict_reservations[move]])
+                if float_compare(qty_reserved, move.product_uom_qty, precision_rounding=prec) < 0:
+                    move.split(move, move.product_uom_qty - qty_reserved)
+            # Let's reserve the quants
+            for move in dict_reservations:
+                move.picking_id = new_picking
+                self.quants_reserve(dict_reservations[move], move)
+        return move_recordset, not_reserved_tuples
+
+    @api.model
+    def check_moves_ok(self, list_reservations, location_from, dest_location, picking_type_id, move_recordset,
+                       new_picking):
+        quants_to_move_in_fine = []
+        # First, we unreserve quants which are reserved for a move that does not match requirements
+        self.unreserve_quants_wrong_moves(list_reservations, location_from, dest_location, picking_type_id)
+        # Now, let's process reservations one by one
+        move_recordset = self.split_and_reserve_moves_ok(list_reservations, move_recordset, new_picking)
+        # Let's attach unreserved quants to corresponding moves
+        move_recordset, not_reserved_tuples = self.process_not_reserved_tuples(list_reservations, move_recordset,
+                                                                               new_picking, location_from,
+                                                                               dest_location, picking_type_id)
+        # For not reserved quants, we will create a new move later
+        quants_to_move_in_fine += not_reserved_tuples
+        return move_recordset, quants_to_move_in_fine
+
+    @api.model
+    def move_remaining_quants(self, product, location_from, dest_location, picking_type_id, new_picking, move_recordset,
+                              quants_to_move_in_fine):
+        if quants_to_move_in_fine:
+            new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
+                'name': 'Move %s to %s' % (product.name, dest_location.name),
+                'product_id': product.id,
+                'location_id': location_from.id,
+                'location_dest_id': dest_location.id,
+                'product_uom_qty': sum([item[1] for item in quants_to_move_in_fine]),
+                'product_uom': product.uom_id.id,
+                'date_expected': fields.Datetime.now(),
+                'date': fields.Datetime.now(),
+                'picking_type_id': picking_type_id.id,
+                'picking_id': new_picking.id,
+            })
+            new_move.action_confirm()
+            move_recordset = move_recordset | new_move
+            self.quants_reserve(quants_to_move_in_fine, new_move)
+        return move_recordset
+
+    @api.model
+    def move_quants_old_school(self, list_reservation, move_recordset, dest_location, picking_type_id, new_picking):
+        values = self.env['stock.quant'].read_group([('id', 'in', self.ids)],
+                                                            ['product_id', 'location_id', 'qty'],
+                                                            ['product_id', 'location_id'], lazy=False)
+        for val in values:
+            new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
+                'name': 'Move %s to %s' % (val['product_id'][1], dest_location.name),
+                'product_id': val['product_id'][0],
+                'location_id': val['location_id'][0],
+                'location_dest_id': dest_location.id,
+                'product_uom_qty': val['qty'],
+                'product_uom':
+                    self.env['product.product'].search([('id', '=', val['product_id'][0])]).uom_id.id,
+                'date_expected': fields.Datetime.now(),
+                'date': fields.Datetime.now(),
+                'picking_type_id': picking_type_id.id,
+                'picking_id': new_picking.id,
+            })
+            quants = self.env['stock.quant'].search([('id', 'in', self.ids),
+                                                     ('product_id', '=', val['product_id'][0])])
+            qties = quants.read(['id', 'qty'])
+            list_reservation[new_move] = []
+            for qty in qties:
+                list_reservation[new_move].append((self.env['stock.quant'].search(
+                    [('id', '=', qty['id'])]), qty['qty']))
+            move_recordset = move_recordset | new_move
+        return list_reservation, move_recordset
+
     @api.multi
     def move_to(self, dest_location, picking_type_id, move_items=False, is_manual_op=False):
         """
@@ -41,144 +224,24 @@ class StockQuant(models.Model):
         move_recordset = self.env['stock.move']
         list_reservation = {}
         if self:
-            new_picking = self.env['stock.picking'].create({
-                'picking_type_id': picking_type_id.id,
-            })
+            new_picking = self.env['stock.picking'].create({'picking_type_id': picking_type_id.id})
             if move_items:
                 for product in move_items.keys():
-                    list_move = []
-                    tuples_reservation = []
-                    move_tuples = move_items[product]
-                    location_from = move_tuples[0]['quants'][0].location_id
-                    prec = product.uom_id.rounding
-
-                    list_old_moves = {}
-                    for move_tuple in move_tuples:
-                        for quant in move_tuple['quants']:
-                            if quant.reservation_id:
-                                list_old_moves[quant.reservation_id.id] = quant.reservation_id
-
-                    split_val = sum(move_tuple['qty'] for move_tuple in move_tuples)
-
-                    for move_reserved in list_old_moves.values():
-
-                        if float_compare(split_val, move_reserved.product_uom_qty, precision_rounding=prec) >= 0:
-                            move_reserved.write({
-                                'picking_id': new_picking.id
-                            })
-
-                            split_val = split_val - move_reserved.product_uom_qty
-                            move_recordset = move_recordset | move_reserved
-                            list_move.append(move_reserved)
-                        else:
-                            diff = move_reserved.product_uom_qty - split_val
-                            move_reserved.split(move_reserved, diff)
-                            move_reserved.write({
-                                'picking_id': new_picking.id
-                            })
-                            split_val = 0
-                            move_recordset = move_recordset | move_reserved
-                            list_move.append(move_reserved)
-                            break
-
-                    for move_unreserved in list_old_moves.values():
-                        self.quants_unreserve(move_unreserved)
-
-                    if split_val > 0:
-                        new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
-                            'name': 'Move %s to %s' % (product.name, dest_location.name),
-                            'product_id': product.id,
-                            'location_id': location_from.id,
-                            'location_dest_id': dest_location.id,
-                            'product_uom_qty': split_val,
-                            'product_uom': product.uom_id.id,
-                            'date_expected': fields.Datetime.now(),
-                            'date': fields.Datetime.now(),
-                            'picking_type_id': picking_type_id.id,
-                            'picking_id': new_picking.id,
-                        })
-                        move_recordset = move_recordset | new_move
-                        list_move.append(new_move)
-                    for move_tuple in move_tuples:
-                        qty_reserved = 0
-                        qty_to_reserve = move_tuple['qty']
-                        for quant in move_tuple['quants']:
-                            # If the new quant does not exceed the requested qty, we move it (end of loop) and continue
-                            # If requested qty is reached, we break the loop
-                            if float_compare(qty_reserved, qty_to_reserve, precision_rounding=prec) >= 0:
-                                break
-                            # If the new quant exceeds the requested qty, we reserve the good qty and then break
-                            elif float_compare(qty_reserved + quant.qty, qty_to_reserve, precision_rounding=prec) > 0:
-                                tuples_reservation += [(quant, qty_to_reserve - qty_reserved)]
-                                break
-                            tuples_reservation += [(quant, quant.qty)]
-                            qty_reserved += quant.qty
-                    list_reservation[tuple(list_move)] = tuples_reservation
-
-                if move_recordset:
-                    move_recordset.action_confirm()
-                for new_moves in list_reservation.keys():
-                    for new_move in new_moves:
-                        if new_move.picking_id != new_picking:
-                            raise exceptions.except_orm(_("error"), _("The moves of all the quants could not be "
-                                                                      "assigned to the same picking."))
-
-                        list_tuple_quant = []
-                        move_qty = new_move.product_uom_qty
-                        for quant, qty in list_reservation[new_moves]:
-                            if not quant.reservation_id:
-
-                                if float_compare(move_qty, qty,
-                                                 precision_rounding=new_move.product_id.uom_id.rounding) >= 0:
-
-                                    if float_compare(quant.qty, qty,
-                                                     precision_rounding=new_move.product_id.uom_id.rounding) > 0:
-                                        q = quant._quant_split(quant, float_round(qty,
-                                                                                  precision_rounding=new_move.product_id.uom_id.rounding))
-                                        list_reservation[new_moves].append((q, q.qty))
-                                    list_tuple_quant.append((quant, qty))
-                                    move_qty = move_qty - qty
-                                else:
-                                    if float_compare(quant.qty, move_qty,
-                                                     precision_rounding=new_move.product_id.uom_id.rounding) > 0:
-                                        q = quant._quant_split(quant, float_round(move_qty,
-                                                                                  precision_rounding=new_move.product_id.uom_id.rounding))
-                                        list_reservation[new_moves].append((q, q.qty))
-                                    list_tuple_quant.append((quant, move_qty))
-                                    break
-
-                                if float_round(move_qty, precision_rounding=new_move.product_id.uom_id.rounding) <= 0:
-                                    break
-
-                        self.quants_reserve(list_tuple_quant, new_move)
-
+                    location_from = move_items[product][0]['quants'][0].location_id
+                    # We determine the needs
+                    list_reservations = self.determine_list_reservations(product, move_items)
+                    # Wr try to use existing moves
+                    move_recordset, quants_to_move_in_fine = self.env['stock.quant']. \
+                        check_moves_ok(list_reservations, location_from, dest_location, picking_type_id,
+                                       move_recordset, new_picking)
+                    move_recordset = self. \
+                        move_remaining_quants(product, location_from, dest_location, picking_type_id, new_picking,
+                                              move_recordset, quants_to_move_in_fine)
+                move_recordset.filtered(lambda move: move.state == 'draft').action_confirm()
             else:
-                values = self.env['stock.quant'].read_group([('id', 'in', self.ids)],
-                                                            ['product_id', 'location_id', 'qty'],
-                                                            ['product_id', 'location_id'], lazy=False)
-                for val in values:
-                    new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
-                        'name': 'Move %s to %s' % (val['product_id'][1], dest_location.name),
-                        'product_id': val['product_id'][0],
-                        'location_id': val['location_id'][0],
-                        'location_dest_id': dest_location.id,
-                        'product_uom_qty': val['qty'],
-                        'product_uom':
-                            self.env['product.product'].search([('id', '=', val['product_id'][0])]).uom_id.id,
-                        'date_expected': fields.Datetime.now(),
-                        'date': fields.Datetime.now(),
-                        'picking_type_id': picking_type_id.id,
-                        'picking_id': new_picking.id,
-                    })
-                    quants = self.env['stock.quant'].search(
-                        [('id', 'in', self.ids), ('product_id', '=', val['product_id'][0])])
-                    qtys = quants.read(['id', 'qty'])
-                    list_reservation[new_move] = []
-                    for qt in qtys:
-                        list_reservation[new_move].append((self.env['stock.quant'].search(
-                            [('id', '=', qt['id'])]), qt['qty']))
-
-                    move_recordset = move_recordset | new_move
+                list_reservation, move_recordset = self. \
+                    move_quants_old_school(list_reservation, move_recordset, dest_location,
+                                           picking_type_id, new_picking)
                 if move_recordset:
                     move_recordset.action_confirm()
                 for new_move in list_reservation.keys():
