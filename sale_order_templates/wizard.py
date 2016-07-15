@@ -32,13 +32,7 @@ class SaleOrderTemplateGeneration(models.TransientModel):
         self.ensure_one()
         new_sale_orders = []
         for partner in self.partner_ids:
-            vals = {
-                'partner_id': partner.id,
-                'is_template': False,
-                'template_name': False,
-                'created_from_template_id': self.template_id.id,
-                'user_id': self.env.user.id
-            }
+            vals = self.template_id.get_default_values_generated_order(partner)
             addr = partner.address_get(['delivery', 'invoice'])
             values = {
                 'pricelist_id': partner.property_product_pricelist and partner.property_product_pricelist.id or False,
