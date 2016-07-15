@@ -13,7 +13,7 @@
                         <group>
                             <group>
                                 <field name="gitlab_url"/>
-                                <field name="gitlab_api_token"/>
+                                <field name="gitlab_api_token" groups="project.group_project_manager"/>
                             </group>
                             <group>
                                 <button type="object" name="update_gitlab_projects"
