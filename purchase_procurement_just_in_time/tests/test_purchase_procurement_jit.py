@@ -186,6 +186,8 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(purchase_order_1.order_line), 1)
         self.assertIn(line2, purchase_order_1.order_line)
         procurement_order_4.cancel()
+        # Let's check purchase_order_1 was deleted by propagate_cancel
+        self.assertNotIn(purchase_order_1_id, self.env['purchase.order'].search([]).ids)
 
     def test_20_purchase_procurement_jit(self):
 
