@@ -414,7 +414,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         result = super(PurchaseOrderLineJustInTime, self).action_cancel()
         if self.env.context.get('unlink_outdated_purchase_orders'):
             for order in orders_to_unlink:
-                if all([line.state == 'cancel' for line in order.order_line]):
+                if not any([True for line in order.order_line if line.state != 'cancel']):
                     order.unlink()
         return result
 
