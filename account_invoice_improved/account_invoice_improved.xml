@@ -8,14 +8,14 @@
             <field name="inherit_id" ref="account.view_account_invoice_filter"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <filter help="My Invoices" position="after">
+                <search position="inside">
                     <separator/>
                     <filter name="late" string="Late" domain="[('state', '=', 'open'), ('date_due', '&lt;=', current_date)]"/>
-                </filter>
-                <group string="Group By" position="inside">
+                </search>
+                <xpath expr="//search/group" position="inside">
                     <filter string="Fiscal position" context="{'group_by':'fiscal_position'}"/>
                     <filter string="Company" context="{'group_by':'company_id'}"/>
-                </group>
+                </xpath>
             </field>
         </record>
 
