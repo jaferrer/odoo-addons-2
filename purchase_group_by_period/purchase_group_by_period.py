@@ -160,7 +160,6 @@ class procurement_order_group_by_period(models.Model):
                         po_line_id = po_line_obj.sudo().create(line_vals).id
                         linked_po_ids.append(procurement)
                 else:
-                    print 'purchase_date', purchase_date
                     date_order, date_end = partner.order_group_period.get_start_end_dates(purchase_date)
                     name = seq_obj.next_by_code('purchase.order') or _('PO: %s') % procurement.name
                     po_vals = {
@@ -184,7 +183,6 @@ class procurement_order_group_by_period(models.Model):
                     po_id = self.sudo().create_procurement_purchase_order(procurement, po_vals, line_vals)
                     po_line_id = self.env['purchase.order'].browse(po_id).order_line[0].id
                     pass_ids.append(procurement)
-                    print 'create_order', date_order, date_end, po_line_id, po_id
                 res[procurement.id] = po_line_id
                 procurement.write({'purchase_line_id': po_line_id})
         for proc in pass_ids:
