@@ -37,19 +37,20 @@ class ProcurementOrderPurchasePlanningImproved(models.Model):
                 # We sudo because the user has not necessarily the rights to update PO and PO lines
                 proc = proc.sudo()
                 # If the purchase line is not confirmed yet, try to set planned date to schedule_date
-                if proc.purchase_id.state in ['sent', 'bid'] and order_date > datetime.now() or \
-                                proc.purchase_id.state == 'draft':
+                if proc.purchase_id.state in ['sent', 'bid'] and order_date > datetime.now() and not \
+                        self.env.context.get('do_not_reschedule_bigd_and_sent') or proc.purchase_id.state == 'draft':
                     proc.purchase_line_id.date_planned = fields.Date.to_string(schedule_date)
-                if proc.purchase_id and fields.Datetime.from_string(proc.purchase_id.date_order) > order_date:
+                if proc.purchase_id and fields.Datetime.from_string(proc.purchase_id.date_order) > order_date and not \
+                        self.env.context.get('do_not_move_purchase_order'):
                     proc.purchase_id.date_order = fields.Datetime.to_string(order_date)
                 proc.purchase_line_id.set_moves_dates(proc.purchase_line_id.date_required)
-        super(ProcurementOrderPurchasePlanningImproved, self).action_reschedule()
+        return super(ProcurementOrderPurchasePlanningImproved, self).action_reschedule()
 
     @api.model
     def _get_po_line_values_from_proc(self, procurement, partner, company, schedule_date):
         """Overridden to set date_required."""
         res = super(ProcurementOrderPurchasePlanningImproved, self)._get_po_line_values_from_proc(
-                                                                        procurement, partner, company, schedule_date)
+            procurement, partner, company, schedule_date)
         res.update({
             'requested_date': schedule_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
         })
@@ -111,7 +112,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
         if vals.get('date_planned'):
             for line in self:
                 if line.move_ids:
-                    date = vals.get('date_planned')+" 12:00:00"
+                    date = vals.get('date_planned') + " 12:00:00"
                     if line.procurement_ids:
                         line.move_ids.write({'date_expected': date})
                     else:
