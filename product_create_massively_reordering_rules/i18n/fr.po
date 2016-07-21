@@ -1,0 +1,99 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* product_create_massively_reordering_rules
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-07-21 09:41+0000\n"
+"PO-Revision-Date: 2016-07-21 11:43+0100\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"X-Generator: Poedit 1.7.5\n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_product_create_massively_reordering_rules
+msgid "Product Create Massively Reordering Rule"
+msgstr "Création en masse de règles de réassort"
+
+#. module: base
+#: model:ir.module.module,description:base.module_product_create_massively_reordering_rules
+msgid ""
+"\n"
+"Product Create Massively Reordering Rule\n"
+"========================================\n"
+"This modules allows to create massively reordering rules from products list.\n"
+"\n"
+msgstr ""
+"\n"
+"Création en masse de règles de réassort\n"
+"=======================================\n"
+"Ce module permet de créer en masse des règles de réassort depuis la vue liste des articles.\n"
+"\n"
+
+#. module: product_create_massively_reordering_rules
+#: view:mass.reordering.rules.wizard:product_create_massively_reordering_rules.mass_reordering_rules_wizard_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: product_create_massively_reordering_rules
+#: field:mass.reordering.rules.wizard,orderpoint_id:0
+msgid "Copy Reordering Rule"
+msgstr "Copier la règle de réassort"
+
+#. module: product_create_massively_reordering_rules
+#: field:mass.reordering.rules.wizard,create_uid:0
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: product_create_massively_reordering_rules
+#: field:mass.reordering.rules.wizard,create_date:0
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: product_create_massively_reordering_rules
+#: field:mass.reordering.rules.wizard,product_ids:0
+msgid "For Products"
+msgstr "Pour les produits"
+
+#. module: product_create_massively_reordering_rules
+#: code:addons\product_create_massively_reordering_rules\product_create_massively_reordering_rules.py:45
+#: model:ir.actions.server,name:product_create_massively_reordering_rules.ir_actions_generate_massively_reordering_rules
+#, python-format
+msgid "Generate Massively Ordering Rules"
+msgstr "Générer en masse des règles de réassort"
+
+#. module: product_create_massively_reordering_rules
+#: view:mass.reordering.rules.wizard:product_create_massively_reordering_rules.mass_reordering_rules_wizard_form
+msgid "Generate Rules"
+msgstr "Générer les règles de réassort"
+
+#. module: product_create_massively_reordering_rules
+#: field:mass.reordering.rules.wizard,id:0
+msgid "ID"
+msgstr "ID"
+
+#. module: product_create_massively_reordering_rules
+#: field:mass.reordering.rules.wizard,write_uid:0
+msgid "Last Updated by"
+msgstr "Last Updated by"
+
+#. module: product_create_massively_reordering_rules
+#: field:mass.reordering.rules.wizard,write_date:0
+msgid "Last Updated on"
+msgstr "Last Updated on"
+
+#. module: product_create_massively_reordering_rules
+#: model:ir.model,name:product_create_massively_reordering_rules.model_product_product
+msgid "Product"
+msgstr "Article"
+
+#. module: product_create_massively_reordering_rules
+#: view:mass.reordering.rules.wizard:product_create_massively_reordering_rules.mass_reordering_rules_wizard_form
+msgid "or"
+msgstr "ou"
