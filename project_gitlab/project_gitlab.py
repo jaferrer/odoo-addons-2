@@ -128,6 +128,8 @@ class ProjectTask(models.Model):
 
     gitlab_issue_id = fields.Integer("GitLab Issue ID", compute="_compute_gitlab_issue_id", store=True,
                                      help="This is a unique ID across issues and tasks to link with GitLab")
+    gitlab_cross_project_id = fields.Char("GitLab Reference", compute="_compute_gitlab_cross_project_id", store=True,
+                                     help="This is the GitLab cross-project reference of this task")
     gitlab_integrated = fields.Boolean(related='project_id.gitlab_integrated', readonly=True)
 
     @api.multi
@@ -136,12 +138,20 @@ class ProjectTask(models.Model):
         for rec in self:
             rec.gitlab_issue_id = rec.id and 2 * rec.id or False
 
+    @api.multi
+    @api.depends('gitlab_issue_id')
+    def _compute_gitlab_cross_project_id(self):
+        for rec in self:
+            rec.gitlab_cross_project_id = "%s#%s" % (rec.project_id.gitlab_project_id.name, rec.gitlab_issue_id)
+
 
 class ProjectIssue(models.Model):
     _inherit = 'project.issue'
 
     gitlab_issue_id = fields.Integer("GitLab Issue ID", compute="_compute_gitlab_issue_id", store=True,
                                      help="This is a unique ID across issues and tasks to link with GitLab")
+    gitlab_cross_project_id = fields.Char("GitLab Reference", compute="_compute_gitlab_cross_project_id", store=True,
+                                     help="This is the GitLab cross-project reference of this issue")
     gitlab_integrated = fields.Boolean(related='project_id.gitlab_integrated', readonly=True)
 
     @api.multi
@@ -149,6 +159,12 @@ class ProjectIssue(models.Model):
     def _compute_gitlab_issue_id(self):
         for rec in self:
             rec.gitlab_issue_id = rec.id and 2 * rec.id + 1 or False
+
+    @api.multi
+    @api.depends('gitlab_issue_id')
+    def _compute_gitlab_cross_project_id(self):
+        for rec in self:
+            rec.gitlab_cross_project_id = "%s#%s" % (rec.project_id.gitlab_project_id.name, rec.gitlab_issue_id)
 
 
 class ProjectGitLabController(http.Controller):

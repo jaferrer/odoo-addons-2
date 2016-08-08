@@ -43,7 +43,7 @@
             <field name="arch" type="xml">
                 <field name="project_id" position="after">
                     <field name="gitlab_integrated" invisible="1"/>
-                    <field name="gitlab_issue_id"
+                    <field name="gitlab_cross_project_id"
                            attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
                 </field>
             </field>
@@ -57,7 +57,7 @@
             <field name="arch" type="xml">
                 <field name="name" position="before">
                     <field name="gitlab_integrated" invisible="1"/>
-                    <field name="gitlab_issue_id"
+                    <field name="gitlab_cross_project_id"
                            attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
                 </field>
             </field>
@@ -71,7 +71,7 @@
             <field name="arch" type="xml">
                 <field name="user_id" position="before">
                     <field name="gitlab_integrated" invisible="1"/>
-                    <field name="gitlab_issue_id"
+                    <field name="gitlab_cross_project_id"
                            attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
                 </field>
             </field>
@@ -85,7 +85,7 @@
             <field name="arch" type="xml">
                 <field name="name" position="before">
                     <field name="gitlab_integrated" invisible="1"/>
-                    <field name="gitlab_issue_id"
+                    <field name="gitlab_cross_project_id"
                            attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
                 </field>
                 <field name="id" position="attributes">
