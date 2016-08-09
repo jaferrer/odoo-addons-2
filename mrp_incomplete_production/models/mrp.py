@@ -68,12 +68,6 @@ class IncompeteProductionMrpProduction(models.Model):
     @api.depends('location_dest_id')
     def _compute_warehouse_id(self):
         for rec in self:
-            rec.warehouse_id = rec.location_dest_id and rec.location_dest_id.get_warehouse(rec.location_dest_id)
-
-    @api.multi
-    @api.depends('location_dest_id')
-    def _compute_warehouse_id(self):
-        for rec in self:
             warehouse_id = rec.location_dest_id and rec.sudo().location_dest_id.get_warehouse(
                 rec.location_dest_id) or False
             rec.warehouse_id = warehouse_id
