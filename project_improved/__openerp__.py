@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project'],
+    'depends': ['project', 'project_issue'],
     'description': """
 Project Improved
 ================

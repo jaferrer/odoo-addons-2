@@ -14,5 +14,35 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_improved_task_search">
+            <field name="name">project_improved_task_search</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_search_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <filter name="unassigned" position="after">
+                    <separator/>
+                    <filter name="normal" string="Normal" domain="[('kanban_state', '=', 'normal')]"/>
+                    <filter name="blocked" string="Blocked" domain="[('kanban_state', '=', 'blocked')]"/>
+                    <filter name="done" string="Done" domain="[('kanban_state', '=', 'done')]"/>
+                </filter>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_improved_issue_search">
+            <field name="name">project_improved_issue_search</field>
+            <field name="model">project.issue</field>
+            <field name="inherit_id" ref="project_issue.view_project_issue_filter"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <filter name="unassigned" position="after">
+                    <separator/>
+                    <filter name="normal" string="Normal" domain="[('kanban_state', '=', 'normal')]"/>
+                    <filter name="blocked" string="Blocked" domain="[('kanban_state', '=', 'blocked')]"/>
+                    <filter name="done" string="Done" domain="[('kanban_state', '=', 'done')]"/>
+                </filter>
+            </field>
+        </record>
+
     </data>
 </openerp>
