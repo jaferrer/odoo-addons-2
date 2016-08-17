@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.actions.act_window" id="project.action_view_task">
+            <field name="domain">[('is_template', '=', False)]</field>
+        </record>
+
+        <record model="ir.ui.view" id="reanova_project_project_form">
+            <field name="name">reanova_project_project_form</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="Project Task Types">
+                        <field name="id" invisible="1"/>
+                        <button name="synchronize_default_tasks" type="object" string="Synchronize tasks" class="oe_highlight"/>
+                        <field name="use_task_type_ids" context="{'project_id': id}">
+                            <tree>
+                                <field name="sequence" widget="handle"/>
+                                <field name="name"/>
+                                <button name="synchronize_default_tasks" type="object" string="Synchronize tasks"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_template_tasks_type_tree">
+            <field name="name">project_template_tasks_type_tree</field>
+            <field name="model">project.task.type</field>
+            <field name="inherit_id" ref="project.task_type_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="fold" position="after">
+                    <field name="use_default_for_all_projects"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_template_tasks_type_form">
+            <field name="name">project_template_tasks_type_form</field>
+            <field name="model">project.task.type</field>
+            <field name="inherit_id" ref="project.task_type_edit"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="sequence" position="after">
+                    <field name="use_default_for_all_projects"/>
+                </field>
+                <form position="inside">
+                    <notebook>
+                        <page string="Default tasks for this type">
+                            <field name="id" invisible="1"/>
+                            <field name="task_ids" context="{'default_stage_id': id}">
+                                <tree>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="user_id"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>
