@@ -33,7 +33,7 @@ This modules improves a few settings for account objects.
     'data': ['account_invoice_improved.xml'],
     'demo': [],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

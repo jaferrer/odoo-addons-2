@@ -18,21 +18,20 @@
 #
 
 {
-    'name': 'Project Improved',
+    'name': 'Project Template Tasks',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'project_issue'],
+    'depends': ['project'],
     'description': """
-Project Improved
-================
-Small improvements of the Project module
+Project Template Tasks
+======================
+This module allows to generate automatically tasks from project task types. You can also define task types which are
+selected by default for any new project.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'project_improved_views.xml',
-    ],
+    'data': ['project_template_tasks.xml'],
     'demo': [],
     'test': [],
     'installable': True,
