@@ -118,21 +118,18 @@ class StockQuant(models.Model):
                                  precision_rounding=prec) == 0:
                     dict_reservations[first_corresponding_move] += [(quant, qty)]
                     done_move_ids += [first_corresponding_move.id]
-                    # self.quants_reserve([(quant, qty)], first_corresponding_move)
                 # If the current move can assume more than the new reservation,
                 # we reserve the quants and stay on this move
                 elif float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_uom_qty,
                                    precision_rounding=prec) < 0:
-                    # first_corresponding_move.split(first_corresponding_move,
-                    # first_corresponding_move.product_uom_qty - qty)
                     dict_reservations[first_corresponding_move] += [(quant, qty)]
                 # If the current move can not assume the new reservation, we split the quant
                 else:
+                    reservable_qty_on_move = first_corresponding_move.product_uom_qty - qty_reserved_on_move
                     splitted_quant = self.env['stock.quant']. \
-                        _quant_split(quant, first_corresponding_move.product_uom_qty + qty_reserved_on_move)
-                    dict_reservations[first_corresponding_move] += [(splitted_quant, splitted_quant.qty)]
-                    not_reserved_tuples += [(splitted_quant,
-                                             qty - first_corresponding_move.product_uom_qty - qty_reserved_on_move)]
+                        _quant_split(quant, reservable_qty_on_move)
+                    dict_reservations[first_corresponding_move] += [(quant, quant.qty)]
+                    not_reserved_tuples += [(splitted_quant, qty - reservable_qty_on_move)]
                     done_move_ids += [first_corresponding_move.id]
                 move_recordset  |= first_corresponding_move
                 first_corresponding_move = self.get_corresponding_moves(quant.product_id, location_from, dest_location,
