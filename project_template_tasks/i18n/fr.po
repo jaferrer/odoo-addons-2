@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_project_template_tasks
 msgid "Project Template Tasks"
-msgstr "Tâches types pour les projets"
+msgstr "Modèles de tâches pour les projets"
 
 #. module: base
 #: model:ir.module.module,description:base.module_project_template_tasks
@@ -29,8 +29,8 @@ msgid ""
 "This module allows to generate automatically tasks from project task types. You can also define task types which are selected by default for any new project.\n"
 msgstr ""
 "\n"
-"Tâches types pour les projets\n"
-"=============================\n"
+"Modèles de tâches pour les projets\n"
+"==================================\n"
 "Ce module permet de générer automatiquement des tâches à partir des phases d'un projet. Il est également possible de définir des phases qui seront sélectionnées par défaut dans chaque nouveau projet.\n"
 
 #. module: project_template_tasks
@@ -79,3 +79,9 @@ msgstr "Tâches par utilisateur et par projet"
 #: field:project.task,is_template:0
 msgid "Template task"
 msgstr "Tâche type"
+
+#. module: project_template_tasks
+#: code:addons\project_template_tasks\project_template_tasks.py:70
+#, python-format
+msgid "Forbidden to overwrite tasks of type %s"
+msgstr "Il est interdit d'écraser les tâches de type %s"
