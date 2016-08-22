@@ -107,12 +107,12 @@
                                     <tree string="Purchase Order Lines" editable="bottom">
                                         <field name="validated_by_supplier" invisible="1"/>
                                         <field name="state" invisible="1"/>
-                                        <field name="product_id" readonly="1"/>
+                                        <field name="product_id" readonly="1" options="{'no_open': True}"/>
                                         <field name="name" readonly="1"/>
-                                        <field name="date_planned" readonly="1"/>
+                                        <field name="date_planned" readonly="1" widget="date"/>
                                         <field name="company_id" groups="base.group_multi_company" readonly="1"/>
                                         <field name="account_analytic_id" context="{'default_partner_id':parent.partner_id}" groups="purchase.group_analytic_accounting" readonly="1"/>
-                                        <field name="product_qty" readonly="1"/>
+                                        <field name="product_qty" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('validated_by_supplier', '=', True)]}"/>
                                         <field name="qty_received" invisible="not context.get('show_purchase', False)" readonly="1"/>
                                         <field name="qty_invoiced" invisible="not context.get('show_purchase', False)" readonly="1"/>
                                         <field name="product_uom" groups="product.group_uom" readonly="1"/>
