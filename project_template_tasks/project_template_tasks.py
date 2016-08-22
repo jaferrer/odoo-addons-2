@@ -17,8 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api
+from openerp import models, fields, api, _
 from openerp import tools
+from openerp.exceptions import UserError
 
 
 class ProjectTemplateProject(models.Model):
@@ -65,7 +66,8 @@ class ProjectTemplateTaskType(models.Model):
         if project_id:
             project = self.env['project.project'].browse(project_id)
             for rec in self:
-                project.tasks.filtered(lambda task: task.stage_id == rec).unlink()
+                if project.tasks.filtered(lambda task: task.stage_id == rec):
+                    raise UserError(_("Forbidden to overwrite tasks of type %s") % rec.name)
                 for task in rec.task_ids:
                     vals_copy = rec.get_values_new_task(task, project)
                     task.copy(vals_copy)
