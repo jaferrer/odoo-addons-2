@@ -409,13 +409,12 @@ class PurchaseOrderLineJustInTime(models.Model):
         }
 
     @api.multi
-    def action_cancel(self):
+    def unlink(self):
         orders_to_unlink = self.env['purchase.order'].search([('id', 'in', [line.order_id.id for line in self])])
-        result = super(PurchaseOrderLineJustInTime, self).action_cancel()
-        if self.env.context.get('unlink_outdated_purchase_orders'):
-            for order in orders_to_unlink:
-                if not any([True for line in order.order_line if line.state != 'cancel']):
-                    order.unlink()
+        result = super(PurchaseOrderLineJustInTime, self).unlink()
+        for order in orders_to_unlink:
+            if not order.order_line:
+                order.unlink()
         return result
 
 
@@ -470,11 +469,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 procurement.write(vals_to_write)
             else:
                 result = super(ProcurementOrderPurchaseJustInTime,
-                               self.with_context(cancelling_active_proc=True,
-                                                 unlink_outdated_purchase_orders=True)).propagate_cancel(procurement)
+                               self.with_context(cancelling_active_proc=True)).propagate_cancel(procurement)
         else:
-            result = super(ProcurementOrderPurchaseJustInTime,
-                           self.with_context(unlink_outdated_purchase_orders=True)).propagate_cancel(procurement)
+            result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
         return result
 
 
