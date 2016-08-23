@@ -9,7 +9,6 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <xpath expr="//search/group" position="inside">
-                    <filter string="Fiscal position" context="{'group_by':'fiscal_position'}"/>
                     <filter string="Company" context="{'group_by':'company_id'}"/>
                 </xpath>
             </field>
