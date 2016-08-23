@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+
 		<record model="ir.ui.view" id="moving_warehouse_production_form">
             <field name="name">moving_warehouse_production_form</field>
             <field name="model">stock.warehouse</field>
@@ -14,5 +15,56 @@
                 </xpath>
             </field>
         </record>
+
+        <record model="ir.ui.view" id="stock_product_line_search">
+            <field name="name">stock_product_line_search</field>
+            <field name="model">stock.product.line</field>
+            <field name="arch" type="xml">
+                <search string="Search Product">
+                    <field string="product+package" name="product_id" filter_domain="['|','|',('product_id.default_code','ilike',self),('package_id','ilike',self),('product_id','ilike',self)]"/>
+                    <field name="product_id" filter_domain="['|',('default_code','ilike',self),('name','ilike',self)]"/>
+                    <field name="package_id"/>
+                    <field name="lot_id" groups="stock.group_production_lot"/>
+                    <field name="uom_id" groups="product.group_uom"/>
+                    <field name="location_id"/>
+                    <separator/>
+                    <filter string="Top package" domain="[('product_id', '=', False)]"/>
+                    <filter string="Bulk items" domain="[('package_id', '=', False)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="stock_product_line_tree_view">
+            <field name="name">stock_product_line_tree_view</field>
+            <field name="model">stock.product.line</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" delete="false">
+                    <field name="product_id" widget="many2one_clickable"/>
+                    <field name="package_id" widget="many2one_clickable"/>
+                    <field name="lot_id" groups="stock.group_production_lot"/>
+                    <field name="qty"/>
+                    <field name="uom_id" groups="product.group_uom"/>
+                    <field name="location_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.server" id="ir_actions_server_move_products">
+            <field name="name">Move products</field>
+            <field name="model_id" ref="stock_quant_packages_moving_wizard.model_stock_product_line"/>
+            <field name="code">
+action = self.move_products(cr, uid, context.get('active_ids'), False, context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_move_products">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">stock.product.line</field>
+            <field name="name">Move products</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_move_products)"/>
+        </record>
+
     </data>
 </openerp>

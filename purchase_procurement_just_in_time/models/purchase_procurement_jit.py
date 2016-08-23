@@ -352,7 +352,7 @@ class PurchaseOrderLineJustInTime(models.Model):
             raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
         global_qty_ordered = sum(x.product_uom_qty for x in self.move_ids if x.state != 'cancel')
         if self.state == 'confirmed':
-            if vals['product_qty'] == 0:
+            if float_compare(vals['product_qty'], 0.0, precision_rounding=self.product_id.uom_id.rounding) == 0:
                 for move in self.move_ids:
                     move.with_context({'cancel_procurement': True}).action_cancel()
             if vals['product_qty'] > 0:
@@ -379,7 +379,7 @@ class PurchaseOrderLineJustInTime(models.Model):
 
         result = super(PurchaseOrderLineJustInTime, self).write(vals)
         for rec in self:
-            if vals.get('product_qty') and not self.env.context.get('no_update_moves'):
+            if 'product_qty' in vals.keys() and not self.env.context.get('no_update_moves'):
                 rec.update_moves(vals)
         if vals.get('price_unit'):
             for rec in self:
