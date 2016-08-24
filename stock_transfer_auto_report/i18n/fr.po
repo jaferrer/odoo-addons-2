@@ -1,0 +1,58 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* stock_transfer_auto_report
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-07-12 13:11+0000\n"
+"PO-Revision-Date: 2016-07-12 15:11+0100\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 1.7.5\n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_transfer_auto_report
+msgid "Stock Transfer Auto Report"
+msgstr "Lancement automatique de rapport lors des transferts"
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_transfer_auto_report
+msgid ""
+"\n"
+"Stock Transfer Auto Report\n"
+"==========================\n"
+"This module allows to attach a report to a picking type. \n"
+"When validating a transfer, the system automatically launches the appropriate picking report, if any.\n"
+msgstr ""
+"\n"
+"Division d'opérations de stock\n"
+"==============================\n"
+"Ce module permet de rattacher un rapport à chaque type d'opération. \n"
+"Le cas échéant, le système lancera automatiquement le rapport lié à l'opération lors du transfert.\n"
+
+#. module: stock_transfer_auto_report
+#: field:stock.picking.type,report_id:0
+msgid "Report launched after transfer"
+msgstr "Rapport lancé lors du transfert"
+
+#. module: stock_transfer_auto_report
+#: model:ir.model,name:stock_transfer_auto_report.model_stock_transfer_details
+msgid "Picking wizard"
+msgstr "Assistant d'opération"
+
+#. module: stock_transfer_auto_report
+#: model:ir.model,name:stock_transfer_auto_report.model_stock_picking_type
+msgid "The picking type determines the picking view"
+msgstr "Le type de préparation détermine la vue de préparation"
+
+#. module: stock_transfer_auto_report
+#: view:stock.transfer_details:stock_transfer_auto_report.auto_report_trransfer_details_form
+msgid "_Apply"
+msgstr "_Appliquer"

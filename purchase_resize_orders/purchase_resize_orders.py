@@ -48,9 +48,10 @@ class PurchaseOrderResizer(models.TransientModel):
                 supplierinfo = product.seller_ids and product.seller_ids[0] or False
                 if supplierinfo:
                     qty_to_order = max(supplierinfo.min_qty, qty_to_order)
-                    if float_compare(qty_to_order,
-                                     (qty_to_order // supplierinfo.packaging_qty) * supplierinfo.packaging_qty,
-                                     precision_rounding=product.uom_id.rounding) != 0:
+                    if self.compare(qty_to_order, supplierinfo.packaging_qty, product.uom_id.rounding) != 0:
                         qty_to_order = (qty_to_order // supplierinfo.packaging_qty + 1) * supplierinfo.packaging_qty
                 qty_to_order = int(qty_to_order)
                 line.product_qty = qty_to_order
+
+    def compare(self, qty_to_order, packaging_qty, rounding):
+        float_compare(qty_to_order, (qty_to_order // packaging_qty) * packaging_qty, precision_rounding=rounding)

@@ -126,5 +126,5 @@ class SaleForecastMovesWizard(models.TransientModel):
 class StockMoveExtended(models.Model):
     _inherit = "stock.move"
 
-    prevision_move = fields.Boolean('Forecast Move')
+    prevision_move = fields.Boolean('Forecast Move', index=True)
     week = fields.Integer('Week')

@@ -17,5 +17,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import test_purchase_group_by_period
-import test_get_start_end_date
+{
+    'name': 'Product Create Massively Reordering Rule',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': '',
+    'depends': ['stock'],
+    'description': """
+Product Create Massively Reordering Rule
+========================================
+This modules allows to create massively reordering rules from products list.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'product_create_massively_reordering_rules.xml'
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

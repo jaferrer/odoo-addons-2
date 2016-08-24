@@ -17,9 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from collections import OrderedDict
 from datetime import datetime
+
 from openerp import fields, models, api, exceptions, _
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp.tools import float_compare
 
 
 class IncompleteProductionProductLine(models.Model):
@@ -65,30 +68,45 @@ class IncompeteProductionMrpProduction(models.Model):
     @api.depends('location_dest_id')
     def _compute_warehouse_id(self):
         for rec in self:
-            rec.warehouse_id = rec.location_dest_id and rec.location_dest_id.get_warehouse(rec.location_dest_id)
-
-    @api.multi
-    @api.depends('location_dest_id')
-    def _compute_warehouse_id(self):
-        for rec in self:
-            warehouse_id = rec.location_dest_id and rec.sudo().location_dest_id.get_warehouse(rec.location_dest_id) or False
+            warehouse_id = rec.location_dest_id and rec.sudo().location_dest_id.get_warehouse(
+                rec.location_dest_id) or False
             rec.warehouse_id = warehouse_id
 
     @api.model
     def _calculate_qty(self, production, product_qty=0.0):
-        consume_lines = super(IncompeteProductionMrpProduction, self)._calculate_qty(production, product_qty)
-        list_to_remove = []
-        for item in consume_lines:
-            local_product_id = item['product_id']
-            total = sum([x.product_qty for x in production.move_lines if x.product_id.id == local_product_id
-                         and x.state == 'assigned'])
-            if total != 0:
-                item['product_qty'] = total
+        produced_qty = self._get_produced_qty(production)
+        list_keys = []
+        new_consume_lines = []
+        if not product_qty:
+            product_qty = self.env['product.uom']._compute_qty(production.product_uom.id, production.product_qty,
+                                                               production.product_id.uom_id.id) - produced_qty
+        production_qty = self.env['product.uom']._compute_qty(production.product_uom.id, production.product_qty,
+                                                              production.product_id.uom_id.id)
+        scheduled_qty = OrderedDict()
+        for scheduled in production.product_lines:
+            if scheduled.product_id.type == 'service':
+                continue
+            qty = self.env['product.uom']._compute_qty(scheduled.product_uom.id, scheduled.product_qty,
+                                                       scheduled.product_id.uom_id.id)
+            if scheduled_qty.get(scheduled.product_id.id):
+                scheduled_qty[scheduled.product_id.id] += qty
             else:
-                list_to_remove += [item]
-        for move in list_to_remove:
-            consume_lines.remove(move)
-        return consume_lines
+                scheduled_qty[scheduled.product_id.id] = qty
+        consume_lines = super(IncompeteProductionMrpProduction, self)._calculate_qty(production, product_qty)
+        for item in consume_lines:
+            key = (item['product_id'], item['lot_id'])
+            if key not in list_keys:
+                sched_product_qty = scheduled_qty[key[0]]
+                total_consume = ((product_qty + produced_qty) * sched_product_qty / production_qty)
+                reserved_quants = self.env['stock.quant'].search([('reservation_id', 'in', production.move_lines.ids),
+                                                                  ('product_id', '=', key[0]),
+                                                                  ('lot_id', '=', key[1] and key[1].id or False)])
+                reserved_qty = sum([quant.qty for quant in reserved_quants])
+                final_qty = min(reserved_qty, total_consume)
+                if float_compare(final_qty, 0, self.env['decimal.precision'].precision_get('Product Unit of Measure')) != 0:
+                    new_consume_lines += [{'product_id': key[0], 'lot_id': key[1], 'product_qty': final_qty}]
+                list_keys += [key]
+        return new_consume_lines
 
     @api.multi
     def _get_child_order_data(self, wiz):
@@ -121,6 +139,7 @@ class IncompeteProductionMrpProduction(models.Model):
     @api.model
     def action_produce(self, production_id, production_qty, production_mode, wiz=False):
         production = self.browse(production_id)
+        initial_raw_moves = production.move_lines
         list_cancelled_moves_1 = production.move_lines2
         result = super(IncompeteProductionMrpProduction, self.with_context(cancel_procurement=True)). \
             action_produce(production_id, production_qty, production_mode, wiz=wiz)
@@ -130,8 +149,6 @@ class IncompeteProductionMrpProduction(models.Model):
             production_data = production._get_child_order_data(wiz)
             production.action_production_end()
             new_production = self.env['mrp.production'].create(production_data)
-            if wiz.product_different:
-                new_production._make_production_produce_line(new_production)
             for move in list_cancelled_moves:
                 product_line_data = production._get_child_order_product_line_data(move)
                 new_production_line = self.env['mrp.production.product.line'].create(product_line_data)
@@ -154,7 +171,21 @@ class IncompeteProductionMrpProduction(models.Model):
             for item in return_moves:
                 picking_to_change_origin |= item.picking_id
             picking_to_change_origin.write({'origin': production.name})
+        procurements_to_cancel = self.env['procurement.order']
+        # Let's cancel old service moves
+        for move in initial_raw_moves:
+            procurements_to_cancel |= self.env['procurement.order'].search([('move_dest_id', '=', move.id),
+                                                                            ('state', 'not in', ['cancel', 'done'])])
+        if procurements_to_cancel:
+            procurements_to_cancel.cancel()
         return result
+
+    @api.model
+    def _make_production_produce_line(self, production):
+        if not production.backorder_id or production.backorder_id.product_id != production.product_id:
+            return super(IncompeteProductionMrpProduction, self)._make_production_produce_line(production)
+        else:
+            return []
 
     @api.multi
     def button_update(self):
@@ -167,8 +198,6 @@ class IncompeteProductionMrpProduction(models.Model):
     def action_assign(self):
         result = super(IncompeteProductionMrpProduction, self).action_assign()
         for order in self:
-            for move in order.move_lines:
-                if move.state == 'assigned':
-                    order.signal_workflow('moves_ready')
-                    break
+            if any([move.reserved_quant_ids for move in order.move_lines]):
+                 order.signal_workflow('moves_ready')
         return result

@@ -408,6 +408,15 @@ class PurchaseOrderLineJustInTime(models.Model):
                         'search_default_product_id': self.product_id.id}
         }
 
+    @api.multi
+    def unlink(self):
+        orders_to_unlink = self.env['purchase.order'].search([('id', 'in', [line.order_id.id for line in self])])
+        result = super(PurchaseOrderLineJustInTime, self).unlink()
+        for order in orders_to_unlink:
+            if not order.order_line:
+                order.unlink()
+        return result
+
 
 class ProcurementOrderPurchaseJustInTime(models.Model):
     _inherit = 'procurement.order'
@@ -460,8 +469,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 procurement.write(vals_to_write)
             else:
                 result = super(ProcurementOrderPurchaseJustInTime,
-                               self.with_context(cancelling_active_proc=True)). \
-                    propagate_cancel(procurement)
+                               self.with_context(cancelling_active_proc=True)).propagate_cancel(procurement)
         else:
             result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
         return result

@@ -326,9 +326,6 @@ class stock_pack_operation(models.Model):
                                      precision_rounding=self.pool.get('product.product').browse(cr, uid, [item],
                                                                                                 context)[
                                          0].uom_id.rounding) != 0:
-                        print item
-                        print res[item]
-                        print test[item]
                         raise osv.except_osv(_('test non regression!'), "_get_remaining_prod_quantities")
             else:
                 raise osv.except_osv(_('test non regression!'), "les resulta n'ont pas la meme longueur")
@@ -512,10 +509,6 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                     if prod2move_ids[it] and len(prod2move_ids[it]) == len(prod2move_ids_test[it]):
                         for a,b in enumerate(prod2move_ids_test[it]):
                             if prod2move_ids[it][a]['move']['id'] != prod2move_ids_test[it][a]['move'].id:
-                                print a
-                                print b
-                                print prod2move_ids[it][a]['move']['id']
-                                print it
                                 raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
 
                             if float_compare(prod2move_ids[it][a]['remaining_qty'], prod2move_ids_test[it][a]['remaining_qty'],
@@ -682,6 +675,8 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
     def _set_min_date(self, cr, uid, id, field, value, arg, context=None):
         move_obj = self.pool.get("stock.move")
         if value:
+            if len(value) == 10:
+                value += ' 00:00:00'
             move_ids = [move.id for move in self.browse(cr, uid, id, context=context).move_lines]
             move_obj.write(cr, uid, move_ids, {'date_expected': value}, context=context)
 
@@ -766,9 +761,6 @@ class StockMove(models.Model):
                                      precision_rounding=self.pool.get('stock.move').browse(cr, uid, [item],
                                                                                            context)[
                                          0].product_id.uom_id.rounding) != 0:
-                        print item
-                        print res[item]
-                        print test[item]
                         raise osv.except_osv(_('test non regression'), "_get_remaining_qty")
             else:
                 raise osv.except_osv(_('test non regression!'), "la valeur n'a pas la meme longueur")
@@ -1070,3 +1062,11 @@ class StockPrereservation(models.Model):
             ) foo
         )
         """)
+
+
+class ConfirmProcessPrereservations(models.TransientModel):
+    _name = 'confirm.process.prereservations'
+
+    @api.multi
+    def confirm(self):
+        self.env['stock.picking'].process_prereservations()

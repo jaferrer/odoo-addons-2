@@ -119,7 +119,7 @@ class TestPurchaseGroupByPeriod(common.TransactionCase):
         self.assertTrue(proc1.purchase_id)
         order1_id = proc1.purchase_id
         self.assertEqual(order1_id.date_order[0:10], "2015-02-06")
-        self.assertEqual(order1_id.date_order_max[0:10], "2015-02-09")
+        self.assertEqual(order1_id.date_order_max[0:10], "2015-02-08")
 
     def test_30_group_by_months(self):
         """Check grouping by months."""

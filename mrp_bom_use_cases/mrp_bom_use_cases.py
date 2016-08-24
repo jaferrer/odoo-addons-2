@@ -23,7 +23,7 @@ from openerp import fields, models, api
 class MrpBomLine(models.Model):
     _inherit = "mrp.bom.line"
 
-    product_parent_id = fields.Many2one('product.template', string="Parent Product",
+    product_parent_id = fields.Many2one('product.product', string="Parent Product",
                                         compute='_compute_parents')
     father_line_ids = fields.Many2many('mrp.bom.line', 'mrp_bom_lines_father_rel', 'child_id', 'father_id',
                                        compute="_compute_parents")
@@ -35,7 +35,7 @@ class MrpBomLine(models.Model):
         for rec in self:
             parent_product = rec.bom_id.product_id
             parent_product_tmpl = rec.bom_id.product_tmpl_id
-            rec.product_parent_id = parent_product.product_tmpl_id or parent_product_tmpl
+            rec.product_parent_id = parent_product
 
             if parent_product:
                 products = parent_product
