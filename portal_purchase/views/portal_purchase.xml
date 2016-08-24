@@ -115,7 +115,7 @@
                                         <field name="product_qty" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('validated_by_supplier', '=', True)]}"/>
                                         <field name="qty_received" invisible="not context.get('show_purchase', False)" readonly="1"/>
                                         <field name="qty_invoiced" invisible="not context.get('show_purchase', False)" readonly="1"/>
-                                        <field name="product_uom" groups="product.group_uom" readonly="1"/>
+                                        <field name="product_uom" groups="product.group_uom"/>
                                         <field name="price_unit" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('validated_by_supplier', '=', True)]}"/>
                                         <field name="taxes_id" widget="many2many_tags" domain="[('type_tax_use','=','purchase')]" options="{'no_open': True, 'no_create': True}" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('validated_by_supplier', '=', True)]}"/>
                                         <field name="price_subtotal" widget="monetary"/>
