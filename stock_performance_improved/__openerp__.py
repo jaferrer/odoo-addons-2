@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['scheduler_async'],
+    'depends': ['scheduler_async', 'stock'],
     'description': """
 Stock Performance Improved
 ==========================
