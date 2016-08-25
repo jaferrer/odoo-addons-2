@@ -34,11 +34,9 @@ class AutoReportTransferDetails(models.TransientModel):
     def do_detailed_transfer_multi(self):
         self.ensure_one()
         result = self.do_detailed_transfer()
-        active_id = self.env.context.get('active_id')
-        if active_id:
-            picking = self.env['stock.picking'].browse([active_id])
-            report = picking.picking_type_id.report_id
+        if self.picking_id:
+            report = self.picking_id.picking_type_id.report_id
             if report:
-                return self.env['report'].with_context(active_ids=[active_id]).get_action(
-                    picking, report.report_name)
+                return self.env['report'].with_context(active_ids=[self.picking_id.id]).get_action(
+                    self.picking_id, report.report_name)
         return result
