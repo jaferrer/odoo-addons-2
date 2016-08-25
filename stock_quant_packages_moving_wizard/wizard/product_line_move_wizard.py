@@ -76,6 +76,7 @@ class ProductLineMoveWizard(models.TransientModel):
         self.ensure_one()
         lines = self.quant_line_ids + self.package_line_ids
         lines.check_quantities()
+        lines.check_data_active()
         is_manual_op = self.is_manual_op or lines.force_is_manual_op()
         packages = self.env['stock.quant.package']
         for package_line in self.package_line_ids:
@@ -142,6 +143,16 @@ class ProductLineMoveWizardLine(models.TransientModel):
         for rec in self:
             if rec.qty > rec.available_qty:
                 raise ValidationError(_("The quantity to move must be lower or equal to the available quantity"))
+
+    @api.multi
+    def check_data_active(self):
+        for rec in self:
+            if rec.location_id and not rec.location_id.active:
+                raise ValidationError(_("Impossible to move a quant from a not active location"))
+            if rec.product_id and not rec.product_id.active:
+                raise ValidationError(_("Impossible to move a quant of a not active product"))
+            if rec.uom_id and not rec.uom_id.active:
+                raise ValidationError(_("Impossible to move a quant of a not active UOM"))
 
     @api.multi
     def force_is_manual_op(self):
