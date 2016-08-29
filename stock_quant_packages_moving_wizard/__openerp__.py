@@ -25,13 +25,12 @@
     'maintainer': 'NDP Systèmes',
     "summary": "",
     "category": "Warehouse Management",
-    "depends": [
-        "stock",
-    ],
+    "depends": ['stock'],
     'description': """
 Quants and packaging moving wizards
 ===================================
-This module gives two possibilities to deplace quants. In one hand, you can do it by selecting them directly from "quants" menu, and in the other hand, by moving packages from "package" menu.
+This module gives two possibilities to deplace quants. In one hand, you can do it by selecting them directly from
+"quants" menu, and in the other hand, by moving packages from "package" menu.
 """,
     "website": "http://www.ndp-systemes.fr",
     "contributors": [
@@ -40,8 +39,12 @@ This module gives two possibilities to deplace quants. In one hand, you can do i
         "Ana Juaristi <ajuaristio@gmail.com>"
     ],
     "data": [
+        'security/ir.model.access.csv',
         "wizard/quant_move_wizard_view.xml",
         "wizard/quant_packages_move_wizard_view.xml",
+        "wizard/product_line_move_wizard.xml",
+        "views/stock.xml",
     ],
-    "installable": False,
+    'demo': ['tests/test_stock_quant_packages_moving_wizard.xml'],
+    "installable": True,
 }

@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api
+from openerp import models, fields, api, _, exceptions
 
 
 class StockQuantPackageMove(models.TransientModel):
@@ -26,14 +26,14 @@ class StockQuantPackageMove(models.TransientModel):
 
     pack_move_items = fields.One2many(
         comodel_name='stock.quant.package.move_items', inverse_name='move_id',
-        string='Packs')
+        string="Packages")
 
     global_dest_loc = fields.Many2one(
         comodel_name='stock.location', string='Destination Location',
         required=True)
 
-    picking_type_id = fields.Many2one('stock.picking.type', 'Picking Type',required=True)
-    
+    picking_type_id = fields.Many2one('stock.picking.type', 'Picking type', required=True)
+
     is_manual_op = fields.Boolean(string=u"Manual Operation")
 
     def default_get(self, cr, uid, fields, context=None):
@@ -45,37 +45,61 @@ class StockQuantPackageMove(models.TransientModel):
         packages_obj = self.pool['stock.quant.package']
         packages = packages_obj.browse(cr, uid, packages_ids, context=context)
         items = []
+        loc = False
         for package in packages:
+            loc = package.location_id
             if not package.parent_id and package.location_id:
                 item = {
                     'package': package.id,
                     'source_loc': package.location_id.id,
                 }
                 items.append(item)
+        if loc:
+            warehouses = self.pool['stock.warehouse'].browse(
+                cr, uid, self.pool['stock.location'].get_warehouse(cr, uid, loc, context=context), context=context)
+            if warehouses:
+                res.update(picking_type_id=warehouses[0].picking_type_id.id)
+
         res.update(pack_move_items=items)
         return res
 
     @api.multi
     def do_detailed_transfer(self):
         self.ensure_one()
-        quants = self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc).mapped(lambda x: x.package.quant_ids)
-        quants2 = (self.pack_move_items.filtered(lambda x: x.dest_loc != x.source_loc)).mapped(lambda x: x.package.children_ids.quant_ids)
-        quants= quants + quants2
-        result = quants.move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
-        if self.is_manual_op:
-            return {
+        quantsglob = self.env['stock.quant']
+        packs = self.pack_move_items.filtered(
+            lambda x: x.dest_loc != x.source_loc).mapped(lambda x: x.package)
+        quantsglob |= self._determine_package_child_quants(packs)
+
+        if quantsglob:
+            result = quantsglob.move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
+            if self.is_manual_op:
+                if not result:
+                    raise exceptions.except_orm(_(u"error"), _("No line selected"))
+                return {
                     'name': 'picking_form',
                     'type': 'ir.actions.act_window',
                     'view_type': 'form',
                     'view_mode': 'form',
                     'res_model': 'stock.picking',
-                    'res_id':result[0].picking_id.id
+                    'res_id': result[0].picking_id.id
                 }
-        else :
-            return result
+            else:
+                return result
+
         return True
 
-    
+    def _determine_package_child_quants(self, packs):
+        cumul = self.env['stock.quant']
+        for item in packs:
+            quants = item.mapped(lambda x: x.quant_ids)
+            cumul |= quants
+            packageChild = item.children_ids
+            cumul |= self._determine_package_child_quants(packageChild)
+
+        return cumul
+
+
 class StockQuantPackageMoveItems(models.TransientModel):
     _name = 'stock.quant.package.move_items'
     _description = 'Picking wizard items'
