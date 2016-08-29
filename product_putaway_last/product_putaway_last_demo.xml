@@ -43,6 +43,8 @@
             <field name="move_type">direct</field>
             <field name="priority">1</field>
             <field name="picking_type_id" ref="stock.picking_type_internal"/>
+            <field name="location_id" ref="stock.stock_location_components"/>
+            <field name="location_dest_id" ref="stock_location_stock"/>
         </record>
 
         <record id="move_to_stock" model="stock.move">
