@@ -555,7 +555,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                 # Check moves with same product
                 qty_to_assign = uom_obj._compute_qty_obj(cr, uid, ops.product_uom_id, ops.product_qty,
                                                          ops.product_id.uom_id, context=context)
-                for move_dict in prod2move_ids.get(ops.product_id.id, []):
+                for move_dict in prod2move_ids.get(ops.product_id.id, [])[:]:
                     move = move_dict['move']
                     qts = quant_obj.search(cr, uid, [('reservation_id', '=', move["id"])], context=context)
                     for quant in quant_obj.read(cr, uid, qts,
@@ -596,7 +596,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         if context.get("test_transfer"):
             test = super(StockPicking, self).recompute_remaining_qty(cr, uid, picking, context=context)
             if test != (need_rereserve, all_op_processed):
-                raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
+                raise osv.except_osv('test temps do_transfer!', "recompute_remaining_qty")
         return (need_rereserve, all_op_processed)
 
     @api.cr_uid_context
