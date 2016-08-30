@@ -53,7 +53,7 @@ class StockQuantPackageMove(models.TransientModel):
                     'package': package.id,
                     'source_loc': package.location_id.id,
                 }
-                items.append(item)
+                items.append((0, 0, item))
         if loc:
             warehouses = self.pool['stock.warehouse'].browse(
                 cr, uid, self.pool['stock.location'].get_warehouse(cr, uid, loc, context=context), context=context)

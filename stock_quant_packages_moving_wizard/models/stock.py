@@ -131,9 +131,10 @@ class StockQuant(models.Model):
                     dict_reservations[first_corresponding_move] += [(quant, quant.qty)]
                     not_reserved_tuples += [(splitted_quant, qty - reservable_qty_on_move)]
                     done_move_ids += [first_corresponding_move.id]
-                move_recordset  |= first_corresponding_move
+                move_recordset |= first_corresponding_move
                 first_corresponding_move = self.get_corresponding_moves(quant.product_id, location_from, dest_location,
-                                                                   picking_type_id, limit=1, id_not_in=done_move_ids)
+                                                                        picking_type_id, limit=1,
+                                                                        id_not_in=done_move_ids)
                 not_reserved_tuples = not_reserved_tuples[1:]
             # Let's split the move which are not entirely_used
             for move in dict_reservations:
@@ -187,8 +188,8 @@ class StockQuant(models.Model):
     @api.model
     def move_quants_old_school(self, list_reservation, move_recordset, dest_location, picking_type_id, new_picking):
         values = self.env['stock.quant'].read_group([('id', 'in', self.ids)],
-                                                            ['product_id', 'location_id', 'qty'],
-                                                            ['product_id', 'location_id'], lazy=False)
+                                                    ['product_id', 'location_id', 'qty'],
+                                                    ['product_id', 'location_id'], lazy=False)
         for val in values:
             new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
                 'name': 'Move %s to %s' % (val['product_id'][1], dest_location.name),
@@ -221,7 +222,9 @@ class StockQuant(models.Model):
         move_recordset = self.env['stock.move']
         list_reservation = {}
         if self:
-            new_picking = self.env['stock.picking'].create({'picking_type_id': picking_type_id.id, 'location_dest_id': dest_location.id, 'location_id': self[0].location_id.id})
+            new_picking = self.env['stock.picking'].create(
+                {'picking_type_id': picking_type_id.id, 'location_dest_id': dest_location.id,
+                 'location_id': self[0].location_id.id})
             if move_items:
                 for product in move_items.keys():
                     location_from = move_items[product][0]['quants'][0].location_id
@@ -333,8 +336,7 @@ class Stock(models.Model):
         if self:
             location = self[0].location_id
             if any([line.location_id != location for line in self]):
-                raise exceptions.except_orm(_("error"),
-                                            _("Impossible to move simultaneously products of different locations"))
+                raise exceptions.UserError(_("Impossible to move simultaneously products of different locations"))
         ctx = self.env.context.copy()
         ctx['active_ids'] = self.ids
         return {

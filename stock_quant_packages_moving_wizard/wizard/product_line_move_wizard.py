@@ -58,9 +58,9 @@ class ProductLineMoveWizard(models.TransientModel):
                 'created_from_id': line.id,
             }
             if line.product_id or not line.package_id:
-                quant_lines.append(line_dict)
+                quant_lines.append((0, 0, line_dict))
             else:
-                package_lines.append(line_dict)
+                package_lines.append((0, 0, line_dict))
         result.update(quant_line_ids=quant_lines)
         result.update(package_line_ids=package_lines)
         return result
