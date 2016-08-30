@@ -21,12 +21,6 @@ odoo.define('web_calendar.CalendarView_export', function (require) {
         export_current_calendar: function () {
 
             var c = openerp.webclient.crashmanager;
-            //var s = new XMLSerializer();
-            //
-            //var html = s.serializeToString(this.$calendar);
-            //console.log(html);
-            ////console.log(html.replace("width=\""+this.width+"\"","").replace("height=\""+this.height+"\"","height=\"400\"").replace("<svg ","<svg viewBox=\"0 0 "+this.width+" "+this.height+"\" "));
-            //html = html.replace("width=\"" + this.width + "\"", "").replace("height=\"" + this.height + "\"", "height=\"400\"").replace("<svg ", "<svg viewBox=\"0 0 " + this.width + " " + this.height + "\" ");
             framework.blockUI();
             this.session.get_file({
                 url: '/web_calendar_export/export_calendar',
