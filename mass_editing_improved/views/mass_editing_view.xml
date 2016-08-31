@@ -9,48 +9,8 @@
             <field name="arch" type="xml">
                 <field name="model_id" position="after">
                     <field name="sub_model_id" domain="[('ttype', 'in', ['many2one']),('model_id', 'in', model_ids[0][2])]"/>
-                    <!---->
                 </field>
             </field>
         </record>
-
-        <!--<record model="ir.ui.view" id="view_mass_object_tree">-->
-            <!--<field name="name">mass.object.tree</field>-->
-            <!--<field name="model">mass.object</field>-->
-            <!--<field name="arch" type="xml">-->
-                <!--<tree string="Object">-->
-                    <!--<field name="name"/>-->
-                    <!--<field name="model_id"/>-->
-                <!--</tree>-->
-            <!--</field>-->
-        <!--</record>-->
-
-        <!--<record model="ir.actions.act_window" id="action_mass_object_form">-->
-            <!--<field name="name">Mass Editing</field>-->
-            <!--<field name="res_model">mass.object</field>-->
-            <!--<field name="view_type">form</field>-->
-            <!--<field name="view_mode">tree,form</field>-->
-            <!--<field name="view_id" ref="view_mass_object_tree"/>-->
-        <!--</record>-->
-
-        <!--<record id="action_mass_object_form_view1" model="ir.actions.act_window.view">-->
-            <!--<field eval="10" name="sequence"/>-->
-            <!--<field name="view_mode">tree</field>-->
-            <!--<field name="view_id" ref="view_mass_object_tree"/>-->
-            <!--<field name="act_window_id" ref="action_mass_object_form"/>-->
-        <!--</record>-->
-        <!--<record id="action_mass_object_form_view2" model="ir.actions.act_window.view">-->
-            <!--<field eval="20" name="sequence"/>-->
-            <!--<field name="view_mode">form</field>-->
-            <!--<field name="view_id" ref="view_mass_object_form"/>-->
-            <!--<field name="act_window_id" ref="action_mass_object_form"/>-->
-        <!--</record>-->
-
-        <!--<menuitem id="menu_mass_editing" name="Mass Editing"-->
-                  <!--parent="base.menu_administration" sequence="6"/>-->
-
-        <!--<menuitem id="menu_mass_object_view" action="action_mass_object_form"-->
-                  <!--parent="menu_mass_editing"/>-->
-
     </data>
 </openerp>
