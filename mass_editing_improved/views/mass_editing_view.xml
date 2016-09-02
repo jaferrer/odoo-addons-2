@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="view_mass_object_form_sub_model">
+            <field name="name">mass.object.form.sub_model</field>
+            <field name="inherit_id" ref="mass_editing.view_mass_object_form"/>
+            <field name="model">mass.object</field>
+            <field name="arch" type="xml">
+                <field name="model_id" position="after">
+                    <field name="sub_model_id" domain="[('ttype', 'in', ['many2one']),('model_id', 'in', model_ids[0][2])]"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</openerp>
