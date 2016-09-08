@@ -58,7 +58,8 @@ class ProjectTemplateTaskType(models.Model):
                 'is_template': False,
                 'project_id': project.id,
                 'stage_id': self.id,
-                'user_id': project.user_id and project.user_id.id or False}
+                'user_id': project.user_id and project.user_id.id or False,
+                'date_start': False}
 
     @api.multi
     def synchronize_default_tasks(self):
