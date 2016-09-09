@@ -21,12 +21,18 @@ odoo.define('web_calendar.CalendarView_export', function (require) {
         export_current_calendar: function () {
 
             var c = openerp.webclient.crashmanager;
-            console.log(this.$calendar[0]);
+
+            var $a=this.$calendar.clone();
+            $a.find(".fc-agenda-slots").parent().parent().css('height','');
+            $a.find(".fc-agenda-slots").parent().parent().css('position','relative');
+            $a.find(".fc-agenda-days").css('position','absolute');
+            $a.find(".fc-agenda-allday").css('position','relative');
+            $a.find(".fc-agenda-allday").parent().css('position','relative');
             framework.blockUI();
             this.session.get_file({
                 url: '/web_calendar_export/export_calendar',
                 data: {
-                    data: window.btoa(unescape("<div class='o_calendar_container'><div class='o_calendar_view' style='width: 100%;'><div class='o_calendar_widget fc fc-ltr'>"+this.$calendar[0].innerHTML+"</div></div></div>"))
+                    data: window.btoa(unescape("<div class='o_calendar_container'><div class='o_calendar_view' style='width: 100%;'><div class='o_calendar_widget fc fc-ltr'>"+$a[0].innerHTML+"</div></div></div>"))
                 },
                 complete: framework.unblockUI,
                 error: crash_manager.rpc_error.bind(c)
