@@ -18,7 +18,7 @@ class WebCalendarExporter(http.Controller):
         <link type="text/css" href="/website/static/src/less/web.assets_backend/import_bootstrap.less.css"  rel="stylesheet">
         <link type="text/css" href="/web_calendar/static/src/less/web.assets_backend/web_calendar.less.css"  rel="stylesheet">
         <link type="text/css" href="/web_calendar/static/lib/fullcalendar/css/fullcalendar.css" rel="stylesheet">
-        <head><body style="width:100%%;height:100%%;padding-right:10px;">
+        <head><body style="width:100%%;zoom:85%%;">
             %s
             </body></html>"""
 
