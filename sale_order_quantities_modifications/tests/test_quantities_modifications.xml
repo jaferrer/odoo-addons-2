@@ -2,30 +2,33 @@
 <openerp>
     <data>
 
-         <!--products-->
+         <!-- Products -->
 
         <record id="product1" model="product.product">
             <field name="name">Test Product 1 (Quantities Mofifications)</field>
+            <field name="uom_id" ref="product.product_uom_unit"/>
             <field name="type">product</field>
         </record>
 
         <record id="product2" model="product.product">
             <field name="name">Test Product 2 (Quantities Mofifications)</field>
+            <field name="uom_id" ref="product.product_uom_unit"/>
             <field name="type">product</field>
         </record>
 
         <record id="product3" model="product.product">
             <field name="name">Test Product 3 (Quantities Mofifications)</field>
+            <field name="uom_id" ref="product.product_uom_unit"/>
             <field name="type">product</field>
         </record>
 
-        <!--partner -->
+        <!-- Partner -->
 
         <record id="client1" model="res.partner">
             <field name="name">Client 1 (Quantities Mofifications)</field>
         </record>
 
-        <!-- sale order -->
+        <!-- Sale orders -->
 
         <record id="sale_order" model="sale.order">
             <field name="partner_id" ref="sale_order_quantities_modifications.client1"/>
@@ -37,12 +40,13 @@
             <field name="order_policy">manual</field>
         </record>
 
-        <!-- sale order lines -->
+        <!-- Sale order lines -->
 
         <record id="sale_order_line1" model="sale.order.line">
             <field name="name">Sale Order Line 1 (Quantities Mofifications)</field>
             <field name="product_id" ref="sale_order_quantities_modifications.product1"/>
             <field name="product_uom_qty" eval="8.0"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
             <field name="price_unit" eval="4.0"/>
             <field name="order_id" ref="sale_order_quantities_modifications.sale_order"/>
         </record>
@@ -51,12 +55,14 @@
             <field name="name">Sale Order Line 2 (Quantities Mofifications)</field>
             <field name="product_id" ref="sale_order_quantities_modifications.product2"/>
             <field name="product_uom_qty" eval="5.0"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
             <field name="order_id" ref="sale_order_quantities_modifications.sale_order"/>
         </record>
 
         <record id="sale_order_line3" model="sale.order.line">
             <field name="name">Sale Order Line 3 (Quantities Mofifications)</field>
             <field name="product_id" ref="sale_order_quantities_modifications.product3"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
             <field name="product_uom_qty" eval="6.0"/>
             <field name="order_id" ref="sale_order_quantities_modifications.sale_order"/>
         </record>
