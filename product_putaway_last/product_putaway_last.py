@@ -32,7 +32,7 @@ class product_putaway_stock_location(models.Model):
         loc = location
         while loc:
             if loc.putaway_strategy_id:
-                res = putaway_obj.putaway_apply(loc.putaway_strategy_id, product, loc)
+                res = putaway_obj.putaway_apply(loc.putaway_strategy_id, product, location)
                 if res:
                     return res
             loc = loc.location_id

@@ -38,7 +38,7 @@ This strategy need only to be defined once and can be applied to several locatio
         'product_putaway_last_demo.xml'
     ],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

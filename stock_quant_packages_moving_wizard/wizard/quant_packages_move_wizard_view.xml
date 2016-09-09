@@ -7,12 +7,8 @@
             <field name="arch" type="xml">
                 <form string="Transfer details" version="7">
                     <group>
-                        <field name="global_dest_loc" string="Destination Location"/>
-                    </group>
-                    <group>
+                        <field name="global_dest_loc"/>
                         <field name="picking_type_id"/>
-                    </group>
-                    <group>
                         <field name="is_manual_op"/>
                     </group>
                     <group groups="stock.group_tracking_lot">
@@ -26,11 +22,9 @@
                         </field>
                     </group>
                     <footer>
-                        <button name="do_detailed_transfer"
-                            string="_Apply" type="object" class="oe_highlight" />
+                        <button name="do_detailed_transfer" string="_Apply" type="object" class="oe_highlight"/>
                         or
-                        <button string="_Cancel" class="oe_link"
-                            special="cancel" />
+                        <button string="_Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
             </field>
@@ -39,22 +33,6 @@
         <act_window name="Move Stock Quant Packages" groups="stock.group_tracking_lot"
             res_model="stock.quant.package.move" src_model="stock.quant.package"
             view_mode="form" target="new" key2="client_action_multi" id="action_move_packages" />
-
-        <!--<record model="ir.actions.act_window" id="action_move_packages">-->
-            <!--<field name="name">Move Stock Quant Packages</field>-->
-            <!--<field name="res_model">stock.quant.package.move</field>-->
-            <!--<field name="view_mode">form</field>-->
-            <!--<field name="target">new</field>-->
-            <!--<field name="groups_id" eval="[(4, ref('stock.group_tracking_lot')]"/>-->
-        <!--</record>-->
-
-        <!--<record model="ir.values" id="ir_values_move_packages">-->
-            <!--<field name="key">action</field>-->
-            <!--<field name="key2">client_action_multi</field>-->
-            <!--<field name="model">stock.quant.package</field>-->
-            <!--<field name="name">Move Stock Quant Packages</field>-->
-            <!--<field name="value" eval="'ir.actions.act_window,'+str(action_move_packages)"/>-->
-        <!--</record>-->
 
 
     </data>
