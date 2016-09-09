@@ -30,8 +30,8 @@ Sale Order Quantities Modifications
 This module allows to change quantities of confirmed sale orders.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['sale_order_quantities_modifications.xml'],
-    'demo': ['test_quantities_modifications.xml'],
+    'data': [],
+    'demo': ['tests/test_quantities_modifications.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,

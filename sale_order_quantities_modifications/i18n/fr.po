@@ -18,7 +18,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_sale_order_quantities_modifications
 msgid "Sale Order Quantities Modifications"
-msgstr "Modification des quantités des commandes d'achat"
+msgstr "Modification des quantités des commandes de vente"
 
 #. module: base
 #: model:ir.module.module,description:base.module_sale_order_quantities_modifications
@@ -34,6 +34,25 @@ msgstr "\n"
 ""
 
 #. module: sale_order_quantities_modifications
+#: code:addons\sale_order_quantities_modifications\sale_order_quantities_modifications.py:99
+#: code:addons\sale_order_quantities_modifications\sale_order_quantities_modifications.py:118
+#, python-format
+msgid "Error!"
+msgstr "Erreur !"
+
+#. module: sale_order_quantities_modifications
+#: code:addons\sale_order_quantities_modifications\sale_order_quantities_modifications.py:118
+#, python-format
+msgid "Impossible to cancel a procurement in state done."
+msgstr "Impossible d'annuler une demande d'approvisionnement à l'état terminé."
+
+#. module: sale_order_quantities_modifications
+#: code:addons\sale_order_quantities_modifications\sale_order_quantities_modifications.py:99
+#, python-format
+msgid "Impossible to set the line quantity lower than the delivered quantity."
+msgstr "Impossible de baisser la quantité de la ligne en dessous de la quantité déjà livrée."
+
+#. module: sale_order_quantities_modifications
 #: model:ir.model,name:sale_order_quantities_modifications.model_sale_order
 msgid "Sales Order"
 msgstr "Bon de commande"
@@ -42,9 +61,3 @@ msgstr "Bon de commande"
 #: model:ir.model,name:sale_order_quantities_modifications.model_sale_order_line
 msgid "Sales Order Line"
 msgstr "Ligne de commandes de vente"
-
-#. module: sale_order_quantities_modifications
-#: view:sale.order:0
-msgid "{'readonly': [('state', '!=', 'draft')]}"
-msgstr "{'readonly': [('state', '!=', 'draft')]}"
-
