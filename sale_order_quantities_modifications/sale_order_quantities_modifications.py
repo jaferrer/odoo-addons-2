@@ -138,7 +138,7 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
         result = super(QuantitiesModificationsSaleOrderLine, self).write(vals)
         # Overwriting the 'write' function, in order to deal with a modification of the quantity of a sale order line.
         for rec in self:
-            line_uom_id = vals.get('product_uom') and vals['product_uom'] or rec.product_uom.id
+            line_uom_id = vals.get('product_uom', rec.product_uom.id)
             if rec.order_id.state not in ['draft', 'cancel', 'done']:
                 if vals.get('price_unit'):
                     active_moves = self.env['stock.move'].search([('product_id', '=', rec.product_id.id),
