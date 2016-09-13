@@ -4,12 +4,14 @@
 
         <record model="res.groups" id="group_portal_purchase">
             <field name="name">Portal: access for suppliers</field>
+            <field name="category_id" ref="base.module_category_extra"/>
             <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
             <field name="is_portal" eval="True"/>
         </record>
 
         <record model="res.groups" id="group_portal_sale">
             <field name="name">Portal: access for customers</field>
+            <field name="category_id" ref="base.module_category_extra"/>
             <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
             <field name="is_portal" eval="True"/>
         </record>
