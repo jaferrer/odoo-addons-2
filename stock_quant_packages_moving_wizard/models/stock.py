@@ -252,6 +252,8 @@ class StockQuant(models.Model):
                     move.linked_move_operation_ids.unlink()
             new_picking.do_prepare_partial()
             if not is_manual_op:
+                # If the transfer is not manual, we do not want the putaway strategies to be applied.
+                new_picking.pack_operation_ids.write({'location_dest_id': dest_location.id})
                 new_picking.do_transfer()
         return move_recordset
 
