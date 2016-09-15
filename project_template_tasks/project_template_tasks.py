@@ -30,7 +30,8 @@ class ProjectTemplateProject(models.Model):
         return default_types and default_types.ids or False
 
     use_task_type_ids = fields.Many2many('project.task.type', 'project_task_type_rel', 'project_id', 'type_id',
-                                         string="Project Task Types", default=_get_default_task_type_ids)
+                                         string="Project Task Types", default=_get_default_task_type_ids,
+                                         ondelete='set null')
 
     @api.multi
     def synchronize_default_tasks(self):
