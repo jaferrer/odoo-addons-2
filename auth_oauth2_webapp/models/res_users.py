@@ -27,25 +27,19 @@ class ResUsers(models.Model):
 
     @api.model
     def auth_oauth(self, provider, params):
-        print "auth_oauth !!"
         prov = self.env['auth.oauth.provider'].browse(provider).sudo()
         if prov.type != 'code':
             return super(ResUsers, self).auth_oauth(provider, params)
 
         access_token = params.get('access_token')
         if not prov.data_endpoint:
-            print "prov: ", prov.data_endpoint
             raise exceptions.AccessDenied()
 
-        print "auth_oauth 2 !!"
         validation = self.sudo()._auth_oauth_rpc(prov.data_endpoint, params['access_token'])
         validation["user_id"] = validation["username"]
 
-        print "validation: ", validation
-
         # retrieve and sign in user
         login = self._auth_oauth_signin(provider, validation, params)
-        print "login: ", login
         if not login:
             raise exceptions.AccessDenied()
         # return user credentials
