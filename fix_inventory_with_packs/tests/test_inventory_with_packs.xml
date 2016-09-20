@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="product.product" id="product">
+            <field name="name">Test product (Inventory with paks)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="stock.quant.package" id="package1">
+            <field name="name">First Package (Inventory with paks)</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <record model="stock.quant.package" id="package2">
+            <field name="name">Second Package (Inventory with paks)</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <record model="stock.quant" id="quant_without_package">
+            <field name="product_id" ref="product"/>
+            <field name="qty" eval="100"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="package_id"/>
+            <field name="in_date">2016-09-12 00:00:00</field>
+        </record>
+
+        <record model="stock.quant" id="quant1">
+            <field name="product_id" ref="product"/>
+            <field name="qty" eval="10"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="package_id" ref="package1"/>
+            <field name="in_date">2016-09-13 00:08:00</field>
+        </record>
+
+        <record model="stock.quant" id="quant2">
+            <field name="product_id" ref="product"/>
+            <field name="qty" eval="5"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="package_id" ref="package2"/>
+            <field name="in_date">2016-09-13 00:05:00</field>
+        </record>
+
+        <record model="stock.quant" id="quant3">
+            <field name="product_id" ref="product"/>
+            <field name="qty" eval="15"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="package_id" ref="package2"/>
+            <field name="in_date">2016-09-13 00:10:00</field>
+        </record>
+
+        <record model="stock.inventory" id="inventory">
+            <field name="name">Inventory (Inventory with paks)</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="filter">product</field>
+            <field name="product_id" ref="product"/>
+        </record>
+
+    </data>
+</openerp>
