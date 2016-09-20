@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="project_issue_view_portal">
+            <field name="name">project.issue.view.portal</field>
+            <field name="model">project.issue</field>
+            <field name="inherit_id" ref="project_issue.project_issue_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="description" position="attributes">
+                    <attribute name="groups"/>
+                </field>
+                <field name="project_id" position="attributes">
+                    <attribute name="groups"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
