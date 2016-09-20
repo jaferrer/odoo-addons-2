@@ -38,5 +38,4 @@ This module extends *purchase_viewer* OCA module to manage purchase requisitions
 
     'installable': True,
     'auto_install': True,
-    'active': False,
 }
