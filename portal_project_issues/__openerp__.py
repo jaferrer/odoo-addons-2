@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project_issue'],
+    'depends': ['project_issue', 'portal'],
     'description': """
 Portal Project Issues
 =====================
@@ -33,6 +33,7 @@ This modules allows customer interaction with issues:
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         "security/ir.model.access.csv",
+        "portal_project_issues_views.xml",
     ],
     'demo': [],
     'test': [],
