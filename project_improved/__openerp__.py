@@ -32,6 +32,7 @@ Small improvements of the Project module.
 Includes:
 
 - Allow to set task to issues. Issues stage will be automatically set to the task stage when changed.
+- Allow to add a project for tags, so that only project tags will be proposed
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
