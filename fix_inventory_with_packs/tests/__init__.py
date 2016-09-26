@@ -17,24 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Fix inventory with packs',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': '',
-    'depends': ['stock'],
-    'description': """
-Fix inventory with packs
-========================
-Allow non admin users to make inventory with packs.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [],
-    'demo': ['tests/test_inventory_with_packs.xml'],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+import test_inventory_with_packs
