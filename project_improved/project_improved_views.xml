@@ -56,5 +56,30 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_tags_tree_improved">
+            <field name="name">project.tags.tree.improved</field>
+            <field name="model">project.tags</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="project_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_tags_form_improved">
+            <field name="name">project.tags.form.improved</field>
+            <field name="model">project.tags</field>
+            <field name="inherit_id" ref="project.project_tags_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="project_id"/>
+                    <field name="color"/>
+                </field>
+            </field>
+        </record>
+
     </data>
 </openerp>
