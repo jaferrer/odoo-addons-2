@@ -29,6 +29,18 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_issue_form_improved">
+            <field name="name">project.issue.form.improved</field>
+            <field name="model">project.issue</field>
+            <field name="inherit_id" ref="project_issue.project_issue_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="task_id" position="attributes">
+                    <attribute name="groups">base.group_user</attribute>
+                </field>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="project_improved_issue_search">
             <field name="name">project_improved_issue_search</field>
             <field name="model">project.issue</field>
@@ -41,6 +53,31 @@
                     <filter name="blocked" string="Blocked" domain="[('kanban_state', '=', 'blocked')]"/>
                     <filter name="done" string="Done" domain="[('kanban_state', '=', 'done')]"/>
                 </filter>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_tags_tree_improved">
+            <field name="name">project.tags.tree.improved</field>
+            <field name="model">project.tags</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="project_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_tags_form_improved">
+            <field name="name">project.tags.form.improved</field>
+            <field name="model">project.tags</field>
+            <field name="inherit_id" ref="project.project_tags_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="project_id"/>
+                    <field name="color"/>
+                </field>
             </field>
         </record>
 
