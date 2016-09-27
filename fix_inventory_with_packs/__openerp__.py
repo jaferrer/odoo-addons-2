@@ -31,7 +31,7 @@ Allow non admin users to make inventory with packs.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
-    'demo': ['tests/test_inventory_with_packs.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
