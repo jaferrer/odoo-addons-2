@@ -301,13 +301,13 @@ class stock_pack_operation(models.Model):
         list_ids = operation.linked_move_operation_ids.ids
         if list_ids:
             cr.execute("""
-            select
+            SELECT
                 sm.product_id,
                 sum(smol.qty) qty
-            from stock_move_operation_link smol
-            inner join stock_move sm on sm.id=smol.move_id
-            where smol.id in %s
-            group by sm.product_id
+            FROM stock_move_operation_link smol
+            INNER JOIN stock_move sm ON sm.id=smol.move_id
+            WHERE smol.id IN %s
+            GROUP BY sm.product_id
             """, (tuple(list_ids),))
             list_linked_move_operations = cr.fetchall()
             # reduce by the quantities linked to a move
@@ -326,9 +326,6 @@ class stock_pack_operation(models.Model):
                                      precision_rounding=self.pool.get('product.product').browse(cr, uid, [item],
                                                                                                 context)[
                                          0].uom_id.rounding) != 0:
-                        print item
-                        print res[item]
-                        print test[item]
                         raise osv.except_osv(_('test non regression!'), "_get_remaining_prod_quantities")
             else:
                 raise osv.except_osv(_('test non regression!'), "les resulta n'ont pas la meme longueur")
@@ -498,7 +495,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
             prod2move_ids_test = {}
             moves_test = sorted([x for x in picking.move_lines if x.state not in ('done', 'cancel')],
                                 key=lambda x: (
-                                ((x.state == 'assigned') and -2 or 0) + (x.partially_available and -1 or 0)))
+                                    ((x.state == 'assigned') and -2 or 0) + (x.partially_available and -1 or 0)))
             for move_test in moves_test:
                 if not prod2move_ids_test.get(move_test.product_id.id):
                     prod2move_ids_test[move_test.product_id.id] = [
@@ -510,18 +507,16 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
             if len(prod2move_ids) == len(prod2move_ids_test):
                 for it in prod2move_ids_test.keys():
                     if prod2move_ids[it] and len(prod2move_ids[it]) == len(prod2move_ids_test[it]):
-                        for a,b in enumerate(prod2move_ids_test[it]):
+                        for a, b in enumerate(prod2move_ids_test[it]):
                             if prod2move_ids[it][a]['move']['id'] != prod2move_ids_test[it][a]['move'].id:
-                                print a
-                                print b
-                                print prod2move_ids[it][a]['move']['id']
-                                print it
                                 raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
 
-                            if float_compare(prod2move_ids[it][a]['remaining_qty'], prod2move_ids_test[it][a]['remaining_qty'],
-                                     precision_rounding=self.pool.get('stock.move').browse(cr, uid, [prod2move_ids[it][a]['move']['id']],
-                                                                                           context)[
-                                         0].product_id.uom_id.rounding) != 0:
+                            if float_compare(prod2move_ids[it][a]['remaining_qty'],
+                                             prod2move_ids_test[it][a]['remaining_qty'],
+                                             precision_rounding=self.pool.get('stock.move').browse(cr, uid, [
+                                                 prod2move_ids[it][a]['move']['id']],
+                                                                                                   context)[
+                                                 0].product_id.uom_id.rounding) != 0:
                                 raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
 
                     else:
@@ -562,7 +557,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                 # Check moves with same product
                 qty_to_assign = uom_obj._compute_qty_obj(cr, uid, ops.product_uom_id, ops.product_qty,
                                                          ops.product_id.uom_id, context=context)
-                for move_dict in prod2move_ids.get(ops.product_id.id, []):
+                for move_dict in prod2move_ids.get(ops.product_id.id, [])[:]:
                     move = move_dict['move']
                     qts = quant_obj.search(cr, uid, [('reservation_id', '=', move["id"])], context=context)
                     for quant in quant_obj.read(cr, uid, qts,
@@ -598,7 +593,6 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         all_op_processed = True
         for ops, product_id, remaining_qty in still_to_do:
             all_op_processed = _create_link_for_product(ops.id, product_id, remaining_qty) and all_op_processed
-
 
         if context.get("test_transfer"):
             test = super(StockPicking, self).recompute_remaining_qty(cr, uid, picking, context=context)
@@ -659,7 +653,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         res = set()
         for move in self.browse(cr, uid, ids, context=context):
             if move.picking_id and (not (
-                        move.picking_id.min_date < move.date_expected < move.picking_id.max_date) or
+                            move.picking_id.min_date < move.date_expected < move.picking_id.max_date) or
                                             move.priority > move.picking_id.priority):
                 res.add(move.picking_id.id)
         return list(res)
@@ -682,6 +676,8 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
     def _set_min_date(self, cr, uid, id, field, value, arg, context=None):
         move_obj = self.pool.get("stock.move")
         if value:
+            if len(value) == 10:
+                value += ' 00:00:00'
             move_ids = [move.id for move in self.browse(cr, uid, id, context=context).move_lines]
             move_obj.write(cr, uid, move_ids, {'date_expected': value}, context=context)
 
@@ -738,17 +734,17 @@ class StockMove(models.Model):
         res = {}
         if ids:
             cr.execute("""
-                select sm.id,
+                SELECT sm.id,
                 max(sm.product_qty) product_qty,
                 sum(COALESCE(smol.qty,0)) qty,
                 pu.rounding
-                from stock_move sm
+                FROM stock_move sm
                 LEFT JOIN product_product pp ON pp.id = sm.product_id
                 LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
-                LEFT join stock_move_operation_link smol on sm.id=smol.move_id
-                LEFT join product_uom pu on pu.id=pt.uom_id
-                where sm.id in %s
-                group by sm.id,pu.rounding
+                LEFT JOIN stock_move_operation_link smol ON sm.id=smol.move_id
+                LEFT JOIN product_uom pu ON pu.id=pt.uom_id
+                WHERE sm.id IN %s
+                GROUP BY sm.id,pu.rounding
             """, (tuple(ids),))
             moves = cr.fetchall()
             for move in moves:
@@ -766,9 +762,6 @@ class StockMove(models.Model):
                                      precision_rounding=self.pool.get('stock.move').browse(cr, uid, [item],
                                                                                            context)[
                                          0].product_id.uom_id.rounding) != 0:
-                        print item
-                        print res[item]
-                        print test[item]
                         raise osv.except_osv(_('test non regression'), "_get_remaining_qty")
             else:
                 raise osv.except_osv(_('test non regression!'), "la valeur n'a pas la meme longueur")
@@ -1069,3 +1062,34 @@ class StockPrereservation(models.Model):
             ) foo
         )
         """)
+
+
+class ConfirmProcessPrereservations(models.TransientModel):
+    _name = 'confirm.process.prereservations'
+
+    @api.multi
+    def confirm(self):
+        self.env['stock.picking'].process_prereservations()
+
+
+class StockInventoryLine(models.Model):
+    _inherit = 'stock.inventory.line'
+
+    @api.model
+    def _resolve_inventory_line(self, inventory_line):
+        if float_compare(inventory_line.theoretical_qty, inventory_line.product_qty,
+                         precision_rounding=inventory_line.product_id.uom_id.rounding) > 0:
+            domain = [('qty', '>', 0.0), ('package_id', '=', inventory_line.package_id.id),
+                      ('lot_id', '=', inventory_line.prod_lot_id.id),
+                      ('location_id', '=', inventory_line.location_id.id)]
+            not_reserved_quants = self.env['stock.quant'].search(domain + [('reservation_id', '=', False)])
+            not_reserved_qty = sum([quant.qty for quant in not_reserved_quants])
+            if float_compare(not_reserved_qty, inventory_line.theoretical_qty - inventory_line.product_qty,
+                             precision_rounding=inventory_line.product_id.uom_id.rounding) < 0:
+                reserved_quants = self.env['stock.quant'].search(domain + [('reservation_id', '!=', False)])
+                moves_to_unreserve = self.env['stock.move']
+                for quant in reserved_quants:
+                    moves_to_unreserve |= quant.reservation_id
+                if moves_to_unreserve:
+                    moves_to_unreserve.do_unreserve()
+        return super(StockInventoryLine, self)._resolve_inventory_line(inventory_line)
