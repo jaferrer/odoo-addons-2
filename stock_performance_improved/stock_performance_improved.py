@@ -968,7 +968,6 @@ class StockPrereservation(models.Model):
                 FROM stock_move
                 WHERE picking_type_id IS NOT NULL
                       AND state='confirmed'
-                      AND defer_picking_assign = TRUE
             ),
 
             moves_with_quants_reserved AS (
