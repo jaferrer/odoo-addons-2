@@ -430,6 +430,7 @@ class StockPicking(models.Model):
 
         def _create_link_for_quant(operation_id, quant, qty):
             """create a link for given operation and reserved move of given quant, for the max quantity possible, and returns this quantity"""
+            print "_create_link_fo_quant: quant", quant
             if not quant["reservation_id"]:
                 return _create_link_for_product(operation_id, quant["product_id"], qty)
             qty_on_link = 0
@@ -522,6 +523,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
             else:
                 raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
 
+        print "prod2move_ids", prod2move_ids
         need_rereserve = False
         # sort the operations in order to give higher priority to those with a package, then a serial number
         operations = picking.pack_operation_ids
