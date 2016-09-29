@@ -33,7 +33,7 @@ Replaces the basic report by a improved one.
     'data': ['account_invoice_report_aeroo.xml'],
     'demo': [],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

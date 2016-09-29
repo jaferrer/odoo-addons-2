@@ -46,7 +46,7 @@
 			</field>
 		</record>
 
-		<record id="account.email_template_edi_invoice" model="email.template">
+		<record id="account.email_template_edi_invoice" model="mail.template">
 			<field name="report_template" ref="account_invoice_report_aeroo"/>
 		</record>
 
