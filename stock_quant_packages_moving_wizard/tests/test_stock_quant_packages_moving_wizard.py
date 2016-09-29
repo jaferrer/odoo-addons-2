@@ -49,6 +49,15 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.picking_type = self.browse_ref("stock.picking_type_internal")
         self.unit = self.browse_ref('product.product_uom_unit')
 
+        self.supplier = self.browse_ref('stock.stock_location_suppliers')
+        self.product1_auto_move = self.browse_ref('stock_quant_packages_moving_wizard.product1')
+        self.product2_auto_move = self.browse_ref('stock_quant_packages_moving_wizard.product2')
+        self.location_1 = self.browse_ref("stock_quant_packages_moving_wizard.stock_location_a")
+        self.location_2 = self.browse_ref("stock_quant_packages_moving_wizard.stock_location_b")
+        self.picking_type_id = self.browse_ref('stock.picking_type_internal')
+        self.inventory_location = self.browse_ref('stock.location_inventory')
+
+        self.env['stock.location']._parent_store_compute()
         self.env['stock.quant.package']._parent_store_compute()
 
     def check_in(self, data_tuple, lines):
@@ -910,3 +919,78 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
                                                  ('product_id', '=', self.product_a.id)])
 
         self.assertEqual(sum([quant.qty for quant in quants]), 8)
+
+    def test_moves_reconciliation(self):
+        """
+        Testing quants reconciliation for not synchronized auto moves
+        """
+
+        move_to_set_auto = self.env["stock.move"].create({
+            'name': "Auto move",
+            'product_id': self.product1_auto_move.id,
+            'product_uom': self.unit.id,
+            'product_uom_qty': 30,
+            'location_id': self.location_1.id,
+            'location_dest_id': self.location_2.id,
+            'picking_type_id': self.picking_type_id.id,
+            'auto_move': False,
+            'picking_id': False
+        })
+        move_to_set_auto.action_confirm()
+        self.assertTrue(move_to_set_auto.picking_id)
+
+        move_neg = self.env["stock.move"].create({
+            'name': "Move 2",
+            'product_id': self.product1_auto_move.id,
+            'product_uom': self.unit.id,
+            'product_uom_qty': 30,
+            'location_id': self.location_2.id,
+            'location_dest_id': self.inventory_location.id,
+            'picking_type_id': self.picking_type_id.id,
+            'auto_move': False,
+            'picking_id': False
+        })
+        move_neg.action_done()
+        neg_quant = move_neg.quant_ids.filtered(lambda quant: quant.qty < 0)
+        pos_quant_linked_to_neg = move_neg.quant_ids.filtered(lambda quant: quant.qty > 0)
+        self.assertEqual(len(neg_quant), 1)
+        self.assertEqual(len(pos_quant_linked_to_neg), 1)
+        # print 'neg_pos', neg_quant, pos_quant_linked_to_neg
+
+        move_pos = self.env["stock.move"].create({
+            'name': "Move 2",
+            'product_id': self.product1_auto_move.id,
+            'product_uom': self.unit.id,
+            'product_uom_qty': 30,
+            'location_id': self.supplier.id,
+            'location_dest_id': self.location_1.id,
+            'picking_type_id': self.picking_type_id.id,
+            'move_dest_id': move_to_set_auto.id,
+            'auto_move': False,
+            'picking_id': False
+        })
+        move_pos.action_done()
+        pos_quant = move_pos.quant_ids.filtered(lambda quant: quant.qty > 0)
+        self.assertEqual(len(pos_quant), 1)
+        # print 'pos_quant', pos_quant
+
+        move_to_set_auto.do_unreserve()
+        self.assertEqual(move_to_set_auto.state, 'waiting')
+
+        # print 'move_to_set_auto', move_to_set_auto, move_to_set_auto.state
+        moves2 = pos_quant.move_to(self.location_2, self.picking_type_id,
+                                   move_items={self.product1_auto_move: [{'quants': pos_quant, 'qty': 30}]})
+        # print 'moves2', moves2
+        picking2 = moves2[0].picking_id
+        # print 'picking2', picking2.state, picking2.move_lines
+        self.assertTrue(picking2)
+
+        # print 'quants_result'
+        # print pos_quant_linked_to_neg, pos_quant_linked_to_neg.qty
+        # for quant in self.env['stock.quant'].search([('product_id', '=', self.product1_auto_move.id)]):
+        #     print quant, quant.qty, quant.location_id.display_name
+
+        # Let's test that quants were reconcilied
+        self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.product1_auto_move.id),
+                                                         ('location_id', 'not in',
+                                                          [self.inventory_location.id, self.supplier.id])]))

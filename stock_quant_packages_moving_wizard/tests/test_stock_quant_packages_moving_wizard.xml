@@ -24,6 +24,20 @@
             <field name="usage">internal</field>
         </record>
 
+        <record id="stock_location_a" model="stock.location">
+            <field name="name">Location 1 (Stock Quant Packages Moving Wizard)</field>
+            <field name="location_id" ref="stock.stock_location_locations"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
+        <record id="stock_location_b" model="stock.location">
+            <field name="name">Location 2 (Stock Quant Packages Moving Wizard)</field>
+            <field name="location_id" ref="stock.stock_location_locations"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
         <!--  #### products & categories ######  -->
         <record model="product.category" id="stock_move_wizard_product_category">
             <field name="name">Product Category (Stock Quant Packages Moving Wizard)</field>
@@ -39,6 +53,16 @@
             <field name="name">Test Product B</field>
             <field name="type">product</field>
             <field name="categ_id" ref="stock_move_wizard_product_category"/>
+        </record>
+
+        <record model="product.product" id="product1">
+            <field name="name">Product 1 (Stock Quant Package Moving Wizard)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="product.product" id="product2">
+            <field name="name">Product 2 (Stock Quant Package Moving Wizard)</field>
+            <field name="type">product</field>
         </record>
 
         <!-- Putaway strategy -->
