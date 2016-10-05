@@ -163,11 +163,6 @@ msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
 
 #. module: snapshot_project_instances_ovh
-#: field:snapshot.request.line,last_snapshot_date:0
-msgid "Last snapshot date"
-msgstr "Date du dernier snapshot"
-
-#. module: snapshot_project_instances_ovh
 #: field:snapshot.request.line,nb_max_snapshots:0
 msgid "Maximal number of snapshots to keep"
 msgstr "Nombre maximal de snapshot à conserver"
@@ -181,11 +176,6 @@ msgstr "Nom"
 #: field:ovh.project,name:0
 msgid "OVH ID"
 msgstr "ID OVH"
-
-#. module: snapshot_project_instances_ovh
-#: field:snapshot.request.line,next_snapshot_date:0
-msgid "Next snapshot date"
-msgstr "Date du prochain snapshot"
 
 #. module: snapshot_project_instances_ovh
 #: field:snapshot.request.line,nb_days_between_snapshots:0
@@ -228,10 +218,22 @@ msgid "Save"
 msgstr "Sauvegarder"
 
 #. module: snapshot_project_instances_ovh
+#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:50
+#, python-format
+msgid "Script executed, returned %s"
+msgstr "Script exécuté. Il a retourné %s"
+
+#. module: snapshot_project_instances_ovh
 #: model:ir.actions.act_window,name:snapshot_project_instances_ovh.act_window_snapshot_request_lines
 #: model:ir.ui.menu,name:snapshot_project_instances_ovh.menu_ovh_snapshot_project_instances
 msgid "Snapshot Project Instances"
 msgstr "Snapshot des instances de projets"
+
+#. module: snapshot_project_instances_ovh
+#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:41
+#, python-format
+msgid "Snapshot request aborted: forbidden to snapshot at %s h. Snapshot are allowed only between %s h and %s h (GMT)"
+msgstr "Demande de snapshot arrêtée : il est interdit d'effectuer un snapshot à %s h. Les snapshots sont autorisés uniquement entre %s h et %s h (GMT)"
 
 #. module: snapshot_project_instances_ovh
 #: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:75
@@ -248,6 +250,18 @@ msgstr "Paramètres pour les snapshots"
 #: view:snapshot.request.line:snapshot_project_instances_ovh.snapshot_request_line_tree
 msgid "Snapshot request lines"
 msgstr "Lignes de demandes de snapshots"
+
+#. module: snapshot_project_instances_ovh
+#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:87
+#, python-format
+msgid "Syntax Error !"
+msgstr "Erreur de syntaxe !"
+
+#. module: snapshot_project_instances_ovh
+#: code:addons\snapshot_project_instances_ovh\snapshot_project_instances_ovh.py:89
+#, python-format
+msgid "'Error loading script: %s'"
+msgstr "Erreur rencontrée lors du chargement du script : %s"
 
 #. module: snapshot_project_instances_ovh
 #: view:ovh.parameters:snapshot_project_instances_ovh.ovh_parameters_form
