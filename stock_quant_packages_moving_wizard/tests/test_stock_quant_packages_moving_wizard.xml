@@ -17,15 +17,69 @@
             <field name="usage">internal</field>
         </record>
 
-        <!--  #### products ######  -->
+        <record id="stock_location_dest_shelf" model="stock.location">
+            <field name="name">Location 2 (dest) - shelf</field>
+            <field name="location_id" ref="stock_location_dest"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
+        <record id="stock_location_a" model="stock.location">
+            <field name="name">Location 1 (Stock Quant Packages Moving Wizard)</field>
+            <field name="location_id" ref="stock.stock_location_locations"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
+        <record id="stock_location_b" model="stock.location">
+            <field name="name">Location 2 (Stock Quant Packages Moving Wizard)</field>
+            <field name="location_id" ref="stock.stock_location_locations"/>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
+        <!--  #### products & categories ######  -->
+        <record model="product.category" id="stock_move_wizard_product_category">
+            <field name="name">Product Category (Stock Quant Packages Moving Wizard)</field>
+        </record>
+
         <record id="product_a" model="product.product">
             <field name="name">Test Product A</field>
             <field name="type">product</field>
+            <field name="categ_id" ref="stock_move_wizard_product_category"/>
         </record>
 
         <record id="product_b" model="product.product">
             <field name="name">Test Product B</field>
             <field name="type">product</field>
+            <field name="categ_id" ref="stock_move_wizard_product_category"/>
+        </record>
+
+        <record model="product.product" id="product1">
+            <field name="name">Product 1 (Stock Quant Package Moving Wizard)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="product.product" id="product2">
+            <field name="name">Product 2 (Stock Quant Package Moving Wizard)</field>
+            <field name="type">product</field>
+        </record>
+
+        <!-- Putaway strategy -->
+
+        <record id="stock_move_wizard_putaway_fixed" model="product.putaway">
+            <field name="name">Fixed putaway strategy</field>
+            <field name="method">fixed</field>
+        </record>
+
+        <record model="stock.fixed.putaway.strat" id="fixed_location">
+            <field name="putaway_id" ref="stock_move_wizard_putaway_fixed"/>
+            <field name="category_id" ref="stock_move_wizard_product_category"/>
+            <field name="fixed_location_id" ref="stock_location_dest_shelf"/>
+        </record>
+
+        <record id="stock_location_dest" model="stock.location">
+            <field name="putaway_strategy_id" ref="stock_move_wizard_putaway_fixed"/>
         </record>
 
         <!--  #### Packages ######  -->

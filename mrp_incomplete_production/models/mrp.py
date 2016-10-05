@@ -100,7 +100,7 @@ class IncompeteProductionMrpProduction(models.Model):
                 total_consume = ((product_qty + produced_qty) * sched_product_qty / production_qty)
                 reserved_quants = self.env['stock.quant'].search([('reservation_id', 'in', production.move_lines.ids),
                                                                   ('product_id', '=', key[0]),
-                                                                  ('lot_id', '=', key[1] and key[1].id or False)])
+                                                                  ('lot_id', '=', key[1] or False)])
                 reserved_qty = sum([quant.qty for quant in reserved_quants])
                 final_qty = min(reserved_qty, total_consume)
                 if float_compare(final_qty, 0, self.env['decimal.precision'].precision_get('Product Unit of Measure')) != 0:

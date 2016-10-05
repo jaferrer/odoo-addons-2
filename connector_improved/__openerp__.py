@@ -36,6 +36,7 @@ This includes:
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'connector_improved_view.xml',
+        'cron.xml',
     ],
     'demo': [],
     'test': [],

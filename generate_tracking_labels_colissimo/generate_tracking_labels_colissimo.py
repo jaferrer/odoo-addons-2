@@ -80,8 +80,6 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         for rec in self:
             if rec.type == 'france':
                 rec.countryCode = 'FR'
-            else:
-                rec.countryCode = ''
 
     # A few functions to overwrite
     @api.multi

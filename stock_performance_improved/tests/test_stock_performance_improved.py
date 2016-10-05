@@ -31,6 +31,19 @@ class TestStockPerformanceImproved(common.TransactionCase):
         self.location_inv = self.browse_ref("stock.location_inventory")
         self.product_uom_unit_id = self.ref("product.product_uom_unit")
         self.picking_type_id = self.ref("stock.picking_type_internal")
+        self.stock = self.browse_ref('stock.stock_location_stock')
+        self.package1 = self.browse_ref('stock_performance_improved.package1')
+        self.package2 = self.browse_ref('stock_performance_improved.package2')
+        self.product_fix_reserved_moves = self.browse_ref('stock_performance_improved.product')
+        self.quant_without_package = self.browse_ref('stock_performance_improved.quant_without_package')
+        self.lot1 = self.browse_ref('stock_performance_improved.lot1')
+        self.quant1 = self.browse_ref('stock_performance_improved.quant1')
+        self.quant2 = self.browse_ref('stock_performance_improved.quant2')
+        self.quant3 = self.browse_ref('stock_performance_improved.quant3')
+        self.inventory = self.browse_ref('stock_performance_improved.inventory')
+        self.customer = self.browse_ref('stock.stock_location_customers')
+        self.existing_quants = self.env['stock.quant'].search([])
+        self.env['stock.location']._parent_store_compute()
         # Call process_prereservations here to test it in all tests
         self.env['stock.picking'].process_prereservations()
 
@@ -225,3 +238,65 @@ class TestStockPerformanceImproved(common.TransactionCase):
         for move in proc2.move_ids:
             self.assertEqual(move.defer_picking_assign, False)
             self.assertTrue(move.picking_id)
+
+    def test_45_inventory_reserved_moves(self):
+        """
+        Transferring a reserved quant from a package to another in the same location using stock inventory.
+        """
+        self.inventory.prepare_inventory()
+
+        move = self.env['stock.move'].create({
+            'name': "Test Move",
+            'product_id': self.product_fix_reserved_moves.id,
+            'product_uom_qty': 10,
+            'product_uom': self.product_uom_unit_id,
+            'location_id': self.stock.id,
+            'location_dest_id': self.customer.id,
+        })
+
+        move.action_confirm()
+        move.action_assign()
+        self.assertEqual(move.state, 'assigned')
+        self.assertEqual(move.reserved_quant_ids, self.quant1)
+        self.assertEqual(len(self.inventory.line_ids), 3)
+
+        line2 = self.inventory.line_ids.filtered(lambda line: line.product_id == self.product_fix_reserved_moves and
+                                                              line.location_id == self.stock and
+                                                              line.prod_lot_id == self.lot1 and
+                                                              line.package_id == self.package1 and
+                                                              line.theoretical_qty == 10.0 and
+                                                              line.product_qty == 10.0)
+        line3 = self.inventory.line_ids.filtered(lambda line: line.product_id == self.product_fix_reserved_moves and
+                                                              line.location_id == self.stock and
+                                                              line.prod_lot_id == self.lot1 and
+                                                              line.package_id == self.package2 and
+                                                              line.theoretical_qty == 20.0 and
+                                                              line.product_qty == 20.0)
+        self.assertEqual(len(line2), 1)
+        self.assertEqual(len(line3), 1)
+        line1 = self.inventory.line_ids.filtered(lambda line: line not in [line2, line3])
+        self.assertEqual(len(line1), 1)
+        self.assertEqual(line1.product_qty, -100)
+
+        line2.product_qty = 0
+        line3.product_qty = 30
+        self.inventory.action_done()
+
+        self.assertFalse(self.package1.quant_ids)
+        self.assertEqual(self.quant_without_package.location_id, self.stock)
+        self.assertEqual(self.quant_without_package.qty, -100)
+        self.assertFalse(self.quant_without_package.package_id)
+        self.assertEqual(self.quant1.location_id, self.location_inv)
+        self.assertEqual(self.quant2.location_id, self.stock)
+        self.assertEqual(self.quant3.location_id, self.stock)
+        self.assertEqual(len(self.package2.quant_ids), 3)
+        self.assertIn(self.quant2, self.package2.quant_ids)
+        self.assertIn(self.quant3, self.package2.quant_ids)
+        self.assertEqual(self.quant2.qty, 5)
+        self.assertEqual(self.quant3.qty, 15)
+        new_quant = self.package2.quant_ids.filtered(lambda quant: quant not in self.existing_quants)
+        self.assertTrue(new_quant)
+        self.assertEqual(new_quant.location_id, self.stock)
+        self.assertEqual(new_quant.product_id, self.product_fix_reserved_moves)
+        self.assertEqual(new_quant.qty, 10)
+        self.assertEqual(new_quant.lot_id, self.lot1)

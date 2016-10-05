@@ -17,7 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from datetime import datetime as dt
+
+from openerp import models, api, fields
+from openerp.tools import config
 
 
 class QueueJob(models.Model):
@@ -27,5 +30,15 @@ class QueueJob(models.Model):
     def set_to_done(self):
         """Sets to done the given jobs if they are not running."""
         for job in self:
-            if job.state != 'Started':
-                job.button_done()
+            job.button_done()
+
+    @api.model
+    def enqueue_oudated_jobs(self):
+        started_jobs = self.search([('state', '=', 'started')])
+        worker_real_limit_seconds = config.parser.get_option_group('limit_time_real') or 120
+        jobs_to_enqueue = self
+        for job in started_jobs:
+            time_delta_seconds = (dt.now() - fields.Datetime.from_string(job.date_started)).seconds
+            if time_delta_seconds > worker_real_limit_seconds:
+                jobs_to_enqueue |= job
+        jobs_to_enqueue.requeue()
