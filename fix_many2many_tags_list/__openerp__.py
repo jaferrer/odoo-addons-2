@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': '',
-    'depends': ['base'],
+    'depends': ['web'],
     'description': """
 Fix many2many_tags in lists
 ===========================
