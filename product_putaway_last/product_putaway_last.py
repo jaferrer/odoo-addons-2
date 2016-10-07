@@ -19,8 +19,7 @@
 
 from openerp import fields, models, api, _
 
-###########################################################################################
-# TODO: This is to be removed if https://github.com/odoo/odoo/pull/4709 is pulled upstream
+
 class product_putaway_stock_location(models.Model):
     _inherit = "stock.location"
 
@@ -28,15 +27,8 @@ class product_putaway_stock_location(models.Model):
     def get_putaway_strategy(self, location, product):
         ''' Returns the location where the product has to be put, if any compliant putaway strategy is found.
         Otherwise returns None.'''
-        putaway_obj = self.env['product.putaway']
-        loc = location
-        while loc:
-            if loc.putaway_strategy_id:
-                res = putaway_obj.putaway_apply(loc.putaway_strategy_id, product, location)
-                if res:
-                    return res
-            loc = loc.location_id
-###########################################################################################
+        return super(product_putaway_stock_location,
+                     self.with_context(putaway_location=location)).get_putaway_strategy(location, product)
 
 
 class product_putway_last_strategy(models.Model):
@@ -45,19 +37,19 @@ class product_putway_last_strategy(models.Model):
     @api.cr_uid_context
     def _get_putaway_options(self, cr, uid, context=None):
         res = super(product_putway_last_strategy, self)._get_putaway_options(cr, uid, context)
-        res.append(('last',_("Last bin location")))
+        res.append(('last', _("Last bin location")))
         return res
 
     method = fields.Selection(_get_putaway_options, "Method", required=True)
 
     @api.model
-    def putaway_apply(self, putaway_strat, product, location=None):
+    def putaway_apply(self, putaway_strat, product):
+        location = self.env.context.get("putaway_location")
         if putaway_strat.method == 'last' and location is not None:
-            quants = self.env["stock.quant"].search([('product_id','=',product.id),
-                                                     ('location_id','child_of',location.id)],
+            quants = self.env["stock.quant"].search([('product_id', '=', product.id),
+                                                     ('location_id', 'child_of', location.id)],
                                                     order='in_date DESC, id desc', limit=1)
             if len(quants) == 1:
                 return quants[0].location_id.id
         else:
             return super(product_putway_last_strategy, self).putaway_apply(putaway_strat, product)
-
