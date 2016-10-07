@@ -12,8 +12,6 @@
                     <field name="instance_id"/>
                     <field name="nb_days_between_snapshots"/>
                     <field name="nb_max_snapshots"/>
-                    <field name="last_snapshot_date"/>
-                    <field name="next_snapshot_date"/>
                 </tree>
             </field>
         </record>
