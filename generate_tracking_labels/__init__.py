@@ -17,5 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import generate_tracking_labels_colissimo
-import res_config
+import generate_tracking_labels

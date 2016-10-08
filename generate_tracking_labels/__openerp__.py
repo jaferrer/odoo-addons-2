@@ -18,20 +18,20 @@
 #
 
 {
-    'name': 'Génération des étiquettes de suivi (colissimo)',
+    'name': 'Génération des étiquettes de suivi',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Delivery Tracking',
-    'depends': ['generate_tracking_labels', 'purchase_delivery_tracking_colissimo'],
+    'depends': ['base', 'base_setup', 'sale', 'purchase_delivery_tracking'],
     'description': """
-Génération des étiquettes de suivi (colissimo)
-==============================================
-Ce module permet de générer des étiquettes d'envoi avec Colissimo.
+Génération des étiquettes de suivi
+==================================
+Ce module permet de générer des étiquettes d'envoi.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['data_colissimo.xml',
-             'res_config.xml'],
+    'data': ['security/ir.model.access.csv',
+             'generate_tracking_labels.xml'],
     'demo': [],
     'test': [],
     'installable': True,

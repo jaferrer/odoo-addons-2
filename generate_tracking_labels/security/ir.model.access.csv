@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_type_produit_expedition,access_type_produit_expedition,model_type_produit_expedition,base.group_sale_salesman,1,1,0,0
+access_type_produit_expedition_manager,access_type_produit_expedition_manager,model_type_produit_expedition,base.group_sale_manager,1,1,1,1

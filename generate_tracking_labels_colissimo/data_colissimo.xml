@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="type.produit.expedition" id="colissimo_cold">
+            <field name="name">Colissimo Access France</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">COLD</field>
+            <field name="used_to_customer" eval="True"/>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_col">
+            <field name="name">Colissimo Expert France</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">COL</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_com">
+            <field name="name">Colissimo Access OM</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">COM</field>
+            <field name="used_to_customer" eval="True"/>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_coli">
+            <field name="name">Colissimo Expert International</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">COLI</field>
+            <field name="used_to_customer" eval="True"/>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_cds">
+            <field name="name">Colissimo Expert OM</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">CDS</field>
+            <field name="used_to_customer" eval="True"/>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_dom">
+            <field name="name">So Colissimo Domicile sans signature - France</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">DOM</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_dos">
+            <field name="name">So Colissimo Domicile avec signature - France</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">DOS</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_bpr">
+            <field name="name">So Colissimo Bureau de poste - France</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">BPR</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_a2p">
+            <field name="name">So Colissimo  Relais commerçant - France</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">A2P</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_cmt">
+            <field name="name">So Colissimo  Commerçant - International</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">CMT</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_bom">
+            <field name="name">So Colissimo Domicile sans signature - International</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">BOM</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_bos">
+            <field name="name">So Colissimo Domicile avec signature - International</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">BOS</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_bdp">
+            <field name="name">So Colissimo Bureau de poste - International</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">BDP</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_core">
+            <field name="name">Retour Colissimo - France</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">CORE</field>
+            <field name="used_from_customer" eval="True"/>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_cori">
+            <field name="name">Retour Colissimo - International</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">CORI</field>
+            <field name="used_from_customer" eval="True"/>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_bom_profil">
+            <field name="name">So Colissimo Profil Domicile sans signature - International</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">BOM</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_bdp_profil">
+            <field name="name">So Colissimo Profil Bureau de poste - International</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">BDP</field>
+        </record>
+
+        <record model="type.produit.expedition" id="colissimo_cmt_profil">
+            <field name="name">So Colissimo Profil Commerçant - International</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">CMT</field>
+        </record>
+
+        <record model="output.printing.type" id="colissimo_type_PDF_10x15">
+            <field name="name">PDF 10X15</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">PDF_10x15_300dpi</field>
+        </record>
+
+        <record model="output.printing.type" id="colissimo_type_A4">
+            <field name="name">PDF A4</field>
+            <field name="transporter_id" ref="purchase_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="code">PDF_A4_300dpi</field>
+        </record>
+
+    </data>
+</openerp>
