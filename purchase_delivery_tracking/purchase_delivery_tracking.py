@@ -51,7 +51,6 @@ class TrackingTransporter(models.Model):
         for rec in self:
             rec.logo = False
 
-
     @api.multi
     def open_transporter_numbers(self):
         self.ensure_one()
