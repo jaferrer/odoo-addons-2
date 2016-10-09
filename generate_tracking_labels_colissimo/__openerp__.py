@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Delivery Tracking',
-    'depends': ['generate_tracking_labels', 'purchase_delivery_tracking_colissimo'],
+    'depends': ['generate_tracking_labels', 'base_delivery_tracking_colissimo'],
     'description': """
 Génération des étiquettes de suivi (colissimo)
 ==============================================

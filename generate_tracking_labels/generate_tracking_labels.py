@@ -116,7 +116,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         return u"Etiquette d'envoi"
 
     @api.multi
-    def create_attachment(self):
+    def create_attachment(self, outputfile, direction, file=False, pdf_binary_string=False):
         return False
 
     @api.multi

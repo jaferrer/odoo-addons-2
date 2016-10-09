@@ -192,11 +192,9 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                                      data = encoded_request,
                                      verify=False)
             tracking_number = False
-            print 'response', response
             if len(response.content.split('<parcelNumber>')) > 1 and \
                     response.content.split('<parcelNumber>')[1].split('</parcelNumber>'):
                 tracking_number = response.content.split('<parcelNumber>')[1].split('</parcelNumber>')[0]
-            print 'tracking_number', tracking_number
             if tracking_number:
                 outputfile = self.get_output_file(self.direction)
                 response_string = response.content
