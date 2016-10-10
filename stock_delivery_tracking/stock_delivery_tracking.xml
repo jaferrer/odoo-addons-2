@@ -4,7 +4,7 @@
 
         <record model="ir.actions.server" id="ir_actions_server_update_delivery_status">
             <field name="name">Update delivery status</field>
-            <field name="model_id" ref="purchase.model_purchase_order"/>
+            <field name="model_id" ref="stock.model_stock_picking"/>
             <field name="code">
 self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             </field>
@@ -13,15 +13,15 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
         <record model="ir.values" id="ir_value_update_delivery_status">
             <field name="key">action</field>
             <field name="key2">client_action_multi</field>
-            <field name="model">purchase.order</field>
+            <field name="model">stock.picking</field>
             <field name="name">Update delivery status</field>
             <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_update_delivery_status)"/>
         </record>
 
-        <record model="ir.ui.view" id="purchase_delivery_tracking_purchase_order_form">
-            <field name="name">purchase.delivery.tracking.purchase.order.form</field>
-            <field name="model">purchase.order</field>
-            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <record model="ir.ui.view" id="delivery_tracking_stock_picking_form">
+            <field name="name">delivery_tracking_stock_picking_form</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <notebook position="inside">
@@ -53,11 +53,11 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                  <field name="number_trackings" position="after">
-                     <field name="number_orders"/>
+                     <field name="number_pickings"/>
                  </field>
                  <notebook position="inside">
-                     <page string="Purchase Orders">
-                         <field name="order_ids"/>
+                     <page string="Stock Pickings">
+                         <field name="picking_ids"/>
                      </page>
                  </notebook>
             </field>
@@ -69,12 +69,12 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="inherit_id" ref="base_delivery_tracking.tracking_transporter_kanban"/>
             <field name="arch" type="xml">
                 <field name="number_trackings" position="after">
-                    <field name="number_orders"/>
+                    <field name="number_pickings"/>
                 </field>
                 <div class="oe_kanban_details" position="inside">
                     <div name="orders"/>
-                    <a name="open_purchase_orders" type="object">
-                        <t t-esc="record.number_orders.value"/> Purchase Orders
+                    <a name="open_pickings" type="object">
+                        <t t-esc="record.number_pickings.value"/> Stock Pickings
                     </a>
                 </div>
             </field>
@@ -87,7 +87,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="inherit_id" ref="base_delivery_tracking.tracking_number_tree"/>
             <field name="arch" type="xml">
                  <field name="partner_id" position="after">
-                     <field name="order_id"/>
+                     <field name="picking_id"/>
                  </field>
             </field>
         </record>
@@ -99,14 +99,14 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <field name="name" position="after">
-                    <field name="order_id"/>
+                    <field name="picking_id"/>
                 </field>
                 <search position="inside">
-                    <filter name="active_orders" string="Active orders"
-                            domain="[('order_id.state', 'not in', ['draft', 'done', 'cancel', 'picking_done'])]"/>
+                    <filter name="done_pickings" string="Done pickings"
+                            domain="[('picking_id.state', '=', 'done')]"/>
                 </search>
                 <group name="group_by" position="inside">
-                    <filter name="order_id" string="Purchase Order" domain="[]" context="{'group_by': 'order_id'}"/>
+                    <filter name="picking_id" string="Stock Picking" domain="[]" context="{'group_by': 'picking_id'}"/>
                 </group>
             </field>
         </record>
@@ -118,10 +118,22 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <field name="partner_id" position="after">
-                    <field name="order_id" attrs="{'invisible': [('order_id', '=', False)]}"/>
+                    <field name="picking_id" attrs="{'invisible': [('picking_id', '=', False)]}"/>
                 </field>
             </field>
         </record>
+
+        <!-- New menu in inventory area -->
+        <menuitem id="menu_delivery_tracking" name="Delivery tracking"
+                  parent="stock.menu_stock_root" sequence="3"/>
+
+        <menuitem id="menu_tracking_numbers" name="Tracking numbers"
+                  action="base_delivery_tracking.act_window_tracking_number"
+                  parent="menu_delivery_tracking" sequence="20"/>
+
+        <menuitem id="menu_tracking_by_transporter" name="Tracking numbers by transporter"
+                  action="base_delivery_tracking.act_window_tracking_number_by_transporter"
+                  parent="menu_delivery_tracking" sequence="30"/>
 
     </data>
 </openerp>

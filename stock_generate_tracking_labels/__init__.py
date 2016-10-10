@@ -17,25 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Purchase delivery tracking',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase', 'base_delivery_tracking'],
-    'description': """
-Purchase delivery tracking
-==========================
-This module allows to upload the status of a purchase order, knowing the transporter and the tracking number.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['security/ir.model.access.csv',
-             'purchase_delivery_tracking.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from . import stock_generate_tracking_labels

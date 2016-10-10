@@ -18,20 +18,21 @@
 #
 
 {
-    'name': 'Purchase delivery tracking',
+    'name': 'Base delivery tracking',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'base_delivery_tracking'],
+    'depends': ['base'],
     'description': """
-Purchase delivery tracking
-==========================
-This module allows to upload the status of a purchase order, knowing the transporter and the tracking number.
+Base delivery tracking
+======================
+This module allows to upload the status of a tracking number
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['security/ir.model.access.csv',
-             'purchase_delivery_tracking.xml'],
+    'data': ['base_delivery_tracking.xml',
+             'security/ir.model.access.csv',
+             ],
     'demo': [],
     'test': [],
     'installable': True,

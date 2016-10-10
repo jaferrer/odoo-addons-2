@@ -17,61 +17,63 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api
+import base64
+
+from openerp import models, fields, api, _
+
 
 class TrackingTransporter(models.Model):
     _inherit = 'tracking.transporter'
 
-    number_ids = fields.One2many('tracking.number', 'transporter_id', domain=[('order_id', '!=', False)])
-    order_ids = fields.One2many('purchase.order', 'transporter_id', groups='purchase.group_purchase_user',
-                                string="List of related purchase orders")
-    number_orders = fields.Integer(string="Number of related purchase orders", compute='_compute_number_orders',
-                                   groups='purchase.group_purchase_user', store=True)
+    picking_ids = fields.One2many('stock.picking', 'transporter_id', groups='stock.group_stock_user',
+                                  string="List of related pickings")
+    number_pickings = fields.Integer(string="Number of related pickings", compute='_compute_number_pickings',
+                                     groups='stock.group_stock_user', store=True)
 
-    @api.depends('order_ids')
-    def _compute_number_orders(self):
+    @api.depends('picking_ids')
+    def _compute_number_pickings(self):
         for rec in self:
-            rec.number_orders = len(rec.order_ids)
+            rec.number_pickings = len(rec.picking_ids)
 
     @api.multi
-    def open_purchase_orders(self):
+    def open_pickings(self):
         self.ensure_one()
         return {
-            'name': _('Purchase orders related to transporter %s' % self.name),
+            'name': _('Pickings related to transporter %s' % self.name),
             'type': 'ir.actions.act_window',
             'view_type': 'form',
             'view_mode': 'tree,form',
-            'res_model': 'purchase.order',
-            'domain': [('id', 'in', self.order_ids.ids)]
+            'res_model': 'stock.picking',
+            'domain': [('id', 'in', self.picking_ids.ids)]
         }
 
 
 class TrackingNumber(models.Model):
     _inherit = 'tracking.number'
 
-    order_id = fields.Many2one('purchase.order', string="Linked purchase order",
-                               groups='purchase.group_purchase_user')
+    picking_id = fields.Many2one('stock.picking', string="Linked picking",
+                                 groups='stock.group_stock_user')
 
     @api.multi
     def _compute_partner_id(self):
         result = super(TrackingNumber, self)._compute_partner_id()
         for rec in self:
-            if rec.order_id:
-                rec.partner_id = rec.order_id.partner_id
+            if rec.picking_id:
+                rec.partner_id = rec.picking_id.partner_id
         return result
 
 
-class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
-    _inherit = 'purchase.order'
+class DeliveryTrackingStockPicking(models.Model):
+    _inherit = 'stock.picking'
 
+    picking_type_code = fields.Selection(related='picking_type_id.code', store=True)
     transporter_id = fields.Many2one('tracking.transporter', string="Transporter used",
                                      related='tracking_ids.transporter_id', store=True, readonly=True)
     last_status_update = fields.Datetime(string="Date of the last update")
-    tracking_ids = fields.One2many('tracking.number', 'order_id', string="Delivery Tracking")
+    tracking_ids = fields.One2many('tracking.number', 'picking_id', string="Delivery Tracking")
 
     @api.multi
     def update_delivery_status(self):
         for rec in self:
-            if rec.state not in ['draft', 'cancel', 'done']:
-                rec.last_status_update = fields.Datetime.now()
-                rec.tracking_ids.update_delivery_status()
+            rec.last_status_update = fields.Datetime.now()
+            rec.tracking_ids.update_delivery_status()

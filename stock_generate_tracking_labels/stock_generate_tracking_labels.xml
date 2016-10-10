@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="delivery_tracking_stock_picking_form">
+            <field name="name">delivery_tracking_stock_picking_form</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <button name="action_assign" position="after">
+                    <field name="tracking_ids" invisible="1"/>
+                    <button name="generate_tracking_labels" type="object" string="Generate tracking label" class="oe_highlight" attrs="{'invisible': ['|', ('tracking_ids', '!=', False), ('picking_type_code', 'not in', ['incoming', 'outgoing'])]}"/>
+                    <button name="generate_tracking_labels" type="object" string="Replace tracking label" confirm="Are you sure you want to replace tracking label?" attrs="{'invisible': ['|', ('tracking_ids', '=', False), ('picking_type_code', 'not in', ['incoming', 'outgoing'])]}"/>
+                </button>
+                <notebook position="inside">
+                    <page string="Tracking label">
+                        <group string="Tracking label">
+                            <field name="binary_label" filename="data_fname" readonly="1"/>
+                            <field name="tracking_label_attachment" readonly="1"/>
+                        </group>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="stock_generate_tracking_labels_wizard">
+            <field name="name">stock_generate_tracking_labels_wizard</field>
+            <field name="model">generate.tracking.labels.wizard</field>
+            <field name="inherit_id" ref="generate_tracking_labels.generate_tracking_labels_wizard_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="before">
+                    <field name="picking_id"/>
+                </field>
+            </field>
+        </record>
+
+        <menuitem id="menu_bordereaux_expedition" name="Tracking labels management"
+                  parent="stock.menu_stock_config_settings" sequence="150"/>
+
+        <menuitem id="menu_expedition_type_produit" name="Types"
+                  action="generate_tracking_labels.act_window_tracking_label_expedition_type_produit"
+                  parent="menu_bordereaux_expedition" sequence="10"/>
+
+        <menuitem id="menu_output_printing_type" name="Formats"
+                  action="generate_tracking_labels.act_window_output_printing_type"
+                  parent="menu_bordereaux_expedition" sequence="20"/>
+
+    </data>
+</openerp>
