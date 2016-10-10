@@ -18,20 +18,20 @@
 #
 
 {
-    'name': 'Connector Home Backend',
+    'name': 'Connector Magento extend',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['connector'],
+    'depends': ['connector_backend_home', 'stock'],
     'description': """
-"Connector Home Backend
+"Connector Magento extends
 ==================
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/flux-tendu_connector_type.xml',
-        'views/home_backend.xml',
+        'data/flux-tendu_connector_pull.xml',
+        'data/flux-tendu_connector_push.xml'
     ],
     'demo': [],
     'test': [],
