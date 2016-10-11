@@ -407,6 +407,52 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[7].product_id, self.test_product3)
         self.assertEqual(procs[7].state, 'exception')
 
+    def test_51_procurement_jit_oversupply_from_zero(self):
+        """Test redistribution of procurements with initial stock of zero."""
+        proc_env = self.env['procurement.order']
+        # First let's start with the basic procurement scenario
+        self.test_10_procurement_jit_basic()
+        move_need1 = self.browse_ref('stock_procurement_just_in_time.need1')
+        move_need1.date = "2015-03-22 11:00:00"
+        move_need6 = self.browse_ref('stock_procurement_just_in_time.need6')
+        move_need6.date = "2015-03-23 11:00:00"
+
+        self.process_orderpoints()
+        procs = proc_env.search([('location_id', '=', self.location_b.id),
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])])
+        procs = procs.sorted(lambda x: x.date_planned)
+
+        self.assertEqual(len(procs), 6)
+        self.assertEqual(procs[0].date_planned, "2015-03-20 09:59:59")
+        self.assertEqual(procs[0].product_qty, 8)
+        self.assertEqual(procs[0].product_id, self.test_product)
+        self.assertEqual(procs[0].state, 'running')
+
+        self.assertEqual(procs[1].date_planned, "2015-03-21 09:59:59")
+        self.assertEqual(procs[1].product_qty, 8)
+        self.assertEqual(procs[1].product_id, self.test_product3)
+        self.assertEqual(procs[1].state, 'exception')
+
+        self.assertEqual(procs[2].date_planned, "2015-03-22 10:59:59")
+        self.assertEqual(procs[2].product_qty, 6)
+        self.assertEqual(procs[2].product_id, self.test_product)
+        self.assertEqual(procs[2].state, 'running')
+
+        self.assertEqual(procs[3].date_planned, "2015-03-23 10:59:59")
+        self.assertEqual(procs[3].product_qty, 6)
+        self.assertEqual(procs[3].product_id, self.test_product3)
+        self.assertEqual(procs[3].state, 'exception')
+
+        self.assertEqual(procs[4].date_planned, "2015-03-25 09:59:59")
+        self.assertEqual(procs[4].product_qty, 12)
+        self.assertEqual(procs[4].product_id, self.test_product)
+        self.assertEqual(procs[4].state, 'running')
+
+        self.assertEqual(procs[5].date_planned, "2015-03-26 09:59:59")
+        self.assertEqual(procs[5].product_qty, 12)
+        self.assertEqual(procs[5].product_id, self.test_product3)
+        self.assertEqual(procs[5].state, 'exception')
+
     def test_60_procurement_jit_removal(self):
         """Test removal of unecessary procurements at the end."""
         proc_env = self.env['procurement.order']
