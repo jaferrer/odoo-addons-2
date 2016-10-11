@@ -18,19 +18,19 @@
 #
 
 {
-    'name': 'Account Invoice Report Aeroo',
+    'name': 'Fix many2many_tags in lists',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Account',
-    'depends': ['account', 'report_aeroo', 'l10n_fr'],
+    'category': '',
+    'depends': ['web'],
     'description': """
-Account Invoice Report Aeroo
-============================
-Replaces the basic report by a improved one.
+Fix many2many_tags in lists
+===========================
+To fix with a pull request to odoo
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['account_invoice_report_aeroo.xml'],
+    'data': ['import_correction.xml'],
     'demo': [],
     'test': [],
     'installable': True,

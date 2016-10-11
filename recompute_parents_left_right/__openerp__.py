@@ -18,19 +18,22 @@
 #
 
 {
-    'name': 'Account Invoice Report Aeroo',
+    'name': 'Recompute parents left and right',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Account',
-    'depends': ['account', 'report_aeroo', 'l10n_fr'],
+    'category': 'Stock',
+    'depends': ['stock'],
     'description': """
-Account Invoice Report Aeroo
-============================
-Replaces the basic report by a improved one.
+Recompute parents left and right
+================================
+This modules enables re-computing parents left and right on demand for any model.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['account_invoice_report_aeroo.xml'],
+    'data': [
+        'recompute_parents_left_right.xml',
+        'cron.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,
