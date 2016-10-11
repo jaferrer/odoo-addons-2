@@ -122,7 +122,7 @@ class ProcurementOrderQuantity(models.Model):
         """
 
         ignore_move_ids = procurement.rule_id.action == 'move' and procurement.move_ids and \
-                          procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
+            procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
         return super(ProcurementOrderQuantity,
                      self.with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
 
@@ -133,7 +133,7 @@ class StockMoveJustInTime(models.Model):
     @api.multi
     def action_cancel(self):
         return super(StockMoveJustInTime, self.filtered(lambda move: move.id not in
-                                                                     (self.env.context.get('ignore_move_ids') or []))). \
+                                                        (self.env.context.get('ignore_move_ids') or []))). \
             action_cancel()
 
 
@@ -178,7 +178,7 @@ class StockWarehouseOrderPointJit(models.Model):
         procurement is above the orderpoint calculated maximum quantity. This allows not to consider movements of
         large quantities over a small period of time (that can lead to ponctual over stock) as being over supply.
 
-        This function works by taking procurements one by one from the right. For each it checks whether the quantity
+        This function works by taking procurements one by one from the left. For each it checks whether the quantity
         in stock days after this procurement is above the max value. If it is, the procurement is rescheduled
         temporarily to date_end. This way, we check at which date between the procurement's original date and its
         current date the stock level falls below the minimum quantity and finally place the procurement at this date.
@@ -196,6 +196,7 @@ class StockWarehouseOrderPointJit(models.Model):
                                                           ('state', 'in', ['confirmed', 'running', 'exception'])] +
                                                          date_domain,
                                                          order="date_planned")
+            min_date = procs and procs[0].date_planned
             for proc in procs:
                 stock_date = min(
                     fields.Datetime.from_string(proc.date_planned) + relativedelta(days=days, minutes=-28),
@@ -205,12 +206,9 @@ class StockWarehouseOrderPointJit(models.Model):
                     list_move_types=('in', 'out', 'existing', 'planned',),
                     parameter_to_sort='date', to_reverse=True, limit=False,
                     max_date=fields.Datetime.to_string(stock_date + relativedelta(seconds=1)))
-                max_qty = op.get_max_qty(stock_date)
-                # We want to move the procurement only if we are not going under minimum
-                max_qty = max(max_qty, proc.qty)
-                # We add 10% just in case
-                max_qty += max(2, 0.1 * max_qty)
-                if stock_level and stock_level[0]['qty'] > max_qty:
+                # define min_qty under which we do not want to move the procurement
+                min_qty = max(op.get_max_qty(stock_date), proc.qty + op.product_min_qty)
+                if stock_level and (stock_level[0]['qty'] > min_qty or proc.date_planned <= min_date):
                     # We have too much of products: so we reschedule the procurement at end date
                     proc.date_planned = fields.Datetime.to_string(date_end + relativedelta(seconds=-1))
                     proc.with_context(reschedule_planned_date=True,
@@ -226,6 +224,7 @@ class StockWarehouseOrderPointJit(models.Model):
                                           do_not_propagate=True,
                                           mail_notrack=True).reschedule_for_need(need)
                     proc.with_context(reschedule_planned_date=True).action_reschedule()
+                    min_date = proc.date_planned
 
     @api.multi
     def create_from_need(self, need):
@@ -265,7 +264,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-              fields.Datetime.from_string(last_schedule[0].get('date')) or False
+            fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -580,7 +579,7 @@ SELECT
             GROUP BY sq.product_id, link.warehouse_id
 
             UNION ALL
-        
+
 SELECT
                 sm.product_id    AS product_id,
                 'in' :: TEXT     AS move_type,
