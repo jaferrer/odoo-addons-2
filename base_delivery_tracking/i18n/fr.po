@@ -34,57 +34,57 @@ msgstr ""
 "Ce module permet de suivre les statuts des livraisons à partir des numéros de suivi.\n"
 
 #. module: base_delivery_tracking
-#: field:tracking.status,status:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_status_status
 msgid "Delivery Status"
 msgstr "Statut de la livraison"
 
 #. module: base_delivery_tracking
-#: field:tracking.number,transporter_id:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_transporter_id
 msgid "Transporter"
 msgstr "Transporteur"
 
 #. module: base_delivery_tracking
-#: field:tracking.number,last_status_update:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_last_status_update
 msgid "Date of the last update"
 msgstr "Date de dernière mise à jour"
 
 #. module: base_delivery_tracking
-#: field:tracking.number,logo:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_logo
 msgid "Logo"
 msgstr "Logo"
 
 #. module: base_delivery_tracking
-#: field:tracking.status,tracking_id:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_status_tracking_id
 msgid "Linked tracking number"
 msgstr "Numéro de suivi lié"
 
 #. module: base_delivery_tracking
-#: field:tracking.transporter,name:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_transporter_name
 msgid "Name"
 msgstr "Nom"
 
 #. module: base_delivery_tracking
-#: field:tracking.status,date:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_status_date
 msgid "Status Date"
 msgstr "Date du statut"
 
 #. module: base_delivery_tracking
-#: field:tracking.number,status_ids:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_status_ids
 msgid "Status history"
 msgstr "Historique des statuts"
 
 #. module: base_delivery_tracking
-#: field:tracking.number,name:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_name
 msgid "Tracking number"
 msgstr "Numéro de suivi"
 
 #. module: base_delivery_tracking
-#: field:tracking.number,date:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_date
 msgid "Date of the last status"
 msgstr "Date du dernier statut"
 
 #. module: base_delivery_tracking
-#: field:tracking.number,status:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_status
 msgid "Last status"
 msgstr "Dernier statut"
 
@@ -119,7 +119,7 @@ msgid "Active orders"
 msgstr "Commandes en cours"
 
 #. module: base_delivery_tracking
-#: view:tracking.transporter:base_delivery_tracking.tracking_transporter_kanban
+#: model:ir.ui.view,arch_db:base_delivery_tracking.tracking_transporter_kanban
 msgid "Deliveries"
 msgstr "Livraisons"
 
@@ -129,17 +129,17 @@ msgid "Group by..."
 msgstr "Grouper par..."
 
 #. module: base_delivery_tracking
-#: field:tracking.transporter,image:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_transporter_image
 msgid "Image"
 msgstr "Image"
 
 #. module: base_delivery_tracking
-#: field:tracking.transporter,order_ids:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_transporter_order_ids
 msgid "List of related purchase orders"
 msgstr "Liste des commandes liées"
 
 #. module: base_delivery_tracking
-#: field:tracking.transporter,number_ids:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_transporter_number_ids
 msgid "List of related tracking numbers"
 msgstr "Liste des numéros de suivi liés"
 
@@ -150,33 +150,29 @@ msgid "List of status corresponding to tracking number %s"
 msgstr "Liste des statuts correspondant au numéro de suivi %s"
 
 #. module: base_delivery_tracking
-#: view:tracking.number:base_delivery_tracking.tracking_number_form
+#: model:ir.ui.view,arch_db:base_delivery_tracking.tracking_number_form
 msgid "Tracking Number"
 msgstr "Numéro de suivi"
 
 #. module: base_delivery_tracking
-#: model:ir.ui.menu,name:base_delivery_tracking.menu_tracking_by_transporter
-msgid "Tracking numbers by transporter"
-msgstr "Suivi par transporteur"
-
-#. module: base_delivery_tracking
 #: model:ir.actions.act_window,name:base_delivery_tracking.act_window_tracking_number_by_transporter
+#: model:ir.ui.menu,name:base_delivery_tracking.menu_tracking_by_transporter
 msgid "Tracking numbers by transporter"
 msgstr "Numéro de suivi par transporteur"
 
 #. module: base_delivery_tracking
-#: code:addons\base_delivery_tracking\base_delivery_tracking.py:51
+#: code:addons\base_delivery_tracking\base_delivery_tracking.py:48
 #, python-format
 msgid "Tracking numbers related to transporter %s"
 msgstr "Numéros de suivi liés au transporteur %s"
 
 #. module: base_delivery_tracking
-#: view:tracking.transporter:base_delivery_tracking.tracking_transporter_form
+#: model:ir.ui.view,arch_db:base_delivery_tracking.tracking_transporter_form
 msgid "Transporter"
 msgstr "Transporteur"
 
 #. module: base_delivery_tracking
-#: view:tracking.transporter:base_delivery_tracking.tracking_transporter_tree
+#: model:ir.ui.view,arch_db:base_delivery_tracking.tracking_transporter_tree
 msgid "Transporters"
 msgstr "Transporteurs"
 
@@ -186,12 +182,56 @@ msgid "Transporters"
 msgstr "Transporteurs"
 
 #. module: base_delivery_tracking
-#: field:tracking.transporter,number_trackings:0
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_transporter_number_trackings
 msgid "Number of related tracking numbers"
 msgstr "Nombre de numéros de suivi"
 
 #. module: base_delivery_tracking
-#: view:tracking.transporter:base_delivery_tracking.tracking_transporter_form
+#: model:ir.ui.view,arch_db:base_delivery_tracking.tracking_transporter_form
 msgid "Tracking numbers"
 msgstr "Numéros de suivi"
 
+#. module: base_delivery_tracking
+#: model:ir.actions.act_window,name:base_delivery_tracking.action_tracking_history
+msgid "Tracking History"
+msgstr "Historique du suivi"
+
+#. module: base_delivery_tracking
+#: model:ir.actions.server,name:base_delivery_tracking.ir_actions_server_update_numbers_delivery_status
+msgid "Update delivery status"
+msgstr "Mettre à jour les statuts des livraisons"
+
+#. module: base_delivery_tracking
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_create_uid
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_status_create_uid
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_transporter_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: base_delivery_tracking
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_create_date
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_status_create_date
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_transporter_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: base_delivery_tracking
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_id
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_status_id
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_transporter_id
+msgid "ID"
+msgstr "ID"
+
+#. module: base_delivery_tracking
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_write_uid
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_status_write_uid
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_transporter_write_uid
+msgid "Last Updated by"
+msgstr "Mis à jour par"
+
+#. module: base_delivery_tracking
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_number_write_date
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_status_write_date
+#: model:ir.model.fields,field_description:base_delivery_tracking.field_tracking_transporter_write_date
+msgid "Last Updated on"
+msgstr "Mis à jour le"

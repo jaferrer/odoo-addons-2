@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Delivery Tracking',
-    'depends': ['base', 'base_setup', 'sale', 'base_delivery_tracking'],
+    'depends': ['base', 'base_setup', 'sale', 'base_delivery_tracking', 'package_weight'],
     'description': """
 Génération des étiquettes de suivi
 ==================================

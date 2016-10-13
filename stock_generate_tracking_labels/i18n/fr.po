@@ -35,35 +35,56 @@ msgstr ""
 
 #. module: stock_generate_tracking_labels
 #: model:ir.ui.view,arch_db:stock_generate_tracking_labels.delivery_tracking_stock_picking_form
-msgid "Generate tracking label>"
-msgstr "Générer l'étiquette d'envoi"
+#: model:ir.ui.view,arch_db:stock_generate_tracking_labels.stock_quant_package_form
+msgid "Generate tracking label"
+msgstr "Etiqueter"
 
 #. module: stock_generate_tracking_labels
 #: model:ir.ui.view,arch_db:stock_generate_tracking_labels.delivery_tracking_stock_picking_form
+#: model:ir.ui.view,arch_db:stock_generate_tracking_labels.stock_quant_package_form
 msgid "Replace tracking label"
 msgstr "Remplacer l'étiquette d'envoi"
 
 #. module: stock_generate_tracking_labels
 #: model:ir.ui.view,arch_db:stock_generate_tracking_labels.delivery_tracking_stock_picking_form
+#: model:ir.ui.view,arch_db:stock_generate_tracking_labels.stock_quant_package_form
 msgid "Are you sure you want to replace tracking label?"
 msgstr "Etes-vous sûr de vouloir remplacer l'étiquette d'envoi ?"
 
 #. module: stock_generate_tracking_labels
 #: model:ir.ui.view,arch_db:stock_generate_tracking_labels.delivery_tracking_stock_picking_form
+#: model:ir.ui.view,arch_db:stock_generate_tracking_labels.stock_quant_package_form
 msgid "Tracking label"
 msgstr "Etiquette d'envoi"
+
+#. module: stock_generate_tracking_labels
+#: model:ir.ui.view,arch_db:stock_generate_tracking_labels.stock_generate_tracking_labels_wizard
+msgid "Generate a label for each package"
+msgstr "Etiqueter chaque colis"
 
 #. module: stock_generate_tracking_labels
 #: code:addons\stock_generate_tracking_labels\stock_generate_tracking_labels.py:43
 #, python-format
 msgid "Generate tracking label for picking %s"
-msgstr "Générer une étiquette d'envoi pour le bon de transfert %s"
+msgstr "Etiqueter le bon de transfert %s"
 
 #. module: stock_generate_tracking_labels
-#: code:addons\stock_generate_tracking_labels\stock_generate_tracking_labels.py:61
+#: code:addons\stock_generate_tracking_labels\stock_generate_tracking_labels.py:90
 #, python-format
-msgid "Incoming Label"
-msgstr "Etiquette d'envoi entrant"
+msgid "Generate tracking label for package %s"
+msgstr "Etiqueter le bon de colis %s"
+
+#. module: stock_generate_tracking_labels
+#: code:addons\stock_generate_tracking_labels\stock_generate_tracking_labels.py:120
+#, python-format
+msgid "Incoming label for package "
+msgstr "Etiquette d'envoi entrant pour le colis "
+
+#. module: stock_generate_tracking_labels
+#: code:addons\stock_generate_tracking_labels\stock_generate_tracking_labels.py:122
+#, python-format
+msgid "Incoming label for package "
+msgstr "Etiquette d'envoi entrant pour le bon de transfert "
 
 #. module: stock_generate_tracking_labels
 #: code:addons\stock_generate_tracking_labels\stock_generate_tracking_labels.py:63
@@ -77,26 +98,30 @@ msgid "Transfer"
 msgstr "Transfert"
 
 #. module: stock_generate_tracking_labels
-#: field:generate.tracking.labels.wizard,picking_id:0
 #: model:ir.model.fields,field_description:stock_delivery_tracking.field_generate_tracking_labels_wizard_picking_id
 msgid "Stock Picking"
 msgstr "Bon de transfert"
 
 #. module: stock_generate_tracking_labels
-#: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_picking_tracking_label_attachment
-#: field:stock.picking,tracking_label_attachment:0
+#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_generate_tracking_labels_wizard_package_ids
+msgid "Packages"
+msgstr "Colis"
+
+#. module: stock_generate_tracking_labels
+#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_picking_tracking_label_attachment
+#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_quant_package_label_attachment
 msgid "Label (attachment)"
 msgstr "Etiquette (pièce jointe)"
 
 #. module: stock_generate_tracking_labels
-#: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_picking_binary_label
-#: field:stock.picking,binary_label:0
+#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_picking_binary_label
+#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_quant_package_binary_label
 msgid "Label (binary)"
 msgstr "Etiquette (binaire)"
 
 #. module: stock_generate_tracking_labels
 #: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_picking_data_fname
-#: field:stock.picking,data_fname:0
+#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_quant_package_data_fname
 msgid "Label name"
 msgstr "Nom de l'étiquette"
 
@@ -114,3 +139,8 @@ msgstr "Types"
 #: model:ir.ui.menu,name:stock_generate_tracking_labels.menu_output_printing_type
 msgid "Formats"
 msgstr "Formats"
+
+#. module: stock_generate_tracking_labels
+#: model:ir.model,name:stock_generate_tracking_labels.model_stock_quant_package
+msgid "Physical Packages"
+msgstr "Colis physiques"

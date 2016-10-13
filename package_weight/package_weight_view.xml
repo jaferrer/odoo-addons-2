@@ -2,22 +2,18 @@
 <openerp>
     <data>
 
-        <!-- ########### STOCK.QUANT.PACKAGE ########## -->
-        <record model="ir.ui.view" id="vue_heritee_stock_quant_package_form">
-            <field name="name">Vue héritée stock.view_quant_package_form</field>
+        <record model="ir.ui.view" id="stock_quant_package_form">
+            <field name="name">stock_quant_package_form</field>
             <field name="model">stock.quant.package</field>
             <field name="inherit_id" ref="stock.view_quant_package_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//sheet/group" position="inside">
                     <group>
                         <field name="weight"/>
-                        <field name="weight_net"/>
                     </group>
                 </xpath>
             </field>
-
         </record>
-
 
     </data>
 </openerp>
