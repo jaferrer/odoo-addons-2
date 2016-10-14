@@ -191,7 +191,11 @@
 
         <act_window name="Split Line"
                     res_model="split.line" src_model="purchase.order.line"
-                    view_mode="form" target="new" key2="client_action_multi" id="act_split_line" />
+                    view_mode="form" target="new" key2="client_action_multi" id="act_split_line"/>
+
+        <act_window name="Open order lines" id="open_order_lines"
+                    res_model="purchase.order.line" src_model="purchase.order" view_type="form"
+                    view_mode="tree" key2="client_action_multi" context="{'search_default_order_id': active_id}"/>
 
     </data>
 </openerp>

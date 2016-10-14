@@ -109,6 +109,7 @@ class PurchaseOrderJustInTime(models.Model):
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
+    _order = 'date_planned, order_id, id'
 
     line_no = fields.Char("Line no.")
     supplier_code = fields.Char(string="Supplier Code", compute='_compute_supplier_code')
@@ -396,7 +397,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         if warehouses:
             wid = warehouses[0].id
         else:
-            raise exceptions.except_orm(_("Error"), _("Your company does not have a warehouse"))
+            raise exceptions.except_orm(_("Error!"), _("Your company does not have a warehouse"))
 
         return {
             'type': 'ir.actions.act_window',
