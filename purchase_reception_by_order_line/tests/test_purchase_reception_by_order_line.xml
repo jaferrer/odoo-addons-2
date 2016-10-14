@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="product.product" id="test_product_1">
+            <field name="name">Test Product 1 (Purchase Reception By Order)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="product.product" id="test_product_2">
+            <field name="name">Test Product 2 (Purchase Reception By Order)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="purchase.order" id="order_1">
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="pricelist_id" ref="purchase.list0"/>
+            <field name="partner_id" ref="base.res_partner_4"/>
+        </record>
+
+        <record model="purchase.order.line" id="order_line_1">
+            <field name="name">Order Line 1 (Purchase Reception By Order)</field>
+            <field name="order_id" ref="order_1"/>
+            <field name="date_planned" eval="time.strftime('%Y/%m/10')"/>
+            <field name="product_id" ref="test_product_1"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="price_unit" eval="10"/>
+            <field name="product_qty" eval="100"/>
+        </record>
+
+        <record model="purchase.order.line" id="order_line_2">
+            <field name="name">Order Line 2 (Purchase Reception By Order)</field>
+            <field name="order_id" ref="order_1"/>
+            <field name="date_planned" eval="time.strftime('%Y/%m/10')"/>
+            <field name="product_id" ref="test_product_1"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="price_unit" eval="12"/>
+            <field name="product_qty" eval="60"/>
+        </record>
+
+        <record model="purchase.order.line" id="order_line_3">
+            <field name="name">Order Line 3 (Purchase Reception By Order)</field>
+            <field name="order_id" ref="order_1"/>
+            <field name="date_planned" eval="time.strftime('%Y/%m/10')"/>
+            <field name="product_id" ref="test_product_2"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="price_unit" eval="20"/>
+            <field name="product_qty" eval="30"/>
+        </record>
+
+        <record model="purchase.order" id="order_2">
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="pricelist_id" ref="purchase.list0"/>
+            <field name="partner_id" ref="base.res_partner_4"/>
+        </record>
+
+        <record model="purchase.order.line" id="order_line_4">
+            <field name="name">Order Line 4 (Purchase Reception By Order)</field>
+            <field name="order_id" ref="order_2"/>
+            <field name="date_planned" eval="time.strftime('%Y/%m/10')"/>
+            <field name="product_id" ref="test_product_1"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="price_unit" eval="10"/>
+            <field name="product_qty" eval="10"/>
+        </record>
+
+    </data>
+</openerp>

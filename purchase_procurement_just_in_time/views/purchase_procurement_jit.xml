@@ -164,9 +164,6 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <data>
-                    <button name="wkf_send_rfq" position="before">
-                        <button name="renumerate_lines" string="Reset line numbers" type="object" states="draft,confirmed" confirm="Are you sure you want to recompute all the line Numbers?"/>
-                    </button>
                     <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="before">
                         <field name="line_no"/>
                     </xpath>
