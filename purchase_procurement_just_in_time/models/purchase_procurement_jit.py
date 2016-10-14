@@ -59,23 +59,6 @@ class PurchaseOrderJustInTime(models.Model):
         todo_moves.action_confirm()
         todo_moves.force_assign()
 
-    @api.multi
-    def renumerate_lines(self):
-        for rec in self:
-            number = 10
-            for line in rec.order_line:
-                line.line_no = str(number)
-                number += 10
-
-    @api.multi
-    def do_merge(self):
-        result = super(PurchaseOrderJustInTime, self).do_merge()
-        assert len(result.keys()) == 1, "Error: multiple children purchase orders in do_merge result"
-        assert isinstance(result.keys()[0], int), "Error, type is not integer: wrong value for id"
-        children_po = self.env['purchase.order'].browse(result.keys()[0])
-        children_po.renumerate_lines()
-        return result
-
     @api.model
     def _prepare_order_line_move(self, order, order_line, picking_id, group_id):
         res = super(PurchaseOrderJustInTime, self)._prepare_order_line_move(order, order_line, picking_id, group_id)
@@ -110,7 +93,6 @@ class PurchaseOrderJustInTime(models.Model):
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
 
-    line_no = fields.Char("Line no.")
     supplier_code = fields.Char(string="Supplier Code", compute='_compute_supplier_code')
     ack_ref = fields.Char("Acknowledge Reference", help="Reference of the supplier's last reply to confirm the delivery"
                                                         " at the planned date")
@@ -188,17 +170,6 @@ class PurchaseOrderLineJustInTime(models.Model):
             if list_supinfos:
                 rec.supplier_code = list_supinfos[0].product_code
 
-    @api.multi
-    def open_form_purchase_order_line(self):
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'purchase.order.line',
-            'name': _("Purchase Order Line: %s") % self.line_no,
-            'views': [(False, "form")],
-            'res_id': self.id,
-            'context': {}
-        }
-
     @api.depends('product_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
     def _get_remaining_qty(self):
 
@@ -225,6 +196,17 @@ class PurchaseOrderLineJustInTime(models.Model):
         for rec in self:
             rec.children_number = len(rec.children_line_ids)
 
+    @api.multi
+    def open_form_purchase_order_line(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'purchase.order.line',
+            'name': _("Purchase Order Line: %s") % self.line_no,
+            'views': [(False, "form")],
+            'res_id': self.id,
+            'context': {}
+        }
+
     @api.model
     def create(self, vals):
 
@@ -233,26 +215,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         :return: the same result as original create function
         """
 
-        maximum = 0
-        if not vals.get('line_no', False):
-            list_line_no = []
-            list_no = []
-            order = self.env['purchase.order'].browse(vals['order_id'])
-            for line in order.order_line:
-                list_no += [line.line_no]
-            for item in [l.line_no for l in order.order_line]:
-                try:
-                    list_line_no.append(int(item))
-                except ValueError:
-                    pass
-            theo_value = 10 * (1 + len(self.env['purchase.order'].browse(vals['order_id']).order_line))
-            if list_line_no:
-                maximum = max(list_line_no)
-            if maximum >= theo_value or theo_value in list_line_no:
-                theo_value = maximum + 10
-            vals['line_no'] = str(theo_value)
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
-
         if result.order_id.state not in ['draft', 'sent', 'bid', 'confirmed', 'done', 'cancel']:
             result.order_id.set_order_line_status('confirmed')
             if result.product_qty != 0 and not result.move_ids and not self.env.context.get('no_update_moves'):
@@ -263,7 +226,6 @@ class PurchaseOrderLineJustInTime(models.Model):
                 )
                 group_id = running_moves_with_group and running_moves_with_group[0].group_id.id or False
                 result.order_id._create_stock_moves_improved(result.order_id, result, group_id=group_id)
-
         return result
 
     @api.multi
