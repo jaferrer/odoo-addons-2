@@ -18,20 +18,19 @@
 #
 
 {
-    'name': 'Purchase delivery tracking',
+    'name': 'Stock generate tracking labels',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'base_delivery_tracking'],
+    'depends': ['stock_delivery_tracking', 'generate_tracking_labels'],
     'description': """
-Purchase delivery tracking
-==========================
-This module allows to upload the status of a purchase order, knowing the transporter and the tracking number.
+Stock generate tracking labels
+==============================
+This module allows to generate tracking labels from pickings.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['security/ir.model.access.csv',
-             'purchase_delivery_tracking.xml'],
+    'data': ['stock_generate_tracking_labels.xml'],
     'demo': [],
     'test': [],
     'installable': True,

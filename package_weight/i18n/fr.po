@@ -17,17 +17,33 @@ msgstr ""
 "Language: fr\n"
 "X-Generator: Poedit 1.7.1\n"
 
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_package_weight
+msgid "Package weight"
+msgstr "Poids des colis"
+
+#. module: base
+#: model:ir.module.module,description:base.module_package_weight
+msgid ""
+"Package weight\n"
+"==============\n"
+"This modules adds gross and net weight fields to packages. These fields are calculated automatically based on the weights of the products inside the package and of the logistic unit weight."
+msgstr ""
+"Poids des colis\n"
+"===============\n"
+"Ce module calcule le poids net et le poids emballé pour chaque colis. Ces champs sont calculés automatiquement en fonction des poids des articles se trouvant à l'intérieur des colis, et des poids des unités logistiques"
+
 #. module: package_weight
 #: model:ir.model,name:package_weight.model_stock_quant_package
 msgid "Physical Packages"
 msgstr "Colis"
 
 #. module: package_weight
-#: field:stock.quant.package,weight:0
+#: model:ir.model.fields,field_description:package_weight.field_stock_quant_package_weight
 msgid "Gross Weight"
 msgstr "Poids brut"
 
 #. module: package_weight
-#: field:stock.quant.package,weight_net:0
+#: model:ir.model.fields,field_description:package_weight.field_stock_quant_package_weight_net
 msgid "Net Weight"
 msgstr "Poids net"

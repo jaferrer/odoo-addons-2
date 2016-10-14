@@ -18,20 +18,19 @@
 #
 
 {
-    'name': 'Purchase delivery tracking',
+    'name': 'Base delivery tracking (Chronopost)',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'base_delivery_tracking'],
+    'depends': ['base_delivery_tracking'],
     'description': """
-Purchase delivery tracking
-==========================
-This module allows to upload the status of a purchase order, knowing the transporter and the tracking number.
+Base delivery tracking (Chronopost)
+===================================
+This module adds data to track seliveries using Chronopost
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['security/ir.model.access.csv',
-             'purchase_delivery_tracking.xml'],
+    'data': ['base_delivery_tracking_chronopost_data.xml'],
     'demo': [],
     'test': [],
     'installable': True,
