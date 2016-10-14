@@ -21,6 +21,7 @@ from openerp import models, api, _
 from urllib2 import urlopen
 from urllib import urlencode
 import json
+import ssl
 
 
 class FedexTrackingTransporter(models.Model):
@@ -43,6 +44,7 @@ class FedexTrackingNumber(models.Model):
         for rec in self:
             if rec.transporter_id.name == 'FedEx':
                 rec.status_ids.unlink()
+                unverified_context = ssl._create_unverified_context()
                 file_translated = urlopen('https://www.fedex.com/trackingCal/track',
                                           urlencode({"data": '{"TrackPackagesRequest":{"appType":"WTRK",'
                                                              '"uniqueKey":"","processingParameters":{},'
@@ -52,7 +54,7 @@ class FedexTrackingNumber(models.Model):
                                                      "action": "trackpackages",
                                                      "locale": _("en_EN"),
                                                      "version": "1",
-                                                     "format": "json"}))
+                                                     "format": "json"}), context=unverified_context)
 
                 list_status_english = json.loads(file_translated.read())
                 if list_status_english.get('TrackPackagesResponse').get('packageList') and \

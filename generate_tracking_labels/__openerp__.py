@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,20 +18,20 @@
 #
 
 {
-    'name': 'Purchase delivery tracking',
+    'name': 'Génération des étiquettes de suivi',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase', 'base_delivery_tracking'],
+    'category': 'Delivery Tracking',
+    'depends': ['base', 'base_setup', 'sale', 'base_delivery_tracking'],
     'description': """
-Purchase delivery tracking
-==========================
-This module allows to upload the status of a purchase order, knowing the transporter and the tracking number.
+Génération des étiquettes de suivi
+==================================
+Ce module permet de générer des étiquettes d'envoi.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': ['security/ir.model.access.csv',
-             'purchase_delivery_tracking.xml'],
+             'generate_tracking_labels.xml'],
     'demo': [],
     'test': [],
     'installable': True,
