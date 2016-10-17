@@ -32,6 +32,7 @@
     'data': [
         'data/flux-tendu_connector_type.xml',
         'views/home_backend.xml',
+        'security/ir.model.access.csv',
     ],
     'demo': [],
     'test': [],
