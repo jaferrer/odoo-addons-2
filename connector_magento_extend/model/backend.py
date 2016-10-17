@@ -26,7 +26,7 @@ from openerp.addons.connector.session import ConnectorSession
 
 from openerp import models, api, fields
 # from .product_category import category_import_batch
-# from .product import product_import_batch
+from .product import product_import_batch
 from .customer import customer_import_batch
 
 # from .sale import sale_order_import_batch
@@ -105,6 +105,8 @@ class magentoextend_backend(models.Model):
         # site Airsoft Entrepot sous Magento
         if not from_date:
             from_date = datetime.strptime('2013-10-01 00:00:00', frmt)
+        else:
+            from_date = datetime.strptime(from_date, frmt)
 
         if to_date - from_date > delta:
             # initialize, [a, b] is the first chunk
@@ -130,15 +132,18 @@ class magentoextend_backend(models.Model):
                                    context=new_ctx)
         import_start_time = datetime.now()
         backend_id = self.id
-        partner = self.env['magentoextend.product.product'].search([], limit=1, order="updated_at desc")
+        product = self.env['magentoextend.product.product'].search([], limit=1, order="updated_at desc")
         from_date = None
-        if partner:
-            from_date = partner.updated_at
-
+        if product:
+            from_date = product.updated_at
+        i = 0
         for chunk_from, chunk_to in self.dates_chunk(from_date, import_start_time, timedelta(days=60)):
             product_import_batch.delay(
                 session, 'magentoextend.product.product', backend_id,
                 {'from_date': chunk_from,
                  'to_date': chunk_to}, priority=3)
+            i = i + 1
+            if i == 10:
+                break
             _logger.info("Date chunk %s -> %s", chunk_from, chunk_to)
         return True

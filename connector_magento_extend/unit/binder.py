@@ -42,6 +42,7 @@ class magentoextendBindingModelBinder(magentoextendBinding):
     """
     _model_name = [
         'magentoextend.res.partner',
+        'magentoextend.product.product',
         'magentoextend.address',
     ]
 
@@ -58,7 +59,7 @@ class magentoextendBindingModelBinder(magentoextendBinding):
         """
         bindings = self.model.with_context(active_test=False).search(
             [('magentoextend_id', '=', str(external_id)),
-             ('backend_id', '=', self.backend_record.id)]
+             ('backend_home_id', '=', self.backend_record.connector_id.home_id.id)]
         )
         if not bindings:
             return self.model.browse() if browse else None
@@ -87,7 +88,7 @@ class magentoextendBindingModelBinder(magentoextendBinding):
         if wrap:
             binding = self.model.with_context(active_test=False).search(
                 [('openerp_id', '=', record_id),
-                 ('backend_id', '=', self.backend_record.id),
+                 ('backend_home_id', '=', self.backend_record.connector_id.home_id.id),
                  ]
             )
             if binding:

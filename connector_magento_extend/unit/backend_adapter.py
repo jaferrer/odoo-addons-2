@@ -170,7 +170,7 @@ class GenericAdapter(magentoextendCRUDAdapter):
 
         :rtype: list
         """
-        return self._call('%s.search' % self._magentoextend_model,
+        return self._call('%s.list' % self._magentoextend_model,
                           [filters] if filters else [{}])
 
     def read(self, id, attributes=None):

@@ -51,6 +51,15 @@ class magentoextendBinding(models.AbstractModel):
         ondelete='restrict',
     )
 
+    backend_home_id = fields.Many2one(
+        related='backend_id.connector_id.home_id',
+        comodel_name='backend.home',
+        string='Backend Home',
+        store=True,
+        required=False,
+        ondelete='restrict',
+    )
+
     magentoextend_id = fields.Char(string='ID on magento')
 
     _sql_constraints = [

@@ -272,8 +272,15 @@ DelayedBatchImport = DelayedBatchImporter
 
 @job(default_channel='root.magentoextend')
 @related_action(action=link)
-def import_record(session, model_name, backend_id, magentoextend_id, force=False):
+def import_record(session, model_name, backend_id, magentoextend_ids, force=False):
     """ Import a record from magentoextend """
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(magentoextendImporter)
-    importer.run(magentoextend_id, force=force)
+    log = ""
+    for id in magentoextend_ids:
+        print id
+        log = log + '\n' + str(id) + '\n' + '----------' + '\n'
+        resp = str(importer.run(id, force=force))
+        log = log + resp
+
+    return log

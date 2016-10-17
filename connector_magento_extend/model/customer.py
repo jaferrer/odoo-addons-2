@@ -54,11 +54,21 @@ class magentoextendResPartner(models.Model):
                                  string='Partner',
                                  required=True,
                                  ondelete='cascade')
+
     backend_id = fields.Many2one(
         comodel_name='magentoextend.backend',
         string='magentoextend Backend',
         store=True,
         readonly=False,
+    )
+
+    backend_home_id = fields.Many2one(
+        related='backend_id.connector_id.home_id',
+        comodel_name='backend.home',
+        string='Backend Home',
+        store=True,
+        required=False,
+        ondelete='restrict',
     )
 
     updated_at = fields.Datetime(string='Updated At (on Magento)',
@@ -98,6 +108,15 @@ class MagentoAddress(models.Model):
         readonly=True,
         # override 'magento.binding', can't be INSERTed if True:
         required=False,
+    )
+
+    backend_home_id = fields.Many2one(
+        related='backend_id.connector_id.home_id',
+        comodel_name='backend.home',
+        string='Backend Home',
+        store=True,
+        required=False,
+        ondelete='restrict',
     )
 
     is_magento_order_address = fields.Boolean(
@@ -258,24 +277,12 @@ class PartnerAddressBook(ConnectorUnit):
             if magento_record.get('is_default_billing'):
                 binding_model = self.env['magentoextend.res.partner']
                 partner_binding = binding_model.browse(partner_binding_id)
-                if magento_record.get('company'):
-                    # when a company is there, we never merge the contact
-                    # with the partner.
-                    # Copy the billing address on the company
-                    # and use the name of the company for the name
-                    company_mapper = self.unit_for(CompanyImportMapper,
-                                                   model='magentoextend.res.partner')
-                    map_record = company_mapper.map_record(magento_record)
-                    parent = partner_binding.openerp_id.parent_id
-                    values = map_record.values(parent_partner=parent)
-                    partner_binding.write(values)
-                else:
-                    # for B2C individual customers, merge with the main
-                    # partner
-                    merge = True
-                    # in the case if the billing address no longer
-                    # has a company, reset the flag
-                    partner_binding.write({'consider_as_company': False})
+                # for B2C individual customers, merge with the main
+                # partner
+                merge = True
+                # in the case if the billing address no longer
+                # has a company, reset the flag
+                partner_binding.write({'consider_as_company': False})
             address_infos = AddressInfos(magento_record=magento_record,
                                          partner_binding_id=partner_binding_id,
                                          merge=merge)
@@ -290,7 +297,6 @@ class BaseAddressImportMapper(ImportMapper):
               ('city', 'city'),
               ('telephone', 'phone'),
               ('fax', 'fax'),
-              ('company', 'company'),
               ]
 
     @mapping
@@ -333,14 +339,12 @@ class BaseAddressImportMapper(ImportMapper):
         if not prefix:
             return
         title = self.env['res.partner.title'].search(
-            [('domain', '=', 'contact'),
-             ('shortcut', '=ilike', prefix)],
+            [('shortcut', '=ilike', prefix)],
             limit=1
         )
         if not title:
             title = self.env['res.partner.title'].create(
-                {'domain': 'contact',
-                 'shortcut': prefix,
+                {'shortcut': prefix,
                  'name': prefix,
                  }
             )
@@ -350,37 +354,6 @@ class BaseAddressImportMapper(ImportMapper):
     @mapping
     def company_id(self, record):
         return {'company_id': False}
-
-
-@magentoextend
-class CompanyImportMapper(BaseAddressImportMapper):
-    """ Special mapping used when we import a company.
-    A company is considered as such when the billing address
-    of an account has something in the 'company' field.
-
-    This is a very special mapping not used in the same way
-    than the other.
-
-    The billing address will exist as a contact,
-    but we want to *copy* the data on the company.
-
-    The input record is the billing address.
-    The mapper returns data which will be written on the
-    main partner, in other words, the company.
-
-    The ``@only_create`` decorator would not have any
-    effect here because the mapper is always called
-    for updates.
-    """
-    _model_name = 'magento.res.partner'
-
-    direct = BaseAddressImportMapper.direct + [
-        ('company', 'name'),
-    ]
-
-    @mapping
-    def consider_as_company(self, record):
-        return {'consider_as_company': True}
 
 
 @magentoextend
@@ -464,7 +437,6 @@ class AddressImportMapper(BaseAddressImportMapper):
         ('updated_at', 'updated_at'),
         ('is_default_billing', 'is_default_billing'),
         ('is_default_shipping', 'is_default_shipping'),
-        ('company', 'company'),
     ]
 
     @mapping
@@ -546,6 +518,20 @@ class CustomerImportMapper(ImportMapper):
         if partner:
             return {'openerp_id': partner.id}
 
+    @mapping
+    def magentoextend_id(self, record):
+        return {'magentoextend_id': record['customer_id']}
+
+    @only_create
+    @mapping
+    def backend_id(self, record):
+        return {'backend_id': self.backend_record.id}
+
+    @only_create
+    @mapping
+    def owner_id(self, record):
+        return {'owner_id': self.backend_record.connector_id.home_id.partner_id.id}
+
 
 @job(default_channel='root.magentoextend')
 def customer_import_batch(session, model_name, backend_id, filters=None):
@@ -553,3 +539,9 @@ def customer_import_batch(session, model_name, backend_id, filters=None):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(CustomerBatchImporter)
     importer.run(filters=filters)
+
+
+class ResPartnerBackend(models.Model):
+    _inherit = 'res.partner'
+
+    owner_id = fields.Many2one('res.partner', string=u"Owner")

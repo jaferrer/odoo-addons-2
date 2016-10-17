@@ -25,7 +25,6 @@ import urllib2
 import xmlrpclib
 
 from openerp.addons.connector.exception import IDMissingInBackend
-from openerp.addons.connector.exception import MappingError
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.unit.mapper import (mapping,
                                                   ImportMapper
@@ -33,11 +32,12 @@ from openerp.addons.connector.unit.mapper import (mapping,
 from openerp.addons.connector.unit.synchronizer import (Importer,
                                                         )
 
-from openerp import models, fields
+from openerp import models, fields, api
 from ..backend import magentoextend
 from ..connector import get_environment
 from ..unit.backend_adapter import (GenericAdapter)
 from ..unit.import_synchronizer import (DelayedBatchImporter, magentoextendImporter)
+from ..unit.mapper import normalize_datetime
 
 _logger = logging.getLogger(__name__)
 
@@ -49,37 +49,56 @@ class magentoextendProductProduct(models.Model):
     _description = 'magentoextend product product'
 
     _rec_name = 'name'
+
+    @api.model
+    def product_type_get(self):
+        return [
+            ('simple', 'Simple Product'),
+            ('configurable', 'Configurable Product'),
+            # XXX activate when supported
+            # ('grouped', 'Grouped Product'),
+            # ('virtual', 'Virtual Product'),
+            # ('bundle', 'Bundle Product'),
+            # ('downloadable', 'Downloadable Product'),
+        ]
+
     openerp_id = fields.Many2one(comodel_name='product.product',
                                  string='product',
                                  required=True,
                                  ondelete='cascade')
+
     backend_id = fields.Many2one(
-        comodel_name='wc.backend',
+        comodel_name='magentoextend.backend',
         string='magentoextend Backend',
         store=True,
         readonly=False,
-        required=True,
     )
+
+    backend_home_id = fields.Many2one(
+        related='backend_id.connector_id.home_id',
+        comodel_name='backend.home',
+        string='Backend Home',
+        store=True,
+        required=False,
+        ondelete='restrict',
+    )
+
+    product_type = fields.Selection(selection='product_type_get',
+                                    string='Magento Product Type',
+                                    default='simple',
+                                    required=True)
 
     slug = fields.Char('Slung Name')
     credated_at = fields.Date('created_at')
     weight = fields.Float('weight')
-
-
-class ProductProduct(models.Model):
-    _inherit = 'product.product'
-
-    magentoextend_categ_ids = fields.Many2many(
-        comodel_name='product.category',
-        string='magentoextend product category',
-    )
-    in_stock = fields.Boolean('In Stock')
+    updated_at = fields.Datetime(string='Updated At (on Magento)',
+                                 readonly=True)
 
 
 @magentoextend
 class ProductProductAdapter(GenericAdapter):
     _model_name = 'magentoextend.product.product'
-    _magentoextend_model = 'products/details'
+    _magentoextend_model = 'catalog_product'
 
     def _call(self, method, arguments):
         try:
@@ -110,15 +129,16 @@ class ProductProductAdapter(GenericAdapter):
             filters.setdefault('updated_at', {})
             filters['updated_at']['to'] = to_date.strftime(dt_fmt)
 
-        return self._call('products/list',
-                          [filters] if filters else [{}])
+        return [int(row['product_id']) for row
+                in self._call('%s.list' % self._magentoextend_model,
+                              [filters] if filters else [{}])]
 
     def get_images(self, id, storeview_id=None):
-        return self._call('products/' + str(id), [int(id), storeview_id, 'id'])
+        return self._call('catalog_product_attribute_media.list', [int(id)])
 
     def read_image(self, id, image_name, storeview_id=None):
-        return self._call('products',
-                          [int(id), image_name, storeview_id, 'id'])
+        return self._call('catalog_product_attribute_media.info',
+                          [int(id), image_name])
 
 
 @magentoextend
@@ -146,8 +166,8 @@ class ProductBatchImporter(DelayedBatchImporter):
         )
         _logger.info('search for magentoextend Products %s returned %s',
                      filters, record_ids)
-        for record_id in record_ids:
-            self._import_record(record_id, 30)
+        if record_ids:
+            self._import_record(record_ids, 30)
 
 
 ProductBatchImporter = ProductBatchImporter
@@ -159,11 +179,6 @@ class ProductProductImporter(magentoextendImporter):
 
     def _import_dependencies(self):
         """ Import the dependencies for the record"""
-        record = self.magentoextend_record
-        record = record['product']
-        for magentoextend_category_id in record['categories']:
-            self._import_dependency(magentoextend_category_id,
-                                    'magentoextend.product.category')
 
     def _create(self, data):
         openerp_binding = super(ProductProductImporter, self)._create(data)
@@ -202,15 +217,32 @@ class ProductImageImporter(Importer):
         """
         if not images:
             return {}
-            # place the images where the type is 'image' first then
-            # sort them by the reverse priority (last item of the list has
-            # the the higher priority)
+
+        # place the images where the type is 'image' first then
+        # sort them by the reverse priority (last item of the list has
+        # the the higher priority)
+
+        def priority(image):
+            primary = 'image' in image['types']
+            try:
+                position = int(image['position'])
+            except ValueError:
+                position = sys.maxint
+            return (primary, -position)
+
+        return sorted(images, key=priority)
 
     def _get_binary_image(self, image_data):
-        url = image_data['src'].encode('utf8')
-        url = str(url).replace("\\", '')
+        url = image_data['url'].encode('utf8')
         try:
+            param = self.env[self.backend_record.connector_id.line_id.type_id.model_name].search(
+                [('line_id', '=', self.backend_record.connector_id.line_id.id)])
             request = urllib2.Request(url)
+            if param.use_http:
+                base64string = base64.encodestring(
+                    '%s:%s' % (param.http_user,
+                               param.http_pwd))
+                request.add_header("Authorization", "Basic %s" % base64string)
             binary = urllib2.urlopen(request)
         except urllib2.HTTPError as err:
             if err.code == 404:
@@ -227,8 +259,7 @@ class ProductImageImporter(Importer):
     def run(self, magentoextend_id, binding_id):
         self.magentoextend_id = magentoextend_id
         images = self._get_images()
-        images = images['product']
-        images = images['images']
+        images = self._sort_images(images)
         binary = None
         while not binary and images:
             binary = self._get_binary_image(images.pop())
@@ -238,87 +269,50 @@ class ProductImageImporter(Importer):
         binding = model.browse(binding_id)
         binding.write({'image': base64.b64encode(binary)})
 
-
 @magentoextend
 class ProductProductImportMapper(ImportMapper):
     _model_name = 'magentoextend.product.product'
 
-    direct = [
-        ('description', 'description'),
-        ('weight', 'weight'),
-    ]
+    direct = [('name', 'name'),
+              ('description', 'description'),
+              ('weight', 'weight'),
+              ('cost', 'standard_price'),
+              ('short_description', 'description_sale'),
+              ('sku', 'default_code'),
+              ('type_id', 'product_type'),
+              (normalize_datetime('created_at'), 'created_at'),
+              (normalize_datetime('updated_at'), 'updated_at'),
+              ]
 
     @mapping
     def is_active(self, record):
-        """Check if the product is active in magentoextend
-        and set active flag in OpenERP
-        status == 1 in magentoextend means active"""
-        if record['product']:
-            rec = record['product']
-            return {'active': rec['visible']}
-
-    @mapping
-    def in_stock(self, record):
-        if record['product']:
-            rec = record['product']
-            return {'in_stock': rec['in_stock']}
-
-    @mapping
-    def name(self, record):
-        if record['product']:
-            rec = record['product']
-            return {'name': rec['title']}
-
-    @mapping
-    def type(self, record):
-        if record['product']:
-            rec = record['product']
-            if rec['type'] == 'simple':
-                return {'type': 'product'}
-
-    @mapping
-    def categories(self, record):
-        if record['product']:
-            rec = record['product']
-            magentoextend_categories = rec['categories']
-            binder = self.binder_for('magentoextend.product.category')
-            category_ids = []
-            main_categ_id = None
-            for magentoextend_category_id in magentoextend_categories:
-                cat_id = binder.to_openerp(magentoextend_category_id, unwrap=True)
-                if cat_id is None:
-                    raise MappingError("The product category with "
-                                       "magentoextend id %s is not imported." %
-                                       magentoextend_category_id)
-                category_ids.append(cat_id)
-            if category_ids:
-                main_categ_id = category_ids.pop(0)
-            result = {'magentoextend_categ_ids': [(6, 0, category_ids)]}
-            if main_categ_id:  # OpenERP assign 'All Products' if not specified
-                result['categ_id'] = main_categ_id
-            return result
+        # return {'active': (record.get('status') == '1')}
+        return {'active': True}
 
     @mapping
     def price(self, record):
         """ The price is imported at the creation of
         the product, then it is only modified and exported
         from OpenERP """
-        if record['product']:
-            rec = record['product']
-            return {'list_price': rec and rec['price'] or 0.0}
+        return {'list_price': record.get('price', 0.0)}
 
     @mapping
-    def sale_price(self, record):
-        """ The price is imported at the creation of
-        the product, then it is only modified and exported
-        from OpenERP """
-        if record['product']:
-            rec = record['product']
-            return {'standard_price': rec and rec['sale_price'] or 0.0}
+    def type(self, record):
+        if record['type_id'] == 'simple':
+            return {'type': 'product'}
+        return
+
+    @mapping
+    def magentoextend_id(self, record):
+        return {'magentoextend_id': record['product_id']}
 
     @mapping
     def backend_id(self, record):
         return {'backend_id': self.backend_record.id}
+
+    @mapping
+    def owner_id(self, record):
+        return {'owner_id': self.backend_record.connector_id.home_id.partner_id.id}
 
 
 @job(default_channel='root.magentoextend')
@@ -329,3 +323,9 @@ def product_import_batch(session, model_name, backend_id, filters=None):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(ProductBatchImporter)
     importer.run(filters=filters)
+
+
+class ResPartnerBackend(models.Model):
+    _inherit = 'product.product'
+
+    owner_id = fields.Many2one('res.partner', string=u"Owner")

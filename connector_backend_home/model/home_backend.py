@@ -49,18 +49,20 @@ class ConnectorHomeLine(models.Model):
     @api.multi
     def create_backend(self):
         self.ensure_one()
-        self.env[self.connector_id.model_name].create({
-            'connector_id': self.id,
-            'name': "%s - %s" % (self.id, self.connector_id.model_name),
-            'warehouse_id': 1
-        })
+        param = self.env[self.connector_id.model_name].search([('connector_id', '=', self.id)])
+        if not param:
+            self.env[self.connector_id.model_name].create({
+                'connector_id': self.id,
+                'name': "%s - %s" % (self.id, self.connector_id.model_name),
+                'warehouse_id': 1
+            })
 
     @api.multi
     def run_batch(self):
         self.ensure_one()
         param = self.env[self.connector_id.model_name].search([('connector_id', '=', self.id)])
-        myfunc = getattr(param, self.connector_id.method_name)
-        param.myfunc()
+        print param
+        getattr(param, self.connector_id.method_name)()
 
     #
     #   @api.onchange('connector_id')
@@ -162,8 +164,3 @@ class ConnectorTypeLocalParameter(models.Model):
 
     line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
 
-
-class ResPartnerBackend(models.Model):
-    _inherit = 'res.partner'
-
-    partner_id = fields.Many2one('res.partner', string=u"Owner")
