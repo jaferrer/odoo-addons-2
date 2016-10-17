@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['connector'],
+    'depends': ['connector', 'stock'],
     'description': """
 "Connector Home Backend
 ==================
