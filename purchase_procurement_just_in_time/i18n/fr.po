@@ -234,11 +234,6 @@ msgid "Order Date"
 msgstr "Date CDE"
 
 #. module: purchase_procurement_just_in_time
-#: field:purchase.order.line,line_no:0
-msgid "Line no."
-msgstr "N° Ligne"
-
-#. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,opmsg_text:0
 msgid "Operational message"
 msgstr "Message opérationnel"
@@ -344,12 +339,6 @@ msgstr "Bon de commande"
 #: model:ir.model,name:purchase_procurement_just_in_time.model_purchase_order_line
 msgid "Purchase Order Line"
 msgstr "Ligne de commande d'achat"
-
-#. module: purchase_procurement_just_in_time
-#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:118
-#, python-format
-msgid "Purchase Order Line: %s"
-msgstr "Ligne de commande d'achat: %s"
 
 #. module: purchase_procurement_just_in_time
 #: view:purchase.order.line:0
