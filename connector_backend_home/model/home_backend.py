@@ -46,6 +46,19 @@ class ConnectorHomeLine(models.Model):
                             related="connector_id.type", store=True)
     line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
 
+    cron = fields.Boolean('cron is active', compute="_compute_cron")
+    init_conf = fields.Boolean('Init conf', store=True)
+    active = fields.Boolean('Actif', store=True, default=True)
+
+    @api.multi
+    def _compute_cron(self):
+        for rec in self:
+            cron = self.env['ir.cron'].search([('connector_id', '=', rec.id)])
+            if cron:
+                rec.cron = cron.active
+            else:
+                rec.cron = False
+
     @api.multi
     def create_backend(self):
         self.ensure_one()
@@ -56,23 +69,66 @@ class ConnectorHomeLine(models.Model):
                 'name': "%s - %s" % (self.id, self.connector_id.model_name),
                 'warehouse_id': 1
             })
+            self._create_cron()
+        self.write({
+            "init_conf": True
+        })
 
     @api.multi
     def run_batch(self):
         self.ensure_one()
         param = self.env[self.connector_id.model_name].search([('connector_id', '=', self.id)])
-        print param
         getattr(param, self.connector_id.method_name)()
 
-    #
-    #   @api.onchange('connector_id')
+    def _create_cron(self):
+        back = self.env[self.connector_id.model_name].search([('connector_id', '=', self.id)])
+        item = {
+            'connector_id': self.id,
+            'name': u"Sync %s for %s" % (self.connector_id.name, self.home_id.partner_id.name),
+            'user_id': 1,
+            'priority': 100,
+            'interval_type': 'hours',
+            'interval_number': 1,
+            'numbercall': -1,
+            'doall': False,
+            'model': self.connector_id.model_name,
+            'function': u'cron_%s' % (self.connector_id.method_name),
+            'args': "(%s)" % repr([back.id]),
+            'active': False
+        }
+        cron = self.env['ir.cron'].create(item)
+        return cron
+
+    @api.multi
+    def edit_cron(self):
+        self.ensure_one()
+        cron = self.env['ir.cron'].search(
+            ['&', ('connector_id', '=', self.id), '|', ('active', '=', False), ('active', '=', True)])
+        if not cron:
+            cron = self._create_cron()
+        return {
+            'name': 'Cron',
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'ir.cron',
+            'res_id': cron.id,
+            'context': False
+        }
+
+    @api.multi
+    def unlink(self):
+        crons = self.env['ir.cron'].search(
+            ['&', ('connector_id', 'in', self.ids), '|', ('active', '=', False), ('active', '=', True)])
+        if crons:
+            crons.unlink()
+        self.active = False
 
 
-# def onchange_connector_id(self):
-#        self.ensure_one()
-#        line_ids = self.connector_id and self.env['backend.type.line'].search(['&',('home_id','=',self.env.context[
-# 'home_id']),('type_id','=',self.connector_id.backend_type_id.id)]) or False
-#        return line_ids and {'domain': {'line_id': [('id', 'in', line_ids.ids)]}} or {}
+class BackendHomeCron(models.Model):
+    _inherit = 'ir.cron'
+
+    connector_id = fields.Many2one('backend.connector.info.line', string=u"connector line")
 
 
 class ConnectorInfo(models.Model):

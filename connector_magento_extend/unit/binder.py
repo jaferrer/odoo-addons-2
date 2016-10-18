@@ -25,12 +25,12 @@ import openerp
 from ..backend import magentoextend
 
 
-class magentoextendBinding(Binder):
+class MagentoextendBinding(Binder):
     """ Generic Binder for magentoextendCommerce """
 
 
 @magentoextend
-class magentoextendBindingModelBinder(magentoextendBinding):
+class MagentoextendBindingModelBinder(MagentoextendBinding):
     """
     Bindings are done directly on the binding model.magentoextend.product.category
 

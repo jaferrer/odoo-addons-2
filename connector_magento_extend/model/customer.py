@@ -194,8 +194,8 @@ class CustomerBatchImporter(DelayedBatchImporter):
         record_ids = self.env['magentoextend.backend'].get_customer_ids(record_ids)
         _logger.info('search for magentoextend partners %s returned %s',
                      filters, record_ids)
-        for record_id in record_ids:
-            self._import_record(record_id, 40)
+        if record_ids:
+            self._import_record(record_ids, 40)
 
 
 CustomerBatchImporter = CustomerBatchImporter  # deprecated

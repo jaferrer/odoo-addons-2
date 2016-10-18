@@ -26,10 +26,10 @@ from openerp.addons.connector import related_action
 from openerp import exceptions, _
 from .connector import get_environment
 from .unit.backend_adapter import GenericAdapter
-from .unit.binder import magentoextendBinding
+from .unit.binder import MagentoextendBinding
 
 unwrap_binding = functools.partial(related_action.unwrap_binding,
-                                   binder_class=magentoextendBinding)
+                                   binder_class=MagentoextendBinding)
 
 
 def link(session, job, backend_id_pos=2, magentoextend_id_pos=3):
