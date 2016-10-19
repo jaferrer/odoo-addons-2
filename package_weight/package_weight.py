@@ -16,26 +16,23 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 from openerp import fields, models, api
 
+
 class stock_package_with_weights(models.Model):
-    _inherit = "stock.quant.package"
-    weight = fields.Float("Gross Weight",compute="_compute_weight", help="Gross weight")
-    weight_net = fields.Float("Net Weight",compute="_compute_weight", help="Net weight")
+    _inherit = 'stock.quant.package'
+
+    weight = fields.Float(string="Gross Weight", compute="_compute_weight")
 
     @api.multi
-    @api.depends('quant_ids.product_id.weight','quant_ids.qty','ul_id.weight')
+    @api.depends('quant_ids.product_id.weight', 'quant_ids.qty')
     def _compute_weight(self):
+        # TODO: ajouter une notion d'unité logistique
         for rec in self:
             weight = 0
-            weight_net = 0
             for line in rec.quant_ids:
                 weight += line.product_id.weight * line.qty
-                weight_net += line.product_id.weight_net * line.qty
             for line in rec.children_ids:
                  weight += line.weight
-                 weight_net += line.weight_net
-            ul_weight = rec.ul_id and rec.ul_id.weight or 0.0
-            rec.weight = weight + ul_weight
-            rec.weight_net = weight_net
-
+            rec.weight = weight

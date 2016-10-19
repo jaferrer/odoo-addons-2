@@ -1,0 +1,153 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_delivery_tracking
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 9.0c\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-10-12 08:03+0000\n"
+"PO-Revision-Date: 2016-10-12 08:03+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_delivery_tracking
+msgid "Stock delivery tracking"
+msgstr "Stock : suivi des livraisons"
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_delivery_tracking
+msgid ""
+"\n"
+"Stock delivery tracking\n"
+"=======================\n"
+"This module allows to upload the status of a stock picking delivery, knowing the transporter and the tracking number.\n"
+msgstr ""
+"\n"
+"Stock : génération des étiquettes d'envoi\n"
+"=========================================\n"
+"Ce module permet de suivre le statut de livraison d'un bon de transfert, à partir du transporteur et du numéro de suivi.\n"
+
+#. module: stock_delivery_tracking
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.tracking_number_search
+msgid "Done pickings"
+msgstr "Bons de transfert terminés"
+
+#. module: stock_delivery_tracking
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.tracking_transporter_form
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.tracking_transporter_kanban
+msgid "Stock Pickings"
+msgstr "Bons de transfert"
+
+#. module: stock_delivery_tracking
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.tracking_transporter_form
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.tracking_transporter_kanban
+msgid "Packages"
+msgstr "Colis"
+
+#. module: stock_delivery_tracking
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.delivery_tracking_stock_picking_form
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_picking_tracking_ids
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.stock_quant_package_form
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_quant_package_tracking_ids
+#: model:ir.ui.menu,name:stock_delivery_tracking.menu_delivery_tracking
+msgid "Delivery Tracking"
+msgstr "Suivi des livraisons"
+
+#. module: stock_delivery_tracking
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.delivery_tracking_stock_picking_form
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.stock_quant_package_form
+msgid "Information"
+msgstr "Informations"
+
+#. module: stock_delivery_tracking
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.delivery_tracking_stock_picking_form
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.stock_quant_package_form
+msgid "Tracking History"
+msgstr "Historique du suivi"
+
+#. module: stock_delivery_tracking
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_picking_last_status_update
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_quant_package_last_status_update
+msgid "Date of the last update"
+msgstr "Date de dernière mise à jour"
+
+#. module: stock_delivery_tracking
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_tracking_number_picking_id
+#: model:ir.ui.view,arch_db:stock_delivery_tracking.tracking_number_search
+msgid "Stock picking"
+msgstr "Bon de transfert"
+
+#. module: stock_delivery_tracking
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_tracking_transporter_picking_ids
+msgid "List of related pickings"
+msgstr "Liste des bons de transferts liés"
+
+#. module: stock_delivery_tracking
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_tracking_transporter_number_pickings
+msgid "Number of related pickings"
+msgstr "Nombre de bons de transferts liés"
+
+#. module: stock_delivery_tracking
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_tracking_transporter_number_packages
+msgid "Number of related packages"
+msgstr "Nombre de colis liés"
+
+#. module: stock_delivery_tracking
+#: code:addons\stock_delivery_tracking\stock_delivery_tracking.py:42
+#, python-format
+msgid "Pickings related to transporter %s"
+msgstr "Bons de transfert liés au transporteur %s"
+
+#. module: stock_delivery_tracking
+#: code:addons\stock_delivery_tracking\stock_delivery_tracking.py:63
+#, python-format
+msgid "Packages related to transporter %s"
+msgstr "Colis liés au transporteur %s"
+
+#. module: stock_delivery_tracking
+#: model:ir.model,name:stock_delivery_tracking.model_stock_quant_package
+msgid "Physical Packages"
+msgstr "Colis physiques"
+
+#. module: stock_delivery_tracking
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_tracking_number_package_id
+msgid "Package"
+msgstr "Colis"
+
+#. module: stock_delivery_tracking
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_tracking_number_group_id
+msgid "Procurement Group"
+msgstr "Groupe d'approvisionnement"
+
+#. module: stock_delivery_tracking
+#: model:ir.ui.menu,name:stock_delivery_tracking.menu_tracking_numbers
+msgid "Tracking numbers"
+msgstr "Suivi express des livraisons"
+
+#. module: stock_delivery_tracking
+#: model:ir.ui.menu,name:stock_delivery_tracking.menu_tracking_by_transporter
+msgid "Tracking numbers by transporter"
+msgstr "Suivi par transporteur"
+
+#. module: stock_delivery_tracking
+#: model:ir.model,name:stock_delivery_tracking.model_stock_picking
+msgid "Transfer"
+msgstr "Transfert"
+
+#. module: stock_delivery_tracking
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_picking_transporter_id
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_quant_package_transporter_id
+msgid "Transporter used"
+msgstr "Transporteur utilisé"
+
+#. module: stock_delivery_tracking
+#: model:ir.actions.server,name:stock_delivery_tracking.ir_actions_server_update_delivery_status
+#: model:ir.actions.server,name:stock_delivery_tracking.ir_actions_server_update_package_delivery_status
+msgid "Update delivery status"
+msgstr "Mettre à jour les statuts des livraisons"
