@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'web_tree_image'],
+    'depends': ['purchase', 'base_delivery_tracking'],
     'description': """
 Purchase delivery tracking
 ==========================
@@ -34,7 +34,7 @@ This module allows to upload the status of a purchase order, knowing the transpo
              'purchase_delivery_tracking.xml'],
     'demo': [],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
