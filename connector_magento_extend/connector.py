@@ -38,7 +38,7 @@ def get_environment(session, model_name, backend_id):
             return env
 
 
-class magentoextendBinding(models.AbstractModel):
+class MagentoextendBinding(models.AbstractModel):
     _name = 'magentoextend.binding'
     _inherit = 'external.binding'
     _description = 'magentoextend Binding (abstract)'
@@ -52,10 +52,8 @@ class magentoextendBinding(models.AbstractModel):
     )
 
     backend_home_id = fields.Many2one(
-        related='backend_id.connector_id.home_id',
         comodel_name='backend.home',
         string='Backend Home',
-        store=True,
         required=False,
         ondelete='restrict',
     )
@@ -63,7 +61,7 @@ class magentoextendBinding(models.AbstractModel):
     magentoextend_id = fields.Char(string='ID on magento')
 
     _sql_constraints = [
-        ('magento_uniq', 'unique(backend_id, magentoextend_id)',
+        ('magento_uniq', 'unique(backend_home_id, magentoextend_id)',
          'A binding already exists with the same magento ID.'),
     ]
 

@@ -99,6 +99,12 @@ class magentoextend_backend(models.Model):
             _logger.info("Date chunk %s -> %s", chunk_from, chunk_to)
         return True
 
+    @api.model
+    def cron_import_customer(self, id):
+        back = self.env['magentoextend.backend'].search([('id', '=', id)])
+        if back:
+            back.import_customer()
+
     def dates_chunk(self, from_date, to_date, delta=timedelta(days=120)):
         frmt = '%Y-%m-%d %H:%M:%S'
         # Date de départ par défaut = 2 mois avant la mise en service du
@@ -136,14 +142,16 @@ class magentoextend_backend(models.Model):
         from_date = None
         if product:
             from_date = product.updated_at
-        i = 0
         for chunk_from, chunk_to in self.dates_chunk(from_date, import_start_time, timedelta(days=60)):
             product_import_batch.delay(
                 session, 'magentoextend.product.product', backend_id,
                 {'from_date': chunk_from,
                  'to_date': chunk_to}, priority=3)
-            i = i + 1
-            if i == 10:
-                break
             _logger.info("Date chunk %s -> %s", chunk_from, chunk_to)
         return True
+
+    @api.model
+    def cron_import_product(self, id):
+        back = self.env['magentoextend.backend'].search([('id', '=', id)])
+        if back:
+            back.import_product()

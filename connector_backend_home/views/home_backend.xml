@@ -39,8 +39,14 @@
                                                    widget="many2one_clickable" domain="[('type','=','PULL')]"/>
                                             <field name="line_id" attrs="{'readonly':[('connector_id','=',False)]}"/>
                                             <field name="type" invisible="1"/>
-                                            <button string="Init" name="create_backend" type="object"/>
-                                            <button string="run" name="run_batch" type="object"/>
+                                            <field name="init_conf" invisible="1"/>
+                                            <field name="cron" readonly="1"/>
+                                            <button string="Init" name="create_backend" type="object"
+                                                    attrs="{'invisible':[('init_conf','=',True)]}"/>
+                                            <button string="Edit cron" name="edit_cron" type="object"
+                                                    attrs="{'invisible':[('init_conf','=',False)]}"/>
+                                            <button string="run" name="run_batch" type="object"
+                                                    attrs="{'invisible':[('init_conf','=',False)]}"/>
                                         </tree>
                                     </field>
                                 </page>
@@ -53,6 +59,14 @@
                                                    widget="many2one_clickable" domain="[('type','=','PUSH')]"/>
                                             <field name="line_id" attrs="{'readonly':[('connector_id','=',False)]}"/>
                                             <field name="type" invisible="1"/>
+                                            <field name="init_conf" invisible="1"/>
+                                            <field name="cron" readonly="1"/>
+                                            <button string="Init" name="create_backend" type="object"
+                                                    attrs="{'invisible':[('init_conf','=',True)]}"/>
+                                            <button string="Edit cron" name="edit_cron" type="object"
+                                                    attrs="{'invisible':[('init_conf','=',False)]}"/>
+                                            <button string="run" name="run_batch" type="object"
+                                                    attrs="{'invisible':[('init_conf','=',False)]}"/>
                                         </tree>
                                     </field>
                                 </page>
