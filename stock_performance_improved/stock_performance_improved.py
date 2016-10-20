@@ -1081,7 +1081,8 @@ class StockInventoryLine(models.Model):
                          precision_rounding=inventory_line.product_id.uom_id.rounding) > 0:
             domain = [('qty', '>', 0.0), ('package_id', '=', inventory_line.package_id.id),
                       ('lot_id', '=', inventory_line.prod_lot_id.id),
-                      ('location_id', '=', inventory_line.location_id.id)]
+                      ('location_id', '=', inventory_line.location_id.id),
+                      ('product_id', '=', inventory_line.product_id.id)]
             not_reserved_quants = self.env['stock.quant'].search(domain + [('reservation_id', '=', False)])
             not_reserved_qty = sum([quant.qty for quant in not_reserved_quants])
             if float_compare(not_reserved_qty, inventory_line.theoretical_qty - inventory_line.product_qty,
