@@ -21,11 +21,6 @@ from openerp import models, fields, api, exceptions, _
 from openerp.tools import float_compare
 
 
-class ReceptionByOrderStockMove(models.Model):
-    _inherit = 'stock.move'
-    _order = 'priority desc, date_expected asc, id'
-
-
 class ReceptionByOrderStockPackOperation(models.Model):
     _inherit = 'stock.pack.operation'
 
