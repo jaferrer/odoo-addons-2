@@ -20,11 +20,6 @@
 from openerp import models, fields, api, _
 
 
-class ReceptionByOrderStockMove(models.Model):
-    _inherit = 'stock.move'
-    _order = 'priority desc, date_expected asc, id'
-
-
 class ReceptionByOrderPurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
