@@ -83,8 +83,6 @@ class ReceptionByOrderStockPicking(models.Model):
                     raise Warning(_('The source location must be the same for all the moves of the picking.'))
                 location_id = move.location_id.id
 
-        pack_obj = self.env["stock.quant.package"]
-        quant_obj = self.env["stock.quant"]
         vals = []
         qtys_grouped = {}
         # for each quant of the picking, find the suggested location
@@ -100,8 +98,7 @@ class ReceptionByOrderStockPicking(models.Model):
         top_lvl_packages = self._get_top_level_packages(quants_suggested_locations)
         # and then create pack operations for the top-level packages found
         for pack in top_lvl_packages:
-            pack_quant_ids = pack_obj.get_content([pack.id])
-            pack_quants = quant_obj.browse(pack_quant_ids)
+            pack_quants = self.env['stock.quant'].browse(pack.get_content())
             vals.append({
                 'picking_id': picking.id,
                 'package_id': pack.id,
