@@ -17,15 +17,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from openerp import fields
 from openerp.tests import common
 
 
 class TestStockProcurementJIT(common.TransactionCase):
+
     def setUp(self):
         super(TestStockProcurementJIT, self).setUp()
         self.test_product = self.browse_ref("stock_procurement_just_in_time.product_test_product")
         self.test_product2 = self.browse_ref("stock_procurement_just_in_time.product_test_product2")
         self.test_product3 = self.browse_ref("stock_procurement_just_in_time.product_test_product3")
+        self.test_product4 = self.browse_ref("stock_procurement_just_in_time.product_test_product4")
         self.location_a = self.browse_ref("stock_procurement_just_in_time.stock_location_a")
         self.location_b = self.browse_ref("stock_procurement_just_in_time.stock_location_b")
         self.location_inv = self.browse_ref("stock.location_inventory")
@@ -42,7 +45,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         """Function to call the scheduler without needing connector to work."""
         compute_wizard = self.env['procurement.order.compute.all'].create({
             'compute_all': False,
-            'product_ids': [(4, self.test_product.id), (4, self.test_product3.id)],
+            'product_ids': [(4, self.test_product.id), (4, self.test_product3.id), (4, self.test_product4.id)],
         })
         self.env['procurement.order'].with_context(compute_product_ids=compute_wizard.product_ids.ids,
                                                    compute_all_products=compute_wizard.compute_all,
@@ -52,16 +55,20 @@ class TestStockProcurementJIT(common.TransactionCase):
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
                                                       ('product_id', 'in', [self.test_product.id,
                                                                             self.test_product2.id,
-                                                                            self.test_product3.id])])
+                                                                            self.test_product3.id,
+                                                                            self.test_product4.id,
+                                                                            ])])
         self.assertFalse(procs)
         self.process_orderpoints()
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
                                                       ('product_id', 'in', [self.test_product.id,
                                                                             self.test_product2.id,
-                                                                            self.test_product3.id])])
+                                                                            self.test_product3.id,
+                                                                            self.test_product4.id,
+                                                                            ])])
         procs = procs.sorted(lambda x: x.date_planned)
 
-        self.assertEqual(len(procs), 6)
+        self.assertEqual(len(procs), 7)
         # They should all be in exception, and no one should have generated moves.
         self.assertEqual(procs[0].date_planned, "2015-03-15 09:59:59")
         self.assertEqual(procs[0].product_qty, 8)
@@ -92,6 +99,11 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[5].product_qty, 12)
         self.assertEqual(procs[5].state, 'exception')
         self.assertEqual(procs[5].product_id, self.test_product3)
+
+        self.assertEqual(procs[6].date_planned[:10], fields.Date.today())
+        self.assertEqual(procs[6].product_qty, 6)
+        self.assertEqual(procs[6].state, 'running')
+        self.assertEqual(procs[6].product_id, self.test_product4)
 
     def test_20_procurement_jit_reschedule(self):
         """Check jit with rescheduling of confirmed procurement."""
@@ -490,7 +502,6 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[3].state, 'exception')
 
     def test_70_procurement_jit(self):
-
         """
         Cancelling procurement of a move which parent is done.
         """
@@ -537,7 +548,6 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(move_dest.state, 'cancel')
 
     def test_80_procurement_jit(self):
-
         """
         Cancelling a procurement with several moves and one of them is done.
         """

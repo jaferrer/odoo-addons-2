@@ -159,15 +159,23 @@ class StockWarehouseOrderPointJit(models.Model):
         the location of the orderpoint."""
         self.ensure_one()
         need = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
-                                                      list_move_types=('out',), limit=False, parameter_to_sort='date',
-                                                      to_reverse=False)
+                                                      list_move_types=('out',), limit=False,
+                                                      parameter_to_sort='date', to_reverse=False)
+        if not need:
+            # We have no need moves, but we still need to check if we are below the minimum quantity
+            # First we check if we have 'in' or 'planned' moves and take it as need if we have
+            need = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
+                                                          list_move_types=('in', 'planned'), limit=False,
+                                                          parameter_to_sort='date', to_reverse=False)
+            if not need:
+                # We really have nothing else than the 'existing' line, so we take it as last resort
+                need = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
+                                                              list_move_types=('existing',), limit=False,
+                                                              parameter_to_sort='date', to_reverse=False)
         need = [x for x in need if float_compare(x['qty'], self.product_min_qty,
                                                  precision_rounding=self.product_uom.rounding) < 0]
-        if need:
-            need = need[0]
-            if need.get('id') or need.get('proc_id') or need.get('product_id') or need.get('location_id') or \
-                    need.get('move_type') or need.get('qty') or need.get('date') or need.get('move_qty'):
-                return need
+        if need and need[0]:
+            return need[0]
         return False
 
     @api.multi
@@ -243,10 +251,11 @@ class StockWarehouseOrderPointJit(models.Model):
             qty = float_round(qty, precision_rounding=orderpoint.product_uom.rounding)
 
             proc_vals = proc_obj._prepare_orderpoint_procurement(orderpoint, qty)
-            proc_date = fields.Datetime.from_string(need['date']) + relativedelta(seconds=-1)
-            proc_vals.update({
-                'date_planned': fields.Datetime.to_string(proc_date)
-            })
+            if need['date']:
+                proc_date = fields.Datetime.from_string(need['date']) + relativedelta(seconds=-1)
+                proc_vals.update({
+                    'date_planned': fields.Datetime.to_string(proc_date)
+                })
             proc = proc_obj.create(proc_vals)
             if not self.env.context.get("procurement_no_run"):
                 proc.run()
@@ -286,9 +295,9 @@ class StockWarehouseOrderPointJit(models.Model):
                                                          order='qty DESC')
             if last_outgoing:
                 procs = procs.filtered(lambda y: y.date_planned > last_outgoing[0]['date'])
-            _logger.debug("Removing not needed procurements: %s", procs.ids)
-            procs.cancel()
-            procs.unlink()
+                _logger.debug("Removing not needed procurements: %s", procs.ids)
+                procs.cancel()
+                procs.unlink()
 
     @api.multi
     def process(self):
@@ -336,6 +345,9 @@ class StockWarehouseOrderPointJit(models.Model):
         procurement_date_clause = max_date and " AND po.date_planned <= %s " or ""
         move_out_date_clause = max_date and " AND sm.date <= %s " or ""
         move_in_date_clause = max_date and " AND COALESCE(po.date_planned, sm.date) <= %s " or ""
+        # Workaround for tests
+        if not location.parent_left or not location.parent_right:
+            self.env['stock.location']._parent_store_compute()
         params = (product_id, location.parent_left, location.parent_right)
         if max_date:
             params += (max_date,)
@@ -430,7 +442,6 @@ class StockWarehouseOrderPointJit(models.Model):
             'move_qty': existing_qty,
             'move_id': False,
         }]
-
         # incoming items
         for sm in moves_in_tuples:
             intermediate_result += [{
@@ -516,36 +527,37 @@ class StockLevelsReport(models.Model):
 
     def init(self, cr):
         drop_view_if_exists(cr, "stock_levels_report")
-        cr.execute("""
-CREATE OR REPLACE VIEW stock_levels_report AS (
-    WITH link_location_warehouse AS (
-        SELECT
-            sl.id AS location_id,
-            sw.id AS warehouse_id
-        FROM stock_warehouse sw
-        LEFT JOIN stock_location sl_view ON sl_view.id = sw.view_location_id
-        LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND sl.parent_left <= sl_view.parent_right),
+        cr.execute("""CREATE OR REPLACE VIEW stock_levels_report AS (
+    WITH
+            link_location_warehouse AS (
+                SELECT
+                    sl.id AS location_id,
+                    sw.id AS warehouse_id
+                FROM stock_warehouse sw
+                    LEFT JOIN stock_location sl_view ON sl_view.id = sw.view_location_id
+                    LEFT JOIN stock_location sl ON sl.parent_left >= sl_view.parent_left AND
+                                                   sl.parent_left <= sl_view.parent_right
+        ),
+            min_product AS (
+                SELECT
+                    min(sm.date_expected) - INTERVAL '1 second' AS min_date,
+                    sm.product_id                               AS product_id
+                FROM
+                    stock_move sm
+                    LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
+                    LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
+                    LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
+                WHERE ((link_dest.warehouse_id IS NOT NULL
+                        AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id))
+                       OR (link.warehouse_id IS NOT NULL
+                           AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)))
+                      AND sm.state :: TEXT <> 'cancel' :: TEXT
+                      AND sm.state :: TEXT <> 'done' :: TEXT
+                      AND sm.state :: TEXT <> 'draft' :: TEXT
+                GROUP BY sm.product_id
+        )
 
-
-      min_product AS (
     SELECT
-                min(sm.date_expected)- INTERVAL '1 second' AS min_date,
-                sm.product_id AS product_id
-            FROM
-                stock_move sm
-                LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
-                LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
-                LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
-            WHERE ((link_dest.warehouse_id IS NOT NULL
-                AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)) OR (link.warehouse_id IS NOT NULL
-                AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)))
-                AND sm.state :: TEXT <> 'cancel' :: TEXT
-                AND sm.state :: TEXT <> 'done' :: TEXT
-                AND sm.state :: TEXT <> 'draft' :: TEXT
-            GROUP BY sm.product_id
-      )
-
-SELECT
         foo.product_id :: TEXT || '-'
         || foo.warehouse_id :: TEXT || '-'
         || coalesce(foo.move_id :: TEXT, 'existing') AS id,
@@ -561,30 +573,30 @@ SELECT
         foo.other_warehouse_id
     FROM
         (
-SELECT
-                sq.product_id      AS product_id,
-                'existing' :: TEXT AS move_type,
-                coalesce(min(mp.min_date),max(sq.in_date)) AS date,
-                sum(sq.qty)        AS qty,
-                NULL               AS move_id,
+            SELECT
+                sq.product_id                               AS product_id,
+                'existing' :: TEXT                          AS move_type,
+                coalesce(min(mp.min_date), max(sq.in_date)) AS date,
+                sum(sq.qty)                                 AS qty,
+                NULL                                        AS move_id,
                 link.warehouse_id,
-                NULL               AS other_warehouse_id
+                NULL                                        AS other_warehouse_id
             FROM
                 stock_quant sq
                 LEFT JOIN stock_location sl ON sq.location_id = sl.id
                 LEFT JOIN link_location_warehouse link ON link.location_id = sl.location_id
-                LEFT JOIN min_product mp ON mp.product_id=sq.product_id
+                LEFT JOIN min_product mp ON mp.product_id = sq.product_id
             WHERE link.warehouse_id IS NOT NULL
             GROUP BY sq.product_id, link.warehouse_id
 
             UNION ALL
 
-SELECT
-                sm.product_id    AS product_id,
-                'in' :: TEXT     AS move_type,
-                sm.date_expected AS date,
-                sm.product_qty   AS qty,
-                sm.id            AS move_id,
+            SELECT
+                sm.product_id     AS product_id,
+                'in' :: TEXT      AS move_type,
+                sm.date_expected  AS date,
+                sm.product_qty    AS qty,
+                sm.id             AS move_id,
                 link_dest.warehouse_id,
                 link.warehouse_id AS other_warehouse_id
             FROM
@@ -593,19 +605,19 @@ SELECT
                 LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
                 LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
             WHERE link_dest.warehouse_id IS NOT NULL
-                AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
-                AND sm.state :: TEXT <> 'cancel' :: TEXT
-                AND sm.state :: TEXT <> 'done' :: TEXT
-                AND sm.state :: TEXT <> 'draft' :: TEXT
+                  AND (link.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
+                  AND sm.state :: TEXT <> 'cancel' :: TEXT
+                  AND sm.state :: TEXT <> 'done' :: TEXT
+                  AND sm.state :: TEXT <> 'draft' :: TEXT
 
             UNION ALL
 
             SELECT
-                sm.product_id       AS product_id,
-                'out' :: TEXT       AS move_type,
-                sm.date_expected    AS date,
-                -sm.product_qty     AS qty,
-                sm.id               AS move_id,
+                sm.product_id          AS product_id,
+                'out' :: TEXT          AS move_type,
+                sm.date_expected       AS date,
+                -sm.product_qty        AS qty,
+                sm.id                  AS move_id,
                 link.warehouse_id,
                 link_dest.warehouse_id AS other_warehouse_id
             FROM
@@ -614,11 +626,11 @@ SELECT
                 LEFT JOIN link_location_warehouse link ON link.location_id = sm.location_id
                 LEFT JOIN link_location_warehouse link_dest ON link_dest.location_id = sm.location_dest_id
             WHERE link.warehouse_id IS NOT NULL
-                AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
-                AND sm.state :: TEXT <> 'cancel' :: TEXT
-                AND sm.state :: TEXT <> 'done' :: TEXT
-                AND sm.state :: TEXT <> 'draft' :: TEXT
-) foo
+                  AND (link_dest.warehouse_id IS NULL OR link.warehouse_id != link_dest.warehouse_id)
+                  AND sm.state :: TEXT <> 'cancel' :: TEXT
+                  AND sm.state :: TEXT <> 'done' :: TEXT
+                  AND sm.state :: TEXT <> 'draft' :: TEXT
+        ) foo
         LEFT JOIN product_product pp ON foo.product_id = pp.id
         LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
 )
