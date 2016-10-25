@@ -53,10 +53,6 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         })
 
     def test_10_sweep_purchase_order(self):
-        """
-        Testing calculation of opmsg_reduce_qty, to_delete and remaining_qty
-        """
-
         procurement_order_1 = self.create_procurement_order_1()
         procurement_order_1.run()
         self.assertTrue(procurement_order_1.rule_id.action == 'buy')

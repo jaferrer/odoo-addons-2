@@ -17,10 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api, _
-from urllib2 import urlopen
-from lxml import etree
 import ssl
+from urllib2 import urlopen
+
+from lxml import etree
+
+from openerp import models, api, _
 
 
 class ChronopostTrackingTransporter(models.Model):

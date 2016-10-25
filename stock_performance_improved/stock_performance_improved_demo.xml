@@ -52,7 +52,17 @@
         </record>
 
         <record model="product.product" id="product">
-            <field name="name">Test product (Inventory with paks)</field>
+            <field name="name">Test product (Inventory with packs)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="product.product" id="product2">
+            <field name="name">Test product 2 (Inventory with packs)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="product.product" id="product3">
+            <field name="name">Test product 3 (Inventory with packs)</field>
             <field name="type">product</field>
         </record>
 
@@ -63,6 +73,11 @@
 
         <record model="stock.quant.package" id="package2">
             <field name="name">Second Package (Inventory with paks)</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+        </record>
+
+        <record model="stock.quant.package" id="package3">
+            <field name="name">Third Package (Inventory with paks)</field>
             <field name="location_id" ref="stock.stock_location_stock"/>
         </record>
 
@@ -107,11 +122,63 @@
             <field name="in_date">2016-09-13 00:10:00</field>
         </record>
 
+        <record model="stock.quant" id="quant4">
+            <field name="product_id" ref="product2"/>
+            <field name="qty" eval="4"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="package_id"/>
+            <field name="lot_id"/>
+            <field name="in_date">2016-09-13 00:10:00</field>
+        </record>
+
+        <record model="stock.quant" id="quant5">
+            <field name="product_id" ref="product2"/>
+            <field name="qty" eval="9"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="package_id" ref="package3"/>
+            <field name="lot_id" ref="lot1"/>
+            <field name="in_date">2016-09-12 00:10:00</field>
+        </record>
+
+        <record model="stock.quant" id="quant6">
+            <field name="product_id" ref="product2"/>
+            <field name="qty" eval="2"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="package_id"/>
+            <field name="lot_id"/>
+            <field name="in_date">2016-09-13 00:10:00</field>
+        </record>
+
+        <record model="stock.quant" id="quant7">
+            <field name="product_id" ref="product2"/>
+            <field name="qty" eval="5"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="package_id" ref="package3"/>
+            <field name="lot_id" ref="lot1"/>
+            <field name="in_date">2016-09-12 00:10:00</field>
+        </record>
+
+        <record model="stock.quant" id="quant8">
+            <field name="product_id" ref="product3"/>
+            <field name="qty" eval="100"/>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="package_id"/>
+            <field name="lot_id"/>
+            <field name="in_date">2016-09-18 00:10:00</field>
+        </record>
+
         <record model="stock.inventory" id="inventory">
-            <field name="name">Inventory (Inventory with paks)</field>
+            <field name="name">Inventory (Inventory with packs)</field>
             <field name="location_id" ref="stock.stock_location_stock"/>
             <field name="filter">product</field>
             <field name="product_id" ref="product"/>
+        </record>
+
+        <record model="stock.inventory" id="inventory2">
+            <field name="name">Inventory 2 (Inventory with packs)</field>
+            <field name="location_id" ref="stock.stock_location_stock"/>
+            <field name="filter">product</field>
+            <field name="product_id" ref="product2"/>
         </record>
 
     </data>

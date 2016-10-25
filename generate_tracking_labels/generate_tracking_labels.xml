@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <menuitem id="menu_bordereaux_expedition" name="Bordereaux d'expédition"
+                  parent="base.menu_base_config" sequence="150"/>
+
+        <record model="ir.ui.view" id="generate_tracking_labels_wizard_form_view">
+            <field name="name">generate_tracking_labels_wizard_form_view</field>
+            <field name="model">generate.tracking.labels.wizard</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Print colissimo label">
+                    <separator string="Données générales"/>
+                    <group>
+                        <field name="transporter_id"/>
+                        <field name="type"/>
+                        <field name="direction"/>
+                        <field name="save_tracking_number"/>
+                        <field name="transportation_amount"/>
+                        <field name="total_amount"/>
+                        <field name="sender_parcel_ref"/>
+                    </group>
+                    <separator string="Données colis"/>
+                    <group>
+                        <group>
+                            <field name="produit_expedition_id"  domain="[('transporter_id', '=', transporter_id)]"/>
+                            <field name="adressee_parcel_ref"/>
+                            <field name="code_bar_for_reference"/>
+                            <field name="service_info"/>
+                            <field name="weight"/>
+                            <field name="non_machinable"/>
+                            <field name="output_printing_type_id" domain="[('transporter_id', '=', transporter_id)]"/>
+                            <field name="return_type_choice"/>
+                            <field name="ftd"/>
+                            <field name="instructions"/>
+                        </group>
+                    </group>
+                    <separator string="Données client"/>
+                    <group>
+                        <group>
+                            <field name="sale_order_id"/>
+                            <field name="partner_id"/>
+                            <field name="company_name"/>
+                            <field name="first_name"/>
+                            <field name="last_name"/>
+                            <field name="email"/>
+                            <field name="phone_number"/>
+                            <field name="mobile_number"/>
+                            <field name="door_code1"/>
+                            <field name="door_code2"/>
+                            <field name="intercom"/>
+                        </group>
+                        <group>
+                            <field name="line0"/>
+                            <field name="line1"/>
+                            <field name="line2"/>
+                            <field name="line3"/>
+                            <field name="country_id"/>
+                            <field name="city"/>
+                            <field name="zip"/>
+                            <field name="language"/>
+                        </group>
+                    </group>
+                    <footer>
+                        <button name="generate_label" string="Générer l'étiquette" type="object" class="oe_highlight" />
+                        or
+                        <button string="Annuler" class="oe_link"
+                            special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="tracking_label_expedition_type_produit_tree">
+            <field name="name">tracking_label_expedition_type_produit_tree</field>
+            <field name="model">type.produit.expedition</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree string="Types de bordereaux" create="false" delete="false" editable="top">
+                    <field name="name"/>
+                    <field name="transporter_id"/>
+                    <field name="code"/>
+                    <field name="used_from_customer"/>
+                    <field name="used_to_customer"/>
+                    <field name="used_on_demand"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_tracking_label_expedition_type_produit">
+            <field name="name">Types de bordereaux</field>
+            <field name="res_model">type.produit.expedition</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_expedition_type_produit" name="Types"
+                  action="act_window_tracking_label_expedition_type_produit"
+                  parent="menu_bordereaux_expedition" sequence="10"/>
+
+        <record model="ir.ui.view" id="output_printing_type_tree">
+            <field name="name">output_printing_type_tree</field>
+            <field name="model">output.printing.type</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree string="Formats de bordereaux" create="false" delete="false" editable="top">
+                    <field name="name"/>
+                    <field name="transporter_id"/>
+                    <field name="code"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_output_printing_type">
+            <field name="name">Formats de bordereaux</field>
+            <field name="res_model">output.printing.type</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_output_printing_type" name="Formats"
+                  action="act_window_output_printing_type"
+                  parent="menu_bordereaux_expedition" sequence="20"/>
+
+    </data>
+</openerp>

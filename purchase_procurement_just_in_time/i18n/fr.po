@@ -161,13 +161,14 @@ msgid "Edit"
 msgstr "Modifier"
 
 #. module: purchase_procurement_just_in_time
-#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:239
-#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:310
-#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:313
-#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:315
-#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:318
-#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:330
-#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:332
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:353
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:400
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:499
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:502
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:504
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:508
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:512
+#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:514
 #, python-format
 msgid "Error!"
 msgstr "Erreur !"
@@ -231,11 +232,6 @@ msgstr "Modifié le"
 #: field:purchase.order.line,date_order:0
 msgid "Order Date"
 msgstr "Date CDE"
-
-#. module: purchase_procurement_just_in_time
-#: field:purchase.order.line,line_no:0
-msgid "Line no."
-msgstr "N° Ligne"
 
 #. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,opmsg_text:0
@@ -343,12 +339,6 @@ msgstr "Bon de commande"
 #: model:ir.model,name:purchase_procurement_just_in_time.model_purchase_order_line
 msgid "Purchase Order Line"
 msgstr "Ligne de commande d'achat"
-
-#. module: purchase_procurement_just_in_time
-#: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:118
-#, python-format
-msgid "Purchase Order Line: %s"
-msgstr "Ligne de commande d'achat: %s"
 
 #. module: purchase_procurement_just_in_time
 #: view:purchase.order.line:0
@@ -462,18 +452,23 @@ msgid "or"
 msgstr "ou"
 
 #. module: purchase_procurement_just_in_time
-#: model:ir.model,name:purchase_procurement_just_in_time.model_purchase_config_settings
-msgid "purchase.config.settings"
-msgstr "purchase.config.settings"
-
-#. module: purchase_procurement_just_in_time
-#: view:purchase.order.line:0
-msgid "{'readonly': [('state','=','done')]}"
-msgstr "{'readonly': [('state','=','done')]}"
-
-#. module: purchase_procurement_just_in_time
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:359
 #: view:purchase.order.line:purchase_procurement_just_in_time.purchase_order_line_tree_jit
 #, python-format
 msgid "Stock Evolution"
 msgstr "Evolution des stocks"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,children_line_ids:0
+msgid "Children lines"
+msgstr "Lignes enfant"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.actions.act_window,name:purchase_procurement_just_in_time.open_order_lines
+msgid "Open order lines"
+msgstr "Voir les lignes de la commande"
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.order.line,remaining_qty:0
+msgid "Quantity not yet delivered by the supplier"
+msgstr "Quantité non encore livrée par le fournisseur"

@@ -18,7 +18,7 @@
 #
 
 from openerp.tools import drop_view_if_exists, flatten, float_compare, float_round
-from openerp import fields, models, api, osv
+from openerp import fields, models, api, osv, _
 from openerp.osv import fields as old_api_fields
 from openerp.addons.procurement import procurement
 from openerp.addons.scheduler_async import scheduler_async
@@ -331,6 +331,15 @@ class stock_pack_operation(models.Model):
                 raise osv.except_osv(_('test non regression!'), "les resulta n'ont pas la meme longueur")
         return res
 
+    @api.multi
+    def get_list_operations_to_process(self):
+        return [self]
+
+    @api.multi
+    def sort_operations_for_transfer(self):
+        return sorted(self, key=lambda x: ((x.package_id and not x.product_id) and -4 or 0) +
+                                          (x.package_id and -2 or 0) + (x.lot_id and -1 or 0))
+
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
@@ -413,54 +422,120 @@ class StockPicking(models.Model):
                     res[k] = {}
         return res
 
-    def recompute_remaining_qty(self, cr, uid, picking, context=None):
-        def _create_link_for_index(operation_id, index, product_id, qty_to_assign, quant_id=False):
-            move_dict = prod2move_ids[product_id][index]
-            qty_on_link = min(move_dict['remaining_qty'], qty_to_assign)
-            self.pool.get('stock.move.operation.link').create(cr, uid, {'move_id': move_dict['move']["id"],
-                                                                        'operation_id': operation_id,
-                                                                        'qty': qty_on_link,
-                                                                        'reserved_quant_id': quant_id},
-                                                              context=context)
-            if move_dict['remaining_qty'] == qty_on_link:
-                prod2move_ids[product_id].pop(index)
-            else:
-                move_dict['remaining_qty'] -= qty_on_link
-            return qty_on_link
-
-        def _create_link_for_quant(operation_id, quant, qty):
-            """create a link for given operation and reserved move of given quant, for the max quantity possible, and returns this quantity"""
-            print "_create_link_fo_quant: quant", quant
-            if not quant["reservation_id"]:
-                return _create_link_for_product(operation_id, quant["product_id"], qty)
-            qty_on_link = 0
-            for i in range(0, len(prod2move_ids[quant["product_id"]])):
-                if prod2move_ids[quant["product_id"]][i]['move']['id'] != quant["reservation_id"]:
-                    continue
-                qty_on_link = _create_link_for_index(operation_id, i, quant["product_id"], qty, quant_id=quant["id"])
-                break
-            return qty_on_link
-
-        def _create_link_for_product(operation_id, product_id, qty):
-            '''method that creates the link between a given operation and move(s) of given product, for the given quantity.
-            Returns True if it was possible to create links for the requested quantity (False if there was not enough quantity on stock moves)'''
-            qty_to_assign = qty
-            prod_obj = self.pool.get("product.product")
-            product = prod_obj.browse(cr, uid, product_id)
-            rounding = product.uom_id.rounding
-            qtyassign_cmp = float_compare(qty_to_assign, 0.0, precision_rounding=rounding)
-            if prod2move_ids.get(product_id):
-                while prod2move_ids[product_id] and qtyassign_cmp > 0:
-                    qty_on_link = _create_link_for_index(operation_id, 0, product_id, qty_to_assign, quant_id=False)
-                    qty_to_assign -= qty_on_link
-                    qtyassign_cmp = float_compare(qty_to_assign, 0.0, precision_rounding=rounding)
-            return qtyassign_cmp == 0
-
+    def process_operations_for_transfer(self, cr, uid, operations, need_rereserve, still_to_do, prod2move_ids,
+                                        quants_in_package_done, context=None):
         uom_obj = self.pool.get('product.uom')
         package_obj = self.pool.get('stock.quant.package')
+        picking_obj = self.pool.get('stock.picking')
         quant_obj = self.pool.get('stock.quant')
+        operations = operations.sort_operations_for_transfer()
+        for ops in operations:
+            # for each operation, create the links with the stock move by seeking on the matching reserved quants,
+            # and deffer the operation if there is some ambiguity on the move to select
+            if ops.package_id and not ops.product_id:
+                # entire package
+                quant_ids = package_obj.get_content(cr, uid, [ops.package_id.id], context=context)
+                for quant in quant_obj.read(cr, uid, quant_ids,
+                                            ['id', 'qty', 'product_id', 'package_id', 'lot_id', 'owner_id',
+                                             'reservation_id'], load=False, context=context):
+                    remaining_qty_on_quant = quant["qty"]
+                    if quant["reservation_id"]:
+                        # avoid quants being counted twice
+                        quants_in_package_done.add(quant["id"])
+                        qty_on_link, prod2move_ids = picking_obj. \
+                            _create_link_for_quant(cr, uid, prod2move_ids, ops.id, quant, quant["qty"], context=context)
+                        remaining_qty_on_quant -= qty_on_link
+                    if remaining_qty_on_quant:
+                        still_to_do.append((ops, quant["product_id"], remaining_qty_on_quant))
+                        need_rereserve = True
+            elif ops.product_id.id:
+                # Check moves with same product
+                qty_to_assign = uom_obj._compute_qty_obj(cr, uid, ops.product_uom_id, ops.product_qty,
+                                                         ops.product_id.uom_id, context=context)
+                for move_dict in prod2move_ids.get(ops.product_id.id, [])[:]:
+                    move = move_dict['move']
+                    qts = quant_obj.search(cr, uid, [('reservation_id', '=', move["id"])], context=context)
+                    for quant in quant_obj.read(cr, uid, qts,
+                                                ['id', 'qty', 'product_id', 'package_id', 'lot_id', 'owner_id',
+                                                 'reservation_id'], load=False, context=context):
+                        if not qty_to_assign > 0:
+                            break
+                        if quant["id"] in quants_in_package_done:
+                            continue
+
+                        # check if the quant is matching the operation details
+                        if ops.package_id:
+                            flag = quant["package_id"] and bool(
+                                package_obj.search(cr, uid, [('id', 'child_of', [ops.package_id.id])],
+                                                   context=context)) or False
+                        else:
+                            flag = not quant["package_id"]
+                        flag = flag and ((ops.lot_id and ops.lot_id.id == quant["lot_id"]) or not ops.lot_id)
+                        flag = flag and (ops.owner_id.id == quant["owner_id"])
+                        if flag:
+                            max_qty_on_link = min(quant["qty"], qty_to_assign)
+                            qty_on_link, prod2move_ids = picking_obj. \
+                                _create_link_for_quant(cr, uid, prod2move_ids, ops.id, quant, max_qty_on_link,
+                                                       context=context)
+                            qty_to_assign -= qty_on_link
+                qty_assign_cmp = float_compare(qty_to_assign, 0, precision_rounding=ops.product_id.uom_id.rounding)
+                if qty_assign_cmp > 0:
+                    # qty reserved is less than qty put in operations. We need to create a link but it's deferred
+                    # after we processed all the quants (because they leave no choice on their related move and needs
+                    # to be processed with higher priority)
+                    still_to_do += [(ops, ops.product_id.id, qty_to_assign)]
+                    need_rereserve = True
+        return still_to_do, need_rereserve, prod2move_ids, quants_in_package_done
+
+    @api.model
+    def _create_link_for_index(self, prod2move_ids, operation_id, index, product_id, qty_to_assign, quant_id=False):
+        move_dict = prod2move_ids[product_id][index]
+        qty_on_link = min(move_dict['remaining_qty'], qty_to_assign)
+        self.env['stock.move.operation.link'].create({'move_id': move_dict['move']["id"],
+                                                      'operation_id': operation_id,
+                                                      'qty': qty_on_link,
+                                                      'reserved_quant_id': quant_id})
+        if move_dict['remaining_qty'] == qty_on_link:
+            prod2move_ids[product_id].pop(index)
+        else:
+            move_dict['remaining_qty'] -= qty_on_link
+        return qty_on_link, prod2move_ids
+
+    @api.model
+    def _create_link_for_quant(self, prod2move_ids, operation_id, quant, qty):
+        """create a link for given operation and reserved move of given quant, for the max quantity possible, and returns this quantity"""
+        if not quant["reservation_id"]:
+            return self._create_link_for_product(prod2move_ids, operation_id, quant["product_id"], qty)[0]
+        qty_on_link = 0
+        for i in range(0, len(prod2move_ids[quant["product_id"]])):
+            if prod2move_ids[quant["product_id"]][i]['move']['id'] != quant["reservation_id"]:
+                continue
+            qty_on_link, prod2move_ids = self._create_link_for_index(prod2move_ids, operation_id, i,
+                                                                     quant["product_id"], qty, quant_id=quant["id"])
+            break
+        return qty_on_link, prod2move_ids
+
+    @api.model
+    def _create_link_for_product(self, prod2move_ids, operation_id, product_id, qty):
+        '''method that creates the link between a given operation and move(s) of given product, for the given quantity.
+        Returns True if it was possible to create links for the requested quantity (False if there was not enough quantity on stock moves)'''
+        qty_to_assign = qty
+        product = self.env['product.product'].browse([product_id])
+        rounding = product.uom_id.rounding
+        qtyassign_cmp = float_compare(qty_to_assign, 0.0, precision_rounding=rounding)
+        if prod2move_ids.get(product_id):
+            while prod2move_ids[product_id] and qtyassign_cmp > 0:
+                qty_on_link, prod2move_ids = self._create_link_for_index(prod2move_ids, operation_id, 0, product_id,
+                                                                         qty_to_assign, quant_id=False)
+                qty_to_assign -= qty_on_link
+                qtyassign_cmp = float_compare(qty_to_assign, 0.0, precision_rounding=rounding)
+        result_comp = qtyassign_cmp == 0
+        return result_comp, prod2move_ids
+
+    def recompute_remaining_qty(self, cr, uid, picking, context=None):
+
+        picking_obj = self.pool.get('stock.picking')
         link_obj = self.pool.get('stock.move.operation.link')
-        quants_in_package_done = set()
         prod2move_ids = {}
         still_to_do = []
         # make a dictionary giving for each product, the moves and related quantity that can be used in operation links
@@ -483,8 +558,6 @@ WHERE sm.picking_id = %s AND sm.state NOT IN ('done', 'cancel')
 ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
             """, (picking.id,)
         )
-
-        moves = []
         res = cr.fetchall()
         for move in res:
             if not prod2move_ids.get(move[2]):
@@ -525,76 +598,29 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
             else:
                 raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
 
-        print "prod2move_ids", prod2move_ids
         need_rereserve = False
         # sort the operations in order to give higher priority to those with a package, then a serial number
         operations = picking.pack_operation_ids
-        operations = sorted(operations, key=lambda x: ((x.package_id and not x.product_id) and -4 or 0) + (
-            x.package_id and -2 or 0) + (x.lot_id and -1 or 0))
+        list_operations_to_process = operations.get_list_operations_to_process()
+        operations = operations.sort_operations_for_transfer()
         # delete existing operations to start again from scratch
         links = link_obj.search(cr, uid, [('operation_id', 'in', [x.id for x in operations])], context=context)
         if links:
             link_obj.unlink(cr, uid, links, context=context)
         # 1) first, try to create links when quants can be identified without any doubt
-        for ops in operations:
-            # for each operation, create the links with the stock move by seeking on the matching reserved quants,
-            # and deffer the operation if there is some ambiguity on the move to select
-            if ops.package_id and not ops.product_id:
-                # entire package
-                quant_ids = package_obj.get_content(cr, uid, [ops.package_id.id], context=context)
-                for quant in quant_obj.read(cr, uid, quant_ids,
-                                            ['id', 'qty', 'product_id', 'package_id', 'lot_id', 'owner_id',
-                                             'reservation_id'], load=False,
-                                            context=context):
-                    remaining_qty_on_quant = quant["qty"]
-                    if quant["reservation_id"]:
-                        # avoid quants being counted twice
-                        quants_in_package_done.add(quant["id"])
-                        qty_on_link = _create_link_for_quant(ops.id, quant, quant["qty"])
-                        remaining_qty_on_quant -= qty_on_link
-                    if remaining_qty_on_quant:
-                        still_to_do.append((ops, quant["product_id"], remaining_qty_on_quant))
-                        need_rereserve = True
-            elif ops.product_id.id:
-                # Check moves with same product
-                qty_to_assign = uom_obj._compute_qty_obj(cr, uid, ops.product_uom_id, ops.product_qty,
-                                                         ops.product_id.uom_id, context=context)
-                for move_dict in prod2move_ids.get(ops.product_id.id, [])[:]:
-                    move = move_dict['move']
-                    qts = quant_obj.search(cr, uid, [('reservation_id', '=', move["id"])], context=context)
-                    for quant in quant_obj.read(cr, uid, qts,
-                                                ['id', 'qty', 'product_id', 'package_id', 'lot_id', 'owner_id',
-                                                 'reservation_id'], load=False,
-                                                context=context):
-                        if not qty_to_assign > 0:
-                            break
-                        if quant["id"] in quants_in_package_done:
-                            continue
-
-                        # check if the quant is matching the operation details
-                        if ops.package_id:
-                            flag = quant["package_id"] and bool(
-                                package_obj.search(cr, uid, [('id', 'child_of', [ops.package_id.id])],
-                                                   context=context)) or False
-                        else:
-                            flag = not quant["package_id"]
-                        flag = flag and ((ops.lot_id and ops.lot_id.id == quant["lot_id"]) or not ops.lot_id)
-                        flag = flag and (ops.owner_id.id == quant["owner_id"])
-                        if flag:
-                            max_qty_on_link = min(quant["qty"], qty_to_assign)
-                            qty_on_link = _create_link_for_quant(ops.id, quant, max_qty_on_link)
-                            qty_to_assign -= qty_on_link
-                qty_assign_cmp = float_compare(qty_to_assign, 0, precision_rounding=ops.product_id.uom_id.rounding)
-                if qty_assign_cmp > 0:
-                    # qty reserved is less than qty put in operations. We need to create a link but it's deferred after we processed
-                    # all the quants (because they leave no choice on their related move and needs to be processed with higher priority)
-                    still_to_do += [(ops, ops.product_id.id, qty_to_assign)]
-                    need_rereserve = True
+        quants_in_package_done = set()
+        for list_operation in list_operations_to_process:
+            print 'list_operation', list_operation
+            still_to_do, need_rereserve, prod2move_ids, quants_in_package_done = self.pool.get('stock.picking'). \
+                process_operations_for_transfer(cr, uid, list_operation, need_rereserve, still_to_do, prod2move_ids,
+                                                quants_in_package_done, context=context)
 
         # 2) then, process the remaining part
         all_op_processed = True
         for ops, product_id, remaining_qty in still_to_do:
-            all_op_processed = _create_link_for_product(ops.id, product_id, remaining_qty) and all_op_processed
+            result_comp, prod2move_ids = picking_obj. \
+                _create_link_for_product(cr, uid, prod2move_ids, ops.id, product_id, remaining_qty, context=context)
+            all_op_processed = all_op_processed and result_comp
 
         if context.get("test_transfer"):
             test = super(StockPicking, self).recompute_remaining_qty(cr, uid, picking, context=context)
@@ -1083,7 +1109,8 @@ class StockInventoryLine(models.Model):
                          precision_rounding=inventory_line.product_id.uom_id.rounding) > 0:
             domain = [('qty', '>', 0.0), ('package_id', '=', inventory_line.package_id.id),
                       ('lot_id', '=', inventory_line.prod_lot_id.id),
-                      ('location_id', '=', inventory_line.location_id.id)]
+                      ('location_id', '=', inventory_line.location_id.id),
+                      ('product_id', '=', inventory_line.product_id.id)]
             not_reserved_quants = self.env['stock.quant'].search(domain + [('reservation_id', '=', False)])
             not_reserved_qty = sum([quant.qty for quant in not_reserved_quants])
             if float_compare(not_reserved_qty, inventory_line.theoretical_qty - inventory_line.product_qty,

@@ -29,18 +29,18 @@ class StockReservationPriorityStockMove(models.Model):
         to_assign_ids = self and self.ids or []
         moves_to_assign = self.search([('id', 'in', to_assign_ids)], order='priority asc, date desc, id desc')
         moves_to_assign = moves_to_assign.read(
-            ['id', 'location_id', 'product_id', 'priority', 'date', 'product_uom_qty'], load=False)
+            ['id', 'location_id', 'product_id', 'priority', 'date', 'product_qty'], load=False)
         for move_to_assign in moves_to_assign:
             available_quants = self.env['stock.quant']. \
-                                search([('location_id', 'child_of', move_to_assign['location_id']),
-                                        ('product_id', '=', move_to_assign['product_id']),
-                                        ('reservation_id', '=', False)])
+                search([('location_id', 'child_of', move_to_assign['location_id']),
+                        ('product_id', '=', move_to_assign['product_id']),
+                        ('reservation_id', '=', False)])
             available_quants = available_quants.read(['qty'], load=False)
             available_qty = sum([quant['qty'] for quant in available_quants])
             reserved_quants = self.env['stock.quant']. \
-                                search([('location_id', 'child_of', move_to_assign['location_id']),
-                                        ('product_id', '=', move_to_assign['product_id']),
-                                        ('reservation_id', '!=', False)])
+                search([('location_id', 'child_of', move_to_assign['location_id']),
+                        ('product_id', '=', move_to_assign['product_id']),
+                        ('reservation_id', '!=', False)])
             reserved_quants = reserved_quants.read(['reservation_id'], load=False)
             reservation_ids = [quant['reservation_id'] for quant in reserved_quants]
             running_moves_ordered_reverse = self.env['stock.move']. \
@@ -48,15 +48,16 @@ class StockReservationPriorityStockMove(models.Model):
                         '|', ('priority', '<', move_to_assign['priority']),
                         '&', ('priority', '=', move_to_assign['priority']), ('date', '>', move_to_assign['date'])],
                        order='priority asc, date desc, id desc')
-            running_moves_ordered_reverse = running_moves_ordered_reverse.read(['id', 'product_uom_qty'], load=False)
+            running_moves_ordered_reverse = running_moves_ordered_reverse.read(['id', 'product_qty'], load=False)
             moves_to_unreserve = []
             for move_to_unreserve in running_moves_ordered_reverse:
-                if move_to_unreserve['id'] == move_to_assign['id'] or \
-                                available_qty >= move_to_assign['product_uom_qty']:
+                if available_qty >= move_to_assign['product_qty']:
                     break
-                available_qty += move_to_unreserve['product_uom_qty']
+                if move_to_unreserve['id'] == move_to_assign['id']:
+                    continue
+                available_qty += move_to_unreserve['product_qty']
                 moves_to_unreserve += [move_to_unreserve['id']]
-                if available_qty > move_to_assign['product_uom_qty']:
+                if available_qty > move_to_assign['product_qty']:
                     to_assign_ids += [move_to_unreserve['id']]
             if moves_to_unreserve:
                 moves_to_unreserve = self.env['stock.move'].browse(moves_to_unreserve)
