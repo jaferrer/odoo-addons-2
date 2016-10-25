@@ -6,13 +6,14 @@ from collections import deque
 from openerp.tools.misc import find_in_path
 import base64
 from datetime import datetime
+import urllib
 
 
 class WebCalendarExporter(http.Controller):
 
     @http.route('/web_calendar_export/export_calendar', type='http', auth="user")
     def export_calendar(self, data, token):
-        data = base64.decodestring(data)
+        data = urllib.unquote(base64.decodestring(data)).decode('UTF-8')
 
         contenthtml = u"""<html><head>
         <link type="text/css" href="/website/static/src/less/web.assets_backend/import_bootstrap.less.css"  rel="stylesheet">
