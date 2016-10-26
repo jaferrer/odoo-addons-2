@@ -82,8 +82,7 @@ class TrackingLabelStockQuantPackage(models.Model):
         ctx = self.env.context.copy()
         ctx['default_partner_id'] = self.partner_id and self.partner_id.id or False
         ctx['default_direction'] = 'to_customer'
-        # TODO: calculer le poids du picking
-        ctx['default_weight'] = 1
+        ctx['default_weight'] = sum([pack.weight for pack in self])
         ctx['default_package_ids'] = [(6, 0, self.ids)]
         return {
             'name': _("Generate tracking label for package %s") % self.name,
