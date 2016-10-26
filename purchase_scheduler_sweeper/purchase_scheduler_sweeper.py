@@ -67,16 +67,16 @@ class SweeperPurchaseOrder(models.Model):
     def sweep(self):
         _logger.info(_("<<< Started chunk of %s purchase orders to sweep") % len(self))
         line_to_delete = self.env['purchase.order.line']
-        locs_to_check = self.env['stock.location']
+        procs_to_run = self.env['procurement.order']
         for order in self:
-            locs_to_check |= order.location_id
             for line in order.order_line:
                 # Clean line
                 if line.procurement_ids and line.state == 'draft':
                     line_to_delete |= line
+                    procs_to_run |= line.procurement_ids
         line_to_delete.unlink()
         # Rerun procurements
-        dom = [('location_id', 'in', locs_to_check.ids), ('state', '=', 'exception')]
+        dom = [('id', 'in', procs_to_run.ids)]
         run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
                                         'run', self.env.context)
         # Now delete empty purchase orders
