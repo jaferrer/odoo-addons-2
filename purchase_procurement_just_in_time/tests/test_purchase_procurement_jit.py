@@ -708,7 +708,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         test_decreasing_line_qty(line, 1, 3, [0, 0, 1])
         test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3]])
         line.product_qty = 0
-        self.assertFalse(line.move_ids.filtered(lambda move: move != 'cancel'))
+        self.assertFalse(line.move_ids.filtered(lambda m: m != 'cancel'))
 
     def test_60_purchase_procurement_jit(self):
 
