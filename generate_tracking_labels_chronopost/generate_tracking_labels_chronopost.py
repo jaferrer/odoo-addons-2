@@ -29,9 +29,10 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
 
     client_pre_alert_chronopost = fields.Selection([('0', u"Pas de préalerte"),
                                                     ('11', u"Abonnement tracking expéditeur")],
-                                        string=u"Pré-alerte Chronopost pour le client", default='0')
+                                                   string=u"Pré-alerte Chronopost pour le client", default='0',
+                                                   required=True)
     mode_retour = fields.Selection([('1', u"Oui"), ('2', u"Non")],
-                                   string=u"Envoyer l'étiquette par mail à l'expéditeur", default='2')
+                                   string=u"Envoyer l'étiquette par mail à l'expéditeur", default='2', required=True)
     insured_value = fields.Integer(string=u"Valeur assurée (en centimes €)")
     cod_value = fields.Integer(string=u"Valeur du contre-remboursement (en centimes €)")
     custom_value = fields.Integer(string=u"Valeur déclarée en douane (en centimes €)")
@@ -41,9 +42,9 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                                 ('3', u"Mercredi"),
                                 ('4', u"Jeudi"),
                                 ('5', u"Vendredi"),
-                                ('6', u"Samedi")], string=u"Jour de la livraison", default='0')
+                                ('6', u"Samedi")], string=u"Jour de la livraison", default='0', required=True)
     object_type = fields.Selection([('MAR', u"Marchandise"),
-                                    ('DOC', u"Document")], string=u"Type de colis", default='MAR')
+                                    ('DOC', u"Document")], string=u"Type de colis", default='MAR', required=True)
 
     @api.model
     def default_get(self, fields):
@@ -67,22 +68,34 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             shipper_civility = 'M'
         return shipper_civility
 
-
     @api.multi
     def generate_label(self):
         result = super(GenerateTrackingLabelsWizardChronopost, self).generate_label()
         if self.transporter_id == self.env.ref('base_delivery_tracking_chronopost.transporter_chronopost'):
             company = self.env['res.users'].browse(self.env.uid).company_id
-            account_number = self.env['ir.config_parameter'].\
+            account_number = self.env['ir.config_parameter']. \
                 get_param('generate_tracking_labels_chronopost.login_chronopost', default='')
-            password = self.env['ir.config_parameter'].\
+            password = self.env['ir.config_parameter']. \
                 get_param('generate_tracking_labels_chronopost.password_chronopost', default='')
             company_pre_alert_chronopost = self.env['ir.config_parameter']. \
                 get_param('generate_tracking_labels_chronopost.pre_alert_chronopost', default='')
             if not account_number or not password:
                 raise UserError(u"Veuillez remplir la configuration Chronopost")
 
-            #TODO: ajouter champs
+            # evc_code : valeur unique
+            packages_data = self.env.context.get('packages_data')
+            if not packages_data:
+                packages_data = [{
+                    'weight': self.weight,
+                    'insured_value': self.insured_value,
+                    'cod_value': self.cod_value,
+                    'custom_value': self.custom_value,
+                    'height': 0,
+                    'lenght': 0,
+                    'width': 0,
+                }]
+
+            # TODO: ajouter champs
             closing_date_time = ''
             retrieval_date_time = ''
             shipper_building_floor = ''
@@ -113,8 +126,8 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             company_phone = company.phone
             company_mobile_phone = company.partner_id.mobile
             company_email = company.email
-            company_description = (company_name_1 or '', company_civility or '', company_name_2 or '', shipper_name or '',
-                            company_adress_1 or '',)
+            company_description = (company_name_1 or '', company_civility or 'M', company_name_2 or '',
+                                   shipper_name or '', company_adress_1 or '',)
             company_adress_data = (company_zip or '', company_city or '', company_country or '',
                                    company_country_name or '', company_phone or '', company_mobile_phone or '',
                                    company_email or '', company_pre_alert_chronopost or '0')
@@ -133,7 +146,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             customer_mobile_phone = self.mobile_number
             customer_email = self.email
             customer_pre_alert = self.client_pre_alert_chronopost or '0'
-            customer_description = (customer_name_1, customer_name_2 or '', customer_civility or '',
+            customer_description = (customer_name_1,customer_civility or 'M', customer_name_2 or '',
                                     shipper_name_2 or '', customer_adress_1 or '',)
             customer_adress_data = (customer_zip or '', customer_city or '', customer_country or '',
                                     customer_country_name or '', customer_phone or '', customer_mobile_phone or '',
@@ -147,8 +160,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             customer_sky_bill_number = ''
             ref_value = (self.sender_parcel_ref or '', recipient_ref or '', customer_sky_bill_number or '')
 
-            # TODO: calculer valeurs
-            number_of_parcel = 1
+            number_of_parcel = len(packages_data)
             multi_parcel = number_of_parcel == 1 and 'N' or 'Y'
             final_data = (password or '', self.mode_retour or '', number_of_parcel, multi_parcel or '')
 
@@ -156,6 +168,14 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                           shipper_carries_code or '', shipper_service_direction or '', specific_instructions or '',
                           height, length, width, it_a_imprimer_par_chronopost or '',
                           nombre_de_passage_maximum, ref_eds_client or '')
+
+            shipper_description = self.direction == 'to_customer' and company_description or customer_description
+            shipper_adress_2 = self.direction == 'to_customer' and company_adress_2 or customer_adress_2
+            shipper_adress_data = self.direction == 'to_customer' and company_adress_data or customer_adress_data
+
+            recipient_description = self.direction == 'from_customer' and company_description or customer_description
+            recipient_adress_2 = self.direction == 'from_customer' and company_adress_2 or customer_adress_2
+            recipient_adress_data = self.direction == 'from_customer' and company_adress_data or customer_adress_data
 
             xml_post_parameter = u"""
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:cxf="http://cxf.shipping.soap.chronopost.fr/">
@@ -183,17 +203,16 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             <identWebPro></identWebPro>
             <subAccount>%s</subAccount>
          </headerValue>""" % header_values
-            for item in range(number_of_parcel):
-                xml_post_parameter += u"""
+            xml_post_parameter += u"""
          <shipperValue>
 	        <shipperName>%s</shipperName>
 	        <shipperCivility>%s</shipperCivility>
             <shipperContactName>%s</shipperContactName>
             <shipperName2>%s</shipperName2>
-	        <shipperAdress1>%s</shipperAdress1>""" % company_description
+	        <shipperAdress1>%s</shipperAdress1>""" % shipper_description
             if company_adress_2:
                 xml_post_parameter += u"""
-            <shipperAdress2>%s</shipperAdress2>""" % company_adress_2
+            <shipperAdress2>%s</shipperAdress2>""" % shipper_adress_2
             xml_post_parameter += u"""
             <shipperZipCode>%s</shipperZipCode>
             <shipperCity>%s</shipperCity>
@@ -203,7 +222,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             <shipperMobilePhone>%s</shipperMobilePhone>
             <shipperEmail>%s</shipperEmail>
             <shipperPreAlert>%s</shipperPreAlert>
-         </shipperValue>""" % company_adress_data
+         </shipperValue>""" % shipper_adress_data
             xml_post_parameter += u"""
          <customerValue>
 	        <customerName>%s</customerName>
@@ -226,17 +245,16 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             xml_post_parameter += u"""
             <printAsSender>%s</printAsSender>
          </customerValue>""" % print_as_sender
-            for item in range(number_of_parcel):
-                xml_post_parameter += u"""
+            xml_post_parameter += u"""
          <recipientValue>
             <recipientName>%s</recipientName>
             <recipientName2>%s</recipientName2>
 	        <recipientCivility>%s</recipientCivility>
             <recipientContactName>%s</recipientContactName>
-            <recipientAdress1>%s</recipientAdress1>""" % customer_description
+            <recipientAdress1>%s</recipientAdress1>""" % recipient_description
             if customer_adress_2:
                 xml_post_parameter += u"""
-            <recipientAdress2>%s</recipientAdress2>""" % customer_adress_2
+            <recipientAdress2>%s</recipientAdress2>""" % recipient_adress_2
             xml_post_parameter += u"""
             <recipientZipCode>%s</recipientZipCode>
             <recipientCity>%s</recipientCity>
@@ -246,7 +264,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             <recipientMobilePhone>%s</recipientMobilePhone>
             <recipientEmail>%s</recipientEmail>
             <recipientPreAlert>%s</recipientPreAlert>
-         </recipientValue>""" % customer_adress_data
+         </recipientValue>""" % recipient_adress_data
             xml_post_parameter += u"""
          <refValue>
             <customerSkybillNumber>%s</customerSkybillNumber>
@@ -254,23 +272,17 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             <recipientRef>%s</recipientRef>
             <shipperRef>%s</shipperRef>
          </refValue>""" % ref_value
-            for item in range(number_of_parcel):
+            for pack_data in packages_data:
                 # evt_code : valeur fixe
                 evt_code = 'DC'
                 ship_date = fields.Datetime.now().replace(' ', 'T')
                 ship_hour = ship_date and ship_date[11:13]
-                weight = self.weight
-                insured_value = self.insured_value
-                cod_value = self.cod_value
-                custom_value = self.custom_value
                 service = self.service
                 object_type = self.object_type
-                height = 0
-                lenght = 0
-                width = 0
-                sky_bill_value = (cod_value or '',  custom_value or '', evt_code or '', insured_value or '',
-                                  object_type or '', self.produit_expedition_id.code or '', service or '', ship_date,
-                                  ship_hour or '', weight, height, lenght, width)
+                sky_bill_value = (pack_data['cod_value'] or '',  pack_data['custom_value'] or '', evt_code or '',
+                                  pack_data['insured_value'] or '', object_type or '',
+                                  self.produit_expedition_id.code or '', service or '', ship_date, ship_hour or '',
+                                  pack_data['weight'], pack_data['height'], pack_data['lenght'], pack_data['width'])
                 xml_post_parameter += u"""
          <skybillValue>
             <bulkNumber></bulkNumber>
@@ -300,8 +312,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             <length>%s</length>
             <width>%s</width>
          </skybillValue>""" % sky_bill_value
-            for item in range(number_of_parcel):
-                xml_post_parameter += u"""
+            xml_post_parameter += u"""
          <skybillParamsValue>
             <mode>%s</mode>
          </skybillParamsValue>""" % self.output_printing_type_id.code or ''
@@ -319,8 +330,8 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             headers = {"Content-Type": "text/xml; charset=UTF-8",
                        "Content-Length": len(encoded_request)}
             response = requests.post(url="https://www.chronopost.fr/shipping-cxf/ShippingServiceWS",
-                                     headers = headers,
-                                     data = encoded_request,
+                                     headers=headers,
+                                     data=encoded_request,
                                      verify=False)
             tracking_number = False
             if len(response.content.split('<reservationNumber>')) > 1 and \
@@ -336,12 +347,11 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                     return tracking_number, self.save_tracking_number, self.direction, False
             if response.content == '<html><body>No service was found.</body></html>':
                 raise UserError(u"Service non trouvé")
-            if '<soap:Fault>' in response.content:
-                for first_split in response.content.split('<soap:Fault>'):
-                    if '</soap:Fault>' in first_split:
-                        if len(first_split.split('<faultstring>')) == 2 and \
-                            len(first_split.split('<faultstring>')[1].split('</faultstring>')) == 2:
-                            raise UserError(ustr(first_split).split('<faultstring>')[1].split('</faultstring>')[0])
+            if len(response.content.split('<faultstring>')) > 1 and \
+                            len(response.content.split('<faultstring>')[1].split('</faultstring>')) > 1:
+                msg = ustr(response.content).split('<faultstring>')[1].split('</faultstring>')[0]
+                if msg:
+                    raise UserError(msg)
             if len(response.content.split('<errorMessage>')) == 2 and \
                             len(response.content.split('<errorMessage>')[1].split('</errorMessage>')) == 2:
                 msg = ustr(response.content).split('<errorMessage>')[1].split('</errorMessage>')[0]

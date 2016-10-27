@@ -164,6 +164,10 @@ class TrackingGenerateLabelsWizard(models.TransientModel):
         package = False
         if self.env.context.get('set_package_for_label'):
             package = self.env['stock.quant.package'].browse([self.env.context['set_package_for_label']])
+        elif self.package_ids:
+            self.package_ids.write({'binary_label': False, 'data_fname': False})
+            for package in self.package_ids:
+                package.tracking_label_attachment.unlink()
         if (self.picking_id or package) and tracking_number and save_tracking_number and self.transporter_id:
             self.env['tracking.number'].create({
                 'picking_id': self.picking_id and self.picking_id.id or False,
@@ -180,3 +184,9 @@ class TrackingGenerateLabelsWizard(models.TransientModel):
         for package in self.package_ids:
             self.weight = package.weight
             self.with_context(set_package_for_label=package.id).generate_label()
+
+    @api.multi
+    def generate_one_label_for_all_packages(self):
+        self.ensure_one()
+        # Function to overwrite for each transporter
+        return False
