@@ -28,13 +28,15 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
     @api.model
     def default_get(self, fields):
         defaults = super(GenerateTrackingLabelsWizardColissimo, self).default_get(fields)
-        printing_type = self.env['output.printing.type'].search([('code', '=', 'PDF_A4_300dpi')], limit=1)
-        if printing_type:
+        transporter_colissimo = self.env.ref('base_delivery_tracking_colissimo.transporter_colissimo')
+        if defaults.get('transporter_id') and defaults['transporter_id'] == transporter_colissimo.id:
+            printing_type = self.env.ref('generate_tracking_labels_colissimo.colissimo_type_A4')
             defaults['output_printing_type_id'] = printing_type.id
         return defaults
 
     @api.multi
     def generate_label(self):
+        result = super(GenerateTrackingLabelsWizardColissimo, self).generate_label()
         if self.transporter_id.name == 'Colissimo':
             company = self.env['res.users'].browse(self.env.uid).company_id
             contractNumber = self.env['ir.config_parameter'].\
@@ -214,4 +216,4 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                 raise exceptions.except_orm(u"Erreur !", u'Colissimo : ' + ustr(response.content).
                                             split('<messageContent>')[1].split('</messageContent>')[0])
             raise exceptions.except_orm(u"Erreur !", u"Impossible de générer l'étiquette")
-        return super(GenerateTrackingLabelsWizardColissimo, self).generate_label()
+        return result

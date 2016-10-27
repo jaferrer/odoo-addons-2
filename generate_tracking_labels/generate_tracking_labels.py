@@ -18,6 +18,7 @@
 #
 
 from openerp import models, api, fields
+from openerp.exceptions import UserError
 
 
 class GenerateTrackingLabelsWizard(models.TransientModel):
@@ -80,9 +81,9 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         if self.sale_order_id:
             self.partner_id = self.sale_order_id.partner_shipping_id
             self.weight = sum([l.product_id.weight * l.product_uom_qty for l in self.sale_order_id.order_line]) or 1
-            self.transportationAmount = (self.sale_order_id and int(self.sale_order_id.amount_total)) or 0
-            self.totalAmount = (self.sale_order_id and int(self.sale_order_id.amount_untaxed)) or 0
-            self.senderParcelRef = (self.sale_order_id and self.sale_order_id.name) or ''
+            self.transportation_amount = (self.sale_order_id and int(self.sale_order_id.amount_total)) or 0
+            self.total_amount = (self.sale_order_id and int(self.sale_order_id.amount_untaxed)) or 0
+            self.sender_parcel_ref = (self.sale_order_id and self.sale_order_id.name) or ''
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
@@ -97,7 +98,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             self.city = self.partner_id.city or ''
             self.zip = self.partner_id.zip or ''
             self.phone_number = (self.partner_id.phone and self.partner_id.phone.replace(' ', '').replace('-', '') or '')
-            self.mobile_nulber = self.partner_id.mobile or ''
+            self.mobile_number = self.partner_id.mobile or ''
             self.email = self.partner_id.email or ''
 
     @api.onchange('country_id')
@@ -118,6 +119,12 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     @api.multi
     def generate_label(self):
         self.ensure_one()
+        if self.output_printing_type_id.transporter_id != self.transporter_id:
+            raise UserError(u"Format %s inconnu pour le transporteur %s" %
+                            (self.output_printing_type_id.name, self.transporter_id.name))
+        elif self.produit_expedition_id.transporter_id != self.transporter_id:
+            raise UserError(u"Produit %s inconnu pour le transporteur %s" %
+                            (self.produit_expedition_id.name, self.transporter_id.name))
         return [''] * 4
 
 

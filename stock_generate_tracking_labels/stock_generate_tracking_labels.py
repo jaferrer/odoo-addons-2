@@ -175,7 +175,7 @@ class TrackingGenerateLabelsWizard(models.TransientModel):
         return tracking_number, save_tracking_number, direction, url
 
     @api.multi
-    def generate_label_for_packages(self):
+    def generate_one_label_for_each_package(self):
         self.ensure_one()
         for package in self.package_ids:
             self.weight = package.weight

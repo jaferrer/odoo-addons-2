@@ -21,7 +21,7 @@
                         <field name="total_amount"/>
                         <field name="sender_parcel_ref"/>
                     </group>
-                    <separator string="Données colis"/>
+                    <separator name="donnees_colis" string="Données colis"/>
                     <group>
                         <group>
                             <field name="produit_expedition_id"  domain="[('transporter_id', '=', transporter_id)]"/>
@@ -36,7 +36,7 @@
                             <field name="instructions"/>
                         </group>
                     </group>
-                    <separator string="Données client"/>
+                    <separator name="donnees_client" string="Données client"/>
                     <group>
                         <group>
                             <field name="sale_order_id"/>
