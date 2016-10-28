@@ -35,6 +35,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
 
     @api.multi
     def generate_label(self):
+        result = super(GenerateTrackingLabelsWizardColissimo, self).generate_label()
         if self.transporter_id.name == 'Colissimo':
             company = self.env['res.users'].browse(self.env.uid).company_id
             contractNumber = self.env['ir.config_parameter'].\
@@ -214,4 +215,4 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                 raise exceptions.except_orm(u"Erreur !", u'Colissimo : ' + ustr(response.content).
                                             split('<messageContent>')[1].split('</messageContent>')[0])
             raise exceptions.except_orm(u"Erreur !", u"Impossible de générer l'étiquette")
-        return super(GenerateTrackingLabelsWizardColissimo, self).generate_label()
+        return result

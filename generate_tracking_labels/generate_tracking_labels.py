@@ -17,9 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api, fields, exceptions, _
-import requests
-from openerp.tools import ustr
+from openerp import models, api, fields, exceptions
 
 
 class GenerateTrackingLabelsWizard(models.TransientModel):
@@ -33,10 +31,11 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     save_tracking_number = fields.Boolean(string=u"Enregistrer le numéro de suivi pour l'objet courant", default=True)
     transportation_amount = fields.Float(string=u"Prix du transport", help=u"En euros")
     total_amount = fields.Float(string=u"Prix TTC de l’envoi", help=u"En euros")
-    sender_parcel_ref = fields.Char(string=u"Référence client", help=u"Numéro de commande tel que renseigné dans votre SI"
-                                                               u" Peut être utile pour rechercher des colis selon ce "
-                                                               u"champ sur le suivi ColiView (apparaît dans le champ "
-                                                               u"'Réf. client')")
+    sender_parcel_ref = fields.Char(string=u"Référence client",
+                                    help=u"Numéro de commande tel que renseigné dans votre SI"
+                                         u" Peut être utile pour rechercher des colis selon ce "
+                                         u"champ sur le suivi ColiView (apparaît dans le champ "
+                                         u"'Réf. client')")
     sale_order_id = fields.Many2one('sale.order', string=u"Commande client")
     partner_id = fields.Many2one('res.partner', string=u"Adresse")
     company_name = fields.Char(string=u"Raison sociale", required=True)
@@ -58,19 +57,19 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     language = fields.Char(string=u"Langue", default='FR', required=True)
     adressee_parcel_ref = fields.Char(string=u"Référence colis pour destinataire")
     code_bar_for_reference = fields.Selection([('false', 'Non'), ('true', 'Oui')], string=u"Afficher code barre",
-                                           default='false', help=u"Pour les bordereaux retours uniquement")
+                                              default='false', help=u"Pour les bordereaux retours uniquement")
     service_info = fields.Char(string=u"Nom du service de réception retour",
-                              help=u"Pour les bordereaux retours uniquement")
+                               help=u"Pour les bordereaux retours uniquement")
     instructions = fields.Char(string=u"Motif du retour")
     weight = fields.Float(string=u"Poids du colis", required=True, help=u"En kg")
     output_printing_type_id = fields.Many2one('output.printing.type', string=u"Format de l'étiquette")
     return_type_choice = fields.Selection([('2', u"Retour payant en prioritaire"),
-                                         ('3', u"Ne pas retourner")],
-                                        string=u"Retour à l'expéditeur", default='3')
+                                           ('3', u"Ne pas retourner")],
+                                          string=u"Retour à l'expéditeur", default='3')
     produit_expedition_id = fields.Many2one('type.produit.expedition', string=u"Produit souhaité", required=True)
     non_machinable = fields.Selection([('false', "Dimensions standards"),
-                                      ('true', "Dimensions non standards")],
-                                     string="Dimensions", default='false')
+                                       ('true', "Dimensions non standards")],
+                                      string="Dimensions", default='false')
     ftd = fields.Selection([('false', "Auto"), ('true', "Manuel")],
                            string=u"Droits de douane", default='false',
                            help=u"Sélectionnez manuel vous souhaitez prendre à votre charge les droits de douanes en "
@@ -83,9 +82,9 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         if self.sale_order_id:
             self.partner_id = self.sale_order_id.partner_shipping_id
             self.weight = sum([l.product_id.weight * l.product_uom_qty for l in self.sale_order_id.order_line]) or 1
-            self.transportationAmount = (self.sale_order_id and int(self.sale_order_id.amount_total)) or 0
-            self.totalAmount = (self.sale_order_id and int(self.sale_order_id.amount_untaxed)) or 0
-            self.senderParcelRef = (self.sale_order_id and self.sale_order_id.name) or ''
+            self.transportation_amount = (self.sale_order_id and int(self.sale_order_id.amount_total)) or 0
+            self.total_amount = (self.sale_order_id and int(self.sale_order_id.amount_untaxed)) or 0
+            self.sender_parcel_ref = (self.sale_order_id and self.sale_order_id.name) or ''
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
@@ -100,8 +99,9 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             self.line3 = self.partner_id.street2 or ''
             self.city = self.partner_id.city or ''
             self.zip = self.partner_id.zip or ''
-            self.phone_number = (self.partner_id.phone and self.partner_id.phone.replace(' ', '').replace('-', '') or '')
-            self.mobile_nulber = self.partner_id.mobile or ''
+            self.phone_number = (
+                self.partner_id.phone and self.partner_id.phone.replace(' ', '').replace('-', '') or '')
+            self.mobile_number = self.partner_id.mobile or ''
             self.email = self.partner_id.email or ''
 
     @api.onchange('country_id')
@@ -122,6 +122,12 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     @api.multi
     def generate_label(self):
         self.ensure_one()
+        if self.output_printing_type_id.transporter_id != self.transporter_id:
+            raise exceptions.except_orm(u"Erreur !", u"Format %s inconnu pour le transporteur %s" %
+                                        (self.output_printing_type_id.name, self.transporter_id.name))
+        elif self.produit_expedition_id.transporter_id != self.transporter_id:
+            raise exceptions.except_orm(u"Erreur !", u"Produit %s inconnu pour le transporteur %s" %
+                                        (self.produit_expedition_id.name, self.transporter_id.name))
         return [''] * 4
 
 
