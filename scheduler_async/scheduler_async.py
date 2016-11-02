@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import api, models, exceptions
+from openerp import api, models
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 
@@ -48,19 +48,15 @@ def run_or_check_procurements(session, model_name, domain, action, context):
     proc_obj = session.env[model_name].with_context(context)
     prev_procs = proc_obj
     while True:
-        procs = proc_obj.sudo().search(domain, limit=PROC_CHUNK)
+        procs = proc_obj.sudo().search(domain)
         if not procs or prev_procs == procs:
             break
         else:
             prev_procs = procs
-        try:
-            if action == 'run':
-                procs.sudo().run(autocommit=True)
-            elif action == 'check':
-                procs.sudo().check(autocommit=True)
-        except exceptions.MissingError:
-            session.rollback()
-            continue
+        if action == 'run':
+            procs.sudo().run(autocommit=True)
+        elif action == 'check':
+            procs.sudo().check(autocommit=True)
         session.commit()
 
 
