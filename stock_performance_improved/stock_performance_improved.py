@@ -631,6 +631,139 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                 raise osv.except_osv('test temps do_transfer!', "recompute_remaining_qty")
         return (need_rereserve, all_op_processed)
 
+    @api.model
+    def add_packop_values(self, vals, prevals):
+        self.ensure_one()
+        processed_products = set()
+        for move in [x for x in self.move_lines if x.state not in ('done', 'cancel')]:
+            if move.product_id.id not in processed_products:
+                vals += prevals.get(move.product_id.id, [])
+                processed_products.add(move.product_id.id)
+        return vals
+
+    @api.multi
+    def recalculate_forced_qties_with_uom(self):
+        forced_qties = {}  # Quantity remaining after calculating reserved quants
+        picking_quants = []
+        for move in self.move_lines:
+            if move.state not in ('assigned', 'confirmed', 'waiting'):
+                continue
+            move_quants = move.reserved_quant_ids
+            picking_quants += move_quants
+            forced_qty = 0
+            if move.state == 'assigned':
+                forced_qty = move.product_uom_qty
+                for quant in move_quants:
+                    forced_qty -= move.product_id.uom_id._compute_qty_obj(move.product_id.uom_id, quant.qty,
+                                                                          move.product_uom)
+            # if we used force_assign() on the move, or if the move is incoming, forced_qty > 0
+            if float_compare(forced_qty, 0, precision_rounding=move.product_id.uom_id.rounding) > 0:
+                key = (move.product_id, move.product_uom)
+                if forced_qties.get(key):
+                    forced_qties[key] += forced_qty
+                else:
+                    forced_qties[key] = forced_qty
+        return forced_qties, picking_quants
+
+    @api.model
+    def _prepare_pack_ops(self, picking, quants, forced_qties):
+        """ returns a list of dict, ready to be used in create() of stock.pack.operation."""
+
+        def _picking_putaway_apply(product):
+            # Search putaway strategy
+            if product_putaway_strats.get(product.id):
+                location = product_putaway_strats[product.id]
+            else:
+                location = self.env['stock.location'].get_putaway_strategy(picking.location_dest_id, product)
+                product_putaway_strats[product.id] = location
+            return location or picking.location_dest_id.id
+
+        # Let's recalculate forced qties to get initial UOMs
+        forced_qties, picking_quants = picking.recalculate_forced_qties_with_uom()
+
+        # If we encounter an UoM that is smaller than the default UoM or the one already chosen, use the new one.
+        location_dest_id = None
+        location_id = None
+        for move in [x for x in picking.move_lines if x.state not in ('done', 'cancel')]:
+            if not move.scrapped:
+                if location_dest_id and move.location_dest_id.id != location_dest_id:
+                    raise Warning(_('The destination location must be the same for all the moves of the picking.'))
+                location_dest_id = move.location_dest_id.id
+                if location_id and move.location_id.id != location_id:
+                    raise Warning(_('The source location must be the same for all the moves of the picking.'))
+                location_id = move.location_id.id
+
+        vals = []
+        qtys_grouped = {}
+        # for each quant of the picking, find the suggested location
+        quants_suggested_locations = {}
+        product_putaway_strats = {}
+        for quant in quants:
+            if quant.qty <= 0:
+                continue
+            suggested_location_id = _picking_putaway_apply(quant.product_id)
+            quants_suggested_locations[quant] = suggested_location_id
+
+        # find the packages we can movei as a whole
+        top_lvl_packages = self._get_top_level_packages(quants_suggested_locations)
+        # and then create pack operations for the top-level packages found
+        for pack in top_lvl_packages:
+            pack_quants = self.env['stock.quant'].browse(pack.get_content())
+            vals.append({
+                'picking_id': picking.id,
+                'package_id': pack.id,
+                'product_qty': 1.0,
+                'location_id': pack.location_id.id,
+                'location_dest_id': quants_suggested_locations[pack_quants[0]],
+                'owner_id': pack.owner_id.id,
+            })
+            # remove the quants inside the package so that they are excluded from the rest of the computation
+            for quant in pack_quants:
+                del quants_suggested_locations[quant]
+
+        # Go through all remaining reserved quants and group by product, package, lot, owner, source location and dest
+        # location
+        for quant, dest_location_id in quants_suggested_locations.items():
+            key = (quant.product_id.id, quant.package_id.id, quant.lot_id.id, quant.owner_id.id, quant.location_id.id,
+                   dest_location_id, quant.product_id.uom_id.id)
+            if qtys_grouped.get(key):
+                qtys_grouped[key] += quant.qty
+            else:
+                qtys_grouped[key] = quant.qty
+
+        # Do the same for the forced quantities (in cases of force_assign or incomming shipment for example)
+        for (product, uom), qty in forced_qties.items():
+            if qty <= 0:
+                continue
+            suggested_location_id = _picking_putaway_apply(product)
+            key = (product.id, False, False, picking.owner_id.id, picking.location_id.id, suggested_location_id, uom.id)
+            if qtys_grouped.get(key):
+                qtys_grouped[key] += qty
+            else:
+                qtys_grouped[key] = qty
+
+        # Create the necessary operations for the grouped quants and remaining qtys
+        prevals = {}
+        for key, qty in qtys_grouped.items():
+            val_dict = {
+                'picking_id': picking.id,
+                'product_qty': qty,
+                'product_id': key[0],
+                'package_id': key[1],
+                'lot_id': key[2],
+                'owner_id': key[3],
+                'location_id': key[4],
+                'location_dest_id': key[5],
+                'product_uom_id': key[6],
+            }
+            if key[0] in prevals:
+                prevals[key[0]].append(val_dict)
+            else:
+                prevals[key[0]] = [val_dict]
+        # prevals var holds the operations in order to create them in the same order than the picking stock moves if
+        # possible
+        return picking.add_packop_values(vals, prevals)
+
     @api.cr_uid_context
     def _get_top_level_packages(self, cr, uid, quants_suggested_locations, context=None):
         """This method searches for the higher level packages that can be moved as a single operation, given a list of quants
