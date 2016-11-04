@@ -20,6 +20,7 @@
 from openerp import fields, models, api, _
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
+from openerp.tools import float_round, float_compare
 
 
 @job
@@ -109,3 +110,22 @@ class MoUpdateMrpProduction(models.Model):
     @api.model
     def run_schedule_button_update(self):
         run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', self.env.context)
+
+
+class UpdateChangeProductionQty(models.TransientModel):
+    _inherit = 'change.production.qty'
+
+    @api.multi
+    def change_prod_qty(self):
+        for rec in self:
+            if self.env.context.get('active_id'):
+                order = self.env['mrp.production'].browse(self.env.context.get('active_id'))
+                # Check raw material moves
+                if order.bom_id and float_compare(order.product_qty, rec.product_qty,
+                                                  precision_rounding=order.product_id.uom_id.rounding) != 0:
+                    order.product_qty = rec.product_qty
+                    order.button_update()
+                # Check production moves
+                if order.move_prod_id:
+                    order.move_prod_id.write({'product_uom_qty': rec.product_qty})
+                self._update_product_to_produce(order, rec.product_qty)

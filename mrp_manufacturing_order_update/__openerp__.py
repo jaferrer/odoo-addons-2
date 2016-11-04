@@ -34,7 +34,7 @@ It also allows to update a manufacturing order after a modification of the BOM u
     'data': ['manufacturing_order_update.xml',
              'cron.xml'],
     'demo': [
-        'test_manufacturing_order_update.xml'
+        'tests/test_manufacturing_order_update.xml'
     ],
     'test': [],
     'installable': True,
