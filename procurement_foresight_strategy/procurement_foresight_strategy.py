@@ -53,6 +53,8 @@ class StockWarehouse(models.Model):
         if self.fill_strategy == 'max':
             return self.product_max_qty_operator
         else:
+            if not date:
+                return 0
             search_end_date = self.location_id.schedule_working_days(self.fill_duration + 1, date)
             moves = self.env['stock.move'].search([('product_id', '=', self.product_id.id),
                                                    ('location_id', '=', self.location_id.id),
