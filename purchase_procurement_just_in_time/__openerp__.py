@@ -58,8 +58,10 @@ Notes
     'data': [
         'views/res_config_view.xml',
         'views/purchase_procurement_jit.xml',
+        'views/purchase.xml',
+        'views/wizard.xml',
     ],
-    'demo': ['test_purchase_procurement_jit.xml'],
+    'demo': ['tests/test_purchase_procurement_jit.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,
