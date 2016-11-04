@@ -32,7 +32,7 @@ class TestFixNullQuants(common.TransactionCase):
         qty = 0.0001
         self.assertEqual(float_compare(qty, 0, precision_rounding=self.test_product.uom_id.rounding), 0)
         quant = self.test_quant._quant_split(self.test_quant, qty)
-        self.assertEqual(quant, self.test_quant)
+        self.assertFalse(quant)
         self.assertEqual(self.test_quant.qty, 10)
 
     def test_20_split_quasi_entire_quant(self):

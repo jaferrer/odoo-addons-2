@@ -26,8 +26,9 @@ class FixNullQuantsStockQuant(models.Model):
 
     @api.model
     def _quant_split(self, quant, qty):
-        # Is split qty is almost 0, we return the old quant (instead of creating a new one)
+        # Is split qty is almost 0, we return an empty quant recordset
+        # We will have to check if this does not break stock_account
         if float_compare(qty, 0, precision_rounding=quant.product_id.uom_id.rounding) == 0:
-            return quant
+            return self.env['stock.quant']
         else:
             return super(FixNullQuantsStockQuant, self)._quant_split(quant, qty)
