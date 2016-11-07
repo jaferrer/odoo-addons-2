@@ -19,8 +19,9 @@
 #
 
 from openerp import models, fields, api, exceptions, _
+from openerp.tools import float_compare
 from openerp.tools.sql import drop_view_if_exists
-from openerp.tools import float_compare, float_round
+from openerp.exceptions import UserError
 
 
 class StockQuant(models.Model):
@@ -55,19 +56,30 @@ class StockQuant(models.Model):
         return list_reservations
 
     @api.model
-    def get_corresponding_moves(self, product, location_from, dest_location, picking_type_id, limit=False,
-                                id_not_in=False):
-        domain = [('product_id', '=', product.id),
+    def get_corresponding_moves(self, quant, location_from, dest_location, picking_type_id, limit=False,
+                                force_domain=False):
+        domain = [('product_id', '=', quant.product_id.id),
                   ('state', 'not in', ['draft', 'done', 'cancel']),
                   ('location_id', '=', location_from.id),
                   ('location_dest_id', '=', dest_location.id),
-                  ('picking_type_id', '=', picking_type_id.id)] + (id_not_in and [('id', 'not in', id_not_in)] or [])
-        return self.env['stock.move'].search(domain, order='priority desc, date asc, id', limit=limit)
+                  ('picking_type_id', '=', picking_type_id.id)]
+        if force_domain:
+            domain += force_domain
+        moves = self.env['stock.move'].search(domain)
+        moves_correct_chain = moves.filtered(lambda move: move in quant.history_ids or
+                                                          any([sm in quant.history_ids for sm in move.move_orig_ids]))
+        moves_correct_chain = self.env['stock.move'].search([('id', 'in', moves_correct_chain.ids)],
+                                                            order='priority desc, date asc, id')
+        moves_no_ancestors = moves.filtered(lambda move: move not in quant.history_ids and not move.move_orig_ids)
+        moves_no_ancestors = self.env['stock.move'].search([('id', 'in', moves_no_ancestors.ids)],
+                                                           order='priority desc, date asc, id')
+        return self.env['stock.move'].search([('id', 'in', moves_correct_chain.ids + moves_no_ancestors.ids)],
+                                             limit=limit)
 
     @api.model
     def unreserve_quants_wrong_moves(self, list_reservations, location_from, dest_location, picking_type_id):
         for quant_tuple in list_reservations:
-            corresponding_moves = self.get_corresponding_moves(quant_tuple[0].product_id, location_from, dest_location,
+            corresponding_moves = self.get_corresponding_moves(quant_tuple[0], location_from, dest_location,
                                                                picking_type_id)
             if quant_tuple[0].reservation_id and quant_tuple[0].reservation_id not in corresponding_moves:
                 quant_tuple[0].reservation_id.do_unreserve()
@@ -101,7 +113,7 @@ class StockQuant(models.Model):
         if not_reserved_tuples:
             done_move_ids = []
             dict_reservations = {}
-            first_corresponding_move = self.get_corresponding_moves(not_reserved_tuples[0][0].product_id,
+            first_corresponding_move = self.get_corresponding_moves(not_reserved_tuples[0][0],
                                                                     location_from, dest_location,
                                                                     picking_type_id, limit=1)
             while not_reserved_tuples and first_corresponding_move:
@@ -132,9 +144,10 @@ class StockQuant(models.Model):
                     not_reserved_tuples += [(splitted_quant, qty - reservable_qty_on_move)]
                     done_move_ids += [first_corresponding_move.id]
                 move_recordset |= first_corresponding_move
-                first_corresponding_move = self.get_corresponding_moves(quant.product_id, location_from, dest_location,
+                force_domain = [('id', 'not in', done_move_ids)]
+                first_corresponding_move = self.get_corresponding_moves(quant, location_from, dest_location,
                                                                         picking_type_id, limit=1,
-                                                                        id_not_in=done_move_ids)
+                                                                        force_domain=force_domain)
                 not_reserved_tuples = not_reserved_tuples[1:]
             # Let's split the move which are not entirely_used
             for move in dict_reservations:
@@ -230,7 +243,7 @@ class StockQuant(models.Model):
                     location_from = move_items[product][0]['quants'][0].location_id
                     # We determine the needs
                     list_reservations = self.determine_list_reservations(product, move_items)
-                    # Wr try to use existing moves
+                    # For not reserved quants, we try to use existing moves
                     move_recordset, quants_to_move_in_fine = self.env['stock.quant']. \
                         check_moves_ok(list_reservations, location_from, dest_location, picking_type_id,
                                        move_recordset, new_picking)
@@ -255,6 +268,8 @@ class StockQuant(models.Model):
                     move.linked_move_operation_ids.unlink()
             new_picking.do_prepare_partial()
             if not is_manual_op:
+                # If the transfer is not manual, we do not want the putaway strategies to be applied.
+                new_picking.pack_operation_ids.write({'location_dest_id': dest_location.id})
                 new_picking.do_transfer()
         return move_recordset
 
@@ -336,7 +351,7 @@ class Stock(models.Model):
         if self:
             location = self[0].location_id
             if any([line.location_id != location for line in self]):
-                raise exceptions.UserError(_("Impossible to move simultaneously products of different locations"))
+                raise UserError(_("Impossible to move simultaneously products of different locations"))
         ctx = self.env.context.copy()
         ctx['active_ids'] = self.ids
         return {

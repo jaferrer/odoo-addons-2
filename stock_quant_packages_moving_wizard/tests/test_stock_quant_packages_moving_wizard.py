@@ -35,6 +35,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.stock = self.browse_ref("stock.stock_location_stock")
         self.location_source = self.browse_ref("stock_quant_packages_moving_wizard.stock_location_source")
         self.location_dest = self.browse_ref("stock_quant_packages_moving_wizard.stock_location_dest")
+        self.location_dest_shelf = self.browse_ref("stock_quant_packages_moving_wizard.stock_location_dest_shelf")
         self.quant_header_a = self.browse_ref("stock_quant_packages_moving_wizard.quant_header_a")
         self.quant_header_b = self.browse_ref("stock_quant_packages_moving_wizard.quant_header_b")
         self.quant_header_2 = self.browse_ref("stock_quant_packages_moving_wizard.quant_header_2")
@@ -48,6 +49,14 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.picking_type = self.browse_ref("stock.picking_type_internal")
         self.unit = self.browse_ref('product.product_uom_unit')
 
+        self.supplier = self.browse_ref('stock.stock_location_suppliers')
+        self.product1_auto_move = self.browse_ref('stock_quant_packages_moving_wizard.product1')
+        self.product2_auto_move = self.browse_ref('stock_quant_packages_moving_wizard.product2')
+        self.location_1 = self.browse_ref("stock_quant_packages_moving_wizard.stock_location_a")
+        self.location_2 = self.browse_ref("stock_quant_packages_moving_wizard.stock_location_b")
+        self.inventory_location = self.browse_ref('stock.location_inventory')
+
+        self.env['stock.location']._parent_store_compute()
         self.env['stock.quant.package']._parent_store_compute()
 
     def check_in(self, data_tuple, lines):
@@ -112,7 +121,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertEqual(self.quant_child_c.location_id, self.location_dest)
         self.assertEqual(self.quant_child_d.location_id, self.location_dest)
 
-    def test_20_move_complex_quants(self):
+    def test_20_move_quant_lines(self):
         self.assertEqual(self.quant_no_pack_a.location_id, self.location_source)
         self.assertEqual(self.quant_no_pack_b.location_id, self.location_source)
 
@@ -132,6 +141,100 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertEqual(self.quant_no_pack_b.location_id, self.location_dest)
         self.assertEqual(self.quant_no_pack_a.qty, 50.0)
         self.assertEqual(self.quant_no_pack_b.qty, 1.0)
+
+    def test_21_move_quant_lines_with_chain(self):
+
+        move_a_1 = self.env['stock.move'].create({
+            'name': "First move for product A",
+            'product_id': self.product_a.id,
+            'product_uom_qty': 10,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.location_source.id,
+            'location_dest_id': self.location_dest.id,
+            'product_uom': self.unit.id,
+            'priority': '0',
+        })
+
+        supply_move_a_1 = self.env['stock.move'].create({
+            'name': "First supply move for product A",
+            'product_id': self.product_a.id,
+            'product_uom_qty': 10,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.supplier.id,
+            'location_dest_id': self.location_source.id,
+            'product_uom': self.unit.id,
+            'move_dest_id': move_a_1.id,
+        })
+
+        move_a_2 = self.env['stock.move'].create({
+            'name': "Second move for product A",
+            'product_id': self.product_a.id,
+            'product_uom_qty': 20,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.location_source.id,
+            'location_dest_id': self.location_dest.id,
+            'product_uom': self.unit.id,
+            'priority': '1',
+        })
+
+        supply_move_a_2 = self.env['stock.move'].create({
+            'name': "Second supply move for product A",
+            'product_id': self.product_a.id,
+            'product_uom_qty': 20,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.supplier.id,
+            'location_dest_id': self.location_source.id,
+            'product_uom': self.unit.id,
+            'move_dest_id': move_a_2.id,
+        })
+
+        move_a_1.action_confirm()
+        supply_move_a_1.action_confirm()
+        supply_move_a_1.action_assign()
+        self.assertEqual(supply_move_a_1.state, 'assigned')
+        supply_move_a_1.action_done()
+        supply_quant_1 = supply_move_a_1.quant_ids
+        self.assertEqual(len(supply_quant_1), 1)
+        self.assertEqual(move_a_1.state, 'assigned')
+        self.assertEqual(move_a_1.reserved_quant_ids, supply_quant_1)
+        move_a_1.do_unreserve()
+        self.assertFalse(move_a_1.reserved_quant_ids)
+
+        move_a_2.action_confirm()
+        supply_move_a_2.action_confirm()
+        supply_move_a_2.action_assign()
+        self.assertEqual(supply_move_a_2.state, 'assigned')
+        supply_move_a_2.action_done()
+        supply_quant_2 = supply_move_a_2.quant_ids
+        self.assertEqual(len(supply_quant_2), 1)
+        self.assertEqual(move_a_2.state, 'assigned')
+        self.assertEqual(move_a_2.reserved_quant_ids, supply_quant_2)
+        move_a_2.do_unreserve()
+        self.assertFalse(move_a_2.reserved_quant_ids)
+
+        do_move_w = self.env['stock.quant.move']. \
+            with_context(active_ids=[supply_quant_1.id, self.quant_no_pack_b.id]).create(
+            {
+                'global_dest_loc': self.location_dest.id,
+                'picking_type_id': self.picking_type.id,
+                'is_manual_op': False
+            })
+
+        result = do_move_w.do_transfer()
+
+        self.assertEqual(supply_quant_1.location_id, self.location_dest)
+        self.assertEqual(supply_quant_1.qty, 10.0)
+        self.assertEqual(supply_quant_2.location_id, self.location_source)
+        self.assertEqual(supply_quant_2.qty, 20.0)
+        self.assertEqual(self.quant_no_pack_b.location_id, self.location_dest)
+        self.assertEqual(self.quant_no_pack_b.qty, 2.0)
+
+        self.assertEqual(move_a_1.product_uom_qty, 10)
+        self.assertEqual(move_a_1.state, 'done')
+        self.assertEqual(move_a_1.quant_ids, supply_quant_1)
+        self.assertEqual(move_a_2.product_uom_qty, 20)
+        self.assertEqual(move_a_2.state, 'waiting')
+        self.assertFalse(move_a_2.quant_ids)
 
     def test_30_move_quants_different_locations(self):
         [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
@@ -221,12 +324,12 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
             self.assertEqual(move.state, 'assigned')
             self.assertEqual(move.remaining_qty, 0)
         picking.do_transfer()
-        self.assertEqual(self.quant_header_a.location_id, self.location_dest)
+        self.assertEqual(self.quant_header_a.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_header_a.qty, 15)
         self.assertFalse(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
                                                          ('package_id', '=', self.header.id),
                                                          ('product_id', '=', self.product_a.id)]))
-        self.assertEqual(self.quant_header_b.location_id, self.location_dest)
+        self.assertEqual(self.quant_header_b.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_header_b.qty, 7)
         self.assertFalse(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
                                                          ('package_id', '=', self.header.id),
@@ -263,14 +366,14 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
             self.assertEqual(move.state, 'assigned')
             self.assertEqual(move.remaining_qty, 0)
         picking.do_transfer()
-        self.assertEqual(self.quant_header_a.location_id, self.location_dest)
+        self.assertEqual(self.quant_header_a.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_header_a.qty, 10)
         self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
                                                         ('package_id', '=', self.header.id),
                                                         ('product_id', '=', self.product_a.id),
                                                         ('lot_id', '=', self.lot_a.id),
                                                         ('qty', '=', 5)]))
-        self.assertEqual(self.quant_header_b.location_id, self.location_dest)
+        self.assertEqual(self.quant_header_b.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_header_b.qty, 7)
         self.assertFalse(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
                                                          ('package_id', '=', self.header.id),
@@ -308,14 +411,14 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
             self.assertEqual(move.state, 'assigned')
             self.assertEqual(move.remaining_qty, 0)
         picking.do_transfer()
-        self.assertEqual(self.quant_child_a.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_a.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_a.qty, 5)
         self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
                                                         ('package_id', '=', self.child.id),
                                                         ('product_id', '=', self.product_a.id),
                                                         ('lot_id', '=', False),
                                                         ('qty', '=', 5)]))
-        self.assertEqual(self.quant_child_b.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_b.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_b.qty, 11)
         self.assertFalse(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
                                                          ('package_id', '=', self.child.id),
@@ -344,9 +447,9 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
             self.assertEqual(move.state, 'assigned')
             self.assertEqual(move.remaining_qty, 0)
         picking.do_transfer()
-        self.assertEqual(self.quant_child_c.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_c.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_c.qty, 2)
-        self.assertEqual(self.quant_child_d.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_d.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_d.qty, 6)
         self.assertFalse(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
                                                          ('package_id', '=', self.child.id),
@@ -376,9 +479,9 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
             self.assertEqual(move.state, 'assigned')
             self.assertEqual(move.remaining_qty, 0)
         picking.do_transfer()
-        self.assertEqual(self.quant_child_c.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_c.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_c.qty, 2)
-        self.assertEqual(self.quant_child_d.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_d.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_d.qty, 4)
         self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
                                                         ('package_id', '=', self.child.id),
@@ -405,7 +508,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
             self.assertEqual(move.state, 'assigned')
             self.assertEqual(move.remaining_qty, 0)
         picking.do_transfer()
-        self.assertEqual(self.quant_child_a.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_a.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_a.qty, 10)
         self.assertEqual(self.quant_child_b.location_id, self.location_source)
         self.assertEqual(self.quant_child_b.qty, 11)
@@ -433,7 +536,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
             self.assertEqual(move.state, 'assigned')
             self.assertEqual(move.remaining_qty, 0)
         picking.do_transfer()
-        self.assertEqual(self.quant_header_2.location_id, self.location_dest)
+        self.assertEqual(self.quant_header_2.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_header_2.qty, 15)
         self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
                                                         ('package_id', '=', self.header_2.id),
@@ -543,15 +646,15 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertIn(self.quant_child_d, move1.quant_ids)
         quants_a_dest_lot_a = self.env['stock.quant']. \
             search([('product_id', '=', self.product_a.id),
-                    ('location_id', '=', self.location_dest.id),
+                    ('location_id', '=', self.location_dest_shelf.id),
                     ('lot_id', '=', self.lot_a.id)])
         quants_a_dest_no_lot = self.env['stock.quant']. \
             search([('product_id', '=', self.product_a.id),
-                    ('location_id', '=', self.location_dest.id),
+                    ('location_id', '=', self.location_dest_shelf.id),
                     ('lot_id', '=', False)])
         quants_b_dest_lot_b = self.env['stock.quant']. \
             search([('product_id', '=', self.product_b.id),
-                    ('location_id', '=', self.location_dest.id),
+                    ('location_id', '=', self.location_dest_shelf.id),
                     ('lot_id', '=', self.lot_b.id)])
         self.assertEqual(sum([quant.qty for quant in quants_a_dest_lot_a]), 8)
         self.assertEqual(sum([quant.qty for quant in quants_a_dest_no_lot]), 10)
@@ -567,7 +670,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertEqual(self.quant_no_pack_b.location_id, self.location_source)
         self.assertEqual(self.quant_header_2.location_id, self.location_source)
         self.assertEqual(self.header.location_id, self.location_source)
-        self.assertEqual(self.child.location_id, self.location_dest)
+        self.assertEqual(self.child.location_id, self.location_dest_shelf)
 
     def test_42_two_included_lines(self):
         # line_9 countains line_4
@@ -609,15 +712,15 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertIn(self.quant_child_d, move1.quant_ids)
         quants_a_dest_lot_a = self.env['stock.quant']. \
             search([('product_id', '=', self.product_a.id),
-                    ('location_id', '=', self.location_dest.id),
+                    ('location_id', '=', self.location_dest_shelf.id),
                     ('lot_id', '=', self.lot_a.id)])
         quants_a_dest_no_lot = self.env['stock.quant']. \
             search([('product_id', '=', self.product_a.id),
-                    ('location_id', '=', self.location_dest.id),
+                    ('location_id', '=', self.location_dest_shelf.id),
                     ('lot_id', '=', False)])
         quants_b_dest_lot_b = self.env['stock.quant']. \
             search([('product_id', '=', self.product_b.id),
-                    ('location_id', '=', self.location_dest.id),
+                    ('location_id', '=', self.location_dest_shelf.id),
                     ('lot_id', '=', self.lot_b.id)])
         self.assertEqual(sum([quant.qty for quant in quants_a_dest_lot_a]), 23)
         self.assertEqual(sum([quant.qty for quant in quants_a_dest_no_lot]), 10)
@@ -632,8 +735,8 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertEqual(self.quant_no_pack_a.location_id, self.location_source)
         self.assertEqual(self.quant_no_pack_b.location_id, self.location_source)
         self.assertEqual(self.quant_header_2.location_id, self.location_source)
-        self.assertEqual(self.header.location_id, self.location_dest)
-        self.assertEqual(self.child.location_id, self.location_dest)
+        self.assertEqual(self.header.location_id, self.location_dest_shelf)
+        self.assertEqual(self.child.location_id, self.location_dest_shelf)
 
     def test_43_change_move_of_picking(self):
         # Testing the recuperation of existing move
@@ -687,9 +790,9 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertIn(self.quant_child_d, existing_move.quant_ids)
         self.assertEqual(picking.state, 'done')
         self.assertFalse(picking.backorder_id)
-        self.assertEqual(self.quant_child_c.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_c.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_c.qty, 2)
-        self.assertEqual(self.quant_child_d.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_d.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_d.qty, 5)
         self.assertEqual(existing_move.product_uom_qty, 7)
         self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
@@ -751,9 +854,9 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertIn(self.quant_child_d, new_move.quant_ids)
         self.assertEqual(picking.state, 'done')
         self.assertFalse(picking.backorder_id)
-        self.assertEqual(self.quant_child_c.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_c.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_c.qty, 2)
-        self.assertEqual(self.quant_child_d.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_d.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_d.qty, 5)
         self.assertEqual(new_move.product_uom_qty, 7)
         self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
@@ -829,9 +932,9 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertIn(self.quant_child_d, corresponding_move.quant_ids)
         self.assertEqual(picking.state, 'done')
         self.assertFalse(picking.backorder_id)
-        self.assertEqual(self.quant_child_c.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_c.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_c.qty, 2)
-        self.assertEqual(self.quant_child_d.location_id, self.location_dest)
+        self.assertEqual(self.quant_child_d.location_id, self.location_dest_shelf)
         self.assertEqual(self.quant_child_d.qty, 5)
         self.assertEqual(corresponding_move.product_uom_qty, 7)
         self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
@@ -839,3 +942,147 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
                                                         ('product_id', '=', self.product_a.id),
                                                         ('lot_id', '=', self.lot_a.id),
                                                         ('qty', '=', 1)]))
+
+    def test_46_change_quant_of_move(self):
+        # Reserving a big quant on a small move
+
+        [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
+            self.prepare_test_move_quant_package()
+        existing_move_1 = self.env['stock.move'].create({
+            'name': "Existing move",
+            'product_id': self.product_a.id,
+            'product_uom_qty': 5,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.location_source.id,
+            'location_dest_id': self.location_dest.id,
+            'product_uom': self.unit.id,
+        })
+
+        existing_move_2 = self.env['stock.move'].create({
+            'name': "Existing move 2",
+            'product_id': self.product_a.id,
+            'product_uom_qty': 2,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.location_source.id,
+            'location_dest_id': self.location_dest.id,
+            'product_uom': self.unit.id,
+        })
+
+        existing_move_1.action_confirm()
+        existing_move_2.action_confirm()
+
+        wizard = self.env['product.move.wizard'].with_context(active_ids=[line_8.id]). \
+            create({'picking_type_id': self.picking_type.id, 'global_dest_loc': self.location_dest.id})
+
+        wizard.onchange_is_manual_op()
+        self.assertTrue(wizard.is_manual_op)
+        self.assertEqual(len(wizard.quant_line_ids), 1)
+        self.assertFalse(wizard.package_line_ids)
+        self.assertEqual(wizard.quant_line_ids.qty, 8)
+        # Let's force onchange to check field 'is_manual_op'
+        wizard.onchange_is_manual_op()
+        self.assertTrue(wizard.is_manual_op)
+
+        action = wizard.move_products()
+        picking_id = action.get('res_id')
+        self.assertTrue(picking_id)
+        picking = self.env['stock.picking'].browse(picking_id)
+        self.assertNotEqual(picking.state, 'done')
+        self.assertEqual(len(picking.move_lines), 3)
+        self.assertIn(existing_move_1, picking.move_lines)
+        self.assertIn(existing_move_2, picking.move_lines)
+        new_move = picking.move_lines.filtered(lambda move: move not in [existing_move_1, existing_move_2])
+        self.assertEqual(new_move.product_uom_qty, 1)
+
+        picking.do_transfer()
+        self.assertEqual(existing_move_1.state, 'done')
+        # self.assertEqual(self.quant_child_a, existing_move_1.quant_ids)
+        self.assertEqual(existing_move_2.state, 'done')
+        self.assertEqual(new_move.state, 'done')
+        self.assertEqual(picking.state, 'done')
+        self.assertFalse(picking.backorder_id)
+        self.assertEqual(self.quant_child_a.location_id, self.location_source)
+        self.assertEqual(self.quant_child_c.location_id, self.location_dest_shelf)
+        self.assertEqual(self.quant_child_d.location_id, self.location_dest_shelf)
+        self.assertEqual(self.quant_child_a.qty, 10)
+
+        quants = self.env['stock.quant'].search([('location_id', '=', self.location_dest_shelf.id),
+                                                 ('package_id', '=', False),
+                                                 ('product_id', '=', self.product_a.id)])
+
+        self.assertEqual(sum([quant.qty for quant in quants]), 8)
+
+    def test_47_moves_reconciliation(self):
+        """
+        Testing quants reconciliation for not synchronized auto moves
+        """
+
+        move_to_set_auto = self.env["stock.move"].create({
+            'name': "Auto move",
+            'product_id': self.product1_auto_move.id,
+            'product_uom': self.unit.id,
+            'product_uom_qty': 30,
+            'location_id': self.location_1.id,
+            'location_dest_id': self.location_2.id,
+            'picking_type_id': self.picking_type.id,
+            'auto_move': False,
+            'picking_id': False
+        })
+        move_to_set_auto.action_confirm()
+        self.assertTrue(move_to_set_auto.picking_id)
+
+        move_neg = self.env["stock.move"].create({
+            'name': "Move 2",
+            'product_id': self.product1_auto_move.id,
+            'product_uom': self.unit.id,
+            'product_uom_qty': 30,
+            'location_id': self.location_2.id,
+            'location_dest_id': self.inventory_location.id,
+            'picking_type_id': self.picking_type.id,
+            'auto_move': False,
+            'picking_id': False
+        })
+        move_neg.action_done()
+        neg_quant = move_neg.quant_ids.filtered(lambda quant: quant.qty < 0)
+        pos_quant_linked_to_neg = move_neg.quant_ids.filtered(lambda quant: quant.qty > 0)
+        self.assertEqual(len(neg_quant), 1)
+        self.assertEqual(len(pos_quant_linked_to_neg), 1)
+        # print 'neg_pos', neg_quant, pos_quant_linked_to_neg
+
+        move_pos = self.env["stock.move"].create({
+            'name': "Move 2",
+            'product_id': self.product1_auto_move.id,
+            'product_uom': self.unit.id,
+            'product_uom_qty': 30,
+            'location_id': self.supplier.id,
+            'location_dest_id': self.location_1.id,
+            'picking_type_id': self.picking_type.id,
+            'move_dest_id': move_to_set_auto.id,
+            'auto_move': False,
+            'picking_id': False
+        })
+        move_pos.action_done()
+        pos_quant = move_pos.quant_ids.filtered(lambda quant: quant.qty > 0)
+        self.assertEqual(len(pos_quant), 1)
+        # print 'pos_quant', pos_quant
+
+        move_to_set_auto.do_unreserve()
+        self.assertEqual(move_to_set_auto.state, 'waiting')
+
+        # print 'move_to_set_auto', move_to_set_auto, move_to_set_auto.state
+        moves2 = pos_quant.move_to(self.location_2, self.picking_type,
+                                   move_items={self.product1_auto_move: [{'quants': pos_quant, 'qty': 30}]})
+        # print 'moves2', moves2
+        picking2 = moves2[0].picking_id
+        # print 'picking2', picking2.state, picking2.move_lines
+        self.assertTrue(picking2)
+
+        # print 'quants_result'
+        # print pos_quant_linked_to_neg, pos_quant_linked_to_neg.qty
+        # for quant in self.env['stock.quant'].search([('product_id', '=', self.product1_auto_move.id)]):
+        #     print quant, quant.qty, quant.location_id.display_name
+
+        # Let's test that quants were reconcilied
+        self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.product1_auto_move.id),
+                                                         ('location_id', 'not in',
+                                                          [self.inventory_location.id, self.supplier.id])]))

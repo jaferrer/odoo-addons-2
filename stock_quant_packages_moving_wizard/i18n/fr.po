@@ -286,6 +286,24 @@ msgid "The quantity to move must be lower or equal to the available quantity"
 msgstr "La quantité à déplacer doit être inférieure ou égale à la quantité disponable"
 
 #. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:141
+#, python-format
+msgid "Impossible to move a quant from a not active location"
+msgstr "Impossible de déplacer un quant qui n'est pas dans un emplacement actif"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:143
+#, python-format
+msgid "Impossible to move a quant of a not active product"
+msgstr "Impossible de déplacer un quant dont l'article n'est pas actif"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:145
+#, python-format
+msgid "Impossible to move a quant of a not active UOM"
+msgstr "Impossible de déplacer un quant dont l'unité de mesure n'est pas active"
+
+#. module: stock_quant_packages_moving_wizard
 #: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
 msgid "Top package"
 msgstr "Colis de tete"
