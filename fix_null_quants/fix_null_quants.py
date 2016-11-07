@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,7 +17,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import purchase
-from . import procurement
-from . import wizard
-from . import res_config
+from openerp import models, api
+from openerp.tools import float_compare
+
+
+class FixNullQuantsStockQuant(models.Model):
+    _inherit = 'stock.quant'
+
+    @api.model
+    def _quant_split(self, quant, qty):
+        # Is split qty is almost 0, we return an empty quant recordset
+        # We will have to check if this does not break stock_account
+        if float_compare(qty, 0, precision_rounding=quant.product_id.uom_id.rounding) == 0:
+            return self.env['stock.quant']
+        else:
+            return super(FixNullQuantsStockQuant, self)._quant_split(quant, qty)

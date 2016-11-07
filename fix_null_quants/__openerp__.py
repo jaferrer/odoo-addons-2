@@ -17,7 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import purchase
-from . import procurement
-from . import wizard
-from . import res_config
+{
+    'name': 'Fix null quants',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': '',
+    'depends': ['stock'],
+    'description': """
+Fix null quants
+===============
+This module ensures that null quants are never created
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [],
+    'demo': ['tests/test_fix_null_quants.xml'],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}
