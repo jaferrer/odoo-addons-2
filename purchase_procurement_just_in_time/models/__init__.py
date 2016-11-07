@@ -17,4 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import purchase_procurement_jit, res_config
+from . import purchase
+from . import procurement
+from . import wizard
+from . import res_config
