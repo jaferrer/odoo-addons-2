@@ -25,7 +25,9 @@
     'maintainer': 'NDP Systèmes',
     "summary": "",
     "category": "Warehouse Management",
-    "depends": ['stock', 'picking_force_fill_packop_qty'],
+    "depends": ['stock', 'picking_force_fill_packop_qty',
+                #TODO: ajouter stock_performance_imroved dès que porté en 9.0
+                ],
     'description': """
 Quants and packaging moving wizards
 ===================================
