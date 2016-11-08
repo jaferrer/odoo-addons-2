@@ -66,5 +66,37 @@ action = self.move_products(cr, uid, context.get('active_ids'), False, context)
             <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_move_products)"/>
         </record>
 
+        <record model="ir.actions.server" id="ir_actions_server_move_to_package">
+            <field name="name">Move to package</field>
+            <field name="model_id" ref="stock_quant_packages_moving_wizard.model_stock_product_line"/>
+            <field name="code">
+action = self.move_products_to_package(cr, uid, context.get('active_ids'), False, context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_move_products_to_package">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">stock.product.line</field>
+            <field name="name">Move to package</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_move_to_package)"/>
+        </record>
+
+        <record model="ir.actions.server" id="ir_actions_server_execute_packops">
+            <field name="name">Execute packops for packages</field>
+            <field name="model_id" ref="stock_quant_packages_moving_wizard.model_stock_product_line"/>
+            <field name="code">
+action = self.execute_packops(cr, uid, context.get('active_ids'), False, context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_move_products_execute_packops">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">stock.product.line</field>
+            <field name="name">Execute packops for packages</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_execute_packops)"/>
+        </record>
+
     </data>
 </openerp>

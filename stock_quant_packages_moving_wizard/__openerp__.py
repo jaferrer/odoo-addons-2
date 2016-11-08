@@ -25,7 +25,7 @@
     'maintainer': 'NDP Systèmes',
     "summary": "",
     "category": "Warehouse Management",
-    "depends": ['stock'],
+    "depends": ['stock', 'picking_force_fill_packop_qty'],
     'description': """
 Quants and packaging moving wizards
 ===================================

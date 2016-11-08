@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import exceptions
+from openerp.exceptions import UserError
 from openerp.tests import common
 
 
@@ -31,6 +31,8 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.lot_b = self.browse_ref("stock_quant_packages_moving_wizard.lot_b")
         self.header = self.browse_ref("stock_quant_packages_moving_wizard.package_header")
         self.header_2 = self.browse_ref("stock_quant_packages_moving_wizard.package_header_2")
+        self.empty_package_source = self.browse_ref("stock_quant_packages_moving_wizard.empty_package_source")
+        self.empty_package_dest = self.browse_ref("stock_quant_packages_moving_wizard.empty_package_dest")
         self.child = self.browse_ref("stock_quant_packages_moving_wizard.package_child")
         self.stock = self.browse_ref("stock.stock_location_stock")
         self.location_source = self.browse_ref("stock_quant_packages_moving_wizard.stock_location_source")
@@ -64,10 +66,10 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
                          line.parent_id, line.location_id) for line in lines]
         self.assertIn(data_tuple, list_results)
         result = lines.filtered(lambda line: line.product_id == data_tuple[0] and
-                                             line.package_id == data_tuple[1] and
-                                             line.lot_id == data_tuple[2] and
-                                             line.qty == data_tuple[3] and
-                                             line.parent_id == data_tuple[4])
+                                line.package_id == data_tuple[1] and
+                                line.lot_id == data_tuple[2] and
+                                line.qty == data_tuple[3] and
+                                line.parent_id == data_tuple[4])
         self.assertTrue(result)
         self.assertEqual(len(result), 1)
         return result
@@ -220,7 +222,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
                 'is_manual_op': False
             })
 
-        result = do_move_w.do_transfer()
+        do_move_w.do_transfer()
 
         self.assertEqual(supply_quant_1.location_id, self.location_dest)
         self.assertEqual(supply_quant_1.qty, 10.0)
@@ -240,7 +242,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
             self.prepare_test_move_quant_package()
         # We should not be able to move products from different locations
-        with self.assertRaises(exceptions.except_orm):
+        with self.assertRaises(UserError):
             self.env['stock.product.line'].browse([line_1.id, line_11.id]).move_products()
 
     def test_31_move_entirely_quant_without_package(self):
@@ -277,7 +279,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertEqual(wizard_line_2.qty, 2)
         wizard_line_2.qty = 10
         # We should not be able to move more than available qty
-        with self.assertRaises(exceptions.except_orm):
+        with self.assertRaises(UserError):
             wizard.move_products()
         wizard_line_1.qty = 20
         wizard_line_2.qty = 1.5
@@ -1025,7 +1027,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
             'location_id': self.location_1.id,
             'location_dest_id': self.location_2.id,
             'picking_type_id': self.picking_type.id,
-            'auto_move': False,
+            # 'auto_move': False,
             'picking_id': False
         })
         move_to_set_auto.action_confirm()
@@ -1039,7 +1041,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
             'location_id': self.location_2.id,
             'location_dest_id': self.inventory_location.id,
             'picking_type_id': self.picking_type.id,
-            'auto_move': False,
+            # 'auto_move': False,
             'picking_id': False
         })
         move_neg.action_done()
@@ -1058,7 +1060,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
             'location_dest_id': self.location_1.id,
             'picking_type_id': self.picking_type.id,
             'move_dest_id': move_to_set_auto.id,
-            'auto_move': False,
+            # 'auto_move': False,
             'picking_id': False
         })
         move_pos.action_done()
@@ -1086,3 +1088,163 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.product1_auto_move.id),
                                                          ('location_id', 'not in',
                                                           [self.inventory_location.id, self.supplier.id])]))
+
+    def test_60_move_to_package(self):
+        """
+        Put alone quants and a package into another one
+        """
+
+        [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
+            self.prepare_test_move_quant_package()
+
+        # Test moving only a part of a package
+        wizard = self.env['product.move.wizard'].with_context(active_ids=[line_4.id]). \
+            create({'move_to': 'package', 'package_id': self.empty_package_source.id})
+        with self.assertRaises(UserError):
+            wizard.move_products()
+
+        # Test implicit unpacking
+        wizard = self.env['product.move.wizard'].with_context(active_ids=[line_4.id]). \
+            create({'move_to': 'package', 'package_id': self.empty_package_source.id})
+        with self.assertRaises(UserError):
+            wizard.move_products()
+
+        # Test moving to wrong location
+        wizard = self.env['product.move.wizard'].with_context(active_ids=[line_1.id, line_2.id, line_9.id]). \
+            create({'move_to': 'package', 'package_id': self.empty_package_dest.id})
+        with self.assertRaises(UserError):
+            wizard.move_products()
+
+        # Real test
+        wizard = self.env['product.move.wizard'].with_context(active_ids=[line_1.id, line_2.id, line_9.id]). \
+            create({'move_to': 'package', 'package_id': self.empty_package_source.id})
+        wizard.move_products()
+        self.assertEqual(self.empty_package_source.location_id, self.location_source)
+
+        # Let's check quants no packages
+        self.assertEqual(self.quant_no_pack_a.location_id, self.location_source)
+        self.assertEqual(self.quant_no_pack_a.package_id, self.empty_package_source)
+        self.assertEqual(self.quant_no_pack_b.location_id, self.location_source)
+        self.assertEqual(self.quant_no_pack_b.package_id, self.empty_package_source)
+
+        # Let's check quants header 2
+        self.assertEqual(self.header_2.location_id, self.location_source)
+        self.assertFalse(self.header_2.parent_id)
+        self.assertEqual(self.quant_header_2.location_id, self.location_source)
+        self.assertEqual(self.quant_header_2.package_id, self.header_2)
+
+        # Let's check quants header
+        self.assertEqual(self.header.location_id, self.location_source)
+        self.assertEqual(self.header.parent_id, self.empty_package_source)
+        self.assertEqual(self.quant_header_a.location_id, self.location_source)
+        self.assertEqual(self.quant_header_a.package_id, self.header)
+        self.assertEqual(self.quant_header_b.location_id, self.location_source)
+        self.assertEqual(self.quant_header_b.package_id, self.header)
+
+        # Let's check quants child
+        self.assertEqual(self.child.location_id, self.location_source)
+        self.assertEqual(self.child.parent_id, self.header)
+        self.assertEqual(self.quant_child_a.location_id, self.location_source)
+        self.assertEqual(self.quant_child_a.package_id, self.child)
+        self.assertEqual(self.quant_child_b.location_id, self.location_source)
+        self.assertEqual(self.quant_child_b.package_id, self.child)
+        self.assertEqual(self.quant_child_c.location_id, self.location_source)
+        self.assertEqual(self.quant_child_c.package_id, self.child)
+        self.assertEqual(self.quant_child_d.location_id, self.location_source)
+        self.assertEqual(self.quant_child_d.package_id, self.child)
+
+    def test_70_execute_packops(self):
+        """
+        Executing packops with quants and packages lines and creating a backorder
+        """
+
+        [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
+            self.prepare_test_move_quant_package()
+
+        move1 = self.env['stock.move'].create({
+            'name': "Existing move",
+            'product_id': self.product_a.id,
+            'product_uom_qty': 108,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.location_source.id,
+            'location_dest_id': self.location_dest.id,
+            'product_uom': self.unit.id,
+        })
+
+        move2 = self.env['stock.move'].create({
+            'name': "Existing move 2",
+            'product_id': self.product_b.id,
+            'product_uom_qty': 20,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.location_source.id,
+            'location_dest_id': self.location_dest.id,
+            'product_uom': self.unit.id,
+        })
+        move1.action_confirm()
+        move2.action_confirm()
+        picking = move1.picking_id
+        self.assertTrue(picking)
+        self.assertEqual(move2.picking_id, picking)
+
+        picking.action_assign()
+        self.assertEqual(picking.state, 'assigned')
+        self.assertEqual(move1.state, 'assigned')
+        self.assertEqual(move2.state, 'assigned')
+        self.assertEqual(len(move1.reserved_quant_ids), 6)
+        self.assertIn(self.quant_no_pack_a, move1.reserved_quant_ids)
+        self.assertIn(self.quant_header_2, move1.reserved_quant_ids)
+        self.assertIn(self.quant_header_a, move1.reserved_quant_ids)
+        self.assertIn(self.quant_child_a, move1.reserved_quant_ids)
+        self.assertIn(self.quant_child_c, move1.reserved_quant_ids)
+        self.assertIn(self.quant_child_d, move1.reserved_quant_ids)
+        self.assertEqual(len(move2.reserved_quant_ids), 3)
+        self.assertIn(self.quant_no_pack_b, move2.reserved_quant_ids)
+        self.assertIn(self.quant_header_b, move2.reserved_quant_ids)
+        self.assertIn(self.quant_child_b, move2.reserved_quant_ids)
+
+        self.assertEqual(len(picking.pack_operation_ids), 4)
+        self.assertIn([self.product_a, self.env['stock.quant.package'], 50],
+                      [[op.product_id, op.package_id, op.product_qty] for op in picking.pack_operation_ids])
+        self.assertIn([self.product_b, self.env['stock.quant.package'], 2],
+                      [[op.product_id, op.package_id, op.product_qty] for op in picking.pack_operation_ids])
+        self.assertIn([self.env['product.product'], self.header, 1],
+                      [[op.product_id, op.package_id, op.product_qty] for op in picking.pack_operation_ids])
+        self.assertIn([self.env['product.product'], self.header_2, 1],
+                      [[op.product_id, op.package_id, op.product_qty] for op in picking.pack_operation_ids])
+
+        # Let's execute packop of package header
+        wizard = self.env['product.move.wizard'].with_context(active_ids=[line_9.id]). \
+            create({'move_to': 'execute_packops'})
+        wizard.move_products()
+
+        # Let's check quants no packages
+        self.assertEqual(self.quant_no_pack_a.location_id, self.location_source)
+        self.assertFalse(self.quant_no_pack_a.package_id)
+        self.assertEqual(self.quant_no_pack_b.location_id, self.location_source)
+        self.assertFalse(self.quant_no_pack_b.package_id)
+
+        # Let's check quants header 2
+        self.assertEqual(self.header_2.location_id, self.location_source)
+        self.assertFalse(self.header_2.parent_id)
+        self.assertEqual(self.quant_header_2.location_id, self.location_source)
+        self.assertEqual(self.quant_header_2.package_id, self.header_2)
+
+        # Let's check quants header
+        self.assertEqual(self.header.location_id, self.location_dest_shelf)
+        self.assertFalse(self.header.parent_id)
+        self.assertEqual(self.quant_header_a.location_id, self.location_dest_shelf)
+        self.assertEqual(self.quant_header_a.package_id, self.header)
+        self.assertEqual(self.quant_header_b.location_id, self.location_dest_shelf)
+        self.assertEqual(self.quant_header_b.package_id, self.header)
+
+        # Let's check quants child
+        self.assertEqual(self.child.location_id, self.location_dest_shelf)
+        self.assertEqual(self.child.parent_id, self.header)
+        self.assertEqual(self.quant_child_a.location_id, self.location_dest_shelf)
+        self.assertEqual(self.quant_child_a.package_id, self.child)
+        self.assertEqual(self.quant_child_b.location_id, self.location_dest_shelf)
+        self.assertEqual(self.quant_child_b.package_id, self.child)
+        self.assertEqual(self.quant_child_c.location_id, self.location_dest_shelf)
+        self.assertEqual(self.quant_child_c.package_id, self.child)
+        self.assertEqual(self.quant_child_d.location_id, self.location_dest_shelf)
+        self.assertEqual(self.quant_child_d.package_id, self.child)

@@ -18,7 +18,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, _, exceptions
+from openerp import models, fields, api, _
+from openerp.exceptions import UserError
 
 
 class StockQuantPackageMove(models.TransientModel):
@@ -75,7 +76,7 @@ class StockQuantPackageMove(models.TransientModel):
             result = quantsglob.move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
             if self.is_manual_op:
                 if not result:
-                    raise exceptions.except_orm(_(u"error"), _("No line selected"))
+                    raise UserError(_("error"), _("No line selected"))
                 return {
                     'name': 'picking_form',
                     'type': 'ir.actions.act_window',

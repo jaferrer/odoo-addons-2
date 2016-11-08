@@ -17,17 +17,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, exceptions, _
-from openerp.exceptions import ValidationError
+from openerp import models, fields, api, _
+from openerp.exceptions import UserError
 from openerp.tools import float_compare
 
 
 class ProductLineMoveWizard(models.TransientModel):
     _name = 'product.move.wizard'
 
-    global_dest_loc = fields.Many2one('stock.location', string="Destination Location", required=True)
-    picking_type_id = fields.Many2one('stock.picking.type', string="Picking type", required=True)
+    move_to = fields.Selection([('location', "Location"),
+                                ('package', "Package"),
+                                ('execute_packops', "Execute packops for packages")],
+                               string="Move to", required=True, default='location')
+    global_dest_loc = fields.Many2one('stock.location', string="Destination Location")
+    picking_type_id = fields.Many2one('stock.picking.type', string="Picking type")
     is_manual_op = fields.Boolean(string="Manual Operation")
+    package_id = fields.Many2one('stock.quant.package', string="Package")
     quant_line_ids = fields.One2many('product.move.wizard.line', 'move_wizard_id', string="Products to move",
                                      domain=['|', ('product_id', '!=', False), ('package_id', '=', False)])
     package_line_ids = fields.One2many('product.move.wizard.line', 'move_wizard_id', string="Packages",
@@ -72,8 +77,7 @@ class ProductLineMoveWizard(models.TransientModel):
         self.is_manual_op = self.is_manual_op or lines.force_is_manual_op()
 
     @api.multi
-    def move_products(self):
-        self.ensure_one()
+    def move_to_location(self):
         lines = self.quant_line_ids + self.package_line_ids
         lines.check_quantities()
         lines.check_data_active()
@@ -101,12 +105,12 @@ class ProductLineMoveWizard(models.TransientModel):
                 quants_to_move |= quants
         if any([float_compare(quant.qty, 0, precision_rounding=quant.product_id.uom_id.rounding) < 0
                 for quant in quants_to_move]):
-            raise exceptions.except_orm(_("error"), _("Impossible to move a negative quant"))
+            raise UserError(_("Impossible to move a negative quant"))
         result = quants_to_move.move_to(self.global_dest_loc, self.picking_type_id,
                                         move_items=move_items, is_manual_op=is_manual_op)
         if is_manual_op:
             if not result:
-                raise exceptions.except_orm(_("error"), _("No line selected"))
+                raise UserError(_("No line selected"))
             return {
                 'name': 'picking_form',
                 'type': 'ir.actions.act_window',
@@ -117,6 +121,75 @@ class ProductLineMoveWizard(models.TransientModel):
             }
         else:
             return result
+
+    @api.multi
+    def move_to_package(self):
+        packages = self.env['stock.quant.package']
+        for package_line in self.package_line_ids:
+            packages |= package_line.package_id
+            if self.package_id.location_id and package_line.package_id.location_id and \
+                    self.package_id.location_id != package_line.package_id.location_id:
+                raise UserError(_("Impossible to move a package into a package of another location"))
+        if packages:
+            packages.write({'parent_id': self.package_id.id})
+        quants_to_move = packages.get_content()
+        quants = self.env['stock.quant']
+        for quant_line in self.quant_line_ids:
+            domain = [('product_id', '=', quant_line.product_id.id),
+                      ('location_id', '=', quant_line.location_id.id),
+                      ('package_id', '=', quant_line.package_id and quant_line.package_id.id or False),
+                      ('lot_id', '=', quant_line.lot_id and quant_line.lot_id.id or False),
+                      ('product_id.uom_id', '=', quant_line.uom_id and quant_line.uom_id.id or False),
+                      ('id', 'not in', quants_to_move)]
+            quants_line = self.env['stock.quant'].search(domain, order='in_date, qty')
+            if self.package_id.location_id and \
+                    any([quant.location_id != self.package_id.location_id for quant in quants_line]):
+                raise UserError(_("Impossible to move a quant into a package of another location"))
+            quants |= quants_line
+        done_packages = self.env['stock.quant.package']
+        for quant in quants:
+            if not quant.package_id:
+                quant.package_id = self.package_id
+            elif quant.package_id not in done_packages:
+                quants_package = quant.package_id.get_content()
+                quants_package = self.env['stock.quant'].browse(quants_package)
+                if any([sq not in quants for sq in quants_package]):
+                    raise UserError(_("Impossible to move only a part of a package into another package"))
+                quant.package_id.parent_id = self.package_id
+                done_packages |= quant.package_id
+        return self.env['stock.move']
+
+    @api.multi
+    def execute_packops_for_packages(self):
+        packages = self.env['stock.quant.package']
+        for package_line in self.package_line_ids:
+            packages |= package_line.package_id
+        if not packages:
+            raise UserError("No package selected.")
+        operations = self.env['stock.pack.operation'].search([('picking_id', '!=', False),
+                                                              ('package_id', 'in', packages.ids)])
+        operations.write({'processed_boolean': True})
+        pickings_to_transfer = self.env['stock.picking']
+        for operation in operations:
+            if operation.picking_id not in pickings_to_transfer:
+                operation.picking_id.pack_operation_product_ids.write({'qty_done': 0})
+                operation.picking_id.pack_operation_pack_ids.filtered(lambda op: op not in operations). \
+                    write({'processed_boolean': False})
+                pickings_to_transfer |= operation.picking_id
+        for picking in pickings_to_transfer:
+            dict_transfer = picking.do_new_transfer()
+            if dict_transfer:
+                self.env[dict_transfer['res_model']].browse([dict_transfer['res_id']]).process()
+
+    @api.multi
+    def move_products(self):
+        self.ensure_one()
+        if self.move_to == 'location':
+            return self.move_to_location()
+        elif self.move_to == 'package':
+            return self.move_to_package()
+        elif self.move_to == 'execute_packops':
+            return self.execute_packops_for_packages()
 
 
 class ProductLineMoveWizardLine(models.TransientModel):
@@ -142,17 +215,17 @@ class ProductLineMoveWizardLine(models.TransientModel):
     def check_quantities(self):
         for rec in self:
             if rec.qty > rec.available_qty:
-                raise ValidationError(_("The quantity to move must be lower or equal to the available quantity"))
+                raise UserError(_("The quantity to move must be lower or equal to the available quantity"))
 
     @api.multi
     def check_data_active(self):
         for rec in self:
             if rec.location_id and not rec.location_id.active:
-                raise ValidationError(_("Impossible to move a quant from a not active location"))
+                raise UserError(_("Impossible to move a quant from a not active location"))
             if rec.product_id and not rec.product_id.active:
-                raise ValidationError(_("Impossible to move a quant of a not active product"))
+                raise UserError(_("Impossible to move a quant of a not active product"))
             if rec.uom_id and not rec.uom_id.active:
-                raise ValidationError(_("Impossible to move a quant of a not active UOM"))
+                raise UserError(_("Impossible to move a quant of a not active UOM"))
 
     @api.multi
     def force_is_manual_op(self):

@@ -18,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, exceptions, _
+from openerp import models, fields, api, _
 from openerp.tools import float_compare
 from openerp.tools.sql import drop_view_if_exists
 from openerp.exceptions import UserError
@@ -67,7 +67,7 @@ class StockQuant(models.Model):
             domain += force_domain
         moves = self.env['stock.move'].search(domain)
         moves_correct_chain = moves.filtered(lambda move: move in quant.history_ids or
-                                                          any([sm in quant.history_ids for sm in move.move_orig_ids]))
+                                             any([sm in quant.history_ids for sm in move.move_orig_ids]))
         moves_correct_chain = self.env['stock.move'].search([('id', 'in', moves_correct_chain.ids)],
                                                             order='priority desc, date asc, id')
         moves_no_ancestors = moves.filtered(lambda move: move not in quant.history_ids and not move.move_orig_ids)
@@ -259,8 +259,7 @@ class StockQuant(models.Model):
                     move_recordset.action_confirm()
                 for new_move in list_reservation.keys():
                     if new_move.picking_id != new_picking:
-                        raise exceptions.except_orm(_("error"), _("The moves of all the quants could not be "
-                                                                  "assigned to the same picking."))
+                        raise UserError(_("The moves of all the quants could not be assigned to the same picking."))
                     self.quants_reserve(list_reservation[new_move], new_move)
             # If the move has pack operations,
             for move in new_picking.move_lines:
@@ -356,6 +355,36 @@ class Stock(models.Model):
         ctx['active_ids'] = self.ids
         return {
             'name': _("Move products"),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'product.move.wizard',
+            'target': 'new',
+            'context': ctx,
+        }
+
+    @api.multi
+    def move_products_to_package(self):
+        ctx = self.env.context.copy()
+        ctx['active_ids'] = self.ids
+        ctx['default_move_to'] = 'package'
+        return {
+            'name': _("Move to package"),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'product.move.wizard',
+            'target': 'new',
+            'context': ctx,
+        }
+
+    @api.multi
+    def execute_packops(self):
+        ctx = self.env.context.copy()
+        ctx['active_ids'] = self.ids
+        ctx['default_move_to'] = 'execute_packops'
+        return {
+            'name': _("Execute pack operations"),
             'type': 'ir.actions.act_window',
             'view_type': 'form',
             'view_mode': 'form',

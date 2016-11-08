@@ -103,6 +103,18 @@
             <field name="parent_id" ref="stock_quant_packages_moving_wizard.package_header"/>
         </record>
 
+        <record id="empty_package_source" model="stock.quant.package">
+            <field name="name">Package 4 (Quant Package Moving Wizard)</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_source"/>
+        </record>
+
+        <record id="empty_package_dest" model="stock.quant.package">
+            <field name="name">Package 5 (Quant Package Moving Wizard)</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="location_id" ref="stock_quant_packages_moving_wizard.stock_location_dest"/>
+        </record>
+
         <!-- Lot -->
         <record id="lot_a" model="stock.production.lot">
             <field name="name">Lot A</field>
