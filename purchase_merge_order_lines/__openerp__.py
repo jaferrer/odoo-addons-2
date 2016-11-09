@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'purchase_group_by_period'],
+    'depends': ['purchase', 'purchase_procurement_just_in_time'],
     'description': """
 Merge purchase order lines
 ==========================
