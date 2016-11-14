@@ -65,11 +65,9 @@ class TestStockProcurementJIT(common.TransactionCase):
                                                                             self.test_product2.id,
                                                                             self.test_product3.id,
                                                                             self.test_product4.id,
-                                                                            ])])
-        procs = procs.sorted(lambda x: x.date_planned)
+                                                                            ])], order='date_planned, product_id')
+        self.assertEqual(len(procs), 8)
 
-        self.assertEqual(len(procs), 7)
-        # They should all be in exception, and no one should have generated moves.
         self.assertEqual(procs[0].date_planned, "2015-03-15 09:59:59")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].state, 'running')
@@ -104,6 +102,11 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[6].product_qty, 6)
         self.assertEqual(procs[6].state, 'running')
         self.assertEqual(procs[6].product_id, self.test_product4)
+
+        self.assertEqual(procs[7].date_planned[:10], fields.Date.today())
+        self.assertEqual(procs[7].product_qty, 6)
+        self.assertEqual(procs[7].state, 'running')
+        self.assertEqual(procs[7].product_id, self.test_product4)
 
     def test_20_procurement_jit_reschedule(self):
         """Check jit with rescheduling of confirmed procurement."""
@@ -143,8 +146,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         procs = proc_env.search([('location_id', '=', self.location_b.id),
                                  ('product_id', 'in', [self.test_product.id,
                                                        self.test_product2.id,
-                                                       self.test_product3.id])])
-        procs = procs.sorted(lambda x: x.date_planned)
+                                                       self.test_product3.id])], order='date_planned, product_id')
 
         self.assertEqual(len(procs), 7)
         self.assertEqual(procs[0], proc0)
@@ -233,8 +235,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(proc3.state, 'exception')
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
-                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])])
-        procs = procs.sorted(lambda x: x.date_planned)
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])],
+                                order='date_planned, product_id')
 
         # They should all be running
         self.assertEqual(len(procs), 8)
@@ -315,10 +317,20 @@ class TestStockProcurementJIT(common.TransactionCase):
             'date': "2015-03-20 12:00:00",
         })
         move2.action_confirm()
+        move3 = self.env["stock.move"].create({
+            'name': "Incoming move 3",
+            'product_id': self.test_product4.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 2,
+            'location_id': self.location_inv.id,
+            'location_dest_id': self.location_b.id,
+            'date': "2015-03-20 12:00:00",
+        })
+        move3.action_confirm()
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
-                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])])
-        procs = procs.sorted(lambda x: x.date_planned)
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])],
+                                order='date_planned, product_id')
 
         self.assertEqual(len(procs), 6)
         self.assertEqual(procs[0], proc0)
@@ -359,6 +371,13 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[5].product_id, self.test_product3)
         self.assertEqual(procs[5].state, 'exception')
 
+        procs4 = proc_env.search([('location_id', '=', self.location_b.id),
+                                 ('product_id', 'in', [self.test_product4.id])],
+                                 order='date_planned, id')
+        self.assertEqual(len(procs4), 2)
+        self.assertEqual(procs4[0].product_qty, 4)
+        self.assertEqual(procs4[1].product_qty, 6)
+
     def test_50_procurement_jit_oversupply(self):
         """Test redistribution of procurements when the location is over supplied."""
         proc_env = self.env['procurement.order']
@@ -375,8 +394,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         new_move2.action_confirm()
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
-                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])])
-        procs = procs.sorted(lambda x: x.date_planned)
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])],
+                                order='date_planned, product_id')
 
         self.assertEqual(len(procs), 8)
         self.assertEqual(procs[0].date_planned, "2015-03-15 09:59:59")
@@ -431,8 +450,8 @@ class TestStockProcurementJIT(common.TransactionCase):
 
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
-                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])])
-        procs = procs.sorted(lambda x: x.date_planned)
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])],
+                                order='date_planned, product_id')
 
         self.assertEqual(len(procs), 6)
         self.assertEqual(procs[0].date_planned, "2015-03-20 09:59:59")
@@ -476,8 +495,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         move_need7.action_cancel()
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
-                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])])
-        procs = procs.sorted(lambda x: x.date_planned)
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])],
+                                order='date_planned, product_id')
 
         self.assertEqual(len(procs), 4)
 
