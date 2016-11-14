@@ -111,9 +111,19 @@
             <field name="product_id" ref="product_test_product4"/>
             <field name="warehouse_id" ref="stock.warehouse0"/>
             <field name="location_id" ref="stock_location_b"/>
-            <field name="product_min_qty" eval="2"/>
+            <field name="product_min_qty" eval="4"/>
             <field name="product_max_qty" eval="6"/>
             <field name="qty_multiple" eval="2"/>
+        </record>
+
+        <record model="stock.warehouse.orderpoint" id="warehouse_orderpoint5">
+            <field name="name">Orderpoint 4 in B (bis)(JIT)</field>
+            <field name="product_id" ref="product_test_product4"/>
+            <field name="warehouse_id" ref="stock.warehouse0"/>
+            <field name="location_id" ref="stock_location_b"/>
+            <field name="product_min_qty" eval="12"/>
+            <field name="product_max_qty" eval="12"/>
+            <field name="qty_multiple" eval="1"/>
         </record>
 
         <!-- ######## Need moves in C ######## -->

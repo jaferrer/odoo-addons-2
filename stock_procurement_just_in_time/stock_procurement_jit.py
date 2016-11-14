@@ -71,6 +71,10 @@ class ProcurementOrderQuantity(models.Model):
         """
         for proc in self:
             new_date = fields.Datetime.from_string(need['date']) + relativedelta(seconds=-1)
+            if need['move_type'] != 'out':
+                # In case this is not a real need, then we set back the date to the need date
+                # so that we cumulate the stock_qty
+                new_date += relativedelta(seconds=1)
             proc.date_planned = fields.Datetime.to_string(new_date)
             _logger.debug("Rescheduled proc: %s, new date: %s" % (proc, proc.date_planned))
         self.with_context(reschedule_planned_date=True).action_reschedule()
@@ -254,6 +258,10 @@ class StockWarehouseOrderPointJit(models.Model):
             proc_vals = proc_obj._prepare_orderpoint_procurement(orderpoint, qty)
             if need['date']:
                 proc_date = fields.Datetime.from_string(need['date']) + relativedelta(seconds=-1)
+                if need['move_type'] != 'out':
+                    # In case this is not a real need, then we set back the date to the need date
+                    # so that we cumulate the stock_qty
+                    proc_date += relativedelta(seconds=1)
                 proc_vals.update({
                     'date_planned': fields.Datetime.to_string(proc_date)
                 })
