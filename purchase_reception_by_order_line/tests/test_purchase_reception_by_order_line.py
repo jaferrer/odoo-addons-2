@@ -111,6 +111,35 @@ class TestPurchaseReceptionByOrder(common.TransactionCase):
                 'location_dest_id': self.stock.id,
             })
 
+    def test_15_transfer_one_product_on_two_order_lines(self):
+        picking1, move1, move2, _ = self.get_picking_moves()
+        picking1.do_prepare_partial()
+        self.assertEqual(len(picking1.pack_operation_ids), 3)
+
+        wizard_id = picking1.do_enter_transfer_details()['res_id']
+        wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        self.assertEqual(len(wizard.item_ids), 3)
+        item1 = item2 = False
+        for item in wizard.item_ids:
+            if item.purchase_line_id == self.order_line_1:
+                item1 = item
+            if item.purchase_line_id == self.order_line_2:
+                item2 = item
+        item1.quantity = 10
+        item2.quantity = 20
+        wizard.do_detailed_transfer()
+
+        packop1, packop2, _ = self.check_packops(picking1)
+
+        self.assertEqual(packop1.product_qty, 10)
+        self.assertEqual(packop2.product_qty, 20)
+        self.assertEqual(packop1.purchase_line_id, self.order_line_1)
+        self.assertEqual(packop2.purchase_line_id, self.order_line_2)
+        self.assertEqual(move1.state, 'done')
+        self.assertEqual(move2.state, 'done')
+        self.assertEqual(move1.product_qty, 10)
+        self.assertEqual(move2.product_qty, 20)
+
     def test_20_forbidden_actions_on_products(self):
         picking1, _, _, _ = self.get_picking_moves()
         self.order_2.signal_workflow('purchase_confirm')
