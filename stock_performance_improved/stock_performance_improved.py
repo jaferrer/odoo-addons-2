@@ -610,7 +610,6 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         # 1) first, try to create links when quants can be identified without any doubt
         quants_in_package_done = set()
         for list_operation in list_operations_to_process:
-            print 'list_operation', list_operation
             still_to_do, need_rereserve, prod2move_ids, quants_in_package_done = self.pool.get('stock.picking'). \
                 process_operations_for_transfer(cr, uid, list_operation, need_rereserve, still_to_do, prod2move_ids,
                                                 quants_in_package_done, context=context)
