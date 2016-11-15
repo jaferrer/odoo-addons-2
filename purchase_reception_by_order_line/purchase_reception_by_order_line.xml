@@ -8,8 +8,12 @@
             <field name="inherit_id" ref="stock.view_picking_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
+                <field name="pack_operation_ids" position="attributes">
+                    <attribute name="context">{'default_picking_id': active_id, 'default_location_id': location_id, 'default_location_dest_id': location_dest_id, 'display_incoming_picking': True}</attribute>
+                </field>
                 <xpath expr="//field[@name='pack_operation_ids']//field[@name='product_id']" position="after">
-                    <field name="purchase_line_id" domain="[('product_id', '=', product_id)]" options="{'no_create': True, 'no_edit': True}"/>
+                    <field name="group_name" invisible="1"/>
+                    <field name="purchase_line_id" domain="[('product_id', '=', product_id), ('order_id.name', '=', group_name)]" options="{'no_create': True, 'no_edit': True}"/>
                 </xpath>
             </field>
         </record>
