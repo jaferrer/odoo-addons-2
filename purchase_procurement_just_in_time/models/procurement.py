@@ -174,7 +174,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                             ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc') or False
                 while procurements and purchase_lines:
                     purchase_lines = self.env['purchase.order.line']. \
-                        search([('order_id.state', '=', ['draft']),
+                        search([('order_id.state', '=', 'draft'),
                                 ('order_id.location_id', '=', rec.location_id.id),
                                 ('product_id', '=', rec.product_id.id),
                                 ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc')
