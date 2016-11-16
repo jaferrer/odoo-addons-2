@@ -532,17 +532,10 @@ class StockPicking(models.Model):
         result_comp = qtyassign_cmp == 0
         return result_comp, prod2move_ids
 
-    def recompute_remaining_qty(self, cr, uid, picking, context=None):
-
-        picking_obj = self.pool.get('stock.picking')
-        link_obj = self.pool.get('stock.move.operation.link')
+    @api.model
+    def _create_prod2move_ids(self, picking_id):
         prod2move_ids = {}
-        still_to_do = []
-        # make a dictionary giving for each product, the moves and related quantity that can be used in operation links
-        # moves_ids = sorted([x for x in picking.move_lines if x.state not in ('done', 'cancel')],
-        #               key=lambda x: (((x.state == 'assigned') and -2 or 0) + (x.partially_available and -1 or 0)))
-
-        cr.execute(
+        self.env.cr.execute(
             """
 SELECT
   id,
@@ -556,14 +549,25 @@ SELECT
 FROM stock_move sm
 WHERE sm.picking_id = %s AND sm.state NOT IN ('done', 'cancel')
 ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
-            """, (picking.id,)
+                    """, (picking_id,)
         )
-        res = cr.fetchall()
+        res = self.env.cr.fetchall()
         for move in res:
             if not prod2move_ids.get(move[2]):
                 prod2move_ids[move[2]] = [{'move': {'id': move[0]}, 'remaining_qty': move[1]}]
             else:
                 prod2move_ids[move[2]].append({'move': {'id': move[0]}, 'remaining_qty': move[1]})
+        return prod2move_ids
+
+    def recompute_remaining_qty(self, cr, uid, picking, context=None):
+        picking_obj = self.pool.get('stock.picking')
+        link_obj = self.pool.get('stock.move.operation.link')
+        still_to_do = []
+        # make a dictionary giving for each product, the moves and related quantity that can be used in operation links
+        # moves_ids = sorted([x for x in picking.move_lines if x.state not in ('done', 'cancel')],
+        #               key=lambda x: (((x.state == 'assigned') and -2 or 0) + (x.partially_available and -1 or 0)))
+
+        prod2move_ids = self._create_prod2move_ids(cr, uid, picking.id, context=context)
 
         if context.get("test_transfer"):
             prod2move_ids_test = {}
@@ -589,7 +593,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                                              prod2move_ids_test[it][a]['remaining_qty'],
                                              precision_rounding=self.pool.get('stock.move').browse(cr, uid, [
                                                  prod2move_ids[it][a]['move']['id']],
-                                                                                                   context)[
+                                context)[
                                                  0].product_id.uom_id.rounding) != 0:
                                 raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
 
@@ -654,7 +658,9 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                         all_in = False
                         break
                     else:
-                        # if putaway strat apply, the destination location of each quant may be different (and thus the package should not be taken as a single operation)
+                        # if putaway strat apply, the destination location of each quant may be
+                        # different (and thus the package should not be taken as a single
+                        # operation)
                         if not pack_destination:
                             pack_destination = quants_suggested_locations_improved[quant]
                         elif pack_destination != quants_suggested_locations_improved[quant]:
@@ -680,8 +686,8 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         res = set()
         for move in self.browse(cr, uid, ids, context=context):
             if move.picking_id and (not (
-                            move.picking_id.min_date < move.date_expected < move.picking_id.max_date) or
-                                            move.priority > move.picking_id.priority):
+                move.picking_id.min_date < move.date_expected < move.picking_id.max_date) or
+                    move.priority > move.picking_id.priority):
                 res.add(move.picking_id.id)
         return list(res)
 
