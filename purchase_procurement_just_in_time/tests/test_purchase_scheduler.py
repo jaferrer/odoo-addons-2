@@ -353,7 +353,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         purchase1 = self.proc1.purchase_id
         purchase3 = self.proc3.purchase_id
         purchase5 = self.proc5.purchase_id
-        print 'purchases', purchase1, purchase3, purchase5
 
         self.assertTrue(purchase1)
         self.assertTrue(purchase3)
@@ -384,7 +383,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(len(line1.move_ids), 3)
         self.assertIn(move1, line1.move_ids)
         extra_move1 = line1.move_ids.filtered(lambda move: move not in [move1, move2])
-        print 'extra_move1', line1, move1, extra_move1
         self.assertTrue(extra_move1)
         extra_move1_id = extra_move1.id
         group1 = move1.group_id
@@ -412,7 +410,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertFalse(extra_move1.procurement_id)
         new_proc1 = self.prepare_proc_1()
         new_proc1.run()
-        print 'new_proc1', new_proc1
         self.assertEqual(new_proc1.state, 'buy_to_run')
         self.env['procurement.order'].purchase_schedule(jobify=False)
 
