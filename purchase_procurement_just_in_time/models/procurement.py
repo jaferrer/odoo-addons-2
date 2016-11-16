@@ -191,9 +191,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         """
         domain_procurements = [('product_id', '=', first_proc.product_id.id),
                                ('location_id', '=', first_proc.location_id.id),
-                               ('rule_id.picking_type_id', '=', first_proc.rule_id.picking_type_id.id),
                                ('company_id', '=', first_proc.company_id.id),
                                ('date_planned', '>=', first_proc.date_planned)] + (force_domain or [])
+        if first_proc.rule_id.picking_type_id:
+            domain_procurements += [('rule_id.picking_type_id', '=', first_proc.rule_id.picking_type_id.id)]
         domain_max_date = date_end and [('date_planned', '<', date_end)] or []
         procurements_grouping_period = self.search(domain_procurements + domain_max_date, order=order_by)
         line_qty_product_uom = sum([self.env['product.uom'].
@@ -202,14 +203,15 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         suppliers = first_proc.product_id.seller_ids. \
             filtered(lambda supplier: supplier.name == self._get_product_supplier(first_proc))
         moq = suppliers and suppliers[0].min_qty or False
-        if moq and float_compare(line_qty_product_uom, moq, precision_rounding=first_proc.product_id.uom_id.rounding) < 0:
+        if moq and float_compare(line_qty_product_uom, moq,
+                                 precision_rounding=first_proc.product_id.uom_id.rounding) < 0:
             procurements_after_period = self.search(domain_procurements +
                                                     [('id', 'not in', procurements_grouping_period.ids)],
                                                     order=order_by)
             for proc in procurements_after_period:
                 proc_qty_product_uom = self.env['product.uom']. \
-                                   _compute_qty(proc.product_uom.id, proc.product_qty,
-                                                proc.product_id.uom_id.id)
+                    _compute_qty(proc.product_uom.id, proc.product_qty,
+                                 proc.product_id.uom_id.id)
                 if float_compare(line_qty_product_uom + proc_qty_product_uom, moq,
                                  precision_rounding=proc.product_id.uom_id.rounding) > 0:
                     break
@@ -232,9 +234,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         if self.partner_dest_id:
             main_domain += [('dest_address_id', '=', self.partner_dest_id.id)]
         domain_date_defined = [('date_order', '!=', False),
-                               ('date_order_max', '!=', False),
-                               ('date_order_max', '>', fields.Datetime.to_string(purchase_date)),
-                               ('date_order', '<=', fields.Datetime.to_string(purchase_date))]
+                               ('date_order', '<=', fields.Datetime.to_string(purchase_date)),
+                               '|', ('date_order_max', '=', False),
+                               ('date_order_max', '>', fields.Datetime.to_string(purchase_date))]
         domain_date_not_defined = ['|', ('date_order', '=', False), ('date_order_max', '=', False)]
         available_draft_po_ids = self.env['purchase.order'].search(main_domain + domain_date_defined)
         draft_order = False
@@ -246,7 +248,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             date_order, date_order_max = frame.get_start_end_dates(purchase_date, date_ref=date_ref)
         else:
             date_order = dt.now()
-            date_order_max = dt.now() + relativedelta(years=100)
+            date_order_max = dt.now() + relativedelta(years=1200)
         if not draft_order:
             available_draft_po_ids = self.env['purchase.order'].search(main_domain + domain_date_not_defined)
             if available_draft_po_ids:
@@ -257,7 +259,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             name = self.env['ir.sequence'].next_by_code('purchase.order') or _('PO: %s') % self.name
             po_vals = {
                 'name': name,
-                'origin': "%s - %s" % (self.date_planned, end_grouping_period or ''),
+                'origin': "%s - %s" % (self.date_planned, end_grouping_period or 'infinite'),
                 'partner_id': seller.id,
                 'location_id': self.location_id.id,
                 'picking_type_id': self.rule_id.picking_type_id.id,
@@ -288,12 +290,12 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             seller = self._get_product_supplier(procurements[0])
             while procurements:
                 first_proc = procurements[0]
-                product = procurements[0].product_id
+                product = first_proc.product_id
                 frame = seller.order_group_period
                 date_end_period = False
                 if frame and frame.period_type:
                     date_end_period = fields.Datetime.to_string(
-                        frame.get_date_end_period(seller, fields.Datetime.from_string(first_proc.date_planned))
+                        frame.get_date_end_period(fields.Datetime.from_string(first_proc.date_planned))
                     )
                 pol_procurements = self.get_purchase_line_procurements(
                     first_proc, date_end_period, order_by,
