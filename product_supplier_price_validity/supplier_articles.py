@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 import time
 
 from openerp.exceptions import except_orm
@@ -24,7 +25,9 @@ from openerp import fields, models, api, _
 
 class product_supplierinfo_improved (models.Model):
     _inherit = "product.supplierinfo"
-    validity_date_2 = fields.Date("Validity date", help="Price list validity end date. Does not have any affect on the price calculation.")
+    validity_date_2 = fields.Date(
+        "Validity date",
+        help="Price list validity end date. Does not have any affect on the price calculation.")
 
 
 class pricelist_partnerinfo_improved (models.Model):
@@ -61,7 +64,7 @@ class pricelist_partnerinfo_improved (models.Model):
 
 
 class product_pricelist_improved(models.Model):
-    _inherit="product.pricelist"
+    _inherit = "product.pricelist"
 
     @api.model
     def _price_rule_get_multi(self, pricelist, products_by_qty_by_partner):
@@ -127,11 +130,8 @@ class procurement_order(models.Model):
 
     @api.model
     def _get_po_line_values_from_proc(self, procurement, partner, company, schedule_date):
-        pricelist_id = partner.property_product_pricelist_purchase
-        result = super(procurement_order, self)._get_po_line_values_from_proc(procurement, partner, company, schedule_date)
-        qty = result['product_qty']
-        uom_id = result['product_uom']
         date = fields.Date.to_string(schedule_date)
-        price = pricelist_id.with_context(date=date, uom=uom_id).price_get(procurement.product_id.id, qty, partner.id)[pricelist_id.id]
-        result['price_unit'] = price
+        result = super(procurement_order, self.with_context(date=date))._get_po_line_values_from_proc(procurement,
+                                                                                                      partner, company,
+                                                                                                      schedule_date)
         return result

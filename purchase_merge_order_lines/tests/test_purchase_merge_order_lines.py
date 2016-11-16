@@ -40,7 +40,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
             'product_qty': 80,
             'warehouse_id': self.ref('stock.warehouse0'),
             'location_id': self.stock.id,
-            'date_planned': '2016-02-08 14:37:00',
+            'date_planned': '3003-02-08 14:37:00',
             'product_uom': self.ref('product.product_uom_unit'),
             'rule_id': self.buy_rule.id
         })
@@ -52,7 +52,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
             'product_qty': 80,
             'warehouse_id': self.ref('stock.warehouse0'),
             'location_id': self.stock.id,
-            'date_planned': '2015-02-08 14:37:00',
+            'date_planned': '3002-02-08 14:37:00',
             'product_uom': self.ref('product.product_uom_unit'),
             'rule_id': self.buy_rule.id
         })
@@ -64,7 +64,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
             'product_qty': 80,
             'warehouse_id': self.ref('stock.warehouse0'),
             'location_id': self.stock.id,
-            'date_planned': '2016-02-08 14:37:00',
+            'date_planned': '3003-02-08 14:37:00',
             'product_uom': self.ref('product.product_uom_unit'),
             'rule_id': self.buy_rule.id
         })
@@ -76,7 +76,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
             'product_qty': 50,
             'warehouse_id': self.ref('stock.warehouse0'),
             'location_id': self.stock.id,
-            'date_planned': '2015-02-08 14:37:00',
+            'date_planned': '3002-02-08 14:37:00',
             'product_uom': self.ref('product.product_uom_unit'),
             'rule_id': self.buy_rule.id
         })
@@ -88,7 +88,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
             'product_qty': 30,
             'warehouse_id': self.ref('stock.warehouse0'),
             'location_id': self.stock.id,
-            'date_planned': '2016-02-08 14:37:00',
+            'date_planned': '3003-02-08 14:37:00',
             'product_uom': self.ref('product.product_uom_unit'),
             'rule_id': self.buy_rule.id
         })
@@ -100,7 +100,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
             'product_qty': 50,
             'warehouse_id': self.ref('stock.warehouse0'),
             'location_id': self.stock.id,
-            'date_planned': '2015-02-08 14:37:00',
+            'date_planned': '3002-02-08 14:37:00',
             'product_uom': self.ref('product.product_uom_unit'),
             'rule_id': self.buy_rule.id
         })
@@ -119,12 +119,17 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.assertFalse(procurement2.purchase_line_id)
         self.assertFalse(procurement2.purchase_id)
         procurement1.run()
+        self.assertEqual(procurement1.state, 'buy_to_run')
+        procurement2.run()
+        self.assertEqual(procurement2.state, 'buy_to_run')
+
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product,
+                                                        jobify=False)
+
         self.assertTrue(procurement1.purchase_id)
         self.assertTrue(procurement1.purchase_line_id)
         order1 = procurement1.purchase_line_id.order_id
         self.assertEqual(order1, procurement1.purchase_id)
-
-        procurement2.run()
         self.assertTrue(procurement2.purchase_line_id)
         order2 = procurement2.purchase_line_id.order_id
         self.assertNotEqual(order1, order2)
@@ -142,11 +147,15 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
 
         result = order1.search([('id', 'in', [order1.id, order2.id])]). \
             with_context(merge_different_dates=True).do_merge()
-        lst = result.get(order2.id + 1)
+
+        list_keys = result.keys()
+        self.assertEqual(len(list_keys), 1)
+        merged_order_id = list_keys[0]
+        lst = result.get(merged_order_id)
         self.assertEqual(len(lst), 2)
         self.assertIn(order1.id, lst)
         self.assertIn(order2.id, lst)
-        merged_order = order1.search([('id', '=', order2.id + 1)])
+        merged_order = order1.search([('id', '=', merged_order_id)])
 
         self.assertEqual(len(merged_order), 1)
         self.assertEqual(len(merged_order.order_line), 1)
@@ -172,12 +181,17 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.assertFalse(procurement2.purchase_line_id)
         self.assertFalse(procurement2.purchase_id)
         procurement1.run()
+        self.assertEqual(procurement1.state, 'buy_to_run')
+        procurement2.run()
+        self.assertEqual(procurement2.state, 'buy_to_run')
+
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product,
+                                                        jobify=False)
+
         self.assertTrue(procurement1.purchase_id)
         self.assertTrue(procurement1.purchase_line_id)
         order1 = procurement1.purchase_line_id.order_id
         self.assertEqual(order1, procurement1.purchase_id)
-
-        procurement2.run()
         self.assertTrue(procurement2.purchase_line_id)
         order2 = procurement2.purchase_line_id.order_id
         self.assertNotEqual(order1, order2)
@@ -195,11 +209,14 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
 
         result = order1.search([('id', 'in', [order1.id, order2.id])]). \
             with_context(merge_different_dates=True).do_merge()
-        lst = result.get(order2.id + 1)
+        list_keys = result.keys()
+        self.assertEqual(len(list_keys), 1)
+        merged_order_id = list_keys[0]
+        lst = result.get(merged_order_id)
         self.assertEqual(len(lst), 2)
         self.assertIn(order1.id, lst)
         self.assertIn(order2.id, lst)
-        merged_order = order1.search([('id', '=', order2.id + 1)])
+        merged_order = order1.search([('id', '=', merged_order_id)])
 
         self.assertEqual(len(merged_order), 1)
         self.assertEqual(len(merged_order.order_line), 1)
@@ -212,60 +229,6 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.assertEqual(merged_order.payment_term_id, self.payment_term_2)
 
     def test_30_purchase_merge_order_lines(self):
-
-        """
-        Test with two procurements of different quantities.
-        Their sum is below the minimum quantity.
-        """
-
-        procurement1 = self.create_procurement_order_5()
-        procurement2 = self.create_procurement_order_6()
-
-        self.assertFalse(procurement1.purchase_line_id)
-        self.assertFalse(procurement1.purchase_id)
-        self.assertFalse(procurement2.purchase_line_id)
-        self.assertFalse(procurement2.purchase_id)
-        procurement1.run()
-        self.assertTrue(procurement1.purchase_id)
-        self.assertTrue(procurement1.purchase_line_id)
-        order1 = procurement1.purchase_line_id.order_id
-        self.assertEqual(order1, procurement1.purchase_id)
-
-        procurement2.run()
-        self.assertTrue(procurement2.purchase_line_id)
-        order2 = procurement2.purchase_line_id.order_id
-        self.assertNotEqual(order1, order2)
-        self.assertEqual(len(order1.order_line), 1)
-        self.assertEqual(order1.order_line.product_qty, 100)
-        self.assertEqual(len(order2.order_line), 1)
-        self.assertEqual(order2.order_line.product_qty, 100)
-        self.assertEqual(order2, procurement2.purchase_id)
-
-        self.assertEqual(order1.state, 'draft')
-        self.assertEqual(order2.state, 'draft')
-        order1.write({'incoterm_id': self.incoterm1.id, 'payment_term_id': self.payment_term_1.id})
-        order2.write({'incoterm_id': self.incoterm2.id, 'payment_term_id': self.payment_term_2.id})
-        self.assertGreater(order1.date_order, order2.date_order)
-
-        result = order1.search([('id', 'in', [order1.id, order2.id])]). \
-            with_context(merge_different_dates=True).do_merge()
-        lst = result.get(order2.id + 1)
-        self.assertEqual(len(lst), 2)
-        self.assertIn(order1.id, lst)
-        self.assertIn(order2.id, lst)
-        merged_order = order1.search([('id', '=', order2.id + 1)])
-
-        self.assertEqual(len(merged_order), 1)
-        self.assertEqual(len(merged_order.order_line), 1)
-        self.assertEqual(merged_order.order_line.product_qty, 100)
-        self.assertEqual(len(merged_order.order_line.procurement_ids), 2)
-        self.assertIn(procurement1, merged_order.order_line.procurement_ids)
-        self.assertIn(procurement2, merged_order.order_line.procurement_ids)
-
-        self.assertEqual(merged_order.incoterm_id, self.incoterm2)
-        self.assertEqual(merged_order.payment_term_id, self.payment_term_2)
-
-    def test_40_purchase_merge_order_lines(self):
 
         """
         Test with two procurements of different quantities and no min qty
@@ -282,12 +245,17 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.assertFalse(procurement2.purchase_line_id)
         self.assertFalse(procurement2.purchase_id)
         procurement1.run()
+        self.assertEqual(procurement1.state, 'buy_to_run')
+        procurement2.run()
+        self.assertEqual(procurement2.state, 'buy_to_run')
+
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product,
+                                                        jobify=False)
+
         self.assertTrue(procurement1.purchase_id)
         self.assertTrue(procurement1.purchase_line_id)
         order1 = procurement1.purchase_line_id.order_id
         self.assertEqual(order1, procurement1.purchase_id)
-
-        procurement2.run()
         self.assertTrue(procurement2.purchase_line_id)
         order2 = procurement2.purchase_line_id.order_id
         self.assertNotEqual(order1, order2)
@@ -305,11 +273,14 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
 
         result = order1.search([('id', 'in', [order1.id, order2.id])]). \
             with_context(merge_different_dates=True).do_merge()
-        lst = result.get(order2.id + 1)
+        list_keys = result.keys()
+        self.assertEqual(len(list_keys), 1)
+        merged_order_id = list_keys[0]
+        lst = result.get(merged_order_id)
         self.assertEqual(len(lst), 2)
         self.assertIn(order1.id, lst)
         self.assertIn(order2.id, lst)
-        merged_order = order1.search([('id', '=', order2.id + 1)])
+        merged_order = order1.search([('id', '=', merged_order_id)])
 
         self.assertEqual(len(merged_order), 1)
         self.assertEqual(len(merged_order.order_line), 1)

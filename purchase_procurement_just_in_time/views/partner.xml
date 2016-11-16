@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="res_partner_form_group_by_period">
+            <field name="name">res.partner.group.by.period</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//notebook/page[@name='sales_purchases']/group" position="inside">
+                        <group name="grouping_period" attrs="{'invisible': [('supplier','=',False)]}">
+                            <field name="order_group_period"/>
+                            <field name="nb_max_draft_orders"/>
+                        </group>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+    </data>
+</openerp>
