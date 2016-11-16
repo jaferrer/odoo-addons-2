@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* purchase_reception_by_order
+# 	* purchase_reception_by_order_line
 #
 msgid ""
 msgstr ""
@@ -18,83 +18,83 @@ msgstr ""
 "X-Generator: Poedit 1.7.5\n"
 
 #. module: base
-#: model:ir.module.module,shortdesc:base.module_purchase_reception_by_order
-msgid "Purchase Reception By Order"
-msgstr "Réception des livraisons par commande d'achat"
+#: model:ir.module.module,shortdesc:base.module_purchase_reception_by_order_line
+msgid "Purchase Reception By Order Line"
+msgstr "Réception des livraisons par ligne de commande d'achat"
 
 #. module: base
-#: model:ir.module.module,description:base.module_purchase_reception_by_order
+#: model:ir.module.module,description:base.module_purchase_reception_by_order_line
 msgid ""
-"Purchase Reception By Order\n"
-"===========================\n"
+"Purchase Reception By Order Line\n"
+"================================\n"
 "This module improves the initial reception process. It allows to make it purchase order line by purchase order line."
 msgstr ""
-"Réception des livraisons par commande d'achat\n"
-"=============================================\n"
+"Réception des livraisons par ligne de commande d'achat\n"
+"======================================================\n"
 "Ce module améliore le processus de réception des livraisons. Il permet de le faire ligne de commande d'achat par ligne de commande d'achat."
 
-#. module: purchase_reception_by_order
-#: code:addons\purchase_reception_by_order\purchase_reception_by_order.py:328
-#: code:addons\purchase_reception_by_order\purchase_reception_by_order.py:331
-#: code:addons\purchase_reception_by_order\wizard.py:72
-#: code:addons\purchase_reception_by_order\wizard.py:76
+#. module: purchase_reception_by_order_line
+#: code:addons\purchase_reception_by_order_line\purchase_reception_by_order_line.py:328
+#: code:addons\purchase_reception_by_order_line\purchase_reception_by_order_line.py:331
+#: code:addons\purchase_reception_by_order_line\wizard.py:72
+#: code:addons\purchase_reception_by_order_line\wizard.py:76
 #, python-format
 msgid "Error!"
 msgstr "Erreur !"
 
-#. module: purchase_reception_by_order
-#: code:addons\purchase_reception_by_order\purchase_reception_by_order.py:331
-#: code:addons\purchase_reception_by_order\wizard.py:76
+#. module: purchase_reception_by_order_line
+#: code:addons\purchase_reception_by_order_line\purchase_reception_by_order_line.py:331
+#: code:addons\purchase_reception_by_order_line\wizard.py:76
 #, python-format
 msgid "Impossible to receive a product on a purchase order line linked to another product. Please check your packing operations and retry."
 msgstr "Impossible de recevoir un article sur une ligne de commande d'achat liée à un autre article. Veuillez vérifier vos opérations de colisage et ré-essayer."
 
-#. module: purchase_reception_by_order
-#: code:addons\purchase_reception_by_order\purchase_reception_by_order.py:328
-#: code:addons\purchase_reception_by_order\wizard.py:72
+#. module: purchase_reception_by_order_line
+#: code:addons\purchase_reception_by_order_line\purchase_reception_by_order_line.py:328
+#: code:addons\purchase_reception_by_order_line\wizard.py:72
 #, python-format
 msgid "Impossible to receive two different purchase orders at the same time. Please check your packing operations and retry."
 msgstr "Impossible de réceptionner deux commandes d'achat différentes en même temps. Veuillez vérifier vos opérations de colisage et ré-essayer."
 
-#. module: purchase_reception_by_order
-#: model:ir.model,name:purchase_reception_by_order.model_stock_pack_operation
+#. module: purchase_reception_by_order_line
+#: model:ir.model,name:purchase_reception_by_order_line.model_stock_pack_operation
 msgid "Packing Operation"
 msgstr "Colisage"
 
-#. module: purchase_reception_by_order
-#: model:ir.model,name:purchase_reception_by_order.model_stock_picking
+#. module: purchase_reception_by_order_line
+#: model:ir.model,name:purchase_reception_by_order_line.model_stock_picking
 msgid "Picking List"
 msgstr "Liste de colisage"
 
-#. module: purchase_reception_by_order
-#: model:ir.model,name:purchase_reception_by_order.model_stock_transfer_details
+#. module: purchase_reception_by_order_line
+#: model:ir.model,name:purchase_reception_by_order_line.model_stock_transfer_details
 msgid "Picking wizard"
 msgstr "Assistant de préparation"
 
-#. module: purchase_reception_by_order
-#: model:ir.model,name:purchase_reception_by_order.model_stock_transfer_details_items
+#. module: purchase_reception_by_order_line
+#: model:ir.model,name:purchase_reception_by_order_line.model_stock_transfer_details_items
 msgid "Picking wizard items"
 msgstr "Eléments d'assistant d'opération"
 
-#. module: purchase_reception_by_order
+#. module: purchase_reception_by_order_line
 #: field:stock.pack.operation,purchase_line_id:0
 #: field:stock.transfer_details_items,purchase_line_id:0
 msgid "Purchase order line"
 msgstr "Ligne de commande d'achat"
 
-#. module: purchase_reception_by_order
-#: model:ir.model,name:purchase_reception_by_order.model_stock_move
+#. module: purchase_reception_by_order_line
+#: model:ir.model,name:purchase_reception_by_order_line.model_stock_move
 msgid "Stock Move"
 msgstr "Mouvement de stock"
 
-#. module: purchase_reception_by_order
-#: code:addons\purchase_reception_by_order\purchase_reception_by_order.py:64
+#. module: purchase_reception_by_order_line
+#: code:addons\purchase_reception_by_order_line\purchase_reception_by_order_line.py:64
 #, python-format
 msgid "The destination location must be the same for all the moves of the picking."
 msgstr "L'emplacement de destination doit être le même pour tous les mouvements du transfert."
 
-#. module: purchase_reception_by_order
-#: code:addons\purchase_reception_by_order\purchase_reception_by_order.py:67
+#. module: purchase_reception_by_order_line
+#: code:addons\purchase_reception_by_order_line\purchase_reception_by_order_line.py:67
 #, python-format
 msgid "The source location must be the same for all the moves of the picking."
 msgstr "L'emplacement source doit être le même pour tous les mouvements du transfert."
