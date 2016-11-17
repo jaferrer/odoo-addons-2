@@ -69,7 +69,7 @@ class procurement_time_frame(models.Model):
         return date_start, date_end
 
     @api.multi
-    def get_date_end_period(self, partner, date_start):
+    def get_date_end_period(self, date_start):
         """
         :param date: datetime
         :return: datetime

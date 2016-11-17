@@ -77,7 +77,6 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
 
     @api.onchange('sale_order_id')
     def onchange_sale_order_id(self):
-        print 'onchange_sale_order_id', self, self.sale_order_id.name
         self.ensure_one()
         if self.sale_order_id:
             self.partner_id = self.sale_order_id.partner_shipping_id
@@ -88,7 +87,6 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
-        print 'onchange_partner_id', self, self.partner_id.name
         self.ensure_one()
         if self.partner_id:
             self.country_id = self.partner_id.country_id
