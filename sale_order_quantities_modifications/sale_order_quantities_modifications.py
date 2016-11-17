@@ -86,22 +86,29 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
             self.pool.get('sale.order').action_ship_create(self.env.cr, self.env.uid, [result.order_id.id], context)
         return result
 
+    @api.model
+    def _copy_procurement(self, proc, new_qty, new_uom):
+        new_proc = proc.copy({
+            'product_qty': new_qty,
+            'product_uom': new_uom,
+            'product_uos_qty': new_qty * proc.product_uos_qty / proc.product_qty,
+        })
+        new_proc.run()
+
     @api.multi
     def update_procurements_for_new_qty_or_uom(self, vals, line_uom_id):
         self.ensure_one()
         procs_to_unlink = False
         delivered_qty, ordered_qty = self.procurement_ids.compute_delivrered_ordered_quantities(line_uom_id)
         if vals.get('product_uom') or vals.get('product_uom_qty') and \
-                        float_compare(vals['product_uom_qty'], 0,
-                                      precision_rounding=self.product_id.uom_id.rounding) != 0:
+            float_compare(vals['product_uom_qty'], 0,
+                          precision_rounding=self.product_id.uom_id.rounding) != 0:
             if self.procurement_ids:
                 if float_compare(vals['product_uom_qty'],
                                  ordered_qty, precision_rounding=self.product_id.uom_id.rounding) > 0:
                     # If the qty of the line is increased, we increase the qty of the first procurement.
-                    new_proc = self.procurement_ids[0]. \
-                        copy({'product_qty': vals['product_uom_qty'] - ordered_qty,
-                              'product_uom': line_uom_id})
-                    new_proc.run()
+                    self._copy_procurement(self.procurement_ids[0], vals['product_uom_qty'] - ordered_qty,
+                                           line_uom_id)
                 elif float_compare(vals['product_uom_qty'], ordered_qty,
                                    precision_rounding=self.product_id.uom_id.rounding) < 0:
                     if float_compare(vals['product_uom_qty'], delivered_qty,
@@ -115,16 +122,14 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
                         if float_compare(vals['product_uom_qty'], delivered_qty,
                                          precision_rounding=self.product_id.uom_id.rounding) > 0:
                             # Creation of the missing procurement.
-                            new_proc = self.procurement_ids[0]. \
-                                copy({'product_qty': vals['product_uom_qty'] - delivered_qty,
-                                      'product_uom': line_uom_id})
-                            new_proc.run()
+                            self._copy_procurement(self.procurement_ids[0], vals['product_uom_qty'] - delivered_qty,
+                                                   line_uom_id)
         if procs_to_unlink:
             procs_to_unlink.cancel()
             procs_to_unlink.unlink()
         elif 'product_uom_qty' in vals.keys() and \
-                        float_compare(vals['product_uom_qty'], 0,
-                                      precision_rounding=self.product_id.uom_id.rounding) == 0:
+            float_compare(vals['product_uom_qty'], 0,
+                          precision_rounding=self.product_id.uom_id.rounding) == 0:
             # If the quantity of a line is set to zero, we delete the linked procurements and the line itself.
             if self.procurement_ids.filtered(lambda proc: proc.state == 'done'):
                 raise exceptions.except_orm(_("Error!"), _("Impossible to cancel a procurement in state done."))
