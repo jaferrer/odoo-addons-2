@@ -22,6 +22,7 @@ from openerp.tests import common
 
 
 class TestQuantitiesModifications(common.TransactionCase):
+
     def setUp(self):
         super(TestQuantitiesModifications, self).setUp()
         self.product1 = self.browse_ref('sale_order_quantities_modifications.product1')
@@ -50,7 +51,7 @@ class TestQuantitiesModifications(common.TransactionCase):
             procurements = self.env['procurement.order'].search([('sale_line_id', 'in', lines)])
             self.assertEqual(len(list_procurements), len(procurements))
             for t in list_procurements:
-                self.assertIn(t, [[p.product_id, p.product_qty] for p in procurements])
+                self.assertIn(t, [(p.product_id, p.product_qty, p.product_uos_qty) for p in procurements])
 
         lines = [self.sale_order_line1.id, self.sale_order_line2.id, self.sale_order_line3.id]
 
@@ -62,7 +63,7 @@ class TestQuantitiesModifications(common.TransactionCase):
         self.assertTrue(self.sale_order_line1.procurement_ids)
         self.assertTrue(self.sale_order_line2.procurement_ids)
         self.assertTrue(self.sale_order_line3.procurement_ids)
-        check_procurements(lines, [[self.product1, 4], [self.product2, 5], [self.product3, 6]])
+        check_procurements(lines, [(self.product1, 4, 4), (self.product2, 5, 5), (self.product3, 6, 6)])
 
         # Two quantities increased, one decreased, and modification of price_unit:
         move = self.env['stock.move'].search([('product_id', '=', self.product3.id),
@@ -72,16 +73,16 @@ class TestQuantitiesModifications(common.TransactionCase):
         self.sale_order_line1.product_uom_qty = 5
         self.sale_order_line2.product_uom_qty = 4
         self.sale_order_line3.write({'product_uom_qty': 7, 'price_unit': 1.5})
-        check_procurements(lines, [[self.product1, 4], [self.product1, 1], [self.product2, 4],
-                                   [self.product3, 6], [self.product3, 1]])
+        check_procurements(lines, [(self.product1, 4, 4), (self.product1, 1, 1), (self.product2, 4, 4),
+                                   (self.product3, 6, 6), (self.product3, 1, 1)])
         self.assertEqual(move.price_unit, 1.5)
 
         # Two quantities decreased, one increased:
         self.sale_order_line1.product_uom_qty = 4
         self.sale_order_line2.product_uom_qty = 3
         self.sale_order_line3.product_uom_qty = 8
-        check_procurements(lines, [[self.product1, 4], [self.product2, 3],
-                                   [self.product3, 6], [self.product3, 1], [self.product3, 1]])
+        check_procurements(lines, [(self.product1, 4, 4), (self.product2, 3, 3),
+                                   (self.product3, 6, 6), (self.product3, 1, 1), (self.product3, 1, 1)])
 
         # Two quantities increased, one decreased, one line added
         self.sale_order_line1.product_uom_qty = 5
@@ -96,8 +97,8 @@ class TestQuantitiesModifications(common.TransactionCase):
             'price_unit': 4.0,
         })
         lines += [line4.id]
-        check_procurements(lines, [[self.product1, 1], [self.product1, 4], [self.product2, 3], [self.product2, 1],
-                                   [self.product3, 7], [self.product1, 10]])
+        check_procurements(lines, [(self.product1, 1, 1), (self.product1, 4, 4), (self.product2, 3, 3),
+                                   (self.product2, 1, 1), (self.product3, 7, 7), (self.product1, 10, 10)])
 
         # One quantity decreased, one increased, and two lines deleted
         self.sale_order_line1.product_uom_qty = 2
@@ -105,7 +106,7 @@ class TestQuantitiesModifications(common.TransactionCase):
         self.sale_order_line2.unlink()
         line4.unlink()
         lines = [self.sale_order_line1.id, self.sale_order_line3.id]
-        check_procurements(lines, [[self.product1, 2], [self.product3, 7], [self.product3, 8]])
+        check_procurements(lines, [(self.product1, 2, 2), (self.product3, 7, 7), (self.product3, 8,8)])
 
     def test_20_quantities_modifications(self):
         """
@@ -129,7 +130,9 @@ class TestQuantitiesModifications(common.TransactionCase):
         move2 = picking.move_lines.filtered(lambda move: move.product_id == self.product1 and move.product_uom_qty == 6)
         self.assertTrue(move1 and move2)
         self.assertEqual(move1.product_uom, self.unit)
-        self.assertEqual(move1.product_uom, self.unit)
+        self.assertEqual(move2.product_uom, self.unit)
+        self.assertEqual(move1.product_uos_qty, 8)
+        self.assertEqual(move2.product_uos_qty, 6)
         move1.action_done()
         self.assertEqual(old_procurement.state, 'done')
 
@@ -184,7 +187,9 @@ class TestQuantitiesModifications(common.TransactionCase):
         move2 = picking.move_lines.filtered(lambda move: move.product_id == self.product1 and move.product_uom_qty == 4)
         self.assertTrue(move1 and move2)
         self.assertEqual(move1.product_uom, self.unit)
-        self.assertEqual(move1.product_uom, self.unit)
+        self.assertEqual(move2.product_uom, self.unit)
+        self.assertEqual(move1.product_uos_qty, 8)
+        self.assertEqual(move2.product_uos_qty, 4)
         move1.action_done()
         self.assertEqual(old_procurement.state, 'done')
 
