@@ -110,7 +110,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                              compute_supplier_ids and seller in compute_supplier_ids):
                 if jobify:
                     session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-                    job_purchase_schedule_procurements.delay(session, 'materialized.sql.view', seller_procurements.ids,
+                    job_purchase_schedule_procurements.delay(session, 'procurement.order', seller_procurements.ids,
                                                              description=_("Scheduling purchase orders for seller %s "
                                                                            "and location %s") %
                                                                          (seller.display_name, location.display_name),
