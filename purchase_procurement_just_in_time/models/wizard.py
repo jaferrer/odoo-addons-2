@@ -93,7 +93,7 @@ class LaunchPurchasePlanner(models.TransientModel):
 
     @api.multi
     def procure_calculation(self):
-        self.env['procurement.order'].purchase_schedule(compute_product_ids=self.product_ids.ids,
-                                                        compute_supplier_ids=self.supplier_ids.ids,
+        self.env['procurement.order'].purchase_schedule(compute_product_ids=self.product_ids,
+                                                        compute_supplier_ids=self.supplier_ids,
                                                         compute_all_products=self.compute_all,
                                                         jobify=True)
