@@ -68,7 +68,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return result
 
     @api.model
-    def purchase_schedule(self, compute_all_products=True, compute_supplier_ids=False, compute_product_ids=False,
+    def purchase_schedule(self, compute_all_products=True, compute_supplier_ids=None, compute_product_ids=None,
                           jobify=True):
         if not compute_supplier_ids:
             compute_supplier_ids = []
