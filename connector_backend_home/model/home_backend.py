@@ -209,6 +209,8 @@ class ConnectorTypeFtpParameter(models.Model):
     pwd = fields.Char(string=u'Password')
 
     protocol = fields.Selection([("FTP", "Ftp"), ("SFTP", "Sftp")], string="Protocol", required=True, default="FTP")
+    target_path = fields.Char(string=u'target path')
+    archive_path = fields.Char(string=u'archive path')
 
     line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
 
@@ -216,7 +218,8 @@ class ConnectorTypeFtpParameter(models.Model):
 class ConnectorTypeLocalParameter(models.Model):
     _name = 'connector.type.local.parameter'
 
-    url = fields.Char(string=u'local path')
+    target_path = fields.Char(string=u'target path')
+    archive_path = fields.Char(string=u'archive path')
 
     line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
 

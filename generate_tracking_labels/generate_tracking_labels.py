@@ -17,9 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api, fields, exceptions, _
-import requests
-from openerp.tools import ustr
+from openerp import models, api, fields
+from openerp.exceptions import UserError
 
 
 class GenerateTrackingLabelsWizard(models.TransientModel):
@@ -33,10 +32,10 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     save_tracking_number = fields.Boolean(string=u"Enregistrer le numéro de suivi pour l'objet courant", default=True)
     transportation_amount = fields.Float(string=u"Prix du transport", help=u"En euros")
     total_amount = fields.Float(string=u"Prix TTC de l’envoi", help=u"En euros")
-    sender_parcel_ref = fields.Char(string=u"Référence client", help=u"Numéro de commande tel que renseigné dans votre SI"
-                                                               u" Peut être utile pour rechercher des colis selon ce "
-                                                               u"champ sur le suivi ColiView (apparaît dans le champ "
-                                                               u"'Réf. client')")
+    sender_parcel_ref = fields.Char(string=u"Référence client",
+                                    help=u"Numéro de commande tel que renseigné dans votre SI. Peut être utile pour "
+                                         u"rechercher des colis selon ce champ sur le suivi ColiView (apparaît dans le "
+                                         u"champ 'Réf. client')")
     sale_order_id = fields.Many2one('sale.order', string=u"Commande client")
     partner_id = fields.Many2one('res.partner', string=u"Adresse")
     company_name = fields.Char(string=u"Raison sociale", required=True)
@@ -82,9 +81,9 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         if self.sale_order_id:
             self.partner_id = self.sale_order_id.partner_shipping_id
             self.weight = sum([l.product_id.weight * l.product_uom_qty for l in self.sale_order_id.order_line]) or 1
-            self.transportationAmount = (self.sale_order_id and int(self.sale_order_id.amount_total)) or 0
-            self.totalAmount = (self.sale_order_id and int(self.sale_order_id.amount_untaxed)) or 0
-            self.senderParcelRef = (self.sale_order_id and self.sale_order_id.name) or ''
+            self.transportation_amount = (self.sale_order_id and int(self.sale_order_id.amount_total)) or 0
+            self.total_amount = (self.sale_order_id and int(self.sale_order_id.amount_untaxed)) or 0
+            self.sender_parcel_ref = (self.sale_order_id and self.sale_order_id.name) or ''
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
@@ -99,7 +98,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             self.city = self.partner_id.city or ''
             self.zip = self.partner_id.zip or ''
             self.phone_number = (self.partner_id.phone and self.partner_id.phone.replace(' ', '').replace('-', '') or '')
-            self.mobile_nulber = self.partner_id.mobile or ''
+            self.mobile_number = self.partner_id.mobile or ''
             self.email = self.partner_id.email or ''
 
     @api.onchange('country_id')
@@ -120,6 +119,12 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     @api.multi
     def generate_label(self):
         self.ensure_one()
+        if self.output_printing_type_id.transporter_id != self.transporter_id:
+            raise UserError(u"Format %s inconnu pour le transporteur %s" %
+                            (self.output_printing_type_id.name, self.transporter_id.name))
+        elif self.produit_expedition_id.transporter_id != self.transporter_id:
+            raise UserError(u"Produit %s inconnu pour le transporteur %s" %
+                            (self.produit_expedition_id.name, self.transporter_id.name))
         return [''] * 4
 
 
@@ -128,7 +133,7 @@ class TypeProduitExpedition(models.Model):
 
     name = fields.Char(string=u"Type de bordereau", readonly=True)
     transporter_id = fields.Many2one('tracking.transporter', string=u"Transporteur")
-    code = fields.Char(string=u"Code Colissimo", readonly=True)
+    code = fields.Char(string=u"Code Transporteur", readonly=True)
     used_from_customer = fields.Boolean(string=u"Utilisé pour les retours depuis le client")
     used_to_customer = fields.Boolean(string=u"Utilisé pour les envois vers le client")
     used_on_demand = fields.Boolean(string=u"Utilisé à la carte", compute='_compute_used_on_demand', store=True)
@@ -144,4 +149,4 @@ class GenerateLabelOutputPrintingType(models.Model):
 
     name = fields.Char(string=u"Format de sortie", readonly=True)
     transporter_id = fields.Many2one('tracking.transporter', string=u"Transporteur")
-    code = fields.Char(string=u"Code Colissimo", readonly=True)
+    code = fields.Char(string=u"Code Transporteur", readonly=True)

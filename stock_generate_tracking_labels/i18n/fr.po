@@ -59,8 +59,18 @@ msgstr "Etiquette d'envoi"
 
 #. module: stock_generate_tracking_labels
 #: model:ir.ui.view,arch_db:stock_generate_tracking_labels.stock_generate_tracking_labels_wizard
+msgid "or"
+msgstr "ou"
+
+#. module: stock_generate_tracking_labels
+#: model:ir.ui.view,arch_db:stock_generate_tracking_labels.stock_generate_tracking_labels_wizard
 msgid "Generate a label for each package"
-msgstr "Etiqueter chaque colis"
+msgstr "Etiquettes colis séparées"
+
+#. module: stock_generate_tracking_labels
+#: model:ir.ui.view,arch_db:stock_generate_tracking_labels.stock_generate_tracking_labels_wizard
+msgid "Generate one label for all the packages"
+msgstr "Etiquettes colis sur un même fichier"
 
 #. module: stock_generate_tracking_labels
 #: code:addons\stock_generate_tracking_labels\stock_generate_tracking_labels.py:43

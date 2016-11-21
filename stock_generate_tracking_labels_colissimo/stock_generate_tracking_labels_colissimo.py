@@ -1,7 +1,6 @@
 # -*- coding: utf8 -*-
-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -19,5 +18,17 @@
 #
 
 
-from . import models
-from . import wizard
+from openerp import models, api
+from openerp.exceptions import UserError
+
+
+class TrackingGenerateLabelsWizardColissimo(models.TransientModel):
+    _inherit = 'generate.tracking.labels.wizard'
+
+    @api.multi
+    def generate_one_label_for_all_packages(self):
+        result = super(TrackingGenerateLabelsWizardColissimo, self).generate_one_label_for_all_packages()
+        self.ensure_one()
+        if self.transporter_id == self.env.ref('base_delivery_tracking_colissimo.transporter_colissimo'):
+            raise UserError(u"Service indisponible pour Colissimo")
+        return result

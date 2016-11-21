@@ -23,9 +23,9 @@ from openerp import fields, models, api
 class ColissimoBaseConfigSettings(models.TransientModel):
     _inherit = 'base.config.settings'
 
-    login_colissimo = fields.Char(string=u"Numéro client",
+    login_colissimo = fields.Char(string=u"Numéro client Colissimo",
                                   help=u"Utilisé pour la génération des étiquettes de suivi")
-    password_colissimo = fields.Char(string=u"Mot de passe",
+    password_colissimo = fields.Char(string=u"Mot de passe Colissimo",
                                      help=u"Utilisé pour la génération des étiquettes de suivi")
 
     @api.multi

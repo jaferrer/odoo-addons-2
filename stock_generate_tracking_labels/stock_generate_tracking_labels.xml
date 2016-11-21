@@ -64,7 +64,9 @@
                 </button>
                 <button name="generate_label" position="after">
                     or
-                    <button name="generate_label_for_packages" type="object" string="Generate a label for each package" class="oe_highlight" attrs="{'invisible': [('packages_defined', '=', False)]}"/>
+                    <button name="generate_one_label_for_each_package" type="object" string="Generate a label for each package" class="oe_highlight" attrs="{'invisible': [('packages_defined', '=', False)]}"/>
+                    or
+                    <button name="generate_one_label_for_all_packages" type="object" string="Generate one label for all the packages" class="oe_highlight" attrs="{'invisible': [('packages_defined', '=', False)]}"/>
                 </button>
             </field>
         </record>

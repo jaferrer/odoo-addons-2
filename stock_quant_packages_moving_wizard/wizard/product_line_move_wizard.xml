@@ -8,9 +8,15 @@
             <field name="arch" type="xml">
                 <form string="Product move">
                     <group>
-                        <field name="global_dest_loc"/>
-                        <field name="picking_type_id"/>
+                        <field name="move_to"/>
+                    </group>
+                    <group name="location" attrs="{'invisible': [('move_to', '!=', 'location')]}">
+                        <field name="global_dest_loc" attrs="{'required': [('move_to', '=', 'location')]}"/>
+                        <field name="picking_type_id" attrs="{'required': [('move_to', '=', 'location')]}"/>
                         <field name="is_manual_op"/>
+                    </group>
+                    <group name="package" attrs="{'invisible': [('move_to', '!=', 'package')]}">
+                        <field name="package_id" attrs="{'required': [('move_to', '=', 'package')]}"/>
                     </group>
                     <separator string="Products to move"/>
                     <div class="oe_grey">If you request all the available quantities for one package, all the package will be moved.</div>

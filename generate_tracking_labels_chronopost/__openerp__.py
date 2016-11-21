@@ -1,5 +1,4 @@
 # -*- coding: utf8 -*-
-
 #
 # Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
@@ -18,6 +17,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-from . import models
-from . import wizard
+{
+    'name': 'Génération des étiquettes de suivi (Chronopost)',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Delivery Tracking',
+    'depends': ['generate_tracking_labels', 'base_delivery_tracking_chronopost'],
+    'description': """
+Génération des étiquettes de suivi (Chronopost)
+===============================================
+Ce module permet de générer des étiquettes d'envoi avec Chronopost.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': ['data_chronopost.xml',
+             'generate_tracking_labels_chronopost.xml',
+             'res_config.xml'],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}
