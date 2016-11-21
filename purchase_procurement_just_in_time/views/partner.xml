@@ -2,8 +2,8 @@
 <openerp>
     <data>
 
-        <record model="ir.ui.view" id="res_partner_form_group_by_period">
-            <field name="name">res.partner.group.by.period</field>
+        <record model="ir.ui.view" id="res_partner_form">
+            <field name="name">res_partner_form</field>
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="base.view_partner_form"/>
             <field name="priority" eval="16"/>
