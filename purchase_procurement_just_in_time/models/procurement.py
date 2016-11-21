@@ -82,42 +82,45 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         procurements_to_tun = self.search(domain_procurements_to_run)
         ignore_past_procurements = bool(self.env['ir.config_parameter'].
                                         get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
-        company = self.env.user.company_id
+        dict_procs_suppliers = {}
         while procurements_to_tun:
             seller = self._get_product_supplier(procurements_to_tun[0])
-            products_seller = self.env['product.product'].search([('seller_id', '=', seller.id)])
+            company = procurements_to_tun[0].company_id
+            product = procurements_to_tun[0].product_id
             location = procurements_to_tun[0].location_id
-            seller_procurements = self.env['procurement.order']
-            for product in products_seller:
-                domain = [('id', 'in', procurements_to_tun.ids),
-                          ('product_id', '=', product.id),
-                          ('location_id', '=', location.id)]
-                if ignore_past_procurements:
-                    suppliers = product.seller_ids and self.env['product.supplierinfo']. \
-                        search([('id', 'in', product.seller_ids.ids),
-                                ('name', '=', product.seller_id.id)]) or False
-                    if suppliers:
-                        schedule_date = self._get_purchase_schedule_date(procurements_to_tun[0], company)
-                        min_date = self._get_purchase_order_date(procurements_to_tun[0], company, schedule_date)
-                        min_date = fields.Datetime.to_string(min_date)
-                    else:
-                        min_date = fields.Datetime.now()
-                    domain += [('date_planned', '>', min_date)]
-                procurements = self.search(domain)
-                seller_procurements |= procurements
-            if seller_procurements and \
+            domain = [('id', 'in', procurements_to_tun.ids),
+                      ('company_id', '=', company.id),
+                      ('product_id', '=', product.id),
+                      ('location_id', '=', location.id)]
+            if ignore_past_procurements:
+                suppliers = product.seller_ids and self.env['product.supplierinfo']. \
+                    search([('id', 'in', product.seller_ids.ids),
+                            ('name', '=', product.seller_id.id)]) or False
+                if suppliers:
+                    schedule_date = self._get_purchase_schedule_date(procurements_to_tun[0], company)
+                    min_date = self._get_purchase_order_date(procurements_to_tun[0], company, schedule_date)
+                    min_date = fields.Datetime.to_string(min_date)
+                else:
+                    min_date = fields.Datetime.now()
+                domain += [('date_planned', '>', min_date)]
+            procurements = self.search(domain)
+            if dict_procs_suppliers.get(seller):
+                dict_procs_suppliers[seller] += procurements
+            else:
+                dict_procs_suppliers[seller] = procurements
+            procurements_to_tun -= procurements
+        for seller in dict_procs_suppliers.keys():
+            if dict_procs_suppliers[seller] and \
                     (compute_all_products or not compute_supplier_ids or
                              compute_supplier_ids and seller in compute_supplier_ids):
                 if jobify:
                     session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-                    job_purchase_schedule_procurements.delay(session, 'procurement.order', seller_procurements.ids,
-                                                             description=_("Scheduling purchase orders for seller %s "
-                                                                           "and location %s") %
-                                                                         (seller.display_name, location.display_name),
-                                                             context=self.env.context)
+                    job_purchase_schedule_procurements. \
+                        delay(session, 'procurement.order', dict_procs_suppliers[seller].ids,
+                    description=_("Scheduling purchase orders for seller %s and location %s") %
+                                (seller.display_name, location.display_name), context=self.env.context)
                 else:
-                    seller_procurements.purchase_schedule_procurements()
-            procurements_to_tun -= seller_procurements
+                    dict_procs_suppliers[seller].purchase_schedule_procurements()
 
     @api.multi
     def compute_procs_for_first_line_found(self, purchase_lines, dict_procs_lines):
