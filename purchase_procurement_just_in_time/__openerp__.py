@@ -65,6 +65,7 @@ Notes
         'views/purchase.xml',
         'views/wizard.xml',
         'views/partner.xml',
+        'views/procurement.xml',
         'data/cron.xml',
         'data/data_group_by_period.xml',
     ],
