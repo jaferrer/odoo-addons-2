@@ -429,9 +429,10 @@ class TestPurchaseScheduler(common.TransactionCase):
         # Let's check data for proc1
         purchase5 = self.proc5.purchase_id
         self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+        self.assertEqual(purchase5.state, "draft")
         line5 = purchase5.order_line
         self.assertEqual(len(line5), 1)
+        self.assertEqual(line5.state, "draft")
         self.assertEqual(self.proc1.purchase_id, purchase5)
         self.assertEqual(self.proc1.purchase_line_id, line5)
-        self.assertEqual(len(self.proc1.move_ids), 1)
-        self.assertEqual(line5.move_ids, self.proc1.move_ids)
+        self.assertEqual(len(self.proc1.move_ids), 0)
