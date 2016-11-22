@@ -372,5 +372,4 @@ class PurchaseOrderLineJustInTime(models.Model):
         procurements_to_detach = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids)])
         result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
         procurements_to_detach.remove_procs_from_lines(unlink_moves_to_procs=True)
-        procurements_to_detach.run()
         return result
