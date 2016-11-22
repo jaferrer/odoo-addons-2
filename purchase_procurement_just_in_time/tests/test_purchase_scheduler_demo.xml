@@ -75,7 +75,7 @@
         <record id="supplierinfo2" model="product.supplierinfo">
             <field name="name" ref="supplier1"/>
             <field name="packaging_qty" eval="2"/>
-            <field name="min_qty" eval="3"/>
+            <field name="min_qty" eval="10"/>
             <field name="delay" eval="7"/>
             <field name="product_tmpl_id" ref="product2_product_template"/>
         </record>
@@ -106,6 +106,15 @@
             <field name="route_id" ref="test_route"/>
             <field name="group_propagation_option">propagate</field>
             <field name="propagate">1</field>
+        </record>
+
+        <record model="stock.location.path" id="stock_location_path_a_to_b">
+            <field name="name">A => B pushed (Purchase JIT)</field>
+            <field name="location_from_id" ref="stock_location_a"/>
+            <field name="location_dest_id" ref="stock_location_b"/>
+            <field name="picking_type_id" ref="stock.picking_type_internal"/>
+            <field name="route_id" ref="test_route"/>
+            <field name="company_id" ref="base.main_company"/>
         </record>
 
     </data>
