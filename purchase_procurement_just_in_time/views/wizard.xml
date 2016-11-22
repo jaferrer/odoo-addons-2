@@ -45,7 +45,7 @@
                         <field name="supplier_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
                     </group>
                     <footer>
-                        <button name="procure_calculation" string="Run Purchase Planner" type="object" class="oe_highlight"/>
+                        <button name="procure_calculation" string="Launch Purchase Planner" type="object" class="oe_highlight"/>
                         or
                         <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
