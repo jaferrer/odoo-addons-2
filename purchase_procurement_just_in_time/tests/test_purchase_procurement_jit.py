@@ -254,10 +254,15 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         new_proc_1 = self.create_procurement_order_1()
         new_proc_1.run()
         self.assertEqual(new_proc_1.state, 'buy_to_run')
+
         self.env['procurement.order'].purchase_schedule(jobify=False)
         self.assertEqual(len(purchase_order_1.order_line), 1)
         self.assertEqual(purchase_order_1.order_line[0].product_qty, 36)
         self.assertEqual(purchase_order_1.order_line[0].product_id, self.product1)
+
+        self.assertEqual(procurement_order_1.state, 'cancel')
+        self.assertEqual(procurement_order_2.state, 'cancel')
+        self.assertEqual(procurement_order_4.state, 'cancel')
 
     def test_20_purchase_procurement_jit(self):
         """
@@ -373,6 +378,9 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         # Check that after rescheduling we still have our PO unchanged, but no more procurements attached
         self.env['procurement.order'].purchase_schedule(jobify=False)
         check_purchase_order_without_procs()
+        self.assertEqual(procurement_order_1.state, 'cancel')
+        self.assertEqual(procurement_order_2.state, 'cancel')
+        self.assertEqual(procurement_order_4.state, 'cancel')
 
     def test_25_purchase_procurement_jit(self):
         """
@@ -522,6 +530,20 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(purchase_order_1.order_line), 1)
         self.assertIn(line, purchase_order_1.order_line)
         self.assertEqual(len(line.move_ids), 0)
+
+    def test_36_purchase_procurement_jit(self):
+        """
+        Draft purchase order line removed
+        """
+        procurement_order_1, procurement_order_2, procurement_order_4 = self.create_and_run_proc_1_2_4()
+        purchase_order_1 = procurement_order_1.purchase_id
+        line1, line2 = self.check_purchase_order_1_2_4(purchase_order_1)
+
+        line2.unlink()
+
+        self.assertEqual(len(purchase_order_1.order_line), 1)
+        self.assertIn(line1, purchase_order_1.order_line)
+        self.assertEqual(procurement_order_4.state, 'buy_to_run')
 
     def test_40_purchase_procurement_jit(self):
         """
