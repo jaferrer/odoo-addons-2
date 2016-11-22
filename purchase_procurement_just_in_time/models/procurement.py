@@ -112,13 +112,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         for seller in dict_procs_suppliers.keys():
             if dict_procs_suppliers[seller] and \
                     (compute_all_products or not compute_supplier_ids or
-                             compute_supplier_ids and seller in compute_supplier_ids):
+                     compute_supplier_ids and seller in compute_supplier_ids):
                 if jobify:
                     session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
                     job_purchase_schedule_procurements. \
                         delay(session, 'procurement.order', dict_procs_suppliers[seller].ids,
-                    description=_("Scheduling purchase orders for seller %s and location %s") %
-                                (seller.display_name, location.display_name), context=self.env.context)
+                              description=_("Scheduling purchase orders for seller %s and location %s") %
+                              (seller.display_name, location.display_name), context=self.env.context)
                 else:
                     dict_procs_suppliers[seller].purchase_schedule_procurements()
 
@@ -380,22 +380,28 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     def add_proc_to_line(self, pol):
         pol.ensure_one()
         for rec in self:
-            group = self.env['procurement.group'].search([('name', '=', pol.order_id.name),
-                                                          ('partner_id', '=', pol.order_id.partner_id.id)], limit=1)
-            if not group:
-                group = self.env['procurement.group'].create({'name': pol.order_id.name,
-                                                              'partner_id': pol.order_id.partner_id.id})
             rec.write({'purchase_id': pol.order_id.id,
                        'purchase_line_id': pol.id})
-            running_moves = rec.move_ids and self.env['stock.move']. \
-                search([('id', 'in', rec.move_ids.ids),
-                        ('state', 'not in', ['draft', 'done', 'cancel'])]) or False
-            if running_moves:
+            if not rec.move_ids:
+                continue
+
+            running_moves = self.env['stock.move'].search([('id', 'in', rec.move_ids.ids),
+                                                           ('state', 'not in', ['draft', 'done', 'cancel'])])
+            if pol.state not in ['draft', 'done', 'cancel']:
+                group = self.env['procurement.group'].search([('name', '=', pol.order_id.name),
+                                                              ('partner_id', '=', pol.order_id.partner_id.id)], limit=1)
+                if not group:
+                    group = self.env['procurement.group'].create({'name': pol.order_id.name,
+                                                                  'partner_id': pol.order_id.partner_id.id})
                 running_moves.write({'purchase_line_id': pol.id,
                                      'picking_id': False,
                                      'group_id': group.id})
                 # We try to attach the move to the correct picking (matching new procurement group)
                 running_moves.action_confirm()
+            else:
+                # We attach the proc to a draft line, so we cancel all moves if any
+                running_moves.action_cancel()
+                running_moves.unlink()
         self.write({'state': 'running'})
 
     @api.model
