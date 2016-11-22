@@ -36,10 +36,13 @@ class StockMove(models.Model):
                SELECT stock_picking.id FROM stock_picking, stock_move
                 WHERE
                     stock_picking.state IN ('draft','waiting','confirmed','partially_available','assigned') AND
-                    stock_move.picking_id = stock_picking.id AND
-                    stock_picking.picking_type_id = %s AND
-                    stock_move.location_id = %s AND
-                    stock_move.location_dest_id = %s AND
+                    stock_picking.picking_type_id = %s AND (
+                        stock_picking.state = 'draft' OR (
+                            stock_move.picking_id = stock_picking.id AND
+                            stock_move.location_id = %s AND
+                            stock_move.location_dest_id = %s
+                         )
+                     ) AND
         """
         params = (self[0].picking_type_id.id, location_from, location_to)
         if not procurement_group:

@@ -81,6 +81,8 @@ class PurchaseOrderJustInTime(models.Model):
         data_per_proc = {}
         index = 0
         for item in res:
+            # Hack because move has dest_address as partner instead of partner
+            item['partner_id'] = order.partner_id.id
             if not data_per_proc.get(item['procurement_id']):
                 data_per_proc[item['procurement_id']] = []
             data_per_proc[item['procurement_id']].append((index, item))
