@@ -582,6 +582,92 @@ msgid "Quantity not yet delivered by the supplier"
 msgstr "Quantité non encore livrée par le fournisseur"
 
 #. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\purchase.py:226
+#, python-format
+msgid "Purchase Order Line: %s"
+msgstr "Ligne de commande d'achat : %s"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order,group_id:0
+msgid "Procurement Group"
+msgstr "Groupe d'approvisionnement"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.config.settings:purchase_procurement_just_in_time.purchase_config_form_jit
+msgid "Purchase planner"
+msgstr "Planificateur achats"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.actions.act_window,name:purchase_procurement_just_in_time.act_window_launch_purchase_planner
+#: model:ir.ui.menu,name:purchase_procurement_just_in_time.menu_launch_purchase_planner
+#: view:launch.purchase.planner:purchase_procurement_just_in_time.launch_purchase_planner_form
+msgid "Launch Purchase Planner"
+msgstr "Lancer le planificateur achats"
+
+#. module: purchase_procurement_just_in_time
+#: view:launch.purchase.planner:purchase_procurement_just_in_time.launch_purchase_planner_form
+msgid "Scheduler Parameters"
+msgstr "Paramètres du planificateur"
+
+#. module: purchase_procurement_just_in_time
+#: view:launch.purchase.planner:purchase_procurement_just_in_time.launch_purchase_planner_form
+msgid "Launch the purchase planner in the background."
+msgstr "Lancer le planificateur achats en tâche de fond."
+
+#. module: purchase_procurement_just_in_time
 #: selection:procurement.order,state:0
+#: view:procurement.order:purchase_procurement_just_in_time.procurement_order_jit_search
 msgid "Buy rule to run"
 msgstr "PA à créer"
+
+#. module: purchase_procurement_just_in_time
+#: field:launch.purchase.planner,compute_all:0
+msgid "Compute all the products"
+msgstr "Lancer le calcul sur l'ensemble des articles"
+
+#. module: purchase_procurement_just_in_time
+#: field:launch.purchase.planner,product_ids:0
+msgid "Products"
+msgstr "Articles"
+
+#. module: purchase_procurement_just_in_time
+#: field:launch.purchase.planner,supplier_ids:0
+msgid "Suppliers"
+msgstr "Fournisseurs"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\procurement.py:120
+#, python-format
+msgid "Scheduling purchase orders for seller %s and location %s"
+msgstr "Planification des achats pour le fournisseur %s et l'emplacement %s"
+
+#. module: purchase_procurement_just_in_time
+#: field:res.partner,nb_max_draft_orders:0
+msgid "Maximal number of draft purchase orders"
+msgstr "Nombre maximal de commandes d'achat brouillon"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,delta_begin_grouping_period:0
+msgid "Delta begin grouping period"
+msgstr "Delta de début de période de regroupement"
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.config.settings,delta_begin_grouping_period:0
+msgid "Grouping periods will be centered on the date of the day, increased by this delta"
+msgstr "Les périodes de regroupement seront centrées sur la date du jour, augmentée de ce delta"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,ignore_past_procurements:0
+msgid "Ignore past procurements"
+msgstr "Ignorer les procurements dans le passé"
+
+
+#. module: purchase_procurement_just_in_time
+#: help:res.partner,nb_max_draft_orders:0
+msgid "Used by the purchase planner to generate draft orders"
+msgstr "Utilisé par le planificateur achats pour générer des commandes d'achat brouillon"
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.config.settings,ignore_past_procurements:0
+msgid "Used for the purchase planner"
+msgstr "Utilisé par le planificateur achats"
