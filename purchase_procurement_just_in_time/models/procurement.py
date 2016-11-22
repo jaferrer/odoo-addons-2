@@ -262,7 +262,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             name = self.env['ir.sequence'].next_by_code('purchase.order') or _('PO: %s') % self.name
             po_vals = {
                 'name': name,
-                'origin': "%s - %s" % (self.date_planned, end_grouping_period or 'infinite'),
+                'origin': "%s - %s" % (self.date_planned[:10],
+                                       end_grouping_period and end_grouping_period[:10] or 'infinite'),
                 'partner_id': seller.id,
                 'location_id': self.location_id.id,
                 'picking_type_id': self.rule_id.picking_type_id.id,
