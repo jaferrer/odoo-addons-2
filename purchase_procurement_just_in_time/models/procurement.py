@@ -61,8 +61,14 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
                     'state': 'done',
                 })
-            # Detach the other moves
-            procurement.move_ids.filtered(lambda m: m.state != 'done').write({'procurement_id': False})
+            # Detach the other moves and reconfirm them so that we have push rules applied if any
+            remaining_moves = procurement.move_ids.filtered(lambda m: m.state != 'done')
+            remaining_moves.write({
+                'procurement_id': False,
+                'move_dest_id': False,
+            })
+            remaining_moves.action_confirm()
+            remaining_moves.force_assign()
         else:
             result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
         return result
@@ -373,7 +379,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             proc.move_ids.write({'purchase_line_id': False,
                                  'picking_id': False})
             if unlink_moves_to_procs and proc.move_ids:
-                proc.move_ids.action_cancel()
+                proc.move_ids.with_context(cancel_procurement=True).action_cancel()
                 proc.move_ids.unlink()
 
     @api.multi
@@ -400,7 +406,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 running_moves.action_confirm()
             else:
                 # We attach the proc to a draft line, so we cancel all moves if any
-                running_moves.action_cancel()
+                running_moves.with_context(cancel_procurement=True).action_cancel()
                 running_moves.unlink()
         self.write({'state': 'running'})
 
@@ -412,6 +418,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                             ('procurement_id', '=', False)])
             procurements = dict_procs_lines[pol]
             if moves_no_procs:
+                # We don't want cancel_procurement context here,
+                # because we want to cancel next move too (no procs).
                 moves_no_procs.action_cancel()
                 moves_no_procs.unlink()
             for proc in pol.procurement_ids:

@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api
+from openerp import models, api
 
 
 class StockMove(models.Model):
