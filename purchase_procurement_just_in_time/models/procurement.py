@@ -372,10 +372,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.multi
     def remove_procs_from_lines(self, unlink_moves_to_procs=False):
+        self.write({
+            'purchase_id': False,
+            'purchase_line_id': False
+        })
+        to_reset = self.search([('id', 'in', self.ids), ('state', 'in', ['running', 'exception'])])
+        to_reset.write({'state': 'buy_to_run'})
         for proc in self:
-            proc.write({'purchase_id': False,
-                        'purchase_line_id': False,
-                        'state': 'buy_to_run'})
             proc.move_ids.write({'purchase_line_id': False,
                                  'picking_id': False})
             if unlink_moves_to_procs and proc.move_ids:
