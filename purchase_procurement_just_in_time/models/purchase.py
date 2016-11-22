@@ -290,14 +290,15 @@ class PurchaseOrderLineJustInTime(models.Model):
             to_cancel_moves |= move
             qty_to_remove -= move.product_uom_qty
 
+        to_cancel_moves.action_cancel()
+        to_cancel_moves.unlink()
+
         while qty_to_remove > 0 and moves_with_proc_id:
             move = moves_with_proc_id[0]
             moves_with_proc_id -= move
             to_detach_procs |= move.procurement_id
             qty_to_remove -= move.product_uom_qty
 
-        to_cancel_moves.action_cancel()
-        to_cancel_moves.unlink()
         to_detach_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
 
         self.env['purchase.order']._create_stock_moves_improved(self.order_id, self)
@@ -368,9 +369,8 @@ class PurchaseOrderLineJustInTime(models.Model):
 
     @api.multi
     def unlink(self):
-        orders_to_unlink = self.env['purchase.order'].search([('id', 'in', [line.order_id.id for line in self])])
-        result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
         procurements_to_detach = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids)])
+        result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
         procurements_to_detach.remove_procs_from_lines(unlink_moves_to_procs=True)
         procurements_to_detach.run()
         return result
