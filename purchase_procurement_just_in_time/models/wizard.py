@@ -87,9 +87,9 @@ class SplitLine(models.TransientModel):
 class LaunchPurchasePlanner(models.TransientModel):
     _name = 'launch.purchase.planner'
 
-    compute_all = fields.Boolean(string=u"Compute all the products", default=True)
-    product_ids = fields.Many2many('product.product', string=u"Products to compute")
-    supplier_ids = fields.Many2many('res.partner', string=u"Suppliers", domain=[('supplier', '=', True)])
+    compute_all = fields.Boolean(string="Compute all the products", default=True)
+    product_ids = fields.Many2many('product.product', string="Products")
+    supplier_ids = fields.Many2many('res.partner', string="Suppliers", domain=[('supplier', '=', True)])
 
     @api.multi
     def procure_calculation(self):
