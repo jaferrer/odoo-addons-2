@@ -117,6 +117,19 @@ class PurchaseOrderJustInTime(models.Model):
                 res = [item for item in res if not item.get('procurement_id')]
         return res
 
+    @api.multi
+    def action_cancel(self):
+        running_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', self.order_line.ids),
+                                                              ('state', '=', 'running')])
+        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', self.order_line.ids),
+                                                        ('procurement_id', '=', False)])
+        # We explicitly cancel moves without procurements so that move_dest_id get cancelled too in this case
+        moves_no_procs.action_cancel()
+        # For the other moves, we don't want the move_dest_id to be cancelled, so we pass cancel_procurement
+        res = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).action_cancel()
+        running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        return res
+
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
