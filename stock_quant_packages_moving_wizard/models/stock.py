@@ -392,3 +392,24 @@ class Stock(models.Model):
             'target': 'new',
             'context': ctx,
         }
+
+
+class MovingWizardStockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    @api.multi
+    def get_data_for_new_package(self):
+        self.ensure_one()
+        return {'owner_id': self.owner_id and self.owner_id.id or False,
+                'location_id': self.location_dest_id and self.location_dest_id.id or False}
+
+    @api.multi
+    def create_package_for_picking(self):
+        self.ensure_one()
+        packops_without_packages = self.pack_operation_ids.filtered(lambda packop: not packop.result_package_id)
+        if packops_without_packages:
+            new_package = self.env['stock.quant.package']. \
+                create(self.get_data_for_new_package())
+            packops_without_packages.write({'result_package_id': new_package.id})
+        else:
+            raise UserError(_("Nothing to do."))
