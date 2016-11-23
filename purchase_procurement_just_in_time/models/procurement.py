@@ -407,6 +407,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                      'group_id': group.id})
                 # We try to attach the move to the correct picking (matching new procurement group)
                 running_moves.action_confirm()
+                running_moves.force_assign()
             else:
                 # We attach the proc to a draft line, so we cancel all moves if any
                 running_moves.with_context(cancel_procurement=True).action_cancel()
