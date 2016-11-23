@@ -117,6 +117,14 @@ class PurchaseOrderJustInTime(models.Model):
                 res = [item for item in res if not item.get('procurement_id')]
         return res
 
+    @api.multi
+    def action_cancel(self):
+        running_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', self.order_line.ids),
+                                                              ('state', '=', 'running')])
+        res = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).action_cancel()
+        running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        return res
+
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
