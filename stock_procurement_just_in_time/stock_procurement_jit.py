@@ -63,22 +63,6 @@ class ProcurementOrderQuantity(models.Model):
             qty = uom_obj._compute_qty_obj(m.product_uom, m.product_qty, m.product_id.uom_id)
             m.qty = qty
 
-    @api.multi
-    def reschedule_for_need(self, need):
-        """Reschedule procurements to a given need.
-        Will set the date of the procurements one second before the date of the need.
-        :param need: dict
-        """
-        for proc in self:
-            new_date = fields.Datetime.from_string(need['date']) + relativedelta(seconds=-1)
-            if need['move_type'] != 'out':
-                # In case this is not a real need, then we set back the date to the need date
-                # so that we cumulate the stock_qty
-                new_date += relativedelta(seconds=1)
-            proc.date_planned = fields.Datetime.to_string(new_date)
-            _logger.debug("Rescheduled proc: %s, new date: %s" % (proc, proc.date_planned))
-        self.with_context(reschedule_planned_date=True).action_reschedule()
-
     @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False):
         """
@@ -119,16 +103,73 @@ class ProcurementOrderQuantity(models.Model):
                                           description="Computing orderpoints %s" % orderpoints)
         return {}
 
+    @api.multi
+    def cancel(self):
+        result = super(ProcurementOrderQuantity, self).cancel()
+        if self.env.context.get('unlink_all_chain'):
+            moves_to_unlink = self.env['stock.move']
+            procurements_to_unlink = self.env['procurement.order']
+            for rec in self:
+                parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
+                for move in parent_moves:
+                    if move.state == 'cancel':
+                        moves_to_unlink += move
+                        if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
+                            move.procurement_id.state == 'cancel' and \
+                                not any([move.state == 'done' for move in move.procurement_id.move_ids]):
+                            procurements_to_unlink += move.procurement_id
+            if moves_to_unlink:
+                moves_to_unlink.unlink()
+            if procurements_to_unlink:
+                procurements_to_unlink.unlink()
+        return result
+
     @api.model
     def propagate_cancel(self, procurement):
         """
         Improves the original propagate_cancel, in order to cancel it even if one of its moves is done.
         """
-
         ignore_move_ids = procurement.rule_id.action == 'move' and procurement.move_ids and \
             procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
+        if procurement.rule_id.action == 'move':
+            # Keep proc with new qty if some moves are already done
+            procurement.remove_done_moves()
         return super(ProcurementOrderQuantity,
                      self.with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
+
+    @api.model
+    def remove_done_moves(self):
+        """Splits the given procs creating a copy with the qty of their done moves and set to done.
+        """
+        for procurement in self:
+            buy = procurement.rule_id.action == 'buy'
+            qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
+            if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
+                if buy:
+                    new_qty = procurement.product_qty - qty_done
+                else:
+                    new_qty = qty_done
+                if buy:
+                    new_proc = procurement.copy({
+                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
+                        'state': 'done',
+                    })
+                procurement.write({
+                    'product_qty': float_round(new_qty, precision_rounding=procurement.product_id.uom_id.rounding),
+                })
+                if buy:
+                    # Attach done and cancelled moves to new_proc
+                    done_moves = procurement.move_ids.filtered(lambda m: m.state in ['done', 'cancel'])
+                    done_moves.write({'procurement_id': new_proc.id})
+            # Detach the other moves and reconfirm them so that we have push rules applied if any
+            if buy:
+                remaining_moves = procurement.move_ids.filtered(lambda m: m.state not in ['done', 'cancel'])
+                remaining_moves.write({
+                    'procurement_id': False,
+                    'move_dest_id': False,
+                })
+                remaining_moves.action_confirm()
+                remaining_moves.force_assign()
 
 
 class StockMoveJustInTime(models.Model):
@@ -136,8 +177,8 @@ class StockMoveJustInTime(models.Model):
 
     @api.multi
     def action_cancel(self):
-        return super(StockMoveJustInTime, self.filtered(lambda move: move.id not in
-                                                        (self.env.context.get('ignore_move_ids') or []))). \
+        return super(StockMoveJustInTime,
+                     self.filtered(lambda move: move.id not in (self.env.context.get('ignore_move_ids') or []))). \
             action_cancel()
 
 
@@ -145,131 +186,48 @@ class StockWarehouseOrderPointJit(models.Model):
     _inherit = 'stock.warehouse.orderpoint'
 
     @api.multi
-    @api.returns('procurement.order')
-    def get_next_proc(self, need):
-        """Returns the next procurement.order after this line which date is not the line's date."""
-        self.ensure_one()
-        next_line = self.compute_stock_levels_requirements(product_id=self.product_id.id,
-                                                           location=self.location_id,
-                                                           list_move_types=('existing', 'in', 'out', 'planned',),
-                                                           limit=1, parameter_to_sort='date', to_reverse=False,
-                                                           max_date=False, min_date=need['date'], only_procs=True)
-        if next_line:
-            return self.env['procurement.order'].search([('id', '=', next_line[0]['proc_id'])])
-        return self.env['procurement.order']
-
-    @api.multi
-    def get_next_need(self):
+    def get_list_events(self):
         """Returns a dict of stock level requirements where the stock level is below minimum qty for the product and
         the location of the orderpoint."""
         self.ensure_one()
-        need = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
-                                                      list_move_types=('out',), limit=False,
-                                                      parameter_to_sort='date', to_reverse=False)
-        if not need:
-            # We have no need moves, but we still need to check if we are below the minimum quantity
-            # First we check if we have 'in' or 'planned' moves and take it as need if we have
-            need = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
-                                                          list_move_types=('in', 'planned'), limit=False,
-                                                          parameter_to_sort='date', to_reverse=False)
-            if not need:
-                # We really have nothing else than the 'existing' line, so we take it as last resort
-                need = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
-                                                              list_move_types=('existing',), limit=False,
-                                                              parameter_to_sort='date', to_reverse=False)
-        need = [x for x in need if float_compare(x['qty'], self.product_min_qty,
-                                                 precision_rounding=self.product_uom.rounding) < 0]
-        if need and need[0]:
-            return need[0]
-        return False
+        events = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
+                                                        list_move_types=('in', 'planned', 'out'), limit=False,
+                                                        parameter_to_sort='date', to_reverse=False)
+        # We really have nothing else than the 'existing' line, so we take it as last resort
+        if not events:
+            events = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
+                                                            list_move_types=('existing',), limit=False,
+                                                            parameter_to_sort='date', to_reverse=False)
+        # Let's group event by dates and move_type. We take the min qty of all the grouped event
+        grouped_events = []
+        dates_done = []
+        return sorted(events, key=lambda event: event['date'])
 
     @api.multi
-    def redistribute_procurements(self, date_start, date_end, days=1):
-        """Redistribute procurements related to these orderpoints between date_start and date_end.
-        Procurements will be considered as over-supplying if the quantity in stock calculated 'days' after the
-        procurement is above the orderpoint calculated maximum quantity. This allows not to consider movements of
-        large quantities over a small period of time (that can lead to ponctual over stock) as being over supply.
-
-        This function works by taking procurements one by one from the left. For each it checks whether the quantity
-        in stock days after this procurement is above the max value. If it is, the procurement is rescheduled
-        temporarily to date_end. This way, we check at which date between the procurement's original date and its
-        current date the stock level falls below the minimum quantity and finally place the procurement at this date.
-
-        :param date_start: the starting date as datetime. If False, start at the earliest available date.
-        :param date_end: the ending date as datetime
-        :param days: defines the number of days after a procurement at which to consider stock quantity.
-        """
-        for op in self:
-            date_domain = [('date_planned', '<', fields.Datetime.to_string(date_end))]
-            if date_start:
-                date_domain += [('date_planned', '>=', fields.Datetime.to_string(date_start))]
-            procs = self.env['procurement.order'].search([('product_id', '=', op.product_id.id),
-                                                          ('location_id', '=', op.location_id.id),
-                                                          ('state', 'in', ['confirmed', 'running', 'exception'])] +
-                                                         date_domain,
-                                                         order="date_planned")
-            min_date = procs and procs[0].date_planned
-            for proc in procs:
-                stock_date = min(
-                    fields.Datetime.from_string(proc.date_planned) + relativedelta(days=days, minutes=-28),
-                    date_end)
-                stock_level = self.env['stock.warehouse.orderpoint'].compute_stock_levels_requirements(
-                    product_id=proc.product_id.id, location=proc.location_id,
-                    list_move_types=('in', 'out', 'existing', 'planned',),
-                    parameter_to_sort='date', to_reverse=True, limit=False,
-                    max_date=fields.Datetime.to_string(stock_date + relativedelta(seconds=1)))
-                # define min_qty under which we do not want to move the procurement
-                min_qty = max(op.get_max_qty(stock_date), proc.qty + op.product_min_qty)
-                if stock_level and (stock_level[0]['qty'] > min_qty or proc.date_planned <= min_date):
-                    # We have too much of products: so we reschedule the procurement at end date
-                    proc.date_planned = fields.Datetime.to_string(date_end + relativedelta(seconds=-1))
-                    proc.with_context(reschedule_planned_date=True,
-                                      do_not_propagate_rescheduling=True,
-                                      do_not_propagate=True,
-                                      mail_notrack=True).action_reschedule()
-                    # Then we reschedule back to the next need if any
-                    need = op.get_next_need()
-                    if need and fields.Datetime.from_string(need['date']) < date_end:
-                        # Our rescheduling ended in creating a need before our procurement, so we move it to this date
-                        proc.with_context(reschedule_planned_date=True,
-                                          do_not_propagate_rescheduling=True,
-                                          do_not_propagate=True,
-                                          mail_notrack=True).reschedule_for_need(need)
-                    proc.with_context(reschedule_planned_date=True).action_reschedule()
-                    min_date = proc.date_planned
-
-    @api.multi
-    def create_from_need(self, need):
+    def create_from_need(self, need, stock_after_event):
         """Creates a procurement to fulfill the given need with the data calculated from the given order point.
-        Will set the date of the procurement one second before the date of the need.
+        Will set the date of the procurement at the date of the need.
 
         :param need: the 'stock levels requirements' dictionary to fulfill
-        :param orderpoint: the 'stock.orderpoint' record set with the needed date
         """
         proc_obj = self.env['procurement.order']
-        for orderpoint in self:
-            qty = max(orderpoint.product_min_qty,
-                      orderpoint.get_max_qty(fields.Datetime.from_string(need['date']))) - need['qty']
-            reste = orderpoint.qty_multiple > 0 and qty % orderpoint.qty_multiple or 0.0
-            if float_compare(reste, 0.0, precision_rounding=orderpoint.product_uom.rounding) > 0:
-                qty += orderpoint.qty_multiple - reste
-            qty = float_round(qty, precision_rounding=orderpoint.product_uom.rounding)
+        self.ensure_one()
+        qty = max(self.product_min_qty,
+                  self.get_max_qty(fields.Datetime.from_string(need['date']))) - stock_after_event
+        reste = self.qty_multiple > 0 and qty % self.qty_multiple or 0.0
+        if float_compare(reste, 0.0, precision_rounding=self.product_uom.rounding) > 0:
+            qty += self.qty_multiple - reste
+        qty = float_round(qty, precision_rounding=self.product_uom.rounding)
 
-            proc_vals = proc_obj._prepare_orderpoint_procurement(orderpoint, qty)
-            if need['date']:
-                proc_date = fields.Datetime.from_string(need['date']) + relativedelta(seconds=-1)
-                if need['move_type'] != 'out':
-                    # In case this is not a real need, then we set back the date to the need date
-                    # so that we cumulate the stock_qty
-                    proc_date += relativedelta(seconds=1)
-                proc_vals.update({
-                    'date_planned': fields.Datetime.to_string(proc_date)
-                })
-            proc = proc_obj.create(proc_vals)
-            if not self.env.context.get("procurement_no_run"):
-                proc.run()
-            _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
-                          (proc, proc.date_planned, proc.product_qty, orderpoint.product_id, orderpoint.location_id))
+        proc_vals = proc_obj._prepare_orderpoint_procurement(self, qty)
+        if need['date']:
+            proc_vals.update({'date_planned': need['date']})
+        proc = proc_obj.create(proc_vals)
+        if not self.env.context.get('procurement_no_run'):
+            proc.run()
+        _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
+                      (proc, proc.date_planned, proc.product_qty, self.product_id, self.location_id))
+        return proc
 
     @api.multi
     def get_last_scheduled_date(self):
@@ -291,22 +249,40 @@ class StockWarehouseOrderPointJit(models.Model):
 
         :param timestamp: datetime object
         """
-        for orderpoint in self:
-            last_outgoing = self.env['stock.warehouse.orderpoint'].compute_stock_levels_requirements(
-                product_id=orderpoint.product_id.id, location=orderpoint.location_id,
-                list_move_types=('out',), limit=1, parameter_to_sort='date', to_reverse=True,
-                max_date=fields.Datetime.to_string(timestamp))
-            # We get all procurements placed before timestamp, but after the last outgoing line sorted by inv quantity
-            procs = self.env['procurement.order'].search([('product_id', '=', orderpoint.product_id.id),
-                                                          ('location_id', '=', orderpoint.location_id.id),
+        for rec in self:
+            # We get all running procurements placed after timestamp.
+            procs = self.env['procurement.order'].search([('product_id', '=', rec.product_id.id),
+                                                          ('location_id', '=', rec.location_id.id),
                                                           ('state', 'not in', ['done', 'cancel']),
-                                                          ('date_planned', '<=', fields.Datetime.to_string(timestamp))],
-                                                         order='qty DESC')
-            if last_outgoing:
-                procs = procs.filtered(lambda y: y.date_planned > last_outgoing[0]['date'])
+                                                          ('date_planned', '>', fields.Datetime.to_string(timestamp))])
+            if procs:
                 _logger.debug("Removing not needed procurements: %s", procs.ids)
-                procs.cancel()
+                procs.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
                 procs.unlink()
+
+    @api.multi
+    def get_max_allowed_qty(self, need):
+        self.ensure_one()
+        product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
+        if self.qty_multiple and product_max_qty % self.qty_multiple != 0:
+            product_max_qty = (product_max_qty // self.qty_multiple + 1) * self.qty_multiple
+        return max(1.1 * product_max_qty, product_max_qty + 2)
+
+    @api.multi
+    def is_over_stock_max(self, need, stock_after_event):
+        self.ensure_one()
+        max_qty = self.get_max_allowed_qty(need)
+        if float_compare(stock_after_event, max_qty, precision_rounding=self.product_id.uom_id.rounding) > 0:
+            return True
+        return False
+
+    @api.multi
+    def is_under_stock_min(self, stock_after_event):
+        self.ensure_one()
+        min_qty = self.product_min_qty
+        if float_compare(stock_after_event, min_qty, precision_rounding=self.product_id.uom_id.rounding) < 0:
+            return True
+        return False
 
     @api.multi
     def process(self):
@@ -314,33 +290,34 @@ class StockWarehouseOrderPointJit(models.Model):
         for op in self:
             _logger.debug("Computing orderpoint %s (%s, %s, %s)" % (op.id, op.name, op.product_id.display_name,
                                                                     op.location_id.display_name))
-            need = op.get_next_need()
-            date_cursor = False
-            while need:
-                op.redistribute_procurements(date_cursor, fields.Datetime.from_string(need['date']), days=1)
-                # We move the date_cursor to the need date
-                date_cursor = fields.Datetime.from_string(need['date'])
-                # We check if there is already a procurement in the future
-                next_proc = op.get_next_proc(need)
-                if next_proc:
-                    # If there is a future procurement, we reschedule it (required date) to fit our need
-                    next_proc.reschedule_for_need(need)
-                else:
-                    # Else, we create a new procurement
-                    op.create_from_need(need)
-                need = op.get_next_need()
+            events = op.get_list_events()
+            done_dates = []
+            stock_after_event = 0
+            for event in events:
+                if event['date'] not in done_dates:
+                    stock_after_event += sum(item['move_qty'] for item in events if item['date'] == event['date'])
+                    done_dates += [event['date']]
+                if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned']:
+                    proc_oversupply = self.env['procurement.order'].search([('id', '=', event['proc_id'])])
+                    qty_same_proc = sum(item['move_qty'] for item in events if item['proc_id'] == event['proc_id'])
+                    if proc_oversupply:
+                        stock_after_event -= qty_same_proc
+                    _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
+                    proc_oversupply.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
+                    proc_oversupply.unlink()
+                elif op.is_under_stock_min(stock_after_event):
+                    new_proc = op.create_from_need(event, stock_after_event)
+                    stock_after_event += new_proc.product_qty
             # Now we want to make sure that at the end of the scheduled outgoing moves, the stock level is
             # the minimum quantity of the orderpoint.
             last_scheduled_date = op.get_last_scheduled_date()
             if last_scheduled_date:
                 date_end = last_scheduled_date + relativedelta(minutes=+1)
-                op.redistribute_procurements(date_cursor, date_end)
                 op.remove_unecessary_procurements(date_end)
 
     @api.model
     def compute_stock_levels_requirements(self, product_id, location, list_move_types, limit=1,
-                                          parameter_to_sort='date', to_reverse=False, max_date=None,
-                                          min_date=None, only_procs=False):
+                                          parameter_to_sort='date', to_reverse=False, max_date=None):
         """
         Computes stock level report
         :param product_id: int
@@ -370,7 +347,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 sm.id,
                 sm.product_qty,
                 min(COALESCE(po.date_planned, sm.date)) AS date,
-                min(po.id)
+                po.id
             FROM
                 stock_move sm
                 LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
@@ -381,7 +358,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 AND sl.parent_left >= %s
                 AND sl.parent_left < %s""" + \
                          move_in_date_clause + \
-                         """GROUP BY sm.id, sm.product_qty
+                         """GROUP BY sm.id, po.id, sm.product_qty
                          ORDER BY DATE"""
         self.env.cr.execute(query_moves_in, params)
         moves_in_tuples = self.env.cr.fetchall()
@@ -492,10 +469,6 @@ class StockWarehouseOrderPointJit(models.Model):
             qty += total_qty
             for dictionary in stock_levels[:]:
                 intermediate_result.remove(dictionary)
-                if only_procs and not dictionary['proc_id']:
-                    continue
-                if min_date and dictionary['date'] <= min_date:
-                    continue
                 if dictionary['move_type'] not in list_move_types:
                     continue
                 level_qty = dictionary['move_qty']
