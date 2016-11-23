@@ -132,3 +132,14 @@ class purchase_working_days(models.Model):
         partner = procurement.product_id.seller_id
         order_date = partner.schedule_working_days(-seller_delay, schedule_date)
         return order_date
+
+    @api.model
+    def _get_min_date_delivery(self, product, seller, ref_date):
+        """Return the datetime value to receive a Purchase Order from this supplier if it is confirmed at ref_date.
+           :param datetime ref_date: desired Scheduled Date for the Purchase Order lines.
+           :rtype: datetime
+           :return: the minimum delivery_date
+        """
+        seller_delay = int(product.seller_delay)
+        min_delivery_date = seller.schedule_working_days(seller_delay, ref_date)
+        return min_delivery_date

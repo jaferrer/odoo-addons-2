@@ -45,11 +45,13 @@ class StockWarehouse(models.Model):
     def _set_max_quantity(self):
         self.product_max_qty_operator = self.product_max_qty
 
+    @api.multi
     def get_max_qty(self, date):
         """Returns the orderpoint maximum quantity for the given date.
 
         :param date: datetime at which we want to calculate the maximum quantity
         """
+        self.ensure_one()
         if self.fill_strategy == 'max':
             return self.product_max_qty_operator
         else:

@@ -34,7 +34,7 @@ class procurement_time_frame(models.Model):
     def get_start_end_dates(self, date, date_ref=False):
         delta = 0
         if config['test_enable'] and not self.env.context.get("testing_date_ref"):
-            date_ref=False
+            date_ref = False
         if date_ref:
             ds_start, ds_end = self._get_interval(date_ref)
             delta = (date_ref - ds_start).days + 1
