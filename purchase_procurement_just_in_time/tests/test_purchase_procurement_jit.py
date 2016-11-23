@@ -704,6 +704,28 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         line.product_qty = 0
         self.assertFalse(line.move_ids.filtered(lambda m: m != 'cancel'))
 
+    def test_56_purchase_procurement_jit(self):
+        """
+        Cancelling a confirmed purchase order
+        """
+        procurement_order_1, procurement_order_2, procurement_order_4 = self.create_and_run_proc_1_2_4()
+        purchase_order_1 = procurement_order_1.purchase_id
+        line1, line2 = self.check_purchase_order_1_2_4(purchase_order_1)
+
+        purchase_order_1.signal_workflow('purchase_confirm')
+        self.assertEqual(purchase_order_1.state, 'approved')
+        self.assertEqual(line1.state, 'confirmed')
+        self.assertEqual(line2.state, 'confirmed')
+
+        purchase_order_1.action_cancel()
+
+        self.assertEqual(procurement_order_1.state, 'buy_to_run')
+        self.assertEqual(procurement_order_2.state, 'buy_to_run')
+        self.assertEqual(procurement_order_4.state, 'buy_to_run')
+
+        self.assertTrue(procurement_order_4.move_dest_id)
+        self.assertEqual(procurement_order_4.move_dest_id.state, 'waiting')
+
     def test_60_purchase_procurement_jit(self):
         """
         Increasing quantity of a confirmed purchase order line
