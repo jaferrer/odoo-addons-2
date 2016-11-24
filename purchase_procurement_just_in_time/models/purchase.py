@@ -292,9 +292,8 @@ class PurchaseOrderLineJustInTime(models.Model):
         moves_with_proc_id = self.move_ids.filtered(
             lambda m: m.state not in ['done', 'cancel'] and m.procurement_id).sorted(key=lambda m: m.product_qty,
                                                                                      reverse=True)
-
         qty_to_remove = sum([x.product_uom_qty for x in self.move_ids
-                             if x.state not in ['done', 'cancel']]) - target_qty
+                             if x.state not in ['cancel']]) - target_qty
         to_cancel_moves = self.env['stock.move']
         to_detach_procs = self.env['procurement.order']
         while qty_to_remove > 0 and moves_without_proc_id:
@@ -313,6 +312,14 @@ class PurchaseOrderLineJustInTime(models.Model):
             qty_to_remove -= move.product_uom_qty
 
         to_detach_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+
+        # Delete moves that have been detached from the procurement and recreate them with
+        # the correct quantity.
+        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', self.ids),
+                                                        ('procurement_id', '=', False),
+                                                        ('state', 'not in', ['done', 'cancel'])])
+        moves_no_procs.action_cancel()
+        moves_no_procs.unlink()
 
         self.env['purchase.order']._create_stock_moves_improved(self.order_id, self)
 
