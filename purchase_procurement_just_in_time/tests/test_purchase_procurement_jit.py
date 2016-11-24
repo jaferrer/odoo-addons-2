@@ -717,14 +717,40 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line1.state, 'confirmed')
         self.assertEqual(line2.state, 'confirmed')
 
+        self.assertEqual(len(line2.move_ids), 2)
+        m1 = m2 = self.env['stock.move']
+        for m in line2.move_ids:
+            if m.product_uom_qty == 8:
+                m1 = m
+            elif m.product_uom_qty == 2:
+                m2 = m
+        self.assertEqual(m1.state, 'assigned')
+        self.assertEqual(m1.procurement_id.id, line2.procurement_ids.id)
+        m1_dest = m1.move_dest_id
+        self.assertEqual(m1_dest, line2.procurement_ids.move_dest_id)
+        self.assertEqual(m1_dest.state, "waiting")
+        self.assertEqual(m2.state, 'assigned')
+        self.assertFalse(m2.procurement_id)
+        m2_dest = m2.move_dest_id
+        self.assertTrue(m2_dest)
+        self.assertEqual(m2_dest.state, "waiting")
+
         purchase_order_1.action_cancel()
 
         self.assertEqual(procurement_order_1.state, 'buy_to_run')
         self.assertEqual(procurement_order_2.state, 'buy_to_run')
         self.assertEqual(procurement_order_4.state, 'buy_to_run')
 
-        self.assertTrue(procurement_order_4.move_dest_id)
-        self.assertEqual(procurement_order_4.move_dest_id.state, 'waiting')
+        m1 = self.env['stock.move'].search([('id', '=', m1.id)])
+        m2 = self.env['stock.move'].search([('id', '=', m2.id)])
+        self.assertFalse(m1)
+        self.assertTrue(m1_dest)
+        self.assertEqual(m1_dest.state, 'waiting')
+
+        self.assertTrue(m2)
+        self.assertEqual(m2.state, 'cancel')
+        self.assertTrue(m2_dest)
+        self.assertEqual(m2_dest.state, 'cancel')
 
     def test_60_purchase_procurement_jit(self):
         """
