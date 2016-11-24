@@ -278,6 +278,12 @@ msgid "The moves of all the quants could not be assigned to the same picking."
 msgstr "Les mouvements de tous les quants n'ont pas pu être rattachés à la même opération."
 
 #. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:408
+#, python-format
+msgid "Nothing to do."
+msgstr "Rien à faire."
+
+#. module: stock_quant_packages_moving_wizard
 #: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:141
 #, python-format
 msgid "The quantity to move must be lower or equal to the available quantity"
@@ -400,3 +406,8 @@ msgstr "Exécuter les opérations de colisage"
 #: selection:product.move.wizard,move_to:0
 msgid "Execute packops for packages"
 msgstr "Exécuter les opérations de colisage"
+
+#. module: stock_quant_packages_moving_wizard
+#: model:ir.ui.view,arch_db:stock_quant_packages_moving_wizard.moving_wizard_stock_picking_form
+msgid "Create a new destination package"
+msgstr "Créer un nouveau colis de destination"
