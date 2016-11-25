@@ -31,5 +31,5 @@ msgstr "Quants"
 #. module: stock_forbid_negative_quants
 #: code:addons/stock_forbid_negative_quants/stock_forbid_negative_quants.py:31
 #, python-format
-msgid "You are not allowed to move products quants that are not available.If the quants are available, check that package, owner and lot no. match"
-msgstr "Vous n'avez pas le droit de déplacer des quants d'articles non disponibles. Si les quants sont disponibles, vérifiez que le colis, le propriétaire et le numéro de lot correspondent"
+msgid "You are not allowed to move products quants that are not available. If the quants are available, check that package, owner and lot no. match. Product: %s, Missing qty: %s, Location: %s, Lot: %s, Package: %s"
+msgstr "Vous n'avez pas le droit de déplacer des quants d'articles non disponibles. Si les quants sont disponibles, vérifiez que le colis, le propriétaire et le numéro de lot correspondent. Article: %s, qté manquante: %s, emplacement: %s, n° de lot: %s, colis: %s"
