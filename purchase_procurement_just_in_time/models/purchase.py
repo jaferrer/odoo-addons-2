@@ -348,6 +348,15 @@ class PurchaseOrderLineJustInTime(models.Model):
             move_to_remove = [x for x in self.move_ids if x.state == 'cancel']
             for move in move_to_remove:
                 move.purchase_line_id = False
+        elif self.state == 'draft':
+            sum_procs = sum([p.product_qty for p in self.procurement_ids])
+            # We remove procs if there qty is above the line
+            for proc in self.procurement_ids.sorted(key=lambda m: m.product_qty, reverse=True):
+                if float_compare(vals['product_qty'], sum_procs,
+                                 precision_rounding=self.product_id.uom_id.rounding) >= 0:
+                    break
+                proc.remove_procs_from_lines()
+                sum_procs -= proc.product_qty
 
     @api.multi
     def write(self, vals):
