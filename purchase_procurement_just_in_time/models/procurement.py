@@ -308,7 +308,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         days_delta = int(self.env['ir.config_parameter'].
                          get_param('purchase_procurement_just_in_time.delta_begin_grouping_period') or 0)
         if self:
-            company = self.env.user.company_id
+            company = self[0].company_id
             order_by = 'date_planned asc, product_qty asc, id asc'
             # Let's process procurements by grouping period
             procurements = self.search([('id', 'in', self.ids)], order=order_by)
