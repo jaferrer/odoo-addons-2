@@ -67,7 +67,7 @@ class stock_move_planning_improved(models.Model):
                 vals['date_expected'] = vals['date']
                 # We would have preferred to keep the date to the initial need, but stock calculations are made on date
                 # del vals['date']
-            if vals.get('date') and move.procure_method == 'make_to_order':
+            elif vals.get('date') and move.procure_method == 'make_to_order':
                 # If the date is changed and moves are chained, propagate to the previous procurement if any
                 proc = self.env['procurement.order'].search([('move_dest_id', '=', move.id),
                                                              ('state', 'not in', ['done', 'cancel'])], limit=1)
