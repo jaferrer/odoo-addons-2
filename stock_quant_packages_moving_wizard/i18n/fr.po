@@ -16,9 +16,9 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,available_qty:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_available_qty
 msgid "Available quantity"
-msgstr "Available quantity"
+msgstr "Quantité disponible"
 
 #. module: stock_quant_packages_moving_wizard
 #: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
@@ -26,41 +26,41 @@ msgid "Bulk items"
 msgstr "Article en vrac"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard,create_uid:0
-#: field:product.move.wizard.line,create_uid:0
-#: field:stock.quant.move,create_uid:0
-#: field:stock.quant.move_items,create_uid:0
-#: field:stock.quant.package.move,create_uid:0
-#: field:stock.quant.package.move_items,create_uid:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_create_uid
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_create_uid
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_create_uid
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_items_create_uid
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_create_uid
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_items_create_uid
 msgid "Created by"
 msgstr "Créé par"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,created_from_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_created_from_id
 msgid "Created from ID"
 msgstr "Créé à partir de l'ID"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard,create_date:0
-#: field:product.move.wizard.line,create_date:0
-#: field:stock.quant.move,create_date:0
-#: field:stock.quant.move_items,create_date:0
-#: field:stock.quant.package.move,create_date:0
-#: field:stock.quant.package.move_items,create_date:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_create_date
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_create_date
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_create_date
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_items_create_date
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_create_date
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_items_create_date
 msgid "Created on"
 msgstr "Créé le"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:stock.warehouse,picking_type_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_warehouse_picking_type_id
 msgid "Default picking type"
 msgstr "Type d'opération par défaut"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard,global_dest_loc:0
-#: field:stock.quant.move,global_dest_loc:0
-#: field:stock.quant.move_items,dest_loc:0
-#: field:stock.quant.package.move,global_dest_loc:0
-#: field:stock.quant.package.move_items,dest_loc:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_global_dest_loc
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_global_dest_loc
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_items_dest_loc
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_global_dest_loc
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_items_dest_loc
 msgid "Destination Location"
 msgstr "Emplacement destination"
 
@@ -71,13 +71,13 @@ msgid "Fields qty must be lower than the initial quant quantity"
 msgstr "Chaque quantité demandée doit être inférieure à la quantité initiale du quant"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard,id:0
-#: field:product.move.wizard.line,id:0
-#: field:stock.product.line,id:0
-#: field:stock.quant.move,id:0
-#: field:stock.quant.move_items,id:0
-#: field:stock.quant.package.move,id:0
-#: field:stock.quant.package.move_items,id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_product_line_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_items_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_items_id
 msgid "ID"
 msgstr "ID"
 
@@ -93,43 +93,44 @@ msgid "Impossible to move simultaneously products of different locations"
 msgstr "Impossible de déplacer simultanément des articles situés à des emplacements différents"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard,write_uid:0
-#: field:product.move.wizard.line,write_uid:0
-#: field:stock.quant.move,write_uid:0
-#: field:stock.quant.move_items,write_uid:0
-#: field:stock.quant.package.move,write_uid:0
-#: field:stock.quant.package.move_items,write_uid:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_write_uid
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_write_uid
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_items_write_uid
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_write_uid
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_items_write_uid
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_write_uid
 msgid "Last Updated by"
 msgstr "Dernière mise à jour par"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard,write_date:0
-#: field:product.move.wizard.line,write_date:0
-#: field:stock.quant.move,write_date:0
-#: field:stock.quant.move_items,write_date:0
-#: field:stock.quant.package.move,write_date:0
-#: field:stock.quant.package.move_items,write_date:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_write_date
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_write_date
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_items_write_date
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_write_date
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_items_write_date
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_write_date
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,location_id:0
-#: field:product.move.wizard.line,location_name:0
-#: field:stock.product.line,location_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_location_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_location_name
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_product_line_location_id
+#: selection:product.move.wizard,move_to:0
 msgid "Location"
 msgstr "Emplacement"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,lot_id:0
-#: field:product.move.wizard.line,lot_name:0
-#: field:stock.product.line,lot_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_lot_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_lot_name
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_product_line_lot_id
 msgid "Lot"
 msgstr "Numéro de lot"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard,is_manual_op:0
-#: field:stock.quant.move,is_manual_op:0
-#: field:stock.quant.package.move,is_manual_op:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_is_manual_op
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_is_manual_op
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_is_manual_op
 msgid "Manual Operation"
 msgstr "Opération Manuelle"
 
@@ -152,7 +153,7 @@ msgid "Move products"
 msgstr "Déplacer les articles"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,move_wizard_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_move_wizard_id
 msgid "Move wizard"
 msgstr "Référence popup"
 
@@ -171,39 +172,36 @@ msgid "No line selected"
 msgstr "Aucune ligne sélectionnée"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,package_id:0
-#: field:product.move.wizard.line,package_name:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_package_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_package_name
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_package_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_product_line_package_id
 msgid "Package"
 msgstr "Colis"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:stock.quant.package.move_items,move_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_items_move_id
 msgid "Package move"
 msgstr "Déplacer le colis"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,parent_id:0
-#: field:stock.product.line,parent_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_product_line_parent_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_parent_id
 msgid "Parent Package"
 msgstr "Colis parent"
 
 #. module: stock_quant_packages_moving_wizard
 #: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form
-#: field:product.move.wizard,package_line_ids:0
-#: field:stock.quant.move,pack_move_items:0
-#: field:stock.quant.package.move,pack_move_items:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_package_line_ids
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_pack_move_items
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_pack_move_items
 msgid "Packages"
 msgstr "Colis"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:stock.product.line,package_id:0
-msgid "Package"
-msgstr "Colis"
-
-#. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard,picking_type_id:0
-#: field:stock.quant.move,picking_type_id:0
-#: field:stock.quant.package.move,picking_type_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_picking_type_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_picking_type_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_picking_type_id
 msgid "Picking type"
 msgstr "Type d'opération"
 
@@ -214,9 +212,9 @@ msgid "Picking wizard items"
 msgstr "Eléments d'assistant d'opération"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,product_id:0
-#: field:product.move.wizard.line,product_name:0
-#: field:stock.product.line,product_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_product_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_product_name
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_product_line_product_id
 msgid "Product"
 msgstr "Article"
 
@@ -227,33 +225,33 @@ msgstr "Déplacement d'articles"
 
 #. module: stock_quant_packages_moving_wizard
 #: view:product.move.wizard:stock_quant_packages_moving_wizard.product_move_wizard_form
-#: field:product.move.wizard,quant_line_ids:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_quant_line_ids
 msgid "Products to move"
 msgstr "Articles à déplacer"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:stock.quant.move_items,quant:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_items_quant
 msgid "Quant"
 msgstr "Quant"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:stock.quant.move_items,move_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_items_move_id
 msgid "Quant move"
 msgstr "Déplacer le quant"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:stock.quant.package.move_items,package:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_items_package
 msgid "Quant package"
 msgstr "Colis de plusieurs quants"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:stock.product.line,qty:0
-#: field:stock.quant.move_items,qty:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_product_line_qty
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_items_qty
 msgid "Quantity"
 msgstr "Quantité"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,qty:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_qty
 msgid "Quantity to move"
 msgstr "Quantité à déplacer"
 
@@ -268,8 +266,8 @@ msgid "Search Product"
 msgstr "Rechercher un article"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:stock.quant.move_items,source_loc:0
-#: field:stock.quant.package.move_items,source_loc:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_move_items_source_loc
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_quant_package_move_items_source_loc
 msgid "Source Location"
 msgstr "Emplacement source"
 
@@ -280,10 +278,34 @@ msgid "The moves of all the quants could not be assigned to the same picking."
 msgstr "Les mouvements de tous les quants n'ont pas pu être rattachés à la même opération."
 
 #. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:408
+#, python-format
+msgid "Nothing to do."
+msgstr "Rien à faire."
+
+#. module: stock_quant_packages_moving_wizard
 #: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:141
 #, python-format
 msgid "The quantity to move must be lower or equal to the available quantity"
-msgstr "La quantité à déplacer doit être inférieure ou égale à la quantité disponable"
+msgstr "La quantité à déplacer doit être inférieure ou égale à la quantité disponible"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:141
+#, python-format
+msgid "Impossible to move a quant from a not active location"
+msgstr "Impossible de déplacer un quant qui n'est pas dans un emplacement actif"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:143
+#, python-format
+msgid "Impossible to move a quant of a not active product"
+msgstr "Impossible de déplacer un quant dont l'article n'est pas actif"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:145
+#, python-format
+msgid "Impossible to move a quant of a not active UOM"
+msgstr "Impossible de déplacer un quant dont l'unité de mesure n'est pas active"
 
 #. module: stock_quant_packages_moving_wizard
 #: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
@@ -297,9 +319,9 @@ msgid "Transfer details"
 msgstr "Détails du transfert"
 
 #. module: stock_quant_packages_moving_wizard
-#: field:product.move.wizard.line,uom_id:0
-#: field:product.move.wizard.line,uom_name:0
-#: field:stock.product.line,uom_id:0
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_uom_id
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_line_uom_name
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_stock_product_line_uom_id
 msgid "UOM"
 msgstr "UdM"
 
@@ -343,3 +365,49 @@ msgstr "ou"
 msgid "product+package"
 msgstr "Article + Colis"
 
+#. module: stock_quant_packages_moving_wizard
+#: model:ir.model.fields,field_description:stock_quant_packages_moving_wizard.field_product_move_wizard_move_to
+msgid "Move to"
+msgstr "Déplacer vers"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:372
+#: model:ir.actions.server,name:stock_quant_packages_moving_wizard.ir_actions_server_move_to_package
+#, python-format
+msgid "Move to package"
+msgstr "Déplacer vers un colis"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:133
+#, python-format
+msgid "Impossible to move a package into a package of another location"
+msgstr "Impossible d'inclure un colis dans un colis d'un autre emplacement"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:148
+#, python-format
+msgid "Impossible to move a quant into a package of another location"
+msgstr "Impossible d'inclure un quant dans un colis d'un autre emplacement"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:158
+#, python-format
+msgid "Impossible to move only a part of a package into another package"
+msgstr "Impossible de déplacer partiellement un colis dans un autre colis"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:387
+#, python-format
+msgid "Execute pack operations"
+msgstr "Exécuter les opérations de colisage"
+
+#. module: stock_quant_packages_moving_wizard
+#: model:ir.actions.server,name:stock_quant_packages_moving_wizard.ir_actions_server_execute_packops
+#: selection:product.move.wizard,move_to:0
+msgid "Execute packops for packages"
+msgstr "Exécuter les opérations de colisage"
+
+#. module: stock_quant_packages_moving_wizard
+#: model:ir.ui.view,arch_db:stock_quant_packages_moving_wizard.moving_wizard_stock_picking_form
+msgid "Create a new destination package"
+msgstr "Créer un nouveau colis de destination"
