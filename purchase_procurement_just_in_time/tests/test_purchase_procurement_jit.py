@@ -944,6 +944,35 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         # self.assertEqual(m3.procurement_id, proc4)
         self.assertEqual(proc4.date_planned, "3003-05-05 17:00:00")
 
+    def test_62_purchase_procurement_jit(self):
+        """
+        Testing purchase no picking exception
+        """
+        proc1, proc2 = self.create_and_run_proc_1_2()
+        purchase_order_1 = proc1.purchase_id
+        line = self.check_purchase_order_1_2(purchase_order_1)
+
+        purchase_order_1.signal_workflow('purchase_confirm')
+        self.assertEqual(purchase_order_1.state, 'approved')
+
+        line.product_qty = 30
+
+        picking = purchase_order_1.picking_ids[0]
+        picking.do_prepare_partial()
+        packop = self.env['stock.pack.operation'].search([('picking_id', '=', picking.id)])
+        packop.product_qty = 14
+        picking.do_transfer()
+
+        self.assertEqual(len(line.procurement_ids), 1)
+        self.assertEqual(line.procurement_ids[0], proc1)
+        self.assertEqual(proc1.state, 'done')
+
+        self.env['procurement.order'].purchase_schedule(jobify=False)
+        self.assertEqual(purchase_order_1.state, 'approved')
+        line.product_qty = 58
+        self.env['procurement.order'].purchase_schedule(jobify=False)
+        self.assertEqual(purchase_order_1.state, 'approved')
+
     def test_65_purchase_procurement_jit(self):
         """
         Testing draft purchase order lines splits
