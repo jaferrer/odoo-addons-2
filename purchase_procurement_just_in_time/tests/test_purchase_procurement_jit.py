@@ -823,6 +823,24 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertRaises(exceptions.except_orm, test_decreasing_line_qty, line, 0, 1, [])
         self.assertFalse(line.move_ids.filtered(lambda m: m.state not in ['cancel', 'done']))
 
+    def test_58_purchase_procurement_jit(self):
+        """
+        Deleting a draft purchase order
+        """
+        procurement_order_1, procurement_order_2, procurement_order_4 = self.create_and_run_proc_1_2_4()
+        purchase_order_1 = procurement_order_1.purchase_id
+        line1, line2 = self.check_purchase_order_1_2_4(purchase_order_1)
+
+        self.assertEqual(purchase_order_1.state, 'draft')
+        self.assertEqual(procurement_order_1.state, 'running')
+        self.assertEqual(procurement_order_2.state, 'running')
+        self.assertEqual(procurement_order_4.state, 'running')
+        purchase_order_1.unlink()
+
+        self.assertEqual(procurement_order_1.state, 'buy_to_run')
+        self.assertEqual(procurement_order_2.state, 'buy_to_run')
+        self.assertEqual(procurement_order_4.state, 'buy_to_run')
+
     def test_60_purchase_procurement_jit(self):
         """
         Increasing quantity of a confirmed purchase order line
