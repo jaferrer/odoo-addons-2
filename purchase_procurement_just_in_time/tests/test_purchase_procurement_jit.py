@@ -554,6 +554,33 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertIn(line1, purchase_order_1.order_line)
         self.assertEqual(procurement_order_4.state, 'buy_to_run')
 
+    def test_38_purchase_procurement_jit(self):
+        """
+        Manual purchase order manipulation
+        """
+        order = self.env['purchase.order'].create({
+            'partner_id': self.supplier1.id,
+            'location_id': self.location_a.id,
+            'pricelist_id': self.ref('purchase.list0')
+        })
+        line = self.env['purchase.order.line'].create({
+            'name': "product 1",
+            'product_id': self.product1.id,
+            'date_planned': "2016-12-01",
+            'order_id': order.id,
+            'price_unit': 2,
+            'product_qty': 10,
+        })
+        order.signal_workflow('purchase_confirm')
+        self.assertEqual(order.state, 'approved')
+        self.assertEqual(line.move_ids[0].product_uom_qty, 10)
+        line.product_qty = 11
+        self.assertEqual(order.state, 'approved')
+        self.assertEqual(line.move_ids[0].product_uom_qty, 11)
+        line.product_qty = 9
+        self.assertEqual(order.state, 'approved')
+        self.assertEqual(line.move_ids[0].product_uom_qty, 9)
+
     def test_40_purchase_procurement_jit(self):
         """
         Test increasing quantity a draft purchase order line
