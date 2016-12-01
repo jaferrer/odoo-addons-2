@@ -305,6 +305,7 @@ class PurchaseOrderLineJustInTime(models.Model):
 
         :param target_qty: new quantity of the purchase order line
         """
+        self.ensure_one()
         moves_without_proc_id = self.move_ids.filtered(
             lambda m: m.state not in ['done', 'cancel'] and not m.procurement_id).sorted(key=lambda m: m.product_qty,
                                                                                          reverse=True)
@@ -313,16 +314,9 @@ class PurchaseOrderLineJustInTime(models.Model):
                                                                                      reverse=True)
         qty_to_remove = sum([x.product_uom_qty for x in self.move_ids
                              if x.state not in ['cancel']]) - target_qty
-        to_cancel_moves = self.env['stock.move']
-        to_detach_procs = self.env['procurement.order']
-        while qty_to_remove > 0 and moves_without_proc_id:
-            move = moves_without_proc_id[0]
-            moves_without_proc_id -= move
-            to_cancel_moves |= move
-            qty_to_remove -= move.product_uom_qty
 
-        to_cancel_moves.action_cancel()
-        to_cancel_moves.unlink()
+        qty_to_remove -= sum(x.product_uom_qty for x in moves_without_proc_id)
+        to_detach_procs = self.env['procurement.order']
 
         while qty_to_remove > 0 and moves_with_proc_id:
             move = moves_with_proc_id[0]
@@ -337,10 +331,16 @@ class PurchaseOrderLineJustInTime(models.Model):
         moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', self.ids),
                                                         ('procurement_id', '=', False),
                                                         ('state', 'not in', ['done', 'cancel'])])
+
+        # Dirty hack to keep the moves so that we don't to set the PO in shipping except
+        # but still compute the correct qty in _create_stock_moves_improved
+        moves_no_procs.write({'product_uom_qty': 0})
+        self.env['purchase.order']._create_stock_moves_improved(self.order_id, self)
+
+        # We don't want cancel_procurement context here,
+        # because we want to cancel next move too (no procs).
         moves_no_procs.action_cancel()
         moves_no_procs.unlink()
-
-        self.env['purchase.order']._create_stock_moves_improved(self.order_id, self)
 
     @api.multi
     def update_moves(self, vals):
