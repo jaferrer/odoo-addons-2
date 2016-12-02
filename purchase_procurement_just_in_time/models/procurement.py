@@ -460,7 +460,14 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.multi
     def make_po(self):
-        return {procurement.id: True for procurement in self}
+        res = {}
+        for proc in self:
+            if not self._get_product_supplier(proc):
+                proc.message_post(_('There is no supplier associated to product %s') % (proc.product_id.name))
+                res[proc.id] = False
+            else:
+                res[proc.id] = True
+        return res
 
     @api.multi
     def run(self, autocommit=False):

@@ -28,6 +28,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.supplier1 = self.browse_ref('purchase_procurement_just_in_time.supplier1')
         self.product1 = self.browse_ref('purchase_procurement_just_in_time.product1')
         self.product2 = self.browse_ref('purchase_procurement_just_in_time.product2')
+        self.product3 = self.browse_ref('purchase_procurement_just_in_time.product3')
         self.supplierinfo1 = self.browse_ref('purchase_procurement_just_in_time.supplierinfo1')
         self.supplierinfo2 = self.browse_ref('purchase_procurement_just_in_time.supplierinfo2')
         self.location_a = self.browse_ref('purchase_procurement_just_in_time.stock_location_a')
@@ -75,6 +76,17 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
             'warehouse_id': self.warehouse.id,
             'location_id': self.location_b.id,
             'date_planned': '3003-05-09 15:00:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+        })
+
+    def create_procurement_order_5(self):
+        return self.env['procurement.order'].create({
+            'name': 'Procurement order 5 (Purchase Procurement JIT)',
+            'product_id': self.product3.id,
+            'product_qty': 13,
+            'warehouse_id': self.warehouse.id,
+            'location_id': self.location_a.id,
+            'date_planned': '3003-05-18 15:00:00',
             'product_uom': self.ref('product.product_uom_unit'),
         })
 
@@ -264,6 +276,14 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(procurement_order_1.state, 'cancel')
         self.assertEqual(procurement_order_2.state, 'cancel')
         self.assertEqual(procurement_order_4.state, 'cancel')
+
+    def test_17_purchase_procurement_jit(self):
+        """
+        Test proc exception when no supplier
+        """
+        proc = self.create_procurement_order_5()
+        proc.run()
+        self.assertEqual(proc.state, 'exception')
 
     def test_20_purchase_procurement_jit(self):
         """
