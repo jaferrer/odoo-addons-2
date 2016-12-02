@@ -28,7 +28,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
     @api.model
     def default_get(self, fields):
         defaults = super(GenerateTrackingLabelsWizardColissimo, self).default_get(fields)
-        printing_type = self.env['output.printing.type'].search([('code', '=', 'PDF_A4_300dpi')], limit=1)
+        printing_type = self.env['output.printing.type'].search([('code', '=', 'PDF_10x15_300dpi')], limit=1)
         if printing_type:
             defaults['output_printing_type_id'] = printing_type.id
         return defaults
