@@ -57,6 +57,12 @@
             <field name="route_ids" eval="[(4, ref('purchase_procurement_just_in_time.test_route'))]"/>
         </record>
 
+        <record id="product3" model="product.product">
+            <field name="name">Test Product 3 (Purchase Procurement JIT)</field>
+            <field name="type">product</field>
+            <field name="route_ids" eval="[(4, ref('purchase_procurement_just_in_time.test_route'))]"/>
+        </record>
+
         <!-- Supplier -->
         <record id="supplier1" model="res.partner">
             <field name="name">Supplier 1 (Purchase Procurement JIT)</field>
