@@ -119,8 +119,34 @@ self.run_assign_moves(cr, uid, context=context)
             </field>
         </record>
 
+        <record model="ir.ui.view" id="confirm_process_prereservations_form">
+            <field name="name">confirm_process_prereservations_form</field>
+            <field name="model">confirm.process.prereservations</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <footer>
+                        <button name="confirm" type="object" string="Confirm" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="launch_confirm_process_prereservations">
+            <field name="name">Are you sure you want to process prereservations?</field>
+            <field name="res_model">confirm.process.prereservations</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+            <field name="target">new</field>
+        </record>
+
         <menuitem id="menu_process_prereservations" name="Process Prereservations"
-                  action="ir_actions_server_process_prereservations"
+                  action="launch_confirm_process_prereservations"
                   parent="stock.menu_stock_warehouse_mgmt" sequence="10"/>
         <menuitem id="menu_confirm_procurements" name="Confirm Procurements"
                   action="ir_actions_server_confirm_procurements"

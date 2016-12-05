@@ -57,7 +57,7 @@
                         <button name="generate_label" string="Générer l'étiquette" type="object" class="oe_highlight" />
                         or
                         <button string="Annuler" class="oe_link"
-                            special="cancel" />
+                            special="cancel"/>
                     </footer>
                 </form>
             </field>

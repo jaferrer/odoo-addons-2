@@ -14,10 +14,10 @@
                     </group>
                     <footer>
                         <button name="do_apply"
-                            string="_Apply" type="object" class="oe_highlight" />
+                            string="_Apply" type="object" class="oe_highlight"/>
                         or
                         <button string="_Cancel" class="oe_link"
-                            special="cancel" />
+                            special="cancel"/>
                     </footer>
                 </form>
             </field>
