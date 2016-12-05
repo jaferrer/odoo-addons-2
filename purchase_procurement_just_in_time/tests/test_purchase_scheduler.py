@@ -18,6 +18,7 @@
 #
 
 from datetime import datetime as dt
+from dateutil.relativedelta import relativedelta
 
 from openerp import fields
 from openerp.tests import common
@@ -133,9 +134,9 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertNotEqual(purchase1, purchase3)
         self.assertNotEqual(purchase3, purchase5)
 
-        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
-        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
-        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+        self.assertEqual(purchase1.date_order[:10], '3003-08-21')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-11')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-04')
 
         # Let's change a date and reschedule
         self.proc1.date_planned = '3003-09-23 12:00:00'
@@ -157,9 +158,9 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase3, purchase1)
         self.assertNotEqual(purchase3, purchase5)
 
-        self.assertEqual(purchase1.date_order, '3003-09-12 00:00:00')
+        self.assertEqual(purchase1.date_order, '3003-09-11 00:00:00')
         self.assertEqual(purchase1.date_order_max, '3003-09-18 23:59:59')
-        self.assertEqual(purchase5.date_order, '3003-08-29 00:00:00')
+        self.assertEqual(purchase5.date_order, '3003-08-28 00:00:00')
         self.assertEqual(purchase5.date_order_max, '3003-09-04 23:59:59')
 
     def test_20_schedule_a_limited_number_of_orders(self):
@@ -180,14 +181,11 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase2, purchase1)
         self.assertNotEqual(purchase1, purchase5)
 
-        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
-        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+        self.assertEqual(purchase1.date_order[:10], '3003-08-21')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-04')
 
     def test_30_schedule_ignore_past_procurements(self):
         """Test of scheduling past procurements with 'ignore past procurements' activated"""
-
-        configuration_wizard = self.env['purchase.config.settings'].create({'ignore_past_procurements': True})
-        configuration_wizard.execute()
 
         past_proc = self.env['procurement.order'].create({
             'name': 'Procurement order 1 (Purchase Procurement JIT)',
@@ -204,11 +202,13 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
                                                         compute_supplier_ids=self.supplier, jobify=False)
+        past_purchase = past_proc.purchase_id
         purchase1 = self.proc1.purchase_id
         purchase2 = self.proc2.purchase_id
         purchase3 = self.proc3.purchase_id
         purchase5 = self.proc5.purchase_id
 
+        self.assertTrue(past_purchase)
         self.assertTrue(purchase1)
         self.assertTrue(purchase2)
         self.assertTrue(purchase3)
@@ -219,9 +219,39 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertNotEqual(purchase1, purchase3)
         self.assertNotEqual(purchase3, purchase5)
 
-        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
-        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
-        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+        self.assertEqual(purchase1.date_order[:10], '3003-08-21')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-11')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-04')
+
+        self.assertEqual(past_proc.state, 'running')
+
+        configuration_wizard = self.env['purchase.config.settings'].create({'ignore_past_procurements': True})
+        configuration_wizard.execute()
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+                                                        compute_supplier_ids=self.supplier, jobify=False)
+        past_purchase = past_proc.purchase_id
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase3 = self.proc3.purchase_id
+        purchase5 = self.proc5.purchase_id
+
+        self.assertFalse(past_purchase)
+        self.assertFalse(past_proc.move_ids)
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+
+        self.assertEqual(purchase2, purchase1)
+        self.assertNotEqual(purchase1, purchase5)
+        self.assertNotEqual(purchase1, purchase3)
+        self.assertNotEqual(purchase3, purchase5)
+
+        self.assertEqual(purchase1.date_order[:10], '3003-08-21')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-11')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-04')
+
+        self.assertEqual(past_proc.state, 'buy_to_run')
 
     def test_40_schedule_do_not_ignore_past_procurements(self):
         """Test of scheduling past procurements with 'ignore past procurements' not activated"""
@@ -267,11 +297,11 @@ class TestPurchaseScheduler(common.TransactionCase):
         date_ref_plus_1_day = self.supplier.schedule_working_days(5, dt.today())
         date_ref = self.supplier.schedule_working_days(4, dt.today())
         date_order, _ = self.frame_week.get_start_end_dates(date_ref_plus_1_day, date_ref=date_ref)
-        date_order = fields.Datetime.to_string(date_order)
+        date_order = fields.Datetime.to_string(date_order - relativedelta(days=1))
 
         self.assertEqual(purchase0.date_order[:10], date_order[:10])
-        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
-        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
+        self.assertEqual(purchase1.date_order[:10], '3003-08-21')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-11')
 
     def test_50_schedule_with_existing_po(self):
         """Test of purchase order line assignation/creation when there are some PO at the beginning."""
@@ -293,9 +323,9 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertNotEqual(purchase1, purchase3)
         self.assertNotEqual(purchase3, purchase5)
 
-        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
-        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
-        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+        self.assertEqual(purchase1.date_order[:10], '3003-08-21')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-11')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-04')
 
         # Let's increase line, confirm a PO in the middle and receive a part of a line
         line5 = purchase5.order_line
@@ -362,9 +392,9 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertNotEqual(purchase1, purchase3)
         self.assertNotEqual(purchase3, purchase5)
 
-        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
-        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
-        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+        self.assertEqual(purchase1.date_order[:10], '3003-08-21')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-11')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-04')
 
         # Let's confirm purchase1 and create moves for proc1
         line1 = purchase1.order_line
@@ -428,7 +458,7 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # Let's check data for proc1
         purchase5 = self.proc5.purchase_id
-        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-04')
         self.assertEqual(purchase5.state, "draft")
         line5 = purchase5.order_line
         self.assertEqual(len(line5), 1)

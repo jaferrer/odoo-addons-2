@@ -61,34 +61,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return result
 
     @api.model
-    def remove_done_moves(self):
-        """Splits the given procs creating a copy with the qty of their done moves and set to done.
-        """
-        for procurement in self:
-            qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
-            if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
-                remaining_qty = procurement.product_qty - qty_done
-                new_proc = procurement.copy({
-                    'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
-                    'state': 'done',
-                })
-                procurement.write({
-                    'product_qty': float_round(remaining_qty,
-                                               precision_rounding=procurement.product_id.uom_id.rounding),
-                })
-                # Attach done and cancelled moves to new_proc
-                done_moves = procurement.move_ids.filtered(lambda m: m.state in ['done', 'cancel'])
-                done_moves.write({'procurement_id': new_proc.id})
-            # Detach the other moves and reconfirm them so that we have push rules applied if any
-            remaining_moves = procurement.move_ids.filtered(lambda m: m.state not in ['done', 'cancel'])
-            remaining_moves.write({
-                'procurement_id': False,
-                'move_dest_id': False,
-            })
-            remaining_moves.action_confirm()
-            remaining_moves.force_assign()
-
-    @api.model
     def purchase_schedule(self, compute_all_products=True, compute_supplier_ids=None, compute_product_ids=None,
                           jobify=True):
         if not compute_supplier_ids:
@@ -118,11 +90,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     search([('id', 'in', product.seller_ids.ids),
                             ('name', '=', product.seller_id.id)]) or False
                 if suppliers:
-                    schedule_date = self._get_purchase_schedule_date(procurements_to_tun[0], company)
-                    min_date = self._get_purchase_order_date(procurements_to_tun[0], company, schedule_date)
-                    min_date = fields.Datetime.to_string(min_date)
+                    min_date = fields.Datetime.to_string(seller.schedule_working_days(product.seller_delay, dt.now()))
                 else:
                     min_date = fields.Datetime.now()
+                past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
+                if past_procurements:
+                    procurements_to_tun -= past_procurements
+                    past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
                 domain += [('date_planned', '>', min_date)]
             procurements = self.search(domain)
             if dict_procs_suppliers.get(seller):
@@ -270,6 +244,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         date_ref = seller.schedule_working_days(days_delta, dt.today())
         if frame and frame.period_type:
             date_order, date_order_max = frame.get_start_end_dates(purchase_date, date_ref=date_ref)
+            date_order -= relativedelta(days=1)
         else:
             date_order = dt.now()
             date_order_max = dt.now() + relativedelta(years=1200)
@@ -290,13 +265,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 'picking_type_id': self.rule_id.picking_type_id.id,
                 'pricelist_id': seller.property_product_pricelist_purchase.id,
                 'currency_id': seller.property_product_pricelist_purchase and
-                               seller.property_product_pricelist_purchase.currency_id.id or
-                               self.company_id.currency_id.id,
+                seller.property_product_pricelist_purchase.currency_id.id or
+                self.company_id.currency_id.id,
                 'date_order': fields.Datetime.to_string(date_order),
                 'date_order_max': fields.Datetime.to_string(date_order_max),
                 'company_id': self.company_id.id,
                 'fiscal_position': seller.property_account_position and
-                                   seller.property_account_position.id or False,
+                seller.property_account_position.id or False,
                 'payment_term_id': seller.property_supplier_payment_term.id or False,
                 'dest_address_id': self.partner_dest_id.id,
             }
