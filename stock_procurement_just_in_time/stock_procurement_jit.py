@@ -198,9 +198,6 @@ class StockWarehouseOrderPointJit(models.Model):
             events = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
                                                             list_move_types=('existing',), limit=False,
                                                             parameter_to_sort='date', to_reverse=False)
-        # Let's group event by dates and move_type. We take the min qty of all the grouped event
-        grouped_events = []
-        dates_done = []
         return sorted(events, key=lambda event: event['date'])
 
     @api.multi
