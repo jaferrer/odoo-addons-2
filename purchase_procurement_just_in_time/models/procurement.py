@@ -148,9 +148,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         pol = purchase_lines[0]
         procs_for_first_line = self.env['procurement.order'].search([('purchase_line_id', '=', pol.id),
                                                                      ('state', '=', 'done')])
-        remaining_qty = pol.product_qty - sum([self.env['product.uom'].
-                                              _compute_qty(proc.product_uom.id, proc.product_qty,
-                                                           proc.product_uom.id) for proc in procs_for_first_line])
+        remaining_qty = pol.remaining_qty
         procurements = self
         for proc in procurements:
             proc_qty_pol_uom = self.env['product.uom']. \
