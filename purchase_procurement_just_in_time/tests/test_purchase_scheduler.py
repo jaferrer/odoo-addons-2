@@ -396,9 +396,9 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertNotEqual(purchase1, purchase3)
         self.assertNotEqual(purchase3, purchase5)
 
-        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
-        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
-        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+        self.assertEqual(purchase1.date_order[:10], '3003-08-21')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-11')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-04')
 
         # Let's increase line, confirm a PO in the middle and receive a part of a line
         line1 = purchase1.order_line
