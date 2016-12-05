@@ -115,7 +115,7 @@ class ProcurementOrderQuantity(models.Model):
                     if move.state == 'cancel':
                         moves_to_unlink += move
                         if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
-                                        move.procurement_id.state == 'cancel' and \
+                            move.procurement_id.state == 'cancel' and \
                                 not any([move.state == 'done' for move in move.procurement_id.move_ids]):
                             procurements_to_unlink += move.procurement_id
             if moves_to_unlink:
@@ -130,7 +130,7 @@ class ProcurementOrderQuantity(models.Model):
         Improves the original propagate_cancel, in order to cancel it even if one of its moves is done.
         """
         ignore_move_ids = procurement.rule_id.action == 'move' and procurement.move_ids and \
-                          procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
+            procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
         if procurement.rule_id.action == 'move':
             # Keep proc with new qty if some moves are already done
             procurement.remove_done_moves()
@@ -236,7 +236,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-              fields.Datetime.from_string(last_schedule[0].get('date')) or False
+            fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -289,26 +289,19 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                     op.location_id.display_name))
             events = op.get_list_events()
             done_dates = []
-            first_event = True
-            deleted_procs = []
+            stock_after_event = 0
             for event in events:
                 if event['date'] not in done_dates:
-                    if first_event:
-                        stock_after_event = event['qty']
-                        first_event = False
-                    else:
-                        stock_after_event += sum(item['move_qty'] for item in events if item['date'] == event['date'])
+                    stock_after_event += sum(item['move_qty'] for item in events if item['date'] == event['date'])
                     done_dates += [event['date']]
                 if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned']:
-                    proc_oversupply = self.env['procurement.order'].browse(event['proc_id'])
+                    proc_oversupply = self.env['procurement.order'].search([('id', '=', event['proc_id'])])
+                    qty_same_proc = sum(item['move_qty'] for item in events if item['proc_id'] == event['proc_id'])
                     if proc_oversupply:
-                        stock_after_event -= event['move_qty']
-                        if proc_oversupply not in deleted_procs:
-                            _logger.debug("Oversupply detected: procurement %s deleted" % proc_oversupply.id)
-
-                            deleted_procs += [proc_oversupply]
-                            proc_oversupply.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
-                            proc_oversupply.unlink()
+                        stock_after_event -= qty_same_proc
+                    _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
+                    proc_oversupply.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
+                    proc_oversupply.unlink()
                 elif op.is_under_stock_min(stock_after_event):
                     new_proc = op.create_from_need(event, stock_after_event)
                     stock_after_event += new_proc.product_qty
@@ -351,7 +344,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 sm.id,
                 sm.product_qty,
                 min(COALESCE(po.date_planned, sm.date)) AS date,
-                min(po.id)
+                po.id
             FROM
                 stock_move sm
                 LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
@@ -362,7 +355,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 AND sl.parent_left >= %s
                 AND sl.parent_left < %s""" + \
                          move_in_date_clause + \
-                         """GROUP BY sm.id, sm.product_qty
+                         """GROUP BY sm.id, po.id, sm.product_qty
                          ORDER BY DATE"""
         self.env.cr.execute(query_moves_in, params)
         moves_in_tuples = self.env.cr.fetchall()

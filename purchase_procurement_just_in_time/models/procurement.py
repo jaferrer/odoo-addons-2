@@ -90,7 +90,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     search([('id', 'in', product.seller_ids.ids),
                             ('name', '=', product.seller_id.id)]) or False
                 if suppliers:
-                    min_date = fields.Datetime.to_string(self._get_min_date_delivery(product, seller, dt.now()))
+                    min_date = fields.Datetime.to_string(seller.schedule_working_days(product.seller_delay, dt.now()))
                 else:
                     min_date = fields.Datetime.now()
                 past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
@@ -232,9 +232,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         if self.partner_dest_id:
             main_domain += [('dest_address_id', '=', self.partner_dest_id.id)]
         domain_date_defined = [('date_order', '!=', False),
-                               ('date_order', '<=', fields.Datetime.to_string(purchase_date)),
+                               ('date_order', '<=', fields.Datetime.to_string(purchase_date)[:10]),
                                '|', ('date_order_max', '=', False),
-                               ('date_order_max', '>', fields.Datetime.to_string(purchase_date))]
+                               ('date_order_max', '>', fields.Datetime.to_string(purchase_date)[:10])]
         domain_date_not_defined = ['|', ('date_order', '=', False), ('date_order_max', '=', False)]
         available_draft_po_ids = self.env['purchase.order'].search(main_domain + domain_date_defined)
         draft_order = False
@@ -414,23 +414,35 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                             ('state', 'not in', ['done', 'cancel']),
                                                             ('procurement_id', '=', False)])
             procurements = dict_procs_lines[pol]
-            if moves_no_procs:
-                # We don't want cancel_procurement context here,
-                # because we want to cancel next move too (no procs).
-                moves_no_procs.action_cancel()
-                moves_no_procs.unlink()
             for proc in pol.procurement_ids:
                 if proc not in procurements:
                     proc.remove_procs_from_lines()
             for proc in procurements:
                 if proc not in pol.procurement_ids:
                     proc.add_proc_to_line(pol)
+
+            # Dirty hack to keep the moves so that we don't to set the PO in shipping except
+            # but still compute the correct qty in _create_stock_moves_improved
+            moves_no_procs.write({'product_uom_qty': 0})
+
             if pol.order_id.state not in ['draft', 'sent', 'bid', 'confirmed', 'done', 'cancel']:
                 self.env['purchase.order']._create_stock_moves_improved(pol.order_id, pol)
 
+            # We don't want cancel_procurement context here,
+            # because we want to cancel next move too (no procs).
+            moves_no_procs.action_cancel()
+            moves_no_procs.unlink()
+
     @api.multi
     def make_po(self):
-        return {procurement.id: True for procurement in self}
+        res = {}
+        for proc in self:
+            if not self._get_product_supplier(proc):
+                proc.message_post(_('There is no supplier associated to product %s') % (proc.product_id.name))
+                res[proc.id] = False
+            else:
+                res[proc.id] = True
+        return res
 
     @api.multi
     def run(self, autocommit=False):
