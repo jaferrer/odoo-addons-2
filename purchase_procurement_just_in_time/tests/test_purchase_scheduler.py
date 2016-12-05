@@ -376,6 +376,73 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn((self.proc1, 'running', 34), procs_data)
         self.assertIn((self.proc2, 'running', 2), procs_data)
 
+    def test_55_schedule_with_existing_po(self):
+        """Test of purchase order line assignation/creation when there are some PO at the beginning."""
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+                                                        jobify=False)
+
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase3 = self.proc3.purchase_id
+        purchase5 = self.proc5.purchase_id
+
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+
+        self.assertEqual(purchase2, purchase1)
+        self.assertNotEqual(purchase1, purchase5)
+        self.assertNotEqual(purchase1, purchase3)
+        self.assertNotEqual(purchase3, purchase5)
+
+        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+
+        # Let's increase line, confirm a PO in the middle and receive a part of a line
+        line1 = purchase1.order_line
+        self.assertEqual(len(line1), 1)
+        self.assertEqual(line1.product_qty, 36)
+        line1.product_qty = 35
+        purchase1.signal_workflow('purchase_confirm')
+        self.assertEqual(purchase1.state, 'approved')
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+                                                        jobify=False)
+
+        line1.product_qty = 40
+
+        self.assertEqual(len(line1.procurement_ids), 1)
+        self.assertEqual(line1.procurement_ids[0], self.proc1)
+        self.assertEqual(len(line1.move_ids), 2)
+        m1, m2 = [self.env['stock.move']] * 2
+        for move in line1.move_ids:
+            if move.product_qty == 34:
+                m1 = move
+            elif move.product_qty == 6:
+                m2 = move
+
+        picking = purchase1.picking_ids[0]
+        picking.do_prepare_partial()
+        self.assertEqual(len(picking.pack_operation_ids), 1)
+        picking.pack_operation_ids[0].product_qty = 35
+        picking.do_transfer()
+
+        self.assertEqual(len(line1.move_ids), 3)
+        self.assertEqual(m1.state, 'done')
+        self.assertEqual(m1.product_qty, 34)
+        self.assertEqual(m2.state, 'done')
+        self.assertEqual(m2.product_qty, 1)
+
+        self.assertEqual(line1.remaining_qty, 5)
+
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+                                                        jobify=False)
+        self.assertEqual(len(line1.procurement_ids), 2)
+        self.assertIn(self.proc1, line1.procurement_ids)
+        self.assertIn(self.proc2, line1.procurement_ids)
+        self.assertNotIn(self.proc3, line1.procurement_ids)
+
     def test_60_move_change_running_procurement_of_order(self):
         """Test rescheduling to a draft order a procurement which has running moves linked"""
         self.env['procurement.order'].purchase_schedule(jobify=False)
