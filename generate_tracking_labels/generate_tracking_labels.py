@@ -108,6 +108,19 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         if self.country_id:
             self.type = self.partner_id.country_id.code == 'FR' and 'france' or 'alien'
 
+    @api.onchange('transporter_id')
+    def onchange_transporter_id(self):
+        self.ensure_one()
+        output_printing_type = False
+        if self.transporter_id:
+            output_printing_type = self.env['output.printing.type']. \
+                search([('transporter_id', '=', self.transporter_id.id),
+                        ('used_by_default', '=', True)], limit=1)
+            if not output_printing_type:
+                output_printing_type = self.env['output.printing.type']. \
+                    search([('transporter_id', '=', self.transporter_id.id)], limit=1)
+        self.output_printing_type_id = output_printing_type or False
+
     # A few functions to overwrite
     @api.multi
     def get_output_file(self, direction):
@@ -151,3 +164,4 @@ class GenerateLabelOutputPrintingType(models.Model):
     name = fields.Char(string=u"Format de sortie", readonly=True)
     transporter_id = fields.Many2one('tracking.transporter', string=u"Transporteur")
     code = fields.Char(string=u"Code Colissimo", readonly=True)
+    used_by_default = fields.Boolean(string=u"Utilisé par défaut")
