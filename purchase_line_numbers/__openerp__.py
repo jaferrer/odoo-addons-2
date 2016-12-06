@@ -18,25 +18,25 @@
 #
 
 {
-    'name': 'Merge purchase order lines',
+    'name': 'Purchase Line Numbers',
+    'sequence': 1,
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'purchase_procurement_just_in_time'],
+    'depends': ['stock', 'purchase'],
     'description': """
-Merge purchase order lines
-==========================
-This module allows to merge the purchase order lines when merging purchase orders.
-
-When the date planned of two lines to merge are different, it holds ths minimal value.
+Purchase Line Numbers
+=====================
+This module adds a number for each purchase order line.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['purchase_merge_order_lines.xml'],
-    'demo': ['tests/tests_purchase_merge_order_lines.xml'],
+    'data': ['purchase_line_numbers.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    'sequence': 50,
 }
