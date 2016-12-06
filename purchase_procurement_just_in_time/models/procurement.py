@@ -242,7 +242,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         date_ref = seller.schedule_working_days(days_delta, dt.today())
         if frame and frame.period_type:
             date_order, date_order_max = frame.get_start_end_dates(purchase_date, date_ref=date_ref)
-            date_order -= relativedelta(days=1)
         else:
             date_order = dt.now()
             date_order_max = dt.now() + relativedelta(years=1200)
@@ -303,8 +302,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
                 # We consider procurements after the reference date
                 # (if we ignore past procurements, past ones are already removed)
-                date_ref_plus_1_day = seller.schedule_working_days(days_delta + 1, dt.today())
-                purchase_date = max(purchase_date, date_ref_plus_1_day)
+                date_ref = seller.schedule_working_days(days_delta, dt.today())
+                purchase_date = max(purchase_date, date_ref)
                 line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
                 draft_order = first_proc.get_corresponding_draft_order(seller, purchase_date, date_end_period)
                 if draft_order:

@@ -653,8 +653,8 @@ msgstr "Delta de début de période de regroupement"
 
 #. module: purchase_procurement_just_in_time
 #: help:purchase.config.settings,delta_begin_grouping_period:0
-msgid "Grouping periods will be centered on the date of the day, increased by this delta"
-msgstr "Les périodes de regroupement seront centrées sur la date du jour, augmentée de ce delta"
+msgid "Grouping periods will be centered on the date of tomorrow, increased by this delta"
+msgstr "Les périodes de regroupement seront centrées sur la date de demain, augmentée de ce delta"
 
 #. module: purchase_procurement_just_in_time
 #: field:purchase.config.settings,ignore_past_procurements:0
