@@ -386,32 +386,30 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.multi
     def remove_procs_from_lines(self, unlink_moves_to_procs=False):
         self.remove_done_moves()
-        self.write({
-            'purchase_id': False,
-            'purchase_line_id': False
-        })
+        self.with_context(tracking_disable=True).write({'purchase_line_id': False})
         to_reset = self.search([('id', 'in', self.ids), ('state', 'in', ['running', 'exception'])])
-        to_reset.write({'state': 'buy_to_run'})
+        to_reset.with_context(tracking_disable=True).write({'state': 'buy_to_run'})
         for proc in self:
             proc_moves = self.env['stock.move'].search([('procurement_id', '=', proc.id),
-                                                        ('state', 'not in', ['cancel', 'done'])])
+                                                        ('state', 'not in', ['cancel', 'done'])]
+                                                       ).with_context(mail_notrack=True)
             proc_moves.write({'purchase_line_id': False,
                               'picking_id': False})
-            if unlink_moves_to_procs and proc.move_ids:
-                proc_moves.with_context(cancel_procurement=True).action_cancel()
+            if unlink_moves_to_procs:
+                proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
                 proc_moves.unlink()
 
     @api.multi
     def add_proc_to_line(self, pol):
         pol.ensure_one()
         for rec in self:
-            rec.write({'purchase_id': pol.order_id.id,
-                       'purchase_line_id': pol.id})
+            rec.with_context(tracking_disable=True).write({'purchase_line_id': pol.id})
             if not rec.move_ids:
                 continue
 
             running_moves = self.env['stock.move'].search([('id', 'in', rec.move_ids.ids),
-                                                           ('state', 'not in', ['draft', 'done', 'cancel'])])
+                                                           ('state', 'not in', ['draft', 'done', 'cancel'])]
+                                                          ).with_context(mail_notrack=True)
             if pol.state not in ['draft', 'done', 'cancel']:
                 group = self.env['procurement.group'].search([('name', '=', pol.order_id.name),
                                                               ('partner_id', '=', pol.order_id.partner_id.id)], limit=1)
@@ -426,16 +424,17 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 running_moves.force_assign()
             else:
                 # We attach the proc to a draft line, so we cancel all moves if any
-                running_moves.with_context(cancel_procurement=True).action_cancel()
+                running_moves.with_context(cancel_procurement=True, tracking_disable=True).action_cancel()
                 running_moves.unlink()
-        self.write({'state': 'running'})
+        self.with_context(tracking_disable=True).write({'state': 'running'})
 
     @api.model
     def redistribute_procurements_in_lines(self, dict_procs_lines):
         for pol in dict_procs_lines.keys():
-            moves_no_procs = self.env['stock.move'].search([('id', 'in', pol.move_ids.ids),
-                                                            ('state', 'not in', ['done', 'cancel']),
-                                                            ('procurement_id', '=', False)])
+            moves_no_procs = self.env['stock.move'].search(
+                [('id', 'in', pol.move_ids.ids),
+                 ('state', 'not in', ['done', 'cancel']),
+                 ('procurement_id', '=', False)]).with_context(mail_notrack=True)
             procurements = dict_procs_lines[pol]
             for proc in pol.procurement_ids:
                 if proc not in procurements:
