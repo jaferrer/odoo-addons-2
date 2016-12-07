@@ -58,4 +58,4 @@ class StockMove(models.Model):
         if pick_list and pick_id not in pick_list:
             # Don't assign the move to a picking that is not our picking.
             return True
-        return self.with_context(mail_no_track=True).write({'picking_id': pick_id})
+        return self.with_context(mail_notrack=True).write({'picking_id': pick_id})
