@@ -71,8 +71,8 @@ class PurchaseOrderJustInTime(models.Model):
                 for vals in self._prepare_order_line_move(order, order_line, picking_id, group_id):
                     move = self.env['stock.move'].create(vals)
                     todo_moves |= move
-        todo_moves.action_confirm()
-        todo_moves.force_assign()
+        todo_moves.with_context(mail_notrack=True).action_confirm()
+        todo_moves.with_context(mail_notrack=True).force_assign()
 
     @api.model
     def _prepare_order_line_move(self, order, order_line, picking_id, group_id):
