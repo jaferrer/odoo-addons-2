@@ -21,6 +21,7 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <field name="wh_output_stock_loc_id" position="after">
+                    <field name="child_location_id"/>
                     <field name="return_location_id"/>
                 </field>
             </field>
