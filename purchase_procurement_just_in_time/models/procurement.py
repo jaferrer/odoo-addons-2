@@ -392,7 +392,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                                   'partner_id': pol.order_id.partner_id.id})
                 running_moves.write({'purchase_line_id': pol.id,
                                      'picking_id': False,
-                                     'group_id': group.id})
+                                     'group_id': group.id,
+                                     'origin': pol.order_id.name})
                 # We try to attach the move to the correct picking (matching new procurement group)
                 running_moves.action_confirm()
                 running_moves.force_assign()
