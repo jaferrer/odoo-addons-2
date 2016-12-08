@@ -32,4 +32,5 @@ class IncompleteProductionStockMove(models.Model):
 class IncompleteProductionStockWarehouse(models.Model):
     _inherit = 'stock.warehouse'
 
+    child_location_id = fields.Many2one('stock.location', string="Default child location")
     return_location_id = fields.Many2one('stock.location', string="Default return location")
