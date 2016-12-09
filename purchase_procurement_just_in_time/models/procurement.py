@@ -28,6 +28,18 @@ from openerp.tools.float_utils import float_compare, float_round
 
 
 @job
+def job_purchase_schedule(session, model_name, compute_all_products, compute_supplier_ids,
+                          compute_product_ids, jobify, context=None):
+    model_instance = session.pool[model_name]
+    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
+    with handler.session() as session:
+        result = model_instance.launch_purchase_schedule(session.cr, session.uid, compute_all_products,
+                                                         compute_supplier_ids, compute_product_ids, jobify,
+                                                         context=context)
+    return result
+
+
+@job
 def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
@@ -63,15 +75,24 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.model
     def purchase_schedule(self, compute_all_products=True, compute_supplier_ids=None, compute_product_ids=None,
                           jobify=True):
-        if not compute_supplier_ids:
-            compute_supplier_ids = []
-        if not compute_product_ids:
-            compute_product_ids = []
+        compute_supplier_ids = compute_supplier_ids and compute_supplier_ids.ids or []
+        compute_product_ids = compute_product_ids and compute_product_ids.ids or []
+        if jobify:
+            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+            job_purchase_schedule.delay(session, 'procurement.order', compute_all_products,
+                                        compute_supplier_ids, compute_product_ids, jobify,
+                                        description=_("Scheduling purchase orders"), context=self.env.context)
+        else:
+            self.launch_purchase_schedule(compute_all_products, compute_supplier_ids, compute_product_ids,
+                                          jobify)
+
+    @api.model
+    def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
         domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']),
                                       ('rule_id.action', '=', 'buy'),
                                       ('product_id.seller_id', '!=', False)]
         if not compute_all_products and compute_product_ids:
-            domain_procurements_to_run += [('product_id', 'in', compute_product_ids.ids)]
+            domain_procurements_to_run += [('product_id', 'in', compute_product_ids)]
         procurements_to_tun = self.search(domain_procurements_to_run)
         ignore_past_procurements = bool(self.env['ir.config_parameter'].
                                         get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
@@ -106,14 +127,14 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             procurements_to_tun -= procurements
         for seller in dict_procs_suppliers.keys():
             if dict_procs_suppliers[seller] and \
-                (compute_all_products or not compute_supplier_ids or
-                 compute_supplier_ids and seller in compute_supplier_ids):
+                    (compute_all_products or not compute_supplier_ids or
+                             compute_supplier_ids and seller.id in compute_supplier_ids):
                 if jobify:
                     session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
                     job_purchase_schedule_procurements. \
                         delay(session, 'procurement.order', dict_procs_suppliers[seller].ids,
                               description=_("Scheduling purchase orders for seller %s and location %s") %
-                              (seller.display_name, location.display_name), context=self.env.context)
+                                          (seller.display_name, location.display_name), context=self.env.context)
                 else:
                     dict_procs_suppliers[seller].purchase_schedule_procurements()
 
@@ -181,10 +202,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return dict_procs_lines, not_assigned_procs
 
     @api.model
-    def get_purchase_line_procurements(self, first_proc, date_end, order_by, force_domain=None):
+    def get_purchase_line_procurements(self, first_proc, seller, order_by, force_domain=None):
         """Returns procurements that must be integrated in the same purchase order line as first_proc, by
         taking all procurements of the same product as first_proc between the date of first proc and date_end.
         """
+        frame = seller.order_group_period
+        date_end = False
+        if frame and frame.period_type:
+            date_end = fields.Datetime.to_string(
+                frame.get_date_end_period(fields.Datetime.from_string(first_proc.date_planned))
+            )
         domain_procurements = [('product_id', '=', first_proc.product_id.id),
                                ('location_id', '=', first_proc.location_id.id),
                                ('company_id', '=', first_proc.company_id.id),
@@ -216,7 +243,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return self.search([('id', 'in', procurements_grouping_period.ids)], order=order_by)
 
     @api.multi
-    def get_corresponding_draft_order(self, seller, purchase_date, end_grouping_period):
+    def get_corresponding_draft_order(self, seller, purchase_date):
         # look for any other draft PO for the same supplier to attach the new line.
         # If no one is found, we create a new draft one
         self.ensure_one()
@@ -244,7 +271,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             date_order, date_order_max = frame.get_start_end_dates(purchase_date, date_ref=date_ref)
         else:
             date_order = dt.now()
-            date_order_max = dt.now() + relativedelta(years=1200)
+            date_order_max = date_order + relativedelta(years=1200)
         if not draft_order:
             available_draft_po_ids = self.env['purchase.order'].search(main_domain + domain_date_not_defined)
             if available_draft_po_ids:
@@ -253,22 +280,24 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                    'date_order_max': fields.Datetime.to_string(date_order_max)})
         if not draft_order and not seller.nb_max_draft_orders or seller.nb_draft_orders < seller.nb_max_draft_orders:
             name = self.env['ir.sequence'].next_by_code('purchase.order') or _('PO: %s') % self.name
+            date_order = fields.Datetime.to_string(date_order)
+            date_order_max = fields.Datetime.to_string(date_order_max)
             po_vals = {
                 'name': name,
-                'origin': "%s - %s" % (self.date_planned[:10],
-                                       end_grouping_period and end_grouping_period[:10] or 'infinite'),
+                'origin': "%s - %s" % (date_order and date_order[:10] or '',
+                                       date_order_max and date_order_max[:10] or 'infinite'),
                 'partner_id': seller.id,
                 'location_id': self.location_id.id,
                 'picking_type_id': self.rule_id.picking_type_id.id,
                 'pricelist_id': seller.property_product_pricelist_purchase.id,
                 'currency_id': seller.property_product_pricelist_purchase and
-                seller.property_product_pricelist_purchase.currency_id.id or
-                self.company_id.currency_id.id,
-                'date_order': fields.Datetime.to_string(date_order),
-                'date_order_max': fields.Datetime.to_string(date_order_max),
+                               seller.property_product_pricelist_purchase.currency_id.id or
+                               self.company_id.currency_id.id,
+                'date_order': date_order,
+                'date_order_max': date_order_max,
                 'company_id': self.company_id.id,
                 'fiscal_position': seller.property_account_position and
-                seller.property_account_position.id or False,
+                                   seller.property_account_position.id or False,
                 'payment_term_id': seller.property_supplier_payment_term.id or False,
                 'dest_address_id': self.partner_dest_id.id,
             }
@@ -288,14 +317,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             while procurements:
                 first_proc = procurements[0]
                 product = first_proc.product_id
-                frame = seller.order_group_period
-                date_end_period = False
-                if frame and frame.period_type:
-                    date_end_period = fields.Datetime.to_string(
-                        frame.get_date_end_period(fields.Datetime.from_string(first_proc.date_planned))
-                    )
                 pol_procurements = self.get_purchase_line_procurements(
-                    first_proc, date_end_period, order_by,
+                    first_proc, seller, order_by,
                     force_domain=[('id', 'in', procurements.ids), ('product_id', '=', product.id)]
                 )
                 schedule_date = self._get_purchase_schedule_date(first_proc, company)
@@ -305,7 +328,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 date_ref = seller.schedule_working_days(days_delta, dt.today())
                 purchase_date = max(purchase_date, date_ref)
                 line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
-                draft_order = first_proc.get_corresponding_draft_order(seller, purchase_date, date_end_period)
+                draft_order = first_proc.get_corresponding_draft_order(seller, purchase_date)
                 if draft_order:
                     line_vals.update(order_id=draft_order.id)
                     line = self.env['purchase.order.line'].sudo().create(line_vals)
