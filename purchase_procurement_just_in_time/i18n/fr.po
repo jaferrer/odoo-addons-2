@@ -636,6 +636,12 @@ msgid "Suppliers"
 msgstr "Fournisseurs"
 
 #. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\procurement.py:86
+#, python-format
+msgid "Scheduling purchase orders"
+msgstr "Planification des achats"
+
+#. module: purchase_procurement_just_in_time
 #: code:addons\purchase_procurement_just_in_time\models\procurement.py:120
 #, python-format
 msgid "Scheduling purchase orders for seller %s and location %s"
