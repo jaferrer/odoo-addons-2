@@ -248,7 +248,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                 for item in prevals.get(move.product_id.id, []):
                     if float_compare(item['product_qty'], 0,
                                      precision_rounding=move.product_id.uom_id.rounding) != 0:
-                        vals += prevals.get(move.product_id.id, [])
+                        vals += [item]
                 processed_products.add(move.product_id.id)
         return vals
 
