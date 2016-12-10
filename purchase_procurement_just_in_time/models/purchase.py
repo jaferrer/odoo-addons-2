@@ -321,17 +321,19 @@ class PurchaseOrderLineJustInTime(models.Model):
             qty_to_remove -= move.product_uom_qty
 
         to_detach_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        self.adjust_move_no_proc_qty()
 
-        # Delete moves that have been detached from the procurement and recreate them with
-        # the correct quantity.
-        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', self.ids),
-                                                        ('procurement_id', '=', False),
-                                                        ('state', 'not in', ['done', 'cancel'])])
-
+    def adjust_move_no_proc_qty(self):
+        """Adjusts the quantity of the move without proc, recreating it if necessary."""
+        moves_no_procs = self.env['stock.move'].search(
+            [('purchase_line_id', 'in', self.ids),
+             ('procurement_id', '=', False),
+             ('state', 'not in', ['done', 'cancel'])]).with_context(mail_notrack=True)
         # Dirty hack to keep the moves so that we don't to set the PO in shipping except
         # but still compute the correct qty in _create_stock_moves_improved
         moves_no_procs.write({'product_uom_qty': 0})
-        self.env['purchase.order']._create_stock_moves_improved(self.order_id, self)
+        for rec in self:
+            self.env['purchase.order']._create_stock_moves_improved(rec.order_id, rec)
 
         # We don't want cancel_procurement context here,
         # because we want to cancel next move too (no procs).
