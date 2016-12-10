@@ -546,8 +546,8 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # Validate order 1 and 3
         purchase1.signal_workflow('purchase_confirm')
-        self.assertEqual(len(purchase1.order_line), 1)
-        line = purchase1.order_line[0]
+        self.assertEqual(len(purchase1.order_line), 2)
+        line = [pol for pol in purchase1.order_line if pol.product_id == self.product1][0]
         self.assertEqual(sum(m.product_uom_qty for m in line.move_ids), 36)
         self.assertEqual(line.remaining_qty, 36)
 
@@ -568,8 +568,8 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # Check that move quantities are OK
         self.assertTrue(purchase1)
-        self.assertEqual(len(purchase1.order_line), 1)
-        line = purchase1.order_line[0]
+        self.assertEqual(len(purchase1.order_line), 2)
+        line = [pol for pol in purchase1.order_line if pol.product_id == self.product1][0]
         self.assertEqual(sum(m.product_uom_qty for m in line.move_ids), 36)
         self.assertEqual(line.remaining_qty, 36)
 
