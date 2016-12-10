@@ -85,7 +85,7 @@ class StockQuant(models.Model):
 
     @api.model
     def split_and_reserve_moves_ok(self, list_reservations, move_recordset, new_picking):
-        processed_moves = self.env['stock.move']
+        processed_moves = move_recordset
         for quant_tuple in list_reservations:
             prec = quant_tuple[0].product_id.uom_id.rounding
             current_reservation = quant_tuple[0].reservation_id
@@ -98,7 +98,8 @@ class StockQuant(models.Model):
                 # Split move if needed
                 if float_compare(final_qty, current_reservation.product_uom_qty, precision_rounding=prec) < 0:
                     current_reservation.split(current_reservation, current_reservation.product_uom_qty - final_qty)
-                    self.quants_reserve(quant_tuples_current_reservation, current_reservation)
+                # Reserve quants on move
+                self.quants_reserve(quant_tuples_current_reservation, current_reservation)
                 # Assign the current move to the new picking
                 current_reservation.picking_id = new_picking
                 move_recordset |= current_reservation
@@ -110,11 +111,13 @@ class StockQuant(models.Model):
                                     dest_location, picking_type_id):
         not_reserved_tuples = [item for item in list_reservations if not item[0].reservation_id]
         if not_reserved_tuples:
-            done_move_ids = []
+            done_move_ids = move_recordset.ids
             dict_reservations = {}
+            force_domain = [('id', 'not in', done_move_ids)]
             first_corresponding_move = self.get_corresponding_moves(not_reserved_tuples[0][0],
                                                                     location_from, dest_location,
-                                                                    picking_type_id, limit=1)
+                                                                    picking_type_id, force_domain=force_domain,
+                                                                    limit=1)
             while not_reserved_tuples and first_corresponding_move:
                 prec = first_corresponding_move.product_id.uom_id.rounding
                 if not dict_reservations.get(first_corresponding_move):
