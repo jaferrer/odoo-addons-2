@@ -272,20 +272,22 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         else:
             date_order = dt.now()
             date_order_max = date_order + relativedelta(years=1200)
+        date_order = fields.Datetime.to_string(date_order)
+        date_order_max = fields.Datetime.to_string(date_order_max)
+        origin = "%s - %s" % (date_order and date_order[:10] or '',
+                              date_order_max and date_order_max[:10] or 'infinite')
         if not draft_order:
             available_draft_po_ids = self.env['purchase.order'].search(main_domain + domain_date_not_defined)
             if available_draft_po_ids:
                 draft_order = available_draft_po_ids[0]
-                draft_order.write({'date_order': fields.Datetime.to_string(date_order),
-                                   'date_order_max': fields.Datetime.to_string(date_order_max)})
+                draft_order.write({'date_order': date_order,
+                                   'date_order_max': date_order_max,
+                                   'origin': origin})
         if not draft_order and not seller.nb_max_draft_orders or seller.nb_draft_orders < seller.nb_max_draft_orders:
             name = self.env['ir.sequence'].next_by_code('purchase.order') or _('PO: %s') % self.name
-            date_order = fields.Datetime.to_string(date_order)
-            date_order_max = fields.Datetime.to_string(date_order_max)
             po_vals = {
                 'name': name,
-                'origin': "%s - %s" % (date_order and date_order[:10] or '',
-                                       date_order_max and date_order_max[:10] or 'infinite'),
+                'origin': origin,
                 'partner_id': seller.id,
                 'location_id': self.location_id.id,
                 'picking_type_id': self.rule_id.picking_type_id.id,
@@ -428,10 +430,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.model
     def redistribute_procurements_in_lines(self, dict_procs_lines):
         for pol in dict_procs_lines.keys():
-            moves_no_procs = self.env['stock.move'].search(
-                [('id', 'in', pol.move_ids.ids),
-                 ('state', 'not in', ['done', 'cancel']),
-                 ('procurement_id', '=', False)]).with_context(mail_notrack=True)
             procurements = dict_procs_lines[pol]
             for proc in pol.procurement_ids:
                 if proc not in procurements:
