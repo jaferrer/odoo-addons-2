@@ -532,3 +532,61 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(self.proc1.purchase_id, purchase5)
         self.assertEqual(self.proc1.purchase_line_id, line5)
         self.assertEqual(len(self.proc1.move_ids), 0)
+
+    def test_70_reschedule_after_proc_removal(self):
+        """Test of purchase scheduler after procurement reduction."""
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase3 = self.proc3.purchase_id
+        purchase5 = self.proc5.purchase_id
+
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+
+        self.assertEqual(purchase2, purchase1)
+        self.assertNotEqual(purchase1, purchase5)
+        self.assertNotEqual(purchase1, purchase3)
+        self.assertNotEqual(purchase3, purchase5)
+
+        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+
+        # Validate order 1 and 3
+        purchase1.signal_workflow('purchase_confirm')
+        self.assertEqual(len(purchase1.order_line), 1)
+        line = purchase1.order_line[0]
+        self.assertEqual(sum(m.product_uom_qty for m in line.move_ids), 36)
+        self.assertEqual(line.remaining_qty, 36)
+
+        purchase3.signal_workflow('purchase_confirm')
+        self.assertEqual(len(purchase3.order_line), 1)
+        line3 = purchase3.order_line[0]
+        self.assertEqual(sum(m.product_uom_qty for m in line3.move_ids), 36)
+        self.assertEqual(line3.remaining_qty, 36)
+
+        # Receive part of the quantity
+
+        # Let's cancel all procurements and reschedule
+        self.proc1.cancel()
+        self.proc2.cancel()
+        self.proc4.cancel()
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+
+        # Check that move quantities are OK
+        self.assertTrue(purchase1)
+        self.assertEqual(len(purchase1.order_line), 1)
+        line = purchase1.order_line[0]
+        self.assertEqual(sum(m.product_uom_qty for m in line.move_ids), 36)
+        self.assertEqual(line.remaining_qty, 36)
+
+        self.assertTrue(purchase3)
+        self.assertEqual(len(purchase3.order_line), 1)
+        line3 = purchase3.order_line[0]
+        self.assertEqual(sum(m.product_uom_qty for m in line3.move_ids), 36)
+        self.assertEqual(line3.remaining_qty, 36)
