@@ -738,8 +738,69 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertEqual(self.header.location_id, self.location_dest_shelf)
         self.assertEqual(self.child.location_id, self.location_dest_shelf)
 
-    def test_43_change_move_of_picking(self):
-        # Testing the recuperation of existing move
+    def test_43_change_move_of_picking_and_do_not_split_move(self):
+        # Testing the recuperation of existing move without split
+        [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
+            self.prepare_test_move_quant_package()
+        existing_move = self.env['stock.move'].create({
+            'name': "Existing move",
+            'product_id': self.product_a.id,
+            'product_uom_qty': 2,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.location_source.id,
+            'location_dest_id': self.location_dest.id,
+            'product_uom': self.unit.id,
+        })
+        existing_move.action_confirm()
+        self.quant_no_pack_a.quants_reserve([(self.quant_child_c, 2)], existing_move)
+
+        existing_move.action_assign()
+        self.assertEqual(existing_move.state, 'assigned')
+        existing_picking = existing_move.picking_id
+        self.assertTrue(existing_picking)
+        self.assertEqual(len(existing_picking.move_lines), 1)
+        existing_picking.do_prepare_partial()
+        # Partial move
+        wizard = self.env['product.move.wizard'].with_context(active_ids=[line_8.id]). \
+            create({'picking_type_id': self.picking_type.id, 'global_dest_loc': self.location_dest.id})
+        wizard.onchange_is_manual_op()
+        self.assertTrue(wizard.is_manual_op)
+        self.assertEqual(len(wizard.quant_line_ids), 1)
+        self.assertFalse(wizard.package_line_ids)
+        self.assertEqual(wizard.quant_line_ids.qty, 8)
+        wizard.quant_line_ids.qty = 7
+        # Let's force onchange to check field 'is_manual_op'
+        wizard.onchange_is_manual_op()
+        self.assertTrue(wizard.is_manual_op)
+
+        action = wizard.move_products()
+        picking_id = action.get('res_id')
+        self.assertTrue(picking_id)
+        picking = self.env['stock.picking'].browse(picking_id)
+        self.assertNotEqual(picking.state, 'done')
+        self.assertIn(existing_move, picking.move_lines)
+        self.assertEqual(existing_move.product_uom_qty, 2)
+        extra_move = picking.move_lines.filtered(lambda move: move != existing_move)
+        self.assertEqual(extra_move.product_uom_qty, 5)
+
+        # Testing that existing_move was indeed splitted, as quant_child_b (7 units asked instead of 8 or 1000)
+        picking.do_transfer()
+        self.assertEqual(existing_move.state, 'done')
+        self.assertEqual(extra_move.state, 'done')
+        self.assertEqual(picking.state, 'done')
+        self.assertFalse(picking.backorder_id)
+        self.assertEqual(self.quant_child_c.location_id, self.location_dest_shelf)
+        self.assertEqual(self.quant_child_c.qty, 2)
+        self.assertEqual(self.quant_child_d.location_id, self.location_dest_shelf)
+        self.assertEqual(self.quant_child_d.qty, 5)
+        self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
+                                                        ('package_id', '=', self.child.id),
+                                                        ('product_id', '=', self.product_a.id),
+                                                        ('lot_id', '=', self.lot_a.id),
+                                                        ('qty', '=', 1)]))
+
+    def test_44_change_move_of_picking_and_split_move(self):
+        # Testing the recuperation of existing move with split
         [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
             self.prepare_test_move_quant_package()
         existing_move = self.env['stock.move'].create({
@@ -801,7 +862,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
                                                         ('lot_id', '=', self.lot_a.id),
                                                         ('qty', '=', 1)]))
 
-    def test_44_change_quant_to_a_new_move(self):
+    def test_45_change_quant_to_a_new_move(self):
         # Same kind of test as last one, but now, the existing move does not match the requirements
         [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
             self.prepare_test_move_quant_package()
@@ -865,7 +926,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
                                                         ('lot_id', '=', self.lot_a.id),
                                                         ('qty', '=', 1)]))
 
-    def test_45_change_quant_of_move(self):
+    def test_46_change_quant_of_move(self):
         # Same kind of test as last one: the existing move does not match the requirements, but it can now be attached
         # to another existing move
         [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
@@ -943,7 +1004,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
                                                         ('lot_id', '=', self.lot_a.id),
                                                         ('qty', '=', 1)]))
 
-    def test_46_change_quant_of_move(self):
+    def test_47_change_quant_of_move(self):
         # Reserving a big quant on a small move
 
         [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
@@ -1012,7 +1073,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
 
         self.assertEqual(sum([quant.qty for quant in quants]), 8)
 
-    def test_47_moves_reconciliation(self):
+    def test_48_moves_reconciliation(self):
         """
         Testing quants reconciliation for not synchronized auto moves
         """
@@ -1078,6 +1139,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertTrue(picking2)
 
         # print 'quants_result'
+        # print pos_quant_linked_to_neg, pos_quant_linked_to_neg.qty
         # print pos_quant_linked_to_neg, pos_quant_linked_to_neg.qty
         # for quant in self.env['stock.quant'].search([('product_id', '=', self.product1_auto_move.id)]):
         #     print quant, quant.qty, quant.location_id.display_name
