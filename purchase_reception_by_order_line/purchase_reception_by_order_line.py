@@ -235,18 +235,20 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                         qty_to_remove = min(sum_quantities_moves_on_line, item['product_qty'])
                         item['product_qty'] -= qty_to_remove
                         global_qty_to_remove -= qty_to_remove
-                prevals_purchase_line = prevals.get(move.product_id.id, [])[0].copy()
-                prevals_purchase_line['purchase_line_id'] = move.purchase_line_id.id
-                prevals_purchase_line['product_qty'] = sum_quantities_moves_on_line
-                vals += [prevals_purchase_line]
-                processed_purchase_lines.add(move.purchase_line_id.id)
+                dict_to_copy = prevals.get(move.product_id.id, [])
+                if dict_to_copy:
+                    prevals_purchase_line = dict_to_copy[0].copy()
+                    prevals_purchase_line['purchase_line_id'] = move.purchase_line_id.id
+                    prevals_purchase_line['product_qty'] = sum_quantities_moves_on_line
+                    vals += [prevals_purchase_line]
+                    processed_purchase_lines.add(move.purchase_line_id.id)
         processed_products = set()
         for move in [x for x in picking.move_lines if x.state not in ('done', 'cancel') and not x.purchase_line_id]:
             if move.product_id.id not in processed_products:
                 for item in prevals.get(move.product_id.id, []):
                     if float_compare(item['product_qty'], 0,
                                      precision_rounding=move.product_id.uom_id.rounding) != 0:
-                        vals += prevals.get(move.product_id.id, [])
+                        vals += [item]
                 processed_products.add(move.product_id.id)
         return vals
 

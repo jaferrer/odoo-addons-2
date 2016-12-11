@@ -295,7 +295,8 @@ class StockWarehouseOrderPointJit(models.Model):
                     stock_after_event += sum(item['move_qty'] for item in events if item['date'] == event['date'])
                     done_dates += [event['date']]
                 if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned']:
-                    proc_oversupply = self.env['procurement.order'].search([('id', '=', event['proc_id'])])
+                    proc_oversupply = self.env['procurement.order'].search([('id', '=', event['proc_id']),
+                                                                            ('state', '!=', 'done')])
                     qty_same_proc = sum(item['move_qty'] for item in events if item['proc_id'] == event['proc_id'])
                     if proc_oversupply:
                         stock_after_event -= qty_same_proc
