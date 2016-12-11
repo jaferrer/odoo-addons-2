@@ -601,6 +601,22 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(order.state, 'approved')
         self.assertEqual(line.move_ids[0].product_uom_qty, 9)
 
+        picking = order.picking_ids[0]
+        picking.do_prepare_partial()
+        packop = self.env['stock.pack.operation'].search([('product_id', '=', self.product1.id),
+                                                          ('picking_id', '=', picking.id)])
+        packop.product_qty = 5
+        picking.do_transfer()
+
+        self.assertEqual(order.state, 'approved')
+        self.assertEqual(len(line.move_ids), 2)
+        self.assertIn((4, 'assigned'), [(m.product_uom_qty, m.state) for m in line.move_ids])
+        self.assertIn((5, 'done'), [(m.product_uom_qty, m.state) for m in line.move_ids])
+
+        line.product_qty = 5
+        self.assertEqual(len(line.move_ids), 1)
+        self.assertEqual(line.move_ids[0].product_uom_qty, 5)
+
     def test_40_purchase_procurement_jit(self):
         """
         Test increasing quantity a draft purchase order line
@@ -845,30 +861,42 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
                 m4 = move
         self.assertTrue(m1 and m2 and m3 and m4)
 
-        m5 = self.env['stock.move'].browse(self.env['stock.move'].split(m2, 18.0))
-        m5.action_done()
-        self.assertEqual(procurement_order_2.date_planned, "3003-05-04 15:00:00")
+        picking = purchase_order_1.picking_ids[0]
+        picking.do_prepare_partial()
+        packop = self.env['stock.pack.operation'].search([('product_id', '=', self.product1.id),
+                                                          ('picking_id', '=', picking.id)])
+        packop.product_qty = 18
+        picking.do_transfer()
 
-        test_decreasing_line_qty(line, 106, 5, [7, 22, 18, 50, 9])
+        test_decreasing_line_qty(line, 106, 5, [7, 11, 29, 50, 9])
         test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3]])
-        test_decreasing_line_qty(line, 98, 5, [7, 22, 18, 50, 1])
+        test_decreasing_line_qty(line, 98, 5, [7, 11, 29, 50, 1])
         test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3]])
-        test_decreasing_line_qty(line, 97, 4, [7, 22, 18, 50])
+        test_decreasing_line_qty(line, 97, 4, [7, 11, 29, 50])
         test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3]])
-        test_decreasing_line_qty(line, 96, 4, [7, 22, 18, 49])
+        test_decreasing_line_qty(line, 96, 4, [7, 11, 29, 49])
         test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2]])
-        test_decreasing_line_qty(line, 48, 4, [7, 22, 18, 1])
+        test_decreasing_line_qty(line, 48, 4, [7, 11, 29, 1])
         test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2]])
-        test_decreasing_line_qty(line, 47, 3, [7, 22, 18])
+        test_decreasing_line_qty(line, 47, 3, [7, 11, 29])
         test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2]])
-        test_decreasing_line_qty(line, 46, 3, [7, 21, 18])
+        test_decreasing_line_qty(line, 46, 3, [7, 11, 28])
         test_procurement_id([[m1, procurement_order_1]])
-        test_decreasing_line_qty(line, 26, 3, [7, 1, 18])
+        test_decreasing_line_qty(line, 19, 3, [7, 11, 1])
         test_procurement_id([[m1, procurement_order_1]])
-        test_decreasing_line_qty(line, 25, 2, [7, 18])
-        test_decreasing_line_qty(line, 18, 1, [18])
+        test_decreasing_line_qty(line, 18, 2, [7, 11])
         self.assertRaises(exceptions.except_orm, test_decreasing_line_qty, line, 0, 1, [])
         self.assertFalse(line.move_ids.filtered(lambda m: m.state not in ['cancel', 'done']))
+
+        # Let's run the scheduler to check that nothing changes
+        self.env['procurement.order'].purchase_schedule(jobify=False)
+        self.assertEqual(len(line.move_ids), 2)
+        self.assertIn(11, [m.product_uom_qty for m in line.move_ids])
+        self.assertIn(7, [m.product_uom_qty for m in line.move_ids])
+
+        # Let's increase/decrease again to check
+        test_decreasing_line_qty(line, 19, 3, [7, 11, 1])
+        test_decreasing_line_qty(line, 18, 2, [7, 11])
 
     def test_58_purchase_procurement_jit(self):
         """
@@ -895,6 +923,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         def test_increasing_line_qty(line_tested, new_qty, number_moves, list_moves_quantities):
             line_tested.write({'product_qty': new_qty})
             self.assertEqual(len(line_tested.move_ids), number_moves)
+            self.assertEqual(sum(m.product_uom_qty for m in line_tested.move_ids), new_qty)
             for item in list_moves_quantities:
                 self.assertEqual(item[0].product_qty, item[1])
 
@@ -926,20 +955,18 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
 
         # first: with one move without procurement_id
 
-        test_increasing_line_qty(line, 109, 4, [[m1, 7], [m2, 40], [m3, 50], [m4, 12]])
-        test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3],
-                             [m4, False]])
-        test_increasing_line_qty(line, 110, 4, [[m1, 7], [m2, 40], [m3, 50], [m4, 13]])
-        test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3],
-                             [m4, False]])
-        test_increasing_line_qty(line, 210, 4, [[m1, 7], [m2, 40], [m3, 50], [m4, 113]])
-        test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3],
-                             [m4, False]])
-        for move in [m1, m2, m3, m4]:
+        test_increasing_line_qty(line, 109, 4, [[m1, 7], [m2, 40], [m3, 50]])
+        test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3]])
+        test_increasing_line_qty(line, 110, 4, [[m1, 7], [m2, 40], [m3, 50]])
+        test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3]])
+        test_increasing_line_qty(line, 210, 4, [[m1, 7], [m2, 40], [m3, 50]])
+        test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3]])
+        for move in [m1, m2, m3]:
             self.assertTrue(move.picking_id)
             self.assertTrue(move.picking_type_id)
+        self.assertRaises(exceptions.MissingError, getattr, m4, 'name')
         picking = m1.picking_id
-        self.assertTrue(m2 in picking.move_lines and m3 in picking.move_lines and m4 in picking.move_lines)
+        self.assertTrue(m2 in picking.move_lines and m3 in picking.move_lines)
 
         # next: every move has a not-False procurement_id (after deletion of m4)
 
@@ -961,19 +988,17 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
 
         test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3],
                              [m4, False]])
-        test_increasing_line_qty(line, 110, 4, [[m1, 7], [m2, 40], [m3, 50], [m4, 13]])
-        test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3],
-                             [m4, False]])
-        test_increasing_line_qty(line, 210, 4, [[m1, 7], [m2, 40], [m3, 50], [m4, 113]])
-        test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3],
-                             [m4, False]])
-        for move in [m1, m2, m3, m4]:
+        test_increasing_line_qty(line, 110, 4, [[m1, 7], [m2, 40], [m3, 50]])
+        test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3]])
+        test_increasing_line_qty(line, 210, 4, [[m1, 7], [m2, 40], [m3, 50]])
+        test_procurement_id([[m1, procurement_order_1], [m2, procurement_order_2], [m3, procurement_order_3]])
+        for move in [m1, m2, m3]:
             self.assertTrue(move.picking_id)
             self.assertTrue(move.picking_type_id)
+        self.assertRaises(exceptions.MissingError, getattr, m4, 'name')
         picking = m1.picking_id
         self.assertTrue(m2 in picking.move_lines)
         self.assertTrue(m3 in picking.move_lines)
-        self.assertTrue(m4 in picking.move_lines)
 
         self.env['procurement.order'].purchase_schedule(jobify=False)
         self.assertEqual(purchase_order_1.state, 'approved')
