@@ -114,7 +114,7 @@ class PurchaseOrderJustInTime(models.Model):
                 move_data['product_uom_qty'] = diff_qty
                 move_data['product_uos_qty'] = diff_qty
             else:
-                res = [item for item in res if not item.get('procurement_id')]
+                res = [item for item in res if item.get('procurement_id')]
         return res
 
     @api.multi
@@ -275,25 +275,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         return result
 
     @api.multi
-    def change_qty_or_create(self, qty, global_qty_ordered):
-        """
-        Used to increase quantity of a purchase order line. If we find a move not linked to a procurement
-        then we increase this move. Otherwise we call for move creation which should return us a new move,
-        with the correct quantity.
-        """
-        self.ensure_one()
-        diff = qty - global_qty_ordered
-        move_without_proc_id = [x for x in self.move_ids if not x.procurement_id]
-        if move_without_proc_id and move_without_proc_id[0].state not in ['done', 'cancel']:
-            # We have moves already and try to find a move to increase its quantity
-            move_without_proc_id[0].product_uom_qty += diff
-        else:
-            # We did not find any move not linked to a proc to increase its quantity.
-            # So we call for move creation for the whole line
-            self.env['purchase.order']._create_stock_moves_improved(self.order_id, self)
-
-    @api.multi
-    def delete_cancel_create(self, target_qty):
+    def adjust_moves_qties(self, target_qty):
         """
         Progressively delete the moves linked with no procurements, then detach the other ones until the global
         quantity ordered is lower or equal to the new quantity.
@@ -321,17 +303,19 @@ class PurchaseOrderLineJustInTime(models.Model):
             qty_to_remove -= move.product_uom_qty
 
         to_detach_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        self.adjust_move_no_proc_qty()
 
-        # Delete moves that have been detached from the procurement and recreate them with
-        # the correct quantity.
-        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', self.ids),
-                                                        ('procurement_id', '=', False),
-                                                        ('state', 'not in', ['done', 'cancel'])])
-
+    def adjust_move_no_proc_qty(self):
+        """Adjusts the quantity of the move without proc, recreating it if necessary."""
+        moves_no_procs = self.env['stock.move'].search(
+            [('purchase_line_id', 'in', self.ids),
+             ('procurement_id', '=', False),
+             ('state', 'not in', ['done', 'cancel'])]).with_context(mail_notrack=True)
         # Dirty hack to keep the moves so that we don't to set the PO in shipping except
         # but still compute the correct qty in _create_stock_moves_improved
         moves_no_procs.write({'product_uom_qty': 0})
-        self.env['purchase.order']._create_stock_moves_improved(self.order_id, self)
+        for rec in self:
+            self.env['purchase.order']._create_stock_moves_improved(rec.order_id, rec)
 
         # We don't want cancel_procurement context here,
         # because we want to cancel next move too (no procs).
@@ -352,17 +336,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         if vals['product_qty'] < sum([x.product_uom_qty for x in self.move_ids if x.state == 'done']):
             raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
         if self.state == 'confirmed':
-            global_qty_ordered = sum(x.product_uom_qty for x in self.move_ids if x.state != 'cancel')
-            if float_compare(vals.get('product_qty'), global_qty_ordered,
-                             precision_rounding=self.product_id.uom_id.rounding) > 0:
-                # We increased the quantity of the purchase order line
-                self.change_qty_or_create(vals.get('product_qty'), global_qty_ordered)
-            else:
-                # We reduced the quantity of the purchase order line
-                self.delete_cancel_create(vals.get('product_qty'))
-            move_to_remove = [x for x in self.move_ids if x.state == 'cancel']
-            for move in move_to_remove:
-                move.purchase_line_id = False
+            self.adjust_moves_qties(vals['product_qty'])
         elif self.state == 'draft':
             sum_procs = sum([p.product_qty for p in self.procurement_ids])
             # We remove procs if there qty is above the line

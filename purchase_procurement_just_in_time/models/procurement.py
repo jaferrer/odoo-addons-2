@@ -402,7 +402,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     def add_proc_to_line(self, pol):
         pol.ensure_one()
         for rec in self:
+            orig_pol = rec.purchase_line_id
             rec.with_context(tracking_disable=True).write({'purchase_line_id': pol.id})
+            orig_pol.adjust_move_no_proc_qty()
             if not rec.move_ids:
                 continue
 
@@ -417,7 +419,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                                   'partner_id': pol.order_id.partner_id.id})
                 running_moves.write({'purchase_line_id': pol.id,
                                      'picking_id': False,
-                                     'group_id': group.id})
+                                     'group_id': group.id,
+                                     'origin': pol.order_id.name})
                 # We try to attach the move to the correct picking (matching new procurement group)
                 running_moves.action_confirm()
                 running_moves.force_assign()
@@ -437,18 +440,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             for proc in procurements:
                 if proc not in pol.procurement_ids:
                     proc.add_proc_to_line(pol)
-
-            # Dirty hack to keep the moves so that we don't to set the PO in shipping except
-            # but still compute the correct qty in _create_stock_moves_improved
-            moves_no_procs.write({'product_uom_qty': 0})
-
-            if pol.order_id.state not in ['draft', 'sent', 'bid', 'confirmed', 'done', 'cancel']:
-                self.env['purchase.order']._create_stock_moves_improved(pol.order_id, pol)
-
-            # We don't want cancel_procurement context here,
-            # because we want to cancel next move too (no procs).
-            moves_no_procs.action_cancel()
-            moves_no_procs.unlink()
+            pol.adjust_move_no_proc_qty()
 
     @api.multi
     def make_po(self):
