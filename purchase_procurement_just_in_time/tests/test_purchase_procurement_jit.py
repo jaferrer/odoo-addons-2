@@ -1120,6 +1120,16 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         for move in line.move_ids:
             self.assertIn(move.product_uom_qty, [5, 40, 6])
 
+        line.product_qty = 47
+        self.assertEqual(len(line.move_ids), 3)
+        for move in line.move_ids:
+            self.assertIn(move.product_uom_qty, [5, 40, 2])
+
+        line.product_qty = 45
+        self.assertEqual(len(line.move_ids), 2)
+        for move in line.move_ids:
+            self.assertIn(move.product_uom_qty, [5, 40])
+
     def test_65_purchase_procurement_jit(self):
         """
         Testing draft purchase order lines splits
