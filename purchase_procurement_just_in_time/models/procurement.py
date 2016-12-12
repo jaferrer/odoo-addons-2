@@ -73,6 +73,36 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return result
 
     @api.model
+    def remove_done_moves(self):
+        """Splits the given procs creating a copy with the qty of their done moves and set to done.
+        """
+        for procurement in self:
+            if procurement.rule_id.action == 'buy':
+                qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
+                if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
+                    remaining_qty = procurement.product_qty - qty_done
+                    new_proc = procurement.copy({
+                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
+                        'state': 'done',
+                    })
+                    procurement.write({
+                        'product_qty': float_round(remaining_qty,
+                                                   precision_rounding=procurement.product_id.uom_id.rounding),
+                    })
+                    # Attach done and cancelled moves to new_proc
+                    done_moves = procurement.move_ids.filtered(lambda m: m.state in ['done', 'cancel'])
+                    done_moves.write({'procurement_id': new_proc.id})
+                # Detach the other moves and reconfirm them so that we have push rules applied if any
+                remaining_moves = procurement.move_ids.filtered(lambda m: m.state not in ['done', 'cancel'])
+                remaining_moves.write({
+                    'procurement_id': False,
+                    'move_dest_id': False,
+                })
+                remaining_moves.action_confirm()
+                remaining_moves.force_assign()
+        return super(ProcurementOrderPurchaseJustInTime, self).remove_done_moves()
+
+    @api.model
     def purchase_schedule(self, compute_all_products=True, compute_supplier_ids=None, compute_product_ids=None,
                           jobify=True):
         compute_supplier_ids = compute_supplier_ids and compute_supplier_ids.ids or []
@@ -389,22 +419,31 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         to_reset = self.search([('id', 'in', self.ids), ('state', 'in', ['running', 'exception'])])
         to_reset.with_context(tracking_disable=True).write({'state': 'buy_to_run'})
         for proc in self:
+            if proc.state in ['done', 'cancel']:
+                # Done and cancel procs should not change purchase order line
+                continue
             proc_moves = self.env['stock.move'].search([('procurement_id', '=', proc.id),
                                                         ('state', 'not in', ['cancel', 'done'])]
                                                        ).with_context(mail_notrack=True)
-            proc_moves.write({'purchase_line_id': False,
-                              'picking_id': False})
             if unlink_moves_to_procs:
                 proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
                 proc_moves.unlink()
+            else:
+                proc_moves.write({'purchase_line_id': False,
+                                  'picking_id': False})
 
     @api.multi
     def add_proc_to_line(self, pol):
         pol.ensure_one()
         for rec in self:
+            assert rec.state not in ['done', 'cancel']
+
             orig_pol = rec.purchase_line_id
-            rec.with_context(tracking_disable=True).write({'purchase_line_id': pol.id})
+            if orig_pol:
+                rec.remove_procs_from_lines()
             orig_pol.adjust_move_no_proc_qty()
+
+            rec.with_context(tracking_disable=True).write({'purchase_line_id': pol.id})
             if not rec.move_ids:
                 continue
 
