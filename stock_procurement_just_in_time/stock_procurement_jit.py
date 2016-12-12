@@ -142,34 +142,12 @@ class ProcurementOrderQuantity(models.Model):
         """Splits the given procs creating a copy with the qty of their done moves and set to done.
         """
         for procurement in self:
-            buy = procurement.rule_id.action == 'buy'
-            qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
-            if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
-                if buy:
-                    new_qty = procurement.product_qty - qty_done
-                else:
-                    new_qty = qty_done
-                if buy:
-                    new_proc = procurement.copy({
+            if procurement.rule_id.action == 'move':
+                qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
+                if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
+                    procurement.write({
                         'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
-                        'state': 'done',
                     })
-                procurement.write({
-                    'product_qty': float_round(new_qty, precision_rounding=procurement.product_id.uom_id.rounding),
-                })
-                if buy:
-                    # Attach done and cancelled moves to new_proc
-                    done_moves = procurement.move_ids.filtered(lambda m: m.state in ['done', 'cancel'])
-                    done_moves.write({'procurement_id': new_proc.id})
-            # Detach the other moves and reconfirm them so that we have push rules applied if any
-            if buy:
-                remaining_moves = procurement.move_ids.filtered(lambda m: m.state not in ['done', 'cancel'])
-                remaining_moves.write({
-                    'procurement_id': False,
-                    'move_dest_id': False,
-                })
-                remaining_moves.action_confirm()
-                remaining_moves.force_assign()
 
 
 class StockMoveJustInTime(models.Model):

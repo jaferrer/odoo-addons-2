@@ -1027,12 +1027,45 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         packop.product_qty = 3
         picking.do_transfer()
 
+        move2 = self.env['stock.move']
         for move in line.move_ids:
+            if move.product_uom_qty == 2:
+                move2 = move
             self.assertIn((move.product_uom_qty, move.state, move.procurement_id),
                           [(2, 'assigned', self.env['procurement.order']), (5, 'assigned', proc4), (3, 'done', proc4)])
 
         # self.assertEqual(m3.procurement_id, proc4)
         self.assertEqual(proc4.date_planned, "3003-05-05 17:00:00")
+
+        move3 = self.env['stock.move'].browse(self.env['stock.move'].split(move2, 1))
+        move3.action_done()
+
+        move4 = self.env['stock.move']
+        for move in line.move_ids:
+            if move.product_uom_qty == 3:
+                move4 = move
+            self.assertIn((move.product_uom_qty, move.state, move.procurement_id),
+                          [(1, 'assigned', self.env['procurement.order']),
+                           (1, 'done', self.env['procurement.order']),
+                           (5, 'assigned', proc4),
+                           (3, 'done', proc4)])
+
+        self.env['procurement.order'].purchase_schedule(jobify=False)
+
+        line.product_qty = 11
+
+        for move in line.move_ids:
+            self.assertIn((move.product_uom_qty, move.state, move.procurement_id),
+                          [(7, 'assigned', self.env['procurement.order']),
+                           (1, 'done', self.env['procurement.order']),
+                           (3, 'done', move4.procurement_id)])
+
+        line.product_qty = 9
+        for move in line.move_ids:
+            self.assertIn((move.product_uom_qty, move.state, move.procurement_id),
+                          [(1, 'done', self.env['procurement.order']),
+                           (5, 'assigned', self.env['procurement.order']),
+                           (3, 'done', move4.procurement_id)])
 
     def test_62_purchase_procurement_jit(self):
         """
@@ -1062,6 +1095,30 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         line.product_qty = 58
         self.env['procurement.order'].purchase_schedule(jobify=False)
         self.assertEqual(purchase_order_1.state, 'approved')
+
+    def test_63_purchase_procurement_jit(self):
+        """
+        Testing defective procurement
+        """
+        proc1, proc2 = self.create_and_run_proc_1_2()
+        purchase_order_1 = proc1.purchase_id
+        line = self.check_purchase_order_1_2(purchase_order_1)
+
+        purchase_order_1.signal_workflow('purchase_confirm')
+        self.assertEqual(purchase_order_1.state, 'approved')
+
+        m1 = self.env['stock.move']
+        for move in line.move_ids:
+            self.assertIn(move.product_uom_qty, [7, 40, 1])
+            if move.product_qty == 7:
+                m1 = move
+
+        m1.product_uom_qty = 5
+
+        line.product_qty = 51
+        self.assertEqual(len(line.move_ids), 3)
+        for move in line.move_ids:
+            self.assertIn(move.product_uom_qty, [5, 40, 6])
 
     def test_65_purchase_procurement_jit(self):
         """
