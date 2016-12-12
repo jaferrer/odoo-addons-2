@@ -130,6 +130,18 @@ class ProcurementOrderQuantity(models.Model):
         return super(ProcurementOrderQuantity,
                      self.with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
 
+    @api.model
+    def remove_done_moves(self):
+        """Splits the given procs creating a copy with the qty of their done moves and set to done.
+        """
+        for procurement in self:
+            if procurement.rule_id.action == 'move':
+                qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
+                if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
+                    procurement.write({
+                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
+                    })
+
 
 class StockMoveJustInTime(models.Model):
     _inherit = 'stock.move'

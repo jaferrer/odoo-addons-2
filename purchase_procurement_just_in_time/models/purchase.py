@@ -90,21 +90,23 @@ class PurchaseOrderJustInTime(models.Model):
         proc_ids = [dk for dk in data_per_proc.keys() if dk]
         procs = self.env['procurement.order'].browse(proc_ids)
         # Then we remove items pointing at procurements which already have moves
+        qty_out_of_procs = order_line.product_qty
         to_remove_indices = []
         for proc in procs:
             if proc.move_ids:
                 # Remove data if proc already has a move
                 to_remove_indices += [item[0] for item in data_per_proc[proc.id]]
+                qty_out_of_procs -= sum(m.product_uom_qty for m in proc.move_ids if m.state != 'cancel')
             elif data_per_proc[proc.id]:
                 for data in data_per_proc[proc.id]:
                     if float_compare(data[1]['product_uom_qty'], 0.0,
                                      precision_rounding=proc.product_id.uom_id.rounding) == 0:
                         # Remove data if qty is 0
                         to_remove_indices += [item[0] for item in data_per_proc[proc.id]]
+                    qty_out_of_procs -= proc.product_qty
 
         res = [res[index] for index in range(len(res)) if index not in to_remove_indices]
         # Finally we adjust the quantity of the move_data without procurement
-        qty_out_of_procs = order_line.product_qty - sum([p.product_qty for p in procs])
         if float_compare(qty_out_of_procs, 0, precision_rounding=order_line.product_id.uom_id.rounding) > 0:
             move_data = data_per_proc[False][0][1]
             moves = self.env['stock.move'].search([('purchase_line_id', '=', order_line.id),
