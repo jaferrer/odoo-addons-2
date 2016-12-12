@@ -287,9 +287,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         if self.partner_dest_id:
             main_domain += [('dest_address_id', '=', self.partner_dest_id.id)]
         domain_date_defined = [('date_order', '!=', False),
-                               ('date_order', '<=', fields.Datetime.to_string(purchase_date)[:10]),
+                               ('date_order', '<=', fields.Datetime.to_string(purchase_date)[:10] + ' 23:59:59'),
                                '|', ('date_order_max', '=', False),
-                               ('date_order_max', '>', fields.Datetime.to_string(purchase_date)[:10])]
+                               ('date_order_max', '>', fields.Datetime.to_string(purchase_date)[:10] + ' 00:00:00')]
         domain_date_not_defined = ['|', ('date_order', '=', False), ('date_order_max', '=', False)]
         available_draft_po_ids = self.env['purchase.order'].search(main_domain + domain_date_defined)
         draft_order = False
