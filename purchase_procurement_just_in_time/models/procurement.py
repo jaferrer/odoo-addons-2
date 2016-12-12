@@ -28,6 +28,18 @@ from openerp.tools.float_utils import float_compare, float_round
 
 
 @job
+def job_purchase_schedule(session, model_name, compute_all_products, compute_supplier_ids,
+                          compute_product_ids, jobify, context=None):
+    model_instance = session.pool[model_name]
+    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
+    with handler.session() as session:
+        result = model_instance.launch_purchase_schedule(session.cr, session.uid, compute_all_products,
+                                                         compute_supplier_ids, compute_product_ids, jobify,
+                                                         context=context)
+    return result
+
+
+@job
 def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
@@ -65,41 +77,52 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         """Splits the given procs creating a copy with the qty of their done moves and set to done.
         """
         for procurement in self:
-            qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
-            if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
-                remaining_qty = procurement.product_qty - qty_done
-                new_proc = procurement.copy({
-                    'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
-                    'state': 'done',
+            if procurement.rule_id.action == 'buy':
+                qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
+                if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
+                    remaining_qty = procurement.product_qty - qty_done
+                    new_proc = procurement.copy({
+                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
+                        'state': 'done',
+                    })
+                    procurement.write({
+                        'product_qty': float_round(remaining_qty,
+                                                   precision_rounding=procurement.product_id.uom_id.rounding),
+                    })
+                    # Attach done and cancelled moves to new_proc
+                    done_moves = procurement.move_ids.filtered(lambda m: m.state in ['done', 'cancel'])
+                    done_moves.write({'procurement_id': new_proc.id})
+                # Detach the other moves and reconfirm them so that we have push rules applied if any
+                remaining_moves = procurement.move_ids.filtered(lambda m: m.state not in ['done', 'cancel'])
+                remaining_moves.write({
+                    'procurement_id': False,
+                    'move_dest_id': False,
                 })
-                procurement.write({
-                    'product_qty': float_round(remaining_qty,
-                                               precision_rounding=procurement.product_id.uom_id.rounding),
-                })
-                # Attach done and cancelled moves to new_proc
-                done_moves = procurement.move_ids.filtered(lambda m: m.state in ['done', 'cancel'])
-                done_moves.write({'procurement_id': new_proc.id})
-            # Detach the other moves and reconfirm them so that we have push rules applied if any
-            remaining_moves = procurement.move_ids.filtered(lambda m: m.state not in ['done', 'cancel'])
-            remaining_moves.write({
-                'procurement_id': False,
-                'move_dest_id': False,
-            })
-            remaining_moves.action_confirm()
-            remaining_moves.force_assign()
+                remaining_moves.action_confirm()
+                remaining_moves.force_assign()
+        return super(ProcurementOrderPurchaseJustInTime, self).remove_done_moves()
 
     @api.model
     def purchase_schedule(self, compute_all_products=True, compute_supplier_ids=None, compute_product_ids=None,
                           jobify=True):
-        if not compute_supplier_ids:
-            compute_supplier_ids = []
-        if not compute_product_ids:
-            compute_product_ids = []
+        compute_supplier_ids = compute_supplier_ids and compute_supplier_ids.ids or []
+        compute_product_ids = compute_product_ids and compute_product_ids.ids or []
+        if jobify:
+            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+            job_purchase_schedule.delay(session, 'procurement.order', compute_all_products,
+                                        compute_supplier_ids, compute_product_ids, jobify,
+                                        description=_("Scheduling purchase orders"), context=self.env.context)
+        else:
+            self.launch_purchase_schedule(compute_all_products, compute_supplier_ids, compute_product_ids,
+                                          jobify)
+
+    @api.model
+    def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
         domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']),
                                       ('rule_id.action', '=', 'buy'),
                                       ('product_id.seller_id', '!=', False)]
         if not compute_all_products and compute_product_ids:
-            domain_procurements_to_run += [('product_id', 'in', compute_product_ids.ids)]
+            domain_procurements_to_run += [('product_id', 'in', compute_product_ids)]
         procurements_to_tun = self.search(domain_procurements_to_run)
         ignore_past_procurements = bool(self.env['ir.config_parameter'].
                                         get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
@@ -133,7 +156,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         for seller in dict_procs_suppliers.keys():
             if dict_procs_suppliers[seller] and \
                 (compute_all_products or not compute_supplier_ids or
-                 compute_supplier_ids and seller in compute_supplier_ids):
+                 compute_supplier_ids and seller.id in compute_supplier_ids):
                 if jobify:
                     session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
                     job_purchase_schedule_procurements. \
@@ -207,10 +230,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return dict_procs_lines, not_assigned_procs
 
     @api.model
-    def get_purchase_line_procurements(self, first_proc, date_end, order_by, force_domain=None):
+    def get_purchase_line_procurements(self, first_proc, seller, order_by, force_domain=None):
         """Returns procurements that must be integrated in the same purchase order line as first_proc, by
         taking all procurements of the same product as first_proc between the date of first proc and date_end.
         """
+        frame = seller.order_group_period
+        date_end = False
+        if frame and frame.period_type:
+            date_end = fields.Datetime.to_string(
+                frame.get_date_end_period(fields.Datetime.from_string(first_proc.date_planned))
+            )
         domain_procurements = [('product_id', '=', first_proc.product_id.id),
                                ('location_id', '=', first_proc.location_id.id),
                                ('company_id', '=', first_proc.company_id.id),
@@ -242,7 +271,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return self.search([('id', 'in', procurements_grouping_period.ids)], order=order_by)
 
     @api.multi
-    def get_corresponding_draft_order(self, seller, purchase_date, end_grouping_period):
+    def get_corresponding_draft_order(self, seller, purchase_date):
         # look for any other draft PO for the same supplier to attach the new line.
         # If no one is found, we create a new draft one
         self.ensure_one()
@@ -270,19 +299,23 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             date_order, date_order_max = frame.get_start_end_dates(purchase_date, date_ref=date_ref)
         else:
             date_order = dt.now()
-            date_order_max = dt.now() + relativedelta(years=1200)
+            date_order_max = date_order + relativedelta(years=1200)
+        date_order = fields.Datetime.to_string(date_order)
+        date_order_max = fields.Datetime.to_string(date_order_max)
+        origin = "%s - %s" % (date_order and date_order[:10] or '',
+                              date_order_max and date_order_max[:10] or 'infinite')
         if not draft_order:
             available_draft_po_ids = self.env['purchase.order'].search(main_domain + domain_date_not_defined)
             if available_draft_po_ids:
                 draft_order = available_draft_po_ids[0]
-                draft_order.write({'date_order': fields.Datetime.to_string(date_order),
-                                   'date_order_max': fields.Datetime.to_string(date_order_max)})
+                draft_order.write({'date_order': date_order,
+                                   'date_order_max': date_order_max,
+                                   'origin': origin})
         if not draft_order and not seller.nb_max_draft_orders or seller.nb_draft_orders < seller.nb_max_draft_orders:
             name = self.env['ir.sequence'].next_by_code('purchase.order') or _('PO: %s') % self.name
             po_vals = {
                 'name': name,
-                'origin': "%s - %s" % (self.date_planned[:10],
-                                       end_grouping_period and end_grouping_period[:10] or 'infinite'),
+                'origin': origin,
                 'partner_id': seller.id,
                 'location_id': self.location_id.id,
                 'picking_type_id': self.rule_id.picking_type_id.id,
@@ -290,8 +323,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 'currency_id': seller.property_product_pricelist_purchase and
                                seller.property_product_pricelist_purchase.currency_id.id or
                                self.company_id.currency_id.id,
-                'date_order': fields.Datetime.to_string(date_order),
-                'date_order_max': fields.Datetime.to_string(date_order_max),
+                'date_order': date_order,
+                'date_order_max': date_order_max,
                 'company_id': self.company_id.id,
                 'fiscal_position': seller.property_account_position and
                                    seller.property_account_position.id or False,
@@ -314,14 +347,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             while procurements:
                 first_proc = procurements[0]
                 product = first_proc.product_id
-                frame = seller.order_group_period
-                date_end_period = False
-                if frame and frame.period_type:
-                    date_end_period = fields.Datetime.to_string(
-                        frame.get_date_end_period(fields.Datetime.from_string(first_proc.date_planned))
-                    )
                 pol_procurements = self.get_purchase_line_procurements(
-                    first_proc, date_end_period, order_by,
+                    first_proc, seller, order_by,
                     force_domain=[('id', 'in', procurements.ids), ('product_id', '=', product.id)]
                 )
                 schedule_date = self._get_purchase_schedule_date(first_proc, company)
@@ -331,7 +358,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 date_ref_plus_1_day = seller.schedule_working_days(days_delta + 1, dt.today())
                 purchase_date = max(purchase_date, date_ref_plus_1_day)
                 line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
-                draft_order = first_proc.get_corresponding_draft_order(seller, purchase_date, date_end_period)
+                draft_order = first_proc.get_corresponding_draft_order(seller, purchase_date)
                 if draft_order:
                     line_vals.update(order_id=draft_order.id)
                     line = self.env['purchase.order.line'].sudo().create(line_vals)
@@ -390,19 +417,30 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         to_reset = self.search([('id', 'in', self.ids), ('state', 'in', ['running', 'exception'])])
         to_reset.with_context(tracking_disable=True).write({'state': 'buy_to_run'})
         for proc in self:
+            if proc.state in ['done', 'cancel']:
+                # Done and cancel procs should not change purchase order line
+                continue
             proc_moves = self.env['stock.move'].search([('procurement_id', '=', proc.id),
                                                         ('state', 'not in', ['cancel', 'done'])]
                                                        ).with_context(mail_notrack=True)
-            proc_moves.write({'purchase_line_id': False,
-                              'picking_id': False})
             if unlink_moves_to_procs:
                 proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
                 proc_moves.unlink()
+            else:
+                proc_moves.write({'purchase_line_id': False,
+                                  'picking_id': False})
 
     @api.multi
     def add_proc_to_line(self, pol):
         pol.ensure_one()
         for rec in self:
+            assert rec.state not in ['done', 'cancel']
+
+            orig_pol = rec.purchase_line_id
+            if orig_pol:
+                rec.remove_procs_from_lines()
+            orig_pol.adjust_move_no_proc_qty()
+
             rec.with_context(tracking_disable=True).write({'purchase_line_id': pol.id})
             if not rec.move_ids:
                 continue
@@ -432,10 +470,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.model
     def redistribute_procurements_in_lines(self, dict_procs_lines):
         for pol in dict_procs_lines.keys():
-            moves_no_procs = self.env['stock.move'].search(
-                [('id', 'in', pol.move_ids.ids),
-                 ('state', 'not in', ['done', 'cancel']),
-                 ('procurement_id', '=', False)]).with_context(mail_notrack=True)
             procurements = dict_procs_lines[pol]
             for proc in pol.procurement_ids:
                 if proc not in procurements:
@@ -443,18 +477,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             for proc in procurements:
                 if proc not in pol.procurement_ids:
                     proc.add_proc_to_line(pol)
-
-            # Dirty hack to keep the moves so that we don't to set the PO in shipping except
-            # but still compute the correct qty in _create_stock_moves_improved
-            moves_no_procs.write({'product_uom_qty': 0})
-
-            if pol.order_id.state not in ['draft', 'sent', 'bid', 'confirmed', 'done', 'cancel']:
-                self.env['purchase.order']._create_stock_moves_improved(pol.order_id, pol)
-
-            # We don't want cancel_procurement context here,
-            # because we want to cancel next move too (no procs).
-            moves_no_procs.action_cancel()
-            moves_no_procs.unlink()
+            pol.adjust_move_no_proc_qty()
 
     @api.multi
     def make_po(self):

@@ -16,8 +16,14 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: base
-#: model:ir.module.module,description:base.module_quant_origin
 #: model:ir.module.module,shortdesc:base.module_quant_origin
+msgid
+"Quants Origin"
+msgstr
+"Origine des Quants"
+
+#. module: base
+#: model:ir.module.module,description:base.module_quant_origin
 msgid
 "Quants Origin\n"
 "=============\n"

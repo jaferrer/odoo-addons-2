@@ -33,10 +33,10 @@ _logger = logging.getLogger(__name__)
 
 
 @job
-def process_orderpoints(session, model_name, ids):
+def process_orderpoints(session, model_name, ids, context):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    for op in session.env[model_name].browse(ids):
+    for op in session.env[model_name].with_context(context).browse(ids):
         op.process()
 
 
@@ -115,7 +115,8 @@ class ProcurementOrderQuantity(models.Model):
                     op.process()
             else:
                 process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                          orderpoints, description="Computing orderpoints %s" % orderpoints)
+                                          orderpoints, self.env.context,
+                                          description="Computing orderpoints %s" % orderpoints)
         return {}
 
     @api.model
@@ -128,6 +129,18 @@ class ProcurementOrderQuantity(models.Model):
             procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
         return super(ProcurementOrderQuantity,
                      self.with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
+
+    @api.model
+    def remove_done_moves(self):
+        """Splits the given procs creating a copy with the qty of their done moves and set to done.
+        """
+        for procurement in self:
+            if procurement.rule_id.action == 'move':
+                qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
+                if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
+                    procurement.write({
+                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
+                    })
 
 
 class StockMoveJustInTime(models.Model):

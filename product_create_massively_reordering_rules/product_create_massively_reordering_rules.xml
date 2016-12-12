@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="mass_reordering_rules_wizard_form">
+            <field name="name">mass_reordering_rules_wizard_form</field>
+            <field name="model">mass.reordering.rules.wizard</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="orderpoint_id"/>
+                        <field name="product_ids" widget="many2many_tags"/>
+                    </group>
+                    <footer>
+                        <button name="generate_rules" type="object" string="Generate Rules" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.server" id="ir_actions_generate_massively_reordering_rules">
+            <field name="name">Generate Massively Ordering Rules</field>
+            <field name="model_id" ref="product.model_product_product"/>
+            <field name="code">
+action = self.launch_ordering_rules_creation(cr, uid, context.get('active_ids'), False, context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_generate_massively_reordering_rules">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">product.product</field>
+            <field name="name">Generate Massively Ordering Rules</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_generate_massively_reordering_rules)"/>
+        </record>
+
+    </data>
+</openerp>

@@ -43,7 +43,7 @@ class TestOrderUpdate(common.TransactionCase):
         product2 = self.browse_ref('mrp_manufacturing_order_update.product2')
         product3 = self.browse_ref('mrp_manufacturing_order_update.product3')
 
-        mrp_production1 = self.env['mrp.production'].create({
+        self.mrp_production1 = self.env['mrp.production'].create({
             'name': 'mrp_production1',
             'product_id': product_to_manufacture1.id,
             'product_qty': 1,
@@ -55,9 +55,9 @@ class TestOrderUpdate(common.TransactionCase):
             'company_id': company.id,
         })
 
-        mrp_production1.action_confirm()
+        self.mrp_production1.action_confirm()
 
-        mrp_production2 = self.env['mrp.production'].create({
+        self.mrp_production2 = self.env['mrp.production'].create({
             'name': 'mrp_production2',
             'product_id': product_to_manufacture1.id,
             'product_qty': 1,
@@ -69,8 +69,8 @@ class TestOrderUpdate(common.TransactionCase):
             'company_id': company.id,
         })
 
-        mrp_production2.action_confirm()
-        self.assertTrue(mrp_production2.product_lines)
+        self.mrp_production2.action_confirm()
+        self.assertTrue(self.mrp_production2.product_lines)
 
         # definition of function test_quantities to check that move_lines is matching the needs of product_lines
 
@@ -101,8 +101,8 @@ class TestOrderUpdate(common.TransactionCase):
                 dict['product_uom'] = unit.id
                 dict['bom_id'] =  bom1.id
                 self.env['mrp.bom.line'].create(dict)
-            mrp_production1.button_update()
-            test_quantities(mrp_production1)
+            self.mrp_production1.button_update()
+            test_quantities(self.mrp_production1)
 
         test_update([[line1, 10]], [], []) # increase one quantity
         test_update([[line1, 15], [line2, 15], [line4, 25], [line5, 30]], [], []) # increase two different quantities for two different product
@@ -125,7 +125,7 @@ class TestOrderUpdate(common.TransactionCase):
         # testing modifications of field product_lines (function write from model mrp.production)
         # afterwards, function used tu update moves is the same as before: useless to test it again
 
-        for item in mrp_production2.product_lines:
+        for item in self.mrp_production2.product_lines:
             if item.product_qty == 5:
                 l1 = item.id
             if item.product_qty == 10:
@@ -147,15 +147,15 @@ class TestOrderUpdate(common.TransactionCase):
 
         # changing a line quantity
         vals = {'product_lines': [[1, l1, {'product_qty': 10}], [4, l2, False], [4, l3, False], [4, l4, False], [4, l5, False], [4, l6, False]]}
-        mrp_production2.write(vals)
-        test_quantities(mrp_production2)
+        self.mrp_production2.write(vals)
+        test_quantities(self.mrp_production2)
 
         # deleting a line :
         vals = {'product_lines': [[4, l1, False], [4, l2, False], [4, l3, False], [4, l4, False], [4, l5, False], [2, l6, False]]}
-        mrp_production2.write(vals)
-        test_quantities(mrp_production2)
+        self.mrp_production2.write(vals)
+        test_quantities(self.mrp_production2)
 
         # adding a line
         vals = {'product_lines': [[4, l1, False], [4, l2, False], [4, l3, False], [4, l4, False], [4, l5, False], [0, False, {'product_uos_qty': 0, 'name': 'a', 'product_uom': 1, 'product_qty': 10, 'product_uos': False, 'product_id': product2.id}]]}
-        mrp_production2.write(vals)
-        test_quantities(mrp_production2)
+        self.mrp_production2.write(vals)
+        test_quantities(self.mrp_production2)

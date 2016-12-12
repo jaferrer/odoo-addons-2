@@ -44,10 +44,7 @@ class IncompleteProductionProductProduce(models.TransientModel):
         if c and c.get("active_id"):
             order = self.env['mrp.production'].browse(c.get("active_id"))
         if order:
-            if order.child_location_id:
-                return order.child_location_id
-            else:
-                return order.location_src_id
+            return order.child_location_id or order.warehouse_id.child_location_id or order.location_src_id
         else:
             return False
 
@@ -57,10 +54,7 @@ class IncompleteProductionProductProduce(models.TransientModel):
         if c and c.get("active_id"):
             order = self.env['mrp.production'].browse(c.get("active_id"))
         if order:
-            if order.child_location_id:
-                return order.child_location_id
-            else:
-                return order.location_dest_id
+            return order.child_location_id or order.warehouse_id.child_location_id or order.location_dest_id
         else:
             return False
 

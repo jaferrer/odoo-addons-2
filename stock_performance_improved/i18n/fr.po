@@ -78,6 +78,31 @@ msgid "Process Prereservations"
 msgstr "Traiter les pré-réservations"
 
 #. module: stock_performance_improved
+#: model:ir.ui.menu,name:stock_performance_improved.menu_process_prereservations
+msgid "Process Prereservations"
+msgstr "Préréserver les opérations"
+
+#. module: stock_performance_improved
+#: model:ir.ui.menu,name:stock_performance_improved.menu_confirm_procurements
+msgid "Confirm Procurements"
+msgstr "Confirmer les approvisionnements"
+
+#. module: stock_performance_improved
+#: model:ir.ui.menu,name:stock_performance_improved.menu_check_procurements
+msgid "Check Procurements"
+msgstr "Vérifier les approvisionnements"
+
+#. module: stock_performance_improved
+#: model:ir.ui.menu,name:stock_performance_improved.menu_confirm_moves
+msgid "Confirm Moves"
+msgstr "Confirmer les mouvements"
+
+#. module: stock_performance_improved
+#: model:ir.ui.menu,name:stock_performance_improved.menu_assign_moves
+msgid "Assign Moves"
+msgstr "Assigner les mouvements"
+
+#. module: stock_performance_improved
 #: model:ir.model,name:stock_performance_improved.model_stock_move
 msgid "Stock Move"
 msgstr "Mouvement de stock"
@@ -87,3 +112,17 @@ msgstr "Mouvement de stock"
 msgid "Stock Pre-Reservation"
 msgstr "Pré-réservations de stock"
 
+#. module: stock_performance_improved
+#: model:ir.actions.act_window,name:stock_performance_improved.launch_confirm_process_prereservations
+msgid "Are you sure you want to process prereservations?"
+msgstr "Etes-vous sûr de vouloir préréserver les opérations ?"
+
+#. module: stock_performance_improved
+#: view:confirm.process.prereservations:stock_performance_improved.confirm_process_prereservations_form
+msgid "Confirm"
+msgstr "Confirmer"
+
+#. module: stock_performance_improved
+#: view:confirm.process.prereservations:stock_performance_improved.confirm_process_prereservations_form
+msgid "Cancel"
+msgstr "Annuler"
