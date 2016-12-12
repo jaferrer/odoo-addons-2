@@ -116,7 +116,8 @@ class PurchaseOrderJustInTime(models.Model):
                 move_data['procurement_id'] = False
                 res.append(move_data)
             moves = self.env['stock.move'].search([('purchase_line_id', '=', order_line.id),
-                                                   ('procurement_id', '=', False)])
+                                                   ('procurement_id', '=', False),
+                                                   ('state', '!=', 'cancel')])
             diff_qty = qty_out_of_procs - sum([move.product_uom_qty for move in moves])
             if float_compare(diff_qty, 0.0, precision_rounding=order_line.product_id.uom_id.rounding) > 0:
                 move_data['product_uom_qty'] = diff_qty
@@ -292,16 +293,16 @@ class PurchaseOrderLineJustInTime(models.Model):
         :param target_qty: new quantity of the purchase order line
         """
         self.ensure_one()
+
         moves_without_proc_id = self.move_ids.filtered(
             lambda m: m.state not in ['done', 'cancel'] and not m.procurement_id).sorted(key=lambda m: m.product_qty,
                                                                                          reverse=True)
         moves_with_proc_id = self.move_ids.filtered(
             lambda m: m.state not in ['done', 'cancel'] and m.procurement_id).sorted(key=lambda m: m.product_qty,
                                                                                      reverse=True)
-        qty_to_remove = sum([x.product_uom_qty for x in self.move_ids
-                             if x.state not in ['cancel']]) - target_qty
+        qty_to_remove = sum([x.product_uom_qty for x in self.move_ids if x.state != 'cancel']) - target_qty
 
-        qty_to_remove -= sum(x.product_uom_qty for x in moves_without_proc_id)
+        qty_to_remove -= sum([x.product_uom_qty for x in moves_without_proc_id])
         to_detach_procs = self.env['procurement.order']
 
         while qty_to_remove > 0 and moves_with_proc_id:
