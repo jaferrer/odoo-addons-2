@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, exceptions
+from openerp import models, fields, api, exceptions, _
 
 
 class SplitLine(models.TransientModel):
@@ -59,17 +59,15 @@ class SplitLine(models.TransientModel):
 
     @api.multi
     def do_split(self):
-
         """
         Separates a purchase order line into two ones.
         """
-
         self._check_split_possible()
 
         # Reduce quantity of original move
         original_qty = self.line_id.product_qty
         new_pol_qty = original_qty - self.qty
-        self.line_id.with_context(no_update_moves=True).write({'product_qty': self.qty})
+        self.line_id.with_context().write({'product_qty': self.qty})
 
         # Get a line_no for the new purchase.order.line
         father_line_id = self.line_id.father_line_id or self.line_id
@@ -77,7 +75,7 @@ class SplitLine(models.TransientModel):
         new_line_no = orig_line_no + ' - ' + str(father_line_id.children_number + 1)
 
         # Create new purchase.order.line
-        new_pol = self.line_id.with_context(no_update_moves=True).copy({
+        self.line_id.with_context().copy({
             'product_qty': new_pol_qty,
             'move_ids': False,
             'children_line_ids': False,
@@ -85,35 +83,17 @@ class SplitLine(models.TransientModel):
             'father_line_id': father_line_id.id,
         })
 
-        # Dispatch moves if the original purchase.order.line was confirmed
-        if self.line_id.state == 'confirmed':
-            moves = self.line_id.move_ids.filtered(lambda m: m.state not in ['draft', 'done', 'cancel']) \
-                .sorted(key=lambda m: m.product_qty)
-            moves_to_keep = self.env['stock.move']
-            move_to_split = self.env['stock.move']
 
-            # Define what to do with each move
-            _sum = sum(x.product_uom_qty for x in self.line_id.move_ids if x.state == 'done')
-            if _sum != self.qty:
-                for move in moves:
-                    _sum += move.product_uom_qty
-                    if _sum > self.qty:
-                        move_to_split = move
-                        break
-                    if _sum == self.qty:
-                        moves_to_keep += move
-                        break
-                    else:
-                        moves_to_keep += move
+class LaunchPurchasePlanner(models.TransientModel):
+    _name = 'launch.purchase.planner'
 
-            # Attach relevant moves to new purchase.order.line
-            moves_to_attach = moves - moves_to_keep - move_to_split
-            moves_to_attach.write({'purchase_line_id': new_pol.id})
-            # Split the move to split if any
-            if move_to_split:
-                self.env['stock.move'].split(move_to_split, self.qty - sum([m.product_uom_qty for m in moves_to_keep]))
-                move_to_split.purchase_line_id = new_pol
-            # Try to assign all moves
-            moves.action_assign()
-            # Set the status of all lines
-            self.line_id.order_id.set_order_line_status(self.line_id.state)
+    compute_all = fields.Boolean(string="Compute all the products", default=True)
+    product_ids = fields.Many2many('product.product', string="Products")
+    supplier_ids = fields.Many2many('res.partner', string="Suppliers", domain=[('supplier', '=', True)])
+
+    @api.multi
+    def procure_calculation(self):
+        self.env['procurement.order'].purchase_schedule(compute_product_ids=self.product_ids,
+                                                        compute_supplier_ids=self.supplier_ids,
+                                                        compute_all_products=self.compute_all,
+                                                        jobify=True)

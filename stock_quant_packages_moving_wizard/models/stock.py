@@ -293,54 +293,54 @@ class Stock(models.Model):
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_line')
         cr.execute("""CREATE OR REPLACE VIEW stock_product_line AS (
-  SELECT
-    COALESCE(rqx.product_id, 0)
-    || '-' || COALESCE(rqx.package_id, 0) || '-' || COALESCE(rqx.lot_id, 0) || '-' ||
-    COALESCE(rqx.uom_id, 0) || '-' || COALESCE(rqx.location_id, 0) AS id,
-    rqx.*
-  FROM
-    (SELECT
-       sq.product_id,
-       sq.package_id,
-       sq.lot_id,
-       sum(sq.qty) qty,
-       pt.uom_id,
-       sq.location_id,
-       sqp.parent_id
-     FROM
-       stock_quant sq
-       LEFT JOIN product_product pp ON pp.id = sq.product_id
-       LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
-       LEFT JOIN stock_quant_package sqp ON sqp.id = sq.package_id
-     GROUP BY
-       sq.product_id,
-       sq.package_id,
-       sq.lot_id,
-       pt.uom_id,
-       sq.location_id,
-       sqp.parent_id
-     UNION ALL
-     SELECT
-       NULL   product_id,
-       sqp.id package_id,
-       NULL   lot_id,
-       0      qty,
-       NULL   uom_id,
-       sqp.location_id,
-       sqp.parent_id
-     FROM
-       stock_quant_package sqp
-     WHERE exists(SELECT 1
-                  FROM
-                    stock_quant sq
-                    LEFT JOIN stock_quant_package sqp_bis ON sqp_bis.id = sq.package_id
-                  WHERE sqp_bis.id = sqp.id
-                  GROUP BY sqp_bis.id
-                  HAVING count(DISTINCT sq.product_id) <> 1) OR exists(SELECT 1
-                  FROM
-                    stock_quant_package sqp_bis
-                  WHERE sqp_bis.parent_id = sqp.id)
-    ) rqx)
+    SELECT
+        COALESCE(rqx.product_id, 0)
+        || '-' || COALESCE(rqx.package_id, 0) || '-' || COALESCE(rqx.lot_id, 0) || '-' ||
+        COALESCE(rqx.uom_id, 0) || '-' || COALESCE(rqx.location_id, 0) AS id,
+        rqx.*
+    FROM
+        (SELECT
+             sq.product_id,
+             sq.package_id,
+             sq.lot_id,
+             round(sum(sq.qty) :: NUMERIC, 3) qty,
+             pt.uom_id,
+             sq.location_id,
+             sqp.parent_id
+         FROM
+             stock_quant sq
+             LEFT JOIN product_product pp ON pp.id = sq.product_id
+             LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
+             LEFT JOIN stock_quant_package sqp ON sqp.id = sq.package_id
+         GROUP BY
+             sq.product_id,
+             sq.package_id,
+             sq.lot_id,
+             pt.uom_id,
+             sq.location_id,
+             sqp.parent_id
+         UNION ALL
+         SELECT
+             NULL         product_id,
+             sqp.id       package_id,
+             NULL         lot_id,
+             0 :: NUMERIC qty,
+             NULL         uom_id,
+             sqp.location_id,
+             sqp.parent_id
+         FROM
+             stock_quant_package sqp
+         WHERE exists(SELECT 1
+                      FROM
+                          stock_quant sq
+                          LEFT JOIN stock_quant_package sqp_bis ON sqp_bis.id = sq.package_id
+                      WHERE sqp_bis.id = sqp.id
+                      GROUP BY sqp_bis.id
+                      HAVING count(DISTINCT sq.product_id) <> 1) OR exists(SELECT 1
+                                                                           FROM
+                                                                               stock_quant_package sqp_bis
+                                                                           WHERE sqp_bis.parent_id = sqp.id)
+        ) rqx)
             """)
 
     @api.multi

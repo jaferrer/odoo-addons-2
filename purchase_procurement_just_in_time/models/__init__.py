@@ -17,7 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from . import time_frame
 from . import purchase
 from . import procurement
 from . import wizard
+from . import partner
 from . import res_config

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.cron" id="job_schedule_buy_procurements">
+            <field name="name">Schedule buy procurements</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">weeks</field>
+            <field name="nextcall">2016-10-31 05:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">procurement.order</field>
+            <field name="function">purchase_schedule</field>
+            <field name="args"/>
+        </record>
+
+    </data>
+</openerp>

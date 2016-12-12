@@ -30,5 +30,43 @@
             <field name="target">new</field>
         </record>
 
+        <record model="ir.ui.view" id="launch_purchase_planner_form">
+            <field name="name">launch_purchase_planner_form</field>
+            <field name="model">launch.purchase.planner</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Scheduler Parameters">
+                    <p>
+                        Launch the purchase planner in the background.
+                    </p>
+                    <group>
+                        <field name="compute_all"/>
+                        <field name="product_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
+                        <field name="supplier_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
+                    </group>
+                    <footer>
+                        <button name="procure_calculation" string="Launch Purchase Planner" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_launch_purchase_planner">
+            <field name="name">Launch Purchase Planner</field>
+            <field name="res_model">launch.purchase.planner</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_launch_purchase_planner" name="Launch Purchase Planner"
+                  action="act_window_launch_purchase_planner"
+                  parent="stock.menu_stock_sched" sequence="21"/>
+
     </data>
 </openerp>

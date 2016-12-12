@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Purchase Reception By Order',
+    'name': 'Purchase Reception By Order Line',
     'sequence': 1,
     'version': '0.1',
     'author': 'NDP Systèmes',
@@ -26,8 +26,8 @@
     'category': 'Purchase',
     'depends': ['purchase_line_numbers', 'stock_performance_improved'],
     'description': """
-Purchase Reception By Order
-===========================
+Purchase Reception By Order Line
+================================
 This module improves the initial reception process. It allows to make it purchase order line by purchase order line.
 """,
     'website': 'http://www.ndp-systemes.fr',

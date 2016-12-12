@@ -18,28 +18,43 @@
 #
 
 from datetime import datetime
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp import fields, models, api, _, exceptions
 from openerp.tools.float_utils import float_compare
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
 
 
 class PurchaseOrderJustInTime(models.Model):
     _inherit = 'purchase.order'
 
     order_line = fields.One2many(states={'done': [('readonly', True)]})
+    date_order_max = fields.Datetime(string="Maximum order date", readonly=True,
+                                     help="This is the latest date an order line inside this PO must be ordered. "
+                                          "PO lines with an order date beyond this date must be grouped in a later PO. "
+                                          "This date is set according to the supplier order_group_period and to this "
+                                          "PO order date.")
+    group_id = fields.Many2one('procurement.group', string="Procurement Group", readonly=True)
+    date_order = fields.Datetime(required=False)
 
     @api.multi
-    def _create_stock_moves_improved(self, order, order_lines, group_id=False, picking_id=False):
+    def _test_compute_date_order_max(self):
+        """Computes date_order_max field according to this order date_order and to the supplier order_group_period."""
+        self.ensure_one()
+        date_order_max = False
+        if self.partner_id and self.partner_id.order_group_period:
+            date_order = datetime.strptime(self.date_order, DEFAULT_SERVER_DATETIME_FORMAT)
+            ds, date_order_max = self.partner_id.order_group_period.get_start_end_dates(date_order)
+            date_order_max = date_order_max.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+        return date_order_max
 
+    @api.model
+    def _create_stock_moves_improved(self, order, order_lines, group_id=False, picking_id=False):
         """
-        Replaces the function _create_stock_moves of class purchase.order when executing function create (see lower).
+        Creates missing stock moves for the given order_lines.
         :param order: purchase.order
         :param order_lines: recordset of purchase.order.lines
         :param group_id: id of procurement.group
         :param picking_id: id of stock.picking
         """
-
-        self.ensure_one()
         todo_moves = self.env['stock.move']
         if not group_id:
             group = self.env['procurement.group'].search([('name', '=', order.name),
@@ -56,37 +71,82 @@ class PurchaseOrderJustInTime(models.Model):
                 for vals in self._prepare_order_line_move(order, order_line, picking_id, group_id):
                     move = self.env['stock.move'].create(vals)
                     todo_moves |= move
-        todo_moves.action_confirm()
-        todo_moves.force_assign()
+        todo_moves.with_context(mail_notrack=True).action_confirm()
+        todo_moves.with_context(mail_notrack=True).force_assign()
 
     @api.model
     def _prepare_order_line_move(self, order, order_line, picking_id, group_id):
         res = super(PurchaseOrderJustInTime, self)._prepare_order_line_move(order, order_line, picking_id, group_id)
-        to_remove = []
-        remaining_qty = order_line.product_qty
-        for r in res:
-            final_uom_qty = r['product_uom_qty']
-            line = self.env['purchase.order.line'].browse(r['purchase_line_id'])
-            qty_needed = line.product_qty - sum([x.product_uom_qty for x in line.move_ids
-                                                 if x.procurement_id and x.state not in ['done', 'cancel']])
-            if r.get('procurement_id'):
-                procurement = self.env['procurement.order'].browse(r['procurement_id'])
-                qty_ordered = sum([x.product_uom_qty for x in procurement.move_ids if x.state != 'cancel'])
-                if procurement.state == 'cancel' or qty_ordered == procurement.product_qty:
-                    to_remove += [r]
-                else:
-                    final_uom_qty = procurement.product_qty - qty_ordered
+        # First we group results by procurements
+        data_per_proc = {}
+        index = 0
+        for item in res:
+            # Hack because move has dest_address as partner instead of partner
+            item['partner_id'] = order.partner_id.id
+            if not data_per_proc.get(item['procurement_id']):
+                data_per_proc[item['procurement_id']] = []
+            data_per_proc[item['procurement_id']].append((index, item))
+            index += 1
+        proc_ids = [dk for dk in data_per_proc.keys() if dk]
+        procs = self.env['procurement.order'].browse(proc_ids)
+        # Then we remove items pointing at procurements which already have moves
+        to_remove_indices = []
+        for proc in procs:
+            if proc.move_ids:
+                # Remove data if proc already has a move
+                to_remove_indices += [item[0] for item in data_per_proc[proc.id]]
+            elif data_per_proc[proc.id]:
+                for data in data_per_proc[proc.id]:
+                    if float_compare(data[1]['product_uom_qty'], 0.0,
+                                     precision_rounding=proc.product_id.uom_id.rounding) == 0:
+                        # Remove data if qty is 0
+                        to_remove_indices += [item[0] for item in data_per_proc[proc.id]]
+
+        res = [res[indice] for indice in range(len(res)) if indice not in to_remove_indices]
+        # Finally we adjust the quantity of the move_data without procurement
+        qty_out_of_procs = order_line.product_qty - sum([p.product_qty for p in procs])
+        if float_compare(qty_out_of_procs, 0, precision_rounding=order_line.product_id.uom_id.rounding) > 0:
+            move_data = data_per_proc[False][0][1]
+            moves = self.env['stock.move'].search([('purchase_line_id', '=', order_line.id),
+                                                  ('procurement_id', '=', False)])
+            diff_qty = qty_out_of_procs - sum([move.product_uom_qty for move in moves])
+            if float_compare(diff_qty, 0.0, precision_rounding=order_line.product_id.uom_id.rounding) > 0:
+                move_data['product_uom_qty'] = diff_qty
+                move_data['product_uos_qty'] = diff_qty
             else:
-                qty_received = sum([x.product_uom_qty for x in line.move_ids if x.state == 'done'])
-                if qty_received == qty_needed:
-                    to_remove += [r]
-                else:
-                    final_uom_qty = qty_needed - qty_received
-            r['product_uom_qty'] = min(final_uom_qty, remaining_qty)
-            r['product_uos_qty'] = min(final_uom_qty, remaining_qty) * order_line.product_id.uos_coeff
-            remaining_qty -= min(final_uom_qty, remaining_qty)
-        for r in to_remove:
-            res.remove(r)
+                res = [item for item in res if not item.get('procurement_id')]
+        return res
+
+    @api.multi
+    def action_cancel(self):
+        order_line_ids = []
+        for rec in self:
+            order_line_ids += rec.order_line.ids
+        running_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', order_line_ids),
+                                                              ('state', '=', 'running')])
+        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', order_line_ids),
+                                                        ('procurement_id', '=', False)])
+        # We explicitly cancel moves without procurements so that move_dest_id get cancelled too in this case
+        moves_no_procs.action_cancel()
+        # For the other moves, we don't want the move_dest_id to be cancelled, so we pass cancel_procurement
+        res = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).action_cancel()
+        running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        return res
+
+    @api.multi
+    def unlink(self):
+        order_line_ids = []
+        for rec in self:
+            order_line_ids += rec.order_line.ids
+        running_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', order_line_ids),
+                                                              ('state', '=', 'running')])
+        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', order_line_ids),
+                                                        ('procurement_id', '=', False)])
+        # We explicitly cancel moves without procurements so that move_dest_id get cancelled too in this case
+        moves_no_procs.action_cancel()
+        # For the other moves, we don't want the move_dest_id to be cancelled, so we pass cancel_procurement
+        res = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).unlink()
+        running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
         return res
 
 
@@ -103,8 +163,8 @@ class PurchaseOrderLineJustInTime(models.Model):
                                    ('to_cancel', "CANCEL")], compute="_compute_opmsg", string="Message Type")
     opmsg_delay = fields.Integer("Message Delay", compute="_compute_opmsg")
     opmsg_reduce_qty = fields.Float("New target quantity after procurement cancellation", readonly=True, default=False)
-    opmsg_text = fields.Char("Operational message", compute="_compute_opmsg_text", help="This field holds the "
-                                                                                        "operational messages generated by the system to the operator")
+    opmsg_text = fields.Char("Operational message", compute="_compute_opmsg_text",
+                             help="This field holds the operational messages generated by the system to the operator")
     remaining_qty = fields.Float("Remaining quantity", help="Quantity not yet delivered by the supplier",
                                  compute="_get_remaining_qty", store=True)
     to_delete = fields.Boolean('True if all the procurements of the purchase order line are canceled')
@@ -114,7 +174,6 @@ class PurchaseOrderLineJustInTime(models.Model):
 
     @api.depends('date_planned', 'date_required', 'to_delete', 'product_qty', 'opmsg_reduce_qty')
     def _compute_opmsg(self):
-
         """
         Sets parameters date_planned, date_required, and opmsg_type.
         """
@@ -144,7 +203,6 @@ class PurchaseOrderLineJustInTime(models.Model):
 
     @api.depends('opmsg_type', 'opmsg_delay', 'opmsg_reduce_qty', 'product_qty', 'to_delete', 'state')
     def _compute_opmsg_text(self):
-
         """
         Sets parameters opmsg_type, opmsg_delay, opmsg_reduce_qty, product_qty, to_delete and state.
         """
@@ -173,24 +231,17 @@ class PurchaseOrderLineJustInTime(models.Model):
 
     @api.depends('product_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
     def _get_remaining_qty(self):
-
         """
         Calculates ramaining_qty
         """
-
         for rec in self:
-            do_calculation = True
-            for move in rec.move_ids:
-                if move.product_uom != rec.product_uom:
-                    do_calculation = False
-                    break
-            if do_calculation:
-                delivered_qty = sum([move.product_uom_qty for move in rec.move_ids if move.state == 'done'])
-                rec.remaining_qty = rec.product_qty - delivered_qty
+            delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
+                                                                      rec.product_uom.id)
+                                 for move in rec.move_ids if move.state == 'done'])
+            rec.remaining_qty = rec.product_qty - delivered_qty
 
     @api.depends('children_line_ids')
     def _compute_children_number(self):
-
         """
         Calculates children_number
         """
@@ -210,7 +261,6 @@ class PurchaseOrderLineJustInTime(models.Model):
 
     @api.model
     def create(self, vals):
-
         """
         Improves original function create. Sets automatically a line number and creates appropriate moves in a picking.
         :return: the same result as original create function
@@ -221,120 +271,110 @@ class PurchaseOrderLineJustInTime(models.Model):
             result.order_id.set_order_line_status('confirmed')
             if result.product_qty != 0 and not result.move_ids and not self.env.context.get('no_update_moves'):
                 # We create associated moves
-                order_lines = result.order_id.order_line.filtered(lambda l: l != result)
-                running_moves_with_group = order_lines.mapped(lambda l: l.move_ids).filtered(
-                    lambda m: m.state not in ['done', 'cancel'] and m.group_id
-                )
-                group_id = running_moves_with_group and running_moves_with_group[0].group_id.id or False
-                result.order_id._create_stock_moves_improved(result.order_id, result, group_id=group_id)
+                self.env['purchase.order']._create_stock_moves_improved(result.order_id, result)
         return result
 
     @api.multi
     def change_qty_or_create(self, qty, global_qty_ordered):
-
         """
-        Used to increase quantity of a purchase order line : see comments in function update_moves.
+        Used to increase quantity of a purchase order line. If we find a move not linked to a procurement
+        then we increase this move. Otherwise we call for move creation which should return us a new move,
+        with the correct quantity.
         """
-
+        self.ensure_one()
         diff = qty - global_qty_ordered
         move_without_proc_id = [x for x in self.move_ids if not x.procurement_id]
-        move_with_proc_id = [x for x in self.move_ids if x.procurement_id]
-        if len(move_without_proc_id + move_with_proc_id) != 0:
-            if len(move_without_proc_id) == 0:
-                new_move = move_with_proc_id[0].copy({'product_uom_qty': diff, 'procurement_id': False,
-                                                      'purchase_line_id': self.id})
-                new_move.purchase_line_id = self.id
-                new_move.action_confirm()
-                new_move.action_assign()
-            else:
-                move = move_without_proc_id[0]
-                if move.state not in ['done', 'cancel']:
-                    move.product_uom_qty = move.product_uom_qty + diff
-                else:
-                    new_move = move.copy({'state': 'draft', 'product_uom_qty': diff})
-                    new_move.purchase_line_id = move.purchase_line_id
-                    new_move.action_confirm()
-                    new_move.action_assign()
+        if move_without_proc_id and move_without_proc_id[0].state not in ['done', 'cancel']:
+            # We have moves already and try to find a move to increase its quantity
+            move_without_proc_id[0].product_uom_qty += diff
         else:
-            self.order_id._create_stock_moves_improved(self.order_id, self)
+            # We did not find any move not linked to a proc to increase its quantity.
+            # So we call for move creation for the whole line
+            self.env['purchase.order']._create_stock_moves_improved(self.order_id, self)
 
     @api.multi
-    def delete_cancel_create(self, qty):
-
+    def delete_cancel_create(self, target_qty):
         """
-        Used to decrease quantity of a purchase order line : see comments in function update_moves.
-        """
+        Progressively delete the moves linked with no procurements, then detach the other ones until the global
+        quantity ordered is lower or equal to the new quantity.
+        Then, if it is lower, we create a new move as before, to reach the appropriate quantity.
 
-        moves_without_proc_id = self.move_ids.filtered(lambda m: m.state != 'done' and not
-        m.procurement_id).sorted(key=lambda m: m.product_qty, reverse=True)
-        moves_with_proc_id = self.move_ids.filtered(lambda m: m.state != 'done' and m.procurement_id). \
-            sorted(key=lambda m: m.product_qty, reverse=True)
-        move_list = moves_without_proc_id + moves_with_proc_id
-        if len(moves_without_proc_id + moves_with_proc_id) != 0:
-            _sum = sum([x.product_uom_qty for x in self.move_ids if x.state != 'cancel'])
-            while _sum > qty:
-                if len(move_list) > 0:
-                    if move_list[0].product_uom_qty > _sum - qty:
-                        move_list[0].product_uom_qty -= _sum - qty
-                        if move_list[0].procurement_id:
-                            _sum = qty
-                        else:
-                            _sum -= _sum - qty
-                    else:
-                        if move_list[0].procurement_id:
-                            _sum -= move_list[0].product_uom_qty
-                            move_list[0].product_uom_qty = 0.0
-                        else:
-                            move_list[0].with_context({'cancel_procurement': True}).action_cancel()
-                            _sum -= move_list[0].product_uom_qty
-                        move_list -= move_list[0]
-            if _sum < qty:
-                diff = qty - _sum
-                if not moves_without_proc_id:
-                    new_move = moves_with_proc_id[0].copy({'product_uom_qty': diff, 'procurement_id': False,
-                                                           'purchase_line_id': self.id})
-                    new_move.action_confirm()
-                    new_move.action_assign()
-                else:
-                    moves_without_proc_id[0] += diff
+        :param target_qty: new quantity of the purchase order line
+        """
+        self.ensure_one()
+        moves_without_proc_id = self.move_ids.filtered(
+            lambda m: m.state not in ['done', 'cancel'] and not m.procurement_id).sorted(key=lambda m: m.product_qty,
+                                                                                         reverse=True)
+        moves_with_proc_id = self.move_ids.filtered(
+            lambda m: m.state not in ['done', 'cancel'] and m.procurement_id).sorted(key=lambda m: m.product_qty,
+                                                                                     reverse=True)
+        qty_to_remove = sum([x.product_uom_qty for x in self.move_ids
+                             if x.state not in ['cancel']]) - target_qty
+
+        qty_to_remove -= sum(x.product_uom_qty for x in moves_without_proc_id)
+        to_detach_procs = self.env['procurement.order']
+
+        while qty_to_remove > 0 and moves_with_proc_id:
+            move = moves_with_proc_id[0]
+            moves_with_proc_id -= move
+            to_detach_procs |= move.procurement_id
+            qty_to_remove -= move.product_uom_qty
+
+        to_detach_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+
+        # Delete moves that have been detached from the procurement and recreate them with
+        # the correct quantity.
+        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', self.ids),
+                                                        ('procurement_id', '=', False),
+                                                        ('state', 'not in', ['done', 'cancel'])])
+
+        # Dirty hack to keep the moves so that we don't to set the PO in shipping except
+        # but still compute the correct qty in _create_stock_moves_improved
+        moves_no_procs.write({'product_uom_qty': 0})
+        self.env['purchase.order']._create_stock_moves_improved(self.order_id, self)
+
+        # We don't want cancel_procurement context here,
+        # because we want to cancel next move too (no procs).
+        moves_no_procs.action_cancel()
+        moves_no_procs.unlink()
 
     @api.multi
     def update_moves(self, vals):
-
         """
         Updates moves associated to a purchase order line, based on the procurement order associated to this line.
         When increasing quantity: if any move is linked with no procurement, we increase its quantity. If not, we
         create a new move.
-        When decreasing a quantity, we progressively delete the moves linked with no procurements, then cancel the other
+        When decreasing a quantity, we progressively delete the moves linked with no procurements, then detach the other
         ones until the global quantity ordered is lower or equal to the new quantity. Then, if it is lower, we create a
         new move as before, to reach the appropriate quantity.
         """
-
         self.ensure_one()
         if vals['product_qty'] < sum([x.product_uom_qty for x in self.move_ids if x.state == 'done']):
             raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
-        global_qty_ordered = sum(x.product_uom_qty for x in self.move_ids if x.state != 'cancel')
         if self.state == 'confirmed':
-            if float_compare(vals['product_qty'], 0.0, precision_rounding=self.product_id.uom_id.rounding) == 0:
-                for move in self.move_ids:
-                    move.with_context({'cancel_procurement': True}).action_cancel()
-            if vals['product_qty'] > 0:
-                if vals.get('product_qty') > global_qty_ordered:
-                    self.change_qty_or_create(vals.get('product_qty'), global_qty_ordered)
-                if vals.get('product_qty') < global_qty_ordered:
-                    self.delete_cancel_create(vals.get('product_qty'))
+            global_qty_ordered = sum(x.product_uom_qty for x in self.move_ids if x.state != 'cancel')
+            if float_compare(vals.get('product_qty'), global_qty_ordered,
+                             precision_rounding=self.product_id.uom_id.rounding) > 0:
+                # We increased the quantity of the purchase order line
+                self.change_qty_or_create(vals.get('product_qty'), global_qty_ordered)
+            else:
+                # We reduced the quantity of the purchase order line
+                self.delete_cancel_create(vals.get('product_qty'))
             move_to_remove = [x for x in self.move_ids if x.state == 'cancel']
             for move in move_to_remove:
                 move.purchase_line_id = False
-            order = self.order_id
-            if len(self.move_ids) == 0:
-                self.action_cancel()
-            if len(order.order_line) == 0:
-                order.action_cancel()
+        elif self.state == 'draft':
+            sum_procs = sum([p.product_qty for p in self.procurement_ids])
+            # We remove procs if there qty is above the line
+            for proc in self.procurement_ids.sorted(key=lambda m: m.product_qty, reverse=True):
+                if float_compare(vals['product_qty'], sum_procs,
+                                 precision_rounding=self.product_id.uom_id.rounding) >= 0:
+                    break
+                proc.remove_procs_from_lines()
+                sum_procs -= proc.product_qty
 
     @api.multi
     def write(self, vals):
-
         """
         Improves the original write function. Allows to update moves of a purchase order line even if it is confirmed.
         :return: the same result as original write function
@@ -373,9 +413,7 @@ class PurchaseOrderLineJustInTime(models.Model):
 
     @api.multi
     def unlink(self):
-        orders_to_unlink = self.env['purchase.order'].search([('id', 'in', [line.order_id.id for line in self])])
-        result = super(PurchaseOrderLineJustInTime, self).unlink()
-        for order in orders_to_unlink:
-            if not order.order_line:
-                order.unlink()
+        procurements_to_detach = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids)])
+        result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
+        procurements_to_detach.remove_procs_from_lines(unlink_moves_to_procs=True)
         return result
