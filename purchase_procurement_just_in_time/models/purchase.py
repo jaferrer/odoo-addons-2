@@ -77,6 +77,7 @@ class PurchaseOrderJustInTime(models.Model):
     @api.model
     def _prepare_order_line_move(self, order, order_line, picking_id, group_id):
         res = super(PurchaseOrderJustInTime, self)._prepare_order_line_move(order, order_line, picking_id, group_id)
+        template = res and res[0] or {}
         # First we group results by procurements
         data_per_proc = {}
         index = 0
@@ -108,9 +109,14 @@ class PurchaseOrderJustInTime(models.Model):
         res = [res[index] for index in range(len(res)) if index not in to_remove_indices]
         # Finally we adjust the quantity of the move_data without procurement
         if float_compare(qty_out_of_procs, 0, precision_rounding=order_line.product_id.uom_id.rounding) > 0:
-            move_data = data_per_proc[False][0][1]
+            if data_per_proc.get(False):
+                move_data = data_per_proc[False][0][1]
+            else:
+                move_data = template.copy()
+                move_data['procurement_id'] = False
+                res.append(move_data)
             moves = self.env['stock.move'].search([('purchase_line_id', '=', order_line.id),
-                                                  ('procurement_id', '=', False)])
+                                                   ('procurement_id', '=', False)])
             diff_qty = qty_out_of_procs - sum([move.product_uom_qty for move in moves])
             if float_compare(diff_qty, 0.0, precision_rounding=order_line.product_id.uom_id.rounding) > 0:
                 move_data['product_uom_qty'] = diff_qty
