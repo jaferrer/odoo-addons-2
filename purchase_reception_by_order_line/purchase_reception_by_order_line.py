@@ -77,7 +77,6 @@ class ReceptionByOrderStockPicking(models.Model):
                         i += 1
                 else:
                     break
-
         result_comp=qtyassign_cmp == 0
         return result_comp, prod2move_ids
 
@@ -105,11 +104,13 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         for move in res:
             if not prod2move_ids.get(move[2]):
                 prod2move_ids[move[2]]=[
-                    {'move': {'id': move[0], 'purchase_line_id': move[3]}, 'remaining_qty': move[1]}]
+                    {'move': {'id': move[0],
+                              'purchase_line_id': move[3] or False},
+                     'remaining_qty': move[1]}]
             else:
                 prod2move_ids[move[2]].append(
     {'move': {'id': move[0],
-     'purchase_line_id': move[3]},
+     'purchase_line_id': move[3] or False},
      'remaining_qty': move[1]})
         return prod2move_ids
 
