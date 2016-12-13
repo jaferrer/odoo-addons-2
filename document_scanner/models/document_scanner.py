@@ -1,36 +1,30 @@
-import tempfile
-import os.path
-import time
-import base64
-from openerp import fields, models, api, tools
-from openerp.tools.config import config
+from openerp import fields, models, api, _
+import openerp
+from openerp.http import request
 
-try:
-    import sane
-except ImportError:
-    pass
+
+class Scanner(models.Model):
+    _name = 'scanner.info'
+
+    name = fields.Char(u"Name")
+
+    @api.model
+    def register(self, name):
+        if not self.search([('name', '=', name)]):
+            self.create({'name': name})
 
 
 class DocumentScannerUser(models.Model):
     _inherit = "res.users"
-    
-    def _get_devices_options(self):
-        devices = eval(self.env['ir.config_parameter'].get_param('sirail.list_scanner', default='[]'))
-        res = []
-        for item in devices:
-            res.append((item[0], "%s - %s" % (item[1], item[2])))
-        return res
-    
-    scanner = fields.Selection(selection=_get_devices_options, string='Scanner')
-    
-    @api.model
-    def update_list_scanner(self):
-        sane.init()
-        self.env['ir.config_parameter'].set_param('sirail.list_scanner', str(sane.get_devices(False)))
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload',
-        }
+
+    scanner_id = fields.Many2one('scanner.info', string=u"Actual Scanner")
+
+    def __init__(self, pool, cr):
+        init_res = super(DocumentScannerUser, self).__init__(pool, cr)
+        # duplicate list to avoid modifying the original reference
+        self.SELF_WRITEABLE_FIELDS = list(self.SELF_WRITEABLE_FIELDS)
+        self.SELF_WRITEABLE_FIELDS.extend(['scanner_id'])
+        return init_res
 
 
 class IrAttachmentScanner(models.Model):
@@ -38,37 +32,35 @@ class IrAttachmentScanner(models.Model):
 
     @api.model
     def scan(self, ctx):
-        self.env.context = ctx
-        ad = os.path.abspath(os.path.join(tools.ustr(config['root_path']), u'addons'))
-        mod_path_list = map(lambda m: os.path.abspath(tools.ustr(m.strip())), config['addons_path'].split(','))
-        mod_path_list.append(ad)
-        mod_path_list = list(set(mod_path_list))
-        pathmod = "document_scanner/shell/scantopdf.sh"
-        outputfile = "scan_%s_%s.pdf" % (self.env.user.id, time.strftime("%H%M%S"))
-        path = tempfile.tempdir
-        device = self.env.user.scanner
-        status = 0
-        for mod_path in mod_path_list:
-            if os.path.lexists(mod_path + os.path.sep + pathmod.split(os.path.sep)[0]):
-                filepath = mod_path+os.path.sep+pathmod
-                status = os.system('sh %s %s %s %s %s' % (filepath, outputfile, path, device, self.env.user.id))
-                break
+        active_id = ctx['active_id']
+        active_model = ctx['active_model']
+        user = self.env.user
+        if not user.has_group('document_scanner.group_scanner_user'):
+            return {"error": _("You are not allowed to scan a document")}
+        if not user.scanner_id.name:
+            return {"error": _("You need to defined a scanner in your settings")}
+        channel = (self.env.cr.dbname, 'request.scanner')
+        msg = {
+            'active_id': active_id,
+            'active_model': active_model,
+            'user_id': user.id,
+            'scan_name': (user.scanner_id.name or '').lower().replace(' ', '_')
+        }
+        self.env['bus.bus'].sendone(channel=channel, message=msg)
+        return {'scan_name': user.scanner_id.name}
 
-        if os.path.lexists(path + os.path.sep + outputfile):
-            ufile = open(path + os.path.sep + outputfile, "r")
-            self.env['ir.attachment'].create({
-                'name': outputfile,
-                'datas': base64.encodestring(ufile.read()),
-                'datas_fname': outputfile,
-                'res_model': self.env.context['active_model'],
-                'res_id': int(self.env.context['active_id'])
-            })
-            ufile.close()
-            os.remove(path+os.path.sep+outputfile)
-            return {
-                        "file": outputfile
-                   }
-        else:
-            return {
-                        "error": status
-                   }
+class ImBusScanner(models.Model):
+    _inherit = 'bus.bus'
+
+    @api.model
+    def get_last(self):
+        self.env.cr.execute("SELECT max(id) from bus_bus")
+        return self.env.cr.fetchone()
+
+
+
+class DocumentScannerBus(openerp.addons.bus.bus.Controller):
+    def _poll(self, dbname, channels, last, options):
+        if request.session.uid:
+            channels.append((request.db, 'request.scanner'))
+        return super(DocumentScannerBus, self)._poll(dbname, channels, last, options)

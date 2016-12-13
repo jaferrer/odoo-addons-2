@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
             	<xpath expr="//group[@name='preferences']" position="after" >
             		<group name="scanner ">
-            			<field name="scanner"/>
+            			<field name="scanner_id" readonly="0" groups="document_scanner.group_scanner_user"/>
         			</group>
         		</xpath>
             </field>
@@ -22,22 +22,33 @@
             	<xpath expr="//page[@string='Preferences']" position="inside" >
             		<group name="scanner" string="Scanner">
             			<group>
-            				<field name="scanner"/>
+            				<field name="scanner_id"/>
             			</group>
         			</group>
         		</xpath>
             </field>
     	</record>
-    	
-    	<record id="reload_list_scanner" model="ir.actions.server">
-            <field name="name">document_scanner_user action</field>
-   			<field name="model_id" ref="base.model_res_users"/>
-   			<field name="code">
-action = self.update_list_scanner(cr, uid, context=context)
-   			</field>
+
+    	<record id="scanner_info_tree_act_window" model="ir.actions.act_window">
+            <field name="name">Scanners</field>
+            <field name="res_model">scanner.info</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
         </record>
-    	
-    	<menuitem action="reload_list_scanner" name="Mise à jour de la liste des Scanner" id="menu_reload_scanner_list" parent="base.menu_custom"/>
+
+		<record id="scanner_info_tree" model="ir.ui.view">
+			<field name="name">scanner.info.tree</field>
+            <field name="model">scanner.info</field>
+			<field name="arch" type="xml">
+                <tree string="Scanners" create="false">
+                    <field name="name"/>
+                </tree>
+            </field>
+		</record>
+
+    	<menuitem name="Scanners" action="scanner_info_tree_act_window"
+				  id="menu_reload_scanner_list" parent="base.menu_config"
+		 groups="document_scanner.group_scanner_manager"/>
     	
     	<template id="assets_product_warning" inherit_id="web.assets_backend" name="Product procurement warning">
             <xpath expr="." position="inside">

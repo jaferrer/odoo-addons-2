@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_scanner_manager,access_scanner_manager,model_scanner_info,document_scanner.group_scanner_manager,1,0,0,1
+access_scanner_user,access_scanner_user,model_scanner_info,document_scanner.group_scanner_user,1,0,0,0
+access_scanner_bot,access_scanner_bot,model_scanner_info,document_scanner.group_scanner_bot,1,0,1,0
