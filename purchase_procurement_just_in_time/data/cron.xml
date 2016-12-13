@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <data>
+    <data noupdate="1">
 
         <record model="ir.cron" id="job_schedule_buy_procurements">
             <field name="name">Schedule buy procurements</field>
