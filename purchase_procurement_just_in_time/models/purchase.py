@@ -20,7 +20,7 @@
 from datetime import datetime
 from openerp import fields, models, api, _, exceptions
 from openerp.tools.float_utils import float_compare
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT, float_round
 
 
 class PurchaseOrderJustInTime(models.Model):
@@ -120,8 +120,9 @@ class PurchaseOrderJustInTime(models.Model):
                                                    ('state', '!=', 'cancel')])
             diff_qty = qty_out_of_procs - sum([move.product_uom_qty for move in moves])
             if float_compare(diff_qty, 0.0, precision_rounding=order_line.product_id.uom_id.rounding) > 0:
-                move_data['product_uom_qty'] = diff_qty
-                move_data['product_uos_qty'] = diff_qty
+                diff_qty_rounded = float_round(diff_qty, precision_rounding=order_line.product_id.uom_id.rounding)
+                move_data['product_uom_qty'] = diff_qty_rounded
+                move_data['product_uos_qty'] = diff_qty_rounded
             else:
                 res = [item for item in res if item.get('procurement_id')]
         return res
