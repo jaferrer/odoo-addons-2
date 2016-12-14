@@ -97,7 +97,11 @@ class MoUpdateMrpProduction(models.Model):
         if vals.get('product_lines') and ((1 in [x[0] for x in vals.get('product_lines')])
                                           or (2 in [x[0] for x in vals.get('product_lines')])
                                           or (0 in [x[0] for x in vals.get('product_lines')])):
-            self.update_moves()
+            for rec in self:
+                state = vals.get('state', rec.state)
+
+                if state not in ['done', 'cancel']:
+                    self.update_moves()
         return result
 
     @api.multi
