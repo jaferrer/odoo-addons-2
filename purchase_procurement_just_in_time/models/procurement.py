@@ -79,15 +79,15 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         for procurement in self:
             if procurement.rule_id.action == 'buy':
                 qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
-                if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
+                if float_compare(qty_done, 0.0, precision_rounding=procurement.product_uom.rounding) > 0:
                     remaining_qty = procurement.product_qty - qty_done
                     new_proc = procurement.copy({
-                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
+                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_uom.rounding),
                         'state': 'done',
                     })
                     procurement.write({
                         'product_qty': float_round(remaining_qty,
-                                                   precision_rounding=procurement.product_id.uom_id.rounding),
+                                                   precision_rounding=procurement.product_uom.rounding),
                     })
                     # Attach done and cancelled moves to new_proc
                     done_moves = procurement.move_ids.filtered(lambda m: m.state in ['done', 'cancel'])

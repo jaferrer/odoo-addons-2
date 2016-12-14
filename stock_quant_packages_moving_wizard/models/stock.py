@@ -19,7 +19,7 @@
 #
 
 from openerp import models, fields, api, exceptions, _
-from openerp.tools import float_compare
+from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 
 
@@ -30,7 +30,9 @@ class StockQuant(models.Model):
     def partial_move(self, move_items, product, qty):
         if not move_items.get(product):
             move_items[product] = []
-        move_items[product] += [{'quants': self, 'qty': qty}]
+        move_items[product] += [{
+            'quants': self,
+            'qty': float_round(qty, precision_rounding=product.uom_id.rounding)}]
         return move_items
 
     @api.model
@@ -48,7 +50,7 @@ class StockQuant(models.Model):
                     break
                 # If the new quant exceeds the requested qty, we reserve the good qty and then break
                 elif float_compare(qty_reserved + quant.qty, qty_to_reserve, precision_rounding=prec) > 0:
-                    list_reservations += [(quant, qty_to_reserve - qty_reserved)]
+                    list_reservations += [(quant, float_round(qty_to_reserve - qty_reserved, precision_rounding=prec))]
                     break
                 list_reservations += [(quant, quant.qty)]
                 qty_reserved += quant.qty
@@ -188,7 +190,8 @@ class StockQuant(models.Model):
                 'product_id': product.id,
                 'location_id': location_from.id,
                 'location_dest_id': dest_location.id,
-                'product_uom_qty': sum([item[1] for item in quants_to_move_in_fine]),
+                'product_uom_qty': float_round(sum([item[1] for item in quants_to_move_in_fine]),
+                                               precision_rounding=product.uom_id.rounding),
                 'product_uom': product.uom_id.id,
                 'date_expected': fields.Datetime.now(),
                 'date': fields.Datetime.now(),
@@ -206,14 +209,14 @@ class StockQuant(models.Model):
                                                     ['product_id', 'location_id', 'qty'],
                                                     ['product_id', 'location_id'], lazy=False)
         for val in values:
+            uom = self.env['product.product'].search([('id', '=', val['product_id'][0])]).uom_id
             new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
                 'name': 'Move %s to %s' % (val['product_id'][1], dest_location.name),
                 'product_id': val['product_id'][0],
                 'location_id': val['location_id'][0],
                 'location_dest_id': dest_location.id,
-                'product_uom_qty': val['qty'],
-                'product_uom':
-                    self.env['product.product'].search([('id', '=', val['product_id'][0])]).uom_id.id,
+                'product_uom_qty': float_round(val['qty'], precision_rounding=uom.rounding),
+                'product_uom': uom.id,
                 'date_expected': fields.Datetime.now(),
                 'date': fields.Datetime.now(),
                 'picking_type_id': picking_type_id.id,
