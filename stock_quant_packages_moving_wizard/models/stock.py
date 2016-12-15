@@ -57,8 +57,8 @@ class StockQuant(models.Model):
         return list_reservations
 
     @api.model
-    def get_corresponding_moves(self, quant, location_from, dest_location, picking_type_id, limit=False,
-                                force_domain=False):
+    def get_corresponding_moves(self, quant, location_from, dest_location, picking_type_id, limit=None,
+                                force_domain=None):
         domain = [('product_id', '=', quant.product_id.id),
                   ('state', 'not in', ['draft', 'done', 'cancel']),
                   ('location_id', '=', location_from.id),
@@ -99,7 +99,9 @@ class StockQuant(models.Model):
                 final_qty = sum([tpl[1] for tpl in quant_tuples_current_reservation])
                 # Split move if needed
                 if float_compare(final_qty, current_reservation.product_uom_qty, precision_rounding=prec) < 0:
-                    current_reservation.split(current_reservation, current_reservation.product_uom_qty - final_qty)
+                    current_reservation.split(current_reservation,
+                                              float_round(current_reservation.product_uom_qty - final_qty,
+                                                          precision_rounding=prec))
                 # Reserve quants on move
                 self.quants_reserve(quant_tuples_current_reservation, current_reservation)
                 # Assign the current move to the new picking
@@ -130,22 +132,22 @@ class StockQuant(models.Model):
                 qty_reserved_on_move = sum([tpl[1] for tpl in dict_reservations[first_corresponding_move]])
                 # If the current move can exactly assume the new reservation,
                 # we reserve the quants and pass to the next one
-                if float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_uom_qty,
+                if float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_qty,
                                  precision_rounding=prec) == 0:
                     dict_reservations[first_corresponding_move] += [(quant, qty)]
                     done_move_ids += [first_corresponding_move.id]
                 # If the current move can assume more than the new reservation,
                 # we reserve the quants and stay on this move
-                elif float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_uom_qty,
+                elif float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_qty,
                                    precision_rounding=prec) < 0:
                     dict_reservations[first_corresponding_move] += [(quant, qty)]
                 # If the current move can not assume the new reservation, we split the quant
                 else:
-                    reservable_qty_on_move = first_corresponding_move.product_uom_qty - qty_reserved_on_move
-                    splitted_quant = self.env['stock.quant']. \
-                        _quant_split(quant, reservable_qty_on_move)
+                    reservable_qty_on_move = first_corresponding_move.product_qty - qty_reserved_on_move
+                    splitted_quant = self.env['stock.quant']._quant_split(quant, reservable_qty_on_move)
                     dict_reservations[first_corresponding_move] += [(quant, quant.qty)]
-                    not_reserved_tuples += [(splitted_quant, qty - reservable_qty_on_move)]
+                    not_reserved_tuples += [(splitted_quant, float_round(qty - reservable_qty_on_move,
+                                                                         precision_rounding=prec))]
                     done_move_ids += [first_corresponding_move.id]
                 move_recordset |= first_corresponding_move
                 force_domain = [('id', 'not in', done_move_ids)]
@@ -158,7 +160,7 @@ class StockQuant(models.Model):
                 prec = move.product_id.uom_id.rounding
                 qty_reserved = sum([tpl[1] for tpl in dict_reservations[move]])
                 if float_compare(qty_reserved, move.product_uom_qty, precision_rounding=prec) < 0:
-                    move.split(move, move.product_uom_qty - qty_reserved)
+                    move.split(move, float_round(move.product_uom_qty - qty_reserved, precision_rounding=prec))
             # Let's reserve the quants
             for move in dict_reservations:
                 move.picking_id = new_picking
@@ -233,7 +235,7 @@ class StockQuant(models.Model):
         return list_reservation, move_recordset
 
     @api.multi
-    def move_to(self, dest_location, picking_type_id, move_items=False, is_manual_op=False):
+    def move_to(self, dest_location, picking_type_id, move_items=None, is_manual_op=False):
         """
         :param move_items: {product: [{'quants': quants recordset, 'qty': float}, ...], ...}
         """
@@ -250,9 +252,8 @@ class StockQuant(models.Model):
                     move_recordset, quants_to_move_in_fine = self.env['stock.quant']. \
                         check_moves_ok(list_reservations, location_from, dest_location, picking_type_id,
                                        move_recordset, new_picking)
-                    move_recordset = self. \
-                        move_remaining_quants(product, location_from, dest_location, picking_type_id, new_picking,
-                                              move_recordset, quants_to_move_in_fine)
+                    move_recordset = self.move_remaining_quants(product, location_from, dest_location, picking_type_id,
+                                                                new_picking, move_recordset, quants_to_move_in_fine)
                 move_recordset.filtered(lambda move: move.state == 'draft').action_confirm()
             else:
                 list_reservation, move_recordset = self. \
