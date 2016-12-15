@@ -170,7 +170,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     def compute_procs_for_first_line_found(self, purchase_lines, dict_procs_lines):
         pol = purchase_lines[0]
         procs_for_first_line = self.env['procurement.order'].search([('purchase_line_id', '=', pol.id),
-                                                                     ('state', '=', 'done')])
+                                                                     ('state', 'in', ['done', 'cancel'])])
         remaining_qty = pol.remaining_qty
         procurements = self
         for proc in procurements:
