@@ -148,6 +148,8 @@
                         <field name="url" placeholder="e.g. http://my.magento.com" colspan="2"/>
                         <field name="user" colspan="2"/>
                         <field name="pwd" password="1" colspan="2"/>
+                        <field name="target_path" colspan="2" required="1"/>
+                        <field name="archive_path" colspan="2"/>
                     </group>
                     <footer>
                         <button name="write" string="Sauver" type="object" class="oe_highlight"/>
@@ -164,7 +166,8 @@
             <field name="arch" type="xml">
                 <form>
                     <group colspan="4" col="4">
-                        <field name="url" placeholder="e.g. /opt/folder" colspan="4"/>
+                        <field name="target_path" colspan="2" required="1"/>
+                        <field name="archive_path" colspan="2"/>
                     </group>
                     <footer>
                         <button name="write" string="Sauver" type="object" class="oe_highlight"/>
