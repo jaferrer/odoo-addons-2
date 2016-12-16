@@ -76,58 +76,92 @@ class PurchaseOrderJustInTime(models.Model):
 
     @api.model
     def _prepare_order_line_move(self, order, order_line, picking_id, group_id):
-        res = super(PurchaseOrderJustInTime, self)._prepare_order_line_move(order, order_line, picking_id, group_id)
-        template = res and res[0] or {}
-        # First we group results by procurements
-        data_per_proc = {}
-        index = 0
-        for item in res:
-            # Hack because move has dest_address as partner instead of partner
-            item['partner_id'] = order.partner_id.id
-            if not data_per_proc.get(item['procurement_id']):
-                data_per_proc[item['procurement_id']] = []
-            data_per_proc[item['procurement_id']].append((index, item))
-            index += 1
-        proc_ids = [dk for dk in data_per_proc.keys() if dk]
-        procs = self.env['procurement.order'].browse(proc_ids)
-        # Then we remove items pointing at procurements which already have moves
-        qty_out_of_procs = order_line.product_qty
-        to_remove_indices = []
-        for proc in procs:
-            if proc.move_ids:
-                # Remove data if proc already has a move
-                to_remove_indices += [item[0] for item in data_per_proc[proc.id]]
-                qty_out_of_procs -= sum(m.product_uom_qty for m in proc.move_ids if m.state != 'cancel')
-            elif proc.state in ['cancel', 'done']:
-                # In case proc is cancelled or done but no moves, we ignore them
-                to_remove_indices += [item[0] for item in data_per_proc[proc.id]]
-            elif data_per_proc[proc.id]:
-                for data in data_per_proc[proc.id]:
-                    if float_compare(data[1]['product_uom_qty'], 0.0,
-                                     precision_rounding=proc.product_id.uom_id.rounding) == 0:
-                        # Remove data if qty is 0
-                        to_remove_indices += [item[0] for item in data_per_proc[proc.id]]
-                    qty_out_of_procs -= proc.product_qty
+        ''' prepare the stock move data from the PO line. This function returns a list of dictionary ready to be used in stock.move's create()'''
+        product_uom = self.env['product.uom']
+        price_unit = order_line.price_unit
+        if order_line.taxes_id:
+            taxes = self.env['account.tax'].compute_all(order_line.taxes_id, price_unit, 1.0,
+                                                             order_line.product_id, order.partner_id)
+            price_unit = taxes['total']
+        if order_line.product_uom.id != order_line.product_id.uom_id.id:
+            price_unit *= order_line.product_uom.factor / order_line.product_id.uom_id.factor
+        if order.currency_id.id != order.company_id.currency_id.id:
+            #we don't round the price_unit, as we may want to store the standard price with more digits than allowed by the currency
+            price_unit = self.env['res.currency'].compute(order.currency_id.id, order.company_id.currency_id.id, price_unit, round=False)
+        res = []
+        if order.location_id.usage == 'customer':
+            name = order_line.product_id.with_context(lang=order.dest_address_id.lang).display_name
+        else:
+            name = order_line.name or ''
+        move_template = {
+            'name': name,
+            'product_id': order_line.product_id.id,
+            'product_uom': order_line.product_uom.id,
+            'product_uos': order_line.product_uom.id,
+            'date': order.date_order,
+            'date_expected': order_line.date_planned + ' 01:00:00',
+            'location_id': order.partner_id.property_stock_supplier.id,
+            'location_dest_id': order.location_id.id,
+            'picking_id': picking_id,
+            'partner_id': order.dest_address_id.id,
+            'move_dest_id': False,
+            'state': 'draft',
+            'purchase_line_id': order_line.id,
+            'company_id': order.company_id.id,
+            'price_unit': price_unit,
+            'picking_type_id': order.picking_type_id.id,
+            'group_id': group_id,
+            'procurement_id': False,
+            'origin': order.name,
+            'route_ids': order.picking_type_id.warehouse_id and [(6, 0, [x.id for x in order.picking_type_id.warehouse_id.route_ids])] or [],
+            'warehouse_id':order.picking_type_id.warehouse_id.id,
+            'invoice_state': order.invoice_method == 'picking' and '2binvoiced' or 'none',
+        }
 
-        res = [res[index] for index in range(len(res)) if index not in to_remove_indices]
-        # Finally we adjust the quantity of the move_data without procurement
-        if float_compare(qty_out_of_procs, 0, precision_rounding=order_line.product_id.uom_id.rounding) > 0:
-            if data_per_proc.get(False):
-                move_data = data_per_proc[False][0][1]
-            else:
-                move_data = template.copy()
-                move_data['procurement_id'] = False
-                res.append(move_data)
-            moves = self.env['stock.move'].search([('purchase_line_id', '=', order_line.id),
-                                                   ('procurement_id', '=', False),
-                                                   ('state', '!=', 'cancel')])
-            diff_qty = qty_out_of_procs - sum([move.product_uom_qty for move in moves])
-            if float_compare(diff_qty, 0.0, precision_rounding=order_line.product_id.uom_id.rounding) > 0:
-                diff_qty_rounded = float_round(diff_qty, precision_rounding=order_line.product_id.uom_id.rounding)
-                move_data['product_uom_qty'] = diff_qty_rounded
-                move_data['product_uos_qty'] = diff_qty_rounded
-            else:
-                res = [item for item in res if item.get('procurement_id')]
+        diff_quantity = order_line.product_qty
+        for procurement in order_line.procurement_ids:
+            if procurement.move_ids:
+                # Remove data if proc already has a move
+                for move in procurement.move_ids:
+                    if move.state in ['draft', 'cancel']:
+                        continue
+                    move_qty_in_pol_uom = product_uom._compute_qty(move.product_uom.id, move.product_uom_qty,
+                                                                   to_uom_id=order_line.product_uom.id)
+                    diff_quantity -= move_qty_in_pol_uom
+                continue
+            if procurement.state in ['done', 'cancel']:
+                # Done or cancel proc without moves
+                continue
+            procurement_qty = product_uom._compute_qty(procurement.product_uom.id, procurement.product_qty,
+                                                       to_uom_id=order_line.product_uom.id)
+            tmp = move_template.copy()
+            rounded_min_qty = float_round(min(procurement_qty, diff_quantity),
+                                          precision_rounding=order_line.product_uom.rounding)
+            tmp.update({
+                'product_uom_qty': rounded_min_qty,
+                'product_uos_qty': rounded_min_qty,
+                'move_dest_id': procurement.move_dest_id.id,  #move destination is same as procurement destination
+                'group_id': procurement.group_id.id or group_id,  #move group is same as group of procurements if it exists, otherwise take another group
+                'procurement_id': procurement.id,
+                'invoice_state': procurement.rule_id.invoice_state or (procurement.location_id and procurement.location_id.usage == 'customer' and procurement.invoice_state=='2binvoiced' and '2binvoiced') or (order.invoice_method == 'picking' and '2binvoiced') or 'none', #dropship case takes from sale
+                'propagate': procurement.rule_id.propagate,
+            })
+            diff_quantity -= min(procurement_qty, diff_quantity)
+            res.append(tmp)
+        #if the order line has a bigger quantity than the procurement it was for (manually changed or minimal quantity), then
+        #split the future stock move in two because the route followed may be different.
+        for move in order_line.move_ids:
+            if move.state in ['draft', 'cancel'] or move.procurement_id:
+                continue
+            move_qty_in_pol_uom = product_uom._compute_qty(move.product_uom.id, move.product_uom_qty,
+                                                           to_uom_id=order_line.product_uom.id)
+            diff_quantity -= move_qty_in_pol_uom
+
+        if float_compare(diff_quantity, 0.0, precision_rounding=order_line.product_uom.rounding) > 0:
+            rounded_diff_qty = float_round(diff_quantity, precision_rounding=order_line.product_uom.rounding)
+            move_template['product_uom_qty'] = rounded_diff_qty
+            move_template['product_uos_qty'] = rounded_diff_qty
+            res.append(move_template)
         return res
 
     @api.multi
