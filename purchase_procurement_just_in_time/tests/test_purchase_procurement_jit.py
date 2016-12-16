@@ -1107,18 +1107,31 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         purchase_order_1.signal_workflow('purchase_confirm')
         self.assertEqual(purchase_order_1.state, 'approved')
 
+        line.product_qty = 51
+
         m1 = self.env['stock.move']
         for move in line.move_ids:
-            self.assertIn(move.product_uom_qty, [7, 40, 1])
+            self.assertIn(move.product_uom_qty, [7, 40, 4])
             if move.product_qty == 7:
                 m1 = move
 
         m1.product_uom_qty = 5
+        self.env['procurement.order'].create({
+            'name': 'Procurement order 1bis (Purchase Procurement JIT)',
+            'product_id': self.product1.id,
+            'product_qty': 2,
+            'warehouse_id': self.warehouse.id,
+            'location_id': self.location_a.id,
+            'date_planned': '3003-05-04 15:00:00',
+            'product_uom': self.ref('product.product_uom_unit'),
+            'state': 'cancel',
+            'purchase_line_id': line.id,
+        })
 
-        line.product_qty = 51
+        line.product_qty = 52
         self.assertEqual(len(line.move_ids), 3)
         for move in line.move_ids:
-            self.assertIn(move.product_uom_qty, [5, 40, 6])
+            self.assertIn(move.product_uom_qty, [5, 40, 7])
 
         line.product_qty = 47
         self.assertEqual(len(line.move_ids), 3)
