@@ -98,6 +98,9 @@ class PurchaseOrderJustInTime(models.Model):
                 # Remove data if proc already has a move
                 to_remove_indices += [item[0] for item in data_per_proc[proc.id]]
                 qty_out_of_procs -= sum(m.product_uom_qty for m in proc.move_ids if m.state != 'cancel')
+            elif proc.state in ['cancel', 'done']:
+                # In case proc is cancelled or done but no moves, we ignore them
+                to_remove_indices += [item[0] for item in data_per_proc[proc.id]]
             elif data_per_proc[proc.id]:
                 for data in data_per_proc[proc.id]:
                     if float_compare(data[1]['product_uom_qty'], 0.0,
