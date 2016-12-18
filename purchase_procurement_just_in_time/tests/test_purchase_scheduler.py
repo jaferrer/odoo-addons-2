@@ -586,9 +586,11 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(sum(m.product_uom_qty for m in line3.move_ids), 36)
         self.assertEqual(line3.remaining_qty, 36)
 
-        # Receive part of the quantity
-
-        # Let's cancel all procurements and reschedule
+        # Let's cancel all procurements and reschedule. We also save purchase lines associated with procurements,
+        # because we will check they have not changed of procurement after rescheduling.
+        purchase_line1 = self.proc1.purchase_line_id
+        purchase_line2 = self.proc2.purchase_line_id
+        purchase_line4 = self.proc4.purchase_line_id
         self.proc1.cancel()
         self.proc2.cancel()
         self.proc4.cancel()
@@ -607,6 +609,11 @@ class TestPurchaseScheduler(common.TransactionCase):
         line3 = purchase3.order_line[0]
         self.assertEqual(sum(m.product_uom_qty for m in line3.move_ids), 36)
         self.assertEqual(line3.remaining_qty, 36)
+
+        # Check that cancelled procurements did not change of purchase lines
+        self.assertEqual(self.proc1.purchase_line_id, purchase_line1)
+        self.assertEqual(self.proc2.purchase_line_id, purchase_line2)
+        self.assertEqual(self.proc4.purchase_line_id, purchase_line4)
 
     def test_80_add_grouping_period_to_supplier(self):
         """Test of purchase order creation from scratch when there are none at the beginning."""
