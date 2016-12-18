@@ -2,6 +2,15 @@
 <openerp>
     <data>
 
+        <!-- Test UOM -->
+        <record id="uom_couple" model="product.uom">
+            <field name="name">Couple UOM (Stock Quant Packages Moving Wizard)</field>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="2"/>
+            <field name="rounding" eval="0.01"/>
+            <field name="category_id" ref="product.product_uom_categ_unit"/>
+        </record>
+
         <!-- #### Locations ###### -->
         <record id="stock_location_source" model="stock.location">
             <field name="name">Location 1 (source)</field>
