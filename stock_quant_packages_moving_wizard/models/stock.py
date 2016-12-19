@@ -144,7 +144,8 @@ class StockQuant(models.Model):
                 # If the current move can not assume the new reservation, we split the quant
                 else:
                     reservable_qty_on_move = first_corresponding_move.product_qty - qty_reserved_on_move
-                    splitted_quant = self.env['stock.quant']._quant_split(quant, reservable_qty_on_move)
+                    splitted_quant = self.env['stock.quant']._quant_split(quant, float_round(reservable_qty_on_move,
+                                                                                             precision_rounding=prec))
                     dict_reservations[first_corresponding_move] += [(quant, quant.qty)]
                     not_reserved_tuples += [(splitted_quant, float_round(qty - reservable_qty_on_move,
                                                                          precision_rounding=prec))]
