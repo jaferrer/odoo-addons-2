@@ -58,9 +58,8 @@ class ProcurementOrderQuantity(models.Model):
     @api.multi
     @api.depends('product_qty', 'product_uom')
     def _compute_qty(self):
-        uom_obj = self.env['product.uom']
         for m in self:
-            qty = uom_obj._compute_qty_obj(m.product_uom, m.product_qty, m.product_id.uom_id)
+            qty = self.env['product.uom']._compute_qty_obj(m.product_uom, m.product_qty, m.product_id.uom_id)
             m.qty = qty
 
     @api.model
@@ -143,10 +142,13 @@ class ProcurementOrderQuantity(models.Model):
         """
         for procurement in self:
             if procurement.rule_id.action == 'move':
-                qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
+                qty_done = sum([move.product_qty for move in procurement.move_ids if move.state == 'done'])
+                qty_done_proc_uom = self.env['product.uom']. \
+                    _compute_qty_obj(procurement.product_id.uom_id, qty_done, procurement.product_uom)
                 if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
                     procurement.write({
-                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
+                        'product_qty': float_round(qty_done_proc_uom,
+                                                   precision_rounding=procurement.product_uom.rounding),
                     })
 
 

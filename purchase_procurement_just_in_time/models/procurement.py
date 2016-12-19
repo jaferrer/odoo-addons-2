@@ -78,11 +78,15 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         """
         for procurement in self:
             if procurement.rule_id.action == 'buy':
-                qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
-                if float_compare(qty_done, 0.0, precision_rounding=procurement.product_uom.rounding) > 0:
-                    remaining_qty = procurement.product_qty - qty_done
+                qty_done_product_uom = sum([m.product_qty for m in procurement.move_ids if m.state == 'done'])
+                qty_done_proc_uom = self.env['product.uom']._compute_qty(procurement.product_id.uom_id.id,
+                                                                         qty_done_product_uom,
+                                                                         procurement.product_uom.id)
+                if float_compare(qty_done_proc_uom, 0.0, precision_rounding=procurement.product_uom.rounding) > 0:
+                    remaining_qty = procurement.product_qty - qty_done_proc_uom
                     new_proc = procurement.copy({
-                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_uom.rounding),
+                        'product_qty': float_round(qty_done_proc_uom,
+                                                   precision_rounding=procurement.product_uom.rounding),
                         'state': 'done',
                     })
                     procurement.write({
