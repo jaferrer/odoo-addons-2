@@ -40,7 +40,7 @@
                 <xpath expr="//notebook/page[@string='Warnings']/group" position="before">
                     <group string="Procurement warning">
                         <field name="procurement_warning"/>
-                        <field name="procurement_warning_msg" attrs="{'required':[('procurement_warning','!=',False)],'readonly':[('procurement_warning','=',False)]}" modifiers="{'readonly': [['procurement_warning', '=', False]], 'required': [['procurement_warning', '!=', False]]}"/>
+                        <field name="procurement_warning_msg" attrs="{'required':[('procurement_warning', '=', True)], 'invisible': [('procurement_warning', '=', False)]}"/>
                     </group>
                 </xpath>
             </field>
