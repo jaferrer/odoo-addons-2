@@ -162,13 +162,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         for seller in dict_procs_suppliers.keys():
             if dict_procs_suppliers[seller] and \
                     (compute_all_products or not compute_supplier_ids or
-                             compute_supplier_ids and seller.id in compute_supplier_ids):
+                     compute_supplier_ids and seller.id in compute_supplier_ids):
                 if jobify:
                     session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
                     job_purchase_schedule_procurements. \
                         delay(session, 'procurement.order', dict_procs_suppliers[seller].ids,
                               description=_("Scheduling purchase orders for seller %s and location %s") %
-                                          (seller.display_name, location.display_name), context=self.env.context)
+                              (seller.display_name, location.display_name), context=self.env.context)
                 else:
                     dict_procs_suppliers[seller].purchase_schedule_procurements()
 

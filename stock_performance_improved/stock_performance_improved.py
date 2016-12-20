@@ -628,7 +628,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         if context.get("test_transfer"):
             test = super(StockPicking, self).recompute_remaining_qty(cr, uid, picking, context=context)
             if test != (need_rereserve, all_op_processed):
-                raise osv.except_osv('test temps do_transfer!', "recompute_remaining_qty")
+                raise osv.except_osv(_('test temps do_transfer!'), "recompute_remaining_qty")
         return (need_rereserve, all_op_processed)
 
     @api.cr_uid_context

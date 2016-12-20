@@ -145,8 +145,8 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                     raise Warning(_('The source location must be the same for all the moves of the picking.'))
                 location_id=move.location_id.id
 
-        vals=[]
-        qtys_grouped={}
+        vals = []
+        qtys_grouped = {}
         # for each quant of the picking, find the suggested location
         quants_suggested_locations={}
         product_putaway_strats={}
@@ -160,7 +160,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         top_lvl_packages=self._get_top_level_packages(quants_suggested_locations)
         # and then create pack operations for the top-level packages found
         for pack in top_lvl_packages:
-            pack_quants=self.env['stock.quant'].browse(pack.get_content())
+            pack_quants = self.env['stock.quant'].browse(pack.get_content())
             vals.append({
                 'picking_id': picking.id,
                 'package_id': pack.id,

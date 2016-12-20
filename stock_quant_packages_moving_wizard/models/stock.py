@@ -99,10 +99,11 @@ class StockQuant(models.Model):
                 final_qty = sum([tpl[1] for tpl in quant_tuples_current_reservation])
                 # Split move if needed
                 if float_compare(final_qty, current_reservation.product_qty, precision_rounding=prec) < 0:
-                    current_reservation.split(current_reservation, float_round(current_reservation.product_qty - final_qty,
+                    current_reservation.split(current_reservation,
+                                              float_round(current_reservation.product_qty - final_qty,
                                                           precision_rounding=prec))
                 # Reserve quants on move
-                self.quants_reserve(quant_tuples_current_reservation, current_reservation)
+                    self.quants_reserve(quant_tuples_current_reservation, current_reservation)
                 # Assign the current move to the new picking
                 current_reservation.picking_id = new_picking
                 move_recordset |= current_reservation

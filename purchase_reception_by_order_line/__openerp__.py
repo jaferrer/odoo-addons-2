@@ -39,5 +39,4 @@ This module improves the initial reception process. It allows to make it purchas
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
-    'sequence': 50,
 }

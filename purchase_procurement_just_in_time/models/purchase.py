@@ -129,14 +129,10 @@ class PurchaseOrderJustInTime(models.Model):
             tmp.update({
                 'product_uom_qty': rounded_min_qty,
                 'product_uos_qty': rounded_min_qty,
-                'move_dest_id': procurement.move_dest_id.id,  # move destination is same as procurement destination
-                'group_id': procurement.group_id.id or group_id,
-                # move group is same as group of procurements if it exists, otherwise take another group
+                'move_dest_id': procurement.move_dest_id.id,  #move destination is same as procurement destination
+                'group_id': procurement.group_id.id or group_id,  #move group is same as group of procurements if it exists, otherwise take another group
                 'procurement_id': procurement.id,
-                'invoice_state': procurement.rule_id.invoice_state or (
-                    procurement.location_id and procurement.location_id.usage == 'customer' and procurement.invoice_state == '2binvoiced' and '2binvoiced') or (
-                                     order.invoice_method == 'picking' and '2binvoiced') or 'none',
-                # dropship case takes from sale
+                'invoice_state': procurement.rule_id.invoice_state or (procurement.location_id and procurement.location_id.usage == 'customer' and procurement.invoice_state=='2binvoiced' and '2binvoiced') or (order.invoice_method == 'picking' and '2binvoiced') or 'none', #dropship case takes from sale
                 'propagate': procurement.rule_id.propagate,
             })
             diff_quantity -= min(procurement_qty, diff_quantity)
