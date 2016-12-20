@@ -23,14 +23,14 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase_delivery_tracking'],
+    'depends': ['purchase_delivery_tracking', 'base_delivery_tracking_colissimo'],
     'description': """
 Purchase delivery tracking (Colissimo)
 ======================================
 This module allows to track the Colissimo deliveries
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['purchase_delivery_tracking_colissimo_data.xml'],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,

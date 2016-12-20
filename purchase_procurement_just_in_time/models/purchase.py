@@ -35,17 +35,6 @@ class PurchaseOrderJustInTime(models.Model):
     group_id = fields.Many2one('procurement.group', string="Procurement Group", readonly=True)
     date_order = fields.Datetime(required=False)
 
-    @api.multi
-    def _test_compute_date_order_max(self):
-        """Computes date_order_max field according to this order date_order and to the supplier order_group_period."""
-        self.ensure_one()
-        date_order_max = False
-        if self.partner_id and self.partner_id.order_group_period:
-            date_order = datetime.strptime(self.date_order, DEFAULT_SERVER_DATETIME_FORMAT)
-            ds, date_order_max = self.partner_id.order_group_period.get_start_end_dates(date_order)
-            date_order_max = date_order_max.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
-        return date_order_max
-
     @api.model
     def _create_stock_moves_improved(self, order, order_lines, group_id=False, picking_id=False):
         """
@@ -85,7 +74,7 @@ class PurchaseOrderJustInTime(models.Model):
         if order_line.product_uom.id != order_line.product_id.uom_id.id:
             price_unit *= order_line.product_uom.factor / order_line.product_id.uom_id.factor
         if order.currency_id.id != order.company_id.currency_id.id:
-            #we don't round the price_unit, as we may want to store the standard price with more digits than allowed by the currency
+            # we don't round the price_unit, as we may want to store the standard price with more digits than allowed by the currency
             price_unit = order.currency_id.compute(price_unit, order.company_id.currency_id, round=False)
         res = []
         if order.location_id.usage == 'customer':
@@ -112,8 +101,9 @@ class PurchaseOrderJustInTime(models.Model):
             'group_id': group_id,
             'procurement_id': False,
             'origin': order.name,
-            'route_ids': order.picking_type_id.warehouse_id and [(6, 0, [x.id for x in order.picking_type_id.warehouse_id.route_ids])] or [],
-            'warehouse_id':order.picking_type_id.warehouse_id.id,
+            'route_ids': order.picking_type_id.warehouse_id and [
+                (6, 0, [x.id for x in order.picking_type_id.warehouse_id.route_ids])] or [],
+            'warehouse_id': order.picking_type_id.warehouse_id.id,
             'invoice_state': order.invoice_method == 'picking' and '2binvoiced' or 'none',
         }
 
@@ -147,8 +137,8 @@ class PurchaseOrderJustInTime(models.Model):
             })
             diff_quantity -= min(procurement_qty, diff_quantity)
             res.append(tmp)
-        #if the order line has a bigger quantity than the procurement it was for (manually changed or minimal quantity), then
-        #split the future stock move in two because the route followed may be different.
+        # if the order line has a bigger quantity than the procurement it was for (manually changed or minimal quantity), then
+        # split the future stock move in two because the route followed may be different.
         for move in order_line.move_ids:
             if move.state in ['draft', 'cancel'] or move.procurement_id:
                 continue
@@ -337,16 +327,25 @@ class PurchaseOrderLineJustInTime(models.Model):
         moves_with_proc_id = self.move_ids.filtered(
             lambda m: m.state not in ['done', 'cancel'] and m.procurement_id).sorted(key=lambda m: m.product_qty,
                                                                                      reverse=True)
-        qty_to_remove = sum([x.product_uom_qty for x in self.move_ids if x.state != 'cancel']) - target_qty
+        qty_not_cancelled_moves = sum([x.product_qty for x in self.move_ids if x.state != 'cancel'])
+        qty_moves_no_proc = sum([x.product_qty for x in moves_without_proc_id])
+        qty_not_cancelled_moves_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
+                                                                               qty_not_cancelled_moves,
+                                                                               self.product_uom.id)
+        qty_moves_no_proc_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
+                                                                         qty_moves_no_proc,
+                                                                         self.product_uom.id)
 
-        qty_to_remove -= sum([x.product_uom_qty for x in moves_without_proc_id])
+        qty_to_remove = qty_not_cancelled_moves_pol_uom - qty_moves_no_proc_pol_uom - target_qty
         to_detach_procs = self.env['procurement.order']
 
         while qty_to_remove > 0 and moves_with_proc_id:
             move = moves_with_proc_id[0]
             moves_with_proc_id -= move
             to_detach_procs |= move.procurement_id
-            qty_to_remove -= move.product_uom_qty
+            qty_to_remove -= self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
+                                                                  move.product_qty,
+                                                                  self.product_uom.id)
 
         to_detach_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
         self.adjust_move_no_proc_qty()
@@ -379,16 +378,23 @@ class PurchaseOrderLineJustInTime(models.Model):
         new move as before, to reach the appropriate quantity.
         """
         self.ensure_one()
-        if vals['product_qty'] < sum([x.product_uom_qty for x in self.move_ids if x.state == 'done']):
+        product = self.env['product.product'].browse(vals.get('product_id', self.product_id.id))
+        uom = self.env['product.uom'].browse(vals.get('product_uom', self.product_uom.id))
+        qty_done = sum([x.product_qty for x in self.move_ids if x.state == 'done'])
+        qty_done_pol_uom = self.env['product.uom']._compute_qty(product.uom_id.id, qty_done, uom.id)
+        if vals['product_qty'] < qty_done_pol_uom:
             raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
         if self.state == 'confirmed':
             self.adjust_moves_qties(vals['product_qty'])
         elif self.state == 'draft':
-            sum_procs = sum([p.product_qty for p in self.procurement_ids])
+            sum_procs = sum([self.env['product.uom']._compute_qty(product.uom_id.id, p.product_qty, uom.id) for
+                             p in self.procurement_ids])
             # We remove procs if there qty is above the line
-            for proc in self.procurement_ids.sorted(key=lambda m: m.product_qty, reverse=True):
+            for proc in self.procurement_ids. \
+                    sorted(key=lambda m: self.env['product.uom'].
+                    _compute_qty(product.uom_id.id, m.product_qty, uom.id), reverse=True):
                 if float_compare(vals['product_qty'], sum_procs,
-                                 precision_rounding=self.product_id.uom_id.rounding) >= 0:
+                                 precision_rounding=uom.rounding) >= 0:
                     break
                 proc.remove_procs_from_lines()
                 sum_procs -= proc.product_qty

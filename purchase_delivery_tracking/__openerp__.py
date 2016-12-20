@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'web_tree_image'],
+    'depends': ['purchase', 'base_delivery_tracking'],
     'description': """
 Purchase delivery tracking
 ==========================

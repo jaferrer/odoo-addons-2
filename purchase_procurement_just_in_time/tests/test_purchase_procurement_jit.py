@@ -34,6 +34,9 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.location_a = self.browse_ref('purchase_procurement_just_in_time.stock_location_a')
         self.location_b = self.browse_ref('purchase_procurement_just_in_time.stock_location_b')
         self.warehouse = self.browse_ref('stock.warehouse0')
+        self.unit = self.browse_ref('product.product_uom_unit')
+        self.uom_couple = self.browse_ref('purchase_procurement_just_in_time.uom_couple')
+        self.uom_four = self.browse_ref('purchase_procurement_just_in_time.uom_four')
 
     def create_procurement_order_1(self):
         return self.env['procurement.order'].create({
@@ -1153,6 +1156,24 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
 
         purchase_order_1.signal_workflow('purchase_confirm')
 
+        [move1, move2, move3] = [False] * 3
+
+        for move in line.move_ids:
+            if move.product_uom_qty == 1 and move.product_uom == self.unit:
+                move1 = move
+            elif move.product_uom_qty == 7 and move.product_uom == self.unit:
+                move2 = move
+            elif move.product_uom_qty == 40 and move.product_uom == self.unit:
+                move3 = move
+        self.assertTrue(move1 and move2 and move3)
+
+        move1.product_uom_qty = 0.5
+        move1.product_uom = self.uom_couple
+        move2.product_uom_qty = 3.5
+        move2.product_uom = self.uom_couple
+        move3.product_uom_qty = 10
+        move3.product_uom = self.uom_four
+
         split = self.env['split.line'].create({'line_id': line.id, 'qty': 20})
         split.do_split()
         self.assertEqual(len(purchase_order_1.order_line), 2)
@@ -1172,8 +1193,10 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
             else:
                 m2 = move
         self.assertTrue(m1 and m2)
-        self.assertEqual(m1.product_uom_qty, 7)
+        self.assertEqual(m1.product_uom_qty, 3.5)
+        self.assertEqual(m1.product_uom, self.uom_couple)
         self.assertEqual(m2.product_uom_qty, 13)
+        self.assertEqual(m2.product_uom, self.unit)
         self.assertEqual(m1.procurement_id, procurement_order_1)
 
         split = self.env['split.line'].create({'line_id': line2.id, 'qty': 10})

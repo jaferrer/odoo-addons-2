@@ -51,10 +51,16 @@ class SplitLine(models.TransientModel):
                 if self.qty >= self.line_id.product_qty:
                     raise exceptions.except_orm(_('Error!'), _("Please choose a lower quantity to split"))
         if self.line_id.state == 'confirmed':
-            _sum = sum(x.product_uom_qty for x in self.line_id.move_ids if x.state == 'done')
-            if self.qty < _sum:
+            _sum = sum([x.product_qty for x in self.line_id.move_ids if x.state == 'done'])
+            _sum_pol_uom = self.env['product.uom']._compute_qty(self.line_id.product_id.uom_id.id, _sum,
+                                                                self.line_id.product_uom.id)
+            if self.qty < _sum_pol_uom:
                 raise exceptions.except_orm(_('Error!'), _("Impossible to split a move in state done"))
-            if self.qty >= sum([m.product_uom_qty for m in self.line_id.move_ids if m.state != 'cancel']):
+            not_cancelled_qty = sum([m.product_qty for m in self.line_id.move_ids if m.state != 'cancel'])
+            not_cancelled_qty_pol_uom = self.env['product.uom']._compute_qty(self.line_id.product_id.uom_id.id,
+                                                                             not_cancelled_qty,
+                                                                             self.line_id.product_uom.id)
+            if self.qty >= not_cancelled_qty_pol_uom:
                 raise exceptions.except_orm(_('Error!'), _("Please choose a lower quantity to split"))
 
     @api.multi

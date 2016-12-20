@@ -19,7 +19,7 @@
 
 {
     'name': 'Purchase Just-In-Time Extension',
-    'sequence': 1,
+    'sequence': 50,
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
@@ -77,5 +77,4 @@ Notes
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
-    'sequence': 50,
 }

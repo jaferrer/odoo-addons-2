@@ -23,13 +23,17 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['base','document'],
+    'depends': ['base', 'document', 'bus'],
     'description': """
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-             'views/document_scanner_views.xml'
-             ],
+        'security/document_security.xml',
+        'security/ir.model.access.csv',
+        'views/document_scanner_views.xml',
+        'data/data.xml',
+
+    ],
     'demo': [],
     'test': [],
     'qweb': [

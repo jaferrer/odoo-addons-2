@@ -58,3 +58,8 @@ target/
 Thumbs.db
 
 fr.mo
+
+# document scanner
+document_scanner/tmp/
+document_scanner/log/
+document_scanner/dist/

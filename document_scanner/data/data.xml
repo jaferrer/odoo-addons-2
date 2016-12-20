@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="scanner_bot_partner" model="res.partner">
+            <field name="name">Scanner Bot</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="customer" eval="False"/>
+            <field name="country_id" ref="base.fr"/>
+        </record>
+
+        <record id="scanner_bot_user" model="res.users">
+            <field name="partner_id" ref="scanner_bot_partner"/>
+            <field name="login">scanner_bot</field>
+            <field name="password">hLD5w0yo1wPs5kqwu839fs!kl9QH3#uh39zr49y4Bgu4ox!*qL</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="groups_id" eval="[(6,0,[ref('base.group_user'), ref('document_scanner.group_scanner_bot'), ref('base.group_document_user')])]"/>
+        </record>
+    </data>
+</openerp>

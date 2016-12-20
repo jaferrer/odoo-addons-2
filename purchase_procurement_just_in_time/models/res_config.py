@@ -34,7 +34,7 @@ class purchase_jit_config(models.TransientModel):
                                                 "number of days before the required date, no message will be displayed."
                                                 "\nDefaults to 7 days.")
     delta_begin_grouping_period = fields.Integer(string="Delta begin grouping period",
-                                                 help="Grouping periods will be centered on the date of the day, "
+                                                 help="Grouping periods will be centered on the date of tomorrow, "
                                                       "increased by this delta")
     ignore_past_procurements = fields.Boolean(string="Ignore past procurements", help="Used for the purchase planner")
 

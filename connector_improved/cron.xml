@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.cron" id="connecteur_improved_enqueue_oudated_jobs">
+            <field name="name">Enqueue Outdated Jobs</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="nextcall">2015-10-01 00:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">queue.job</field>
+            <field name="function">enqueue_oudated_jobs</field>
+            <field name="args"/>
+        </record>
+
+    </data>
+</openerp>

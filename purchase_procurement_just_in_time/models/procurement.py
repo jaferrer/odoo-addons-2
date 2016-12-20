@@ -78,11 +78,15 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         """
         for procurement in self:
             if procurement.rule_id.action == 'buy':
-                qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
-                if float_compare(qty_done, 0.0, precision_rounding=procurement.product_uom.rounding) > 0:
-                    remaining_qty = procurement.product_qty - qty_done
+                qty_done_product_uom = sum([m.product_qty for m in procurement.move_ids if m.state == 'done'])
+                qty_done_proc_uom = self.env['product.uom']._compute_qty(procurement.product_id.uom_id.id,
+                                                                         qty_done_product_uom,
+                                                                         procurement.product_uom.id)
+                if float_compare(qty_done_proc_uom, 0.0, precision_rounding=procurement.product_uom.rounding) > 0:
+                    remaining_qty = procurement.product_qty - qty_done_proc_uom
                     new_proc = procurement.copy({
-                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_uom.rounding),
+                        'product_qty': float_round(qty_done_proc_uom,
+                                                   precision_rounding=procurement.product_uom.rounding),
                         'state': 'done',
                     })
                     procurement.write({
@@ -141,11 +145,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     search([('id', 'in', product.seller_ids.ids),
                             ('name', '=', product.seller_id.id)]) or False
                 if suppliers:
-                    schedule_date = self._get_purchase_schedule_date(procurements_to_tun[0], company)
-                    min_date = self._get_purchase_order_date(procurements_to_tun[0], company, schedule_date)
-                    min_date = fields.Datetime.to_string(min_date)
+                    min_date = fields.Datetime.to_string(seller.schedule_working_days(product.seller_delay, dt.now()))
                 else:
                     min_date = fields.Datetime.now()
+                past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
+                if past_procurements:
+                    procurements_to_tun -= past_procurements
+                    past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
                 domain += [('date_planned', '>', min_date)]
             procurements = self.search(domain)
             if dict_procs_suppliers.get(seller):
@@ -155,8 +161,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             procurements_to_tun -= procurements
         for seller in dict_procs_suppliers.keys():
             if dict_procs_suppliers[seller] and \
-                (compute_all_products or not compute_supplier_ids or
-                 compute_supplier_ids and seller.id in compute_supplier_ids):
+                    (compute_all_products or not compute_supplier_ids or
+                     compute_supplier_ids and seller.id in compute_supplier_ids):
                 if jobify:
                     session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
                     job_purchase_schedule_procurements. \
@@ -355,8 +361,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
                 # We consider procurements after the reference date
                 # (if we ignore past procurements, past ones are already removed)
-                date_ref_plus_1_day = seller.schedule_working_days(days_delta + 1, dt.today())
-                purchase_date = max(purchase_date, date_ref_plus_1_day)
+                date_ref = seller.schedule_working_days(days_delta, dt.today())
+                purchase_date = max(purchase_date, date_ref)
                 line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
                 draft_order = first_proc.get_corresponding_draft_order(seller, purchase_date)
                 if draft_order:

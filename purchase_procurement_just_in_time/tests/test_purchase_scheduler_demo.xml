@@ -11,6 +11,23 @@
             name="execute"
             eval="[[ref('stock_config_settings_defaults')]]" />
 
+        <!-- UOM -->
+        <record id="uom_couple" model="product.uom">
+            <field name="name">Set of 2 (Purchase JIT)</field>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="2"/>
+            <field name="rounding" eval="0.01"/>
+            <field name="category_id" ref="product.product_uom_categ_unit"/>
+        </record>
+
+        <record id="uom_four" model="product.uom">
+            <field name="name">Set of 4 (Purchase JIT)</field>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="4"/>
+            <field name="rounding" eval="0.01"/>
+            <field name="category_id" ref="product.product_uom_categ_unit"/>
+        </record>
+
         <!-- Locations -->
         <record id="stock_location_view" model="stock.location">
             <field name="name">View Location (Purchase JIT)</field>

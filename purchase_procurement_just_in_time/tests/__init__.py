@@ -18,6 +18,5 @@
 #
 
 from . import test_get_start_end_date
-from . import test_purchase_group_by_period
 from . import test_purchase_procurement_jit
 from . import test_purchase_scheduler

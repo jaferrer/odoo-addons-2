@@ -98,12 +98,12 @@ class StockQuant(models.Model):
                 current_reservation.do_unreserve()
                 final_qty = sum([tpl[1] for tpl in quant_tuples_current_reservation])
                 # Split move if needed
-                if float_compare(final_qty, current_reservation.product_uom_qty, precision_rounding=prec) < 0:
+                if float_compare(final_qty, current_reservation.product_qty, precision_rounding=prec) < 0:
                     current_reservation.split(current_reservation,
-                                              float_round(current_reservation.product_uom_qty - final_qty,
+                                              float_round(current_reservation.product_qty - final_qty,
                                                           precision_rounding=prec))
                 # Reserve quants on move
-                self.quants_reserve(quant_tuples_current_reservation, current_reservation)
+                    self.quants_reserve(quant_tuples_current_reservation, current_reservation)
                 # Assign the current move to the new picking
                 current_reservation.picking_id = new_picking
                 move_recordset |= current_reservation
@@ -160,8 +160,8 @@ class StockQuant(models.Model):
             for move in dict_reservations:
                 prec = move.product_id.uom_id.rounding
                 qty_reserved = sum([tpl[1] for tpl in dict_reservations[move]])
-                if float_compare(qty_reserved, move.product_uom_qty, precision_rounding=prec) < 0:
-                    move.split(move, float_round(move.product_uom_qty - qty_reserved, precision_rounding=prec))
+                if float_compare(qty_reserved, move.product_qty, precision_rounding=prec) < 0:
+                    move.split(move, float_round(move.product_qty - qty_reserved, precision_rounding=prec))
             # Let's reserve the quants
             for move in dict_reservations:
                 move.picking_id = new_picking
