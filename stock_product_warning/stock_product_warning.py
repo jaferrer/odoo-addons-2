@@ -26,7 +26,7 @@ class stock_product_warning_product(models.Model):
                                                                      "the transfer pop-up of stock operations linked "
                                                                      "to this product")
     
-    procurement_warning_msg = fields.Text(string="Procurement Warning Message",readonly=False)
+    procurement_warning_msg = fields.Text(string="Procurement Warning Message", readonly=False)
 
 
 class stock_product_packop_line(models.Model):
@@ -34,7 +34,8 @@ class stock_product_packop_line(models.Model):
 
     procurement_warning = fields.Boolean("Procurement Warning", related="product_id.procurement_warning")
     
-    procurement_warning_msg = fields.Text(string="Procurement Warning Message",related="product_id.procurement_warning_msg")
+    procurement_warning_msg = fields.Text(string="Procurement Warning Message",
+                                          related="product_id.procurement_warning_msg")
 
 
 class stock_product_transfer_detail_items(models.TransientModel):
