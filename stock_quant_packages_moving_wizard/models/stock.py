@@ -103,7 +103,7 @@ class StockQuant(models.Model):
                                               float_round(current_reservation.product_qty - final_qty,
                                                           precision_rounding=prec))
                 # Reserve quants on move
-                    self.quants_reserve(quant_tuples_current_reservation, current_reservation)
+                self.quants_reserve(quant_tuples_current_reservation, current_reservation)
                 # Assign the current move to the new picking
                 current_reservation.picking_id = new_picking
                 move_recordset |= current_reservation
