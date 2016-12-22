@@ -272,10 +272,12 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                     op.location_id.display_name))
             events = op.get_list_events()
             done_dates = []
+            events_at_date = []
             stock_after_event = 0
             for event in events:
                 if event['date'] not in done_dates:
-                    stock_after_event += sum(item['move_qty'] for item in events if item['date'] == event['date'])
+                    events_at_date = [item for item in events if item['date'] == event['date']]
+                    stock_after_event += sum(item['move_qty'] for item in events_at_date)
                     done_dates += [event['date']]
                 if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned']:
                     proc_oversupply = self.env['procurement.order'].search([('id', '=', event['proc_id']),
@@ -283,9 +285,13 @@ class StockWarehouseOrderPointJit(models.Model):
                     qty_same_proc = sum(item['move_qty'] for item in events if item['proc_id'] == event['proc_id'])
                     if proc_oversupply:
                         stock_after_event -= qty_same_proc
-                    _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
+                        _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
                     proc_oversupply.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
                     proc_oversupply.unlink()
+                    if op.is_under_stock_min(stock_after_event) and \
+                            any([item['move_type'] == 'out' for item in events_at_date]):
+                        new_proc = op.create_from_need(event, stock_after_event)
+                        stock_after_event += new_proc.product_qty
                 elif op.is_under_stock_min(stock_after_event):
                     new_proc = op.create_from_need(event, stock_after_event)
                     stock_after_event += new_proc.product_qty
