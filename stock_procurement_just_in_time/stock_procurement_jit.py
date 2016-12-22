@@ -106,21 +106,24 @@ class ProcurementOrderQuantity(models.Model):
     def cancel(self):
         result = super(ProcurementOrderQuantity, self).cancel()
         if self.env.context.get('unlink_all_chain'):
-            moves_to_unlink = self.env['stock.move']
-            procurements_to_unlink = self.env['procurement.order']
-            for rec in self:
-                parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
-                for move in parent_moves:
-                    if move.state == 'cancel':
-                        moves_to_unlink += move
-                        if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
-                            move.procurement_id.state == 'cancel' and \
-                                not any([move.state == 'done' for move in move.procurement_id.move_ids]):
-                            procurements_to_unlink += move.procurement_id
-            if moves_to_unlink:
-                moves_to_unlink.unlink()
-            if procurements_to_unlink:
-                procurements_to_unlink.unlink()
+            delete_moves_cancelled_by_planned = bool(self.env['ir.config_parameter'].get_param(
+                'stock_procurement_just_in_time.delete_moves_cancelled_by_planned', default=False))
+            if delete_moves_cancelled_by_planned:
+                moves_to_unlink = self.env['stock.move']
+                procurements_to_unlink = self.env['procurement.order']
+                for rec in self:
+                    parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
+                    for move in parent_moves:
+                        if move.state == 'cancel':
+                            moves_to_unlink += move
+                            if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
+                                            move.procurement_id.state == 'cancel' and \
+                                    not any([move.state == 'done' for move in move.procurement_id.move_ids]):
+                                procurements_to_unlink += move.procurement_id
+                if moves_to_unlink:
+                    moves_to_unlink.unlink()
+                if procurements_to_unlink:
+                    procurements_to_unlink.unlink()
         return result
 
     @api.model
@@ -216,7 +219,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-            fields.Datetime.from_string(last_schedule[0].get('date')) or False
+              fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
