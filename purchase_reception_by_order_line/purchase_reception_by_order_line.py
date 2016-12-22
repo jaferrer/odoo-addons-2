@@ -77,7 +77,6 @@ class ReceptionByOrderStockPicking(models.Model):
                         i += 1
                 else:
                     break
-
         result_comp=qtyassign_cmp == 0
         return result_comp, prod2move_ids
 
@@ -105,11 +104,13 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         for move in res:
             if not prod2move_ids.get(move[2]):
                 prod2move_ids[move[2]]=[
-                    {'move': {'id': move[0], 'purchase_line_id': move[3]}, 'remaining_qty': move[1]}]
+                    {'move': {'id': move[0],
+                              'purchase_line_id': move[3] or False},
+                     'remaining_qty': move[1]}]
             else:
                 prod2move_ids[move[2]].append(
     {'move': {'id': move[0],
-     'purchase_line_id': move[3]},
+     'purchase_line_id': move[3] or False},
      'remaining_qty': move[1]})
         return prod2move_ids
 
@@ -144,8 +145,8 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                     raise Warning(_('The source location must be the same for all the moves of the picking.'))
                 location_id=move.location_id.id
 
-        vals=[]
-        qtys_grouped={}
+        vals = []
+        qtys_grouped = {}
         # for each quant of the picking, find the suggested location
         quants_suggested_locations={}
         product_putaway_strats={}
@@ -159,7 +160,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         top_lvl_packages=self._get_top_level_packages(quants_suggested_locations)
         # and then create pack operations for the top-level packages found
         for pack in top_lvl_packages:
-            pack_quants=self.env['stock.quant'].browse(pack.get_content())
+            pack_quants = self.env['stock.quant'].browse(pack.get_content())
             vals.append({
                 'picking_id': picking.id,
                 'package_id': pack.id,
@@ -235,18 +236,20 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                         qty_to_remove = min(sum_quantities_moves_on_line, item['product_qty'])
                         item['product_qty'] -= qty_to_remove
                         global_qty_to_remove -= qty_to_remove
-                prevals_purchase_line = prevals.get(move.product_id.id, [])[0].copy()
-                prevals_purchase_line['purchase_line_id'] = move.purchase_line_id.id
-                prevals_purchase_line['product_qty'] = sum_quantities_moves_on_line
-                vals += [prevals_purchase_line]
-                processed_purchase_lines.add(move.purchase_line_id.id)
+                dict_to_copy = prevals.get(move.product_id.id, [])
+                if dict_to_copy:
+                    prevals_purchase_line = dict_to_copy[0].copy()
+                    prevals_purchase_line['purchase_line_id'] = move.purchase_line_id.id
+                    prevals_purchase_line['product_qty'] = sum_quantities_moves_on_line
+                    vals += [prevals_purchase_line]
+                    processed_purchase_lines.add(move.purchase_line_id.id)
         processed_products = set()
         for move in [x for x in picking.move_lines if x.state not in ('done', 'cancel') and not x.purchase_line_id]:
             if move.product_id.id not in processed_products:
                 for item in prevals.get(move.product_id.id, []):
                     if float_compare(item['product_qty'], 0,
                                      precision_rounding=move.product_id.uom_id.rounding) != 0:
-                        vals += prevals.get(move.product_id.id, [])
+                        vals += [item]
                 processed_products.add(move.product_id.id)
         return vals
 

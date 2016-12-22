@@ -63,7 +63,8 @@ class StockInventorySpecific(models.Model):
                 args += (inventory.package_id.id,)
 
             self.env.cr.execute('''
-               SELECT product_id, sum(qty) AS product_qty, location_id, lot_id AS prod_lot_id, package_id, owner_id AS partner_id
+               SELECT product_id, sum(qty) AS product_qty, location_id, lot_id AS prod_lot_id,
+               package_id, owner_id AS partner_id
                FROM stock_quant WHERE''' + domain + '''
                GROUP BY product_id, location_id, lot_id, package_id, partner_id
             ''', args)
@@ -98,35 +99,53 @@ class StockSpecificProductInventory(models.Model):
 
     def init(self, cr):
         drop_view_if_exists(cr, "stock_specific_product_inventory")
-        cr.execute("""
-        CREATE OR REPLACE VIEW stock_specific_product_inventory AS (
-            WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
-                    SELECT
-                        sl.id AS loc_id, sl.id AS top_parent_id
-                    FROM
-                        stock_location sl
-                        LEFT JOIN stock_location slp ON sl.location_id = slp.id
-                    WHERE
-                        sl.usage='internal'
-                UNION
-                    SELECT
-                        sl.id AS loc_id, tp.top_parent_id
-                    FROM
-                        stock_location sl, top_parent tp
-                    WHERE
-                        sl.usage='internal' AND sl.location_id=tp.loc_id
-            )
-SELECT stock_warehouse.id::TEXT||'-'||product_product.id::TEXT AS id,stock_warehouse.id AS stock_warehouse_id,product_product.id AS product_id,product_category.name AS category,sum(stock_quant.qty) AS qty,sum(stock_quant.qty*stock_quant.cost) AS value_stock,max(stock_inventory.date) AS invetory_date,max(stock_move.date) AS move_stock_date FROM stock_warehouse
-INNER JOIN top_parent ON stock_warehouse.lot_stock_id=top_parent.top_parent_id
-INNER JOIN stock_quant ON stock_quant.location_id=top_parent.loc_id
-INNER JOIN product_product ON product_product.id=stock_quant.product_id
-INNER JOIN product_template ON product_product.product_tmpl_id=product_template.id
-INNER JOIN product_category ON product_template.categ_id=product_category.id
-LEFT JOIN (SELECT location_id,max(date) AS date FROM stock_inventory s
-GROUP BY location_id) stock_inventory ON stock_inventory.location_id=top_parent.loc_id
-LEFT JOIN (SELECT location_id,product_id,max(date) AS date FROM stock_move m
-GROUP BY location_id,product_id) stock_move ON stock_move.location_id=top_parent.loc_id AND stock_move.product_id=product_product.id
-GROUP BY stock_warehouse.id,product_product.id,product_category.name)
+        cr.execute("""CREATE OR REPLACE VIEW stock_specific_product_inventory AS (
+  WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
+    SELECT
+      sl.id AS loc_id,
+      sl.id AS top_parent_id
+    FROM
+      stock_location sl
+      LEFT JOIN stock_location slp ON sl.location_id = slp.id
+    WHERE
+      sl.usage = 'internal'
+    UNION
+    SELECT
+      sl.id AS loc_id,
+      tp.top_parent_id
+    FROM
+      stock_location sl, top_parent tp
+    WHERE
+      sl.usage = 'internal' AND sl.location_id = tp.loc_id
+  )
+  SELECT
+    stock_warehouse.id :: TEXT || '-' || product_product.id :: TEXT AS id,
+    stock_warehouse.id                                              AS stock_warehouse_id,
+    product_product.id                                              AS product_id,
+    product_category.name                                           AS category,
+    sum(stock_quant.qty)                                            AS qty,
+    sum(stock_quant.qty * stock_quant.cost)                         AS value_stock,
+    max(stock_inventory.date)                                       AS invetory_date,
+    max(stock_move.date)                                            AS move_stock_date
+  FROM stock_warehouse
+    INNER JOIN top_parent ON stock_warehouse.lot_stock_id = top_parent.top_parent_id
+    INNER JOIN stock_quant ON stock_quant.location_id = top_parent.loc_id
+    INNER JOIN product_product ON product_product.id = stock_quant.product_id
+    INNER JOIN product_template ON product_product.product_tmpl_id = product_template.id
+    INNER JOIN product_category ON product_template.categ_id = product_category.id
+    LEFT JOIN (SELECT
+                 location_id,
+                 max(date) AS date
+               FROM stock_inventory s
+               GROUP BY location_id) stock_inventory ON stock_inventory.location_id = top_parent.loc_id
+    LEFT JOIN (SELECT
+                 location_id,
+                 product_id,
+                 max(date) AS date
+               FROM stock_move m
+               GROUP BY location_id, product_id) stock_move
+      ON stock_move.location_id = top_parent.loc_id AND stock_move.product_id = product_product.id
+  GROUP BY stock_warehouse.id, product_product.id, product_category.name)
         """)
 
     @api.model
@@ -135,23 +154,27 @@ GROUP BY stock_warehouse.id,product_product.id,product_category.name)
         if not product_view_ids:
             return []
         product_views = self.env['stock.specific.product.inventory'].browse(product_view_ids)
-
-        for entrepot in self.env['stock.warehouse'].search([]):
-            products = product_views.filtered(lambda x: x.stock_warehouse_id == entrepot).mapped(lambda x: x.product_id)
-            if products:
-                self.env['stock.inventory'].create({
-                    'specify_product_ids': [(6, 0, products.ids)],
-                    'location_id': entrepot.lot_stock_id.id,
-                    'filter': 'inventory_specific',
-                    'company_id': entrepot.company_id.id,
-                    'name': 'inventaire' + '-' + entrepot.name + '-' + fields.Datetime.now()
-                }
-                )
-
-        return {
+        action = {
             'name': _('Inventory Adjustments'),
             'view_type': 'form',
             'view_mode': 'tree,form',
             'res_model': 'stock.inventory',
             'type': 'ir.actions.act_window'
         }
+        result = []
+        for warehouse in self.env['stock.warehouse'].search([]):
+            products = product_views.filtered(lambda x: x.stock_warehouse_id == warehouse). \
+                mapped(lambda x: x.product_id)
+            if products:
+                result += [self.env['stock.inventory'].create({
+                    'specify_product_ids': [(6, 0, products.ids)],
+                    'location_id': warehouse.lot_stock_id.id,
+                    'filter': 'inventory_specific',
+                    'company_id': warehouse.company_id.id,
+                    'name': 'inventaire' + '-' + warehouse.name + '-' + fields.Datetime.now()}).id]
+        if len(result) == 1:
+            action['res_id'] = result[0]
+            action['view_mode'] = 'form'
+        elif len(result) > 1:
+            action['domain'] = [('id', 'in', result)]
+        return action
