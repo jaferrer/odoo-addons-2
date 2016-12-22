@@ -40,6 +40,9 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.rule_move = self.browse_ref('stock_procurement_just_in_time.rule_move')
         # Compute parent left and right for location so that test don't fail
         self.env['stock.location']._parent_store_compute()
+        # Configure cancelled moves/procs deletion
+        wizard = self.env['stock.config.settings'].create({'delete_moves_cancelled_by_planned': True})
+        wizard.execute()
 
     def process_orderpoints(self):
         """Function to call the scheduler without needing connector to work."""
