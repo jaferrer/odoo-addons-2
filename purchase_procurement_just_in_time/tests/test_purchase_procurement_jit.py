@@ -1308,3 +1308,32 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(line1.move_ids), 1)
         self.assertEqual(line1.move_ids[0].product_uom_qty, 15)
         self.assertFalse(line1.move_ids[0].procurement_id)
+
+    def test_80_purchase_jit_cancelling_proc_and_then_purchase_order(self):
+        self.create_and_run_proc_1_2()
+        procurement_order_1, procurement_order_2 = self.create_and_run_proc_1_2()
+        order1 = procurement_order_1.purchase_id
+        self.assertTrue(order1)
+        purchase_line1 = procurement_order_1.purchase_line_id
+        self.assertTrue(purchase_line1)
+        self.assertEqual(procurement_order_1.state, 'running')
+
+        order1.signal_workflow('purchase_confirm')
+        procurement_order_1.cancel()
+        self.assertEqual(procurement_order_1.state, 'cancel')
+        order1.action_cancel()
+        self.assertEqual(procurement_order_1.state, 'cancel')
+
+    def test_81_purchase_jit_cancelling_proc_and_then_unlink_purchase_line(self):
+        self.create_and_run_proc_1_2()
+        procurement_order_1, procurement_order_2 = self.create_and_run_proc_1_2()
+        order1 = procurement_order_1.purchase_id
+        self.assertTrue(order1)
+        purchase_line1 = procurement_order_1.purchase_line_id
+        self.assertTrue(purchase_line1)
+        self.assertEqual(procurement_order_1.state, 'running')
+
+        procurement_order_1.cancel()
+        self.assertEqual(procurement_order_1.state, 'cancel')
+        purchase_line1.unlink()
+        self.assertEqual(procurement_order_1.state, 'cancel')
