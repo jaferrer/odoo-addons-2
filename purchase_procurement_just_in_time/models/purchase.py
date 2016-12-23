@@ -170,6 +170,24 @@ class PurchaseOrderJustInTime(models.Model):
         return res
 
     @api.multi
+    def set_order_line_status(self, status):
+        # Overwritten here to prevent any cancelled proc to reach 'exception' state when a purchase order in cancelled
+        order_line_ids = self.env['purchase.order.line']
+        for order in self:
+            if status in ('draft', 'cancel'):
+                order_line_ids += order.order_line
+            else:  # Do not change the status of already cancelled lines
+                order_line_ids += order.order_line.filtered(lambda line: line.state != 'cancel')
+        if order_line_ids:
+            order_line_ids.write({'state': status})
+        if order_line_ids and status == 'cancel':
+            procs = self.env['procurement.order'].search([('purchase_line_id', 'in', order_line_ids.ids),
+                                                          ('state', 'not in', ['cancel', 'done'])])
+            if procs:
+                procs.write({'state': 'exception'})
+        return True
+
+    @api.multi
     def unlink(self):
         order_line_ids = []
         for rec in self:
@@ -440,6 +458,11 @@ class PurchaseOrderLineJustInTime(models.Model):
     @api.multi
     def unlink(self):
         procurements_to_detach = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids)])
+        cancelled_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids),
+                                                                ('state', '=', 'cancel')])
         result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
+        # We reset initially cancelled procs to state 'cancel', because the unlink function of module purchase would
+        # have set them to state 'exception'
+        cancelled_procs.with_context(tracking_disable=True).write({'state': 'cancel'})
         procurements_to_detach.remove_procs_from_lines(unlink_moves_to_procs=True)
         return result
