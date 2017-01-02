@@ -483,6 +483,63 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[5].product_id, self.test_product3)
         self.assertEqual(procs[5].state, 'exception')
 
+    def test_55_procurement_jit_with_initial_stock(self):
+        """Test that scheduling works correctly with an initial stock."""
+        self.env['stock.quant'].create({
+            'product_id': self.test_product.id,
+            'location_id': self.location_b.id,
+            'qty': 5,
+        })
+        procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
+                                                      ('product_id', 'in', [self.test_product.id,
+                                                                            self.test_product2.id,
+                                                                            self.test_product3.id,
+                                                                            self.test_product4.id,
+                                                                            ])])
+        self.assertFalse(procs)
+        self.process_orderpoints()
+        procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
+                                                      ('product_id', 'in', [self.test_product.id])],
+                                                     order='date_planned, product_id')
+
+        self.assertEqual(len(procs), 2)
+
+        self.assertEqual(procs[0].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[0].product_qty, 8)
+        self.assertEqual(procs[0].state, 'running')
+        self.assertEqual(procs[0].product_id, self.test_product)
+
+        self.assertEqual(procs[1].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[1].product_qty, 14)
+        self.assertEqual(procs[1].state, 'running')
+        self.assertEqual(procs[1].product_id, self.test_product)
+
+    def test_56_procurement_jit_with_initial_stock_over_max(self):
+        """Test that scheduling works correctly with an initial stock over max value."""
+        self.env['stock.quant'].create({
+            'product_id': self.test_product.id,
+            'location_id': self.location_b.id,
+            'qty': 15,
+        })
+        procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
+                                                      ('product_id', 'in', [self.test_product.id,
+                                                                            self.test_product2.id,
+                                                                            self.test_product3.id,
+                                                                            self.test_product4.id,
+                                                                            ])])
+        self.assertFalse(procs)
+        self.process_orderpoints()
+        procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
+                                                      ('product_id', 'in', [self.test_product.id])],
+                                                     order='date_planned, product_id')
+
+        self.assertEqual(len(procs), 1)
+
+        self.assertEqual(procs[0].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[0].product_qty, 12)
+        self.assertEqual(procs[0].state, 'running')
+        self.assertEqual(procs[0].product_id, self.test_product)
+
     def test_60_procurement_jit_removal(self):
         """Test removal of unecessary procurements at the end."""
         proc_env = self.env['procurement.order']
