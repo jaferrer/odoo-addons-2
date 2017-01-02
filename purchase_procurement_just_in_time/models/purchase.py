@@ -206,7 +206,7 @@ class PurchaseOrderJustInTime(models.Model):
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
-    _order = 'date_planned, order_id, id'
+    _order = 'order_id, line_no, id'
 
     supplier_code = fields.Char(string="Supplier Code", compute='_compute_supplier_code')
     ack_ref = fields.Char("Acknowledge Reference", help="Reference of the supplier's last reply to confirm the delivery"
