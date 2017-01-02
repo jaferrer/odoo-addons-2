@@ -1181,7 +1181,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         line2 = [l for l in purchase_order_1.order_line if l != line][0]
         self.assertEqual(line2.father_line_id, line)
         self.assertEqual(line.children_number, 1)
-        self.assertEqual(line2.line_no, '10 - 1')
+        self.assertEqual(line2.line_no, '010 - 1')
         self.assertEqual(line2.product_qty, 28)
         self.assertEqual(sum([m.product_uom_qty for m in line2.move_ids if m.state != 'cancel']), 28)
 
@@ -1207,7 +1207,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         line3 = [l for l in purchase_order_1.order_line if l not in [line, line2]][0]
         self.assertEqual(line3.father_line_id, line)
         self.assertEqual(line.children_number, 2)
-        self.assertEqual(line3.line_no, '10 - 2')
+        self.assertEqual(line3.line_no, '010 - 2')
         self.assertEqual(line3.product_qty, 18)
 
         split = self.env['split.line'].create({'line_id': line.id, 'qty': 5})
@@ -1219,7 +1219,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         line1 = [l for l in purchase_order_1.order_line if l not in [line, line2, line3]][0]
         self.assertEqual(line1.father_line_id, line)
         self.assertEqual(line.children_number, 3)
-        self.assertEqual(line1.line_no, '10 - 3')
+        self.assertEqual(line1.line_no, '010 - 3')
         self.assertEqual(line1.product_qty, 15)
 
         purchase_order_1.signal_workflow('purchase_confirm')
@@ -1256,7 +1256,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         line2 = [l for l in purchase_order_1.order_line if l != line][0]
         self.assertEqual(line2.father_line_id, line)
         self.assertEqual(line.children_number, 1)
-        self.assertEqual(line2.line_no, '10 - 1')
+        self.assertEqual(line2.line_no, '010 - 1')
         self.assertEqual(line2.product_qty, 28)
         self.assertEqual(line2.remaining_qty, 28)
         self.assertEqual(len(line.move_ids), 2)
@@ -1272,7 +1272,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         line3 = [l for l in purchase_order_1.order_line if l not in [line, line2]][0]
         self.assertEqual(line3.father_line_id, line)
         self.assertEqual(line.children_number, 2)
-        self.assertEqual(line3.line_no, '10 - 2')
+        self.assertEqual(line3.line_no, '010 - 2')
         self.assertEqual(line3.product_qty, 18)
         self.assertEqual(line3.remaining_qty, 18)
         self.assertEqual(len(line.move_ids), 2)
@@ -1293,7 +1293,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         line1 = [l for l in purchase_order_1.order_line if l not in [line, line2, line3]][0]
         self.assertEqual(line1.father_line_id, line)
         self.assertEqual(line.children_number, 3)
-        self.assertEqual(line1.line_no, '10 - 3')
+        self.assertEqual(line1.line_no, '010 - 3')
         self.assertEqual(line1.product_qty, 15)
         self.assertEqual(line1.remaining_qty, 15)
         self.assertEqual(len(line.move_ids), 1)
