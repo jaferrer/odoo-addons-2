@@ -174,13 +174,8 @@ class StockWarehouseOrderPointJit(models.Model):
         the location of the orderpoint."""
         self.ensure_one()
         events = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
-                                                        list_move_types=('in', 'planned', 'out'), limit=False,
-                                                        parameter_to_sort='date', to_reverse=False)
-        # We really have nothing else than the 'existing' line, so we take it as last resort
-        if not events:
-            events = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
-                                                            list_move_types=('existing',), limit=False,
-                                                            parameter_to_sort='date', to_reverse=False)
+                                                        list_move_types=('in', 'planned', 'out', 'existing'),
+                                                        limit=False, parameter_to_sort='date', to_reverse=False)
         return sorted(events, key=lambda event: event['date'])
 
     @api.multi
