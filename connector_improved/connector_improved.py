@@ -38,7 +38,8 @@ class QueueJob(models.Model):
         worker_real_limit_seconds = config.parser.get_option_group('limit_time_real') or 120
         jobs_to_enqueue = self
         for job in started_jobs:
-            time_delta_seconds = (dt.now() - fields.Datetime.from_string(job.date_started)).seconds
+            ref_date = job.eta or job.date_started
+            time_delta_seconds = (dt.now() - fields.Datetime.from_string(ref_date)).seconds
             if time_delta_seconds > worker_real_limit_seconds:
                 jobs_to_enqueue |= job
         jobs_to_enqueue.requeue()
