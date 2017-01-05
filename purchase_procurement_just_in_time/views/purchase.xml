@@ -8,6 +8,7 @@
             <field name="priority" eval="15"/>
             <field name="arch" type="xml">
                 <tree string="Purchase Order Lines" editable="top" create="false" delete="false"
+                      default_order="date_planned, order_id, id"
                       colors="orange:opmsg_type=='late';blue:opmsg_type=='early';red:opmsg_type in ['to_cancel','reduce'];grey:state in ['cancel','done'];green:state=='draft'">
                     <field name="opmsg_type" invisible="1"/>
                     <field name="partner_id" string="Supplier"/>
@@ -134,9 +135,6 @@
                     <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="before">
                         <field name="line_no"/>
                     </xpath>
-                    <field name="date_required" position="replace">
-                        <field name="requested_date"/>
-                    </field>
                     <xpath expr="//notebook/page[@string='Deliveries &amp; Invoices']/group" position="inside">
                         <group>
                             <field name="date_order_max"/>

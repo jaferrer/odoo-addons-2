@@ -18,7 +18,6 @@
 #
 
 from openerp import fields, models, api
-from datetime import datetime
 
 
 class QuantOriginStockQuant(models.Model):
@@ -29,18 +28,32 @@ class QuantOriginStockQuant(models.Model):
     @api.multi
     def _compute_origin(self):
 
-        query = """
-            select quant_id,origin from (
-                select tmp.quant_id,tmp.origin,tmp.order_num, min(tmp.order_num) OVER (PARTITION BY tmp.quant_id)  from 
-                (
-                    select stock_quant_move_rel.quant_id,stock_move.origin, row_number() OVER (order by stock_move.date asc) order_num 
-                    from stock_quant_move_rel
-                    inner join stock_move on stock_move.id=stock_quant_move_rel.move_id
-                    where stock_quant_move_rel.quant_id in %s
-                ) tmp
-            ) t
-            where min=order_num
-            order by quant_id asc
+        query = """SELECT
+  quant_id,
+  origin
+FROM (
+  SELECT
+    tmp.quant_id,
+    tmp.origin,
+    tmp.order_num,
+    min(tmp.order_num)
+    OVER (PARTITION BY tmp.quant_id)
+  FROM
+    (
+      SELECT
+        stock_quant_move_rel.quant_id,
+        stock_move.origin,
+        row_number()
+        OVER
+        (
+          ORDER BY stock_move.date ASC, stock_move.id ASC) order_num
+      FROM stock_quant_move_rel
+        INNER JOIN stock_move ON stock_move.id = stock_quant_move_rel.move_id
+      WHERE stock_quant_move_rel.quant_id IN %s
+) tmp
+) t
+WHERE min=order_num
+ORDER BY quant_id ASC
         """
 
         params = (tuple(self.ids),)

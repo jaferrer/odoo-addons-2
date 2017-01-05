@@ -58,9 +58,8 @@ class ProcurementOrderQuantity(models.Model):
     @api.multi
     @api.depends('product_qty', 'product_uom')
     def _compute_qty(self):
-        uom_obj = self.env['product.uom']
         for m in self:
-            qty = uom_obj._compute_qty_obj(m.product_uom, m.product_qty, m.product_id.uom_id)
+            qty = self.env['product.uom']._compute_qty_obj(m.product_uom, m.product_qty, m.product_id.uom_id)
             m.qty = qty
 
     @api.model
@@ -107,21 +106,24 @@ class ProcurementOrderQuantity(models.Model):
     def cancel(self):
         result = super(ProcurementOrderQuantity, self).cancel()
         if self.env.context.get('unlink_all_chain'):
-            moves_to_unlink = self.env['stock.move']
-            procurements_to_unlink = self.env['procurement.order']
-            for rec in self:
-                parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
-                for move in parent_moves:
-                    if move.state == 'cancel':
-                        moves_to_unlink += move
-                        if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
-                            move.procurement_id.state == 'cancel' and \
-                                not any([move.state == 'done' for move in move.procurement_id.move_ids]):
-                            procurements_to_unlink += move.procurement_id
-            if moves_to_unlink:
-                moves_to_unlink.unlink()
-            if procurements_to_unlink:
-                procurements_to_unlink.unlink()
+            delete_moves_cancelled_by_planned = bool(self.env['ir.config_parameter'].get_param(
+                'stock_procurement_just_in_time.delete_moves_cancelled_by_planned', default=False))
+            if delete_moves_cancelled_by_planned:
+                moves_to_unlink = self.env['stock.move']
+                procurements_to_unlink = self.env['procurement.order']
+                for rec in self:
+                    parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
+                    for move in parent_moves:
+                        if move.state == 'cancel':
+                            moves_to_unlink += move
+                            if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
+                                            move.procurement_id.state == 'cancel' and \
+                                    not any([move.state == 'done' for move in move.procurement_id.move_ids]):
+                                procurements_to_unlink += move.procurement_id
+                if moves_to_unlink:
+                    moves_to_unlink.unlink()
+                if procurements_to_unlink:
+                    procurements_to_unlink.unlink()
         return result
 
     @api.model
@@ -142,34 +144,15 @@ class ProcurementOrderQuantity(models.Model):
         """Splits the given procs creating a copy with the qty of their done moves and set to done.
         """
         for procurement in self:
-            buy = procurement.rule_id.action == 'buy'
-            qty_done = sum([m.product_uom_qty for m in procurement.move_ids if m.state == 'done'])
-            if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
-                if buy:
-                    new_qty = procurement.product_qty - qty_done
-                else:
-                    new_qty = qty_done
-                if buy:
-                    new_proc = procurement.copy({
-                        'product_qty': float_round(qty_done, precision_rounding=procurement.product_id.uom_id.rounding),
-                        'state': 'done',
+            if procurement.rule_id.action == 'move':
+                qty_done = sum([move.product_qty for move in procurement.move_ids if move.state == 'done'])
+                qty_done_proc_uom = self.env['product.uom']. \
+                    _compute_qty_obj(procurement.product_id.uom_id, qty_done, procurement.product_uom)
+                if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
+                    procurement.write({
+                        'product_qty': float_round(qty_done_proc_uom,
+                                                   precision_rounding=procurement.product_uom.rounding),
                     })
-                procurement.write({
-                    'product_qty': float_round(new_qty, precision_rounding=procurement.product_id.uom_id.rounding),
-                })
-                if buy:
-                    # Attach done and cancelled moves to new_proc
-                    done_moves = procurement.move_ids.filtered(lambda m: m.state in ['done', 'cancel'])
-                    done_moves.write({'procurement_id': new_proc.id})
-            # Detach the other moves and reconfirm them so that we have push rules applied if any
-            if buy:
-                remaining_moves = procurement.move_ids.filtered(lambda m: m.state not in ['done', 'cancel'])
-                remaining_moves.write({
-                    'procurement_id': False,
-                    'move_dest_id': False,
-                })
-                remaining_moves.action_confirm()
-                remaining_moves.force_assign()
 
 
 class StockMoveJustInTime(models.Model):
@@ -191,13 +174,8 @@ class StockWarehouseOrderPointJit(models.Model):
         the location of the orderpoint."""
         self.ensure_one()
         events = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
-                                                        list_move_types=('in', 'planned', 'out'), limit=False,
-                                                        parameter_to_sort='date', to_reverse=False)
-        # We really have nothing else than the 'existing' line, so we take it as last resort
-        if not events:
-            events = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
-                                                            list_move_types=('existing',), limit=False,
-                                                            parameter_to_sort='date', to_reverse=False)
+                                                        list_move_types=('in', 'planned', 'out', 'existing'),
+                                                        limit=False, parameter_to_sort='date', to_reverse=False)
         return sorted(events, key=lambda event: event['date'])
 
     @api.multi
@@ -236,7 +214,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-            fields.Datetime.from_string(last_schedule[0].get('date')) or False
+              fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -289,19 +267,26 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                     op.location_id.display_name))
             events = op.get_list_events()
             done_dates = []
+            events_at_date = []
             stock_after_event = 0
             for event in events:
                 if event['date'] not in done_dates:
-                    stock_after_event += sum(item['move_qty'] for item in events if item['date'] == event['date'])
+                    events_at_date = [item for item in events if item['date'] == event['date']]
+                    stock_after_event += sum(item['move_qty'] for item in events_at_date)
                     done_dates += [event['date']]
                 if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned']:
-                    proc_oversupply = self.env['procurement.order'].search([('id', '=', event['proc_id'])])
+                    proc_oversupply = self.env['procurement.order'].search([('id', '=', event['proc_id']),
+                                                                            ('state', '!=', 'done')])
                     qty_same_proc = sum(item['move_qty'] for item in events if item['proc_id'] == event['proc_id'])
                     if proc_oversupply:
                         stock_after_event -= qty_same_proc
-                    _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
+                        _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
                     proc_oversupply.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
                     proc_oversupply.unlink()
+                    if op.is_under_stock_min(stock_after_event) and \
+                            any([item['move_type'] == 'out' for item in events_at_date]):
+                        new_proc = op.create_from_need(event, stock_after_event)
+                        stock_after_event += new_proc.product_qty
                 elif op.is_under_stock_min(stock_after_event):
                     new_proc = op.create_from_need(event, stock_after_event)
                     stock_after_event += new_proc.product_qty

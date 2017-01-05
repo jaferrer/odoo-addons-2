@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,22 +18,21 @@
 #
 
 {
-    'name': 'Purchase Reception By Order Line',
-    'sequence': 1,
+    'name': 'Stock No Recompute Check',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase_line_numbers', 'stock_performance_improved'],
+    'category': 'Warehouse',
+    'depends': ['stock'],
     'description': """
-Purchase Reception By Order Line
-================================
-This module improves the initial reception process. It allows to make it purchase order line by purchase order line.
+Stock No Recompute Check
+========================
+This module removes the use of the recompute_pack_op field on stock pickings
+so that parallel processing of stock moves can be performed without locking.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['purchase_reception_by_order_line.xml',
-             'wizard.xml'],
-    'demo': ['tests/test_purchase_reception_by_order_line.xml'],
+    'data': [],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

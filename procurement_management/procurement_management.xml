@@ -96,7 +96,7 @@ self.action_reschedule(cr, uid, context.get('active_ids'), context)
             </field>
         </record>
 
-        <record model="ir.ui.view" id="procurement_management_stock_move_view_form_">
+        <record model="ir.ui.view" id="procurement_management_stock_move_view_form">
             <field name="name">procurement.management.stock.move.view.form</field>
             <field name="model">stock.move</field>
             <field name="inherit_id" ref="stock.view_move_form"/>

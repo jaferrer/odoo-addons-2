@@ -35,18 +35,18 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.product_uom = self.browse_ref('product.product_uom_unit')
         self.location_a = self.browse_ref('purchase_procurement_just_in_time.stock_location_a')
         self.location_b = self.browse_ref('purchase_procurement_just_in_time.stock_location_b')
-        self.procurement_rule_a_to_b = self.browse_ref('purchase_procurement_just_in_time.procurement_rule_a_to_b')
-        self.procurement_rule_a_buy = self.browse_ref('purchase_procurement_just_in_time.procurement_rule_a_buy')
         self.warehouse = self.browse_ref('stock.warehouse0')
         self.frame_week = self.browse_ref('purchase_procurement_just_in_time.week')
-        self.unit = self.browse_ref('product.product_uom_unit')
         self.loc_supplier = self.browse_ref('stock.stock_location_suppliers')
         self.picking_type_in = self.browse_ref('stock.picking_type_in')
+        self.unit = self.browse_ref('product.product_uom_unit')
+        self.uom_couple = self.browse_ref('purchase_procurement_just_in_time.uom_couple')
+        self.uom_four = self.browse_ref('purchase_procurement_just_in_time.uom_four')
 
         self.prepare_procurements()
 
-        configuration_wizard = self.env['purchase.config.settings'].create({'delta_begin_grouping_period': False,
-                                                                            'ignore_past_procurements': False})
+        configuration_wizard = self.env['purchase.config.settings']. \
+            create({'delta_begin_grouping_period': False, 'ignore_past_procurements': False})
         configuration_wizard.execute()
 
     # Tests are made in 3003, so that all the data remain in the future. Dates of 3003 are the same as dates of 2016.
@@ -95,11 +95,23 @@ class TestPurchaseScheduler(common.TransactionCase):
             'product_uom': self.product_uom.id,
         })
 
+    def prepare_proc_6(self):
+        return self.env['procurement.order'].create({
+            'name': 'Procurement order 6(Purchase Procurement JIT)',
+            'product_id': self.product2.id,
+            'product_qty': 34,
+            'warehouse_id': self.warehouse.id,
+            'location_id': self.location_a.id,
+            'date_planned': '3003-09-11 15:00:00',
+            'product_uom': self.product_uom.id,
+        })
+
     def prepare_procurements(self):
         self.proc1 = self.prepare_proc_1()
         self.proc2 = self.prepare_proc_2()
         self.proc3 = self.prepare_proc_3()
         self.proc4 = self.prepare_proc_4()
+        self.proc6 = self.prepare_proc_6()
         self.proc1.run()
         self.assertEqual(self.proc1.state, 'buy_to_run')
         self.proc2.run()
@@ -114,22 +126,28 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(self.proc5.date_planned[:10], '3003-09-14')
         self.proc5.run()
         self.assertEqual(self.proc5.state, 'buy_to_run')
+        self.proc6.run()
+        self.assertEqual(self.proc6.state, 'buy_to_run')
 
     def test_10_schedule_and_reschedule_from_scratch(self):
         """Test of purchase order creation from scratch when there are none at the beginning."""
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_supplier_ids=self.supplier,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
                                                         jobify=False)
         purchase1 = self.proc1.purchase_id
         purchase2 = self.proc2.purchase_id
         purchase3 = self.proc3.purchase_id
         purchase5 = self.proc5.purchase_id
+        purchase6 = self.proc6.purchase_id
 
         self.assertTrue(purchase1)
         self.assertTrue(purchase2)
         self.assertTrue(purchase3)
         self.assertTrue(purchase5)
+        self.assertTrue(purchase6)
 
         self.assertEqual(purchase2, purchase1)
+        self.assertEqual(purchase6, purchase1)
         self.assertNotEqual(purchase1, purchase5)
         self.assertNotEqual(purchase1, purchase3)
         self.assertNotEqual(purchase3, purchase5)
@@ -140,7 +158,8 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # Let's change a date and reschedule
         self.proc1.date_planned = '3003-09-23 12:00:00'
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_supplier_ids=self.supplier,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
                                                         jobify=False)
 
         purchase1 = self.proc1.purchase_id
@@ -166,7 +185,8 @@ class TestPurchaseScheduler(common.TransactionCase):
     def test_20_schedule_a_limited_number_of_orders(self):
         """Test of purchase order creation from scratch when nb_max_draft_orders is defined for the suplier."""
         self.supplier.nb_max_draft_orders = 2
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_product_ids=self.product1,
                                                         jobify=False)
         purchase1 = self.proc1.purchase_id
         purchase2 = self.proc2.purchase_id
@@ -200,7 +220,8 @@ class TestPurchaseScheduler(common.TransactionCase):
         past_proc.run()
         self.assertEqual(past_proc.state, 'buy_to_run')
 
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_product_ids=self.product1,
                                                         compute_supplier_ids=self.supplier, jobify=False)
         past_purchase = past_proc.purchase_id
         purchase1 = self.proc1.purchase_id
@@ -227,7 +248,8 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         configuration_wizard = self.env['purchase.config.settings'].create({'ignore_past_procurements': True})
         configuration_wizard.execute()
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_product_ids=self.product1,
                                                         compute_supplier_ids=self.supplier, jobify=False)
         past_purchase = past_proc.purchase_id
         purchase1 = self.proc1.purchase_id
@@ -304,7 +326,8 @@ class TestPurchaseScheduler(common.TransactionCase):
 
     def test_50_schedule_with_existing_po(self):
         """Test of purchase order line assignation/creation when there are some PO at the beginning."""
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_product_ids=self.product1,
                                                         jobify=False)
 
         purchase1 = self.proc1.purchase_id
@@ -334,6 +357,11 @@ class TestPurchaseScheduler(common.TransactionCase):
         purchase5.signal_workflow('purchase_confirm')
         self.assertEqual(purchase5.state, 'approved')
         move5 = self.env['stock.move'].search([('procurement_id', '=', self.proc5.id)])
+        # We check uom treatment for function compute_procs_for_first_line_found
+        self.assertEqual(self.proc1.product_qty, 34)
+        self.assertEqual(self.proc1.product_uom, self.unit)
+        self.proc1.product_qty = 17
+        self.proc1.product_uom = self.uom_couple
         self.assertEqual(len(move5), 1)
         self.assertEqual(move5.purchase_line_id, line5)
         move5.action_done()
@@ -345,7 +373,8 @@ class TestPurchaseScheduler(common.TransactionCase):
         # Now, proc1 is at the same date as purchase5. It should be assigned to purchase5 which is running and not to
         # purchase1 which is draft, and moves should be created for it.
 
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_product_ids=self.product1,
                                                         jobify=False)
 
         line5 = purchase5.order_line
@@ -370,14 +399,15 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn((self.proc2, 'assigned', 2), moves_data)
         self.assertIn((self.env['procurement.order'], 'assigned', 10), moves_data)
 
-        procs_data = [(proc, proc.state, proc.product_qty) for proc in line5.procurement_ids]
-        self.assertIn((self.proc5, 'done', 4), procs_data)
-        self.assertIn((self.proc1, 'running', 34), procs_data)
-        self.assertIn((self.proc2, 'running', 2), procs_data)
+        procs_data = [(proc, proc.state, proc.product_qty, proc.product_uom) for proc in line5.procurement_ids]
+        self.assertIn((self.proc5, 'done', 4, self.unit), procs_data)
+        self.assertIn((self.proc1, 'running', 17, self.uom_couple), procs_data)
+        self.assertIn((self.proc2, 'running', 2, self.unit), procs_data)
 
     def test_55_schedule_with_existing_po(self):
         """Test of purchase order line assignation/creation when there are some PO at the beginning."""
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_product_ids=self.product1,
                                                         jobify=False)
 
         purchase1 = self.proc1.purchase_id
@@ -406,7 +436,8 @@ class TestPurchaseScheduler(common.TransactionCase):
         line1.product_qty = 35
         purchase1.signal_workflow('purchase_confirm')
         self.assertEqual(purchase1.state, 'approved')
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_product_ids=self.product1,
                                                         jobify=False)
 
         line1.product_qty = 40
@@ -435,7 +466,8 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         self.assertEqual(line1.remaining_qty, 5)
 
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False, compute_product_ids=self.product1,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_product_ids=self.product1,
                                                         jobify=False)
         self.assertEqual(len(line1.procurement_ids), 2)
         self.assertIn(self.proc1, line1.procurement_ids)
@@ -463,7 +495,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase5.date_order[:10], '3003-09-05')
 
         # Let's confirm purchase1 and create moves for proc1
-        line1 = purchase1.order_line
+        line1 = purchase1.order_line.filtered(lambda line: line.product_id == self.product1)
         self.assertEqual(len(line1), 1)
         line1_id = line1.id
         self.assertEqual(line1.product_qty, 36)
@@ -532,3 +564,220 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(self.proc1.purchase_id, purchase5)
         self.assertEqual(self.proc1.purchase_line_id, line5)
         self.assertEqual(len(self.proc1.move_ids), 0)
+
+    def test_70_reschedule_after_proc_removal(self):
+        """Test of purchase scheduler after procurement reduction."""
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase3 = self.proc3.purchase_id
+        purchase5 = self.proc5.purchase_id
+
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+
+        self.assertEqual(purchase2, purchase1)
+        self.assertNotEqual(purchase1, purchase5)
+        self.assertNotEqual(purchase1, purchase3)
+        self.assertNotEqual(purchase3, purchase5)
+
+        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+
+        # Validate order 1 and 3
+        purchase1.signal_workflow('purchase_confirm')
+        self.assertEqual(len(purchase1.order_line), 2)
+        line = [pol for pol in purchase1.order_line if pol.product_id == self.product1][0]
+        self.assertEqual(sum(m.product_uom_qty for m in line.move_ids), 36)
+        self.assertEqual(line.remaining_qty, 36)
+
+        purchase3.signal_workflow('purchase_confirm')
+        self.assertEqual(len(purchase3.order_line), 1)
+        line3 = purchase3.order_line[0]
+        self.assertEqual(sum(m.product_uom_qty for m in line3.move_ids), 36)
+        self.assertEqual(line3.remaining_qty, 36)
+
+        # Let's cancel all procurements and reschedule. We also save purchase lines associated with procurements,
+        # because we will check they have not changed of procurement after rescheduling.
+        purchase_line1 = self.proc1.purchase_line_id
+        purchase_line2 = self.proc2.purchase_line_id
+        purchase_line4 = self.proc4.purchase_line_id
+        self.proc1.cancel()
+        self.proc2.cancel()
+        self.proc4.cancel()
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+
+        # Check that move quantities are OK
+        self.assertTrue(purchase1)
+        self.assertEqual(len(purchase1.order_line), 2)
+        line = [pol for pol in purchase1.order_line if pol.product_id == self.product1][0]
+        self.assertEqual(sum(m.product_uom_qty for m in line.move_ids), 36)
+        self.assertEqual(line.remaining_qty, 36)
+
+        self.assertTrue(purchase3)
+        self.assertEqual(len(purchase3.order_line), 1)
+        line3 = purchase3.order_line[0]
+        self.assertEqual(sum(m.product_uom_qty for m in line3.move_ids), 36)
+        self.assertEqual(line3.remaining_qty, 36)
+
+        # Check that cancelled procurements did not change of purchase lines
+        self.assertEqual(self.proc1.purchase_line_id, purchase_line1)
+        self.assertEqual(self.proc2.purchase_line_id, purchase_line2)
+        self.assertEqual(self.proc4.purchase_line_id, purchase_line4)
+
+    def test_80_add_grouping_period_to_supplier(self):
+        """Test of purchase order creation from scratch when there are none at the beginning."""
+        self.supplier.order_group_period = False
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase3 = self.proc3.purchase_id
+        purchase5 = self.proc5.purchase_id
+        purchase6 = self.proc6.purchase_id
+
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+        self.assertTrue(purchase6)
+
+        self.assertEqual(purchase1, purchase2)
+        self.assertEqual(purchase1, purchase3)
+        self.assertEqual(purchase1, purchase5)
+        self.assertEqual(purchase1, purchase6)
+
+        self.assertEqual(purchase1.date_order[:10], fields.Date.today())
+        self.assertEqual(len(purchase1.order_line), 2)
+        lines_data = [(line.product_id, line.product_qty) for line in purchase1.order_line]
+        self.assertIn((self.product1, 84), lines_data)
+        self.assertIn((self.product2, 34), lines_data)
+
+        self.supplier.order_group_period = self.frame_week
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase3 = self.proc3.purchase_id
+        purchase5 = self.proc5.purchase_id
+        purchase6 = self.proc6.purchase_id
+
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+        self.assertTrue(purchase6)
+
+        self.assertEqual(purchase2, purchase1)
+        self.assertEqual(purchase6, purchase1)
+        self.assertNotEqual(purchase1, purchase5)
+        self.assertNotEqual(purchase1, purchase3)
+        self.assertNotEqual(purchase3, purchase5)
+
+        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+
+        # Let's change a date and reschedule
+        self.proc1.date_planned = '3003-09-23 12:00:00'
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase5 = self.proc5.purchase_id
+        purchase3 = self.proc3.purchase_id
+
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+
+        self.assertNotEqual(purchase2, purchase1)
+        self.assertNotEqual(purchase5, purchase1)
+        self.assertEqual(purchase3, purchase1)
+        self.assertNotEqual(purchase3, purchase5)
+
+        self.assertEqual(purchase1.date_order, '3003-09-12 00:00:00')
+        self.assertEqual(purchase1.date_order_max, '3003-09-18 23:59:59')
+        self.assertEqual(purchase5.date_order, '3003-08-29 00:00:00')
+        self.assertEqual(purchase5.date_order_max, '3003-09-04 23:59:59')
+
+    def test_90_cancel_partially_received_proc(self):
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase3 = self.proc3.purchase_id
+        purchase5 = self.proc5.purchase_id
+        purchase6 = self.proc6.purchase_id
+
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+        self.assertTrue(purchase6)
+
+        self.assertEqual(purchase2, purchase1)
+        self.assertEqual(purchase6, purchase1)
+        self.assertNotEqual(purchase1, purchase5)
+        self.assertNotEqual(purchase1, purchase3)
+        self.assertNotEqual(purchase3, purchase5)
+
+        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+
+        # Let's receive partially a proc and cancel it
+        purchase1.signal_workflow('purchase_confirm')
+        move_orig = self.proc1.move_ids
+        self.assertEqual(len(move_orig), 1)
+        move_orig.split(move_orig, 20)
+        self.assertEqual(len(self.proc1.move_ids), 2)
+        self.assertEqual(move_orig.product_qty, 14)
+        new_move = self.proc1.move_ids.filtered(lambda move: move != move_orig)
+        new_move.action_confirm()
+        self.assertEqual(new_move.product_qty, 20)
+
+        picking = move_orig.picking_id
+        self.assertTrue(picking)
+        self.assertEqual(new_move.picking_id, picking)
+
+        # Let's change move_orig UOM
+        move_orig.product_uom_qty = 7
+        move_orig.product_uom = self.uom_couple
+        move_orig.action_done()
+        self.assertEqual(len(self.proc1.move_ids), 2)
+        existing_procs = self.env['procurement.order'].search([])
+        self.assertEqual(self.proc1.product_qty, 34)
+        self.proc1.product_qty = 8.5
+        self.proc1.product_uom = self.uom_four
+        self.proc1.cancel()
+
+        new_proc = self.env['procurement.order'].search([('product_id', '=', self.product1.id),
+                                                         ('id', 'not in', existing_procs.ids)])
+        self.assertEqual(new_proc.product_qty, 3.5)
+        self.assertEqual(new_proc.product_uom, self.uom_four)
+        self.assertEqual(new_proc.state, 'done')
+        self.assertEqual(new_proc.move_ids, move_orig)
+        self.assertEqual(move_orig.state, 'done')
+        self.assertEqual(move_orig.picking_id, picking)
+        self.assertEqual(self.proc1.product_qty, 5)
+        self.assertEqual(self.proc1.product_uom, self.uom_four)
+        self.assertEqual(self.proc1.state, 'cancel')
+        self.assertFalse(self.proc1.move_ids)
+        self.assertFalse(new_move.procurement_id)
+        self.assertEqual(new_move.state, 'assigned')
+        self.assertEqual(new_move.picking_id, picking)

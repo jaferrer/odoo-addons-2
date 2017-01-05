@@ -16,11 +16,6 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: document_scanner
-#: model:ir.ui.menu,name:document_scanner.menu_reload_scanner_list
-msgid "Mise à jour de la liste des Scanner"
-msgstr "Mise à jour de la liste des Scanner"
-
-#. module: document_scanner
 #. openerp-web
 #: code:addons/document_scanner/static/src/xml/qweb.xml:6
 #, python-format
@@ -35,17 +30,39 @@ msgstr "Scanner"
 
 #. module: document_scanner
 #. openerp-web
-#: code:addons/document_scanner/static/src/js/document_scanner.js:21
+#: code:addons/document_scanner/static/src/js/document_scanner.js:20
 #, python-format
-msgid "Scanning Error"
-msgstr "Erreur"
+msgid "The request has not been sent"
+msgstr "La demande n'a pas été envoyée"
 
 #. module: document_scanner
 #. openerp-web
-#: code:addons/document_scanner/static/src/js/document_scanner.js:23
+#: code:addons/document_scanner/static/src/js/document_scanner.js:22
 #, python-format
 msgid "Scanning information"
 msgstr "Information"
+
+
+#. module: document_scanner
+#. openerp-web
+#: code:addons/document_scanner/static/src/js/document_scanner.js:22
+#, python-format
+msgid "The request has been sent to the scanner :"
+msgstr "La demande a été envoyée au scanner :"
+
+#. module: document_scanner
+#. openerp-web
+#: code:addons/document_scanner/static/src/js/document_scanner.js:20
+#, python-format
+msgid "You need to defined a scanner in your settings"
+msgstr "Vous devez définir un scanner dans vos préférence"
+
+#. module: document_scanner
+#. openerp-web
+#: code:addons/document_scanner/static/src/js/document_scanner.js:20
+#, python-format
+msgid "You are not allowed to scan a document"
+msgstr "Vous n'êtes pas autorisé à numériser un document"
 
 #. module: document_scanner
 #: model:ir.model,name:document_scanner.model_res_users
@@ -53,7 +70,46 @@ msgid "Users"
 msgstr "Utilisateurs"
 
 #. module: document_scanner
-#: model:ir.actions.server,name:document_scanner.reload_list_scanner
-msgid "document_scanner_user action"
-msgstr "Mise à jour de la liste des Scanner"
+#: field:res.users,scanner_id:0
+#, python-format
+msgid "Actual Scanner"
+msgstr "Scanner Actuel"
+
+#. module: document_scanner
+#: field:scanner.info,name:0
+msgid "Name"
+msgstr "Nom"
+
+#. module: document_scanner
+#: model:ir.ui.menu,name:document_scanner.menu_reload_scanner_list
+msgid "Scanners"
+msgstr "Scanners"
+
+#. module: document_scanner
+#: model:res.groups,name:document_scanner.group_scanner_user
+msgid "User scanner"
+msgstr "Utilisateur Scanner"
+
+#. module: document_scanner
+#: model:res.groups,name:document_scanner.group_scanner_manager
+msgid "Manager scanner"
+msgstr "Manager des scanners"
+
+#. module: document_scanner
+#: model:res.groups,name:document_scanner.group_scanner_bot
+msgid "Bot scanner"
+msgstr "Robot connecté au scanner"
+
+#. module: document_scanner
+#: code:addons/document_scanner/models/document_scanner.py:34
+#, python-format
+msgid "You need to defined a scanner in your settings"
+msgstr "Vous devez définir un scanner dans vos préférences"
+
+#. module: document_scanner
+#: code:addons/document_scanner/models/document_scanner.py:32
+#, python-format
+msgid "You are not allowed to scan a document"
+msgstr "Vous n'êtes pas autorisé à numériser un document"
+
 
