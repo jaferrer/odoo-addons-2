@@ -18,8 +18,8 @@
 #
 
 from datetime import datetime as dt
-from dateutil.relativedelta import relativedelta
 
+from dateutil.relativedelta import relativedelta
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
 
@@ -130,9 +130,11 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         procurements_to_tun = self.search(domain_procurements_to_run)
         ignore_past_procurements = bool(self.env['ir.config_parameter'].
                                         get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
-        dict_procs_suppliers = {}
+        dict_procs_suppliers_locs = {}
         while procurements_to_tun:
             seller = self._get_product_supplier(procurements_to_tun[0])
+            seller_ok = bool(compute_all_products or not compute_supplier_ids or
+                             compute_supplier_ids and seller.id in compute_supplier_ids)
             company = procurements_to_tun[0].company_id
             product = procurements_to_tun[0].product_id
             location = procurements_to_tun[0].location_id
@@ -140,7 +142,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                       ('company_id', '=', company.id),
                       ('product_id', '=', product.id),
                       ('location_id', '=', location.id)]
-            if ignore_past_procurements:
+            if seller_ok and ignore_past_procurements:
                 suppliers = product.seller_ids and self.env['product.supplierinfo']. \
                     search([('id', 'in', product.seller_ids.ids),
                             ('name', '=', product.seller_id.id)]) or False
@@ -154,23 +156,26 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
                 domain += [('date_planned', '>', min_date)]
             procurements = self.search(domain)
-            if dict_procs_suppliers.get(seller):
-                dict_procs_suppliers[seller] += procurements
-            else:
-                dict_procs_suppliers[seller] = procurements
-            procurements_to_tun -= procurements
-        for seller in dict_procs_suppliers.keys():
-            if dict_procs_suppliers[seller] and \
-                    (compute_all_products or not compute_supplier_ids or
-                     compute_supplier_ids and seller.id in compute_supplier_ids):
-                if jobify:
-                    session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-                    job_purchase_schedule_procurements. \
-                        delay(session, 'procurement.order', dict_procs_suppliers[seller].ids,
-                              description=_("Scheduling purchase orders for seller %s and location %s") %
-                              (seller.display_name, location.display_name), context=self.env.context)
+            if seller_ok:
+                if dict_procs_suppliers_locs.get(seller):
+                    if dict_procs_suppliers_locs[seller].get(location):
+                        dict_procs_suppliers_locs[seller][location] += procurements
+                    else:
+                        dict_procs_suppliers_locs[seller][location] = procurements
                 else:
-                    dict_procs_suppliers[seller].purchase_schedule_procurements()
+                    dict_procs_suppliers_locs[seller] = {location: procurements}
+            procurements_to_tun -= procurements
+        for supplier in dict_procs_suppliers_locs.keys():
+            for loc in dict_procs_suppliers_locs[supplier].keys():
+                if dict_procs_suppliers_locs[supplier][loc]:
+                    if jobify:
+                        session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+                        job_purchase_schedule_procurements. \
+                            delay(session, 'procurement.order', dict_procs_suppliers_locs[supplier][loc].ids,
+                                  description=_("Scheduling purchase orders for seller %s and location %s") %
+                                              (supplier.display_name, loc.display_name), context=self.env.context)
+                    else:
+                        dict_procs_suppliers_locs[supplier][loc].purchase_schedule_procurements()
 
     @api.multi
     def compute_procs_for_first_line_found(self, purchase_lines, dict_procs_lines):
