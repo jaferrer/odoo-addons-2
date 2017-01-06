@@ -20,16 +20,13 @@
 from openerp import fields, models, api, _
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
+from openerp.tools import float_compare
 
 
-@job
-def run_mrp_production_update(session, model_name, context):
-    mrp = session.env[model_name].with_context(context).search([("state", "in", ['ready', 'confirmed'])])
-    for rec in mrp:
-        if not session.env['stock.move'].search([('state', '=', 'done'), ('raw_material_production_id', '=', rec.id)]):
-            if not any([move.move_orig_ids and any([orig.state == 'done' for orig in move.move_orig_ids])
-                        for move in rec.move_lines]):
-                rec.button_update()
+@job(default_channel='root.mrp.update')
+def run_mrp_production_update(session, model_name, mrp_ids, context):
+    mrp_orders = session.env[model_name].with_context(context).browse(mrp_ids)
+    mrp_orders.button_update()
     return "End update"
 
 
@@ -53,27 +50,31 @@ class MoUpdateMrpProduction(models.Model):
             useless_moves.with_context({'cancel_procurement': True}).action_cancel()
             for item in mrp.move_lines:
                 if not item.product_id in list_products_to_change:
-                    total_old_need = sum([x.product_uom_qty for x in mrp.move_lines if x.product_id == item.product_id])
+                    total_old_need = sum([x.product_qty for x in mrp.move_lines if x.product_id == item.product_id])
                     total_new_need = sum([x.product_qty for x in mrp.product_lines if x.product_id == item.product_id])
-                    if total_new_need != total_old_need and total_new_need != 0:
+                    prec = item.product_id.uom_id.rounding
+                    if float_compare(total_new_need, total_old_need, precision_rounding=prec) != 0 and \
+                                    float_compare(total_new_need, 0, precision_rounding=prec) != 0:
                         changes_to_do += [(item.product_id, total_new_need - total_old_need, total_new_need,
                                            total_old_need)]
                         list_products_to_change += [item.product_id]
             for product, qty, total_new_need, total_old_need in changes_to_do:
-                if qty > 0:
+                if float_compare(qty, 0, precision_rounding=prec) > 0:
                     move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, qty, False, 0)
                     self.env['stock.move'].browse(move).action_confirm()
                 else:
-                    moves = mrp.move_lines.filtered(lambda m: m.product_id==product).\
-                        sorted(key=lambda m: m.product_qty, reverse=True)
-                    _sum = sum([x.product_qty for x in moves])
-                    while _sum > total_new_need:
+                    moves = self.env['stock.move'].search([('raw_material_production_id', '=', mrp.id),
+                                                           ('state', 'not in', ['done', 'cancel']),
+                                                           ('product_id', '=', product.id)],
+                                                          order='product_qty desc')
+                    qty_ordered = sum([x.product_qty for x in moves])
+                    while float_compare(qty_ordered, total_new_need, precision_rounding=product.uom_id.rounding) > 0:
                         moves[0].with_context({'cancel_procurement': True}).action_cancel()
-                        _sum -= moves[0].product_qty
+                        qty_ordered -= moves[0].product_qty
                         moves -= moves[0]
-                    if _sum < total_new_need:
+                    if float_compare(qty_ordered, total_new_need, precision_rounding=product.uom_id.rounding) < 0:
                         move = self._make_consume_line_from_data(mrp, product, product.uom_id.id,
-                                                                 total_new_need - _sum, False, 0)
+                                                                 total_new_need - qty_ordered, False, 0)
                         self.env['stock.move'].browse(move).action_confirm()
                 post += _("Product %s: quantity changed from %s to %s<br>") % \
                         (product.display_name, total_old_need, total_new_need)
@@ -89,7 +90,6 @@ class MoUpdateMrpProduction(models.Model):
                 move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, item.product_qty, False, 0)
                 self.env['stock.move'].browse(move).action_confirm()
             mrp.message_post(post)
-        return True
 
     @api.multi
     def write(self, vals):
@@ -106,10 +106,35 @@ class MoUpdateMrpProduction(models.Model):
 
     @api.multi
     def button_update(self):
-        self.ensure_one()
         self._action_compute_lines()
-        return self.update_moves()
+        self.update_moves()
 
     @api.model
     def run_schedule_button_update(self):
-        run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', self.env.context)
+        self.env.cr.execute("""WITH mrp_moves_details AS (
+    SELECT
+      mrp.id        AS mrp_id,
+      sm.state      AS raw_move_state,
+      sm_orig.state AS service_move_state
+    FROM mrp_production mrp
+      LEFT JOIN stock_move sm ON sm.raw_material_production_id = mrp.id
+      LEFT JOIN stock_move sm_orig ON sm_orig.move_dest_id = sm.id
+    WHERE mrp.state IN ('ready', 'confirmed'))
+
+SELECT mrp_id
+FROM mrp_moves_details
+GROUP BY mrp_id
+HAVING sum(CASE WHEN raw_move_state = 'done' OR
+                     service_move_state = 'done'
+  THEN 1
+           ELSE 0 END) <= 0""")
+        fetchall = self.env.cr.fetchall()
+        mrp_to_update_ids = [item[0] for item in fetchall]
+        chunk_number = 0
+        while mrp_to_update_ids:
+            chunk_number += 1
+            mrp_chunk_ids = mrp_to_update_ids[:100]
+            run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
+                                            self.env.context, description=u"MRP Production Update (chunk %s)" %
+                                                                          chunk_number)
+            mrp_to_update_ids = mrp_to_update_ids[100:]
