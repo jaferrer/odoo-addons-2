@@ -73,6 +73,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return result
 
     @api.model
+    def _get_product_supplier(self, procurement):
+        ''' returns the main supplier of the procurement's product given as argument'''
+        company_supplier = self.env['product.supplierinfo']. \
+            search([('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id),
+                    ('company_id', '=', procurement.company_id.id)], order='sequence asc, id asc')
+        if company_supplier:
+            return company_supplier[0].name
+        return procurement.product_id.seller_id
+
+    @api.model
     def remove_done_moves(self):
         """Splits the given procs creating a copy with the qty of their done moves and set to done.
         """
@@ -132,7 +142,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                         get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
         dict_procs_suppliers_locs = {}
         while procurements_to_tun:
-            seller = self._get_product_supplier(procurements_to_tun[0])
+            seller = self.env['procurement.order']._get_product_supplier(procurements_to_tun[0])
             seller_ok = bool(compute_all_products or not compute_supplier_ids or
                              compute_supplier_ids and seller.id in compute_supplier_ids)
             company = procurements_to_tun[0].company_id
@@ -263,7 +273,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                    _compute_qty(proc.product_uom.id, proc.product_qty,
                                                 proc.product_id.uom_id.id) for proc in procurements_grouping_period])
         suppliers = first_proc.product_id.seller_ids. \
-            filtered(lambda supplier: supplier.name == self._get_product_supplier(first_proc))
+            filtered(lambda supplier: supplier.name == self.env['procurement.order'].
+                     _get_product_supplier(first_proc))
         moq = suppliers and suppliers[0].min_qty or False
         if moq and float_compare(line_qty_product_uom, moq,
                                  precision_rounding=first_proc.product_id.uom_id.rounding) < 0:
@@ -354,7 +365,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             order_by = 'date_planned asc, product_qty asc, id asc'
             # Let's process procurements by grouping period
             procurements = self.search([('id', 'in', self.ids)], order=order_by)
-            seller = self._get_product_supplier(procurements[0])
+            seller = self.env['procurement.order']._get_product_supplier(procurements[0])
             while procurements:
                 first_proc = procurements[0]
                 product = first_proc.product_id
@@ -386,7 +397,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.multi
     def sanitize_draft_orders(self):
-        seller = self._get_product_supplier(self[0])
+        seller = self.env['procurement.order']._get_product_supplier(self[0])
         orders = self.env['purchase.order'].search([('state', '=', 'draft'),
                                                     ('partner_id', '=', seller.id)], order='date_order')
         order_lines = self.env['purchase.order.line'].search([('order_id', 'in', orders.ids)])
@@ -400,7 +411,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.multi
     def delete_useless_draft_orders(self):
-        seller = self._get_product_supplier(self[0])
+        seller = self.env['procurement.order']._get_product_supplier(self[0])
         orders = self.env['purchase.order'].search([('state', '=', 'draft'),
                                                     ('partner_id', '=', seller.id)])
         orders_to_unlink = self.env['purchase.order']
@@ -411,7 +422,11 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.multi
     def purchase_schedule_procurements(self):
-        sellers = {self._get_product_supplier(proc) for proc in self}
+        companies = {proc.company_id for proc in self}
+        locations = {proc.location_id for proc in self}
+        sellers = {self.env['procurement.order']._get_product_supplier(proc) for proc in self}
+        assert len(companies) == 1, "purchase_schedule_procurements should be called with procs of the same company"
+        assert len(locations) == 1, "purchase_schedule_procurements should be called with procs of the same location"
         assert len(sellers) == 1, "purchase_schedule_procurements should be called with procs of the same supplier"
         self.sanitize_draft_orders()
         dict_procs_lines, not_assigned_procs = self.compute_which_procs_for_lines()
@@ -494,7 +509,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     def make_po(self):
         res = {}
         for proc in self:
-            if not self._get_product_supplier(proc):
+            if not self.env['procurement.order']._get_product_supplier(proc):
                 proc.message_post(_('There is no supplier associated to product %s') % (proc.product_id.name))
                 res[proc.id] = False
             else:
