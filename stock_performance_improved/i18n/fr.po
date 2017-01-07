@@ -63,6 +63,21 @@ msgid "Move id"
 msgstr "ID du mouvement"
 
 #. module: stock_performance_improved
+#: field:stock.move,defer_picking_assign:0
+msgid "Defer Picking Assignement"
+msgstr "Retarder le rattachement au bon de transfert"
+
+#. module: stock_performance_improved
+#: field:procurement.rule,defer_picking_assign:0
+msgid "Defer Picking Assignement"
+msgstr "Retarder le rattachement au bon de transfert"
+
+#. module: stock_performance_improved
+#: field:stock.location.path,defer_picking_assign:0
+msgid "Defer Picking Assignement"
+msgstr "Retarder le rattachement au bon de transfert"
+
+#. module: stock_performance_improved
 #: model:ir.model,name:stock_performance_improved.model_stock_picking
 msgid "Picking List"
 msgstr "Opération de manutention"

@@ -103,7 +103,8 @@ class IncompeteProductionMrpProduction(models.Model):
                                                                   ('lot_id', '=', key[1] or False)])
                 reserved_qty = sum([quant.qty for quant in reserved_quants])
                 final_qty = min(reserved_qty, total_consume)
-                if float_compare(final_qty, 0, self.env['decimal.precision'].precision_get('Product Unit of Measure')) != 0:
+                if float_compare(final_qty, 0,
+                                 self.env['decimal.precision'].precision_get('Product Unit of Measure')) != 0:
                     new_consume_lines += [{'product_id': key[0], 'lot_id': key[1], 'product_qty': final_qty}]
                 list_keys += [key]
         return new_consume_lines
@@ -189,15 +190,15 @@ class IncompeteProductionMrpProduction(models.Model):
 
     @api.multi
     def button_update(self):
-        self.ensure_one()
-        if not self.backorder_id:
-            self._action_compute_lines()
-            self.update_moves()
+        orders_no_backorder = self.search([('id', 'in', self.ids),
+                                           ('backorder_id', '=', False)])
+        orders_no_backorder._action_compute_lines()
+        orders_no_backorder.update_moves()
 
     @api.multi
     def action_assign(self):
         result = super(IncompeteProductionMrpProduction, self).action_assign()
         for order in self:
             if any([move.reserved_quant_ids for move in order.move_lines]):
-                 order.signal_workflow('moves_ready')
+                order.signal_workflow('moves_ready')
         return result
