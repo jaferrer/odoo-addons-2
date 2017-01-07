@@ -23,46 +23,16 @@ from openerp import fields, models, api
 class QuantOriginStockQuant(models.Model):
     _inherit = 'stock.quant'
 
-    origin = fields.Char(string='Quant origin', compute='_compute_origin')
+    origin = fields.Char(string='Quant origin', readonly=True)
 
-    @api.multi
-    def _compute_origin(self):
-
-        query = """SELECT
-  quant_id,
-  origin
-FROM (
-  SELECT
-    tmp.quant_id,
-    tmp.origin,
-    tmp.order_num,
-    min(tmp.order_num)
-    OVER (PARTITION BY tmp.quant_id)
-  FROM
-    (
-      SELECT
-        stock_quant_move_rel.quant_id,
-        stock_move.origin,
-        row_number()
-        OVER
-        (
-          ORDER BY stock_move.date ASC, stock_move.id ASC) order_num
-      FROM stock_quant_move_rel
-        INNER JOIN stock_move ON stock_move.id = stock_quant_move_rel.move_id
-      WHERE stock_quant_move_rel.quant_id IN %s
-) tmp
-) t
-WHERE min=order_num
-ORDER BY quant_id ASC
-        """
-
-        params = (tuple(self.ids),)
-        self.env.cr.execute(query, params)
-
-        rows = self.env.cr.fetchall()
-        affect = {}
-        for row in rows:
-            affect[row[0]] = row[1]
-
-        for rec in self:
-            rec.origin = affect.get(rec.id, False)
+    @api.model
+    def _quant_create(self, qty, move, lot_id=False, owner_id=False, src_package_id=False, dest_package_id=False,
+                      force_location_from=False, force_location_to=False):
+        created_quant = super(QuantOriginStockQuant, self)._quant_create(qty, move, lot_id=lot_id, owner_id=owner_id,
+                                                                          src_package_id=src_package_id,
+                                                                          dest_package_id=dest_package_id,
+                                                                          force_location_from=force_location_from,
+                                                                          force_location_to=force_location_to)
+        created_quants = created_quant + created_quant.propagated_from_id
+        created_quants.sudo().write({'origin': move.origin})
+        return created_quant
