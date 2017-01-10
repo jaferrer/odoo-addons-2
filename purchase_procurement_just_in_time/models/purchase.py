@@ -49,7 +49,8 @@ class PurchaseOrderJustInTime(models.Model):
             group = self.env['procurement.group'].search([('name', '=', order.name),
                                                           ('partner_id', '=', order.partner_id.id)], limit=1)
             if not group:
-                group = self.env['procurement.group'].create({'name': order.name, 'partner_id': order.partner_id.id})
+                group = self.env['procurement.group'].create({'name': order.name,
+                                                              'partner_id': order.partner_id.id})
             group_id = group.id
 
         for order_line in order_lines:
@@ -65,7 +66,8 @@ class PurchaseOrderJustInTime(models.Model):
 
     @api.model
     def _prepare_order_line_move(self, order, order_line, picking_id, group_id):
-        ''' prepare the stock move data from the PO line. This function returns a list of dictionary ready to be used in stock.move's create()'''
+        ''' prepare the stock move data from the PO line. This function returns a list of dictionary ready to be
+        used in stock.move's create()'''
         product_uom = self.env['product.uom']
         price_unit = order_line.price_unit
         if order_line.taxes_id:
@@ -91,7 +93,7 @@ class PurchaseOrderJustInTime(models.Model):
             'location_id': order.partner_id.property_stock_supplier.id,
             'location_dest_id': order.location_id.id,
             'picking_id': picking_id,
-            'partner_id': order.dest_address_id.id,
+            'partner_id': order.dest_address_id.id or order.partner_id.id,
             'move_dest_id': False,
             'state': 'draft',
             'purchase_line_id': order_line.id,
@@ -402,7 +404,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         qty_done_pol_uom = self.env['product.uom']._compute_qty(product.uom_id.id, qty_done, uom.id)
         if vals['product_qty'] < qty_done_pol_uom:
             raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
-        if self.state == 'confirmed':
+        if self.order_id.state not in ['draft', 'sent', 'bid', 'cancel', 'done']:
             self.adjust_moves_qties(vals['product_qty'])
         elif self.state == 'draft':
             sum_procs = sum([self.env['product.uom']._compute_qty(product.uom_id.id, p.product_qty, uom.id) for
@@ -411,8 +413,7 @@ class PurchaseOrderLineJustInTime(models.Model):
             for proc in self.procurement_ids. \
                     sorted(key=lambda m: self.env['product.uom'].
                     _compute_qty(product.uom_id.id, m.product_qty, uom.id), reverse=True):
-                if float_compare(vals['product_qty'], sum_procs,
-                                 precision_rounding=uom.rounding) >= 0:
+                if float_compare(vals['product_qty'], sum_procs, precision_rounding=uom.rounding) >= 0:
                     break
                 proc.remove_procs_from_lines()
                 sum_procs -= proc.product_qty
