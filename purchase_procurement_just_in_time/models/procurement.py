@@ -371,8 +371,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 product = first_proc.product_id
                 pol_procurements = self.get_purchase_line_procurements(
                     first_proc, seller, order_by,
-                    force_domain=[('id', 'in', procurements.ids), ('product_id', '=', product.id)]
-                )
+                    force_domain=[('id', 'in', procurements.ids), ('product_id', '=', product.id)])
                 schedule_date = self._get_purchase_schedule_date(first_proc, company)
                 purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
                 # We consider procurements after the reference date
@@ -382,15 +381,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
                 draft_order = first_proc.get_corresponding_draft_order(seller, purchase_date)
                 if draft_order:
-                    line_vals.update(order_id=draft_order.id)
+                    line_vals.update(order_id=draft_order.id, product_qty=0)
                     line = self.env['purchase.order.line'].sudo().create(line_vals)
-                    first_proc.add_proc_to_line(line)
-                    for proc in pol_procurements:
-                        if proc != first_proc:
-                            new_qty, new_price = self._calc_new_qty_price(proc, po_line=line)
-                            if new_qty > line.product_qty:
-                                line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
-                            proc.add_proc_to_line(line)
+                    if pol_procurements:
+                        last_proc = pol_procurements[-1]
+                        pol_procurements[:-1].add_proc_to_line(line)
+                        # We compute new qty and new price only for the last procurement added
+                        new_qty, new_price = self._calc_new_qty_price(last_proc, po_line=line)
+                        if new_qty > line.product_qty:
+                            line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
+                        last_proc.add_proc_to_line(line)
                 procurements -= pol_procurements
             return procurements
         return self
@@ -465,7 +465,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             orig_pol = rec.purchase_line_id
             if orig_pol:
                 rec.remove_procs_from_lines()
-            orig_pol.adjust_move_no_proc_qty()
+            if orig_pol.order_id.state not in ['draft', 'sent', 'bid', 'cancel', 'done']:
+                orig_pol.adjust_move_no_proc_qty()
 
             rec.with_context(tracking_disable=True).write({'purchase_line_id': pol.id})
             if not rec.move_ids:
@@ -474,9 +475,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             running_moves = self.env['stock.move'].search([('id', 'in', rec.move_ids.ids),
                                                            ('state', 'not in', ['draft', 'done', 'cancel'])]
                                                           ).with_context(mail_notrack=True)
-            if pol.state not in ['draft', 'done', 'cancel']:
+            if pol.order_id.state not in ['draft', 'sent', 'bid', 'done', 'cancel']:
                 group = self.env['procurement.group'].search([('name', '=', pol.order_id.name),
-                                                              ('partner_id', '=', pol.order_id.partner_id.id)], limit=1)
+                                                              ('partner_id', '=', pol.order_id.partner_id.id)],
+                                                             limit=1)
                 if not group:
                     group = self.env['procurement.group'].create({'name': pol.order_id.name,
                                                                   'partner_id': pol.order_id.partner_id.id})
@@ -503,7 +505,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             for proc in procurements:
                 if proc not in pol.procurement_ids:
                     proc.add_proc_to_line(pol)
-            pol.adjust_move_no_proc_qty()
+            if pol.order_id.state not in ['draft', 'sent', 'bid', 'cancel', 'done']:
+                pol.adjust_move_no_proc_qty()
 
     @api.multi
     def make_po(self):
