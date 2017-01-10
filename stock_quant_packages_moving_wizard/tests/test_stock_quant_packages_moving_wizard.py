@@ -221,7 +221,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
                 'is_manual_op': False
             })
 
-        result = do_move_w.do_transfer()
+        do_move_w.do_transfer()
 
         self.assertEqual(supply_quant_1.location_id, self.location_dest)
         self.assertEqual(supply_quant_1.qty, 10.0)
@@ -288,6 +288,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         result = wizard.move_products()
         self.assertTrue(result)
         picking = result[0].picking_id
+        self.assertEqual(len(picking.message_ids), 1)
         self.assertTrue(picking)
         self.assertEqual(picking.state, 'done')
         self.assertFalse(picking.backorder_id)
