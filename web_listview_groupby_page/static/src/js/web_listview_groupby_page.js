@@ -252,6 +252,20 @@ openerp.web_listview_groupby_page = function(instance) {
 	    }
 	    
 	});
+
+	instance.web.FormView.include({
+		do_update_pager: function(hide_index) {
+			if (this.dataset.ids == undefined){
+				this.dataset.ids = [];
+			}
+        this.$pager.toggle(this.dataset.ids.length > 1);
+        if (hide_index) {
+            $(".oe_form_pager_state", this.$pager).html("");
+        } else {
+            $(".oe_form_pager_state", this.$pager).html(_.str.sprintf(_t("%d / %d"), this.dataset.index + 1, this.dataset.ids.length));
+        }
+    },
+	});
 	
 	var DataGroup =  instance.web.Class.extend({
 		   init: function(parent, model, domain, context, group_by, level) {
