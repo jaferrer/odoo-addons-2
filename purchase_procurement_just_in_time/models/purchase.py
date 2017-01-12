@@ -20,7 +20,7 @@
 from datetime import datetime
 from openerp import fields, models, api, _, exceptions
 from openerp.tools.float_utils import float_compare
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT, float_round
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, float_round
 
 
 class PurchaseOrderJustInTime(models.Model):
@@ -36,7 +36,7 @@ class PurchaseOrderJustInTime(models.Model):
     date_order = fields.Datetime(required=False)
 
     @api.model
-    def _create_stock_moves_improved(self, order, order_lines, group_id=False, picking_id=False):
+    def _create_stock_moves(self, order, order_lines, picking_id=False):
         """
         Creates missing stock moves for the given order_lines.
         :param order: purchase.order
@@ -45,13 +45,12 @@ class PurchaseOrderJustInTime(models.Model):
         :param picking_id: id of stock.picking
         """
         todo_moves = self.env['stock.move']
-        if not group_id:
-            group = self.env['procurement.group'].search([('name', '=', order.name),
-                                                          ('partner_id', '=', order.partner_id.id)], limit=1)
-            if not group:
-                group = self.env['procurement.group'].create({'name': order.name,
-                                                              'partner_id': order.partner_id.id})
-            group_id = group.id
+        group = self.env['procurement.group'].search([('name', '=', order.name),
+                                                      ('partner_id', '=', order.partner_id.id)], limit=1)
+        if not group:
+            group = self.env['procurement.group'].create({'name': order.name,
+                                                          'partner_id': order.partner_id.id})
+        group_id = group.id
 
         for order_line in order_lines:
             if not order_line.product_id:
@@ -325,9 +324,10 @@ class PurchaseOrderLineJustInTime(models.Model):
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
         if result.order_id.state not in ['draft', 'sent', 'bid', 'confirmed', 'done', 'cancel']:
             result.order_id.set_order_line_status('confirmed')
-            if result.product_qty != 0 and not result.move_ids and not self.env.context.get('no_update_moves'):
+            if float_compare(result.product_qty, 0.0, precision_rounding=result.product_uom.rounding) != 0 and \
+                    not result.move_ids and not self.env.context.get('no_update_moves'):
                 # We create associated moves
-                self.env['purchase.order']._create_stock_moves_improved(result.order_id, result)
+                self.env['purchase.order']._create_stock_moves(result.order_id, result)
         return result
 
     @api.multi
@@ -377,10 +377,10 @@ class PurchaseOrderLineJustInTime(models.Model):
              ('procurement_id', '=', False),
              ('state', 'not in', ['done', 'cancel'])]).with_context(mail_notrack=True)
         # Dirty hack to keep the moves so that we don't to set the PO in shipping except
-        # but still compute the correct qty in _create_stock_moves_improved
+        # but still compute the correct qty in _create_stock_moves
         moves_no_procs.write({'product_uom_qty': 0})
         for rec in self:
-            self.env['purchase.order']._create_stock_moves_improved(rec.order_id, rec)
+            self.env['purchase.order']._create_stock_moves(rec.order_id, rec)
 
         # We don't want cancel_procurement context here,
         # because we want to cancel next move too (no procs).
