@@ -45,9 +45,14 @@ def snapshot(session, model_name, request_id, area, app_key, app_secret, consume
     nb_max_snapshots = rec.nb_max_snapshots
     nb_days_between_snapshots = rec.nb_days_between_snapshots
     # Let's launch OCH snapshot script
-    result = subprocess.call(['python', script_location, area, app_key, app_secret, consumer_key, project_name,
-                              instance_name, str(nb_max_snapshots), str(nb_days_between_snapshots)])
-    return _("Script executed, returned %s") % result
+    result = subprocess.Popen(['python', script_location, area, app_key, app_secret, consumer_key, project_name,
+                              instance_name, str(nb_max_snapshots), str(nb_days_between_snapshots)],
+                              stderr=subprocess.PIPE, shell=True, stdout=subprocess.PIPE)
+    std_out, std_err = result.communicate()
+    code = result.wait()
+    if code != 0:
+        raise SystemError(std_err)
+    return _("Script executed, returned:\n%s" % std_out)
 
 
 class OvhProject(models.Model):
