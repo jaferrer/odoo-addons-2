@@ -40,19 +40,19 @@ if __name__ == "__main__":
         instance = instance and instances[0].get('id') or False
         if instance:
             snapshots = project_name and client.get('/cloud/project/%s/snapshot' % project_name) or []
-            for s in snapshots:
-                year = int(s['creationDate'][:4])
-                month = int(s['creationDate'][5:7])
-                day = int(s['creationDate'][8:10])
-                hour = int(s['creationDate'][11:13])
-                minute = int(s['creationDate'][14:16])
-                second = int(s['creationDate'][17:19])
-                s['formated_date'] = s.get('creationDate') and \
+            for snapshot in snapshots:
+                year = int(snapshot['creationDate'][:4])
+                month = int(snapshot['creationDate'][5:7])
+                day = int(snapshot['creationDate'][8:10])
+                hour = int(snapshot['creationDate'][11:13])
+                minute = int(snapshot['creationDate'][14:16])
+                second = int(snapshot['creationDate'][17:19])
+                snapshot['formated_date'] = snapshot.get('creationDate') and \
                                      dt(year=year, month=month, day=day, hour=hour, minute=minute, second=second)
-            last_snapshot_date = snapshots and max([snap['formated_date'] for snap in snapshots]) or False
+            last_snapshot_date = snapshots and max([snapshot['formated_date'] for snapshot in snapshots]) or False
             next_snapshot_date = last_snapshot_date and nb_days_between_snapshots and \
                                  last_snapshot_date + timedelta(days=nb_days_between_snapshots)
-            if next_snapshot_date <= dt.today():
+            if not next_snapshot_date or next_snapshot_date <= dt.today():
                 date_snapshot = '%s-%s-%s %s:%s:%s' % (str(dt.now().year), str(dt.now().month), str(dt.now().day),
                                                        str(dt.now().hour), str(dt.now().minute), str(dt.now().second))
                 client.post('/cloud/project/%s/instance/%s/snapshot' % (project_name, instance),
