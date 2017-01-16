@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
+##############################################################################
 #
-#
-#    Tech-Receptives Solutions Pvt. Ltd.
-#    Copyright (C) 2009-TODAY Tech-Receptives(<http://www.techreceptives.com>).
+#    Author: Guewen Baconnier
+#    Copyright 2013 Camptocamp SA
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,7 +17,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#
+##############################################################################
 
 import logging
 import xmlrpclib
@@ -25,6 +25,7 @@ from collections import namedtuple
 
 from openerp.addons.connector.connector import ConnectorUnit
 from openerp.addons.connector.exception import IDMissingInBackend
+from openerp.addons.connector.exception import MappingError
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.unit.backend_adapter import BackendAdapter
 from openerp.addons.connector.unit.mapper import (mapping,
@@ -33,26 +34,50 @@ from openerp.addons.connector.unit.mapper import (mapping,
                                                   )
 
 from openerp import models, fields, api
-from ..backend import magentoextend
-from ..connector import get_environment
-from ..unit.backend_adapter import (GenericAdapter)
-from ..unit.import_synchronizer import (DelayedBatchImporter, magentoextendImporter)
-from ..unit.mapper import normalize_datetime
+from .backend import magento
+from .connector import get_environment
+from .unit.backend_adapter import (GenericAdapter,
+                                   MAGENTO_DATETIME_FORMAT,
+                                   )
+from .unit.import_synchronizer import (DelayedBatchImporter,
+                                       MagentoImporter,
+                                       )
+from .unit.mapper import normalize_datetime
 
 _logger = logging.getLogger(__name__)
 
 
-class customerResPartner(models.Model):
+class ResPartner(models.Model):
     _inherit = 'res.partner'
 
-    final_customer = fields.Boolean(string='Final Customer')
+    magento_bind_ids = fields.One2many(
+        comodel_name='magento.res.partner',
+        inverse_name='openerp_id',
+        string="Magento Bindings",
+    )
+    magento_address_bind_ids = fields.One2many(
+        comodel_name='magento.address',
+        inverse_name='openerp_id',
+        string="Magento Address Bindings",
+    )
+    birthday = fields.Date(string='Birthday')
+    company = fields.Char(string='Company')
+
+    @api.model
+    def _address_fields(self):
+        """ Returns the list of address fields that are synced from the parent
+        when the `use_parent_address` flag is set.
+        """
+        fields = super(ResPartner, self)._address_fields()
+        fields.append('company')
+        return fields
 
 
-class magentoextendResPartner(models.Model):
-    _name = 'magentoextend.res.partner'
-    _inherit = 'magentoextend.binding'
+class MagentoResPartner(models.Model):
+    _name = 'magento.res.partner'
+    _inherit = 'magento.binding'
     _inherits = {'res.partner': 'openerp_id'}
-    _description = 'magentoextend res partner'
+    _description = 'Magento Partner'
 
     _rec_name = 'name'
 
@@ -60,41 +85,43 @@ class magentoextendResPartner(models.Model):
                                  string='Partner',
                                  required=True,
                                  ondelete='cascade')
-
     backend_id = fields.Many2one(
-        comodel_name='magentoextend.backend',
-        string='magentoextend Backend',
+        related='website_id.backend_id',
+        comodel_name='magento.backend',
+        string='Magento Backend',
         store=True,
-        readonly=False,
-    )
-
-    backend_home_id = fields.Many2one(
-        related='backend_id.connector_id.home_id',
-        comodel_name='backend.home',
-        string='Backend Home',
-        store=True,
+        readonly=True,
+        # override 'magento.binding', can't be INSERTed if True:
         required=False,
-        ondelete='restrict',
     )
-
-    updated_at = fields.Datetime(string='Updated At (on Magento)',
-                                 readonly=True)
-
+    website_id = fields.Many2one(comodel_name='magento.website',
+                                 string='Magento Website',
+                                 required=True,
+                                 ondelete='restrict')
+    group_id = fields.Many2one(comodel_name='magento.res.partner.category',
+                               string='Magento Group (Category)')
     created_at = fields.Datetime(string='Created At (on Magento)',
                                  readonly=True)
-
-    @api.model
-    def create(self, vals):
-        vals['final_customer'] = True
-        binding = super(magentoextendResPartner, self).create(vals)
-        return binding
+    updated_at = fields.Datetime(string='Updated At (on Magento)',
+                                 readonly=True)
+    emailid = fields.Char(string='E-mail address')
+    taxvat = fields.Char(string='Magento VAT')
+    newsletter = fields.Boolean(string='Newsletter')
+    guest_customer = fields.Boolean(string='Guest Customer')
+    consider_as_company = fields.Boolean(
+        string='Considered as company',
+        help="An account imported with a 'company' in "
+             "the billing address is considered as a company.\n "
+             "The partner takes the name of the company and "
+             "is not merged with the billing address.",
+    )
 
 
 class MagentoAddress(models.Model):
-    _name = 'magentoextend.address'
-    _inherit = 'magentoextend.binding'
+    _name = 'magento.address'
+    _inherit = 'magento.binding'
     _inherits = {'res.partner': 'openerp_id'}
-    _description = 'magentoextend Address'
+    _description = 'Magento Address'
 
     _rec_name = 'backend_id'
 
@@ -108,29 +135,26 @@ class MagentoAddress(models.Model):
                                  readonly=True)
     is_default_billing = fields.Boolean(string='Default Invoice')
     is_default_shipping = fields.Boolean(string='Default Shipping')
-    magento_partner_id = fields.Many2one(comodel_name='magentoextend.res.partner',
+    magento_partner_id = fields.Many2one(comodel_name='magento.res.partner',
                                          string='Magento Partner',
                                          required=True,
                                          ondelete='cascade')
     backend_id = fields.Many2one(
         related='magento_partner_id.backend_id',
-        comodel_name='magentoextend.backend',
+        comodel_name='magento.backend',
         string='Magento Backend',
         store=True,
         readonly=True,
         # override 'magento.binding', can't be INSERTed if True:
         required=False,
     )
-
-    backend_home_id = fields.Many2one(
-        related='backend_id.connector_id.home_id',
-        comodel_name='backend.home',
-        string='Backend Home',
+    website_id = fields.Many2one(
+        related='magento_partner_id.website_id',
+        comodel_name='magento.website',
+        string='Magento Website',
         store=True,
-        required=False,
-        ondelete='restrict',
+        readonly=True,
     )
-
     is_magento_order_address = fields.Boolean(
         string='Address from a Magento Order',
     )
@@ -140,30 +164,26 @@ class MagentoAddress(models.Model):
          'A partner address can only have one binding by backend.'),
     ]
 
-    @api.model
-    def create(self, vals):
-        vals['final_customer'] = True
-        binding = super(MagentoAddress, self).create(vals)
-        return binding
 
-
-@magentoextend
-class CustomerAdapter(GenericAdapter):
-    _model_name = 'magentoextend.res.partner'
-    _magentoextend_model = 'customer'
+@magento
+class PartnerAdapter(GenericAdapter):
+    _model_name = 'magento.res.partner'
+    _magento_model = 'customer'
+    _admin_path = '/{model}/edit/id/{id}'
 
     def _call(self, method, arguments):
         try:
-            return super(CustomerAdapter, self)._call(method, arguments)
+            return super(PartnerAdapter, self)._call(method, arguments)
         except xmlrpclib.Fault as err:
-            # this is the error in the magentoextendCommerce API
+            # this is the error in the Magento API
             # when the customer does not exist
             if err.faultCode == 102:
                 raise IDMissingInBackend
             else:
                 raise
 
-    def search(self, filters=None, from_date=None, to_date=None):
+    def search(self, filters=None, from_date=None, to_date=None,
+               magento_website_ids=None):
         """ Search records according to some criteria and return a
         list of ids
 
@@ -171,7 +191,7 @@ class CustomerAdapter(GenericAdapter):
         """
         if filters is None:
             filters = {}
-        MAGENTO_DATETIME_FORMAT = '%Y/%m/%d %H:%M:%S'
+
         dt_fmt = MAGENTO_DATETIME_FORMAT
         if from_date is not None:
             # updated_at include the created records
@@ -180,71 +200,162 @@ class CustomerAdapter(GenericAdapter):
         if to_date is not None:
             filters.setdefault('updated_at', {})
             filters['updated_at']['to'] = to_date.strftime(dt_fmt)
+        if magento_website_ids is not None:
+            filters['website_id'] = {'in': magento_website_ids}
+
         # the search method is on ol_customer instead of customer
-        return {
-            'customers': [{'id': int(row['customer_id'])} for row in self._call('customer.list',
-                                                                                [filters] if filters else [{}])]
-        }
+        return self._call('ol_customer.search',
+                          [filters] if filters else [{}])
 
 
-@magentoextend
-class CustomerBatchImporter(DelayedBatchImporter):
-    """ Import the magentoextendCommerce Partners.
+@magento
+class PartnerBatchImporter(DelayedBatchImporter):
+    """ Import the Magento Partners.
 
     For every partner in the list, a delayed job is created.
     """
-    _model_name = ['magentoextend.res.partner']
-
-    def _import_record(self, magentoextend_id, priority=None):
-        """ Delay a job for the import """
-        super(CustomerBatchImporter, self)._import_record(
-            magentoextend_id, priority=priority)
+    _model_name = ['magento.res.partner']
 
     def run(self, filters=None):
         """ Run the synchronization """
         from_date = filters.pop('from_date', None)
         to_date = filters.pop('to_date', None)
+        magento_website_ids = [filters.pop('magento_website_id')]
         record_ids = self.backend_adapter.search(
             filters,
             from_date=from_date,
             to_date=to_date,
-        )
-        record_ids = self.env['magentoextend.backend'].get_customer_ids(record_ids)
-        _logger.info('search for magentoextend partners %s returned %s',
+            magento_website_ids=magento_website_ids)
+        _logger.info('search for magento partners %s returned %s',
                      filters, record_ids)
-        if record_ids:
-            self._import_record(record_ids, 40)
+        for record_id in record_ids:
+            self._import_record(record_id)
 
 
-CustomerBatchImporter = CustomerBatchImporter  # deprecated
+PartnerBatchImport = PartnerBatchImporter  # deprecated
 
 
-@magentoextend
-class CustomerImporter(magentoextendImporter):
-    _model_name = ['magentoextend.res.partner']
+@magento
+class PartnerImportMapper(ImportMapper):
+    _model_name = 'magento.res.partner'
+
+    direct = [
+        ('email', 'email'),
+        ('dob', 'birthday'),
+        (normalize_datetime('created_at'), 'created_at'),
+        (normalize_datetime('updated_at'), 'updated_at'),
+        ('email', 'emailid'),
+        ('taxvat', 'taxvat'),
+        ('group_id', 'group_id'),
+    ]
+
+    @only_create
+    @mapping
+    def is_company(self, record):
+        # partners are companies so we can bind
+        # addresses on them
+        return {'is_company': True}
+
+    @mapping
+    def names(self, record):
+        # TODO create a glue module for base_surname
+        parts = [part for part in (record['firstname'],
+                                   record['middlename'],
+                                   record['lastname']) if part]
+        return {'name': ' '.join(parts)}
+
+    @mapping
+    def customer_group_id(self, record):
+        # import customer groups
+        binder = self.binder_for(model='magento.res.partner.category')
+        category_id = binder.to_openerp(record['group_id'], unwrap=True)
+
+        if category_id is None:
+            raise MappingError("The partner category with "
+                               "magento id %s does not exist" %
+                               record['group_id'])
+
+        # FIXME: should remove the previous tag (all the other tags from
+        # the same backend)
+        return {'category_id': [(4, category_id)]}
+
+    @mapping
+    def website_id(self, record):
+        binder = self.binder_for(model='magento.website')
+        website_id = binder.to_openerp(record['website_id'])
+        return {'website_id': website_id}
+
+    @only_create
+    @mapping
+    def company_id(self, record):
+        binder = self.binder_for(model='magento.storeview')
+        storeview = binder.to_openerp(record['store_id'], browse=True)
+        if storeview:
+            company = storeview.backend_id.company_id
+            if company:
+                return {'company_id': company.id}
+        return {'company_id': False}
+
+    @mapping
+    def lang(self, record):
+        binder = self.binder_for(model='magento.storeview')
+        storeview = binder.to_openerp(record['store_id'], browse=True)
+        if storeview:
+            if storeview.lang_id:
+                return {'lang': storeview.lang_id.code}
+
+    @only_create
+    @mapping
+    def customer(self, record):
+        return {'customer': True}
+
+    @mapping
+    def type(self, record):
+        return {'type': 'default'}
+
+    @only_create
+    @mapping
+    def openerp_id(self, record):
+        """ Will bind the customer on a existing partner
+        with the same email """
+        partner = self.env['res.partner'].search(
+            [('email', '=', record['email']),
+             ('customer', '=', True),
+             '|',
+             ('is_company', '=', True),
+             ('parent_id', '=', False)],
+            limit=1,
+        )
+        if partner:
+            return {'openerp_id': partner.id}
+
+
+@magento
+class PartnerImporter(MagentoImporter):
+    _model_name = ['magento.res.partner']
+
+    _base_mapper = PartnerImportMapper
 
     def _import_dependencies(self):
         """ Import the dependencies for the record"""
-        return
+        record = self.magento_record
+        self._import_dependency(record['group_id'],
+                                'magento.res.partner.category')
 
-    def _create(self, data):
-        openerp_binding = super(CustomerImporter, self)._create(data)
-        return openerp_binding
-
-    def _after_import(self, binding):
+    def _after_import(self, partner_binding):
         """ Import the addresses """
-        book = self.unit_for(PartnerAddressBook, model='magentoextend.address')
-        book.import_addresses(self.magentoextend_id, binding.id)
+        book = self.unit_for(PartnerAddressBook, model='magento.address')
+        book.import_addresses(self.magento_id, partner_binding.id)
 
 
-CustomerImport = CustomerImporter
+PartnerImport = PartnerImporter  # deprecated
 
 AddressInfos = namedtuple('AddressInfos', ['magento_record',
                                            'partner_binding_id',
                                            'merge'])
 
 
-@magentoextend
+@magento
 class PartnerAddressBook(ConnectorUnit):
     """ Import all addresses from the address book of a customer.
 
@@ -272,18 +383,19 @@ class PartnerAddressBook(ConnectorUnit):
         More information on:
         https://bugs.launchpad.net/openerp-connector/+bug/1193281
     """
-    _model_name = 'magentoextend.address'
+    _model_name = 'magento.address'
 
     def import_addresses(self, magento_partner_id, partner_binding_id):
         addresses = self._get_address_infos(magento_partner_id,
                                             partner_binding_id)
         for address_id, infos in addresses:
-            importer = self.unit_for(magentoextendImporter)
+            importer = self.unit_for(MagentoImporter)
             importer.run(address_id, address_infos=infos)
 
     def _get_address_infos(self, magento_partner_id, partner_binding_id):
         adapter = self.unit_for(BackendAdapter)
-        mag_address_ids = adapter.search(magento_partner_id)
+        mag_address_ids = adapter.search({'customer_id':
+                                              {'eq': magento_partner_id}})
         if not mag_address_ids:
             return
         for address_id in mag_address_ids:
@@ -293,14 +405,26 @@ class PartnerAddressBook(ConnectorUnit):
             # or imported as a standalone contact
             merge = False
             if magento_record.get('is_default_billing'):
-                binding_model = self.env['magentoextend.res.partner']
+                binding_model = self.env['magento.res.partner']
                 partner_binding = binding_model.browse(partner_binding_id)
-                # for B2C individual customers, merge with the main
-                # partner
-                merge = True
-                # in the case if the billing address no longer
-                # has a company, reset the flag
-                partner_binding.write({'consider_as_company': False})
+                if magento_record.get('company'):
+                    # when a company is there, we never merge the contact
+                    # with the partner.
+                    # Copy the billing address on the company
+                    # and use the name of the company for the name
+                    company_mapper = self.unit_for(CompanyImportMapper,
+                                                   model='magento.res.partner')
+                    map_record = company_mapper.map_record(magento_record)
+                    parent = partner_binding.openerp_id.parent_id
+                    values = map_record.values(parent_partner=parent)
+                    partner_binding.write(values)
+                else:
+                    # for B2C individual customers, merge with the main
+                    # partner
+                    merge = True
+                    # in the case if the billing address no longer
+                    # has a company, reset the flag
+                    partner_binding.write({'consider_as_company': False})
             address_infos = AddressInfos(magento_record=magento_record,
                                          partner_binding_id=partner_binding_id,
                                          merge=merge)
@@ -315,6 +439,7 @@ class BaseAddressImportMapper(ImportMapper):
               ('city', 'city'),
               ('telephone', 'phone'),
               ('fax', 'fax'),
+              ('company', 'company'),
               ]
 
     @mapping
@@ -357,12 +482,14 @@ class BaseAddressImportMapper(ImportMapper):
         if not prefix:
             return
         title = self.env['res.partner.title'].search(
-            [('shortcut', '=ilike', prefix)],
+            [('domain', '=', 'contact'),
+             ('shortcut', '=ilike', prefix)],
             limit=1
         )
         if not title:
             title = self.env['res.partner.title'].create(
-                {'shortcut': prefix,
+                {'domain': 'contact',
+                 'shortcut': prefix,
                  'name': prefix,
                  }
             )
@@ -371,13 +498,51 @@ class BaseAddressImportMapper(ImportMapper):
     @only_create
     @mapping
     def company_id(self, record):
-        return {'company_id': False}
+        parent = self.options.parent_partner
+        if parent:
+            if parent.company_id:
+                return {'company_id': parent.company_id.id}
+            else:
+                return {'company_id': False}
+        # Don't return anything, we are merging into an existing partner
+        return
 
 
-@magentoextend
+@magento
+class CompanyImportMapper(BaseAddressImportMapper):
+    """ Special mapping used when we import a company.
+    A company is considered as such when the billing address
+    of an account has something in the 'company' field.
+
+    This is a very special mapping not used in the same way
+    than the other.
+
+    The billing address will exist as a contact,
+    but we want to *copy* the data on the company.
+
+    The input record is the billing address.
+    The mapper returns data which will be written on the
+    main partner, in other words, the company.
+
+    The ``@only_create`` decorator would not have any
+    effect here because the mapper is always called
+    for updates.
+    """
+    _model_name = 'magento.res.partner'
+
+    direct = BaseAddressImportMapper.direct + [
+        ('company', 'name'),
+    ]
+
+    @mapping
+    def consider_as_company(self, record):
+        return {'consider_as_company': True}
+
+
+@magento
 class AddressAdapter(GenericAdapter):
-    _model_name = 'magentoextend.address'
-    _magentoextend_model = 'customer_address'
+    _model_name = 'magento.address'
+    _magento_model = 'customer_address'
 
     def search(self, filters=None):
         """ Search records according to some criterias
@@ -386,7 +551,7 @@ class AddressAdapter(GenericAdapter):
         :rtype: list
         """
         return [int(row['customer_address_id']) for row
-                in self._call('%s.list' % self._magentoextend_model,
+                in self._call('%s.list' % self._magento_model,
                               [filters] if filters else [{}])]
 
     def create(self, customer_id, data):
@@ -395,9 +560,9 @@ class AddressAdapter(GenericAdapter):
                           [customer_id, data])
 
 
-@magentoextend
-class AddressImporter(magentoextendImporter):
-    _model_name = ['magentoextend.address']
+@magento
+class AddressImporter(MagentoImporter):
+    _model_name = ['magento.address']
 
     def run(self, magento_id, address_infos=None, force=False):
         """ Run the synchronization """
@@ -421,13 +586,13 @@ class AddressImporter(magentoextendImporter):
         partner_binding_id = self.address_infos.partner_binding_id
         assert partner_binding_id, ("AdressInfos are required for creation of "
                                     "a new address.")
-        binder = self.binder_for('magentoextend.res.partner')
+        binder = self.binder_for('magento.res.partner')
         partner = binder.unwrap_binding(partner_binding_id, browse=True)
         if self.address_infos.merge:
             # it won't be imported as an independent address,
             # but will be linked with the main res.partner
             data['openerp_id'] = partner.id
-            data['type'] = 'contact'
+            data['type'] = 'default'
         else:
             data['parent_id'] = partner.id
             data['lang'] = partner.lang
@@ -442,9 +607,9 @@ class AddressImporter(magentoextendImporter):
 AddressImport = AddressImporter  # deprecated
 
 
-@magentoextend
+@magento
 class AddressImportMapper(BaseAddressImportMapper):
-    _model_name = 'magentoextend.address'
+    _model_name = 'magento.address'
 
     # TODO fields not mapped:
     #   "suffix"=>"a",
@@ -455,6 +620,7 @@ class AddressImportMapper(BaseAddressImportMapper):
         ('updated_at', 'updated_at'),
         ('is_default_billing', 'is_default_billing'),
         ('is_default_shipping', 'is_default_shipping'),
+        ('company', 'company'),
     ]
 
     @mapping
@@ -480,86 +646,13 @@ class AddressImportMapper(BaseAddressImportMapper):
         return {'type': address_type}
 
 
-@magentoextend
-class CustomerImportMapper(ImportMapper):
-    _model_name = 'magentoextend.res.partner'
-
-    direct = [
-        ('email', 'email'),
-        ('dob', 'birthdate'),
-        (normalize_datetime('created_at'), 'created_at'),
-        (normalize_datetime('updated_at'), 'updated_at'),
-    ]
-
-    @only_create
-    @mapping
-    def is_company(self, record):
-        # partners are companies so we can bind
-        # addresses on them
-        return {'company_type': 'company'}
-
-    @mapping
-    def names(self, record):
-        # TODO create a glue module for base_surname
-        parts = [part for part in (record['firstname'],
-                                   record['middlename'],
-                                   record['lastname']) if part]
-        return {'name': ' '.join(parts)}
-
-    @only_create
-    @mapping
-    def company_id(self, record):
-        return {'company_id': False}
-
-    @only_create
-    @mapping
-    def customer(self, record):
-        return {'customer': True}
-
-    @mapping
-    def type(self, record):
-        return {'type': 'contact'}
-
-    @only_create
-    @mapping
-    def openerp_id(self, record):
-        """ Will bind the customer on a existing partner
-        with the same email """
-        partner = self.env['res.partner'].search(
-            [('email', '=', record['email']),
-             ('customer', '=', True),
-             '|',
-             ('is_company', '=', True),
-             ('parent_id', '=', False)],
-            limit=1,
-        )
-        if partner:
-            return {'openerp_id': partner.id}
-
-    @mapping
-    def magentoextend_id(self, record):
-        return {'magentoextend_id': record['customer_id']}
-
-    @only_create
-    @mapping
-    def backend_id(self, record):
-        return {'backend_id': self.backend_record.id}
-
-    @only_create
-    @mapping
-    def owner_id(self, record):
-        return {'owner_id': self.backend_record.connector_id.home_id.partner_id.id}
-
-
-@job(default_channel='root.magentoextend')
-def customer_import_batch(session, model_name, backend_id, filters=None):
-    """ Prepare the import of Customer """
+@job(default_channel='root.magento')
+def partner_import_batch(session, model_name, backend_id, filters=None):
+    """ Prepare the import of partners modified on Magento """
+    if filters is None:
+        filters = {}
+    assert 'magento_website_id' in filters, (
+        'Missing information about Magento Website')
     env = get_environment(session, model_name, backend_id)
-    importer = env.get_connector_unit(CustomerBatchImporter)
+    importer = env.get_connector_unit(PartnerBatchImporter)
     importer.run(filters=filters)
-
-
-class ResPartnerBackend(models.Model):
-    _inherit = 'res.partner'
-
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
