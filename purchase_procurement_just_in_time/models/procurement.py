@@ -48,6 +48,9 @@ def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     return result
 
 
+ORDER_STATES_WITHOUT_MOVES = ['draft', 'sent', 'bid', 'confirmed', 'cancel', 'done']
+
+
 class ProcurementOrderPurchaseJustInTime(models.Model):
     _inherit = 'procurement.order'
 
@@ -465,7 +468,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             orig_pol = rec.purchase_line_id
             if orig_pol:
                 rec.remove_procs_from_lines()
-            if orig_pol.order_id.state not in ['draft', 'sent', 'bid', 'cancel', 'done']:
+            if orig_pol.order_id.state not in ORDER_STATES_WITHOUT_MOVES:
                 orig_pol.adjust_move_no_proc_qty()
 
             rec.with_context(tracking_disable=True).write({'purchase_line_id': pol.id})
@@ -475,7 +478,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             running_moves = self.env['stock.move'].search([('id', 'in', rec.move_ids.ids),
                                                            ('state', 'not in', ['draft', 'done', 'cancel'])]
                                                           ).with_context(mail_notrack=True)
-            if pol.order_id.state not in ['draft', 'sent', 'bid', 'done', 'cancel']:
+            if pol.order_id.state not in ORDER_STATES_WITHOUT_MOVES:
                 group = self.env['procurement.group'].search([('name', '=', pol.order_id.name),
                                                               ('partner_id', '=', pol.order_id.partner_id.id)],
                                                              limit=1)
@@ -505,7 +508,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             for proc in procurements:
                 if proc not in pol.procurement_ids:
                     proc.add_proc_to_line(pol)
-            if pol.order_id.state not in ['draft', 'sent', 'bid', 'cancel', 'done']:
+            if pol.order_id.state not in ORDER_STATES_WITHOUT_MOVES:
                 pol.adjust_move_no_proc_qty()
 
     @api.multi
