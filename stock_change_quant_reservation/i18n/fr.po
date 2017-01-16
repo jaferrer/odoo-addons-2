@@ -46,6 +46,12 @@ msgid "Impossible to reserve quants of different products."
 msgstr "Impossible de réserver ensemble des quants correspondant à des produits différents."
 
 #. module: stock_change_quant_reservation
+#: code:addons\stock_change_quant_reservation\wizard\stock_change_quant_reservation_wizard.py:76
+#, python-format
+msgid "Impossible to reserve more than the move quantity."
+msgstr "Impossible de réserver plus que la quantité du mouvement."
+
+#. module: stock_change_quant_reservation
 #: model:ir.actions.act_window,name:stock_change_quant_reservation.action_change_quants
 msgid "Affect Quant"
 msgstr "Affecter les quants"

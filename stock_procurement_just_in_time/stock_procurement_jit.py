@@ -185,23 +185,27 @@ class StockWarehouseOrderPointJit(models.Model):
 
         :param need: the 'stock levels requirements' dictionary to fulfill
         """
-        proc_obj = self.env['procurement.order']
+        proc = self.env['procurement.order']
         self.ensure_one()
         qty = max(self.product_min_qty,
                   self.get_max_qty(fields.Datetime.from_string(need['date']))) - stock_after_event
+        qty = max(qty, 0)
         reste = self.qty_multiple > 0 and qty % self.qty_multiple or 0.0
         if float_compare(reste, 0.0, precision_rounding=self.product_uom.rounding) > 0:
             qty += self.qty_multiple - reste
         qty = float_round(qty, precision_rounding=self.product_uom.rounding)
 
-        proc_vals = proc_obj._prepare_orderpoint_procurement(self, qty)
-        if need['date']:
-            proc_vals.update({'date_planned': need['date']})
-        proc = proc_obj.create(proc_vals)
-        if not self.env.context.get('procurement_no_run'):
-            proc.run()
-        _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
-                      (proc, proc.date_planned, proc.product_qty, self.product_id, self.location_id))
+        if float_compare(qty, 0.0, precision_rounding=self.product_uom.rounding) > 0:
+            proc_vals = proc._prepare_orderpoint_procurement(self, qty)
+            if need['date']:
+                proc_vals.update({'date_planned': need['date']})
+            proc = proc.create(proc_vals)
+            if not self.env.context.get('procurement_no_run'):
+                proc.run()
+            _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
+                          (proc, proc.date_planned, proc.product_qty, self.product_id, self.location_id))
+        else:
+            _logger.debug("Requested qty is null, no procurement created")
         return proc
 
     @api.multi
@@ -286,10 +290,10 @@ class StockWarehouseOrderPointJit(models.Model):
                     if op.is_under_stock_min(stock_after_event) and \
                             any([item['move_type'] == 'out' for item in events_at_date]):
                         new_proc = op.create_from_need(event, stock_after_event)
-                        stock_after_event += new_proc.product_qty
+                        stock_after_event += new_proc and new_proc.product_qty or 0
                 elif op.is_under_stock_min(stock_after_event):
                     new_proc = op.create_from_need(event, stock_after_event)
-                    stock_after_event += new_proc.product_qty
+                    stock_after_event += new_proc and new_proc.product_qty or 0
             # Now we want to make sure that at the end of the scheduled outgoing moves, the stock level is
             # the minimum quantity of the orderpoint.
             last_scheduled_date = op.get_last_scheduled_date()
