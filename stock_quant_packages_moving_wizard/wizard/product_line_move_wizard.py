@@ -141,8 +141,12 @@ class ProductLineMoveWizardLine(models.TransientModel):
     @api.multi
     def check_quantities(self):
         for rec in self:
-            if rec.product_id and float_compare(rec.qty, rec.available_qty, precision_rounding=rec.uom_id.rounding) > 0:
-                raise ValidationError(_("The quantity to move must be lower or equal to the available quantity"))
+            if rec.product_id :
+                if float_compare(rec.qty, rec.available_qty, precision_rounding=rec.uom_id.rounding) > 0:
+                    raise ValidationError(_("The quantity to move must be lower or equal to the available "
+                                            "quantity"))
+                elif float_compare(rec.qty, 0, precision_rounding=rec.uom_id.rounding) < 0:
+                    raise ValidationError(_("Impossible to move a negative quantity"))
 
     @api.multi
     def check_data_active(self):

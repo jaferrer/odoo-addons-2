@@ -286,6 +286,12 @@ msgid "The quantity to move must be lower or equal to the available quantity"
 msgstr "La quantité à déplacer doit être inférieure ou égale à la quantité disponable"
 
 #. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:149
+#, python-format
+msgid "Impossible to move a negative quantity"
+msgstr "Impossible de déplacer une quantité négative"
+
+#. module: stock_quant_packages_moving_wizard
 #: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:141
 #, python-format
 msgid "Impossible to move a quant from a not active location"
