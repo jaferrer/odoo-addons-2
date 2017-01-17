@@ -32,7 +32,7 @@ from openerp.addons.connector.unit.mapper import (mapping,
                                                   ImportMapper
                                                   )
 
-from openerp import models, fields
+from openerp import models, fields, api
 from ..backend import magentoextend
 from ..connector import get_environment
 from ..unit.backend_adapter import (GenericAdapter)
@@ -40,6 +40,12 @@ from ..unit.import_synchronizer import (DelayedBatchImporter, magentoextendImpor
 from ..unit.mapper import normalize_datetime
 
 _logger = logging.getLogger(__name__)
+
+
+class customerResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    final_customer = fields.Boolean(string='Final Customer')
 
 
 class magentoextendResPartner(models.Model):
@@ -76,6 +82,12 @@ class magentoextendResPartner(models.Model):
 
     created_at = fields.Datetime(string='Created At (on Magento)',
                                  readonly=True)
+
+    @api.model
+    def create(self, vals):
+        vals['final_customer'] = True
+        binding = super(magentoextendResPartner, self).create(vals)
+        return binding
 
 
 class MagentoAddress(models.Model):
@@ -127,6 +139,12 @@ class MagentoAddress(models.Model):
         ('openerp_uniq', 'unique(backend_id, openerp_id)',
          'A partner address can only have one binding by backend.'),
     ]
+
+    @api.model
+    def create(self, vals):
+        vals['final_customer'] = True
+        binding = super(MagentoAddress, self).create(vals)
+        return binding
 
 
 @magentoextend

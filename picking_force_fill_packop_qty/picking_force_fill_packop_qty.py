@@ -30,13 +30,18 @@ class ForceFillPackopsQty(models.Model):
         return self.env['stock.picking.type']
 
     @api.multi
+    def get_picking_zero_validation(self):
+        self.ensure_one()
+        return False
+
+    @api.multi
     def do_new_transfer(self):
         for pick in self:
             to_delete = self.env['stock.pack.operation']
             if not pick.move_lines and not pick.pack_operation_ids:
                 raise UserError(_('Please create some Initial Demand or Mark as Todo and create some Operations. '))
             # In draft or with no pack operations edited yet, ask if we can just do everything
-            if pick.state == 'draft':
+            if pick.state == 'draft' or pick.get_picking_zero_validation():
                 # If no lots when needed, raise error
                 picking_type = pick.picking_type_id
                 if picking_type.use_create_lots or picking_type.use_existing_lots:
@@ -54,7 +59,7 @@ class ForceFillPackopsQty(models.Model):
                     'views': [(view.id, 'form')],
                     'view_id': view.id,
                     'target': 'new',
-                    'res_id': wiz_id,
+                    'res_id': wiz_id.id,
                     'context': self.env.context,
                 }
 
