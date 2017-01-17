@@ -48,9 +48,6 @@ def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     return result
 
 
-ORDER_STATES_WITHOUT_MOVES = ['draft', 'sent', 'bid', 'confirmed', 'cancel', 'done']
-
-
 class ProcurementOrderPurchaseJustInTime(models.Model):
     _inherit = 'procurement.order'
 
@@ -136,8 +133,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
         domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']),
-                                      ('rule_id.action', '=', 'buy'),
-                                      ('product_id.seller_id', '!=', False)]
+                                      ('rule_id.action', '=', 'buy')]
         if not compute_all_products and compute_product_ids:
             domain_procurements_to_run += [('product_id', 'in', compute_product_ids)]
         procurements_to_tun = self.search(domain_procurements_to_run)
@@ -146,37 +142,39 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         dict_procs_suppliers_locs = {}
         while procurements_to_tun:
             seller = self.env['procurement.order']._get_product_supplier(procurements_to_tun[0])
-            seller_ok = bool(compute_all_products or not compute_supplier_ids or
-                             compute_supplier_ids and seller.id in compute_supplier_ids)
-            company = procurements_to_tun[0].company_id
-            product = procurements_to_tun[0].product_id
-            location = procurements_to_tun[0].location_id
-            domain = [('id', 'in', procurements_to_tun.ids),
-                      ('company_id', '=', company.id),
-                      ('product_id', '=', product.id),
-                      ('location_id', '=', location.id)]
-            if seller_ok and ignore_past_procurements:
-                suppliers = product.seller_ids and self.env['product.supplierinfo']. \
-                    search([('id', 'in', product.seller_ids.ids),
-                            ('name', '=', product.seller_id.id)]) or False
-                if suppliers:
-                    min_date = fields.Datetime.to_string(seller.schedule_working_days(product.seller_delay, dt.now()))
-                else:
-                    min_date = fields.Datetime.now()
-                past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
-                if past_procurements:
-                    procurements_to_tun -= past_procurements
-                    past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
-                domain += [('date_planned', '>', min_date)]
-            procurements = self.search(domain)
-            if seller_ok:
-                if dict_procs_suppliers_locs.get(seller):
-                    if dict_procs_suppliers_locs[seller].get(location):
-                        dict_procs_suppliers_locs[seller][location] += procurements
+            if seller:
+                seller_ok = bool(compute_all_products or not compute_supplier_ids or
+                                 compute_supplier_ids and seller.id in compute_supplier_ids)
+                company = procurements_to_tun[0].company_id
+                product = procurements_to_tun[0].product_id
+                location = procurements_to_tun[0].location_id
+                domain = [('id', 'in', procurements_to_tun.ids),
+                          ('company_id', '=', company.id),
+                          ('product_id', '=', product.id),
+                          ('location_id', '=', location.id)]
+                if seller_ok and ignore_past_procurements:
+                    suppliers = product.seller_ids and self.env['product.supplierinfo']. \
+                        search([('id', 'in', product.seller_ids.ids),
+                                ('name', '=', seller.id)]) or False
+                    if suppliers:
+                        min_date = fields.Datetime.to_string(
+                            seller.schedule_working_days(product.seller_delay, dt.now()))
                     else:
-                        dict_procs_suppliers_locs[seller][location] = procurements
-                else:
-                    dict_procs_suppliers_locs[seller] = {location: procurements}
+                        min_date = fields.Datetime.now()
+                    past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
+                    if past_procurements:
+                        procurements_to_tun -= past_procurements
+                        past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
+                    domain += [('date_planned', '>', min_date)]
+                procurements = self.search(domain)
+                if seller_ok:
+                    if dict_procs_suppliers_locs.get(seller):
+                        if dict_procs_suppliers_locs[seller].get(location):
+                            dict_procs_suppliers_locs[seller][location] += procurements
+                        else:
+                            dict_procs_suppliers_locs[seller][location] = procurements
+                    else:
+                        dict_procs_suppliers_locs[seller] = {location: procurements}
             procurements_to_tun -= procurements
         for supplier in dict_procs_suppliers_locs.keys():
             for loc in dict_procs_suppliers_locs[supplier].keys():
@@ -254,24 +252,27 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return dict_procs_lines, not_assigned_procs
 
     @api.model
-    def get_purchase_line_procurements(self, first_proc, seller, order_by, force_domain=None):
+    def get_purchase_line_procurements(self, first_proc, purchase_date, company, seller, order_by, force_domain=None):
         """Returns procurements that must be integrated in the same purchase order line as first_proc, by
         taking all procurements of the same product as first_proc between the date of first proc and date_end.
         """
+        procurements_grouping_period = self.env['procurement.order']
         frame = seller.order_group_period
         date_end = False
         if frame and frame.period_type:
-            date_end = fields.Datetime.to_string(
-                frame.get_date_end_period(fields.Datetime.from_string(first_proc.date_planned))
-            )
+            date_end = fields.Datetime.to_string(frame.get_date_end_period(purchase_date))
         domain_procurements = [('product_id', '=', first_proc.product_id.id),
                                ('location_id', '=', first_proc.location_id.id),
                                ('company_id', '=', first_proc.company_id.id),
                                ('date_planned', '>=', first_proc.date_planned)] + (force_domain or [])
         if first_proc.rule_id.picking_type_id:
             domain_procurements += [('rule_id.picking_type_id', '=', first_proc.rule_id.picking_type_id.id)]
-        domain_max_date = date_end and [('date_planned', '<', date_end)] or []
-        procurements_grouping_period = self.search(domain_procurements + domain_max_date, order=order_by)
+        possible_procurements_grouping_period = self.search(domain_procurements, order=order_by)
+        for procurement in possible_procurements_grouping_period:
+            procurement_schedule_date = self._get_purchase_schedule_date(procurement, company)
+            procurement_purchase_date = self._get_purchase_order_date(procurement, company, procurement_schedule_date)
+            if not date_end or fields.Datetime.to_string(procurement_purchase_date) <= date_end:
+                procurements_grouping_period += procurement
         line_qty_product_uom = sum([self.env['product.uom'].
                                    _compute_qty(proc.product_uom.id, proc.product_qty,
                                                 proc.product_id.uom_id.id) for proc in procurements_grouping_period])
@@ -372,11 +373,11 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             while procurements:
                 first_proc = procurements[0]
                 product = first_proc.product_id
-                pol_procurements = self.get_purchase_line_procurements(
-                    first_proc, seller, order_by,
-                    force_domain=[('id', 'in', procurements.ids), ('product_id', '=', product.id)])
                 schedule_date = self._get_purchase_schedule_date(first_proc, company)
                 purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
+                pol_procurements = self.get_purchase_line_procurements(
+                    first_proc, purchase_date, company, seller, order_by,
+                    force_domain=[('id', 'in', procurements.ids), ('product_id', '=', product.id)])
                 # We consider procurements after the reference date
                 # (if we ignore past procurements, past ones are already removed)
                 date_ref = seller.schedule_working_days(days_delta, dt.today())
@@ -468,7 +469,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             orig_pol = rec.purchase_line_id
             if orig_pol:
                 rec.remove_procs_from_lines()
-            if orig_pol.order_id.state not in ORDER_STATES_WITHOUT_MOVES:
+            if orig_pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
                 orig_pol.adjust_move_no_proc_qty()
 
             rec.with_context(tracking_disable=True).write({'purchase_line_id': pol.id})
@@ -478,7 +479,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             running_moves = self.env['stock.move'].search([('id', 'in', rec.move_ids.ids),
                                                            ('state', 'not in', ['draft', 'done', 'cancel'])]
                                                           ).with_context(mail_notrack=True)
-            if pol.order_id.state not in ORDER_STATES_WITHOUT_MOVES:
+            if pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
                 group = self.env['procurement.group'].search([('name', '=', pol.order_id.name),
                                                               ('partner_id', '=', pol.order_id.partner_id.id)],
                                                              limit=1)
@@ -508,7 +509,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             for proc in procurements:
                 if proc not in pol.procurement_ids:
                     proc.add_proc_to_line(pol)
-            if pol.order_id.state not in ORDER_STATES_WITHOUT_MOVES:
+            if pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
                 pol.adjust_move_no_proc_qty()
 
     @api.multi

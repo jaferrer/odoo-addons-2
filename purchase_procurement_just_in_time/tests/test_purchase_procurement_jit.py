@@ -898,6 +898,9 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertIn(7, [m.product_uom_qty for m in line.move_ids])
 
         # Let's increase/decrease again to check
+        self.assertEqual(line.order_id.state, 'except_picking')
+        line.order_id.signal_workflow('picking_ok')
+        self.assertEqual(line.order_id.state, 'approved')
         test_decreasing_line_qty(line, 19, 3, [7, 11, 1])
         test_decreasing_line_qty(line, 18, 2, [7, 11])
 
