@@ -35,8 +35,9 @@ class procurement_order_improved(models.Model):
         (qty, price) = super(procurement_order_improved, self)._calc_new_qty_price(procurement, po_line, cancel)
         if self.env.context.get('cancelling_active_proc'):
             qty = sum([x.product_qty for x in po_line.procurement_ids if x.state != 'cancel' and x != procurement])
-        list_supplierinfo_ids = self.env['product.supplierinfo'].search([('name', '=', po_line.order_id.partner_id.id),
-                                                ('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id)])
+        list_supplierinfo_ids = self.env['product.supplierinfo']. \
+            search([('name', '=', po_line.order_id.partner_id.id),
+                    ('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id)], order='sequence')
         if list_supplierinfo_ids:
             supplierinfo = list_supplierinfo_ids[0]
             packaging_number = supplierinfo.packaging_qty

@@ -280,9 +280,12 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             procurement_purchase_date = self._get_purchase_order_date(procurement, company, procurement_schedule_date)
             if not date_end or fields.Datetime.to_string(procurement_purchase_date) <= date_end:
                 procurements_grouping_period += procurement
+            else:
+                break
         line_qty_product_uom = sum([self.env['product.uom'].
                                    _compute_qty(proc.product_uom.id, proc.product_qty,
-                                                proc.product_id.uom_id.id) for proc in procurements_grouping_period])
+                                                proc.product_id.uom_id.id) for proc in
+                                    procurements_grouping_period]) or 0
         suppliers = first_proc.product_id.seller_ids. \
             filtered(lambda supplier: supplier.name == self.env['procurement.order'].
                      _get_product_supplier(first_proc))
@@ -301,7 +304,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     break
                 procurements_grouping_period |= proc
                 line_qty_product_uom += proc_qty_product_uom
-        return self.search([('id', 'in', procurements_grouping_period.ids)], order=order_by)
+        return self.search([('id', 'in', procurements_grouping_period.ids)], order=order_by), line_qty_product_uom
 
     @api.multi
     def get_corresponding_draft_order(self, seller, purchase_date):
@@ -382,7 +385,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 product = first_proc.product_id
                 schedule_date = self._get_purchase_schedule_date(first_proc, company)
                 purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
-                pol_procurements = self.get_purchase_line_procurements(
+                pol_procurements, line_qty_product_uom = self.get_purchase_line_procurements(
                     first_proc, purchase_date, company, seller, order_by,
                     force_domain=[('id', 'in', procurements.ids), ('product_id', '=', product.id)])
                 # We consider procurements after the reference date
@@ -391,17 +394,25 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 purchase_date = max(purchase_date, date_ref)
                 line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
                 draft_order = first_proc.get_corresponding_draft_order(seller, purchase_date)
-                if draft_order:
-                    line_vals.update(order_id=draft_order.id, product_qty=0)
+                if draft_order and pol_procurements:
+                    last_proc = pol_procurements[-1]
+                    product_qty = self.env['product.uom']._compute_qty(first_proc.product_id.uom_id.id,
+                                                                       line_qty_product_uom,
+                                                                       first_proc.product_uom.id)
+                    product_qty_except_last_proc = product_qty - self.env['product.uom']._compute_qty(
+                        last_proc.product_uom.id,
+                        last_proc.product_qty,
+                        first_proc.product_uom.id)
+                    # If the min qty is zero, we need to create the purchase order line with this precise qty
+                    # (if not, the function _calc_new_qty_price does not return the good result).
+                    line_vals.update(order_id=draft_order.id, product_qty=product_qty_except_last_proc)
                     line = self.env['purchase.order.line'].sudo().create(line_vals)
-                    if pol_procurements:
-                        last_proc = pol_procurements[-1]
-                        pol_procurements[:-1].add_proc_to_line(line)
-                        # We compute new qty and new price only for the last procurement added
-                        new_qty, new_price = self._calc_new_qty_price(last_proc, po_line=line)
-                        if new_qty > line.product_qty:
-                            line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
-                        last_proc.add_proc_to_line(line)
+                    pol_procurements[:-1].add_proc_to_line(line)
+                    # We compute new qty and new price only for the last procurement added
+                    new_qty, new_price = self._calc_new_qty_price(last_proc, po_line=line)
+                    if new_qty > line.product_qty:
+                        line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
+                    last_proc.add_proc_to_line(line)
                 procurements -= pol_procurements
             return procurements
         return self
