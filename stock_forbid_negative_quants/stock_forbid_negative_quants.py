@@ -47,12 +47,15 @@ class StockQuant(models.Model):
     @api.model
     def _quant_split(self, quant, qty):
         prec = quant.product_id.uom_id.rounding
-        old_neg = float_compare(float_round(qty, precision_rounding=prec), 0, precision_rounding=prec) <= 0
-        new_neg = float_compare(float_round(quant.qty - qty, precision_rounding=prec), 0, precision_rounding=prec) <= 0
+        result = super(StockQuant, self)._quant_split(quant, qty)
+        old_neg = float_compare(float_round(quant.qty, precision_rounding=prec), 0, precision_rounding=prec) <= 0
+        new_neg = False
+        if result:
+            new_neg = float_compare(float_round(result.qty, precision_rounding=prec), 0, precision_rounding=prec) <= 0
         if not config["test_enable"] and (old_neg or new_neg):
             raise ValueError(_("Quant split: you are not allowed to create a negative or null quant. "
                                "Product: %s, Quant qty: %s, Required reduction to: %s, Location: %s,"
                                " Lot: %s, Package: %s") % (quant.product_id.display_name, quant.qty, qty,
                                                            quant.location_id.complete_name, quant.lot_id.name or '-',
                                                            quant.package_id.name or '-'))
-        return super(StockQuant, self)._quant_split(quant, qty)
+        return result
