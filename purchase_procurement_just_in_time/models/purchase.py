@@ -23,9 +23,6 @@ from openerp.tools.float_utils import float_compare
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, float_round
 
 
-ORDER_STATES_WITHOUT_MOVES = ['draft', 'sent', 'bid', 'confirmed', 'cancel', 'done']
-
-
 class PurchaseOrderJustInTime(models.Model):
     _inherit = 'purchase.order'
 
@@ -156,6 +153,10 @@ class PurchaseOrderJustInTime(models.Model):
             move_template['product_uos_qty'] = rounded_diff_qty
             res.append(move_template)
         return res
+
+    @api.model
+    def get_purchase_order_states_with_moves(self):
+        return ['approved']
 
     @api.multi
     def action_cancel(self):
@@ -325,7 +326,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         """
 
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
-        if result.order_id.state not in ORDER_STATES_WITHOUT_MOVES:
+        if result.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
             result.order_id.set_order_line_status('confirmed')
             if float_compare(result.product_qty, 0.0, precision_rounding=result.product_uom.rounding) != 0 and \
                     not result.move_ids and not self.env.context.get('no_update_moves'):
@@ -407,7 +408,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         qty_done_pol_uom = self.env['product.uom']._compute_qty(product.uom_id.id, qty_done, uom.id)
         if vals['product_qty'] < qty_done_pol_uom:
             raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
-        if self.order_id.state not in ORDER_STATES_WITHOUT_MOVES:
+        if self.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
             self.adjust_moves_qties(vals['product_qty'])
         elif self.state == 'draft':
             sum_procs = sum([self.env['product.uom']._compute_qty(product.uom_id.id, p.product_qty, uom.id) for
