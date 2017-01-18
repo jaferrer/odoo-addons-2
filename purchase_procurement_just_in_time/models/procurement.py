@@ -139,7 +139,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         procurements_to_tun = self.search(domain_procurements_to_run)
         ignore_past_procurements = bool(self.env['ir.config_parameter'].
                                         get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
-        dict_procs_suppliers_locs = {}
+        # dict_procs groups procurements by supplier, company and location, in order to
+        # launch the purchase planner on each group
+        dict_procs = {}
         while procurements_to_tun:
             seller = self.env['procurement.order']._get_product_supplier(procurements_to_tun[0])
             if seller:
@@ -167,26 +169,31 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                         past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
                     domain += [('date_planned', '>', min_date)]
                 procurements = self.search(domain)
-                if seller_ok:
-                    if dict_procs_suppliers_locs.get(seller):
-                        if dict_procs_suppliers_locs[seller].get(location):
-                            dict_procs_suppliers_locs[seller][location] += procurements
-                        else:
-                            dict_procs_suppliers_locs[seller][location] = procurements
+                if seller_ok and procurements:
+                    if not dict_procs.get(seller):
+                        dict_procs[seller] = {}
+                    if not dict_procs[seller].get(company):
+                        dict_procs[seller][company] = {}
+                    if not dict_procs[seller][company].get(location):
+                        dict_procs[seller][company][location] = procurements
                     else:
-                        dict_procs_suppliers_locs[seller] = {location: procurements}
+                        dict_procs[seller][company][location] += procurements
             procurements_to_tun -= procurements
-        for supplier in dict_procs_suppliers_locs.keys():
-            for loc in dict_procs_suppliers_locs[supplier].keys():
-                if dict_procs_suppliers_locs[supplier][loc]:
-                    if jobify:
-                        session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-                        job_purchase_schedule_procurements. \
-                            delay(session, 'procurement.order', dict_procs_suppliers_locs[supplier][loc].ids,
-                                  description=_("Scheduling purchase orders for seller %s and location %s") %
-                                              (supplier.display_name, loc.display_name), context=self.env.context)
-                    else:
-                        dict_procs_suppliers_locs[supplier][loc].purchase_schedule_procurements()
+        for supplier in dict_procs.keys():
+            for company in dict_procs[supplier].keys():
+                for location in dict_procs[supplier][company].keys():
+                    procurements = dict_procs[supplier][company][location]
+                    if procurements:
+                        if jobify:
+                            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+                            job_purchase_schedule_procurements. \
+                                delay(session, 'procurement.order', procurements.ids,
+                                      description=_("Scheduling purchase orders for seller %s, "
+                                                    "company %s and location %s") %
+                                                  (supplier.display_name, company.display_name, location.display_name),
+                                      context=self.env.context)
+                        else:
+                            procurements.purchase_schedule_procurements()
 
     @api.multi
     def compute_procs_for_first_line_found(self, purchase_lines, dict_procs_lines):
