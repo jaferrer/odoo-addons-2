@@ -464,6 +464,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                         ('state', 'not in', ['cancel', 'done'])]
                                                        ).with_context(mail_notrack=True)
             if unlink_moves_to_procs:
+                # We cancel procurement to cancel previous moves, and keep next ones
                 proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
                 proc_moves.unlink()
             else:
