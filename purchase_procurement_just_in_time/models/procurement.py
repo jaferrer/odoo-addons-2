@@ -230,6 +230,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         purchase_lines = purchase_lines[1:]
         return procurements, purchase_lines, dict_procs_lines
 
+    @api.model
+    def get_forbidden_order_states_for_proc_assignment(self):
+        return ['done', 'cancel']
+
     @api.multi
     def compute_which_procs_for_lines(self):
         list_products_done = []
@@ -243,7 +247,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                                     order='date_planned asc, product_qty asc')
                 # First, let's check running lines
                 purchase_lines = self.env['purchase.order.line']. \
-                    search([('order_id.state', 'not in', ['draft', 'done', 'cancel']),
+                    search([('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
+                            ('order_id.state', '!=', 'draft'),
                             ('order_id.location_id', '=', rec.location_id.id),
                             ('product_id', '=', rec.product_id.id),
                             ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc')
@@ -252,13 +257,15 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                         compute_procs_for_first_line_found(purchase_lines, dict_procs_lines)
                 # If some procurements are not assigned yet, we check draft lines
                 purchase_lines = procurements and self.env['purchase.order.line']. \
-                    search([('order_id.state', '=', 'draft'),
+                    search([('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
+                            ('order_id.state', '=', 'draft'),
                             ('order_id.location_id', '=', rec.location_id.id),
                             ('product_id', '=', rec.product_id.id),
                             ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc') or False
                 while procurements and purchase_lines:
                     purchase_lines = self.env['purchase.order.line']. \
-                        search([('order_id.state', '=', 'draft'),
+                        search([('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
+                                ('order_id.state', '=', 'draft'),
                                 ('order_id.location_id', '=', rec.location_id.id),
                                 ('product_id', '=', rec.product_id.id),
                                 ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc')
