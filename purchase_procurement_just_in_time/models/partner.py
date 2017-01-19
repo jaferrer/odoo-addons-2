@@ -37,6 +37,7 @@ class JitResPartner(models.Model):
     def _compute_nb_draft_orders(self):
         for rec in self:
             draft_orders = self.env['purchase.order'].search([('partner_id', '=', rec.id),
-                                                              ('state', '=', 'draft')])
-            draft_orders = draft_orders.filtered(lambda order: order.order_line)
+                                                              ('state', '=', 'draft'),
+                                                              ('date_order', '!=', False),
+                                                              ('date_order_max', '!=', False)])
             rec.nb_draft_orders = len(draft_orders)
