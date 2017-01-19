@@ -106,6 +106,7 @@ class PurchaseOrderJustInTime(models.Model):
                 (6, 0, [x.id for x in order.picking_type_id.warehouse_id.route_ids])] or [],
             'warehouse_id': order.picking_type_id.warehouse_id.id,
             'invoice_state': order.invoice_method == 'picking' and '2binvoiced' or 'none',
+            'propagate': True,
         }
 
         diff_quantity = order_line.product_qty
