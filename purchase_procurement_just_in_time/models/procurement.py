@@ -489,7 +489,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 seller = self.env['procurement.order']._get_product_supplier(self[0])
                 job_create_draft_lines.delay(session, 'procurement.order', {order: dict_lines_to_create[order]},
                                              description=_("Filling purchase order %s for supplier %s") %
-                                                         (order.name, seller.nale), context=self.env.context)
+                                                         (order.name, seller.name), context=self.env.context)
         else:
             self.create_draft_lines(dict_lines_to_create)
 
