@@ -677,3 +677,14 @@ msgstr "Utilisé par le planificateur achats pour générer des commandes d'acha
 #: help:purchase.config.settings,ignore_past_procurements:0
 msgid "Used for the purchase planner"
 msgstr "Utilisé par le planificateur achats"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,fill_orders_in_separate_jobs:0
+msgid "Fill draft orders in separate jobs"
+msgstr "Remplir les commandes brouillon dans des jobs séparés"
+
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.config.settings,fill_orders_in_separate_jobs:0
+msgid "Used for the purchase planner"
+msgstr "Utilisé par le planificateur achats"
