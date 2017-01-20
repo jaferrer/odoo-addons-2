@@ -27,7 +27,7 @@ from openerp import models, fields, api, _
 from openerp.tools.float_utils import float_compare, float_round
 
 
-@job
+@job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule(session, model_name, compute_all_products, compute_supplier_ids,
                           compute_product_ids, jobify, context=None):
     model_instance = session.pool[model_name]
@@ -39,7 +39,7 @@ def job_purchase_schedule(session, model_name, compute_all_products, compute_sup
     return result
 
 
-@job
+@job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
@@ -49,7 +49,7 @@ def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     return result
 
 
-@job(default_channel='root.fill.orders')
+@job(default_channel='root.procurement_just_in_time')
 def job_create_draft_lines(session, model_name, dict_lines_to_create, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)

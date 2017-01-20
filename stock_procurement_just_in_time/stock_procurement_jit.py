@@ -32,7 +32,7 @@ ORDERPOINT_CHUNK = 1
 _logger = logging.getLogger(__name__)
 
 
-@job
+@job(default_channel='root.procurement_just_in_time')
 def process_orderpoints(session, model_name, ids, context):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
