@@ -27,7 +27,7 @@ from openerp import models, fields, api, _
 from openerp.tools.float_utils import float_compare, float_round
 
 
-@job
+@job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule(session, model_name, compute_all_products, compute_supplier_ids,
                           compute_product_ids, jobify, context=None):
     model_instance = session.pool[model_name]
@@ -39,7 +39,7 @@ def job_purchase_schedule(session, model_name, compute_all_products, compute_sup
     return result
 
 
-@job
+@job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
@@ -49,7 +49,7 @@ def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     return result
 
 
-@job(default_channel='root.fill.orders')
+@job(default_channel='root.procurement_just_in_time')
 def job_create_draft_lines(session, model_name, dict_lines_to_create, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
@@ -102,8 +102,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 qty_done_proc_uom = self.env['product.uom']._compute_qty(procurement.product_id.uom_id.id,
                                                                          qty_done_product_uom,
                                                                          procurement.product_uom.id)
-                if float_compare(qty_done_proc_uom, 0.0, precision_rounding=procurement.product_uom.rounding) > 0:
-                    remaining_qty = procurement.product_qty - qty_done_proc_uom
+                remaining_qty = procurement.product_qty - qty_done_proc_uom
+                prec = procurement.product_uom.rounding
+                if float_compare(qty_done_proc_uom, 0.0, precision_rounding=prec) > 0 and \
+                                float_compare(remaining_qty, 0.0, precision_rounding=prec) > 0:
                     new_proc = procurement.copy({
                         'product_qty': float_round(qty_done_proc_uom,
                                                    precision_rounding=procurement.product_uom.rounding),
@@ -414,23 +416,23 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             draft_order = first_proc.get_corresponding_draft_order(seller, purchase_date)
             if draft_order and pol_procurements:
                 line_vals.update(order_id=draft_order.id, product_qty=0)
-                if not dict_lines_to_create.get(draft_order):
-                    dict_lines_to_create[draft_order] = {}
-                if not dict_lines_to_create[draft_order].get(product):
-                    dict_lines_to_create[draft_order][product] = {'vals': line_vals,
-                                                                  'procurements': pol_procurements}
+                if not dict_lines_to_create.get(draft_order.id):
+                    dict_lines_to_create[draft_order.id] = {}
+                if not dict_lines_to_create[draft_order.id].get(product.id):
+                    dict_lines_to_create[draft_order.id][product.id] = {'vals': line_vals,
+                                                                        'procurement_ids': pol_procurements.ids}
                 else:
-                    dict_lines_to_create[draft_order][product]['procurements'] += pol_procurements
+                    dict_lines_to_create[draft_order.id][product.id]['procurement_ids'] += pol_procurements.ids
                 not_assigned_procs -= pol_procurements
             procurements_to_check -= pol_procurements
         return not_assigned_procs, dict_lines_to_create
 
     @api.model
     def create_draft_lines(self, dict_lines_to_create):
-        for order in dict_lines_to_create.keys():
-            for product in dict_lines_to_create[order].keys():
-                line_vals = dict_lines_to_create[order][product]['vals']
-                pol_procurements = dict_lines_to_create[order][product]['procurements']
+        for order_id in dict_lines_to_create.keys():
+            for product_id in dict_lines_to_create[order_id].keys():
+                line_vals = dict_lines_to_create[order_id][product_id]['vals']
+                pol_procurements = self.browse(dict_lines_to_create[order_id][product_id]['procurement_ids'])
                 line = self.env['purchase.order.line'].sudo().create(line_vals)
                 last_proc = pol_procurements[-1]
                 for procurement in pol_procurements:
@@ -440,6 +442,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     procurement.add_proc_to_line(line)
                     if procurement == last_proc and new_qty > line.product_qty:
                         line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
+        return _(u"Order was correctly filled")
 
     @api.multi
     def sanitize_draft_orders(self):
@@ -483,13 +486,21 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         not_assigned_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
         # TODO: mettre à jour les message ops
         self.env['procurement.order'].redistribute_procurements_in_lines(dict_procs_lines)
-        if len(dict_lines_to_create.keys()) > 1 and jobify:
-            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-            for order in dict_lines_to_create.keys():
+        fill_orders_in_separate_jobs = bool(self.env['ir.config_parameter'].
+                                            get_param('purchase_procurement_just_in_time.fill_orders_in_separate_jobs'))
+        if len(dict_lines_to_create.keys()) > 1 and jobify and fill_orders_in_separate_jobs:
+            total_number_orders = len(dict_lines_to_create.keys())
+            number_order = 0
+            for order_id in dict_lines_to_create.keys():
+                order = self.env['purchase.order'].browse(order_id)
+                number_order += 1
+                session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
                 seller = self.env['procurement.order']._get_product_supplier(self[0])
-                job_create_draft_lines.delay(session, 'procurement.order', {order: dict_lines_to_create[order]},
-                                             description=_("Filling purchase order %s for supplier %s") %
-                                                         (order.name, seller.nale), context=self.env.context)
+                job_create_draft_lines. \
+                    delay(session, 'procurement.order', {order_id: dict_lines_to_create[order_id]},
+                          description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
+                                      (order.name, seller.name, number_order, total_number_orders),
+                          context=self.env.context)
         else:
             self.create_draft_lines(dict_lines_to_create)
 
