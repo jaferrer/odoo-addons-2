@@ -541,8 +541,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             if not rec.move_ids:
                 continue
 
+            assert not any([move.state == 'done' for move in rec.move_ids])
             running_moves = self.env['stock.move'].search([('id', 'in', rec.move_ids.ids),
-                                                           ('state', 'not in', ['draft', 'done', 'cancel'])]
+                                                           ('state', 'not in', ['done', 'cancel'])]
                                                           ).with_context(mail_notrack=True)
             if pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
                 group = self.env['procurement.group'].search([('name', '=', pol.order_id.name),
