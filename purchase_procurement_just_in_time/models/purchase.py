@@ -126,19 +126,20 @@ class PurchaseOrderJustInTime(models.Model):
             procurement_qty = product_uom._compute_qty(procurement.product_uom.id, procurement.product_qty,
                                                        to_uom_id=order_line.product_uom.id)
             tmp = move_template.copy()
-            rounded_min_qty = float_round(min(procurement_qty, diff_quantity),
-                                          precision_rounding=order_line.product_uom.rounding)
-            tmp.update({
-                'product_uom_qty': rounded_min_qty,
-                'product_uos_qty': rounded_min_qty,
-                'move_dest_id': procurement.move_dest_id.id,  #move destination is same as procurement destination
-                'group_id': procurement.group_id.id or group_id,  #move group is same as group of procurements if it exists, otherwise take another group
-                'procurement_id': procurement.id,
-                'invoice_state': procurement.rule_id.invoice_state or (procurement.location_id and procurement.location_id.usage == 'customer' and procurement.invoice_state=='2binvoiced' and '2binvoiced') or (order.invoice_method == 'picking' and '2binvoiced') or 'none', #dropship case takes from sale
-                'propagate': procurement.rule_id.propagate,
-            })
-            diff_quantity -= min(procurement_qty, diff_quantity)
-            res.append(tmp)
+            min_qty = min(procurement_qty, diff_quantity)
+            rounded_min_qty = float_round(min_qty, precision_rounding=order_line.product_uom.rounding)
+            if float_compare(rounded_min_qty, 0.0, precision_rounding=order_line.product_uom.rounding) != 0:
+                tmp.update({
+                    'product_uom_qty': rounded_min_qty,
+                    'product_uos_qty': rounded_min_qty,
+                    'move_dest_id': procurement.move_dest_id.id,  #move destination is same as procurement destination
+                    'group_id': procurement.group_id.id or group_id,  #move group is same as group of procurements if it exists, otherwise take another group
+                    'procurement_id': procurement.id,
+                    'invoice_state': procurement.rule_id.invoice_state or (procurement.location_id and procurement.location_id.usage == 'customer' and procurement.invoice_state=='2binvoiced' and '2binvoiced') or (order.invoice_method == 'picking' and '2binvoiced') or 'none', #dropship case takes from sale
+                    'propagate': procurement.rule_id.propagate,
+                })
+                res.append(tmp)
+            diff_quantity -= min_qty
         # if the order line has a bigger quantity than the procurement it was for (manually changed or minimal quantity), then
         # split the future stock move in two because the route followed may be different.
         for move in order_line.move_ids:
@@ -150,9 +151,10 @@ class PurchaseOrderJustInTime(models.Model):
 
         if float_compare(diff_quantity, 0.0, precision_rounding=order_line.product_uom.rounding) > 0:
             rounded_diff_qty = float_round(diff_quantity, precision_rounding=order_line.product_uom.rounding)
-            move_template['product_uom_qty'] = rounded_diff_qty
-            move_template['product_uos_qty'] = rounded_diff_qty
-            res.append(move_template)
+            if float_compare(rounded_diff_qty, 0.0, precision_rounding=order_line.product_uom.rounding) != 0:
+                move_template['product_uom_qty'] = rounded_diff_qty
+                move_template['product_uos_qty'] = rounded_diff_qty
+                res.append(move_template)
         return res
 
     @api.model
