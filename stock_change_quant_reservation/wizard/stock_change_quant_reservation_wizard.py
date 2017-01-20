@@ -18,6 +18,7 @@
 #
 
 from openerp import models, fields, api, exceptions, _
+from openerp.tools import float_compare
 
 
 class StockChangeQuantPicking(models.TransientModel):
@@ -70,6 +71,11 @@ class StockChangeQuantPicking(models.TransientModel):
         quants_ids = self.env.context.get('active_ids', [])
         quants = self.env['stock.quant'].browse(quants_ids)
         self.env['stock.quant'].quants_unreserve(self.move_id)
+        quants_qty = sum([quant.qty for quant in quants])
+        if float_compare(quants_qty, self.move_id.product_qty, precision_rounding=quant.product_id.uom_id.rounding) > 0:
+            raise exceptions.except_orm(_("Error!"), _("Impossible to reserve more than the move quantity."))
+        recalculate_state_for_moves = self.env['stock.move']
+        list_reservations = []
         for quant in quants:
             move = quant.reservation_id
             parent_move = quant.history_ids.filtered(lambda sm: sm.state == 'done' and
@@ -77,10 +83,12 @@ class StockChangeQuantPicking(models.TransientModel):
             if parent_move and len(parent_move) == 1 and parent_move.move_dest_id and self.move_id.state == 'waiting':
                 parent_move.move_dest_id = self.move_id
             self.move_id.action_confirm()
-            quant.quants_reserve([(quant, self.move_id.product_uom_qty)], self.move_id)
+            list_reservations += [(quant, quant.qty)]
             if move:
-                move.recalculate_move_state()
-            break
+                recalculate_state_for_moves += move
+        self.env['stock.quant'].quants_reserve(list_reservations, self.move_id)
+        if recalculate_state_for_moves:
+            recalculate_state_for_moves.recalculate_move_state()
         if self.picking_id.pack_operation_ids:
             self.move_id.picking_id.do_prepare_partial()
         return {

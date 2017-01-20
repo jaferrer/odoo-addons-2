@@ -79,7 +79,6 @@ class TestStockWorkingDays(common.TransactionCase):
 
     def test_30_schedule_warehouse_calendar(self):
         """Schedule test with a defined warehouse resource and a defined supplier resource."""
-        company = self.browse_ref('base.main_company')
         proc_env = self.env["procurement.order"]
         resource_env = self.env["resource.resource"]
         leave_env = self.env["resource.calendar.leaves"]
@@ -88,7 +87,7 @@ class TestStockWorkingDays(common.TransactionCase):
             'name': "Warehouse0 resource",
             'calendar_id': self.ref('stock_working_days.demo_calendar_1')
         })
-        leave_w = leave_env.create({
+        leave_env.create({
             'name': "Warehouse0 leave",
             'resource_id': resource_w.id,
             'calendar_id': self.ref('stock_working_days.demo_calendar_1'),
