@@ -30,7 +30,9 @@ barcode stock
 This modules allows to use the barcode scanner.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['views/barcode_stock.xml'],
+    'data': ['views/barcode_stock.xml',
+             'security/ir.model.access.csv'
+             ],
     'demo': [],
     'test': [],
     'installable': True,

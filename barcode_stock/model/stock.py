@@ -43,7 +43,7 @@ class FluxTenduStockPacOPeration(models.Model):
 class FluxTenduStockPacOPeration(models.Model):
     _inherit = 'stock.pack.operation'
 
-    processed = fields.Selection([('true','Yes'), ('false','No')],'Has been processed?', required=True)
+    processed = fields.Selection([('true','Yes'), ('false','No')],'Has been processed?')
 
     def action_drop_down(self, cr, uid, ids, context=None):
         ''' Used by barcode interface to say that pack_operation has been moved from src location
