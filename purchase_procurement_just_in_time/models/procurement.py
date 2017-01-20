@@ -608,5 +608,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             if procurement.purchase_line_id.order_id.shipped:
                 return True
             elif procurement.move_ids:
-                return all(move.state in ['done', 'cancel'] for move in procurement.move_ids)
+                cancel_test_list = [x.state == 'cancel' for x in procurement.move_ids]
+                done_cancel_test_list = [x.state in ('done', 'cancel') for x in procurement.move_ids]
+                all_done_or_cancel = all(done_cancel_test_list)
+                all_cancel = all(cancel_test_list)
+                if not all_done_or_cancel:
+                    return False
+                elif all_done_or_cancel and not all_cancel:
+                    return True
+                elif all_cancel:
+                    procurement.message_post(body=_('All stock moves have been cancelled for this procurement.'))
+                    procurement.write({'state': 'cancel'})
+                return False
         return super(ProcurementOrderPurchaseJustInTime, self)._check(procurement)
