@@ -17,5 +17,10 @@
             <field name="args"/>
         </record>
 
+        <record model="queue.job.channel" id="root_purchase_scheduler">
+            <field name="name">purchase_scheduler</field>
+            <field name="parent_id" ref="connector.channel_root"/>
+        </record>
+
     </data>
 </openerp>

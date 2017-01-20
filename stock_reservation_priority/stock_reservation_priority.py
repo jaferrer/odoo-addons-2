@@ -17,11 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from openerp import models, api, fields
 
 
 class StockReservationPriorityStockMove(models.Model):
     _inherit = 'stock.move'
+
+    priority = fields.Selection(copy=False)
 
     @api.multi
     def action_assign(self):
@@ -46,7 +48,8 @@ class StockReservationPriorityStockMove(models.Model):
             running_moves_ordered_reverse = self.env['stock.move']. \
                 search([('id', 'in', reservation_ids),
                         '|', ('priority', '<', move_to_assign['priority']),
-                        '&', ('priority', '=', move_to_assign['priority']), ('date', '>', move_to_assign['date'])],
+                        '&', ('priority', '=', move_to_assign['priority']),
+                        ('date', '>', move_to_assign['date'])],
                        order='priority asc, date desc, id desc')
             running_moves_ordered_reverse = running_moves_ordered_reverse.read(['id', 'product_qty'], load=False)
             moves_to_unreserve = []
@@ -62,5 +65,6 @@ class StockReservationPriorityStockMove(models.Model):
             if moves_to_unreserve:
                 moves_to_unreserve = self.env['stock.move'].browse(moves_to_unreserve)
                 moves_to_unreserve.do_unreserve()
-        moves_to_assign = self.search([('id', 'in', self.ids + to_assign_ids)], order='priority desc, date asc, id asc')
+        moves_to_assign = self.search([('id', 'in', self.ids + to_assign_ids)],
+                                      order='priority desc, date asc, id asc')
         return super(StockReservationPriorityStockMove, moves_to_assign).action_assign()

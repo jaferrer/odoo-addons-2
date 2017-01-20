@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="queue.job.channel" id="root_procurement_just_in_time">
+            <field name="name">procurement_just_in_time</field>
+            <field name="parent_id" ref="connector.channel_root"/>
+        </record>
+
+    </data>
+</openerp>

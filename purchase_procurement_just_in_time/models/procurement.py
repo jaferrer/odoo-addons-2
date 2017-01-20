@@ -27,7 +27,7 @@ from openerp import models, fields, api, _
 from openerp.tools.float_utils import float_compare, float_round
 
 
-@job
+@job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule(session, model_name, compute_all_products, compute_supplier_ids,
                           compute_product_ids, jobify, context=None):
     model_instance = session.pool[model_name]
@@ -39,7 +39,7 @@ def job_purchase_schedule(session, model_name, compute_all_products, compute_sup
     return result
 
 
-@job
+@job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
@@ -49,7 +49,7 @@ def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     return result
 
 
-@job(default_channel='root.fill.orders')
+@job(default_channel='root.procurement_just_in_time')
 def job_create_draft_lines(session, model_name, dict_lines_to_create, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
@@ -102,8 +102,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 qty_done_proc_uom = self.env['product.uom']._compute_qty(procurement.product_id.uom_id.id,
                                                                          qty_done_product_uom,
                                                                          procurement.product_uom.id)
-                if float_compare(qty_done_proc_uom, 0.0, precision_rounding=procurement.product_uom.rounding) > 0:
-                    remaining_qty = procurement.product_qty - qty_done_proc_uom
+                remaining_qty = procurement.product_qty - qty_done_proc_uom
+                prec = procurement.product_uom.rounding
+                if float_compare(qty_done_proc_uom, 0.0, precision_rounding=prec) > 0 and \
+                                float_compare(remaining_qty, 0.0, precision_rounding=prec) > 0:
                     new_proc = procurement.copy({
                         'product_qty': float_round(qty_done_proc_uom,
                                                    precision_rounding=procurement.product_uom.rounding),
@@ -418,7 +420,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     dict_lines_to_create[draft_order.id] = {}
                 if not dict_lines_to_create[draft_order.id].get(product.id):
                     dict_lines_to_create[draft_order.id][product.id] = {'vals': line_vals,
-                                                                  'procurement_ids': pol_procurements.ids}
+                                                                        'procurement_ids': pol_procurements.ids}
                 else:
                     dict_lines_to_create[draft_order.id][product.id]['procurement_ids'] += pol_procurements.ids
                 not_assigned_procs -= pol_procurements
