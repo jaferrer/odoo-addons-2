@@ -215,12 +215,17 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         remaining_qty = pol.remaining_qty
         procurements = self
         for proc in procurements:
-            proc_qty_pol_uom = self.env['product.uom']. \
-                _compute_qty(proc.product_uom.id, proc.product_qty, pol.product_uom.id)
-            if float_compare(remaining_qty, proc_qty_pol_uom,
+            remaining_proc_qty_pol_uom = self.env['product.uom']. \
+                                             _compute_qty(proc.product_uom.id, proc.product_qty, pol.product_uom.id) - \
+                                         self.env['product.uom']. \
+                                             _compute_qty(proc.product_id.uom_id.id,
+                                                          sum([move.product_qty for move in proc.move_ids
+                                                               if move.state == 'done']),
+                                                          pol.product_uom.id)
+            if float_compare(remaining_qty, remaining_proc_qty_pol_uom,
                              precision_rounding=pol.product_uom.rounding) >= 0:
                 procs_for_first_line |= proc
-                remaining_qty -= proc_qty_pol_uom
+                remaining_qty -= remaining_proc_qty_pol_uom
             else:
                 break
         if not dict_procs_lines.get(pol):
