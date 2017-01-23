@@ -116,9 +116,14 @@ class PurchaseOrderJustInTime(models.Model):
                 for move in procurement.move_ids:
                     if move.state in ['draft', 'cancel']:
                         continue
-                    move_qty_in_pol_uom = product_uom._compute_qty(move.product_uom.id, move.product_uom_qty,
-                                                                   to_uom_id=order_line.product_uom.id)
-                    diff_quantity -= move_qty_in_pol_uom
+                    if move.purchase_line_id == order_line:
+                        move_qty_in_pol_uom = product_uom._compute_qty(move.product_uom.id, move.product_uom_qty,
+                                                                       to_uom_id=order_line.product_uom.id)
+                        diff_quantity -= move_qty_in_pol_uom
+                    else:
+                        line_to_check = move.purchase_line_id
+                        move.procurement_id = False
+                        line_to_check.adjust_move_no_proc_qty()
                 continue
             if procurement.state in ['done', 'cancel']:
                 # Done or cancel proc without moves
@@ -148,13 +153,11 @@ class PurchaseOrderJustInTime(models.Model):
             move_qty_in_pol_uom = product_uom._compute_qty(move.product_uom.id, move.product_uom_qty,
                                                            to_uom_id=order_line.product_uom.id)
             diff_quantity -= move_qty_in_pol_uom
-
-        if float_compare(diff_quantity, 0.0, precision_rounding=order_line.product_uom.rounding) > 0:
-            rounded_diff_qty = float_round(diff_quantity, precision_rounding=order_line.product_uom.rounding)
-            if float_compare(rounded_diff_qty, 0.0, precision_rounding=order_line.product_uom.rounding) != 0:
-                move_template['product_uom_qty'] = rounded_diff_qty
-                move_template['product_uos_qty'] = rounded_diff_qty
-                res.append(move_template)
+        rounded_diff_qty = float_round(diff_quantity, precision_rounding=order_line.product_uom.rounding)
+        if float_compare(rounded_diff_qty, 0.0, precision_rounding=order_line.product_uom.rounding) > 0:
+            move_template['product_uom_qty'] = rounded_diff_qty
+            move_template['product_uos_qty'] = rounded_diff_qty
+            res.append(move_template)
         return res
 
     @api.model
