@@ -215,12 +215,17 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         remaining_qty = pol.remaining_qty
         procurements = self
         for proc in procurements:
-            proc_qty_pol_uom = self.env['product.uom']. \
-                _compute_qty(proc.product_uom.id, proc.product_qty, pol.product_uom.id)
-            if float_compare(remaining_qty, proc_qty_pol_uom,
+            remaining_proc_qty_pol_uom = self.env['product.uom']. \
+                                             _compute_qty(proc.product_uom.id, proc.product_qty, pol.product_uom.id) - \
+                                         self.env['product.uom']. \
+                                             _compute_qty(proc.product_id.uom_id.id,
+                                                          sum([move.product_qty for move in proc.move_ids
+                                                               if move.state == 'done']),
+                                                          pol.product_uom.id)
+            if float_compare(remaining_qty, remaining_proc_qty_pol_uom,
                              precision_rounding=pol.product_uom.rounding) >= 0:
                 procs_for_first_line |= proc
-                remaining_qty -= proc_qty_pol_uom
+                remaining_qty -= remaining_proc_qty_pol_uom
             else:
                 break
         if not dict_procs_lines.get(pol):
@@ -604,5 +609,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             if procurement.purchase_line_id.order_id.shipped:
                 return True
             elif procurement.move_ids:
-                return all(move.state in ['done', 'cancel'] for move in procurement.move_ids)
+                cancel_test_list = [x.state == 'cancel' for x in procurement.move_ids]
+                done_cancel_test_list = [x.state in ('done', 'cancel') for x in procurement.move_ids]
+                all_done_or_cancel = all(done_cancel_test_list)
+                all_cancel = all(cancel_test_list)
+                if not all_done_or_cancel:
+                    return False
+                elif all_done_or_cancel and not all_cancel:
+                    return True
+                elif all_cancel:
+                    procurement.message_post(body=_('All stock moves have been cancelled for this procurement.'))
+                    procurement.write({'state': 'cancel'})
+                return False
         return super(ProcurementOrderPurchaseJustInTime, self)._check(procurement)
