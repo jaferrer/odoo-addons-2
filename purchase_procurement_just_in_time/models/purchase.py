@@ -122,7 +122,7 @@ class PurchaseOrderJustInTime(models.Model):
                         diff_quantity -= move_qty_in_pol_uom
                     else:
                         line_to_check = move.purchase_line_id
-                        move.purchase_line_id = False
+                        move.procurement_id = False
                         line_to_check.adjust_move_no_proc_qty()
                 continue
             if procurement.state in ['done', 'cancel']:
