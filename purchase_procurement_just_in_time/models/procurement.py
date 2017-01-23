@@ -191,7 +191,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     else:
                         dict_procs[seller][company][location] += procurements
             procurements_to_run -= procurements
-        for supplier in dict_procs.keys():
+        for supplier in sorted(dict_procs.keys(), key=lambda partner: partner.scheduler_sequence):
             for company in dict_procs[supplier].keys():
                 for location in dict_procs[supplier][company].keys():
                     procurements = dict_procs[supplier][company][location]
