@@ -62,8 +62,8 @@ class JitResPartner(models.Model):
                 next_scheduler_date = fields.Datetime.from_string(supplier.next_scheduler_date)
                 while next_scheduler_date <= dt.now():
                     next_scheduler_date += relativedelta(days=supplier.nb_days_scheduler_frequency)
-                supplier.next_scheduler_date = fields.Datetime.to_string(next_scheduler_date)
-                supplier.last_scheduler_date = fields.Datetime.now()
+                supplier.write({'next_scheduler_date': fields.Datetime.to_string(next_scheduler_date),
+                                'last_scheduler_date': fields.Datetime.now()})
         if suppliers_to_launch:
             wizard = self.env['launch.purchase.planner'].create({
                 'compute_all': False,
