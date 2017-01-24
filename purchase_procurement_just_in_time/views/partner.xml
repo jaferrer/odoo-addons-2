@@ -24,7 +24,7 @@
             <field name="model">res.partner</field>
             <field name="priority" eval="999"/>
             <field name="arch" type="xml">
-                <tree editable="top" create="false" delete="false">
+                <tree editable="top">
                     <field name="name"/>
                     <field name="order_group_period"/>
                     <field name="nb_max_draft_orders"/>
