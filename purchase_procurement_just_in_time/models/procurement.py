@@ -478,19 +478,34 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.multi
     def purchase_schedule_procurements(self, jobify=False):
+        return_msg = u""
         companies = {proc.company_id for proc in self}
         locations = {proc.location_id for proc in self}
         sellers = {self.env['procurement.order']._get_product_supplier(proc) for proc in self}
         assert len(companies) == 1, "purchase_schedule_procurements should be called with procs of the same company"
         assert len(locations) == 1, "purchase_schedule_procurements should be called with procs of the same location"
         assert len(sellers) == 1, "purchase_schedule_procurements should be called with procs of the same supplier"
+        time_now = dt.now()
         self.sanitize_draft_orders()
+        return_msg += u"Sanitizing draft orders: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
         dict_procs_lines, not_assigned_procs = self.compute_which_procs_for_lines()
+        return_msg += u"\nComputing which procs for lines: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
         not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders()
+        return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
         self.delete_useless_draft_orders()
+        return_msg += u"\nDeleting useless draft orders: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
         not_assigned_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        return_msg += u"\nRemoving unsassigned procurements from purchase order lines: %s s." % \
+                      int((dt.now() - time_now).seconds)
+        time_now = dt.now()
         # TODO: mettre à jour les message ops
         self.env['procurement.order'].redistribute_procurements_in_lines(dict_procs_lines)
+        return_msg += u"\nRedistributing procurements in lines: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
         fill_orders_in_separate_jobs = bool(self.env['ir.config_parameter'].
                                             get_param('purchase_procurement_just_in_time.fill_orders_in_separate_jobs'))
         if len(dict_lines_to_create.keys()) > 1 and jobify and fill_orders_in_separate_jobs:
@@ -508,6 +523,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                           context=self.env.context)
         else:
             self.create_draft_lines(dict_lines_to_create)
+        return_msg += u"\nPurchase order jobs created or order(s) filled: %s s." % int((dt.now() - time_now).seconds)
+        return return_msg
 
     @api.multi
     def remove_procs_from_lines(self, unlink_moves_to_procs=False):
