@@ -1032,28 +1032,41 @@ function openerp_picking_widgets(instance){
     module.BarcodeScanner = instance.web.Class.extend({
         connect: function(callback){
             var code = "";
+            var shift=false;
+            var letter="";
             var timeStamp = 0;
             var timeout = null;
-            console.log("ddddd");
             this.handler = function(e){
-                console.log(e);
                 if(e.which === 16){
+                    shift=true;
                     return;
                 }
-                if(e.which === 13){
-                    if(code.length >= 3){
+                if(e.which === 13) {
+                    if (code.length >= 3) {
                         callback(code);
                     }
                     code = "";
                     return;
                 }
+                console.log(e);
+                if(!shift) {
+                    if(e.which == 54){
+                        code +='-';
+                        return;
+                    }
+                    if(e.which == 56){
+                        code +='_';
+                        return;
+                    }
+                }
                 code += String.fromCharCode(e.which);
+                shift=false;
             };
 
-            $('body').on('keydown', this.handler);
+            $(window).on('keyup', this.handler);
         },
         disconnect: function(){
-            $('body').off('keydown', this.handler);
+            $(window).off('keyup', this.handler);
         },
     });
 
