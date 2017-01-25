@@ -41,16 +41,15 @@ class procurement_order_improved(models.Model):
 
         supplierinfo = self.env['product.supplierinfo']. \
             search([('name', '=', po_line.order_id.partner_id.id),
-                    ('product_tmpl_id', '=', po_line.product_id.product_tmpl_id.id)], order='sequence', limit=1)
+                    ('product_tmpl_id', '=', po_line.product_id.product_tmpl_id.id)], order='sequence, id', limit=1)
 
         # Make sure we use the minimum quantity of the partner corresponding to the PO.
         # This does not apply in case of dropshipping
         supplierinfo_min_qty = 0.0
-        if po_line.order_id.location_id.usage != 'customer':
-            if po_line.product_id.seller_id.id == po_line.order_id.partner_id.id:
-                supplierinfo_min_qty = po_line.product_id.seller_qty
-            elif supplierinfo:
-                supplierinfo_min_qty = supplierinfo.min_qty
+        if po_line.order_id.location_id.usage != 'customer' and supplierinfo:
+            supplierinfo_min_qty = self.env['product.uom']. \
+                _compute_qty(supplierinfo.product_uom.id, supplierinfo.min_qty,
+                             po_line.product_id.uom_po_id.id)
 
         if supplierinfo_min_qty == 0.0 and not self.env.context.get('focus_on_procurements'):
             qty += po_line.product_qty
@@ -67,7 +66,9 @@ class procurement_order_improved(models.Model):
         price = po_line.price_unit
 
         if supplierinfo:
-            packaging_number = supplierinfo.packaging_qty
+            packaging_number = self.env['product.uom']. \
+                _compute_qty(supplierinfo.product_uom.id, supplierinfo.packaging_qty,
+                             po_line.product_id.uom_po_id.id)
             if float_compare(packaging_number, 0.0, precision_rounding=procurement.product_uom.rounding) == 0:
                 packaging_number = 1
             if float_compare(qty, 0.0, precision_rounding=procurement.product_uom.rounding) != 0:
