@@ -434,6 +434,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.model
     def create_draft_lines(self, dict_lines_to_create):
+        time_begin = dt.now()
         for order_id in dict_lines_to_create.keys():
             for product_id in dict_lines_to_create[order_id].keys():
                 line_vals = dict_lines_to_create[order_id][product_id]['vals']
@@ -447,7 +448,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     procurement.add_proc_to_line(line)
                     if procurement == last_proc and new_qty > line.product_qty:
                         line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
-        return _(u"Order was correctly filled")
+        return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
 
     @api.multi
     def sanitize_draft_orders(self):
@@ -501,13 +502,12 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         not_assigned_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
         return_msg += u"\nRemoving unsassigned procurements from purchase order lines: %s s." % \
                       int((dt.now() - time_now).seconds)
-        time_now = dt.now()
         # TODO: mettre à jour les message ops
-        self.env['procurement.order'].redistribute_procurements_in_lines(dict_procs_lines)
-        return_msg += u"\nRedistributing procurements in lines: %s s." % int((dt.now() - time_now).seconds)
+        return_msg = self.env['procurement.order'].redistribute_procurements_in_lines(dict_procs_lines, return_msg)
         time_now = dt.now()
         fill_orders_in_separate_jobs = bool(self.env['ir.config_parameter'].
                                             get_param('purchase_procurement_just_in_time.fill_orders_in_separate_jobs'))
+
         if len(dict_lines_to_create.keys()) > 1 and jobify and fill_orders_in_separate_jobs:
             total_number_orders = len(dict_lines_to_create.keys())
             number_order = 0
@@ -532,6 +532,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         self.with_context(tracking_disable=True).write({'purchase_line_id': False})
         to_reset = self.search([('id', 'in', self.ids), ('state', 'in', ['running', 'exception'])])
         to_reset.with_context(tracking_disable=True).write({'state': 'buy_to_run'})
+        procs_moves_to_detach = self.env['stock.move']
         for proc in self:
             if proc.state in ['done', 'cancel']:
                 # Done and cancel procs should not change purchase order line
@@ -544,8 +545,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
                 proc_moves.unlink()
             else:
-                proc_moves.write({'purchase_line_id': False,
-                                  'picking_id': False})
+                procs_moves_to_detach += proc_moves
+        if procs_moves_to_detach:
+            procs_moves_to_detach.write({'purchase_line_id': False, 'picking_id': False})
 
     @api.multi
     def add_proc_to_line(self, pol):
@@ -588,17 +590,27 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         self.with_context(tracking_disable=True).write({'state': 'running'})
 
     @api.model
-    def redistribute_procurements_in_lines(self, dict_procs_lines):
+    def redistribute_procurements_in_lines(self, dict_procs_lines, return_msg):
+        time_now = dt.now()
         for pol in dict_procs_lines.keys():
             procurements = dict_procs_lines[pol]
             for proc in pol.procurement_ids:
                 if proc not in procurements:
                     proc.remove_procs_from_lines()
+        return_msg += u"\nRemoving procs from running lines: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
+        for pol in dict_procs_lines.keys():
+            procurements = dict_procs_lines[pol]
             for proc in procurements:
                 if proc not in pol.procurement_ids:
                     proc.add_proc_to_line(pol)
+        return_msg += u"\nAdding procs into running lines: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
+        for pol in dict_procs_lines.keys():
             if pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
                 pol.adjust_move_no_proc_qty()
+        return_msg += u"\nAdjusting moves no procs qty for running lines: %s s." % int((dt.now() - time_now).seconds)
+        return return_msg
 
     @api.multi
     def make_po(self):
