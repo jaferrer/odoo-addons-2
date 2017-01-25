@@ -26,12 +26,9 @@ class StockAccountImprovedStockMove(models.Model):
     @api.model
     def default_get(self, fields_list):
         result = super(StockAccountImprovedStockMove, self).default_get(fields_list)
-        print 'default', result
-        print 'ctx', self.env.context
         picking_id = result.get('default_picking_id') or self.env.context.get('default_picking_id')
         if picking_id:
             picking = self.env['stock.picking'].browse(picking_id)
             if picking.invoice_state:
                 result['invoice_state'] = picking.invoice_state
-        print 'result', result
         return result
