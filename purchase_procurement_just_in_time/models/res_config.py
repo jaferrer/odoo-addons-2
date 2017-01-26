@@ -40,6 +40,8 @@ class purchase_jit_config(models.TransientModel):
                                               help="Used for the purchase planner")
     fill_orders_in_separate_jobs = fields.Boolean(string="Fill draft orders in separate jobs",
                                                   help="Used for the purchase planner")
+    redistribute_procurements_in_separate_jobs = fields.Boolean(string="Redistribute procurements in separate jobs",
+                                                                help="Used for the purchase planner")
 
     @api.multi
     def get_default_opmsg_min_late_delay(self):
@@ -105,3 +107,16 @@ class purchase_jit_config(models.TransientModel):
         for record in self:
             config_parameters.set_param("purchase_procurement_just_in_time.fill_orders_in_separate_jobs",
                                         record.fill_orders_in_separate_jobs or '')
+
+    @api.multi
+    def get_default_redistribute_procurements_in_separate_jobs(self):
+        redistribute_procurements_in_separate_jobs = self.env['ir.config_parameter'].get_param(
+            "purchase_procurement_just_in_time.redistribute_procurements_in_separate_jobs", default=False)
+        return {'redistribute_procurements_in_separate_jobs': bool(redistribute_procurements_in_separate_jobs)}
+
+    @api.multi
+    def set_redistribute_procurements_in_separate_jobs(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.redistribute_procurements_in_separate_jobs",
+                                        record.redistribute_procurements_in_separate_jobs or '')

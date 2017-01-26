@@ -714,3 +714,14 @@ msgstr "Remplir les commandes brouillon dans des jobs séparés"
 #: help:purchase.config.settings,fill_orders_in_separate_jobs:0
 msgid "Used for the purchase planner"
 msgstr "Utilisé par le planificateur achats"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,redistribute_procurements_in_separate_jobs:0
+msgid "Redistribute procurements in separate jobs"
+msgstr "Redistribuer les procurements dans des jobs séparés"
+
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.config.settings,redistribute_procurements_in_separate_jobs:0
+msgid "Used for the purchase planner"
+msgstr "Utilisé par le planificateur achats"
