@@ -90,10 +90,11 @@ class TrackingNumber(models.Model):
 class DeliveryTrackingStockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    transporter_id = fields.Many2one('tracking.transporter', string="Transporter used",
+    transporter_id = fields.Many2one('tracking.transporter', string="Transporter used", groups='stock.group_stock_user',
                                      related='tracking_ids.transporter_id', store=True, readonly=True)
     last_status_update = fields.Datetime(string="Date of the last update")
-    tracking_ids = fields.One2many('tracking.number', 'picking_id', string="Delivery Tracking")
+    tracking_ids = fields.One2many('tracking.number', 'picking_id', string="Delivery Tracking",
+                                   groups='stock.group_stock_user')
 
     @api.multi
     def update_delivery_status(self):
