@@ -49,7 +49,7 @@ def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     return result
 
 
-@job(default_channel='root.procurement_just_in_time')
+@job(default_channel='root.purchase_scheduler_slave')
 def job_create_draft_lines(session, model_name, dict_lines_to_create, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
@@ -58,7 +58,7 @@ def job_create_draft_lines(session, model_name, dict_lines_to_create, context=No
     return result
 
 
-@job(default_channel='root.procurement_just_in_time')
+@job(default_channel='root.purchase_scheduler_slave')
 def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
