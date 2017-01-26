@@ -49,7 +49,7 @@ def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     return result
 
 
-@job(default_channel='root.procurement_just_in_time')
+@job(default_channel='root.purchase_scheduler_slave')
 def job_create_draft_lines(session, model_name, dict_lines_to_create, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
@@ -58,7 +58,7 @@ def job_create_draft_lines(session, model_name, dict_lines_to_create, context=No
     return result
 
 
-@job(default_channel='root.procurement_just_in_time')
+@job(default_channel='root.purchase_scheduler_slave')
 def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
@@ -506,8 +506,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         seller = self.env['procurement.order']._get_product_supplier(self[0])
         orders = self.env['purchase.order'].search([('state', '=', 'draft'),
                                                     ('partner_id', '=', seller.id),
-                                                    '|', ('date_order', '=', False),
-                                                    ('date_order_max', '=', False)])
+                                                    ('date_order', '=', False)])
         orders_to_unlink = self.env['purchase.order']
         for order in orders:
             if not order.order_line:

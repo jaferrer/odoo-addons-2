@@ -50,3 +50,6 @@ class OdooScript(models.Model):
         self.last_execution_end = fields.Datetime.now()
         if autocommit:
             self.env.cr.commit()
+            print u"End of process, result committed"
+        else:
+            print u"End of process, you can commit or rollback"
