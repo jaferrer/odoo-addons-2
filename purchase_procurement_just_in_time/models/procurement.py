@@ -506,8 +506,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         seller = self.env['procurement.order']._get_product_supplier(self[0])
         orders = self.env['purchase.order'].search([('state', '=', 'draft'),
                                                     ('partner_id', '=', seller.id),
-                                                    '|', ('date_order', '=', False),
-                                                    ('date_order_max', '=', False)])
+                                                    ('date_order', '=', False)])
         orders_to_unlink = self.env['purchase.order']
         for order in orders:
             if not order.order_line:
