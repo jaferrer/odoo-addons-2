@@ -111,6 +111,7 @@
                     <field name="name"/>
                     <field name="transporter_id"/>
                     <field name="code"/>
+                    <field name="used_by_default"/>
                 </tree>
             </field>
         </record>

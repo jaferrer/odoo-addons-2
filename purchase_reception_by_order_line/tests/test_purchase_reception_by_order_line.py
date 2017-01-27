@@ -26,6 +26,9 @@ class TestPurchaseReceptionByOrder(common.TransactionCase):
         super(TestPurchaseReceptionByOrder, self).setUp()
         self.test_product_1 = self.browse_ref('purchase_reception_by_order_line.test_product_1')
         self.test_product_2 = self.browse_ref('purchase_reception_by_order_line.test_product_2')
+        self.test_product_3 = self.browse_ref('purchase_reception_by_order_line.test_product_3')
+        self.stock_location_a = self.browse_ref('stock_performance_improved.stock_location_a')
+        self.stock_location_b = self.browse_ref('stock_performance_improved.stock_location_b')
         self.order_1 = self.browse_ref('purchase_reception_by_order_line.order_1')
         self.order_line_1 = self.browse_ref('purchase_reception_by_order_line.order_line_1')
         self.order_line_2 = self.browse_ref('purchase_reception_by_order_line.order_line_2')
@@ -35,6 +38,7 @@ class TestPurchaseReceptionByOrder(common.TransactionCase):
         self.unit = self.browse_ref('product.product_uom_unit')
         self.supplier = self.browse_ref('stock.stock_location_suppliers')
         self.stock = self.browse_ref('stock.stock_location_stock')
+        self.picking_type_id = self.ref("stock.picking_type_internal")
 
     def get_picking_moves(self):
         [move1, move2, move3] = [False] * 3
@@ -110,6 +114,35 @@ class TestPurchaseReceptionByOrder(common.TransactionCase):
                 'location_id': self.supplier.id,
                 'location_dest_id': self.stock.id,
             })
+
+    def test_15_transfer_one_product_on_two_order_lines(self):
+        picking1, move1, move2, _ = self.get_picking_moves()
+        picking1.do_prepare_partial()
+        self.assertEqual(len(picking1.pack_operation_ids), 3)
+
+        wizard_id = picking1.do_enter_transfer_details()['res_id']
+        wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        self.assertEqual(len(wizard.item_ids), 3)
+        item1 = item2 = False
+        for item in wizard.item_ids:
+            if item.purchase_line_id == self.order_line_1:
+                item1 = item
+            if item.purchase_line_id == self.order_line_2:
+                item2 = item
+        item1.quantity = 10
+        item2.quantity = 20
+        wizard.do_detailed_transfer()
+
+        packop1, packop2, _ = self.check_packops(picking1)
+
+        self.assertEqual(packop1.product_qty, 10)
+        self.assertEqual(packop2.product_qty, 20)
+        self.assertEqual(packop1.purchase_line_id, self.order_line_1)
+        self.assertEqual(packop2.purchase_line_id, self.order_line_2)
+        self.assertEqual(move1.state, 'done')
+        self.assertEqual(move2.state, 'done')
+        self.assertEqual(move1.product_qty, 10)
+        self.assertEqual(move2.product_qty, 20)
 
     def test_20_forbidden_actions_on_products(self):
         picking1, _, _, _ = self.get_picking_moves()
@@ -272,3 +305,57 @@ class TestPurchaseReceptionByOrder(common.TransactionCase):
         self.assertEqual(len(self.order_line_3.move_ids), 1)
         self.assertEqual(self.order_line_3.move_ids.product_uom_qty, 30)
         self.assertEqual(self.order_line_3.move_ids.state, 'done')
+
+    def test_70_check_operation_links(self):
+
+        move1 = self.env['stock.move'].create({
+            'name': "Test move for product 1",
+            'product_id': self.test_product_1.id,
+            'product_uom_qty': 10,
+            'picking_type_id': self.picking_type_id,
+            'location_id': self.stock_location_a.id,
+            'location_dest_id': self.stock_location_b.id,
+            'product_uom': self.unit.id,
+        })
+
+        supply_move_product1 = self.env['stock.move'].create({
+            'name': "Supply move for product 1",
+            'product_id': self.test_product_1.id,
+            'product_uom_qty': 10,
+            'picking_type_id': self.picking_type_id,
+            'location_id': self.supplier.id,
+            'location_dest_id': self.stock_location_a.id,
+            'product_uom': self.unit.id,
+            'move_dest_id': move1.id,
+        })
+
+        move3 = self.env['stock.move'].create({
+            'name': "Test move for product 4",
+            'product_id': self.test_product_3.id,
+            'product_uom_qty': 20,
+            'picking_type_id': self.picking_type_id,
+            'location_id': self.stock_location_a.id,
+            'location_dest_id': self.stock_location_b.id,
+            'product_uom': self.unit.id,
+        })
+
+        move1.action_confirm()
+        move3.action_confirm()
+        supply_move_product1.action_assign()
+        supply_move_product1.action_done()
+
+        picking = move1.picking_id
+        self.assertTrue(picking)
+        self.assertEqual(move3.picking_id, picking)
+
+        picking.action_assign()
+        picking.do_prepare_partial()
+
+        self.assertEqual(move1.state, 'assigned')
+        self.assertEqual(move3.state, 'assigned')
+
+        for move in [move1, move3]:
+            self.assertEqual(len(move.linked_move_operation_ids), 1)
+
+        for packop in picking.pack_operation_ids:
+            self.assertEqual(len(packop.linked_move_operation_ids), 1)

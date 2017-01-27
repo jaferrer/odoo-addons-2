@@ -19,7 +19,7 @@
 #
 
 from openerp import models, fields, api, exceptions, _
-from openerp.tools import float_compare
+from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 
 
@@ -30,7 +30,9 @@ class StockQuant(models.Model):
     def partial_move(self, move_items, product, qty):
         if not move_items.get(product):
             move_items[product] = []
-        move_items[product] += [{'quants': self, 'qty': qty}]
+        move_items[product] += [{
+            'quants': self,
+            'qty': float_round(qty, precision_rounding=product.uom_id.rounding)}]
         return move_items
 
     @api.model
@@ -48,15 +50,15 @@ class StockQuant(models.Model):
                     break
                 # If the new quant exceeds the requested qty, we reserve the good qty and then break
                 elif float_compare(qty_reserved + quant.qty, qty_to_reserve, precision_rounding=prec) > 0:
-                    list_reservations += [(quant, qty_to_reserve - qty_reserved)]
+                    list_reservations += [(quant, float_round(qty_to_reserve - qty_reserved, precision_rounding=prec))]
                     break
                 list_reservations += [(quant, quant.qty)]
                 qty_reserved += quant.qty
         return list_reservations
 
     @api.model
-    def get_corresponding_moves(self, quant, location_from, dest_location, picking_type_id, limit=False,
-                                force_domain=False):
+    def get_corresponding_moves(self, quant, location_from, dest_location, picking_type_id, limit=None,
+                                force_domain=None):
         domain = [('product_id', '=', quant.product_id.id),
                   ('state', 'not in', ['draft', 'done', 'cancel']),
                   ('location_id', '=', location_from.id),
@@ -85,7 +87,7 @@ class StockQuant(models.Model):
 
     @api.model
     def split_and_reserve_moves_ok(self, list_reservations, move_recordset, new_picking):
-        processed_moves = self.env['stock.move']
+        processed_moves = move_recordset
         for quant_tuple in list_reservations:
             prec = quant_tuple[0].product_id.uom_id.rounding
             current_reservation = quant_tuple[0].reservation_id
@@ -96,9 +98,12 @@ class StockQuant(models.Model):
                 current_reservation.do_unreserve()
                 final_qty = sum([tpl[1] for tpl in quant_tuples_current_reservation])
                 # Split move if needed
-                if float_compare(final_qty, current_reservation.product_uom_qty, precision_rounding=prec) < 0:
-                    current_reservation.split(current_reservation, current_reservation.product_uom_qty - final_qty)
-                    self.quants_reserve(quant_tuples_current_reservation, current_reservation)
+                if float_compare(final_qty, current_reservation.product_qty, precision_rounding=prec) < 0:
+                    current_reservation.split(current_reservation,
+                                              float_round(current_reservation.product_qty - final_qty,
+                                                          precision_rounding=prec))
+                # Reserve quants on move
+                self.quants_reserve(quant_tuples_current_reservation, current_reservation)
                 # Assign the current move to the new picking
                 current_reservation.picking_id = new_picking
                 move_recordset |= current_reservation
@@ -110,11 +115,13 @@ class StockQuant(models.Model):
                                     dest_location, picking_type_id):
         not_reserved_tuples = [item for item in list_reservations if not item[0].reservation_id]
         if not_reserved_tuples:
-            done_move_ids = []
+            done_move_ids = move_recordset.ids
             dict_reservations = {}
+            force_domain = [('id', 'not in', done_move_ids)]
             first_corresponding_move = self.get_corresponding_moves(not_reserved_tuples[0][0],
                                                                     location_from, dest_location,
-                                                                    picking_type_id, limit=1)
+                                                                    picking_type_id, force_domain=force_domain,
+                                                                    limit=1)
             while not_reserved_tuples and first_corresponding_move:
                 prec = first_corresponding_move.product_id.uom_id.rounding
                 if not dict_reservations.get(first_corresponding_move):
@@ -125,22 +132,23 @@ class StockQuant(models.Model):
                 qty_reserved_on_move = sum([tpl[1] for tpl in dict_reservations[first_corresponding_move]])
                 # If the current move can exactly assume the new reservation,
                 # we reserve the quants and pass to the next one
-                if float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_uom_qty,
+                if float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_qty,
                                  precision_rounding=prec) == 0:
                     dict_reservations[first_corresponding_move] += [(quant, qty)]
                     done_move_ids += [first_corresponding_move.id]
                 # If the current move can assume more than the new reservation,
                 # we reserve the quants and stay on this move
-                elif float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_uom_qty,
+                elif float_compare(qty_reserved_on_move + qty, first_corresponding_move.product_qty,
                                    precision_rounding=prec) < 0:
                     dict_reservations[first_corresponding_move] += [(quant, qty)]
                 # If the current move can not assume the new reservation, we split the quant
                 else:
-                    reservable_qty_on_move = first_corresponding_move.product_uom_qty - qty_reserved_on_move
-                    splitted_quant = self.env['stock.quant']. \
-                        _quant_split(quant, reservable_qty_on_move)
+                    reservable_qty_on_move = first_corresponding_move.product_qty - qty_reserved_on_move
+                    splitted_quant = self.env['stock.quant']._quant_split(quant, float_round(reservable_qty_on_move,
+                                                                                             precision_rounding=prec))
                     dict_reservations[first_corresponding_move] += [(quant, quant.qty)]
-                    not_reserved_tuples += [(splitted_quant, qty - reservable_qty_on_move)]
+                    not_reserved_tuples += [(splitted_quant, float_round(qty - reservable_qty_on_move,
+                                                                         precision_rounding=prec))]
                     done_move_ids += [first_corresponding_move.id]
                 move_recordset |= first_corresponding_move
                 force_domain = [('id', 'not in', done_move_ids)]
@@ -152,8 +160,8 @@ class StockQuant(models.Model):
             for move in dict_reservations:
                 prec = move.product_id.uom_id.rounding
                 qty_reserved = sum([tpl[1] for tpl in dict_reservations[move]])
-                if float_compare(qty_reserved, move.product_uom_qty, precision_rounding=prec) < 0:
-                    move.split(move, move.product_uom_qty - qty_reserved)
+                if float_compare(qty_reserved, move.product_qty, precision_rounding=prec) < 0:
+                    move.split(move, float_round(move.product_qty - qty_reserved, precision_rounding=prec))
             # Let's reserve the quants
             for move in dict_reservations:
                 move.picking_id = new_picking
@@ -185,7 +193,8 @@ class StockQuant(models.Model):
                 'product_id': product.id,
                 'location_id': location_from.id,
                 'location_dest_id': dest_location.id,
-                'product_uom_qty': sum([item[1] for item in quants_to_move_in_fine]),
+                'product_uom_qty': float_round(sum([item[1] for item in quants_to_move_in_fine]),
+                                               precision_rounding=product.uom_id.rounding),
                 'product_uom': product.uom_id.id,
                 'date_expected': fields.Datetime.now(),
                 'date': fields.Datetime.now(),
@@ -203,14 +212,14 @@ class StockQuant(models.Model):
                                                     ['product_id', 'location_id', 'qty'],
                                                     ['product_id', 'location_id'], lazy=False)
         for val in values:
+            uom = self.env['product.product'].search([('id', '=', val['product_id'][0])]).uom_id
             new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
                 'name': 'Move %s to %s' % (val['product_id'][1], dest_location.name),
                 'product_id': val['product_id'][0],
                 'location_id': val['location_id'][0],
                 'location_dest_id': dest_location.id,
-                'product_uom_qty': val['qty'],
-                'product_uom':
-                    self.env['product.product'].search([('id', '=', val['product_id'][0])]).uom_id.id,
+                'product_uom_qty': float_round(val['qty'], precision_rounding=uom.rounding),
+                'product_uom': uom.id,
                 'date_expected': fields.Datetime.now(),
                 'date': fields.Datetime.now(),
                 'picking_type_id': picking_type_id.id,
@@ -227,7 +236,7 @@ class StockQuant(models.Model):
         return list_reservation, move_recordset
 
     @api.multi
-    def move_to(self, dest_location, picking_type_id, move_items=False, is_manual_op=False):
+    def move_to(self, dest_location, picking_type_id, move_items=None, is_manual_op=False):
         """
         :param move_items: {product: [{'quants': quants recordset, 'qty': float}, ...], ...}
         """
@@ -244,9 +253,8 @@ class StockQuant(models.Model):
                     move_recordset, quants_to_move_in_fine = self.env['stock.quant']. \
                         check_moves_ok(list_reservations, location_from, dest_location, picking_type_id,
                                        move_recordset, new_picking)
-                    move_recordset = self. \
-                        move_remaining_quants(product, location_from, dest_location, picking_type_id, new_picking,
-                                              move_recordset, quants_to_move_in_fine)
+                    move_recordset = self.move_remaining_quants(product, location_from, dest_location, picking_type_id,
+                                                                new_picking, move_recordset, quants_to_move_in_fine)
                 move_recordset.filtered(lambda move: move.state == 'draft').action_confirm()
             else:
                 list_reservation, move_recordset = self. \
@@ -293,54 +301,54 @@ class Stock(models.Model):
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_line')
         cr.execute("""CREATE OR REPLACE VIEW stock_product_line AS (
-  SELECT
-    COALESCE(rqx.product_id, 0)
-    || '-' || COALESCE(rqx.package_id, 0) || '-' || COALESCE(rqx.lot_id, 0) || '-' ||
-    COALESCE(rqx.uom_id, 0) || '-' || COALESCE(rqx.location_id, 0) AS id,
-    rqx.*
-  FROM
-    (SELECT
-       sq.product_id,
-       sq.package_id,
-       sq.lot_id,
-       sum(sq.qty) qty,
-       pt.uom_id,
-       sq.location_id,
-       sqp.parent_id
-     FROM
-       stock_quant sq
-       LEFT JOIN product_product pp ON pp.id = sq.product_id
-       LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
-       LEFT JOIN stock_quant_package sqp ON sqp.id = sq.package_id
-     GROUP BY
-       sq.product_id,
-       sq.package_id,
-       sq.lot_id,
-       pt.uom_id,
-       sq.location_id,
-       sqp.parent_id
-     UNION ALL
-     SELECT
-       NULL   product_id,
-       sqp.id package_id,
-       NULL   lot_id,
-       0      qty,
-       NULL   uom_id,
-       sqp.location_id,
-       sqp.parent_id
-     FROM
-       stock_quant_package sqp
-     WHERE exists(SELECT 1
-                  FROM
-                    stock_quant sq
-                    LEFT JOIN stock_quant_package sqp_bis ON sqp_bis.id = sq.package_id
-                  WHERE sqp_bis.id = sqp.id
-                  GROUP BY sqp_bis.id
-                  HAVING count(DISTINCT sq.product_id) <> 1) OR exists(SELECT 1
-                  FROM
-                    stock_quant_package sqp_bis
-                  WHERE sqp_bis.parent_id = sqp.id)
-    ) rqx)
+    SELECT
+        COALESCE(rqx.product_id, 0)
+        || '-' || COALESCE(rqx.package_id, 0) || '-' || COALESCE(rqx.lot_id, 0) || '-' ||
+        COALESCE(rqx.uom_id, 0) || '-' || COALESCE(rqx.location_id, 0) AS id,
+        rqx.*
+    FROM
+        (SELECT
+             sq.product_id,
+             sq.package_id,
+             sq.lot_id,
+             round(sum(sq.qty) :: NUMERIC, 3) qty,
+             pt.uom_id,
+             sq.location_id,
+             sqp.parent_id
+         FROM
+             stock_quant sq
+             LEFT JOIN product_product pp ON pp.id = sq.product_id
+             LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
+             LEFT JOIN stock_quant_package sqp ON sqp.id = sq.package_id
+         GROUP BY
+             sq.product_id,
+             sq.package_id,
+             sq.lot_id,
+             pt.uom_id,
+             sq.location_id,
+             sqp.parent_id
+         UNION ALL
+         SELECT
+             NULL         product_id,
+             sqp.id       package_id,
+             NULL         lot_id,
+             0 :: NUMERIC qty,
+             NULL         uom_id,
+             sqp.location_id,
+             sqp.parent_id
+         FROM
+             stock_quant_package sqp
+         WHERE exists(SELECT 1
+                      FROM
+                          stock_quant sq
+                          LEFT JOIN stock_quant_package sqp_bis ON sqp_bis.id = sq.package_id
+                      WHERE sqp_bis.id = sqp.id
+                      GROUP BY sqp_bis.id
+                      HAVING count(DISTINCT sq.product_id) <> 1) OR exists(SELECT 1
+                                                                           FROM
+                                                                               stock_quant_package sqp_bis
+                                                                           WHERE sqp_bis.parent_id = sqp.id)
+        ) rqx)
             """)
 
     @api.multi

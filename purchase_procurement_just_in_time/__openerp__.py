@@ -19,13 +19,15 @@
 
 {
     'name': 'Purchase Just-In-Time Extension',
-    'sequence': 1,
+    'sequence': 50,
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase_order_quantities_improved', 'purchase_planning_improved', 'purchase_group_by_period',
-                'stock_procurement_just_in_time', 'purchase_line_numbers'],
+    'depends': ['purchase', 'purchase_order_quantities_improved', 'purchase_planning_improved',
+                'stock_procurement_just_in_time', 'purchase_line_numbers', 'purchase_working_days',
+                'stock_moves_to_assigned_pickings',
+                ],
     'description': """
 Purchase Just-In-Time Extension
 ===============================
@@ -56,14 +58,24 @@ Notes
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'security/ir.model.access.csv',
         'views/res_config_view.xml',
+        'views/time_frame.xml',
         'views/purchase_procurement_jit.xml',
+        'views/purchase.xml',
+        'views/wizard.xml',
+        'views/partner.xml',
+        'views/procurement.xml',
+        'views/product.xml',
+        'data/cron.xml',
+        'data/data_group_by_period.xml',
     ],
-    'demo': ['test_purchase_procurement_jit.xml'],
+    'demo': [
+        'tests/test_purchase_scheduler_demo.xml',
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
-    'sequence': 50,
 }

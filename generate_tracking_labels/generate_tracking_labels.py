@@ -77,7 +77,6 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
 
     @api.onchange('sale_order_id')
     def onchange_sale_order_id(self):
-        print 'onchange_sale_order_id', self, self.sale_order_id.name
         self.ensure_one()
         if self.sale_order_id:
             self.partner_id = self.sale_order_id.partner_shipping_id
@@ -88,7 +87,6 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
-        print 'onchange_partner_id', self, self.partner_id.name
         self.ensure_one()
         if self.partner_id:
             self.country_id = self.partner_id.country_id
@@ -109,6 +107,19 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         self.ensure_one()
         if self.country_id:
             self.type = self.partner_id.country_id.code == 'FR' and 'france' or 'alien'
+
+    @api.onchange('transporter_id')
+    def onchange_transporter_id(self):
+        self.ensure_one()
+        output_printing_type = False
+        if self.transporter_id:
+            output_printing_type = self.env['output.printing.type']. \
+                search([('transporter_id', '=', self.transporter_id.id),
+                        ('used_by_default', '=', True)], limit=1)
+            if not output_printing_type:
+                output_printing_type = self.env['output.printing.type']. \
+                    search([('transporter_id', '=', self.transporter_id.id)], limit=1)
+        self.output_printing_type_id = output_printing_type or False
 
     # A few functions to overwrite
     @api.multi
@@ -153,3 +164,4 @@ class GenerateLabelOutputPrintingType(models.Model):
     name = fields.Char(string=u"Format de sortie", readonly=True)
     transporter_id = fields.Many2one('tracking.transporter', string=u"Transporteur")
     code = fields.Char(string=u"Code Colissimo", readonly=True)
+    used_by_default = fields.Boolean(string=u"Utilisé par défaut")

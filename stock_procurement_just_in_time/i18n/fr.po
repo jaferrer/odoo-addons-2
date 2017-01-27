@@ -243,3 +243,18 @@ msgstr "Fournisseurs"
 #: view:stock.quant:stock_procurement_just_in_time.stock_quant_view_search
 msgid "Non Reserved Quants"
 msgstr "Quants non réservés"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.config.settings,delete_moves_cancelled_by_planned:0
+msgid "Delete moves and procurements cancelled by planner"
+msgstr "Supprimer les mouvements et les appovisionnements annulés par le planificateur"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.config.settings:stock_procurement_just_in_time.stock_procurement_jit_config
+msgid "Just-In-Time"
+msgstr "Juste-à-temps"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.config.settings:stock_procurement_just_in_time.stock_procurement_jit_config
+msgid "Stock Planner"
+msgstr "Planificateur stock"

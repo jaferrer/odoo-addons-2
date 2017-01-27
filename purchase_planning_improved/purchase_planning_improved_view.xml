@@ -12,6 +12,7 @@
                     <xpath expr="//field[@name='order_line']//field[@name='date_planned']" position="before">
                         <field name="procurement_ids" invisible="1"/>
                         <field name="date_required" attrs="{'readonly': [('procurement_ids','!=', False)]}"/>
+                        <field name="requested_date"/>
                     </xpath>
                 </data>
             </field>

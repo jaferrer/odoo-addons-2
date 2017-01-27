@@ -72,7 +72,8 @@ class StockQuantPackageMove(models.TransientModel):
         quantsglob |= self._determine_package_child_quants(packs)
 
         if quantsglob:
-            result = quantsglob.move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
+            result = quantsglob.with_context(mail_notrack=True). \
+                move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
             if self.is_manual_op:
                 if not result:
                     raise exceptions.except_orm(_(u"error"), _("No line selected"))

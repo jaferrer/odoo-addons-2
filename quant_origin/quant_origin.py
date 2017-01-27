@@ -18,38 +18,21 @@
 #
 
 from openerp import fields, models, api
-from datetime import datetime
 
 
 class QuantOriginStockQuant(models.Model):
     _inherit = 'stock.quant'
 
-    origin = fields.Char(string='Quant origin', compute='_compute_origin')
+    origin = fields.Char(string='Quant origin', readonly=True)
 
-    @api.multi
-    def _compute_origin(self):
-
-        query = """
-            select quant_id,origin from (
-                select tmp.quant_id,tmp.origin,tmp.order_num, min(tmp.order_num) OVER (PARTITION BY tmp.quant_id)  from 
-                (
-                    select stock_quant_move_rel.quant_id,stock_move.origin, row_number() OVER (order by stock_move.date asc) order_num 
-                    from stock_quant_move_rel
-                    inner join stock_move on stock_move.id=stock_quant_move_rel.move_id
-                    where stock_quant_move_rel.quant_id in %s
-                ) tmp
-            ) t
-            where min=order_num
-            order by quant_id asc
-        """
-
-        params = (tuple(self.ids),)
-        self.env.cr.execute(query, params)
-
-        rows = self.env.cr.fetchall()
-        affect = {}
-        for row in rows:
-            affect[row[0]] = row[1]
-
-        for rec in self:
-            rec.origin = affect.get(rec.id, False)
+    @api.model
+    def _quant_create(self, qty, move, lot_id=False, owner_id=False, src_package_id=False, dest_package_id=False,
+                      force_location_from=False, force_location_to=False):
+        created_quant = super(QuantOriginStockQuant, self)._quant_create(qty, move, lot_id=lot_id, owner_id=owner_id,
+                                                                          src_package_id=src_package_id,
+                                                                          dest_package_id=dest_package_id,
+                                                                          force_location_from=force_location_from,
+                                                                          force_location_to=force_location_to)
+        created_quants = created_quant + created_quant.propagated_from_id
+        created_quants.sudo().write({'origin': move.origin})
+        return created_quant

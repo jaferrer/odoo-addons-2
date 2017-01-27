@@ -49,6 +49,13 @@ class TestStockPerformanceImproved(common.TransactionCase):
         self.inventory = self.browse_ref('stock_performance_improved.inventory')
         self.inventory2 = self.browse_ref('stock_performance_improved.inventory2')
         self.customer = self.browse_ref('stock.stock_location_customers')
+        self.test_product_1 = self.browse_ref('stock_performance_improved.test_product_1')
+        self.test_product_2 = self.browse_ref('stock_performance_improved.test_product_2')
+        self.move1 = self.browse_ref('stock_performance_improved.move1')
+        self.move2 = self.browse_ref('stock_performance_improved.move2')
+        self.move3 = self.browse_ref('stock_performance_improved.move3')
+        self.unit = self.browse_ref('product.product_uom_unit')
+        self.dozen = self.browse_ref('product.product_uom_dozen')
         self.existing_quants = self.env['stock.quant'].search([])
         self.env['stock.location']._parent_store_compute()
         # Call process_prereservations here to test it in all tests
@@ -355,3 +362,27 @@ class TestStockPerformanceImproved(common.TransactionCase):
              ('location_id', '=', self.location_stock.id)]
         )
         self.assertEqual(sum([q.qty for q in quants_out_of_packs]), 5)
+
+    def test_60_packop_units(self):
+        self.move1.action_confirm()
+        self.move2.action_confirm()
+        self.move3.action_confirm()
+        picking = self.move1.picking_id
+        self.assertTrue(picking)
+        self.assertEqual(self.move2.picking_id, picking)
+        self.assertEqual(self.move3.picking_id, picking)
+
+        picking.action_assign()
+        self.assertEqual(picking.state, 'assigned')
+
+        picking.do_prepare_partial()
+        self.assertEqual(len(picking.pack_operation_ids), 3)
+        self.assertIn([self.test_product_1, 6.0, self.unit],
+                      [[packop.product_id, packop.product_qty, packop.product_uom_id] for
+                       packop in picking.pack_operation_ids])
+        self.assertIn([self.test_product_1, 2.0, self.dozen],
+                      [[packop.product_id, packop.product_qty, packop.product_uom_id] for
+                       packop in picking.pack_operation_ids])
+        self.assertIn([self.test_product_2, 3.0, self.dozen],
+                      [[packop.product_id, packop.product_qty, packop.product_uom_id] for
+                       packop in picking.pack_operation_ids])

@@ -18,6 +18,7 @@
 #
 
 from openerp import fields, models, api, _
+from openerp.tools import float_compare, float_round
 
 
 class product_putaway_dispatch_strategy(models.Model):
@@ -68,17 +69,17 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                     qty_to_dispatch[op.product_id] = op.quantity
 
             # Iterate on each product
-            for product_id, qty_todo in qty_to_dispatch.iteritems():
+            for product, qty_todo in qty_to_dispatch.iteritems():
                 need_moves = self.env['stock.move'].search(
                     [('location_id', 'child_of', transfer.picking_destination_location_id.id),
-                     ('product_id', '=', product_id.id), ('state', '=', 'confirmed')],
+                     ('product_id', '=', product.id), ('state', '=', 'confirmed')],
                     order="priority DESC, date")
                 qty_todo = min(sum([m.product_qty for m in need_moves]), qty_todo)
                 location_qty = {}
                 qty_left = qty_todo
                 # Get the quantity to dispatch for each location and set it in location_qty dict
                 for move in need_moves:
-                    if qty_left <= 0:
+                    if float_compare(qty_left, 0, precision_rounding=move.product_uom.rounding) <= 0:
                         break
                     qty_to_add = min(move.product_qty, qty_left)
                     if move.location_id in location_qty:
@@ -92,7 +93,7 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                 remaining_packops = transfer.packop_ids.filtered(lambda x:
                                                                  self.env['stock.quant'].browse(
                                                                      x.package_id.get_content())[
-                                                                     0].product_id == product_id)
+                                                                     0].product_id == product)
                 remaining_packops = remaining_packops.sorted(key=lambda x: sum([q.qty for q in
                                                                                 self.env['stock.quant'].browse(
                                                                                     x.package_id.get_content())]),
@@ -100,10 +101,10 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                 for op in remaining_packops:
                     # We try to find a location where we need at least the whole qty of the pack
                     for location, qty in location_qty.iteritems():
-                        if qty <= 0:
+                        if float_compare(qty, 0, precision_rounding=product.uom_id.rounding) <= 0:
                             continue
                         pack_qty = sum([q.qty for q in self.env['stock.quant'].browse(op.package_id.get_content())])
-                        if pack_qty <= qty:
+                        if float_compare(pack_qty, qty, precision_rounding=product.uom_id.rounding) <= 0:
                             # We found a location, so we dispatch the pack to location and go for the next pack
                             op.destinationloc_id = location
                             location_qty[location] -= pack_qty
@@ -114,7 +115,7 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                 remaining_packops.prepare_unpack()
                 # Then we fetch the bulk product operation lines
                 op_items = transfer.item_ids.search(
-                    [('product_id', '=', product_id.id), ('transfer_id', '=', transfer.id)])
+                    [('product_id', '=', product.id), ('transfer_id', '=', transfer.id)])
                 # Iterate on each bulk product operations to dispatch them
                 for op in op_items:
                     # We get the quantity to dispatch and set the quantity of the operation to 0
@@ -124,9 +125,9 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                     split_ops = op
 
                     for location, qty_loc in location_qty.iteritems():
-                        if op_qty_todo <= 0:
+                        if float_compare(op_qty_todo, 0, precision_rounding=product.uom_id.rounding) <= 0:
                             break
-                        if qty_loc <= 0:
+                        if float_compare(qty_loc, 0, precision_rounding=product.uom_id.rounding) <= 0:
                             continue
                         qty = min(op_qty_todo, qty_loc)
                         # Check if we have already a line with the wanted destination location
@@ -139,7 +140,7 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                             # We did not find any line with the wanted location/pack,
                             # so we split the first line to create one
                             new_op = op.copy({
-                                'quantity': qty,
+                                'quantity': float_round(qty, precision_rounding=product.uom_id.rounding),
                                 'packop_id': False,
                                 'destinationloc_id': location.id,
                                 'result_package_id': False,
@@ -148,15 +149,15 @@ class product_putaway_dispatch_transfer_details(models.TransientModel):
                         location_qty[location] -= qty
                         op_qty_todo -= qty
                     # We send back to the source location undispatched moves
-                    if op_qty_todo > 0.0:
+                    if float_compare(op_qty_todo, 0, precision_rounding=product.uom_id.rounding) > 0:
                         op.copy({
                             'destinationloc_id': op.sourceloc_id.id,
-                            'quantity': op_qty_todo,
+                            'quantity': float_round(op_qty_todo, precision_rounding=product.uom_id.rounding),
                             'packop_id': False,
                             'result_package_id': False,
                         })
                     # We delete op if it has not been allocated some quantity in between
-                    if op.quantity <= 0.0:
+                    if float_compare(op.quantity, 0, precision_rounding=product.uom_id.rounding) <= 0:
                         op.unlink()
         return self.wizard_view()
 
