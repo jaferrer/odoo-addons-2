@@ -28,7 +28,7 @@ class TestPurchaseScheduler(common.TransactionCase):
     def setUp(self):
         super(TestPurchaseScheduler, self).setUp()
         self.company = self.browse_ref('base.main_company')
-        self.company.write({'po_lead': 5, 'security_lead': 4})
+        self.company.write({'po_lead': 5})
         self.supplier = self.browse_ref('purchase_procurement_just_in_time.supplier1')
         self.product1 = self.browse_ref('purchase_procurement_just_in_time.product1')
         self.product2 = self.browse_ref('purchase_procurement_just_in_time.product2')

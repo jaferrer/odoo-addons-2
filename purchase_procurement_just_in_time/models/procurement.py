@@ -63,7 +63,8 @@ def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
     with handler.session() as session:
-        result = model_instance.redistribute_procurements_in_lines(session.cr, session.uid, dict_procs_lines, context=context)
+        result = model_instance.redistribute_procurements_in_lines(session.cr, session.uid, dict_procs_lines,
+                                                                   context=context)
     return result
 
 
@@ -359,17 +360,19 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                ('date_order', '<=', fields.Datetime.to_string(purchase_date)[:10] + ' 23:59:59'),
                                '|', ('date_order_max', '=', False),
                                ('date_order_max', '>', fields.Datetime.to_string(purchase_date)[:10] + ' 00:00:00')]
-        domain_date_not_defined = ['|', ('date_order', '=', False), ('date_order_max', '=', False)]
+        domain_date_not_defined = [('date_order', '=', False)]
         available_draft_po_ids = self.env['purchase.order'].search(main_domain + domain_date_defined)
         draft_order = False
         if available_draft_po_ids:
             return available_draft_po_ids[0]
         frame = seller.order_group_period
         date_ref = seller.schedule_working_days(days_delta, dt.today())
+        date_order, date_order_max = (False, False)
         if frame and frame.period_type:
             date_order, date_order_max = frame.get_start_end_dates(purchase_date, date_ref=date_ref)
-        else:
+        if not date_order:
             date_order = dt.now()
+        if not date_order_max:
             date_order_max = date_order + relativedelta(years=1200)
         date_order = fields.Datetime.to_string(date_order)
         date_order_max = fields.Datetime.to_string(date_order_max)
@@ -382,7 +385,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 draft_order.write({'date_order': date_order,
                                    'date_order_max': date_order_max,
                                    'origin': origin})
-        if not draft_order and not seller.nb_max_draft_orders or seller.nb_draft_orders < seller.nb_max_draft_orders:
+        if not draft_order and not seller.nb_max_draft_orders or seller.get_nb_draft_orders() < seller.nb_max_draft_orders:
             name = self.env['ir.sequence'].next_by_code('purchase.order') or _('PO: %s') % self.name
             po_vals = {
                 'name': name,
@@ -485,7 +488,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             self.create_draft_lines(dict_lines_to_create)
             return_msg += u"\nDraft order(s) filled: %s s." % int((dt.now() - time_now).seconds)
         return return_msg
-
 
     @api.multi
     def sanitize_draft_orders(self):
