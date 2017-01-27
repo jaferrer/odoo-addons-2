@@ -33,22 +33,18 @@ class JitResPartner(models.Model):
                                               "delay between two orders to this supplier.")
     nb_max_draft_orders = fields.Integer(string="Maximal number of draft purchase orders",
                                          help="Used by the purchase planner to generate draft orders")
-    nb_draft_orders = fields.Integer(string="Number of draft purchase orders",
-                                     help="Used by the purchase planner to generate draft orders",
-                                     compute='_compute_nb_draft_orders')
     nb_days_scheduler_frequency = fields.Integer(string="Scheduler frequency (in days)")
     last_scheduler_date = fields.Datetime(string="Last scheduler date", readonly=True)
     next_scheduler_date = fields.Datetime(string="Next scheduler date")
     scheduler_sequence = fields.Integer(string="Sequence for purchase scheduler")
 
     @api.multi
-    def _compute_nb_draft_orders(self):
-        for rec in self:
-            draft_orders = self.env['purchase.order'].search([('partner_id', '=', rec.id),
-                                                              ('state', '=', 'draft'),
-                                                              ('date_order', '!=', False),
-                                                              ('date_order_max', '!=', False)])
-            rec.nb_draft_orders = len(draft_orders)
+    def get_nb_draft_orders(self):
+        self.ensure_one()
+        return len(self.env['purchase.order'].search([('partner_id', '=', self.id),
+                                                      ('state', '=', 'draft'),
+                                                      ('date_order', '!=', False),
+                                                      ('date_order_max', '!=', False)]))
 
     @api.model
     def launch_purchase_scheduler_by_supplier(self):
