@@ -89,7 +89,7 @@ class magentoextendProductProduct(models.Model):
                                     required=True)
 
     slug = fields.Char('Slung Name')
-    credated_at = fields.Date('created_at')
+    created_at = fields.Date('created_at')
     weight = fields.Float('weight')
     updated_at = fields.Datetime(string='Updated At (on Magento)',
                                  readonly=True)
@@ -267,7 +267,12 @@ class ProductImageImporter(Importer):
             return
         model = self.model.with_context(connector_no_export=True)
         binding = model.browse(binding_id)
-        binding.write({'image': base64.b64encode(binary)})
+
+        try:
+            binding.write({'image': base64.b64encode(binary)})
+        except IOError:
+            #fichier corrompu
+            pass
 
 @magentoextend
 class ProductProductImportMapper(ImportMapper):
