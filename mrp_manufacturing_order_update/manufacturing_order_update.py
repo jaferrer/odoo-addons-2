@@ -138,3 +138,22 @@ HAVING sum(CASE WHEN raw_move_state = 'done' OR
                                             self.env.context, description=u"MRP Production Update (chunk %s)" %
                                                                           chunk_number)
             mrp_to_update_ids = mrp_to_update_ids[100:]
+
+
+class UpdateChangeProductionQty(models.TransientModel):
+    _inherit = 'change.production.qty'
+
+    @api.multi
+    def change_prod_qty(self):
+        for rec in self:
+            if self.env.context.get('active_id'):
+                order = self.env['mrp.production'].browse(self.env.context.get('active_id'))
+                # Check raw material moves
+                if order.bom_id and float_compare(order.product_qty, rec.product_qty,
+                                                  precision_rounding=order.product_id.uom_id.rounding) != 0:
+                    order.product_qty = rec.product_qty
+                    order.button_update()
+                # Check production moves
+                if order.move_prod_id:
+                    order.move_prod_id.write({'product_uom_qty': rec.product_qty})
+                self._update_product_to_produce(order, rec.product_qty)

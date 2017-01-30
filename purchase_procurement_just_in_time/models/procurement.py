@@ -49,12 +49,22 @@ def job_purchase_schedule_procurements(session, model_name, ids, context=None):
     return result
 
 
-@job(default_channel='root.procurement_just_in_time')
+@job(default_channel='root.purchase_scheduler_slave')
 def job_create_draft_lines(session, model_name, dict_lines_to_create, context=None):
     model_instance = session.pool[model_name]
     handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
     with handler.session() as session:
         result = model_instance.create_draft_lines(session.cr, session.uid, dict_lines_to_create, context=context)
+    return result
+
+
+@job(default_channel='root.purchase_scheduler_slave')
+def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines, context=None):
+    model_instance = session.pool[model_name]
+    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
+    with handler.session() as session:
+        result = model_instance.redistribute_procurements_in_lines(session.cr, session.uid, dict_procs_lines,
+                                                                   context=context)
     return result
 
 
@@ -191,7 +201,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     else:
                         dict_procs[seller][company][location] += procurements
             procurements_to_run -= procurements
-        for supplier in dict_procs.keys():
+        for supplier in sorted(dict_procs.keys(), key=lambda partner: partner.scheduler_sequence):
             for company in dict_procs[supplier].keys():
                 for location in dict_procs[supplier][company].keys():
                     procurements = dict_procs[supplier][company][location]
@@ -215,18 +225,25 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         remaining_qty = pol.remaining_qty
         procurements = self
         for proc in procurements:
-            proc_qty_pol_uom = self.env['product.uom']. \
-                _compute_qty(proc.product_uom.id, proc.product_qty, pol.product_uom.id)
-            if float_compare(remaining_qty, proc_qty_pol_uom,
+            remaining_proc_qty_pol_uom = self.env['product.uom']. \
+                                             _compute_qty(proc.product_uom.id, proc.product_qty, pol.product_uom.id) - \
+                                         self.env['product.uom']. \
+                                             _compute_qty(proc.product_id.uom_id.id,
+                                                          sum([move.product_qty for move in proc.move_ids
+                                                               if move.state == 'done']),
+                                                          pol.product_uom.id)
+            if float_compare(remaining_qty, remaining_proc_qty_pol_uom,
                              precision_rounding=pol.product_uom.rounding) >= 0:
                 procs_for_first_line |= proc
-                remaining_qty -= proc_qty_pol_uom
+                remaining_qty -= remaining_proc_qty_pol_uom
             else:
                 break
-        if not dict_procs_lines.get(pol):
-            dict_procs_lines[pol] = procs_for_first_line
+        if not dict_procs_lines.get(pol.order_id.id):
+            dict_procs_lines[pol.order_id.id] = {}
+        if not dict_procs_lines[pol.order_id.id].get(pol.id):
+            dict_procs_lines[pol.order_id.id][pol.id] = procs_for_first_line.ids
         else:
-            dict_procs_lines[pol] |= procs_for_first_line
+            dict_procs_lines[pol.order_id.id][pol.id] += procs_for_first_line.ids
         if procs_for_first_line:
             procurements -= procs_for_first_line
         purchase_lines = purchase_lines[1:]
@@ -343,17 +360,19 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                ('date_order', '<=', fields.Datetime.to_string(purchase_date)[:10] + ' 23:59:59'),
                                '|', ('date_order_max', '=', False),
                                ('date_order_max', '>', fields.Datetime.to_string(purchase_date)[:10] + ' 00:00:00')]
-        domain_date_not_defined = ['|', ('date_order', '=', False), ('date_order_max', '=', False)]
+        domain_date_not_defined = [('date_order', '=', False)]
         available_draft_po_ids = self.env['purchase.order'].search(main_domain + domain_date_defined)
         draft_order = False
         if available_draft_po_ids:
             return available_draft_po_ids[0]
         frame = seller.order_group_period
         date_ref = seller.schedule_working_days(days_delta, dt.today())
+        date_order, date_order_max = (False, False)
         if frame and frame.period_type:
             date_order, date_order_max = frame.get_start_end_dates(purchase_date, date_ref=date_ref)
-        else:
+        if not date_order:
             date_order = dt.now()
+        if not date_order_max:
             date_order_max = date_order + relativedelta(years=1200)
         date_order = fields.Datetime.to_string(date_order)
         date_order_max = fields.Datetime.to_string(date_order_max)
@@ -366,7 +385,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 draft_order.write({'date_order': date_order,
                                    'date_order_max': date_order_max,
                                    'origin': origin})
-        if not draft_order and not seller.nb_max_draft_orders or seller.nb_draft_orders < seller.nb_max_draft_orders:
+        if not draft_order and not seller.nb_max_draft_orders or seller.get_nb_draft_orders() < seller.nb_max_draft_orders:
             name = self.env['ir.sequence'].next_by_code('purchase.order') or _('PO: %s') % self.name
             po_vals = {
                 'name': name,
@@ -429,6 +448,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.model
     def create_draft_lines(self, dict_lines_to_create):
+        time_begin = dt.now()
         for order_id in dict_lines_to_create.keys():
             for product_id in dict_lines_to_create[order_id].keys():
                 line_vals = dict_lines_to_create[order_id][product_id]['vals']
@@ -442,7 +462,32 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     procurement.add_proc_to_line(line)
                     if procurement == last_proc and new_qty > line.product_qty:
                         line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
-        return _(u"Order was correctly filled")
+        return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
+
+    @api.model
+    def launch_draft_lines_creation(self, dict_lines_to_create, return_msg, jobify=False):
+        time_now = dt.now()
+        fill_orders_in_separate_jobs = bool(self.env['ir.config_parameter'].
+                                            get_param('purchase_procurement_just_in_time.fill_orders_in_separate_jobs'))
+
+        if len(dict_lines_to_create.keys()) > 1 and jobify and fill_orders_in_separate_jobs:
+            total_number_orders = len(dict_lines_to_create.keys())
+            number_order = 0
+            for order_id in dict_lines_to_create.keys():
+                order = self.env['purchase.order'].browse(order_id)
+                number_order += 1
+                session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+                seller = self.env['procurement.order']._get_product_supplier(self[0])
+                job_create_draft_lines. \
+                    delay(session, 'procurement.order', {order_id: dict_lines_to_create[order_id]},
+                          description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
+                                      (order.name, seller.name, number_order, total_number_orders),
+                          context=self.env.context)
+            return_msg += u"\nCreating jobs to fill draft orders: %s s." % int((dt.now() - time_now).seconds)
+        else:
+            self.create_draft_lines(dict_lines_to_create)
+            return_msg += u"\nDraft order(s) filled: %s s." % int((dt.now() - time_now).seconds)
+        return return_msg
 
     @api.multi
     def sanitize_draft_orders(self):
@@ -463,8 +508,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         seller = self.env['procurement.order']._get_product_supplier(self[0])
         orders = self.env['purchase.order'].search([('state', '=', 'draft'),
                                                     ('partner_id', '=', seller.id),
-                                                    '|', ('date_order', '=', False),
-                                                    ('date_order_max', '=', False)])
+                                                    ('date_order', '=', False)])
         orders_to_unlink = self.env['purchase.order']
         for order in orders:
             if not order.order_line:
@@ -473,36 +517,35 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.multi
     def purchase_schedule_procurements(self, jobify=False):
+        return_msg = u""
         companies = {proc.company_id for proc in self}
         locations = {proc.location_id for proc in self}
         sellers = {self.env['procurement.order']._get_product_supplier(proc) for proc in self}
         assert len(companies) == 1, "purchase_schedule_procurements should be called with procs of the same company"
         assert len(locations) == 1, "purchase_schedule_procurements should be called with procs of the same location"
         assert len(sellers) == 1, "purchase_schedule_procurements should be called with procs of the same supplier"
+        time_now = dt.now()
         self.sanitize_draft_orders()
+        return_msg += u"Sanitizing draft orders: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
         dict_procs_lines, not_assigned_procs = self.compute_which_procs_for_lines()
+        return_msg += u"\nComputing which procs for lines: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
         not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders()
+        return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
         self.delete_useless_draft_orders()
+        return_msg += u"\nDeleting useless draft orders: %s s." % int((dt.now() - time_now).seconds)
+        time_now = dt.now()
         not_assigned_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        return_msg += u"\nRemoving unsassigned procurements from purchase order lines: %s s." % \
+                      int((dt.now() - time_now).seconds)
         # TODO: mettre à jour les message ops
-        self.env['procurement.order'].redistribute_procurements_in_lines(dict_procs_lines)
-        fill_orders_in_separate_jobs = bool(self.env['ir.config_parameter'].
-                                            get_param('purchase_procurement_just_in_time.fill_orders_in_separate_jobs'))
-        if len(dict_lines_to_create.keys()) > 1 and jobify and fill_orders_in_separate_jobs:
-            total_number_orders = len(dict_lines_to_create.keys())
-            number_order = 0
-            for order_id in dict_lines_to_create.keys():
-                order = self.env['purchase.order'].browse(order_id)
-                number_order += 1
-                session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-                seller = self.env['procurement.order']._get_product_supplier(self[0])
-                job_create_draft_lines. \
-                    delay(session, 'procurement.order', {order_id: dict_lines_to_create[order_id]},
-                          description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
-                                      (order.name, seller.name, number_order, total_number_orders),
-                          context=self.env.context)
-        else:
-            self.create_draft_lines(dict_lines_to_create)
+        return_msg = self.env['procurement.order'].prepare_procurements_redistribution(dict_procs_lines, return_msg)
+        return_msg = self.env['procurement.order']. \
+            launch_procurement_redistribution(dict_procs_lines, return_msg, jobify=jobify)
+        return_msg = self.launch_draft_lines_creation(dict_lines_to_create, return_msg, jobify=jobify)
+        return return_msg
 
     @api.multi
     def remove_procs_from_lines(self, unlink_moves_to_procs=False):
@@ -510,6 +553,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         self.with_context(tracking_disable=True).write({'purchase_line_id': False})
         to_reset = self.search([('id', 'in', self.ids), ('state', 'in', ['running', 'exception'])])
         to_reset.with_context(tracking_disable=True).write({'state': 'buy_to_run'})
+        procs_moves_to_detach = self.env['stock.move']
         for proc in self:
             if proc.state in ['done', 'cancel']:
                 # Done and cancel procs should not change purchase order line
@@ -522,8 +566,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
                 proc_moves.unlink()
             else:
-                proc_moves.write({'purchase_line_id': False,
-                                  'picking_id': False})
+                procs_moves_to_detach += proc_moves
+        if procs_moves_to_detach:
+            procs_moves_to_detach.write({'purchase_line_id': False, 'picking_id': False})
 
     @api.multi
     def add_proc_to_line(self, pol):
@@ -541,8 +586,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             if not rec.move_ids:
                 continue
 
+            assert not any([move.state == 'done' for move in rec.move_ids])
             running_moves = self.env['stock.move'].search([('id', 'in', rec.move_ids.ids),
-                                                           ('state', 'not in', ['draft', 'done', 'cancel'])]
+                                                           ('state', 'not in', ['done', 'cancel'])]
                                                           ).with_context(mail_notrack=True)
             if pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
                 group = self.env['procurement.group'].search([('name', '=', pol.order_id.name),
@@ -565,17 +611,57 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         self.with_context(tracking_disable=True).write({'state': 'running'})
 
     @api.model
+    def prepare_procurements_redistribution(self, dict_procs_lines, return_msg):
+        time_now = dt.now()
+        procs_to_remove_from_lines = self.env['procurement.order']
+        for order_id in dict_procs_lines.keys():
+            for pol_id in dict_procs_lines[order_id].keys():
+                pol = self.env['purchase.order.line'].browse(pol_id)
+                procurements = self.browse(dict_procs_lines[order_id][pol_id])
+                for proc in pol.procurement_ids:
+                    if proc not in procurements:
+                        procs_to_remove_from_lines |= proc
+        if procs_to_remove_from_lines:
+            procs_to_remove_from_lines.remove_procs_from_lines()
+        return_msg += u"\nRemoving procs from running lines: %s s." % int((dt.now() - time_now).seconds)
+        return return_msg
+
+    @api.model
     def redistribute_procurements_in_lines(self, dict_procs_lines):
-        for pol in dict_procs_lines.keys():
-            procurements = dict_procs_lines[pol]
-            for proc in pol.procurement_ids:
-                if proc not in procurements:
-                    proc.remove_procs_from_lines()
-            for proc in procurements:
-                if proc not in pol.procurement_ids:
-                    proc.add_proc_to_line(pol)
-            if pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
-                pol.adjust_move_no_proc_qty()
+        time_now = dt.now()
+        for order_id in dict_procs_lines.keys():
+            for pol_id in dict_procs_lines[order_id].keys():
+                pol = self.env['purchase.order.line'].browse(pol_id)
+                procurements = self.browse(dict_procs_lines[order_id][pol_id])
+                for proc in procurements:
+                    if proc not in pol.procurement_ids:
+                        proc.add_proc_to_line(pol)
+                if pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
+                    pol.adjust_move_no_proc_qty()
+        return u"\nAdding procs into running lines and adjusting moves no procs qty for running " \
+               u"lines: %s s." % int((dt.now() - time_now).seconds)
+
+    @api.model
+    def launch_procurement_redistribution(self, dict_procs_lines, return_msg, jobify=False):
+        redistribute_procurements_in_separate_jobs = bool(self.env['ir.config_parameter']. \
+            get_param('purchase_procurement_just_in_time.redistribute_procurements_in_separate_jobs'))
+        if len(dict_procs_lines.keys()) > 1 and jobify and redistribute_procurements_in_separate_jobs:
+            time_now = dt.now()
+            total_number_orders = len(dict_procs_lines.keys())
+            number_order = 0
+            for order_id in dict_procs_lines.keys():
+                order = self.env['purchase.order'].browse(order_id)
+                number_order += 1
+                session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+                job_redistribute_procurements_in_lines. \
+                    delay(session, 'procurement.order', {order_id: dict_procs_lines[order_id]},
+                          description=_("Redistributing procurements for order %s of supplier %s (order %s/%s)") %
+                                      (order.name, order.partner_id.name, number_order, total_number_orders),
+                          context=self.env.context)
+            return_msg += u"\nCreating jobs to redistribute procurements %s s." % int((dt.now() - time_now).seconds)
+        else:
+            return_msg += self.redistribute_procurements_in_lines(dict_procs_lines)
+        return return_msg
 
     @api.multi
     def make_po(self):
@@ -603,5 +689,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             if procurement.purchase_line_id.order_id.shipped:
                 return True
             elif procurement.move_ids:
-                return all(move.state in ['done', 'cancel'] for move in procurement.move_ids)
+                cancel_test_list = [x.state == 'cancel' for x in procurement.move_ids]
+                done_cancel_test_list = [x.state in ('done', 'cancel') for x in procurement.move_ids]
+                all_done_or_cancel = all(done_cancel_test_list)
+                all_cancel = all(cancel_test_list)
+                if not all_done_or_cancel:
+                    return False
+                elif all_done_or_cancel and not all_cancel:
+                    return True
+                elif all_cancel:
+                    procurement.message_post(body=_('All stock moves have been cancelled for this procurement.'))
+                    procurement.write({'state': 'cancel'})
+                return False
         return super(ProcurementOrderPurchaseJustInTime, self)._check(procurement)

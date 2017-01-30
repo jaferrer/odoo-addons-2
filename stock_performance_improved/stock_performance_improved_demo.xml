@@ -181,5 +181,87 @@
             <field name="product_id" ref="product2"/>
         </record>
 
+        <record model="product.product" id="test_product_1">
+            <field name="name">Test Product 1 (Fix Pack Operations Units)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="product.product" id="test_product_2">
+            <field name="name">Test Product 2 (Fix Pack Operations Units)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record model="procurement.group" id="group">
+            <field name="name">Procurement Group (Fix Pack Operations Units)</field>
+        </record>
+
+        <record model="ir.sequence" id="ir_sequence_reception">
+            <field name="name">Sequence reception</field>
+            <field name="prefix">REC/</field>
+            <field name="padding">5</field>
+            <field name="active" eval="True"/>
+            <field name="suffix"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record model="stock.picking.type" id="stock_picking_type_reception">
+            <field name="name">Reception</field>
+            <field name="active">1</field>
+            <field name="sequence">1</field>
+            <field name="color">3</field>
+            <field name="code">incoming</field>
+            <field name="warehouse_id" ref="stock.warehouse0"/>
+            <field name="default_location_dest_id" ref="stock.stock_location_stock"/>
+            <field name="default_location_src_id" ref="stock.stock_location_suppliers"/>
+            <field name="sequence_id" ref="ir_sequence_reception"/>
+        </record>
+
+        <record model="stock.picking" id="picking">
+            <field name="name">Picking (Fix Pack Operations Units)</field>
+            <field name="location_id" ref="stock.stock_location_suppliers"/>
+            <field name="location_dest_id" ref="stock.stock_location_stock"/>
+            <field name="picking_type_id" ref="stock_picking_type_reception"/>
+            <field name="group_id" ref="group"/>
+        </record>
+
+        <record id="move1" model="stock.move">
+            <field name="name">Move 1 (Fix Pack Operations Units)</field>
+            <field name="picking_id" ref="picking"/>
+            <field name="product_id" ref="test_product_1"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="location_id" ref="stock.stock_location_suppliers"/>
+            <field name="location_dest_id" ref="stock.stock_location_stock"/>
+            <field name="picking_type_id" ref="stock_picking_type_reception"/>
+            <field name="group_id" ref="group"/>
+            <field name="product_uom_qty" eval="6"/>
+            <field name="date">2016-11-02 16:24:00</field>
+        </record>
+
+        <record id="move2" model="stock.move">
+            <field name="name">Move 2 (Fix Pack Operations Units)</field>
+            <field name="picking_id" ref="picking"/>
+            <field name="product_id" ref="test_product_1"/>
+            <field name="product_uom" ref="product.product_uom_dozen"/>
+            <field name="location_id" ref="stock.stock_location_suppliers"/>
+            <field name="location_dest_id" ref="stock.stock_location_stock"/>
+            <field name="picking_type_id" ref="stock_picking_type_reception"/>
+            <field name="group_id" ref="group"/>
+            <field name="product_uom_qty" eval="2"/>
+            <field name="date">2016-11-02 16:24:00</field>
+        </record>
+
+        <record id="move3" model="stock.move">
+            <field name="name">Move 3 (Fix Pack Operations Units)</field>
+            <field name="picking_id" ref="picking"/>
+            <field name="product_id" ref="test_product_2"/>
+            <field name="product_uom" ref="product.product_uom_dozen"/>
+            <field name="location_id" ref="stock.stock_location_suppliers"/>
+            <field name="location_dest_id" ref="stock.stock_location_stock"/>
+            <field name="picking_type_id" ref="stock_picking_type_reception"/>
+            <field name="group_id" ref="group"/>
+            <field name="product_uom_qty" eval="3"/>
+            <field name="date">2016-11-02 16:24:00</field>
+        </record>
+
     </data>
 </openerp>

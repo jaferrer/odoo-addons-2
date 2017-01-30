@@ -1062,7 +1062,8 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
 
         for move in line.move_ids:
             self.assertIn((move.product_uom_qty, move.state, move.procurement_id),
-                          [(7, 'assigned', self.env['procurement.order']),
+                          [(5, 'assigned', move4.procurement_id),
+                           (2, 'assigned', self.env['procurement.order']),
                            (1, 'done', self.env['procurement.order']),
                            (3, 'done', move4.procurement_id)])
 
@@ -1070,7 +1071,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         for move in line.move_ids:
             self.assertIn((move.product_uom_qty, move.state, move.procurement_id),
                           [(1, 'done', self.env['procurement.order']),
-                           (5, 'assigned', self.env['procurement.order']),
+                           (5, 'assigned', move4.procurement_id),
                            (3, 'done', move4.procurement_id)])
 
     def test_62_purchase_procurement_jit(self):
