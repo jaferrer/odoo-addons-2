@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,27 +18,24 @@
 #
 
 {
-    'name': 'Update manufacturing orders',
+    'name': 'Stock Account Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Product',
-    'depends': ['mrp'],
+    'category': 'Account',
+    'depends': ['stock_account'],
     'description': """
-Update manufacturing orders
-===========================
-This module allows to change manually the list of scheduled products, and to generate the necessary stock moves to match the scheduled needs for this manufacturing order.
-It also allows to update a manufacturing order after a modification of the BOM used. In this case, it does not take account of the possible changes in the list of scheduled products before the update.
+Stock Account Improved
+======================
+This modules improves a few settings for account/stock objects.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['manufacturing_order_update.xml',
-             'cron.xml'],
-    'demo': [
-        'tests/test_manufacturing_order_update.xml'
-    ],
+    'data': [],
+    'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
+    'sequence': 999,
 }
