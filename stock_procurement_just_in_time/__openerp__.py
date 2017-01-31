@@ -51,6 +51,8 @@ Notes
     'data': [
         'security/ir.model.access.csv',
         'stock_procurement_jit_view.xml',
+        'res_config.xml',
+        'data.xml',
     ],
     'demo': [
         'stock_procurement_jit_demo.xml',

@@ -17,5 +17,30 @@
             <field name="args"/>
         </record>
 
+        <record model="ir.cron" id="launch_purchase_scheduler_by_supplier">
+            <field name="name">Schedule buy procurements by supplier</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="nextcall">2016-10-31 05:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">res.partner</field>
+            <field name="function">launch_purchase_scheduler_by_supplier</field>
+            <field name="args"/>
+        </record>
+
+        <record model="queue.job.channel" id="root_purchase_scheduler">
+            <field name="name">purchase_scheduler</field>
+            <field name="parent_id" ref="connector.channel_root"/>
+        </record>
+
+        <record model="queue.job.channel" id="root_purchase_scheduler_slave">
+            <field name="name">purchase_scheduler_slave</field>
+            <field name="parent_id" ref="connector.channel_root"/>
+        </record>
+
     </data>
 </openerp>

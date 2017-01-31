@@ -17,11 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from openerp import exceptions
 from openerp.tests import common
 
 
 class TestStockChangeQuantReservation(common.TransactionCase):
-
     def setUp(self):
         super(TestStockChangeQuantReservation, self).setUp()
         self.test_product = self.browse_ref("stock_change_quant_reservation.test_product")
@@ -53,7 +53,7 @@ class TestStockChangeQuantReservation(common.TransactionCase):
             'name': "Move 2 => 3 (for quant 2)",
             'product_id': self.test_product.id,
             'product_uom': self.product_uom_unit_id,
-            'product_uom_qty': 5,
+            'product_uom_qty': 10,
             'location_id': self.location_shelf.id,
             'location_dest_id': self.location_shelf2.id,
             'picking_type_id': self.picking_type_id,
@@ -158,7 +158,7 @@ class TestStockChangeQuantReservation(common.TransactionCase):
         self.assertEqual(quant_2.location_id, self.location_shelf)
 
         move_23_2.action_assign()
-        self.assertEqual(move_23_2.state, 'assigned')
+        self.assertEqual(move_23_2.state, 'confirmed')
         self.assertEqual(move_23_2.reserved_quant_ids, quant_2)
 
         # Reassigning quant_1
@@ -320,3 +320,120 @@ class TestStockChangeQuantReservation(common.TransactionCase):
         assignation_popup.do_apply()
         self.assertEqual(move_23_1.reserved_quant_ids, quant_2)
         self.assertEqual(move_12_2.move_dest_id, move_23_1)
+
+    def test_30_incompatible_qties(self):
+        """
+        Trying to reserve more quants than move quantity
+        """
+
+        self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.test_product.id)]))
+
+        move_12_1 = self.env['stock.move'].create({
+            'name': "Move 1 => 2 (for quant 1)",
+            'product_id': self.test_product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 10,
+            'location_id': self.location_stock.id,
+            'location_dest_id': self.location_shelf.id,
+            'picking_type_id': self.picking_type_id,
+        })
+        move_12_1.action_confirm()
+        move_12_1.action_assign()
+
+        supply_move_1 = self.env['stock.move'].create({
+            'name': "Move supplier => 1 (for quant 1)",
+            'product_id': self.test_product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 15,
+            'location_id': self.location_suppliers.id,
+            'location_dest_id': self.location_stock.id,
+            'picking_type_id': self.picking_type_id,
+        })
+        supply_move_1.action_confirm()
+        supply_move_1.action_assign()
+        supply_move_1.action_done()
+        supply_move_1.move_dest_id = move_12_1
+
+        quant_1 = supply_move_1.quant_ids
+        self.assertEqual(len(quant_1), 1)
+        self.assertEqual(quant_1.qty, 15)
+
+        # Let's check that the system raises an error
+        assignation_popup = self.env['stock.quant.picking'].with_context(active_ids=quant_1.ids). \
+            create({'move_id': move_12_1.id})
+        with self.assertRaises(exceptions.except_orm):
+            assignation_popup.do_apply()
+
+    def test_40_move_assign_several_quants(self):
+        self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.test_product.id)]))
+
+        # Creation of the first chain
+        move_12_1 = self.env['stock.move'].create({
+            'name': "Move 1 => 2 (for quant 1)",
+            'product_id': self.test_product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 10,
+            'location_id': self.location_stock.id,
+            'location_dest_id': self.location_shelf.id,
+            'picking_type_id': self.picking_type_id,
+        })
+        move_12_1.action_confirm()
+        move_12_1.action_assign()
+
+        supply_move_1 = self.env['stock.move'].create({
+            'name': "Move supplier => 1 (for quant 1)",
+            'product_id': self.test_product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 10,
+            'location_id': self.location_suppliers.id,
+            'location_dest_id': self.location_stock.id,
+            'picking_type_id': self.picking_type_id,
+            'move_dest_id': move_12_1.id,
+        })
+        supply_move_1.action_confirm()
+        supply_move_1.action_assign()
+        supply_move_1.action_done()
+
+        quant_1 = supply_move_1.quant_ids
+        self.assertEqual(len(quant_1), 1)
+        self.assertEqual(quant_1.qty, 10)
+        move_12_1.action_assign()
+        self.assertEqual(quant_1.reservation_id, move_12_1)
+
+        # Creation of the second chain
+
+        move_12_2 = self.env['stock.move'].create({
+            'name': "Move 1 => 2 (for quant 2)",
+            'product_id': self.test_product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 20,
+            'location_id': self.location_stock.id,
+            'location_dest_id': self.location_shelf.id,
+            'picking_type_id': self.picking_type_id,
+        })
+        move_12_2.action_confirm()
+        move_12_2.action_assign()
+
+        supply_move_2 = self.env['stock.move'].create({
+            'name': "Move supplier => 1 (for quant 1)",
+            'product_id': self.test_product.id,
+            'product_uom': self.product_uom_unit_id,
+            'product_uom_qty': 5,
+            'location_id': self.location_suppliers.id,
+            'location_dest_id': self.location_stock.id,
+            'picking_type_id': self.picking_type_id,
+            'move_dest_id': move_12_2.id,
+        })
+        supply_move_2.action_confirm()
+        supply_move_2.action_assign()
+        supply_move_2.action_done()
+        quant_2 = supply_move_2.quant_ids
+        self.assertEqual(len(quant_2), 1)
+        self.assertEqual(quant_2.qty, 5)
+
+        assignation_popup = self.env['stock.quant.picking'].with_context(active_ids=[quant_1.id, quant_2.id]). \
+            create({'move_id': move_12_2.id})
+        assignation_popup.do_apply()
+        self.assertEqual(len(move_12_2.reserved_quant_ids), 2)
+        self.assertIn(quant_1, move_12_2.reserved_quant_ids)
+        self.assertIn(quant_2, move_12_2.reserved_quant_ids)

@@ -102,8 +102,8 @@ class ProductLineMoveWizard(models.TransientModel):
         if any([float_compare(quant.qty, 0, precision_rounding=quant.product_id.uom_id.rounding) < 0
                 for quant in quants_to_move]):
             raise exceptions.except_orm(_("error"), _("Impossible to move a negative quant"))
-        result = quants_to_move.move_to(self.global_dest_loc, self.picking_type_id,
-                                        move_items=move_items, is_manual_op=is_manual_op)
+        result = quants_to_move.with_context(mail_notrack=True). \
+            move_to(self.global_dest_loc, self.picking_type_id, move_items=move_items, is_manual_op=is_manual_op)
         if is_manual_op:
             if not result:
                 raise exceptions.except_orm(_("error"), _("No line selected"))
@@ -141,8 +141,12 @@ class ProductLineMoveWizardLine(models.TransientModel):
     @api.multi
     def check_quantities(self):
         for rec in self:
-            if rec.product_id and float_compare(rec.qty, rec.available_qty, precision_rounding=rec.uom_id.rounding) > 0:
-                raise ValidationError(_("The quantity to move must be lower or equal to the available quantity"))
+            if rec.product_id :
+                if float_compare(rec.qty, rec.available_qty, precision_rounding=rec.uom_id.rounding) > 0:
+                    raise ValidationError(_("The quantity to move must be lower or equal to the available "
+                                            "quantity"))
+                elif float_compare(rec.qty, 0, precision_rounding=rec.uom_id.rounding) < 0:
+                    raise ValidationError(_("Impossible to move a negative quantity"))
 
     @api.multi
     def check_data_active(self):

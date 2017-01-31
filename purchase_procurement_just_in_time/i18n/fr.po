@@ -605,6 +605,12 @@ msgid "Launch Purchase Planner"
 msgstr "Lancer le planificateur achats"
 
 #. module: purchase_procurement_just_in_time
+#: model:ir.actions.act_window,name:purchase_procurement_just_in_time.act_window_purchase_scheduler_management
+#: model:ir.ui.menu,name:purchase_procurement_just_in_time.menu_purchase_scheduler_management
+msgid "Manage purchase scheduler"
+msgstr "Gestion du planificateur achats"
+
+#. module: purchase_procurement_just_in_time
 #: view:launch.purchase.planner:purchase_procurement_just_in_time.launch_purchase_planner_form
 msgid "Scheduler Parameters"
 msgstr "Paramètres du planificateur"
@@ -653,6 +659,26 @@ msgid "Maximal number of draft purchase orders"
 msgstr "Nombre maximal de commandes d'achat brouillon"
 
 #. module: purchase_procurement_just_in_time
+#: field:res.partner,nb_days_scheduler_frequency:0
+msgid "Scheduler frequency (in days)"
+msgstr "Fréquence du planificateur achats (en jour)"
+
+#. module: purchase_procurement_just_in_time
+#: field:res.partner,last_scheduler_date:0
+msgid "Last scheduler date"
+msgstr "Dernière date planificateur"
+
+#. module: purchase_procurement_just_in_time
+#: field:res.partner,next_scheduler_date:0
+msgid "Next scheduler date"
+msgstr "Prochaine date planificateur"
+
+#. module: purchase_procurement_just_in_time
+#: field:res.partner,scheduler_sequence:0
+msgid "Sequence for purchase scheduler"
+msgstr "Séquence (pour le planificateur achats)"
+
+#. module: purchase_procurement_just_in_time
 #: field:purchase.config.settings,delta_begin_grouping_period:0
 msgid "Delta begin grouping period"
 msgstr "Delta de début de période de regroupement"
@@ -675,5 +701,27 @@ msgstr "Utilisé par le planificateur achats pour générer des commandes d'acha
 
 #. module: purchase_procurement_just_in_time
 #: help:purchase.config.settings,ignore_past_procurements:0
+msgid "Used for the purchase planner"
+msgstr "Utilisé par le planificateur achats"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,fill_orders_in_separate_jobs:0
+msgid "Fill draft orders in separate jobs"
+msgstr "Remplir les commandes brouillon dans des jobs séparés"
+
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.config.settings,fill_orders_in_separate_jobs:0
+msgid "Used for the purchase planner"
+msgstr "Utilisé par le planificateur achats"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,redistribute_procurements_in_separate_jobs:0
+msgid "Redistribute procurements in separate jobs"
+msgstr "Redistribuer les procurements dans des jobs séparés"
+
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.config.settings,redistribute_procurements_in_separate_jobs:0
 msgid "Used for the purchase planner"
 msgstr "Utilisé par le planificateur achats"

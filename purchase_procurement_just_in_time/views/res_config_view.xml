@@ -33,6 +33,14 @@
                                     <label for="ignore_past_procurements"/>
                                     <field name="ignore_past_procurements" class="oe_inline"/>
                                 </div>
+                                <div>
+                                    <label for="fill_orders_in_separate_jobs"/>
+                                    <field name="fill_orders_in_separate_jobs" class="oe_inline"/>
+                                </div>
+                                <div>
+                                    <label for="redistribute_procurements_in_separate_jobs"/>
+                                    <field name="redistribute_procurements_in_separate_jobs" class="oe_inline"/>
+                                </div>
                             </div>
                         </group>
                     </form>

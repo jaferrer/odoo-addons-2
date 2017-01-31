@@ -28,7 +28,7 @@ class ReceptionByOrderPurchaseOrder(models.Model):
         for rec in self:
             number = 10
             for line in rec.order_line:
-                line.line_no = str(number)
+                line.line_no = "%03d" % number
                 number += 10
 
     @api.multi
@@ -68,5 +68,5 @@ class ReceptionByOrderPurchaseOrderLine(models.Model):
             maximum = list_line_no and max(list_line_no) or 0
             if maximum >= theo_value or theo_value in list_line_no:
                 theo_value = maximum + 10
-            vals['line_no'] = str(theo_value)
+            vals['line_no'] = "%03d" % theo_value
         return super(ReceptionByOrderPurchaseOrderLine, self).create(vals)

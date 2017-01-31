@@ -111,9 +111,12 @@ class purchase_working_days(models.Model):
            :rtype: datetime
            :return: the desired Schedule Date for the PO lines
         """
+        do_not_save_result = self.env.context.get('do_not_save_result', False)
         proc_date = datetime.strptime(procurement.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
         location = procurement.location_id or procurement.warehouse_id.view_location_id
-        schedule_date = location.schedule_working_days(-company.po_lead, proc_date)
+        # If key 'do_not_save_result' in context of self, we transfer it to location's context.
+        schedule_date = location.with_context(do_not_save_result=do_not_save_result). \
+            schedule_working_days(-company.po_lead, proc_date)
         return schedule_date
 
     @api.model
