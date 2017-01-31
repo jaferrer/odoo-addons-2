@@ -32,6 +32,13 @@
         <link rel="stylesheet" href="/web/static/lib/fontawesome/css/font-awesome.css"/>
 
         <t t-call-assets="web.assets_common" t-css="false" />
+        <script type="text/javascript">
+                        odoo.define('web.csrf', function (require) {
+                            var token = "<t t-esc="request.csrf_token(None)"/>";
+                            require('web.core').csrf_token = token;
+                            require('qweb').default_dict.csrf_token = token;
+                        });
+        </script>
         <t t-call-assets="web.assets_backend" t-css="false" />
 
         <script type="text/javascript" id="loading-script" t-raw="init">
