@@ -70,6 +70,7 @@ class TrackingLabelStockQuantPackage(models.Model):
     binary_label = fields.Binary(string="Label (binary)")
     tracking_label_attachment = fields.Many2one('ir.attachment', string="Label (attachment)")
     data_fname = fields.Char(string="Label name")
+    delivery_weight = fields.Float(string=u"Package Weight (editable)")
 
     @api.depends('tracking_ids')
     def _compute_tracking_defined(self):
@@ -82,7 +83,7 @@ class TrackingLabelStockQuantPackage(models.Model):
         ctx = self.env.context.copy()
         ctx['default_partner_id'] = self.partner_id and self.partner_id.id or False
         ctx['default_direction'] = 'to_customer'
-        ctx['default_weight'] = sum([pack.weight for pack in self])
+        ctx['default_weight'] = sum([pack.delivery_weight for pack in self])
         ctx['default_package_ids'] = [(6, 0, self.ids)]
         return {
             'name': _("Generate tracking label for package %s") % self.name,
