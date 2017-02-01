@@ -43,6 +43,9 @@
                         </group>
                     </page>
                 </notebook>
+                <field name="weight" position="after">
+                    <field name="delivery_weight"/>
+                </field>
             </field>
         </record>
 
