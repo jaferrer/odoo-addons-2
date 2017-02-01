@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['stock_delivery_tracking', 'generate_tracking_labels'],
+    'depends': ['stock_delivery_tracking', 'generate_tracking_labels', 'package_weight'],
     'description': """
 Stock generate tracking labels
 ==============================
@@ -31,6 +31,9 @@ This module allows to generate tracking labels from pickings.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': ['stock_generate_tracking_labels.xml'],
+    'external_dependencies': {
+        'python': ['PyPDF2'],
+    },
     'demo': [],
     'test': [],
     'installable': True,

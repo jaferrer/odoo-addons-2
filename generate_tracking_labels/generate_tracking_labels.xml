@@ -19,6 +19,7 @@
                         <field name="save_tracking_number"/>
                         <field name="transportation_amount"/>
                         <field name="total_amount"/>
+                        <field name="cod_value"/>
                         <field name="sender_parcel_ref"/>
                     </group>
                     <separator name="donnees_colis" string="Données colis"/>
@@ -40,6 +41,7 @@
                     <group>
                         <group>
                             <field name="sale_order_id"/>
+                            <field name="partner_orig_id"/>
                             <field name="partner_id"/>
                             <field name="company_name"/>
                             <field name="first_name"/>

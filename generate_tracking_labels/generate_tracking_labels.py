@@ -32,11 +32,13 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     save_tracking_number = fields.Boolean(string=u"Enregistrer le numéro de suivi pour l'objet courant", default=True)
     transportation_amount = fields.Float(string=u"Prix du transport", help=u"En euros")
     total_amount = fields.Float(string=u"Prix TTC de l’envoi", help=u"En euros")
+    cod_value = fields.Integer(string=u"Valeur du contre-remboursement (en centimes €)")
     sender_parcel_ref = fields.Char(string=u"Référence client",
                                     help=u"Numéro de commande tel que renseigné dans votre SI. Peut être utile pour "
                                          u"rechercher des colis selon ce champ sur le suivi ColiView (apparaît dans le "
                                          u"champ 'Réf. client')")
     sale_order_id = fields.Many2one('sale.order', string=u"Commande client")
+    partner_orig_id = fields.Many2one('res.partner', string=u"Expéditeur", required=True)
     partner_id = fields.Many2one('res.partner', string=u"Adresse")
     company_name = fields.Char(string=u"Raison sociale", required=True)
     last_name = fields.Char(string=u"Nom", required=True)
@@ -84,6 +86,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             self.transportation_amount = (self.sale_order_id and int(self.sale_order_id.amount_total)) or 0
             self.total_amount = (self.sale_order_id and int(self.sale_order_id.amount_untaxed)) or 0
             self.sender_parcel_ref = (self.sale_order_id and self.sale_order_id.name) or ''
+            self.partner_orig_id = self.sale_order_id.warehouse_id.partner_id
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
@@ -101,6 +104,15 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             self.mobile_number = self.partner_id.mobile or ''
             self.email = self.partner_id.email or ''
 
+    @api.onchange('transporter_id')
+    def onchange_transporter_id(self):
+        self.ensure_one()
+        if self.transporter_id:
+            if self.output_printing_type_id and self.output_printing_type_id.transporter_id != self.transporter_id:
+                self.output_printing_type_id = False
+            if self.produit_expedition_id and self.produit_expedition_id.transporter_id != self.transporter_id:
+                self.produit_expedition_id = False
+
     @api.onchange('country_id')
     def onchange_country_id(self):
         self.ensure_one()
@@ -113,7 +125,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         return u"Etiquette d'envoi"
 
     @api.multi
-    def create_attachment(self, outputfile, direction, file=False, pdf_binary_string=False):
+    def create_attachment(self, outputfile, direction, files=None, pdf_binary_strings=None):
         return False
 
     @api.multi
@@ -125,7 +137,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         elif self.produit_expedition_id.transporter_id != self.transporter_id:
             raise UserError(u"Produit %s inconnu pour le transporteur %s" %
                             (self.produit_expedition_id.name, self.transporter_id.name))
-        return [''] * 4
+        return [[], '', '']
 
 
 class TypeProduitExpedition(models.Model):

@@ -18,13 +18,33 @@
 #
 
 import base64
+import os
+
+from PyPDF2 import PdfFileMerger, PdfFileReader
 
 from openerp import models, fields, api, _
+from openerp.exceptions import UserError
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
+PATH_BOT = os.environ['TMP'] + os.sep + 'merger_bot'
+PATH_TMP = PATH_BOT + os.sep + 'tmp'
+
+
+class DeliveryTrackingStockPickingType(models.Model):
+    _inherit = 'stock.picking.type'
+
+    use_tracking_labels = fields.Boolean(string="Use tracking labels")
 
 
 class DeliveryTrackingStockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    use_tracking_labels = fields.Boolean(string="Use tracking labels",
+                                         related='picking_type_id.use_tracking_labels', store=True)
     tracking_defined = fields.Boolean(compute='_compute_tracking_defined', store=True)
     binary_label = fields.Binary(string="Label (binary)")
     tracking_label_attachment = fields.Many2one('ir.attachment', string="Label (attachment)")
@@ -39,7 +59,10 @@ class DeliveryTrackingStockPicking(models.Model):
     def generate_tracking_labels(self):
         self.ensure_one()
         ctx = self.env.context.copy()
+        warehouse_id = self.location_id and self.location_id.get_warehouse(self.location_id) or False
+        warehouse = warehouse_id and self.env['stock.warehouse'].browse(warehouse_id) or False
         ctx['default_picking_id'] = self.id
+        ctx['default_partner_orig_id'] = warehouse and warehouse.partner_id.id or False
         ctx['default_partner_id'] = self.partner_id and self.partner_id.id or False
         if self.picking_type_code == 'incoming':
             ctx['default_direction'] = 'from_customer'
@@ -62,38 +85,27 @@ class DeliveryTrackingStockPicking(models.Model):
             'context': ctx,
         }
 
+    @api.multi
+    def update_delivery_status(self):
+        for rec in self:
+            rec.last_status_update = fields.Datetime.now()
+            rec.tracking_ids.update_delivery_status()
+
+    @api.multi
+    def do_new_transfer(self):
+        result = super(DeliveryTrackingStockPicking, self).do_new_transfer()
+        for rec in self:
+            for packop in rec.pack_operation_ids:
+                computed_weight = packop.result_package_id.weight
+                if computed_weight and not packop.result_package_id.delivery_weight:
+                    packop.result_package_id.delivery_weight = computed_weight
+        return result
+
 
 class TrackingLabelStockQuantPackage(models.Model):
     _inherit = 'stock.quant.package'
 
-    tracking_defined = fields.Boolean(compute='_compute_tracking_defined', store=True)
-    binary_label = fields.Binary(string="Label (binary)")
-    tracking_label_attachment = fields.Many2one('ir.attachment', string="Label (attachment)")
-    data_fname = fields.Char(string="Label name")
     delivery_weight = fields.Float(string=u"Package Weight (editable)")
-
-    @api.depends('tracking_ids')
-    def _compute_tracking_defined(self):
-        for rec in self:
-            rec.tracking_defined = bool(rec.tracking_ids)
-
-    @api.multi
-    def generate_tracking_labels(self):
-        self.ensure_one()
-        ctx = self.env.context.copy()
-        ctx['default_partner_id'] = self.partner_id and self.partner_id.id or False
-        ctx['default_direction'] = 'to_customer'
-        ctx['default_weight'] = sum([pack.delivery_weight for pack in self])
-        ctx['default_package_ids'] = [(6, 0, self.ids)]
-        return {
-            'name': _("Generate tracking label for package %s") % self.name,
-            'type': 'ir.actions.act_window',
-            'view_type': 'form',
-            'view_mode': 'form',
-            'res_model': 'generate.tracking.labels.wizard',
-            'target': 'new',
-            'context': ctx,
-        }
 
 
 class TrackingGenerateLabelsWizard(models.TransientModel):
@@ -111,83 +123,83 @@ class TrackingGenerateLabelsWizard(models.TransientModel):
 
     @api.multi
     def get_output_file(self, direction):
-        package = False
-        if self.env.context.get('set_package_for_label'):
-            package = self.env['stock.quant.package'].browse([self.env.context['set_package_for_label']])
-        if direction == 'from_customer':
-            if package:
-                return _("Incoming label for package ") + (package.name or '') + ".pdf"
-            elif self.picking_id:
-                return _("Incoming label for picking ") + (self.picking_id.name or '') + ".pdf"
-        elif direction == 'to_customer':
-            if package:
-                return _("Outgoing label for package ") + (package.name or '') + ".pdf"
-            elif self.picking_id:
-                return _("Outgoing label for picking ") + (self.picking_id.name or '') + ".pdf"
+        if direction == 'from_customer' and self.picking_id:
+            return _("Incoming label for picking ") + (self.picking_id.name or '') + ".pdf"
+        elif direction == 'to_customer' and self.picking_id:
+            return _("Outgoing label for picking ") + (self.picking_id.name or '') + ".pdf"
 
     @api.multi
-    def create_attachment(self, outputfile, direction, file=False, pdf_binary_string=False):
-        encoded_data = file and base64.encodestring(file) or base64.encodestring(pdf_binary_string)
-        result = super(TrackingGenerateLabelsWizard, self).create_attachment(outputfile, direction, file=file,
-                                                                             pdf_binary_string=pdf_binary_string)
+    def create_attachment(self, outputfile, direction, files=None, pdf_binary_strings=None):
+        result = super(TrackingGenerateLabelsWizard, self).create_attachment(outputfile, direction, files=files,
+                                                                             pdf_binary_strings=pdf_binary_strings)
         if self.picking_id:
-            if self.env.context.get('set_package_for_label'):
-                self.picking_id.write({'binary_label': False,
-                                       'data_fname': False,
-                                       'tracking_label_attachment': False})
-            else:
-                self.picking_id.write({'binary_label': encoded_data,
-                                       'data_fname': outputfile})
-                self.picking_id.tracking_label_attachment = self.env['ir.attachment'].create({
+            if not files:
+                files = []
+            if not pdf_binary_strings:
+                pdf_binary_strings = []
+            encoded_data = []
+            for list_data in [files, pdf_binary_strings]:
+                for data in list_data:
+                    encoded_data += [data]
+            filenames = []
+            for index in range(0, len(encoded_data)):
+                filename = PATH_TMP + os.sep + "tmp_pdf_label_%s.pdf" % str(index)
+                filenames.append(filename)
+                with file(filename, 'wb') as f:
+                    f.write(encoded_data[index])
+            if filenames:
+                myobj = StringIO()
+                merger = PdfFileMerger()
+                for filename in filenames:
+                    with file(filename, 'rb') as partial_file:
+                        merger.append(PdfFileReader(partial_file))
+                merger.write(myobj)
+                final_encoded_data = base64.encodestring(myobj.getvalue())
+                merger.close()
+                myobj.close()
+                self.picking_id.binary_label = False
+                if self.picking_id.tracking_label_attachment:
+                    self.picking_id.tracking_label_attachment.unlink()
+                if self.picking_id.tracking_ids:
+                    self.picking_id.tracking_ids.unlink()
+                label_attachment = self.env['ir.attachment'].create({
                     'name': outputfile,
-                    'datas': encoded_data,
+                    'datas': final_encoded_data,
                     'datas_fname': outputfile,
-                    'res_model': 'stock.picking',
-                    'res_id': self.picking_id.id
                 })
-        if self.env.context.get('set_package_for_label'):
-            package = self.env['stock.quant.package'].browse([self.env.context['set_package_for_label']])
-            package.write({'binary_label': encoded_data,
-                           'data_fname': outputfile})
-            package.tracking_label_attachment = self.env['ir.attachment'].create({
-                'name': outputfile,
-                'datas': encoded_data,
-                'datas_fname': outputfile,
-                'res_model': 'stock.quant.package',
-                'res_id': package.id
-            })
+                self.picking_id.write({'binary_label': final_encoded_data,
+                                       'data_fname': outputfile,
+                                       'tracking_label_attachment': label_attachment.id})
         return result
 
     @api.multi
     def generate_label(self):
-        tracking_number, save_tracking_number, direction, url = \
-            super(TrackingGenerateLabelsWizard, self).generate_label()
-        package = False
-        if self.env.context.get('set_package_for_label'):
-            package = self.env['stock.quant.package'].browse([self.env.context['set_package_for_label']])
-        elif self.package_ids:
-            self.package_ids.write({'binary_label': False, 'data_fname': False})
-            for package in self.package_ids:
-                package.tracking_label_attachment.unlink()
-        if (self.picking_id or package) and tracking_number and save_tracking_number and self.transporter_id:
-            self.env['tracking.number'].create({
-                'picking_id': self.picking_id and self.picking_id.id or False,
-                'package_id': package and package.id or False,
-                'name': tracking_number,
-                'transporter_id': self.transporter_id.id,
-            })
+        tracking_numbers, save_tracking_number, direction = super(TrackingGenerateLabelsWizard, self).generate_label()
+        if self.picking_id and tracking_numbers and save_tracking_number and self.transporter_id:
+            for tracking_number in tracking_numbers:
+                self.env['tracking.number'].create({
+                    'picking_id': self.picking_id and self.picking_id.id or False,
+                    'name': tracking_number,
+                    'transporter_id': self.transporter_id.id,
+                })
             self.picking_id.update_delivery_status()
-        return tracking_number, save_tracking_number, direction, url
-
-    @api.multi
-    def generate_one_label_for_each_package(self):
-        self.ensure_one()
-        for package in self.package_ids:
-            self.weight = package.delivery_weight
-            self.with_context(set_package_for_label=package.id).generate_label()
+        return tracking_numbers, save_tracking_number, direction
 
     @api.multi
     def generate_one_label_for_all_packages(self):
         self.ensure_one()
-        # Function to overwrite for each transporter
-        return False
+        if self.package_ids:
+            packages_data = []
+            for package in self.package_ids:
+                packages_data += [{
+                    'weight': package.delivery_weight,
+                    'insured_value': 0,
+                    'cod_value': 0,
+                    'custom_value': 0,
+                    'height': 0,
+                    'lenght': 0,
+                    'width': 0,
+                }]
+            self.with_context(package_ids=self.package_ids.ids).generate_label()
+        else:
+            raise UserError(u"Aucun colis trouvé")
