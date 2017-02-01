@@ -43,6 +43,11 @@
                         </group>
                     </page>
                 </notebook>
+                <xpath expr="//sheet/group" position="inside">
+                    <group>
+                        <field name="delivery_weight"/>
+                    </group>
+                </xpath>
             </field>
         </record>
 

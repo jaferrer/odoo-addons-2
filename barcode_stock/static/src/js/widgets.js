@@ -490,9 +490,7 @@ odoo.define('web.barcode_stock', function (require) {
 
                 }).then(function(pickings){
                     self.pickings = pickings;
-                    var ids = [];
                     for(var i = 0; i < pickings.length; i++){
-                        ids.push(picking.group_id[0]);
                         var picking = pickings[i];
                         self.pickings_by_type[picking.picking_type_id[0]].push(picking);
                         self.pickings_by_id[picking.id] = picking;
@@ -896,7 +894,7 @@ odoo.define('web.barcode_stock', function (require) {
                     .call('action_pack',[[[self.picking.id]], pack_op_ids])
                     .then(function(pack){
                         //TODO: the functionality using current_package_id in context is not needed anymore
-                        instance.session.user_context.current_package_id = false;
+                        self.session.user_context.current_package_id = false;
                         return self.refresh_ui(self.picking.id);
                     });
             }
@@ -1058,7 +1056,6 @@ odoo.define('web.barcode_stock', function (require) {
                     code = "";
                     return;
                 }
-                console.log(e);
                 if(!shift) {
                     if(e.which == 54){
                         code +='-';
@@ -1066,6 +1063,11 @@ odoo.define('web.barcode_stock', function (require) {
                     }
                     if(e.which == 56){
                         code +='_';
+                        return;
+                    }
+                } else {
+                    if(e.which == 58){
+                        code +='/';
                         return;
                     }
                 }
