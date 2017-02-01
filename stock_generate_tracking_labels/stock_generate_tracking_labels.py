@@ -51,7 +51,7 @@ class DeliveryTrackingStockPicking(models.Model):
                 packages |= packop.result_package_id
         if packages:
             ctx['default_package_ids'] = [(6, 0, packages.ids)]
-            ctx['default_weight'] = sum([pack.weight for pack in packages])
+            ctx['default_weight'] = sum([pack.delivery_weight for pack in packages])
         return {
             'name': _("Generate tracking label for picking %s") % self.name,
             'type': 'ir.actions.act_window',
@@ -183,7 +183,7 @@ class TrackingGenerateLabelsWizard(models.TransientModel):
     def generate_one_label_for_each_package(self):
         self.ensure_one()
         for package in self.package_ids:
-            self.weight = package.weight
+            self.weight = package.delivery_weight
             self.with_context(set_package_for_label=package.id).generate_label()
 
     @api.multi
