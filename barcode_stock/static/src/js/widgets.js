@@ -1072,6 +1072,8 @@ odoo.define('web.barcode_stock', function (require) {
                     }
                 }
                 code += String.fromCharCode(e.which);
+                console.log(e.which);
+                console.log(code);
                 shift=false;
             };
 
