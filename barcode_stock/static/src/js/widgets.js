@@ -91,7 +91,7 @@ odoo.define('web.barcode_stock', function (require) {
                                     product_id: undefined,
                                     can_scan: false,
                                     head_container: true,
-                                    processed: (packopline.processed ==='false')?false:true,
+                                    processed: (packopline.processed == false || packopline.processed ==='false')?false:true,
                                     package_id: myPackage.id,
                                     ul_id:  myPackage.ul_id[0],
                             },
@@ -114,7 +114,7 @@ odoo.define('web.barcode_stock', function (require) {
                                 product_id: packopline.product_id[0],
                                 can_scan: packopline.result_package_id[1] === undefined ? true : false,
                                 head_container: false,
-                                processed: (packopline.processed ==='false')?false:true,
+                                processed: (packopline.processed == false || packopline.processed ==='false')?false:true,
                                 package_id: undefined,
                                 ul_id: -1,
                         },
@@ -431,7 +431,7 @@ odoo.define('web.barcode_stock', function (require) {
             console.log(model.packoplines);
             _.each( model.packoplines, function(packopline){
                 console.log(packopline.processed);
-                if (packopline.processed === "false"){
+                if (packopline.processed === false){
                     done = false;
                     return done;
                 }
