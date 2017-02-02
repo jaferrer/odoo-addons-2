@@ -15,7 +15,6 @@
                             <field name="client_pre_alert_chronopost"/>
                             <field name="mode_retour"/>
                             <field name="service"/>
-                            <field name="object_type"/>
                         </group>
                     </group>
                 </separator>

@@ -40,8 +40,6 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                                 ('4', u"Jeudi"),
                                 ('5', u"Vendredi"),
                                 ('6', u"Samedi")], string=u"Jour de la livraison", default='0', required=True)
-    object_type = fields.Selection([('MAR', u"Marchandise"),
-                                    ('DOC', u"Document")], string=u"Type de colis", default='MAR', required=True)
 
     @api.model
     def default_get(self, fields):
@@ -79,31 +77,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                 raise UserError(u"Veuillez remplir la configuration Chronopost")
 
             # evc_code : valeur unique
-            package_ids = self.env.context.get('package_ids')
-            if package_ids:
-                packages_data = []
-                for package in self.env['stock.quant.package'].browse(package_ids):
-                    if not package.delivery_weight:
-                        raise UserError(u"Veuillez renseigner le poids pour le colis %s" % package.display_name)
-                    packages_data += [{
-                        'weight': package.delivery_weight,
-                        'insured_value': 0,
-                        'cod_value': 0,
-                        'custom_value': 0,
-                        'height': 0,
-                        'lenght': 0,
-                        'width': 0,
-                    }]
-            else:
-                packages_data = [{
-                    'weight': self.weight or 0,
-                    'insured_value': self.sale_order_id.amount_total or 0,
-                    'cod_value': self.cod_value or 0,
-                    'custom_value': self.sale_order_id.amount_total or 0,
-                    'height': 0,
-                    'lenght': 0,
-                    'width': 0,
-                }]
+            packages_data = self.get_packages_data()
 
             # TODO: ajouter champs
             closing_date_time = ''
@@ -288,9 +262,9 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                 ship_date = fields.Datetime.now().replace(' ', 'T')
                 ship_hour = ship_date and ship_date[11:13]
                 service = self.service
-                object_type = self.object_type
-                sky_bill_value = (pack_data['cod_value'] or '',  pack_data['custom_value'] or '', evt_code or '',
-                                  pack_data['insured_value'] or '', object_type or '',
+                object_type = self.content_type_id.code
+                sky_bill_value = (pack_data['cod_value'] or '',  pack_data['amount_total'] or '', evt_code or '',
+                                  pack_data['amount_total'] or '', object_type or '',
                                   self.produit_expedition_id.code or '', service or '', ship_date, ship_hour or '',
                                   pack_data['weight'], pack_data['height'], pack_data['lenght'], pack_data['width'])
                 xml_post_parameter += u"""
@@ -348,13 +322,12 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                     response.content.split('<reservationNumber>')[1].split('</reservationNumber>'):
                 tracking_number = response.content.split('<reservationNumber>')[1].split('</reservationNumber>')[0]
             if tracking_number:
-                outputfile = self.get_output_file(self.direction)
                 url = 'https://www.chronopost.fr/shipping-cxf/getReservedSkybill?reservationNumber=' + tracking_number
                 label = requests.get(url)
                 if len(label.content.split('%PDF')) == 2 and label.content.split('%PDF')[1].split('%EOF'):
                     pdf_binary_string = '%PDF' + label.content.split('%PDF')[1].split('%EOF')[0] + '%EOF' + '\n'
-                    self.create_attachment(outputfile, self.direction, pdf_binary_strings=[pdf_binary_string])
-                    return [tracking_number], self.save_tracking_number, self.direction
+                    self.create_attachment([pdf_binary_string])
+                    return [tracking_number]
             if response.content == '<html><body>No service was found.</body></html>':
                 raise UserError(u"Service non trouvé")
             if len(response.content.split('<faultstring>')) > 1 and \

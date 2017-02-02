@@ -83,5 +83,9 @@
                   action="generate_tracking_labels.act_window_output_printing_type"
                   parent="menu_bordereaux_expedition" sequence="20"/>
 
+        <menuitem id="menu_content_type" name="Types de contenu"
+                  action="generate_tracking_labels.act_window_content_type_tree"
+                  parent="menu_bordereaux_expedition" sequence="30"/>
+
     </data>
 </openerp>

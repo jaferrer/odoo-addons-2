@@ -40,7 +40,6 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
     def generate_label(self):
         result = super(GenerateTrackingLabelsWizardColissimo, self).generate_label()
         if self.transporter_id == self.env.ref('base_delivery_tracking_colissimo.transporter_colissimo'):
-            outputfile = self.get_output_file(self.direction)
             contractNumber = self.env['ir.config_parameter']. \
                 get_param('generate_tracking_labels_colissimo.login_colissimo', default='')
             password = self.env['ir.config_parameter']. \
@@ -57,38 +56,13 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
             mailBoxPicking = 'false'
             # TODO: veut-on faire du mailBoxPicking ?
 
-            package_ids = self.env.context.get('package_ids')
-            if package_ids:
-                packages_data = []
-                for package in self.env['stock.quant.package'].browse(package_ids):
-                    if not package.delivery_weight:
-                        raise UserError(u"Veuillez renseigner le poids pour le colis %s" % package.display_name)
-                    packages_data += [{
-                        'weight': package.delivery_weight,
-                        'amount_untaxed': 0,
-                        'amount_total': 0,
-                        'cod_value': 0,
-                        'height': 0,
-                        'lenght': 0,
-                        'width': 0,
-                    }]
-            else:
-                packages_data = [{
-                    'weight': self.weight or 0,
-                    'amount_untaxed': self.sale_order_id.amount_untaxed or 0,
-                    'amount_total': self.sale_order_id.amount_total or 0,
-                    'cod_value': self.cod_value or 0,
-                    'height': 0,
-                    'lenght': 0,
-                    'width': 0,
-                }]
+            packages_data = self.get_packages_data()
 
             tracking_numbers = []
-            files = []
-            pdf_binary_strings = []
+            list_files = []
 
             commercialName = self.partner_orig_id.company_id.name or ''
-            orderNumber = ''
+            orderNumber = self.get_order_number()
 
             # Destinataire
             companyName2 = self.partner_orig_id.company_id.name or ''
@@ -98,7 +72,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
             line12 = ''
             line22 = self.partner_orig_id.street or ''
             line32 = self.partner_orig_id.street2 or ''
-            countryCode2 = 'FR'
+            countryCode2 = self.partner_orig_id.country_id.code or ''
             city2 = self.partner_orig_id.city or ''
             zipCode2 = self.partner_orig_id.zip or ''
             phoneNumber2 = self.partner_orig_id.phone and \
@@ -114,13 +88,12 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
             # TODO: pickuplocationid (identifiant du point de retrait), bloc custom (douane)
 
             for package_data in packages_data:
-                first_part = (contractNumber, password, x, y, self.output_printing_type_id.code,
-                              self.produit_expedition_id.code, depositDate, mailBoxPicking,
-                              int(package_data['amount_untaxed'] * 100), int(package_data['amount_total'] * 100),
-                              orderNumber, commercialName, self.return_type_choice, package_data['amount_total'],
-                              package_data['weight'], self.non_machinable,
-                              bool(package_data['cod_value']) and 1 or 0, package_data['cod_value'] * 100,
-                              self.instructions, self.ftd, self.sender_parcel_ref)
+                pack_data = (self.produit_expedition_id.code, depositDate, mailBoxPicking,
+                             int(package_data['amount_untaxed'] * 100), int(package_data['amount_total'] * 100),
+                             orderNumber, commercialName, self.return_type_choice, package_data['amount_total'],
+                             package_data['weight'], self.non_machinable,
+                             bool(package_data['cod_value']) and 1 or 0, package_data['cod_value'] * 100,
+                             self.instructions, self.ftd)
 
                 customer_data = (self.company_name or '', self.last_name or '', self.first_name or '', self.line0 or '',
                                  self.line1 or '', self.line2 or '', self.line3 or '', self.country_id.code or '',
@@ -128,20 +101,15 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                                  self.door_code1 or '', self.door_code2 or '', self.email or '', self.intercom or '',
                                  self.language)
 
-                second_part = (self.adressee_parcel_ref or '', self.code_bar_for_reference or '',
-                               self.service_info or '')
+                data_for_adressee = (self.adressee_parcel_ref or '', self.code_bar_for_reference or '',
+                                     self.service_info or '')
 
                 our_data = (companyName2, lastName2, firstName2, line02, line12, line22, line32, countryCode2, city2,
                             zipCode2, phoneNumber2, mobileNumber2, doorCode12, doorCode22, email2, intercom2, language2)
 
-                if self.direction == 'from_customer':
-                    parameters = first_part + customer_data + second_part + our_data
-                else:
-                    parameters = first_part + our_data + second_part + customer_data
-
                 xml_post_parameter = u"""
-        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sls="http://sls.ws.coliposte.fr">
-        <soapenv:Header/>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sls="http://sls.ws.coliposte.fr">
+    <soapenv:Header/>
         <soapenv:Body>
           <sls:generateLabel>
              <generateLabelRequest>
@@ -151,7 +119,8 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                    <x>%s</x>
                    <y>%s</y>
                    <outputPrintingType>%s</outputPrintingType>
-                </outputFormat>
+                </outputFormat>""" % (contractNumber, password, x, y, self.output_printing_type_id.code)
+                xml_post_parameter += u"""
                 <letter>
                    <service>
                       <productCode>%s</productCode>
@@ -171,9 +140,44 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                       <CODAmount>%s</CODAmount>
                       <instructions>%s</instructions>
                       <ftd>%s</ftd>
-                   </parcel>
-                   <sender>
-                      <senderParcelRef>%s</senderParcelRef>
+                   </parcel>""" % pack_data
+                if package_data.get('custom_declaration'):
+                    xml_post_parameter += u"""
+                       <customsDeclarations>
+                           <includeCustomsDeclarations>1</includeCustomsDeclarations>
+                              <contents>"""
+                    for custom_declaration in package_data['custom_declaration']:
+                        custom_data = (custom_declaration['description'],
+                                       int(custom_declaration['quantity']),
+                                       custom_declaration['weight'],
+                                       custom_declaration['value'],
+                                       custom_declaration['hs_code'],
+                                       custom_declaration['country_code'])
+                        xml_post_parameter += u"""
+                                <article>
+                                    <description>%s</description>
+                                    <quantity>%s</quantity>
+                                    <weight>%s</weight>
+                                    <value>%s</value>
+                                    <hsCode>%s</hsCode>
+                                    <originCountry>%s</originCountry>
+                                </article>""" % custom_data
+                    xml_post_parameter += u"""
+                                <category>
+                                    <value>%s</value>
+                                </category>
+                            </contents>
+                            <importersReference>%s</importersReference>
+                            <importersContact>%s</importersContact>
+                            <officeOrigin>%s</officeOrigin>
+                       </customsDeclarations>""" % (package_data['category'],
+                                                    package_data['importers_reference'],
+                                                    package_data['importers_contact'],
+                                                    package_data['office_origin'])
+                xml_post_parameter += u"""
+                    <sender>
+                      <senderParcelRef>%s</senderParcelRef>""" % self.sender_parcel_ref
+                xml_post_parameter += u"""
                       <address>
                          <companyName>%s</companyName>
                          <lastName>%s</lastName>
@@ -222,8 +226,9 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
              </generateLabelRequest>
           </sls:generateLabel>
         </soapenv:Body>
-        </soapenv:Envelope>
-                """ % (parameters)
+    </soapenv:Envelope>
+                """ % (self.direction == 'from_customer' and customer_data + data_for_adressee + our_data or
+                       our_data + data_for_adressee + customer_data)
 
                 encoded_request = xml_post_parameter.encode('utf-8')
                 headers = {"Content-Type": "text/xml; charset=UTF-8",
@@ -243,22 +248,22 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                                     len(response.content.split('<pdfUrl>')[1].split('</pdfUrl>')) == 2:
                         url = response.content.split('<pdfUrl>')[1].split('</pdfUrl>')[0].replace('amp;', '')
                         file = requests.get(url)
-                        files += [file.content]
+                        list_files += [file.content]
 
                     elif len(response_string.split('%PDF')) == 2 and response_string.split('%PDF')[1].split('%EOF'):
                         pdf_binary_string = '%PDF' + response_string.split('%PDF')[1].split('%EOF')[0] + '%EOF' + '\n'
-                        pdf_binary_strings += [pdf_binary_string]
+                        list_files += [pdf_binary_string]
                     continue
                 if len(response.content.split('<messageContent>')) == 2 and \
                                 len(response.content.split('<messageContent>')[1].split('</messageContent>')) == 2:
                     raise UserError(u'Colissimo : ' + ustr(response.content).
-                                                split('<messageContent>')[1].split('</messageContent>')[0])
+                                    split('<messageContent>')[1].split('</messageContent>')[0])
                 if len(response.content.split('<faultstring>')) == 2 and \
                                 len(response.content.split('<faultstring>')[1].split('</faultstring>')) == 2:
                     raise UserError(u'Colissimo : ' + ustr(response.content).
-                                                split('<faultstring>')[1].split('</faultstring>')[0])
+                                    split('<faultstring>')[1].split('</faultstring>')[0])
                 raise UserError(u"Impossible de générer l'étiquette")
 
-            self.create_attachment(outputfile, self.direction, files=files, pdf_binary_strings=pdf_binary_strings)
-            return tracking_numbers, self.save_tracking_number, self.direction
+            self.create_attachment(list_files=list_files)
+            return tracking_numbers
         return result
