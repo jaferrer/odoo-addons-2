@@ -91,7 +91,7 @@ odoo.define('web.barcode_stock', function (require) {
                                     product_id: undefined,
                                     can_scan: false,
                                     head_container: true,
-                                    processed: packopline.processed,
+                                    processed: (packopline.processed == false || packopline.processed ==='false')?false:true,
                                     package_id: myPackage.id,
                                     ul_id:  myPackage.ul_id[0],
                             },
@@ -114,7 +114,7 @@ odoo.define('web.barcode_stock', function (require) {
                                 product_id: packopline.product_id[0],
                                 can_scan: packopline.result_package_id[1] === undefined ? true : false,
                                 head_container: false,
-                                processed: packopline.processed,
+                                processed: (packopline.processed == false || packopline.processed ==='false')?false:true,
                                 package_id: undefined,
                                 ul_id: -1,
                         },
@@ -428,8 +428,10 @@ odoo.define('web.barcode_stock', function (require) {
             var model = this.getParent();
             var self = this;
             var done = true;
+            console.log(model.packoplines);
             _.each( model.packoplines, function(packopline){
-                if (packopline.processed === "false"){
+                console.log(packopline.processed);
+                if (packopline.processed === false){
                     done = false;
                     return done;
                 }
@@ -1072,6 +1074,8 @@ odoo.define('web.barcode_stock', function (require) {
                     }
                 }
                 code += String.fromCharCode(e.which);
+                console.log(e.which);
+                console.log(code);
                 shift=false;
             };
 
