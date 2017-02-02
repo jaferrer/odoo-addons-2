@@ -129,6 +129,9 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <data>
+                    <button name="picking_ok" position="before">
+                        <button name="reset_to_confirmed" states="except_picking" string="Reset to confirmed" type="object" class="oe_highlight"/>
+                    </button>
                     <field name="date_order" position="attributes">
                         <attribute name="required">1</attribute>
                     </field>
