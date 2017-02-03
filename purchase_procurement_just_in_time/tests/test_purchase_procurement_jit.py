@@ -1341,3 +1341,41 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(procurement_order_1.state, 'cancel')
         purchase_line1.unlink()
         self.assertEqual(procurement_order_1.state, 'cancel')
+
+    def test_90_reset_exception_to_confirmed(self):
+        proc1, proc2 = self.create_and_run_proc_1_2()
+        purchase_order_1 = proc1.purchase_id
+        line = self.check_purchase_order_1_2(purchase_order_1)
+        self.assertEqual(line.product_qty, 48)
+
+        purchase_order_1.signal_workflow('purchase_confirm')
+        self.assertEqual(purchase_order_1.state, 'approved')
+        self.assertTrue(line.move_ids)
+        picking = line.move_ids[0].picking_id
+        self.assertTrue(picking)
+        for move in line.move_ids:
+            self.assertEqual(move.picking_id, picking)
+
+        # We create a backorder
+        picking.do_prepare_partial()
+        wizard_id = picking.do_enter_transfer_details()['res_id']
+        wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        self.assertEqual(len(wizard.item_ids), 1)
+        self.assertEqual(wizard.item_ids.quantity, 48)
+        wizard.item_ids.quantity = 20
+        wizard.do_detailed_transfer()
+
+        # We cancel the backorder to create a picking exception
+        backorder = self.env['stock.picking'].search([('backorder_id', '=', picking.id)])
+        self.assertEqual(len(backorder), 1)
+        self.assertNotEqual(backorder.state, 'done')
+        backorder.action_cancel()
+        self.assertEqual(purchase_order_1.state, 'except_picking')
+
+        # We test function reset_to_confirmed
+        self.assertFalse(line.move_ids.filtered(lambda sm: sm.state not in ['draft', 'done', 'cancel']))
+        purchase_order_1.reset_to_confirmed()
+        self.assertEqual(purchase_order_1.state, 'approved')
+        new_move = line.move_ids.filtered(lambda sm: sm.state not in ['draft', 'done', 'cancel'])
+        self.assertEqual(len(new_move), 1)
+        self.assertEqual(new_move.product_qty, 28)

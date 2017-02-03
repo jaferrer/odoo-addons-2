@@ -214,6 +214,14 @@ class PurchaseOrderJustInTime(models.Model):
         running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
         return res
 
+    @api.multi
+    def reset_to_confirmed(self):
+        for rec in self:
+            rec.signal_workflow('except_to_confirmed')
+            if rec.state in self.get_purchase_order_states_with_moves():
+                for line in rec.order_line:
+                    line.adjust_moves_qties(line.product_qty)
+
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
