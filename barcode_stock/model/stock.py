@@ -23,7 +23,7 @@ from datetime import datetime
 from openerp import models, api, fields, osv, _
 
 
-class FluxTenduStockPacOPeration(models.Model):
+class FluxTenduStockMove(models.Model):
     _inherit = 'stock.move'
 
     def check_tracking_product(self, cr, uid, product, lot_id, location, location_dest, context=None):
@@ -43,7 +43,7 @@ class FluxTenduStockPacOPeration(models.Model):
 class FluxTenduStockPacOPeration(models.Model):
     _inherit = 'stock.pack.operation'
 
-    processed = fields.Selection([('true','Yes'), ('false','No')],'Has been processed?')
+    processed = fields.Selection([('true','Yes'), ('false','No')],'Has been processed?', default="false")
 
     def action_drop_down(self, cr, uid, ids, context=None):
         ''' Used by barcode interface to say that pack_operation has been moved from src location
@@ -257,21 +257,21 @@ class FluxTenduStockPicking(models.Model):
         return package_id
 
 
-    class product_ul(models.Model):
-        _name = "product.ul"
-        _description = "Logistic Unit"
-        _columns = {
-            'name': osv.fields.char('Name', select=True, required=True, translate=True),
-            'type': osv.fields.selection([('unit', 'Unit'), ('pack', 'Pack'), ('box', 'Box'), ('pallet', 'Pallet')], 'Type',
-                                     required=True),
-            'height': osv.fields.float('Height', help='The height of the package'),
-            'width': osv.fields.float('Width', help='The width of the package'),
-            'length': osv.fields.float('Length', help='The length of the package'),
-            'weight': osv.fields.float('Empty Package Weight'),
-        }
+class product_ul(models.Model):
+    _name = "product.ul"
+    _description = "Logistic Unit"
+    _columns = {
+        'name': osv.fields.char('Name', select=True, required=True, translate=True),
+        'type': osv.fields.selection([('unit', 'Unit'), ('pack', 'Pack'), ('box', 'Box'), ('pallet', 'Pallet')], 'Type',
+                                 required=True),
+        'height': osv.fields.float('Height', help='The height of the package'),
+        'width': osv.fields.float('Width', help='The width of the package'),
+        'length': osv.fields.float('Length', help='The length of the package'),
+        'weight': osv.fields.float('Empty Package Weight'),
+    }
 
 
-    class FluxTenduStocQuantPackage(models.Model):
-        _inherit = "stock.quant.package"
+class FluxTenduStocQuantPackage(models.Model):
+    _inherit = "stock.quant.package"
 
-        ul_id = fields.Many2one('product.ul', string='Logistic Unit')
+    ul_id = fields.Many2one('product.ul', string='Logistic Unit')

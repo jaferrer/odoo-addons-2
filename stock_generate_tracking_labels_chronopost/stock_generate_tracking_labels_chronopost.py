@@ -33,7 +33,7 @@ class TrackingGenerateLabelsWizardChronopost(models.TransientModel):
                 packages_data = []
                 for package in self.package_ids:
                     packages_data += [{
-                        'weight': package.weight,
+                        'weight': package.delivery_weight,
                         'insured_value': 0,
                         'cod_value': 0,
                         'custom_value': 0,
