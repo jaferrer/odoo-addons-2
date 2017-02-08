@@ -26,7 +26,7 @@ from openerp.addons.connector.session import ConnectorSession
 
 from openerp import models, api, fields
 # from .product_category import category_import_batch
-from .product import product_import_batch
+from .product import product_import_batch, product_export_stock_level_batch
 from .customer import customer_import_batch
 
 # from .sale import sale_order_import_batch
@@ -155,3 +155,20 @@ class magentoextend_backend(models.Model):
         back = self.env['magentoextend.backend'].search([('id', '=', id)])
         if back:
             back.import_product()
+
+    @api.multi
+    def export_stock_level(self):
+        new_ctx = dict(self.env.context)
+        new_ctx['company_id'] = self.company_id.id
+        session = ConnectorSession(self.env.cr, self.env.uid,
+                                   context=new_ctx)
+        backend_id = self.id
+        product_export_stock_level_batch.delay(
+            session, 'magentoextend.product.product', backend_id, priority=3)
+        return True
+
+    @api.model
+    def cron_export_stock_level(self, el_id):
+        back = self.env['magentoextend.backend'].search([('id', '=', el_id)])
+        if back:
+            back.export_stock_level()

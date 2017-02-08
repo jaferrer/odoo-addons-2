@@ -29,20 +29,11 @@ class TrackingTransporter(models.Model):
                                   string="List of related pickings")
     number_pickings = fields.Integer(string="Number of related pickings", compute='_compute_number_pickings',
                                      groups='stock.group_stock_user', store=True)
-    package_ids = fields.One2many('stock.quant.package', 'transporter_id', groups='stock.group_stock_user',
-                                  string="List of related packages")
-    number_packages = fields.Integer(string="Number of related packages", compute='_compute_number_packages',
-                                     groups='stock.group_stock_user', store=True)
 
     @api.depends('picking_ids')
     def _compute_number_pickings(self):
         for rec in self:
             rec.number_pickings = len(rec.picking_ids)
-
-    @api.depends('package_ids')
-    def _compute_number_packages(self):
-        for rec in self:
-            rec.number_packages = len(rec.package_ids)
 
     @api.multi
     def open_pickings(self):
@@ -75,8 +66,6 @@ class TrackingNumber(models.Model):
     picking_id = fields.Many2one('stock.picking', string="Stock picking",
                                  groups='stock.group_stock_user')
     group_id = fields.Many2one('procurement.group', string="Procurement Group")
-    package_id = fields.Many2one('stock.quant.package', string="Package",
-                                 groups='stock.group_stock_user')
 
     @api.multi
     def _compute_partner_id(self):
@@ -95,24 +84,3 @@ class DeliveryTrackingStockPicking(models.Model):
     last_status_update = fields.Datetime(string="Date of the last update")
     tracking_ids = fields.One2many('tracking.number', 'picking_id', string="Delivery Tracking",
                                    groups='stock.group_stock_user')
-
-    @api.multi
-    def update_delivery_status(self):
-        for rec in self:
-            rec.last_status_update = fields.Datetime.now()
-            rec.tracking_ids.update_delivery_status()
-
-
-class DeliveryTrackingStockQuantPackage(models.Model):
-    _inherit = 'stock.quant.package'
-
-    transporter_id = fields.Many2one('tracking.transporter', string="Transporter used",
-                                     related='tracking_ids.transporter_id', store=True, readonly=True)
-    last_status_update = fields.Datetime(string="Date of the last update")
-    tracking_ids = fields.One2many('tracking.number', 'package_id', string="Delivery Tracking")
-
-    @api.multi
-    def update_delivery_status(self):
-        for rec in self:
-            rec.last_status_update = fields.Datetime.now()
-            rec.tracking_ids.update_delivery_status()

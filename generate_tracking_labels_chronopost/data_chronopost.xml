@@ -2,6 +2,20 @@
 <openerp>
     <data>
 
+        <record model="transporter.content.type" id="chronopost_type_marchandise">
+            <field name="name">Marchandise</field>
+            <field name="code">MAR</field>
+            <field name="transporter_id" ref="base_delivery_tracking_chronopost.transporter_chronopost"/>
+            <field name="used_by_default" eval="True"/>
+        </record>
+
+        <record model="transporter.content.type" id="chronopost_type_documents">
+            <field name="name">Documents</field>
+            <field name="code">DOC</field>
+            <field name="transporter_id" ref="base_delivery_tracking_chronopost.transporter_chronopost"/>
+            <field name="used_by_default"/>
+        </record>
+
         <record model="type.produit.expedition" id="chrono_8">
             <field name="name">Chrono 8</field>
             <field name="transporter_id" ref="base_delivery_tracking_chronopost.transporter_chronopost"/>
