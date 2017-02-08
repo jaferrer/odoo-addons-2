@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,4 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import stock_generate_tracking_labels_chronopost
+from openerp import models, fields
+
+
+class GenerateLabelsProductTemplate(models.Model):
+    _inherit = 'product.template'
+
+    hs_code = fields.Char(string=u"Numéro tarifaire correspondant à l’article",
+                          help=u"Utilisé pour générer les déclarations douanières")

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="report.stylesheets" id="report_stylesheet_labels_template">
+            <field name="name">labels_template</field>
+            <field name="report_styles" type="base64" file="generate_tracking_labels/reports/labels_template.odt"/>
+        </record>
+
+        <record model="ir.actions.report.xml" id="ir_action_labels_adress_only">
+            <field name="name">Labels (Adress Only)</field>
+            <field name="type">ir.actions.report.xml</field>
+            <field name="model">generate.tracking.labels.wizard</field>
+            <field name="report_name">labels_adress_only</field>
+            <field name="report_type">aeroo</field>
+            <field name="in_format">oo-odt</field>
+            <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+            <field name="report_rml">generate_tracking_labels/reports/labels_adress_only.odt</field>
+            <field name="styles_mode">specified</field>
+            <field name="stylesheet_id" ref="report_stylesheet_labels_template"/>
+            <field name="parser_state">default</field>
+            <field name="tml_source">file</field>
+        </record>
+
+    </data>
+</openerp>

@@ -14,11 +14,7 @@
                         <group>
                             <field name="client_pre_alert_chronopost"/>
                             <field name="mode_retour"/>
-                            <field name="insured_value"/>
-                            <field name="cod_value"/>
-                            <field name="custom_value"/>
                             <field name="service"/>
-                            <field name="object_type"/>
                         </group>
                     </group>
                 </separator>

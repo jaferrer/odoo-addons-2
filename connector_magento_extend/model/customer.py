@@ -43,9 +43,23 @@ _logger = logging.getLogger(__name__)
 
 
 class customerResPartner(models.Model):
+    _name = 'res.partner.custom.field'
+
+    partner_id = fields.Many2one(comodel_name='res.partner',
+                                 string='Partner',
+                                 required=True)
+
+    field = fields.Char(string='field odoo')
+
+    field_mapping = fields.Char(string='field source')
+
+
+class customerResPartner(models.Model):
     _inherit = 'res.partner'
 
     final_customer = fields.Boolean(string='Final Customer')
+    customer_point = fields.Float(string='Customer Point')
+    custom_field_mapping = fields.One2many('res.partner.custom.field', 'partner_id', string=u"'Mapping Custom Field'")
 
 
 class magentoextendResPartner(models.Model):
@@ -490,6 +504,13 @@ class CustomerImportMapper(ImportMapper):
         (normalize_datetime('created_at'), 'created_at'),
         (normalize_datetime('updated_at'), 'updated_at'),
     ]
+
+    @mapping
+    def custom_field(self, record):
+        result = {}
+        for it in self.backend_record.connector_id.home_id.partner_id.custom_field_mapping:
+            result[it.field] = record.get(it.field_mapping, False)
+        return result
 
     @only_create
     @mapping

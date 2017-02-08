@@ -40,7 +40,7 @@ class ChronopostTrackingNumber(models.Model):
     def update_delivery_status(self):
         super(ChronopostTrackingNumber, self).update_delivery_status()
         for rec in self:
-            if rec.transporter_id.name == 'Chronopost':
+            if rec.transporter_id == self.env.ref('base_delivery_tracking_colissimo.transporter_colissimo'):
                 rec.status_ids.unlink()
                 file = urlopen(_('https://www.chronopost.fr/tracking-cxf/TrackingServiceWS/trackSkybill?language=en_US&skybillNumber=') + rec.name)
                 if file:

@@ -33,9 +33,6 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                                                    required=True)
     mode_retour = fields.Selection([('1', u"Oui"), ('2', u"Non")],
                                    string=u"Envoyer l'étiquette par mail à l'expéditeur", default='2', required=True)
-    insured_value = fields.Integer(string=u"Valeur assurée (en centimes €)")
-    cod_value = fields.Integer(string=u"Valeur du contre-remboursement (en centimes €)")
-    custom_value = fields.Integer(string=u"Valeur déclarée en douane (en centimes €)")
     service = fields.Selection([('0', u"Normal"),
                                 ('1', u"Lundi"),
                                 ('2', u"Mardi"),
@@ -43,8 +40,6 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                                 ('4', u"Jeudi"),
                                 ('5', u"Vendredi"),
                                 ('6', u"Samedi")], string=u"Jour de la livraison", default='0', required=True)
-    object_type = fields.Selection([('MAR', u"Marchandise"),
-                                    ('DOC', u"Document")], string=u"Type de colis", default='MAR', required=True)
 
     @api.model
     def default_get(self, fields):
@@ -72,7 +67,6 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
     def generate_label(self):
         result = super(GenerateTrackingLabelsWizardChronopost, self).generate_label()
         if self.transporter_id == self.env.ref('base_delivery_tracking_chronopost.transporter_chronopost'):
-            company = self.env['res.users'].browse(self.env.uid).company_id
             account_number = self.env['ir.config_parameter']. \
                 get_param('generate_tracking_labels_chronopost.login_chronopost', default='')
             password = self.env['ir.config_parameter']. \
@@ -83,17 +77,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                 raise UserError(u"Veuillez remplir la configuration Chronopost")
 
             # evc_code : valeur unique
-            packages_data = self.env.context.get('packages_data')
-            if not packages_data:
-                packages_data = [{
-                    'weight': self.weight,
-                    'insured_value': self.insured_value,
-                    'cod_value': self.cod_value,
-                    'custom_value': self.custom_value,
-                    'height': 0,
-                    'lenght': 0,
-                    'width': 0,
-                }]
+            packages_data = self.get_packages_data()
 
             # TODO: ajouter champs
             closing_date_time = ''
@@ -113,19 +97,19 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             sub_account = ''
             header_values = (account_number or '', idEmit or '', sub_account or '')
 
-            company_name_1 = company.name
-            company_civility = self.convert_title_chronopost(company.partner_id.title)
+            company_name_1 = self.partner_orig_id.company_id.name
+            company_civility = self.convert_title_chronopost(self.partner_orig_id.company_id.partner_id.title)
             company_name_2 = self.env.user.name
             shipper_name = self.env.user.name
-            company_adress_1 = company.street or ''
-            company_adress_2 = company.street2 or ''
-            company_zip = company.zip
-            company_city = company.city
-            company_country = company.country_id.code
-            company_country_name = company.country_id.name.upper()
-            company_phone = company.phone
-            company_mobile_phone = company.partner_id.mobile
-            company_email = company.email
+            company_adress_1 = self.partner_orig_id.street or ''
+            company_adress_2 = self.partner_orig_id.street2 or ''
+            company_zip = self.partner_orig_id.zip
+            company_city = self.partner_orig_id.city
+            company_country = self.partner_orig_id.country_id.code
+            company_country_name = self.partner_orig_id.country_id.name.upper()
+            company_phone = self.partner_orig_id.phone
+            company_mobile_phone = self.partner_orig_id.mobile
+            company_email = self.partner_orig_id.email
             company_description = (company_name_1 or '', company_civility or 'M', company_name_2 or '',
                                    shipper_name or '', company_adress_1 or '',)
             company_adress_data = (company_zip or '', company_city or '', company_country or '',
@@ -278,9 +262,9 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                 ship_date = fields.Datetime.now().replace(' ', 'T')
                 ship_hour = ship_date and ship_date[11:13]
                 service = self.service
-                object_type = self.object_type
-                sky_bill_value = (pack_data['cod_value'] or '',  pack_data['custom_value'] or '', evt_code or '',
-                                  pack_data['insured_value'] or '', object_type or '',
+                object_type = self.content_type_id.code
+                sky_bill_value = (pack_data['cod_value'] or '',  pack_data['amount_total'] or '', evt_code or '',
+                                  pack_data['amount_total'] or '', object_type or '',
                                   self.produit_expedition_id.code or '', service or '', ship_date, ship_hour or '',
                                   pack_data['weight'], pack_data['height'], pack_data['lenght'], pack_data['width'])
                 xml_post_parameter += u"""
@@ -338,13 +322,12 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                     response.content.split('<reservationNumber>')[1].split('</reservationNumber>'):
                 tracking_number = response.content.split('<reservationNumber>')[1].split('</reservationNumber>')[0]
             if tracking_number:
-                outputfile = self.get_output_file(self.direction)
                 url = 'https://www.chronopost.fr/shipping-cxf/getReservedSkybill?reservationNumber=' + tracking_number
                 label = requests.get(url)
                 if len(label.content.split('%PDF')) == 2 and label.content.split('%PDF')[1].split('%EOF'):
                     pdf_binary_string = '%PDF' + label.content.split('%PDF')[1].split('%EOF')[0] + '%EOF' + '\n'
-                    self.create_attachment(outputfile, self.direction, pdf_binary_string=pdf_binary_string)
-                    return tracking_number, self.save_tracking_number, self.direction, False
+                    self.create_attachment([pdf_binary_string])
+                    return [tracking_number]
             if response.content == '<html><body>No service was found.</body></html>':
                 raise UserError(u"Service non trouvé")
             if len(response.content.split('<faultstring>')) > 1 and \
