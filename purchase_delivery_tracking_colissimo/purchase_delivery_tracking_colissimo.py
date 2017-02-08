@@ -41,7 +41,7 @@ class ColissimoTrackingNumber(models.Model):
     def update_delivery_status(self):
         super(ColissimoTrackingNumber, self).update_delivery_status()
         for rec in self:
-            if rec.transporter_id.name == 'Colissimo':
+            if rec.transporter_id == self.env.ref('base_delivery_tracking_colissimo.transporter_colissimo'):
                 rec.status_ids.unlink()
                 post_response = urlopen('http://www.colissimo.fr/portail_colissimo/suivreResultatStubs.do',
                                         urlencode({"language": _("en_GB"), "parcelnumber": rec.name}))

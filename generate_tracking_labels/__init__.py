@@ -17,4 +17,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import generate_tracking_labels
+from . import generate_tracking_labels
+from . import product
+from . import country

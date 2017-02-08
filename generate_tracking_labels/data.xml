@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="adress_only" model="type.produit.expedition">
+            <field name="name">Adress Only</field>
+            <field name="used_from_customer" eval="True"/>
+            <field name="used_to_customer" eval="True"/>
+            <field name="used_on_demand" eval="True"/>
+            <field name="report_id" ref="ir_action_labels_adress_only"/>
+        </record>
+
+    </data>
+</openerp>
