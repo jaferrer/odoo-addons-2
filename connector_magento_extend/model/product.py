@@ -29,7 +29,7 @@ from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.unit.mapper import (mapping,
                                                   ImportMapper
                                                   )
-from openerp.addons.connector.unit.synchronizer import (Importer,
+from openerp.addons.connector.unit.synchronizer import (Importer, Exporter
                                                         )
 
 from openerp import models, fields, api
@@ -110,6 +110,10 @@ class ProductProductAdapter(GenericAdapter):
                 raise IDMissingInBackend
             else:
                 raise
+
+    def update(self, el_id, arguments):
+        return self._call('%s.update' % "cataloginventory_stock_item",
+                          [el_id,arguments])
 
     def search(self, filters=None, from_date=None, to_date=None):
         """ Search records according to some criteria and return a
@@ -320,6 +324,55 @@ class ProductProductImportMapper(ImportMapper):
         return {'owner_id': self.backend_record.connector_id.home_id.partner_id.id}
 
 
+@magentoextend
+class StockLevelExporter(Exporter):
+    _model_name = 'magentoextend.product.product'
+
+    def run(self):
+        log = ""
+
+        self.env.cr.execute(""" WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
+            SELECT
+              sl.id AS loc_id,
+              sl.id AS top_parent_id
+            FROM
+              stock_location sl
+              LEFT JOIN stock_location slp ON sl.location_id = slp.id
+            WHERE
+              sl.usage = 'internal'
+            UNION
+            SELECT
+              sl.id AS loc_id,
+              tp.top_parent_id
+            FROM
+              stock_location sl, top_parent tp
+            WHERE
+              sl.usage = 'internal' AND sl.location_id = tp.loc_id
+          )
+          SELECT
+               sq.product_id,
+               mpp.magentoextend_id,
+               sum(sq.qty) qty
+             FROM
+               stock_quant sq
+               LEFT JOIN magentoextend_product_product mpp ON mpp.openerp_id = sq.product_id
+               LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
+               LEFT JOIN stock_location sl ON sl.id = tp.top_parent_id
+             where mpp.backend_home_id = %s and sl.id =%s
+             GROUP BY
+               sq.product_id,
+               mpp.magentoextend_id
+                    """, (self.backend_record.connector_id.home_id.id,
+                          self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id))
+
+        for product in self.env.cr.dictfetchall():
+            qty = product['qty']
+            if product['qty']<0:
+                qty = 0
+            res = self.backend_adapter.update(product['magentoextend_id'], {'qty': qty})
+        return log
+
+
 @job(default_channel='root.magentoextend')
 def product_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of product modified on magentoextend """
@@ -328,6 +381,13 @@ def product_import_batch(session, model_name, backend_id, filters=None):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(ProductBatchImporter)
     importer.run(filters=filters)
+
+
+@job(default_channel='root.magentoextend')
+def product_export_stock_level_batch(session, model_name, backend_id, filters=None):
+    env = get_environment(session, model_name, backend_id)
+    importer = env.get_connector_unit(StockLevelExporter)
+    importer.run()
 
 
 class ResPartnerBackend(models.Model):
