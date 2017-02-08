@@ -32,7 +32,8 @@
     'data': [
         'data/flux-tendu_connector_pull.xml',
         'data/flux-tendu_connector_push.xml',
-        'views/res_partner.xml'
+        'views/res_partner.xml',
+        'security/ir.model.access.csv',
     ],
     'demo': [],
     'test': [],
