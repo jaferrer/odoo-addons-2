@@ -30,18 +30,31 @@ class ManufacturingOrderPlanningImproved(models.Model):
     taken_into_account = fields.Boolean(string="Taken into account",
                                         help="True if the manufacturing order has been taken into account",
                                         states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
-    procurement_id = fields.Many2one('procurement.order', string="Corresponding procurement order",
-                                                                                    compute='_compute_procurement_id')
+    procurement_id = fields.Many2one('procurement.order', string="Corresponding procurement order", readonly=True)
     final_order_id = fields.Many2one('mrp.production', string="Top parent order",
                                      help="Final parent order in the chain of raw materials and produced products",
                                      compute='_compute_final_order_id')
 
-    @api.multi
-    def _compute_procurement_id(self):
-        for rec in self:
-            list_procurements = self.env['procurement.order'].search([('production_id', '=', rec.id)])
-            if list_procurements and len(list_procurements) == 1:
-                rec.procurement_id = list_procurements[0]
+    @api.model
+    def update_procurement_id(self):
+        self.env.cr.execute("""WITH mrp_procurements AS (
+    SELECT
+        mrp.id     AS mrp_id,
+        min(po.id) AS procurement_id
+    FROM mrp_production mrp
+        LEFT JOIN procurement_order po ON po.production_id = mrp.id
+    GROUP BY mrp.id)
+
+SELECT
+    mrp.id,
+    procs.procurement_id AS new_procurement_id
+FROM mrp_production mrp
+    LEFT JOIN mrp_procurements procs ON procs.mrp_id = mrp.id
+WHERE COALESCE(mrp.procurement_id, 0) != COALESCE(procs.procurement_id, 0)""")
+        result = self.env.cr.fetchall()
+        for line in result:
+            order = self.browse(line[0])
+            order.write({'procurement_id': line[1] or False})
 
     @api.multi
     def _compute_final_order_id(self):
