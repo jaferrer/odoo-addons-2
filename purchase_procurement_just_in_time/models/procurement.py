@@ -504,16 +504,18 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         })
 
     @api.multi
-    def delete_useless_draft_orders(self):
+    def delete_useless_draft_orders(self, companies):
         seller = self.env['procurement.order']._get_product_supplier(self[0])
-        orders = self.env['purchase.order'].search([('state', '=', 'draft'),
-                                                    ('partner_id', '=', seller.id),
-                                                    ('date_order', '=', False)])
-        orders_to_unlink = self.env['purchase.order']
-        for order in orders:
-            if not order.order_line:
-                orders_to_unlink |= order
-        orders_to_unlink.unlink()
+        for company in companies:
+            orders = self.env['purchase.order'].search([('state', '=', 'draft'),
+                                                        ('partner_id', '=', seller.id),
+                                                        ('date_order', '=', False),
+                                                        ('company_id', '=', company.id)])
+            orders_to_unlink = self.env['purchase.order']
+            for order in orders:
+                if not order.order_line:
+                    orders_to_unlink |= order
+            orders_to_unlink.unlink()
 
     @api.multi
     def purchase_schedule_procurements(self, jobify=False):
@@ -534,7 +536,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders()
         return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
-        self.delete_useless_draft_orders()
+        self.delete_useless_draft_orders(companies)
         return_msg += u"\nDeleting useless draft orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         not_assigned_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
