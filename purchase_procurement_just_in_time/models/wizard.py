@@ -18,6 +18,7 @@
 #
 
 from openerp import models, fields, api, exceptions, _
+from openerp.tools.float_utils import float_compare
 
 
 class SplitLine(models.TransientModel):
@@ -32,24 +33,28 @@ class SplitLine(models.TransientModel):
     qty = fields.Float(string="New quantity of direct parent line")
 
     @api.multi
-    def _check_split_possible(self):
+    def _check_split_possible(self, done_procs_qty):
 
         """
         Raises error if it is impossible to split the purchase order line.
         """
 
+        prec = self.line_id.product_uom.rounding
+
         self.ensure_one()
         if self.env.context.get('active_ids') and len(self.env.context.get('active_ids')) > 1:
             raise exceptions.except_orm(_('Error!'), _("Please split lines one by one"))
         else:
-            if self.qty <= 0:
+            if float_compare(self.qty, 0, precision_rounding=prec) <= 0:
                 raise exceptions.except_orm(_('Error!'), _("Impossible to split a negative or null quantity"))
             if self.line_id.state not in ['draft', 'confirmed']:
                 raise exceptions.except_orm(_('Error!'), _("Impossible to split line which is not in state draft or "
                                                            "confirmed"))
             if self.line_id.state == 'draft':
-                if self.qty >= self.line_id.product_qty:
+                if float_compare(self.qty, self.line_id.product_qty, precision_rounding=prec) >= 0:
                     raise exceptions.except_orm(_('Error!'), _("Please choose a lower quantity to split"))
+        if float_compare(self.qty, done_procs_qty, precision_rounding=prec) < 0:
+            raise exceptions.except_orm(_('Error!'), _("Please choose a lower quantity to split"))
         if self.line_id.state == 'confirmed':
             _sum = sum([x.product_qty for x in self.line_id.move_ids if x.state == 'done'])
             _sum_pol_uom = self.env['product.uom']._compute_qty(self.line_id.product_id.uom_id.id, _sum,
@@ -68,11 +73,31 @@ class SplitLine(models.TransientModel):
         """
         Separates a purchase order line into two ones.
         """
-        self._check_split_possible()
 
-        # Reduce quantity of original move
         original_qty = self.line_id.product_qty
         new_pol_qty = original_qty - self.qty
+        done_procs = self.env['procurement.order'].search([('id', 'in', self.line_id.procurement_ids.ids),
+                                                           ('state', '=', 'done')])
+        running_procs = self.env['procurement.order'].search([('id', 'in', self.line_id.procurement_ids.ids),
+                                                              ('state', 'not in', ['done', 'cancel'])])
+        done_procs_qty = sum([self.env['product.uom']._compute_qty(proc.product_uom.id,
+                                                                   proc.product_qty,
+                                                                   self.line_id.product_uom.id)
+                              for proc in done_procs])
+        running_procs_qty = sum([self.env['product.uom']._compute_qty(proc.product_uom.id,
+                                                                      proc.product_qty,
+                                                                      self.line_id.product_uom.id)
+                                 for proc in running_procs])
+        self._check_split_possible(done_procs_qty)
+        prec = self.line_id.product_uom.rounding
+        while running_procs and float_compare(done_procs_qty + running_procs_qty, self.qty,
+                                              precision_rounding=prec) > 0:
+            procurement_to_detach = running_procs[0]
+            qty_to_detach_pol_uom = self.env['product.uom']._compute_qty(procurement_to_detach.product_uom.id,
+                                                                         procurement_to_detach.product_qty,
+                                                                         self.line_id.product_uom.id)
+            procurement_to_detach.remove_procs_from_lines(unlink_moves_to_procs=True)
+            running_procs_qty -= qty_to_detach_pol_uom
         self.line_id.with_context().write({'product_qty': self.qty})
 
         # Get a line_no for the new purchase.order.line
@@ -81,13 +106,15 @@ class SplitLine(models.TransientModel):
         new_line_no = orig_line_no + ' - ' + str(father_line_id.children_number + 1)
 
         # Create new purchase.order.line
-        self.line_id.with_context().copy({
+        new_line = self.line_id.with_context().copy({
             'product_qty': new_pol_qty,
             'move_ids': False,
             'children_line_ids': False,
             'line_no': new_line_no,
             'father_line_id': father_line_id.id,
         })
+        self.line_id.adjust_moves_qties(self.line_id.product_qty)
+        new_line.adjust_moves_qties(new_line.product_qty)
 
 
 class LaunchPurchasePlanner(models.TransientModel):
