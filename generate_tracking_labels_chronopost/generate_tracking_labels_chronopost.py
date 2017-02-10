@@ -42,15 +42,6 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                                 ('6', u"Samedi")], string=u"Jour de la livraison", default='0', required=True)
 
     @api.model
-    def default_get(self, fields):
-        defaults = super(GenerateTrackingLabelsWizardChronopost, self).default_get(fields)
-        transporter_chronopost = self.env.ref('base_delivery_tracking_chronopost.transporter_chronopost')
-        if defaults.get('transporter_id') and defaults['transporter_id'] == transporter_chronopost.id:
-            output_printing_type = self.env.ref('generate_tracking_labels_chronopost.chronopost_type_ppr')
-            defaults['output_printing_type_id'] = output_printing_type.id
-        return defaults
-
-    @api.model
     def convert_title_chronopost(self, title):
         shipper_civility = ''
         if title == self.env.ref('base.res_partner_title_madam'):
