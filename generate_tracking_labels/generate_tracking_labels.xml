@@ -86,11 +86,12 @@
             <field name="arch" type="xml">
                 <tree string="Types de bordereaux" create="false" delete="false" editable="top">
                     <field name="name"/>
-                    <field name="transporter_id"/>
+                    <field name="transporter_id" readonly="1"/>
                     <field name="code"/>
                     <field name="used_from_customer"/>
                     <field name="used_to_customer"/>
                     <field name="used_on_demand"/>
+                    <field name="output_printing_type_default_id"/>
                     <field name="report_id"/>
                 </tree>
             </field>
@@ -117,7 +118,7 @@
             <field name="arch" type="xml">
                 <tree string="Formats de bordereaux" create="false" delete="false" editable="top">
                     <field name="name"/>
-                    <field name="transporter_id"/>
+                    <field name="transporter_id" readonly="1"/>
                     <field name="code"/>
                 </tree>
             </field>
