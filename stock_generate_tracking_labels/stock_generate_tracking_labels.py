@@ -236,7 +236,10 @@ class TrackingGenerateLabelsWizard(models.TransientModel):
                     raise UserError(u"Veuillez renseigner le poids pour le colis %s" % package.display_name)
                 quant_ids = package.get_content()
                 quants = self.env['stock.quant'].browse(quant_ids)
-                packages_data += self.get_packages_data_for_quants(quants)
+                pack = self.get_packages_data_for_quants(quants)
+                pack[0]['weight'] = package.delivery_weight
+                packages_data += pack
+
             return packages_data
         elif self.picking_id:
             moved_quants = self.env['stock.quant']
