@@ -79,6 +79,16 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
                            help=u"Sélectionnez manuel vous souhaitez prendre à votre charge les droits de douanes en "
                                 u"cas de taxation des colis")
 
+    @api.model
+    def default_get(self, fields_list):
+        res = super(GenerateTrackingLabelsWizard, self).default_get(fields_list)
+        if not self.env.context.get('default_output_printing_type_id') and \
+                self.env.context.get('default_produit_expedition_id'):
+            trans_product = self.env['type.produit.expedition'].browse(
+                self.env.context.get('default_produit_expedition_id'))
+            res['output_printing_type_id'] = trans_product.output_printing_type_default_id.id
+        return res
+
     @api.onchange('sale_order_id')
     def onchange_sale_order_id(self):
         self.ensure_one()
@@ -125,7 +135,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
         self.ensure_one()
         if self.produit_expedition_id:
             if self.output_printing_type_id and \
-                            self.produit_expedition_id.transporter_id != self.output_printing_type_id.transporter_id:
+                    self.produit_expedition_id.transporter_id != self.output_printing_type_id.transporter_id:
                 self.output_printing_type_id = False
             if self.transporter_id and self.produit_expedition_id.transporter_id != self.transporter_id:
                 self.transporter_id = False
@@ -137,7 +147,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             if self.transporter_id and self.output_printing_type_id.transporter_id != self.transporter_id:
                 self.transporter_id = False
             if self.produit_expedition_id and \
-                            self.output_printing_type_id.transporter_id != self.produit_expedition_id.transporter_id:
+                    self.output_printing_type_id.transporter_id != self.produit_expedition_id.transporter_id:
                 self.produit_expedition_id = False
 
     @api.onchange('country_id')
@@ -188,11 +198,11 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     def generate_label(self):
         self.ensure_one()
         if self.output_printing_type_id.transporter_id and self.transporter_id and \
-                        self.output_printing_type_id.transporter_id != self.transporter_id:
+                self.output_printing_type_id.transporter_id != self.transporter_id:
             raise UserError(u"Format %s inconnu pour le transporteur %s" %
                             (self.output_printing_type_id.name, self.transporter_id.name))
         if self.produit_expedition_id.transporter_id and self.transporter_id and \
-                        self.produit_expedition_id.transporter_id != self.transporter_id:
+                self.produit_expedition_id.transporter_id != self.transporter_id:
             raise UserError(u"Produit %s inconnu pour le transporteur %s" %
                             (self.produit_expedition_id.name, self.transporter_id.name))
         if self.produit_expedition_id and self.produit_expedition_id.report_id:
@@ -209,6 +219,7 @@ class TypeProduitExpedition(models.Model):
     used_from_customer = fields.Boolean(string=u"Utilisé pour les retours depuis le client")
     used_to_customer = fields.Boolean(string=u"Utilisé pour les envois vers le client")
     used_on_demand = fields.Boolean(string=u"Utilisé à la carte", compute='_compute_used_on_demand', store=True)
+    output_printing_type_default_id = fields.Many2one('output.printing.type', string=u"Format d'impression par défaut")
     report_id = fields.Many2one('ir.actions.report.xml',
                                 domain=[('model', '=', 'generate.tracking.labels.wizard')],
                                 string=u"Rapport utilisé pour générer le bordereau")
@@ -225,6 +236,13 @@ class GenerateLabelOutputPrintingType(models.Model):
     name = fields.Char(string=u"Format de sortie", readonly=True)
     transporter_id = fields.Many2one('tracking.transporter', string=u"Transporteur")
     code = fields.Char(string=u"Code Transporteur", readonly=True)
+
+    @api.multi
+    def name_get(self):
+        res = []
+        for rec in self:
+            res.append((rec.id, "%s, %s" % (rec.transporter_id.name, rec.name)))
+        return res
 
 
 class TransporterContentType(models.Model):
