@@ -1133,7 +1133,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
 
         # print 'move_to_set_auto', move_to_set_auto, move_to_set_auto.state
         moves2 = pos_quant.move_to(self.location_2, self.picking_type,
-                                   move_items={self.product1_auto_move: [{'quants': pos_quant, 'qty': 30}]})
+                                   move_items={self.product1_auto_move.id: [{'quant_ids': pos_quant.ids, 'qty': 30}]})
         # print 'moves2', moves2
         picking2 = moves2[0].picking_id
         # print 'picking2', picking2.state, picking2.move_lines

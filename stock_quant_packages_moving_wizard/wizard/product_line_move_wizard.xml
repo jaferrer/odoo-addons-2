@@ -11,6 +11,7 @@
                         <field name="global_dest_loc"/>
                         <field name="picking_type_id"/>
                         <field name="is_manual_op"/>
+                        <field name="filling_method" attrs="{'invisible': [('is_manual_op', '=', False)]}"/>
                     </group>
                     <separator string="Products to move"/>
                     <div class="oe_grey">If you request all the available quantities for one package, all the package will be moved.</div>

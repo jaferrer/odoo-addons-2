@@ -168,7 +168,7 @@ class IncompeteProductionMrpProduction(models.Model):
             if not return_picking_type:
                 raise exceptions.except_orm(_("Error!"), _("Impossible to determine return picking type"))
             return_moves = quants_to_return.move_to(dest_location=wiz.return_location_id,
-                                                    picking_type_id=return_picking_type)
+                                                    picking_type=return_picking_type)
             for item in return_moves:
                 picking_to_change_origin |= item.picking_id
             picking_to_change_origin.write({'origin': production.name})

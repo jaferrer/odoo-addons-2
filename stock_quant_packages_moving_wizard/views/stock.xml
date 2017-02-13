@@ -66,5 +66,18 @@ action = self.move_products(cr, uid, context.get('active_ids'), False, context)
             <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_move_products)"/>
         </record>
 
+        <record model="ir.ui.view" id="stock_product_line_picking_form">
+            <field name="name">stock_product_line_picking_form</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="origin" position="after">
+                    <field name="filled_by_jobs" invisible="1"/>
+                    <field name="picking_correctly_filled" attrs="{'invisible': [('filled_by_jobs', '=', False)]}"/>
+                </field>
+            </field>
+        </record>
+
     </data>
 </openerp>
