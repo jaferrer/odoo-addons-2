@@ -19,6 +19,7 @@
 
 import requests
 
+from lxml import etree
 from openerp import models, api, fields, tools
 from openerp.exceptions import UserError
 from openerp.tools import ustr
@@ -91,7 +92,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             company_name_1 = self.partner_orig_id.company_id.name
             company_civility = self.convert_title_chronopost(self.partner_orig_id.company_id.partner_id.title)
             company_name_2 = self.env.user.name
-            shipper_name = self.env.user.name
+            shipper_name = ''
             company_adress_1 = self.partner_orig_id.street or ''
             company_adress_2 = self.partner_orig_id.street2 or ''
             company_zip = self.partner_orig_id.zip
@@ -308,17 +309,20 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                                      headers=headers,
                                      data=encoded_request,
                                      verify=False)
-            tracking_number = False
+
+            reservation_number = False
             if len(response.content.split('<reservationNumber>')) > 1 and \
                     response.content.split('<reservationNumber>')[1].split('</reservationNumber>'):
-                tracking_number = response.content.split('<reservationNumber>')[1].split('</reservationNumber>')[0]
-            if tracking_number:
-                url = 'https://www.chronopost.fr/shipping-cxf/getReservedSkybill?reservationNumber=' + tracking_number
+                reservation_number = response.content.split('<reservationNumber>')[1].split('</reservationNumber>')[0]
+            if reservation_number:
+                url = 'https://www.chronopost.fr/shipping-cxf/getReservedSkybill?reservationNumber=' + reservation_number
                 label = requests.get(url)
                 if len(label.content.split('%PDF')) == 2 and label.content.split('%PDF')[1].split('%EOF'):
                     pdf_binary_string = '%PDF' + label.content.split('%PDF')[1].split('%EOF')[0] + '%EOF' + '\n'
                     self.create_attachment([pdf_binary_string])
-                    return [tracking_number]
+                    root = etree.XML(response.content)
+                    tracking_numbers = [x.text for x in root.iterfind(".//resultParcelValue/skybillNumber")]
+                    return tracking_numbers
             if response.content == '<html><body>No service was found.</body></html>':
                 raise UserError(u"Service non trouvé")
             if len(response.content.split('<faultstring>')) > 1 and \
