@@ -1188,20 +1188,16 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line2.line_no, '010 - 1')
         self.assertEqual(line2.product_qty, 28)
         self.assertEqual(sum([m.product_uom_qty for m in line2.move_ids if m.state != 'cancel']), 28)
+        self.assertFalse(line.procurement_ids)
+        self.assertFalse(line2.procurement_ids)
+        self.assertEqual(procurement_order_1.state, 'buy_to_run')
+        self.assertEqual(procurement_order_2.state, 'buy_to_run')
 
-        self.assertEqual(len(line.move_ids), 2)
-        [m1, m2] = [False, False]
-        for move in line.move_ids:
-            if move.procurement_id:
-                m1 = move
-            else:
-                m2 = move
-        self.assertTrue(m1 and m2)
-        self.assertEqual(m1.product_uom_qty, 3.5)
-        self.assertEqual(m1.product_uom, self.uom_couple)
-        self.assertEqual(m2.product_uom_qty, 13)
-        self.assertEqual(m2.product_uom, self.unit)
-        self.assertEqual(m1.procurement_id, procurement_order_1)
+        move = line.move_ids
+        self.assertEqual(len(move), 1)
+        self.assertEqual(move.product_uom_qty, 20)
+        self.assertEqual(move.product_uom, self.unit)
+        self.assertFalse(move.procurement_id)
 
         split = self.env['split.line'].create({'line_id': line2.id, 'qty': 10})
         split.do_split()
@@ -1213,6 +1209,9 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line.children_number, 2)
         self.assertEqual(line3.line_no, '010 - 2')
         self.assertEqual(line3.product_qty, 18)
+        self.assertFalse(line.procurement_ids)
+        self.assertFalse(line2.procurement_ids)
+        self.assertFalse(line3.procurement_ids)
 
         split = self.env['split.line'].create({'line_id': line.id, 'qty': 5})
         split.do_split()
@@ -1225,11 +1224,15 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line.children_number, 3)
         self.assertEqual(line1.line_no, '010 - 3')
         self.assertEqual(line1.product_qty, 15)
+        self.assertFalse(line.procurement_ids)
+        self.assertFalse(line2.procurement_ids)
+        self.assertFalse(line3.procurement_ids)
+        self.assertFalse(line1.procurement_ids)
 
         purchase_order_1.signal_workflow('purchase_confirm')
 
         self.assertEqual(len(line.move_ids), 1)
-        m1 = line.move_ids[0]
+        m1 = line.move_ids
         self.assertTrue(m1)
         self.assertFalse(m1.procurement_id)
         self.assertEqual(len(line1.move_ids), 1)
@@ -1263,9 +1266,10 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line2.line_no, '010 - 1')
         self.assertEqual(line2.product_qty, 28)
         self.assertEqual(line2.remaining_qty, 28)
-        self.assertEqual(len(line.move_ids), 2)
-        for m in line.move_ids:
-            self.assertIn(m.product_uom_qty, [7, 13])
+        self.assertEqual(len(line.move_ids), 1)
+        move = line.move_ids
+        self.assertEqual(len(move), 1)
+        self.assertEqual(move.product_uom_qty, 20)
         self.assertEqual(line2.move_ids[0].product_uom_qty, 28)
 
         split = self.env['split.line'].create({'line_id': line2.id, 'qty': 10})
@@ -1279,9 +1283,10 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(line3.line_no, '010 - 2')
         self.assertEqual(line3.product_qty, 18)
         self.assertEqual(line3.remaining_qty, 18)
-        self.assertEqual(len(line.move_ids), 2)
-        for m in line.move_ids:
-            self.assertIn(m.product_uom_qty, [7, 13])
+        self.assertEqual(len(line.move_ids), 1)
+        move = line.move_ids
+        self.assertEqual(len(move), 1)
+        self.assertEqual(move.product_uom_qty, 20)
         self.assertEqual(len(line2.move_ids), 1)
         self.assertEqual(line2.move_ids[0].product_uom_qty, 10)
 
