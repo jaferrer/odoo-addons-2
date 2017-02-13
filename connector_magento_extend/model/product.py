@@ -243,7 +243,7 @@ class ProductImageImporter(Importer):
                 [('line_id', '=', self.backend_record.connector_id.line_id.id)])
             request = urllib2.Request(url)
             if param.use_http:
-                base64string = base64.encodestring(
+                base64string = base64.b64encode(
                     '%s:%s' % (param.http_user,
                                param.http_pwd))
                 request.add_header("Authorization", "Basic %s" % base64string)
@@ -358,7 +358,7 @@ class StockLevelExporter(Exporter):
                LEFT JOIN magentoextend_product_product mpp ON mpp.openerp_id = sq.product_id
                LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
                LEFT JOIN stock_location sl ON sl.id = tp.top_parent_id
-             where mpp.backend_home_id = %s and sl.id =%s
+             where mpp.backend_home_id = %s and sl.id =%s and sq.reservation_id is null
              GROUP BY
                sq.product_id,
                mpp.magentoextend_id
