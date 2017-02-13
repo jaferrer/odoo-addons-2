@@ -92,7 +92,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             company_name_1 = self.partner_orig_id.company_id.name
             company_civility = self.convert_title_chronopost(self.partner_orig_id.company_id.partner_id.title)
             company_name_2 = self.env.user.name
-            shipper_name = self.env.user.name
+            shipper_name = ''
             company_adress_1 = self.partner_orig_id.street or ''
             company_adress_2 = self.partner_orig_id.street2 or ''
             company_zip = self.partner_orig_id.zip
