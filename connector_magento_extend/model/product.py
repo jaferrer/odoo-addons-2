@@ -243,7 +243,7 @@ class ProductImageImporter(Importer):
                 [('line_id', '=', self.backend_record.connector_id.line_id.id)])
             request = urllib2.Request(url)
             if param.use_http:
-                base64string = base64.encodestring(
+                base64string = base64.b64encode(
                     '%s:%s' % (param.http_user,
                                param.http_pwd))
                 request.add_header("Authorization", "Basic %s" % base64string)
