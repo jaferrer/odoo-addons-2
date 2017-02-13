@@ -27,15 +27,6 @@ from openerp.tools import ustr
 class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
     _inherit = 'generate.tracking.labels.wizard'
 
-    @api.model
-    def default_get(self, fields):
-        defaults = super(GenerateTrackingLabelsWizardColissimo, self).default_get(fields)
-        transporter_colissimo = self.env.ref('base_delivery_tracking_colissimo.transporter_colissimo')
-        if defaults.get('transporter_id') and defaults['transporter_id'] == transporter_colissimo.id:
-            printing_type = self.env.ref('generate_tracking_labels_colissimo.colissimo_type_A4')
-            defaults['output_printing_type_id'] = printing_type.id
-        return defaults
-
     @api.multi
     def generate_label(self):
         result = super(GenerateTrackingLabelsWizardColissimo, self).generate_label()
