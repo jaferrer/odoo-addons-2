@@ -214,6 +214,14 @@ class PurchaseOrderJustInTime(models.Model):
         running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
         return res
 
+    @api.multi
+    def reset_to_confirmed(self):
+        for rec in self:
+            rec.signal_workflow('except_to_confirmed')
+            if rec.state in self.get_purchase_order_states_with_moves():
+                for line in rec.order_line:
+                    line.adjust_moves_qties(line.product_qty)
+
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
@@ -303,7 +311,8 @@ class PurchaseOrderLineJustInTime(models.Model):
             delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
                                                                       rec.product_uom.id)
                                  for move in rec.move_ids if move.state == 'done'])
-            rec.remaining_qty = rec.product_qty - delivered_qty
+            rec.remaining_qty = float_round(rec.product_qty - delivered_qty,
+                                            precision_rounding=rec.product_uom.rounding)
 
     @api.depends('children_line_ids')
     def _compute_children_number(self):
@@ -471,6 +480,10 @@ class PurchaseOrderLineJustInTime(models.Model):
         procurements_to_detach = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids)])
         cancelled_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids),
                                                                 ('state', '=', 'cancel')])
+        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', self.ids),
+                                                        ('procurement_id', '=', False),
+                                                        ('state', 'not in', ['done', 'cancel'])])
+        moves_no_procs.action_cancel()
         result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
         # We reset initially cancelled procs to state 'cancel', because the unlink function of module purchase would
         # have set them to state 'exception'

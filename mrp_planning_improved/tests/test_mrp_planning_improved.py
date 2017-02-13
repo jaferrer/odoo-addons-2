@@ -55,6 +55,7 @@ class TestMrpPlanningImproved(common.TransactionCase):
         self.assertEqual(procurement_order_1.rule_id.action, 'manufacture')
         self.assertTrue(procurement_order_1.production_id)
         order = procurement_order_1.production_id
+        self.env['mrp.production'].update_procurement_id()
         self.assertFalse(order.taken_into_account)
         self.assertEqual(order.date_planned[:10], '2015-08-31')
         self.assertEqual(order.date_required[:10], '2015-08-31')

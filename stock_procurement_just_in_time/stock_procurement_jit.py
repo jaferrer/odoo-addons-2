@@ -137,7 +137,7 @@ class ProcurementOrderQuantity(models.Model):
             # Keep proc with new qty if some moves are already done
             procurement.remove_done_moves()
         return super(ProcurementOrderQuantity,
-                     self.with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
+                     self.sudo().with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
 
     @api.model
     def remove_done_moves(self):
