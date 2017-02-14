@@ -193,7 +193,7 @@ class ProductProductAdapter(GenericAdapter):
 
         targetfile = '%s/%s' % (target, filename)
         with open(targetfile, 'w') as awa_file:
-            awa_file.write(tools.ustr(content, errors='replace'))
+            awa_file.write(content)
 
         return 'STK file has been written to %s' % (targetfile)
 
@@ -414,6 +414,12 @@ class StockLevelExporter(Exporter):
             WHERE
               sl.usage = 'internal' AND sl.location_id = tp.loc_id
           )
+          select
+          product_id,
+          magentoextend_id,
+          default_code,
+          sum(qty) qty
+          from (
           SELECT
                sq.product_id,
                mpp.magentoextend_id,
@@ -434,19 +440,21 @@ class StockLevelExporter(Exporter):
             union ALL
 
             SELECT
-               sq.product_id,
+               pp.id,
                mpp.magentoextend_id,
+               pp.default_code,
                0 qty
             FROM
-              stock_quant sq
-               LEFT JOIN magentoextend_product_product mpp ON mpp.openerp_id = sq.product_id
-               LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
-               LEFT JOIN stock_location sl ON sl.id = tp.top_parent_id
-            where mpp.backend_home_id = %s and sl.id = %s and sq.reservation_id is null
+               magentoextend_product_product mpp
+               LEFT JOIN product_product pp ON mpp.openerp_id = pp.id
+            where mpp.backend_home_id = %s) rqx
+            group by
+            product_id,
+            magentoextend_id,
+            default_code
                     """, (self.backend_record.connector_id.home_id.id,
                           self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id,
-                          self.backend_record.connector_id.home_id.id,
-                          self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id
+                          self.backend_record.connector_id.home_id.id
                           ))
 
         log = ""
@@ -454,26 +462,25 @@ class StockLevelExporter(Exporter):
         csvfile = StringIO.StringIO()
         writer = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_NONE,
                             quotechar=None)
-        export = False
-        date = dt.datetime.strftime('%d%m%Y')
 
-        filedate = dt.datetime.strptime(fields.Datetime.now(), '%Y%m%d%H%M%S').strftime(
+        filedate = dt.datetime.strptime(fields.Datetime.now(), '%Y-%m-%d %H:%M:%S').strftime(
             '%Y%m%d%H%M%S')
-        filename = 'SHI%s.csv' % (filedate)
+        filename = 'STK%s.csv' % (filedate)
 
         export = False
 
         for product in self.env.cr.dictfetchall():
             export = True
-            qty = product['qty']
-            log = log + '\n' + str(product['id']) + ' : ' + str(qty) + '\n'
+            qty = int(product['qty'])
+            log += "\n%s : %s\n" % (product['default_code'], str(qty))
             if float_compare(product['qty'], 0, 1) <= 0:
-                qty = 0
-            columns = [
-                product['default_code'],
-                qty
-            ]
-            writer.writerow(columns)
+                qty = int(0)
+            if product['default_code']:
+                columns = [
+                    product['default_code'].encode('utf-8'),
+                    qty
+                ]
+                writer.writerow(columns)
 
         if export:
             record = self.backend_adapter.write(filename, csvfile.getvalue())
