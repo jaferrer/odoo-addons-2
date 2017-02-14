@@ -370,13 +370,35 @@ class StockLevelExporter(Exporter):
                     """, (self.backend_record.connector_id.home_id.id,
                           self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id))
 
+        stock_levels = []
         for product in self.env.cr.dictfetchall():
-            qty = product['qty']
+            stock_levels.append({
+                'id': product['product_id'],
+                'magentoextend_id': product['magentoextend_id'],
+                'qty': product['qty']
+            })
+
+        while stock_levels:
+            products = stock_levels[:2000]
+            stock_levels = stock_levels[2000:]
+
+            export_stock_level_product.delay(self.session,
+                                             'magentoextend.product.product',
+                                             self.backend_record.id,
+                                             products,
+                                             priority=30)
+        return log
+
+    def export_record_chunk(self, records):
+        log = ""
+        for record in records:
+            qty = record['qty']
             is_in_stock = 1
-            if float_compare(product['qty'],0,1)<=0:
+            if float_compare(record['qty'], 0, 1) <= 0:
                 qty = 0
                 is_in_stock = 0
-            res = self.backend_adapter.update(product['magentoextend_id'], {'qty': qty, 'is_in_stock': is_in_stock})
+            log = log + '\n' + str(record['id']) + ' : ' + qty + '\n'
+            self.backend_adapter.update(record['magentoextend_id'], {'qty': qty, 'is_in_stock': is_in_stock})
         return log
 
 
@@ -395,6 +417,12 @@ def product_export_stock_level_batch(session, model_name, backend_id, filters=No
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(StockLevelExporter)
     importer.run()
+
+@job(default_channel='root.magentoextend_push_product_level')
+def export_stock_level_product(session, model_name, backend_id, records):
+    env = get_environment(session, model_name, backend_id)
+    importer = env.get_connector_unit(StockLevelExporter)
+    importer.export_record_chunk(records)
 
 
 @job(default_channel='root.magentoextend_pull_product_product')
