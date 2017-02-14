@@ -379,8 +379,8 @@ class StockLevelExporter(Exporter):
             })
 
         while stock_levels:
-            products = stock_levels[:2000]
-            stock_levels = stock_levels[2000:]
+            products = stock_levels[:500]
+            stock_levels = stock_levels[500:]
 
             export_stock_level_product.delay(self.session,
                                              'magentoextend.product.product',
@@ -397,7 +397,7 @@ class StockLevelExporter(Exporter):
             if float_compare(record['qty'], 0, 1) <= 0:
                 qty = 0
                 is_in_stock = 0
-            log = log + '\n' + str(record['id']) + ' : ' + qty + '\n'
+            log = log + '\n' + str(record['id']) + ' : ' + str(qty) + '\n'
             self.backend_adapter.update(record['magentoextend_id'], {'qty': qty, 'is_in_stock': is_in_stock})
         return log
 
