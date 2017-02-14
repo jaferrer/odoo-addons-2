@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.rule" id="stock.stock_picking_type_rule">
+            <field name="domain_force">['|', ('visible_for_all_companies', '=', True), '|', ('warehouse_id', '=', False), '|',('warehouse_id.company_id', '=', False), ('warehouse_id.company_id','child_of', [user.company_id.id])]</field>
+        </record>
+
+    </data>
+</openerp>

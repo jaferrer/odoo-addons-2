@@ -341,6 +341,12 @@ class stock_pack_operation(models.Model):
                                           (x.package_id and -2 or 0) + (x.lot_id and -1 or 0))
 
 
+class StockPickingType(models.Model):
+    _inherit = 'stock.picking.type'
+
+    visible_for_all_companies = fields.Boolean(string="Visible for all companies")
+
+
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
