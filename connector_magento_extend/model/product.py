@@ -25,7 +25,7 @@ import urllib2
 import xmlrpclib
 
 from openerp.addons.connector.exception import IDMissingInBackend
-from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.queue.job import job, related_action
 from openerp.addons.connector.unit.mapper import (mapping,
                                                   ImportMapper
                                                   )
@@ -39,6 +39,7 @@ from ..connector import get_environment
 from ..unit.backend_adapter import (GenericAdapter)
 from ..unit.import_synchronizer import (DelayedBatchImporter, magentoextendImporter)
 from ..unit.mapper import normalize_datetime
+from ..related_action import link
 
 _logger = logging.getLogger(__name__)
 
@@ -156,8 +157,11 @@ class ProductBatchImporter(DelayedBatchImporter):
 
     def _import_record(self, magentoextend_id, priority=None):
         """ Delay a job for the import """
-        super(ProductBatchImporter, self)._import_record(
-            magentoextend_id, priority=priority)
+        import_record_product.delay(self.session,
+                            self.model._name,
+                            self.backend_record.id,
+                            magentoextend_id,
+                            priority=priority)
 
     def run(self, filters=None):
         """ Run the synchronization """
@@ -376,7 +380,7 @@ class StockLevelExporter(Exporter):
         return log
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.magentoextend_pull_product_product')
 def product_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of product modified on magentoextend """
     if filters is None:
@@ -386,11 +390,27 @@ def product_import_batch(session, model_name, backend_id, filters=None):
     importer.run(filters=filters)
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.magentoextend_push_product_level')
 def product_export_stock_level_batch(session, model_name, backend_id, filters=None):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(StockLevelExporter)
     importer.run()
+
+
+@job(default_channel='root.magentoextend_pull_product_product')
+@related_action(action=link)
+def import_record_product(session, model_name, backend_id, magentoextend_ids, force=False):
+    """ Import a record from magentoextend """
+    env = get_environment(session, model_name, backend_id)
+    importer = env.get_connector_unit(magentoextendImporter)
+    log = ""
+    for id in magentoextend_ids:
+        print id
+        log = log + '\n' + str(id) + '\n' + '----------' + '\n'
+        resp = str(importer.run(id, force=force))
+        log = log + resp
+
+    return log
 
 
 class ResPartnerBackend(models.Model):
