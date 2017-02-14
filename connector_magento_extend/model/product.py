@@ -33,6 +33,7 @@ from openerp.addons.connector.unit.synchronizer import (Importer, Exporter
                                                         )
 
 from openerp import models, fields, api
+from openerp.tools import float_compare
 from ..backend import magentoextend
 from ..connector import get_environment
 from ..unit.backend_adapter import (GenericAdapter)
@@ -367,9 +368,11 @@ class StockLevelExporter(Exporter):
 
         for product in self.env.cr.dictfetchall():
             qty = product['qty']
-            if product['qty']<0:
+            is_in_stock = 1
+            if float_compare(product['qty'],0,1)<=0:
                 qty = 0
-            res = self.backend_adapter.update(product['magentoextend_id'], {'qty': qty})
+                is_in_stock = 0
+            res = self.backend_adapter.update(product['magentoextend_id'], {'qty': qty, 'is_in_stock': is_in_stock})
         return log
 
 
