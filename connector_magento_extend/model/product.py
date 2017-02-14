@@ -175,7 +175,7 @@ class ProductProductAdapter(GenericAdapter):
         with ftputil.FTPHost(host, user, pasw, session_factory=ftp_session_factory) as ftp_session:
             targetfile = '%s/%s' % (target, filename)
             with ftp_session.open(targetfile, 'w') as awa_file:
-                awa_file.write(tools.ustr(content, errors='replace'))
+                awa_file.write(content)
 
         return 'STK file has been written to %s on host %s' % (targetfile, host)
 
