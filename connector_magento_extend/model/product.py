@@ -23,9 +23,17 @@ import base64
 import logging
 import urllib2
 import xmlrpclib
+import csv
+import StringIO
+import datetime as dt
+import ftputil
+import ftputil.session
+
+from openerp import tools
 
 from openerp.addons.connector.exception import IDMissingInBackend
-from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.queue.job import job, related_action
+from openerp.addons.connector.exception import (JobError)
 from openerp.addons.connector.unit.mapper import (mapping,
                                                   ImportMapper
                                                   )
@@ -39,6 +47,7 @@ from ..connector import get_environment
 from ..unit.backend_adapter import (GenericAdapter)
 from ..unit.import_synchronizer import (DelayedBatchImporter, magentoextendImporter)
 from ..unit.mapper import normalize_datetime
+from ..related_action import link
 
 _logger = logging.getLogger(__name__)
 
@@ -145,6 +154,58 @@ class ProductProductAdapter(GenericAdapter):
         return self._call('catalog_product_attribute_media.info',
                           [int(id), image_name])
 
+    def _callwrite_ftp(self, filename, content):
+        _logger.info('Start creation of the file on the FTP server')
+        backend = self.backend_record
+        param = self.env[backend.connector_id.line_id.type_id.model_name].search(
+            [('line_id', '=', backend.connector_id.line_id.id)])
+        if not param.target_path:
+            raise JobError('FTP target path to be filled in settings')
+        target = param.target_path
+        host = param.url
+        user = param.user
+        pasw = param.pwd
+
+        # Raise a JobError if some fields are empty
+        if not (host and user):
+            raise JobError('FTP Host and User have to be filled in settings')
+
+        _logger.debug('Try to connect FTP server %s with login %s', host, user)
+        ftp_session_factory = ftputil.session.session_factory(use_passive_mode=False)
+        with ftputil.FTPHost(host, user, pasw, session_factory=ftp_session_factory) as ftp_session:
+            targetfile = '%s/%s' % (target, filename)
+            with ftp_session.open(targetfile, 'w') as awa_file:
+                awa_file.write(tools.ustr(content, errors='replace'))
+
+        return 'STK file has been written to %s on host %s' % (targetfile, host)
+
+    def _callwrite_local(self, filename, content):
+        _logger.info('Start creation of the file on the local')
+
+        backend = self.backend_record
+
+        param = self.env[backend.connector_id.line_id.type_id.model_name].search(
+            [('line_id', '=', backend.connector_id.line_id.id)])
+
+        if not param.target_path:
+            raise JobError('local target path to be filled in settings')
+        target = param.target_path
+
+        targetfile = '%s/%s' % (target, filename)
+        with open(targetfile, 'w') as awa_file:
+            awa_file.write(content)
+
+        return 'STK file has been written to %s' % (targetfile)
+
+    def write(self, filename, content):
+        record = ""
+        if self.backend_record.connector_id.line_id.type_id.id == self.env.ref('connector_backend_home.ftp').id:
+            record = self._callwrite_ftp(filename, content)
+        if self.backend_record.connector_id.line_id.type_id.id == self.env.ref('connector_backend_home.local').id:
+            record = self._callwrite_local(filename, content)
+
+        return record
+
 
 @magentoextend
 class ProductBatchImporter(DelayedBatchImporter):
@@ -156,8 +217,11 @@ class ProductBatchImporter(DelayedBatchImporter):
 
     def _import_record(self, magentoextend_id, priority=None):
         """ Delay a job for the import """
-        super(ProductBatchImporter, self)._import_record(
-            magentoextend_id, priority=priority)
+        import_record_product.delay(self.session,
+                            self.model._name,
+                            self.backend_record.id,
+                            magentoextend_id,
+                            priority=priority)
 
     def run(self, filters=None):
         """ Run the synchronization """
@@ -350,33 +414,81 @@ class StockLevelExporter(Exporter):
             WHERE
               sl.usage = 'internal' AND sl.location_id = tp.loc_id
           )
+          select
+          product_id,
+          magentoextend_id,
+          default_code,
+          sum(qty) qty
+          from (
           SELECT
                sq.product_id,
                mpp.magentoextend_id,
+               pp.default_code,
                sum(sq.qty) qty
              FROM
                stock_quant sq
                LEFT JOIN magentoextend_product_product mpp ON mpp.openerp_id = sq.product_id
+               LEFT JOIN product_product pp ON mpp.openerp_id = pp.id
                LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
                LEFT JOIN stock_location sl ON sl.id = tp.top_parent_id
              where mpp.backend_home_id = %s and sl.id =%s and sq.reservation_id is null
              GROUP BY
                sq.product_id,
-               mpp.magentoextend_id
+               mpp.magentoextend_id,
+               pp.default_code
+
+            union ALL
+
+            SELECT
+               pp.id,
+               mpp.magentoextend_id,
+               pp.default_code,
+               0 qty
+            FROM
+               magentoextend_product_product mpp
+               LEFT JOIN product_product pp ON mpp.openerp_id = pp.id
+            where mpp.backend_home_id = %s) rqx
+            group by
+            product_id,
+            magentoextend_id,
+            default_code
                     """, (self.backend_record.connector_id.home_id.id,
-                          self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id))
+                          self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id,
+                          self.backend_record.connector_id.home_id.id
+                          ))
+
+        log = ""
+
+        csvfile = StringIO.StringIO()
+        writer = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_NONE,
+                            quotechar=None)
+
+        filedate = dt.datetime.strptime(fields.Datetime.now(), '%Y-%m-%d %H:%M:%S').strftime(
+            '%Y%m%d%H%M%S')
+        filename = 'STK%s.csv' % (filedate)
+
+        export = False
 
         for product in self.env.cr.dictfetchall():
-            qty = product['qty']
-            is_in_stock = 1
-            if float_compare(product['qty'],0,1)<=0:
-                qty = 0
-                is_in_stock = 0
-            res = self.backend_adapter.update(product['magentoextend_id'], {'qty': qty, 'is_in_stock': is_in_stock})
+            export = True
+            qty = int(product['qty'])
+            log += "\n%s : %s\n" % (product['default_code'], str(qty))
+            if float_compare(product['qty'], 0, 1) <= 0:
+                qty = int(0)
+            if product['default_code']:
+                columns = [
+                    product['default_code'].encode('utf-8'),
+                    qty
+                ]
+                writer.writerow(columns)
+
+        if export:
+            record = self.backend_adapter.write(filename, csvfile.getvalue())
+
         return log
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.magentoextend_pull_product_product')
 def product_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of product modified on magentoextend """
     if filters is None:
@@ -386,11 +498,27 @@ def product_import_batch(session, model_name, backend_id, filters=None):
     importer.run(filters=filters)
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.magentoextend_push_product_level')
 def product_export_stock_level_batch(session, model_name, backend_id, filters=None):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(StockLevelExporter)
     importer.run()
+
+
+@job(default_channel='root.magentoextend_pull_product_product')
+@related_action(action=link)
+def import_record_product(session, model_name, backend_id, magentoextend_ids, force=False):
+    """ Import a record from magentoextend """
+    env = get_environment(session, model_name, backend_id)
+    importer = env.get_connector_unit(magentoextendImporter)
+    log = ""
+    for id in magentoextend_ids:
+        print id
+        log = log + '\n' + str(id) + '\n' + '----------' + '\n'
+        resp = str(importer.run(id, force=force))
+        log = log + resp
+
+    return log
 
 
 class ResPartnerBackend(models.Model):
