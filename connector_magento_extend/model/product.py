@@ -23,9 +23,17 @@ import base64
 import logging
 import urllib2
 import xmlrpclib
+import csv
+import StringIO
+import datetime as dt
+import ftputil
+import ftputil.session
+
+from openerp import tools
 
 from openerp.addons.connector.exception import IDMissingInBackend
 from openerp.addons.connector.queue.job import job, related_action
+from openerp.addons.connector.exception import (JobError)
 from openerp.addons.connector.unit.mapper import (mapping,
                                                   ImportMapper
                                                   )
@@ -145,6 +153,58 @@ class ProductProductAdapter(GenericAdapter):
     def read_image(self, id, image_name, storeview_id=None):
         return self._call('catalog_product_attribute_media.info',
                           [int(id), image_name])
+
+    def _callwrite_ftp(self, filename, content):
+        _logger.info('Start creation of the file on the FTP server')
+        backend = self.backend_record
+        param = self.env[backend.connector_id.line_id.type_id.model_name].search(
+            [('line_id', '=', backend.connector_id.line_id.id)])
+        if not param.target_path:
+            raise JobError('FTP target path to be filled in settings')
+        target = param.target_path
+        host = param.url
+        user = param.user
+        pasw = param.pwd
+
+        # Raise a JobError if some fields are empty
+        if not (host and user):
+            raise JobError('FTP Host and User have to be filled in settings')
+
+        _logger.debug('Try to connect FTP server %s with login %s', host, user)
+        ftp_session_factory = ftputil.session.session_factory(use_passive_mode=False)
+        with ftputil.FTPHost(host, user, pasw, session_factory=ftp_session_factory) as ftp_session:
+            targetfile = '%s/%s' % (target, filename)
+            with ftp_session.open(targetfile, 'w') as awa_file:
+                awa_file.write(tools.ustr(content, errors='replace'))
+
+        return 'STK file has been written to %s on host %s' % (targetfile, host)
+
+    def _callwrite_local(self, filename, content):
+        _logger.info('Start creation of the file on the local')
+
+        backend = self.backend_record
+
+        param = self.env[backend.connector_id.line_id.type_id.model_name].search(
+            [('line_id', '=', backend.connector_id.line_id.id)])
+
+        if not param.target_path:
+            raise JobError('local target path to be filled in settings')
+        target = param.target_path
+
+        targetfile = '%s/%s' % (target, filename)
+        with open(targetfile, 'w') as awa_file:
+            awa_file.write(tools.ustr(content, errors='replace'))
+
+        return 'STK file has been written to %s' % (targetfile)
+
+    def write(self, filename, content):
+        record = ""
+        if self.backend_record.connector_id.line_id.type_id.id == self.env.ref('connector_backend_home.ftp').id:
+            record = self._callwrite_ftp(filename, content)
+        if self.backend_record.connector_id.line_id.type_id.id == self.env.ref('connector_backend_home.local').id:
+            record = self._callwrite_local(filename, content)
+
+        return record
 
 
 @magentoextend
@@ -357,48 +417,67 @@ class StockLevelExporter(Exporter):
           SELECT
                sq.product_id,
                mpp.magentoextend_id,
+               pp.default_code,
                sum(sq.qty) qty
              FROM
                stock_quant sq
                LEFT JOIN magentoextend_product_product mpp ON mpp.openerp_id = sq.product_id
+               LEFT JOIN product_product pp ON mpp.openerp_id = pp.id
                LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
                LEFT JOIN stock_location sl ON sl.id = tp.top_parent_id
              where mpp.backend_home_id = %s and sl.id =%s and sq.reservation_id is null
              GROUP BY
                sq.product_id,
-               mpp.magentoextend_id
+               mpp.magentoextend_id,
+               pp.default_code
+
+            union ALL
+
+            SELECT
+               sq.product_id,
+               mpp.magentoextend_id,
+               0 qty
+            FROM
+              stock_quant sq
+               LEFT JOIN magentoextend_product_product mpp ON mpp.openerp_id = sq.product_id
+               LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
+               LEFT JOIN stock_location sl ON sl.id = tp.top_parent_id
+            where mpp.backend_home_id = %s and sl.id = %s and sq.reservation_id is null
                     """, (self.backend_record.connector_id.home_id.id,
-                          self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id))
+                          self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id,
+                          self.backend_record.connector_id.home_id.id,
+                          self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id
+                          ))
 
-        stock_levels = []
-        for product in self.env.cr.dictfetchall():
-            stock_levels.append({
-                'id': product['product_id'],
-                'magentoextend_id': product['magentoextend_id'],
-                'qty': product['qty']
-            })
-
-        while stock_levels:
-            products = stock_levels[:500]
-            stock_levels = stock_levels[500:]
-
-            export_stock_level_product.delay(self.session,
-                                             'magentoextend.product.product',
-                                             self.backend_record.id,
-                                             products,
-                                             priority=30)
-        return log
-
-    def export_record_chunk(self, records):
         log = ""
-        for record in records:
-            qty = record['qty']
-            is_in_stock = 1
-            if float_compare(record['qty'], 0, 1) <= 0:
+
+        csvfile = StringIO.StringIO()
+        writer = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_NONE,
+                            quotechar=None)
+        export = False
+        date = dt.datetime.strftime('%d%m%Y')
+
+        filedate = dt.datetime.strptime(fields.Datetime.now(), '%Y%m%d%H%M%S').strftime(
+            '%Y%m%d%H%M%S')
+        filename = 'SHI%s.csv' % (filedate)
+
+        export = False
+
+        for product in self.env.cr.dictfetchall():
+            export = True
+            qty = product['qty']
+            log = log + '\n' + str(product['id']) + ' : ' + str(qty) + '\n'
+            if float_compare(product['qty'], 0, 1) <= 0:
                 qty = 0
-                is_in_stock = 0
-            log = log + '\n' + str(record['id']) + ' : ' + str(qty) + '\n'
-            self.backend_adapter.update(record['magentoextend_id'], {'qty': qty, 'is_in_stock': is_in_stock})
+            columns = [
+                product['default_code'],
+                qty
+            ]
+            writer.writerow(columns)
+
+        if export:
+            record = self.backend_adapter.write(filename, csvfile.getvalue())
+
         return log
 
 
@@ -417,12 +496,6 @@ def product_export_stock_level_batch(session, model_name, backend_id, filters=No
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(StockLevelExporter)
     importer.run()
-
-@job(default_channel='root.magentoextend_push_product_level')
-def export_stock_level_product(session, model_name, backend_id, records):
-    env = get_environment(session, model_name, backend_id)
-    importer = env.get_connector_unit(StockLevelExporter)
-    importer.export_record_chunk(records)
 
 
 @job(default_channel='root.magentoextend_pull_product_product')
