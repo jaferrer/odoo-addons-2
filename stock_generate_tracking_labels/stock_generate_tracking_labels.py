@@ -33,6 +33,8 @@ except ImportError:
 
 PATH_BOT = tempfile.gettempdir() + os.sep + 'merger_bot'
 PATH_TMP = PATH_BOT + os.sep + 'tmp'
+if not os.path.exists(PATH_TMP):
+    os.makedirs(PATH_TMP)
 
 
 class DeliveryTrackingStockPickingType(models.Model):
