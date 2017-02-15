@@ -24,6 +24,8 @@ class TestStockPushPropagation(common.TransactionCase):
     def setUp(self):
         super(TestStockPushPropagation, self).setUp()
         self.product = self.browse_ref('stock_reservation_priority.product')
+        self.quant1 = self.browse_ref('stock_reservation_priority.quant1')
+        self.quant2 = self.browse_ref('stock_reservation_priority.quant2')
         self.move1 = self.browse_ref('stock_reservation_priority.move1')
         self.move2 = self.browse_ref('stock_reservation_priority.move2')
         self.move3 = self.browse_ref('stock_reservation_priority.move3')
@@ -32,16 +34,18 @@ class TestStockPushPropagation(common.TransactionCase):
         self.customers = self.browse_ref('stock.stock_location_customers')
         self.unit = self.browse_ref('product.product_uom_unit')
 
-    def create_move_and_test(self, move_priority, move_qty, move_date, dict1, dict2, dict3, dict4, location=False):
-        self.move1.action_confirm()
-        self.move2.action_confirm()
-        self.move3.action_confirm()
-        self.move1.action_assign()
-        self.move2.action_assign()
-        self.move3.action_assign()
-        self.assertEqual(self.move1.state, 'assigned')
-        self.assertEqual(self.move2.state, 'assigned')
-        self.assertEqual(self.move2.state, 'assigned')
+    def create_move_and_test(self, move_priority, move_qty, move_date, dict1, dict2, dict3, dict4, location=False,
+                             skip_moves_assignation=False):
+        if not skip_moves_assignation:
+            self.move1.action_confirm()
+            self.move2.action_confirm()
+            self.move3.action_confirm()
+            self.move1.action_assign()
+            self.move2.action_assign()
+            self.move3.action_assign()
+            self.assertEqual(self.move1.state, 'assigned')
+            self.assertEqual(self.move2.state, 'assigned')
+            self.assertEqual(self.move3.state, 'assigned')
         new_move = self.env['stock.move'].create({
             'name': "New move to assign",
             'priority': move_priority,
@@ -54,6 +58,10 @@ class TestStockPushPropagation(common.TransactionCase):
         })
         new_move.action_confirm()
         new_move.action_assign()
+        self.env['stock.move'].search([('product_id', '=', self.product.id),
+                                       ('location_id', 'child_of', self.stock.id),
+                                       ('state', 'not in', ['done', 'cancel'])]).action_assign()
+
         self.assertEqual(self.move1.state, dict1['state'])
         self.assertEqual(sum([quant.qty for quant in self.move1.reserved_quant_ids]), dict1['reserved_qty'])
         self.assertEqual(self.move2.state, dict2['state'])
@@ -323,7 +331,6 @@ class TestStockPushPropagation(common.TransactionCase):
                                   {'state': 'confirmed', 'reserved_qty': 5})
 
     # Testing assignation of an outgoing move of a child location
-
     def test_38_stock_reservation_priority(self):
         self.create_move_and_test('1', 7, '2016-02-20 12:00:00',
                                   {'state': 'assigned', 'reserved_qty': 10},
@@ -338,3 +345,48 @@ class TestStockPushPropagation(common.TransactionCase):
                                   {'state': 'confirmed', 'reserved_qty': 10},
                                   {'state': 'confirmed', 'reserved_qty': 10}, location=self.stock_child)
 
+    # Testing unreservation of partially available moves
+    def test_40_stock_reservation_priority(self):
+
+        self.move1.action_confirm()
+        self.move2.action_confirm()
+        self.move3.action_confirm()
+        self.quant1.quants_reserve([(self.quant2, 2)], self.move2)
+        self.quant1.quants_reserve([(self.quant1, 15)], self.move3)
+        self.assertEqual(self.move1.state, 'confirmed')
+        self.assertEqual(self.move2.state, 'confirmed')
+        self.assertEqual(self.move3.state, 'assigned')
+        self.assertTrue(self.move2.partially_available)
+        self.assertEqual(sum([quant.qty for quant in self.move2.reserved_quant_ids]), 2)
+        self.assertEqual(sum([quant.qty for quant in self.move3.reserved_quant_ids]), 15)
+
+        # We remove all the not reserved quants
+        quants_to_remove = self.env['stock.quant'].search([('reservation_id', '=', False),
+                                                           ('product_id', '=', self.product.id),
+                                                           ('location_id', 'child_of', self.stock.id)])
+        self.assertEqual(sum([quant.qty for quant in quants_to_remove]), 13)
+        new_move = self.env['stock.move'].create({
+            'name': "Outgoing move",
+            'priority': '0',
+            'product_uom': self.unit.id,
+            'product_uom_qty': 13,
+            'date': '2017-02-15 12:00:00',
+            'product_id': self.product.id,
+            'location_id': self.stock.id,
+            'location_dest_id': self.customers.id,
+        })
+        new_move.action_confirm()
+        new_move.action_assign()
+        self.assertEqual(new_move.state, 'assigned')
+        new_move.action_done()
+        self.assertEqual(sum([quant.qty for quant in self.move2.reserved_quant_ids]), 2)
+        self.assertEqual(sum([quant.qty for quant in self.move3.reserved_quant_ids]), 15)
+        self.assertFalse(self.env['stock.quant'].search([('reservation_id', '=', False),
+                                                           ('product_id', '=', self.product.id),
+                                                           ('location_id', 'child_of', self.stock.id)]))
+
+        self.create_move_and_test('2', 4, '2016-02-18 12:00:00',
+                                      {'state': 'assigned', 'reserved_qty': 10},
+                                      {'state': 'confirmed', 'reserved_qty': 0},
+                                      {'state': 'confirmed', 'reserved_qty': 3},
+                                      {'state': 'assigned', 'reserved_qty': 4}, skip_moves_assignation=True)
