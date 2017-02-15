@@ -308,11 +308,14 @@ class PurchaseOrderLineJustInTime(models.Model):
         Calculates ramaining_qty
         """
         for rec in self:
-            delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
-                                                                      rec.product_uom.id)
-                                 for move in rec.move_ids if move.state == 'done'])
-            rec.remaining_qty = float_round(rec.product_qty - delivered_qty,
+            remaining_qty = 0
+            if rec.product_id.type != 'service':
+                delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
+                                                                          rec.product_uom.id)
+                                     for move in rec.move_ids if move.state == 'done'])
+                remaining_qty = float_round(rec.product_qty - delivered_qty,
                                             precision_rounding=rec.product_uom.rounding)
+            rec.remaining_qty = remaining_qty
 
     @api.depends('children_line_ids')
     def _compute_children_number(self):
