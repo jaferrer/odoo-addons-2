@@ -120,6 +120,7 @@
                     <field name="name"/>
                     <field name="transporter_id" readonly="1"/>
                     <field name="code"/>
+                    <field name="print_on_a4"/>
                 </tree>
             </field>
         </record>
