@@ -168,6 +168,7 @@
             <field name="name">PDF A4</field>
             <field name="transporter_id" ref="base_delivery_tracking_colissimo.transporter_colissimo"/>
             <field name="code">PDF_A4_300dpi</field>
+            <field name="print_on_a4">1</field>
         </record>
 
     </data>

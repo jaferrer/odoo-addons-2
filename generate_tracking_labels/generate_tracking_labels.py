@@ -236,6 +236,7 @@ class GenerateLabelOutputPrintingType(models.Model):
     name = fields.Char(string=u"Format de sortie", readonly=True)
     transporter_id = fields.Many2one('tracking.transporter', string=u"Transporteur")
     code = fields.Char(string=u"Code Transporteur", readonly=True)
+    print_on_a4 = fields.Boolean(u"Imprimer sur A4")
 
     @api.multi
     def name_get(self):
