@@ -364,12 +364,14 @@
             <field name="name">PDF preuve dépôt sans points relai</field>
             <field name="transporter_id" ref="base_delivery_tracking_chronopost.transporter_chronopost"/>
             <field name="code">PDF</field>
+            <field name="print_on_a4">1</field>
         </record>
 
         <record model="output.printing.type" id="chronopost_type_ppr">
             <field name="name">PDF preuve dépôt avec points relai</field>
             <field name="transporter_id" ref="base_delivery_tracking_chronopost.transporter_chronopost"/>
             <field name="code">PPR</field>
+            <field name="print_on_a4">1</field>
         </record>
 
         <record model="output.printing.type" id="chronopost_type_spd">
