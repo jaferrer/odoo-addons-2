@@ -248,7 +248,7 @@ class CustomerImporter(magentoextendImporter):
     def _after_import(self, binding):
         """ Import the addresses """
         book = self.unit_for(PartnerAddressBook, model='magentoextend.address')
-        book.import_addresses(self.magentoextend_id, binding.id)
+        #book.import_addresses(self.magentoextend_id, binding.id)
 
 
 CustomerImport = CustomerImporter
