@@ -305,7 +305,7 @@ class PurchaseOrderLineJustInTime(models.Model):
     @api.depends('product_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
     def _get_remaining_qty(self):
         """
-        Calculates ramaining_qty
+        Calculates remaining_qty
         """
         for rec in self:
             remaining_qty = 0
@@ -344,10 +344,13 @@ class PurchaseOrderLineJustInTime(models.Model):
         """
 
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
-        if result.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
+        states_with_moves = self.env['purchase.order'].get_purchase_order_states_with_moves()
+        states_confirmed = states_with_moves + ['confirmed']
+        if result.order_id.state in states_confirmed:
             result.order_id.set_order_line_status('confirmed')
             if float_compare(result.product_qty, 0.0, precision_rounding=result.product_uom.rounding) != 0 and \
-                    not result.move_ids and not self.env.context.get('no_update_moves'):
+                    not result.move_ids and not self.env.context.get('no_update_moves') and \
+                            result.order_id.state in states_with_moves:
                 # We create associated moves
                 self.env['purchase.order']._create_stock_moves(result.order_id, result)
         return result
