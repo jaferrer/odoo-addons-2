@@ -762,6 +762,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         existing_picking = existing_move.picking_id
         self.assertTrue(existing_picking)
         self.assertEqual(len(existing_picking.move_lines), 1)
+        existing_picking_id = existing_picking.id
         existing_picking.do_prepare_partial()
         # Partial move
         wizard = self.env['product.move.wizard'].with_context(active_ids=[line_8.id]). \
@@ -801,6 +802,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
                                                         ('product_id', '=', self.product_a.id),
                                                         ('lot_id', '=', self.lot_a.id),
                                                         ('qty', '=', 1)]))
+        self.assertNotIn(existing_picking_id, [pick.id for pick in self.env['stock.picking'].search([])])
 
     def test_44_change_move_of_picking_and_split_move(self):
         # Testing the recuperation of existing move with split
@@ -1038,6 +1040,11 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         existing_move_1.action_confirm()
         existing_move_2.action_confirm()
 
+        existing_picking = existing_move_1.picking_id
+        self.assertTrue(existing_picking)
+        self.assertEqual(existing_move_2.picking_id, existing_picking)
+        existing_picking_id = existing_picking.id
+
         wizard = self.env['product.move.wizard'].with_context(active_ids=[line_8.id]). \
             create({'picking_type_id': self.picking_type.id, 'global_dest_loc': self.location_dest.id})
 
@@ -1078,6 +1085,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
                                                  ('product_id', '=', self.product_a.id)])
 
         self.assertEqual(sum([quant.qty for quant in quants]), 8)
+        self.assertNotIn(existing_picking_id, [pick.id for pick in self.env['stock.picking'].search([])])
 
     def test_48_moves_reconciliation(self):
         """
@@ -1412,3 +1420,99 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertEqual(self.quant_no_pack_a.qty, 50)
         self.assertEqual(existing_move.date[:10], fields.Date.today())
         self.assertEqual(existing_move.date_expected[:10], fields.Date.today())
+
+    def test_53_move_quant_to_same_location_not_manual(self):
+        [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
+            self.prepare_test_move_quant_package()
+        # Partial move
+        wizard = self.env['product.move.wizard'].with_context(active_ids=[line_1.id, line_2.id]). \
+            create({'picking_type_id': self.picking_type.id, 'global_dest_loc': self.location_source.id})
+        wizard.onchange_is_manual_op()
+        self.assertFalse(wizard.is_manual_op)
+        self.assertEqual(len(wizard.quant_line_ids), 2)
+        self.assertFalse(wizard.package_line_ids)
+        [wizard_line_1, wizard_line_2] = [False] * 2
+        for quant_line in wizard.quant_line_ids:
+            if quant_line.product_id == self.product_a:
+                wizard_line_1 = quant_line
+            if quant_line.product_id == self.product_b:
+                wizard_line_2 = quant_line
+        self.assertTrue(wizard_line_1 and wizard_line_2)
+        self.assertEqual(wizard_line_1.qty, 50)
+        self.assertEqual(wizard_line_2.qty, 2)
+        wizard_line_2.qty = 10
+        # We should not be able to move more than available qty
+        with self.assertRaises(exceptions.except_orm):
+            wizard.move_products()
+        wizard_line_1.qty = 20
+        wizard_line_2.qty = 1.5
+        # Let's force onchange to check field 'is_manual_op'
+        wizard.onchange_is_manual_op()
+        self.assertFalse(wizard.is_manual_op)
+        result = wizard.move_products()
+        self.assertTrue(result)
+        picking = result[0].picking_id
+        self.assertEqual(len(picking.message_ids), 1)
+        self.assertTrue(picking)
+        self.assertEqual(picking.state, 'done')
+        self.assertFalse(picking.backorder_id)
+        self.assertEqual(self.quant_no_pack_a.location_id, self.location_source)
+        self.assertEqual(self.quant_no_pack_a.qty, 20)
+        self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
+                                                        ('package_id', '=', False),
+                                                        ('product_id', '=', self.product_a.id),
+                                                        ('lot_id', '=', self.lot_b.id),
+                                                        ('qty', '=', 30)]))
+        self.assertEqual(self.quant_no_pack_b.location_id, self.location_source)
+        self.assertEqual(self.quant_no_pack_b.qty, 1.5)
+        self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
+                                                        ('package_id', '=', False),
+                                                        ('product_id', '=', self.product_b.id),
+                                                        ('lot_id', '=', False),
+                                                        ('qty', '=', 0.5)]))
+
+    def test_53_move_quant_to_same_location_manual(self):
+        [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
+            self.prepare_test_move_quant_package()
+        # Partial move
+        wizard = self.env['product.move.wizard'].with_context(active_ids=[line_1.id, line_2.id]). \
+            create({'picking_type_id': self.picking_type.id, 'global_dest_loc': self.location_source.id})
+        wizard.onchange_is_manual_op()
+        self.assertFalse(wizard.is_manual_op)
+        self.assertEqual(len(wizard.quant_line_ids), 2)
+        self.assertFalse(wizard.package_line_ids)
+        [wizard_line_1, wizard_line_2] = [False] * 2
+        for quant_line in wizard.quant_line_ids:
+            if quant_line.product_id == self.product_a:
+                wizard_line_1 = quant_line
+            if quant_line.product_id == self.product_b:
+                wizard_line_2 = quant_line
+        self.assertTrue(wizard_line_1 and wizard_line_2)
+        self.assertEqual(wizard_line_1.qty, 50)
+        self.assertEqual(wizard_line_2.qty, 2)
+        wizard_line_2.qty = 10
+        # We should not be able to move more than available qty
+        with self.assertRaises(exceptions.except_orm):
+            wizard.move_products()
+        wizard_line_1.qty = 20
+        wizard_line_2.qty = 1.5
+        # Let's force onchange to check field 'is_manual_op'
+        wizard.onchange_is_manual_op()
+        self.assertFalse(wizard.is_manual_op)
+        wizard.is_manual_op = True
+        result = wizard.move_products()
+        self.assertTrue(result)
+        self.assertEqual(self.quant_no_pack_a.location_id, self.location_source)
+        self.assertEqual(self.quant_no_pack_a.qty, 20)
+        self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
+                                                        ('package_id', '=', False),
+                                                        ('product_id', '=', self.product_a.id),
+                                                        ('lot_id', '=', self.lot_b.id),
+                                                        ('qty', '=', 30)]))
+        self.assertEqual(self.quant_no_pack_b.location_id, self.location_source)
+        self.assertEqual(self.quant_no_pack_b.qty, 1.5)
+        self.assertTrue(self.env['stock.quant'].search([('location_id', '=', self.location_source.id),
+                                                        ('package_id', '=', False),
+                                                        ('product_id', '=', self.product_b.id),
+                                                        ('lot_id', '=', False),
+                                                        ('qty', '=', 0.5)]))
