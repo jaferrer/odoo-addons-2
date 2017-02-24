@@ -490,7 +490,7 @@ class AddressImportMapper(BaseAddressImportMapper):
         elif record.get('is_default_shipping'):
             address_type = 'delivery'
         else:
-            address_type = 'contact'
+            address_type = 'other'
         return {'type': address_type}
 
 
