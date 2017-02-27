@@ -74,20 +74,7 @@ class StockQuantPackageMove(models.TransientModel):
         if quantsglob:
             result = quantsglob.with_context(mail_notrack=True). \
                 move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
-            if self.is_manual_op:
-                if not result:
-                    raise exceptions.except_orm(_(u"error"), _("No line selected"))
-                return {
-                    'name': 'picking_form',
-                    'type': 'ir.actions.act_window',
-                    'view_type': 'form',
-                    'view_mode': 'form',
-                    'res_model': 'stock.picking',
-                    'res_id': result[0].picking_id.id
-                }
-            else:
-                return result
-
+            return result.display_picking_for_moves(self.is_manual_op)
         return True
 
     def _determine_package_child_quants(self, packs):
