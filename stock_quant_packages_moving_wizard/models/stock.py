@@ -117,7 +117,11 @@ class StockQuant(models.Model):
                 # Reserve quants on move
                 self.quants_reserve(quant_tuples_current_reservation, current_reservation)
                 # Assign the current move to the new picking
+                old_picking = current_reservation.picking_id
                 current_reservation.picking_id = new_picking
+                if not old_picking.move_lines:
+                    old_picking.delete_packops()
+                    old_picking.unlink()
                 move_recordset |= current_reservation
                 processed_moves |= current_reservation
         return move_recordset
@@ -176,7 +180,11 @@ class StockQuant(models.Model):
                     move.split(move, float_round(move.product_qty - qty_reserved, precision_rounding=prec))
             # Let's reserve the quants
             for move in dict_reservations:
+                old_picking = move.picking_id
                 move.picking_id = new_picking
+                if not old_picking.move_lines:
+                    old_picking.delete_packops()
+                    old_picking.unlink()
                 self.quants_reserve(dict_reservations[move], move)
         return move_recordset, not_reserved_tuples
 
@@ -343,6 +351,22 @@ class StockMove(models.Model):
         for move in self:
             if move.linked_move_operation_ids:
                 move.linked_move_operation_ids.unlink()
+
+    @api.multi
+    def display_picking_for_moves(self, is_manual_op):
+        if is_manual_op:
+            if not self:
+                raise exceptions.except_orm(_("error"), _("No line selected"))
+            return {
+                'name': 'picking_form',
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'stock.picking',
+                'res_id': self[0].picking_id.id
+            }
+        else:
+            return self
 
 
 class StockWarehouse(models.Model):

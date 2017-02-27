@@ -195,9 +195,7 @@ msgid "No move found for product %s"
 msgstr "Aucun mouvement trouvé pour l'article %s"
 
 #. module: stock_quant_packages_moving_wizard
-#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:111
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:76
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_packages_move_wizard.py:78
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:356
 #, python-format
 msgid "No line selected"
 msgstr "Aucune ligne sélectionnée"
@@ -380,9 +378,7 @@ msgstr "Annuler"
 #. module: stock_quant_packages_moving_wizard
 #: code:addons\stock_quant_packages_moving_wizard\models\stock.py:112
 #: code:addons\stock_quant_packages_moving_wizard\models\stock.py:197
-#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:105
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:76
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_packages_move_wizard.py:78
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:356
 #, python-format
 msgid "error"
 msgstr "Erreur"
