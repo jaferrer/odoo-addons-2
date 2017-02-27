@@ -552,7 +552,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.multi
     def remove_procs_from_lines(self, unlink_moves_to_procs=False):
         self.remove_done_moves()
-        self.with_context(tracking_disable=True).write({'purchase_line_id': False})
+        pickings_with_pol = self.search([('id', 'in', self.ids), ('purchase_line_id', '!=', False)])
+        pickings_with_pol.with_context(tracking_disable=True).write({'purchase_line_id': False})
         to_reset = self.search([('id', 'in', self.ids), ('state', 'in', ['running', 'exception'])])
         to_reset.with_context(tracking_disable=True).write({'state': 'buy_to_run'})
         procs_moves_to_detach = self.env['stock.move']
@@ -569,6 +570,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 proc_moves.unlink()
             else:
                 procs_moves_to_detach += proc_moves
+        procs_moves_to_detach = self.env['stock.move'].search([('id', 'in', procs_moves_to_detach.ids),
+                                                               '|', ('purchase_line_id', '!=', False),
+                                                               ('picking_id', '!=', False)])
         if procs_moves_to_detach:
             procs_moves_to_detach.write({'purchase_line_id': False, 'picking_id': False})
 
@@ -579,8 +583,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             assert rec.state not in ['done', 'cancel']
 
             orig_pol = rec.purchase_line_id
-            if orig_pol:
-                rec.remove_procs_from_lines()
+            rec.remove_procs_from_lines()
             if orig_pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
                 orig_pol.adjust_move_no_proc_qty()
 
