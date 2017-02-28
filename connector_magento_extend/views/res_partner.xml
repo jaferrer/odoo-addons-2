@@ -9,11 +9,11 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <notebook position="inside">
-                    <page string="Informations connecteur" attrs="{'invisible': [('customer', '=', False)]}">
+                    <page name="partner_connector_config" string="Informations connecteur">
                         <group>
                             <field name="customer_point"/>
                         </group>
-                        <group string="Informations mapping">
+                        <group string="Informations mapping"  attrs="{'invisible': [('customer', '=', False)]}">
                             <field name="custom_field_mapping" context="{'default_partner_id': id}" nolabel="1"/>
                         </group>
                     </page>
