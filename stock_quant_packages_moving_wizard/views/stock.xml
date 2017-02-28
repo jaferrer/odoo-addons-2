@@ -72,6 +72,9 @@ action = self.move_products(cr, uid, context.get('active_ids'), False, context)
             <field name="inherit_id" ref="stock.view_picking_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
+                <button name="do_enter_transfer_details" position="attributes">
+                    <attribute name="attrs">{'invisible': [('filled_by_jobs', '=', True), ('picking_correctly_filled', '=', False)]}</attribute>
+                </button>
                 <field name="origin" position="after">
                     <field name="filled_by_jobs" invisible="1"/>
                     <field name="picking_correctly_filled" attrs="{'invisible': [('filled_by_jobs', '=', False)]}"/>
