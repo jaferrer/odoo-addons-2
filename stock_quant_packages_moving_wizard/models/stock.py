@@ -181,11 +181,11 @@ class StockQuant(models.Model):
             # Let's reserve the quants
             for move in dict_reservations:
                 old_picking = move.picking_id
+                self.quants_reserve(dict_reservations[move], move)
                 move.picking_id = new_picking
                 if not old_picking.move_lines:
                     old_picking.delete_packops()
                     old_picking.unlink()
-                self.quants_reserve(dict_reservations[move], move)
         return move_recordset, not_reserved_tuples
 
     @api.model
@@ -219,11 +219,11 @@ class StockQuant(models.Model):
                 'date_expected': fields.Datetime.now(),
                 'date': fields.Datetime.now(),
                 'picking_type_id': picking_type_id,
-                'picking_id': new_picking_id,
             })
             new_move.action_confirm()
-            move_recordset = move_recordset | new_move
             self.quants_reserve(quants_to_move_in_fine, new_move)
+            new_move.write({'picking_id': new_picking_id})
+            move_recordset = move_recordset | new_move
         return move_recordset
 
     @api.model
