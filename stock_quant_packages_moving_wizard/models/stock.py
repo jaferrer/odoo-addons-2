@@ -107,6 +107,9 @@ class StockQuant(models.Model):
             if current_reservation and current_reservation not in processed_moves:
                 quant_tuples_current_reservation = [tpl for tpl in list_reservations if
                                                     tpl[0].reservation_id == current_reservation]
+                # We remove current_reservation from its picking, to prevent from intempestive picking status changes
+                old_picking = current_reservation.picking_id
+                current_reservation.picking_id = False
                 current_reservation.do_unreserve()
                 final_qty = sum([tpl[1] for tpl in quant_tuples_current_reservation])
                 # Split move if needed
@@ -117,7 +120,6 @@ class StockQuant(models.Model):
                 # Reserve quants on move
                 self.quants_reserve(quant_tuples_current_reservation, current_reservation)
                 # Assign the current move to the new picking
-                old_picking = current_reservation.picking_id
                 current_reservation.picking_id = new_picking
                 if not old_picking.move_lines:
                     old_picking.delete_packops()
@@ -144,6 +146,9 @@ class StockQuant(models.Model):
                     dict_reservations[first_corresponding_move] = []
                 quant = not_reserved_tuples[0][0]
                 qty = not_reserved_tuples[0][1]
+                # We remove first_corresponding_move from its picking, to prevent from intempestive picking status changes
+                old_picking = first_corresponding_move.picking_id
+                first_corresponding_move.picking_id = False
                 first_corresponding_move.do_unreserve()
                 qty_reserved_on_move = sum([tpl[1] for tpl in dict_reservations[first_corresponding_move]])
                 # If the current move can exactly assume the new reservation,
@@ -166,6 +171,7 @@ class StockQuant(models.Model):
                     not_reserved_tuples += [(splitted_quant, float_round(qty - reservable_qty_on_move,
                                                                          precision_rounding=prec))]
                     done_move_ids += [first_corresponding_move.id]
+                first_corresponding_move.picking_id = old_picking
                 move_recordset |= first_corresponding_move
                 force_domain = [('id', 'not in', done_move_ids)]
                 first_corresponding_move = self.get_corresponding_moves(quant, location_from, dest_location,
