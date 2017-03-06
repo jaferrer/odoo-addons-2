@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,25 +18,20 @@
 #
 
 {
-    'name': 'Production Planning Improved',
+    'name': 'Translations improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Production',
-    'depends': ['stock_planning_improved', 'mrp_working_days'],
+    'category': 'Technical',
+    'depends': ['base', 'connector'],
     'description': """
-Production Planning Improved
-============================
-Creation of a new field for manufacturing order, date required, and a new button: reschedule manufacturing order. This allows the user to manage manufacturing planning as he does with stock and purchase planning.
+Translations improved
+=====================
+This modules improves a few features for translations management.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'mrp_planning_improved.xml',
-        'data/cron.xml',
-    ],
-    'demo': [
-        'test_mrp_planning_improved.xml',
-    ],
+    'data': ['cron.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

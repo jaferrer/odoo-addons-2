@@ -20,14 +20,9 @@
 from openerp import models, api
 
 
-class AutoReportStockQuant(models.Model):
-    _inherit = 'stock.quant'
+class LanguageInstallImproved(models.TransientModel):
+    _inherit = 'base.language.install'
 
-    @api.multi
-    def move_to(self, dest_location, picking_type, move_items=False, is_manual_op=False, filling_method=False):
-        result = super(AutoReportStockQuant, self).move_to(dest_location, picking_type, move_items=move_items,
-                                                           is_manual_op=is_manual_op, filling_method=filling_method)
-        if not is_manual_op and result and result[0].picking_id.picking_type_id.report_id:
-            return self.env['report'].with_context(active_ids=[result[0].picking_id.id]).get_action(
-                    result[0].picking_id, result[0].picking_id.picking_type_id.report_id.report_name)
-        return result
+    @api.model
+    def load_translation(self):
+        self.create({'overwrite': True, 'lang': 'fr_FR'}).lang_install()

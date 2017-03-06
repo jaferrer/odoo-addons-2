@@ -341,6 +341,12 @@ class stock_pack_operation(models.Model):
                                           (x.package_id and -2 or 0) + (x.lot_id and -1 or 0))
 
 
+class StockPickingType(models.Model):
+    _inherit = 'stock.picking.type'
+
+    visible_for_all_companies = fields.Boolean(string="Visible for all companies")
+
+
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
@@ -813,6 +819,27 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
             if good_pack:
                 top_lvl_packages.add(good_pack)
         return list(top_lvl_packages)
+
+    @api.model
+    def delete_empty_pickings(self):
+        self.env.cr.execute("""WITH nb_moves_picking AS (
+    SELECT
+        sp.id,
+        count(sm.id) AS nb_moves
+    FROM stock_picking sp
+        LEFT JOIN stock_move sm ON sm.picking_id = sp.id
+    WHERE sp.state NOT IN ('done', 'cancel')
+    GROUP BY sp.id)
+
+SELECT id
+FROM nb_moves_picking
+WHERE nb_moves = 0""")
+        picking_ids = [item[0] for item in self.env.cr.fetchall()]
+        if picking_ids:
+            pickings = self.env['stock.picking'].browse(picking_ids)
+            packops = self.env['stock.pack.operation'].search([('picking_id', 'in', picking_ids)])
+            packops.unlink()
+            pickings.unlink()
 
     @api.cr_uid_ids_context
     def _get_pickings_dates_priority(self, cr, uid, ids, context=None):

@@ -305,13 +305,17 @@ class PurchaseOrderLineJustInTime(models.Model):
     @api.depends('product_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
     def _get_remaining_qty(self):
         """
-        Calculates ramaining_qty
+        Calculates remaining_qty
         """
         for rec in self:
-            delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
-                                                                      rec.product_uom.id)
-                                 for move in rec.move_ids if move.state == 'done'])
-            rec.remaining_qty = rec.product_qty - delivered_qty
+            remaining_qty = 0
+            if rec.product_id.type != 'service':
+                delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
+                                                                          rec.product_uom.id)
+                                     for move in rec.move_ids if move.state == 'done'])
+                remaining_qty = float_round(rec.product_qty - delivered_qty,
+                                            precision_rounding=rec.product_uom.rounding)
+            rec.remaining_qty = remaining_qty
 
     @api.depends('children_line_ids')
     def _compute_children_number(self):
@@ -340,10 +344,13 @@ class PurchaseOrderLineJustInTime(models.Model):
         """
 
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
-        if result.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
+        states_with_moves = self.env['purchase.order'].get_purchase_order_states_with_moves()
+        states_confirmed = states_with_moves + ['confirmed']
+        if result.order_id.state in states_confirmed:
             result.order_id.set_order_line_status('confirmed')
             if float_compare(result.product_qty, 0.0, precision_rounding=result.product_uom.rounding) != 0 and \
-                    not result.move_ids and not self.env.context.get('no_update_moves'):
+                    not result.move_ids and not self.env.context.get('no_update_moves') and \
+                            result.order_id.state in states_with_moves:
                 # We create associated moves
                 self.env['purchase.order']._create_stock_moves(result.order_id, result)
         return result
@@ -479,6 +486,10 @@ class PurchaseOrderLineJustInTime(models.Model):
         procurements_to_detach = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids)])
         cancelled_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids),
                                                                 ('state', '=', 'cancel')])
+        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', self.ids),
+                                                        ('procurement_id', '=', False),
+                                                        ('state', 'not in', ['done', 'cancel'])])
+        moves_no_procs.action_cancel()
         result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
         # We reset initially cancelled procs to state 'cancel', because the unlink function of module purchase would
         # have set them to state 'exception'

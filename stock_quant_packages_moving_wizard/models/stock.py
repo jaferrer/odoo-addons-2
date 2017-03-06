@@ -21,6 +21,18 @@
 from openerp import models, fields, api, exceptions, _
 from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
+from datetime import datetime as dt
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+
+@job(default_channel='root')
+def job_fill_new_picking_for_product(session, model_name, product_id, product_ids, move_tuples, dest_location_id,
+                                     picking_type_id, new_picking_id, move_recordset=None, context=None):
+    quants_obj = session.env[model_name].with_context(context)
+    quants_obj.fill_new_picking_for_product(product_id, product_ids, move_tuples, dest_location_id, picking_type_id,
+                                            new_picking_id, move_recordset=move_recordset)
+    return "Picking correctly filled"
 
 
 class StockQuant(models.Model):
@@ -28,22 +40,22 @@ class StockQuant(models.Model):
 
     @api.multi
     def partial_move(self, move_items, product, qty):
-        if not move_items.get(product):
-            move_items[product] = []
-        move_items[product] += [{
-            'quants': self,
+        if not move_items.get(product.id):
+            move_items[product.id] = []
+        move_items[product.id] += [{
+            'quant_ids': self.ids,
             'qty': float_round(qty, precision_rounding=product.uom_id.rounding)}]
         return move_items
 
     @api.model
-    def determine_list_reservations(self, product, move_items):
-        move_tuples = move_items[product]
+    def determine_list_reservations(self, product, move_tuples):
         prec = product.uom_id.rounding
         list_reservations = []
         for move_tuple in move_tuples:
             qty_reserved = 0
             qty_to_reserve = move_tuple['qty']
-            for quant in move_tuple['quants']:
+            for quant_id in move_tuple['quant_ids']:
+                quant = self.env['stock.quant'].browse(quant_id)
                 # If the new quant does not exceed the requested qty, we move it (end of loop) and continue
                 # If requested qty is reached, we break the loop
                 if float_compare(qty_reserved, qty_to_reserve, precision_rounding=prec) >= 0:
@@ -63,7 +75,7 @@ class StockQuant(models.Model):
                   ('state', 'not in', ['draft', 'done', 'cancel']),
                   ('location_id', '=', location_from.id),
                   ('location_dest_id', '=', dest_location.id),
-                  ('picking_type_id', '=', picking_type_id.id)]
+                  ('picking_type_id', '=', picking_type_id)]
         if force_domain:
             domain += force_domain
         moves = self.env['stock.move'].search(domain)
@@ -95,6 +107,9 @@ class StockQuant(models.Model):
             if current_reservation and current_reservation not in processed_moves:
                 quant_tuples_current_reservation = [tpl for tpl in list_reservations if
                                                     tpl[0].reservation_id == current_reservation]
+                # We remove current_reservation from its picking, to prevent from intempestive picking status changes
+                old_picking = current_reservation.picking_id
+                current_reservation.picking_id = False
                 current_reservation.do_unreserve()
                 final_qty = sum([tpl[1] for tpl in quant_tuples_current_reservation])
                 # Split move if needed
@@ -106,6 +121,9 @@ class StockQuant(models.Model):
                 self.quants_reserve(quant_tuples_current_reservation, current_reservation)
                 # Assign the current move to the new picking
                 current_reservation.picking_id = new_picking
+                if not old_picking.move_lines:
+                    old_picking.delete_packops()
+                    old_picking.unlink()
                 move_recordset |= current_reservation
                 processed_moves |= current_reservation
         return move_recordset
@@ -128,6 +146,9 @@ class StockQuant(models.Model):
                     dict_reservations[first_corresponding_move] = []
                 quant = not_reserved_tuples[0][0]
                 qty = not_reserved_tuples[0][1]
+                # We remove first_corresponding_move from its picking, to prevent from intempestive picking status changes
+                old_picking = first_corresponding_move.picking_id
+                first_corresponding_move.picking_id = False
                 first_corresponding_move.do_unreserve()
                 qty_reserved_on_move = sum([tpl[1] for tpl in dict_reservations[first_corresponding_move]])
                 # If the current move can exactly assume the new reservation,
@@ -150,6 +171,7 @@ class StockQuant(models.Model):
                     not_reserved_tuples += [(splitted_quant, float_round(qty - reservable_qty_on_move,
                                                                          precision_rounding=prec))]
                     done_move_ids += [first_corresponding_move.id]
+                first_corresponding_move.picking_id = old_picking
                 move_recordset |= first_corresponding_move
                 force_domain = [('id', 'not in', done_move_ids)]
                 first_corresponding_move = self.get_corresponding_moves(quant, location_from, dest_location,
@@ -164,8 +186,12 @@ class StockQuant(models.Model):
                     move.split(move, float_round(move.product_qty - qty_reserved, precision_rounding=prec))
             # Let's reserve the quants
             for move in dict_reservations:
-                move.picking_id = new_picking
+                old_picking = move.picking_id
                 self.quants_reserve(dict_reservations[move], move)
+                move.picking_id = new_picking
+                if not old_picking.move_lines:
+                    old_picking.delete_packops()
+                    old_picking.unlink()
         return move_recordset, not_reserved_tuples
 
     @api.model
@@ -185,8 +211,8 @@ class StockQuant(models.Model):
         return move_recordset, quants_to_move_in_fine
 
     @api.model
-    def move_remaining_quants(self, product, location_from, dest_location, picking_type_id, new_picking, move_recordset,
-                              quants_to_move_in_fine):
+    def move_remaining_quants(self, product, location_from, dest_location, picking_type_id, new_picking_id,
+                              move_recordset, quants_to_move_in_fine):
         if quants_to_move_in_fine:
             new_move = self.env['stock.move'].with_context(mail_notrack=True).create({
                 'name': 'Move %s to %s' % (product.name, dest_location.name),
@@ -198,12 +224,12 @@ class StockQuant(models.Model):
                 'product_uom': product.uom_id.id,
                 'date_expected': fields.Datetime.now(),
                 'date': fields.Datetime.now(),
-                'picking_type_id': picking_type_id.id,
-                'picking_id': new_picking.id,
+                'picking_type_id': picking_type_id,
             })
             new_move.action_confirm()
-            move_recordset = move_recordset | new_move
             self.quants_reserve(quants_to_move_in_fine, new_move)
+            new_move.write({'picking_id': new_picking_id})
+            move_recordset = move_recordset | new_move
         return move_recordset
 
     @api.model
@@ -235,31 +261,71 @@ class StockQuant(models.Model):
             move_recordset = move_recordset | new_move
         return list_reservation, move_recordset
 
+    @api.model
+    def fill_new_picking_for_product(self, product_id, product_ids, move_tuples, dest_location_id, picking_type_id,
+                                     new_picking_id, move_recordset=None):
+        if not move_recordset:
+            move_recordset = self.env['stock.move']
+        product = self.env['product.product'].browse(product_id)
+        first_quant_id = move_tuples[0]['quant_ids'][0]
+        location_from = self.env['stock.quant'].browse(first_quant_id).location_id
+        dest_location = self.env['stock.location'].browse(dest_location_id)
+        new_picking = self.env['stock.picking'].browse(new_picking_id)
+        # We determine the needs
+        list_reservations = self.determine_list_reservations(product, move_tuples)
+        # For not reserved quants, we try to use existing moves
+        move_recordset, quants_to_move_in_fine = self.env['stock.quant']. \
+            check_moves_ok(list_reservations, location_from, dest_location, picking_type_id,
+                           move_recordset, new_picking_id)
+        move_recordset = self.move_remaining_quants(product, location_from, dest_location, picking_type_id,
+                                                    new_picking_id, move_recordset, quants_to_move_in_fine)
+        move_recordset.filtered(lambda move: move.state == 'draft').action_confirm()
+        move_recordset.delete_packops()
+        done_product_ids = [move.product_id.id for move in new_picking.move_lines]
+        if all ([product_id in done_product_ids for product_id in product_ids]):
+            new_picking.do_prepare_partial()
+            new_picking.picking_correctly_filled = True
+        return move_recordset
+
     @api.multi
-    def move_to(self, dest_location, picking_type_id, move_items=None, is_manual_op=False):
+    def move_to(self, dest_location, picking_type, move_items=None, is_manual_op=False, filling_method=False):
         """
-        :param move_items: {product: [{'quants': quants recordset, 'qty': float}, ...], ...}
+        :param move_items: {product_id: [{'quant_ids': quants IDs list, 'qty': float}, ...], ...}
         """
         move_recordset = self.env['stock.move']
         list_reservation = {}
         if self:
-            new_picking = self.env['stock.picking'].create({'picking_type_id': picking_type_id.id})
+            new_picking = self.env['stock.picking'].create({'picking_type_id': picking_type.id})
             if move_items:
-                for product in move_items.keys():
-                    location_from = move_items[product][0]['quants'][0].location_id
-                    # We determine the needs
-                    list_reservations = self.determine_list_reservations(product, move_items)
-                    # For not reserved quants, we try to use existing moves
-                    move_recordset, quants_to_move_in_fine = self.env['stock.quant']. \
-                        check_moves_ok(list_reservations, location_from, dest_location, picking_type_id,
-                                       move_recordset, new_picking)
-                    move_recordset = self.move_remaining_quants(product, location_from, dest_location, picking_type_id,
-                                                                new_picking, move_recordset, quants_to_move_in_fine)
-                move_recordset.filtered(lambda move: move.state == 'draft').action_confirm()
+                index = 0
+                product_ids = move_items.keys()
+                chunks_number = len(product_ids)
+                for product_id in product_ids:
+                    product = self.env['product.product'].browse(product_id)
+                    move_tuples = move_items[product_id]
+                    if not move_tuples:
+                        raise exceptions.except_orm(_("error"), _("No move found for product %s") %
+                                                    product.display_name)
+                    index += 1
+                    first_product = index == 1
+                    if is_manual_op and filling_method == 'jobify' and not first_product:
+                        new_picking.filled_by_jobs = True
+                        job_fill_new_picking_for_product.delay(ConnectorSession.from_env(self.env), 'stock.quant',
+                                                               product_id, product_ids, move_tuples, dest_location.id,
+                                                               picking_type.id, new_picking.id,
+                                                               context=self.env.context,
+                                                               description=u"Filling picking %s with product %s (%s/%s)" %
+                                                                           (new_picking.name, product.display_name,
+                                                                            index, chunks_number))
+                    else:
+                        move_recordset = self.fill_new_picking_for_product(product_id, product_ids, move_tuples,
+                                                                           dest_location.id,
+                                                                           picking_type.id, new_picking.id,
+                                                                           move_recordset=move_recordset)
             else:
                 list_reservation, move_recordset = self. \
                     move_quants_old_school(list_reservation, move_recordset, dest_location,
-                                           picking_type_id, new_picking)
+                                           picking_type, new_picking)
                 if move_recordset:
                     move_recordset.action_confirm()
                 for new_move in list_reservation.keys():
@@ -267,16 +333,47 @@ class StockQuant(models.Model):
                         raise exceptions.except_orm(_("error"), _("The moves of all the quants could not be "
                                                                   "assigned to the same picking."))
                     self.quants_reserve(list_reservation[new_move], new_move)
-            # If the move has pack operations,
-            for move in new_picking.move_lines:
-                if move.linked_move_operation_ids:
-                    move.linked_move_operation_ids.unlink()
+            # If the moves have pack operations, we delete it
+            new_picking.move_lines.delete_packops()
             new_picking.do_prepare_partial()
             if not is_manual_op:
                 # If the transfer is not manual, we do not want the putaway strategies to be applied.
                 new_picking.pack_operation_ids.write({'location_dest_id': dest_location.id})
                 new_picking.do_transfer()
         return move_recordset
+
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    filled_by_jobs = fields.Boolean(string="Picking filled by jobs", readonly=True, track_visibility='onchange')
+    picking_correctly_filled = fields.Boolean(string="Picking correctly filled", readonly=True,
+                                              track_visibility='onchange')
+
+
+class StockMove(models.Model):
+    _inherit = 'stock.move'
+
+    def delete_packops(self):
+        for move in self:
+            if move.linked_move_operation_ids:
+                move.linked_move_operation_ids.unlink()
+
+    @api.multi
+    def display_picking_for_moves(self, is_manual_op):
+        if is_manual_op:
+            if not self:
+                raise exceptions.except_orm(_("error"), _("No line selected"))
+            return {
+                'name': 'picking_form',
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'stock.picking',
+                'res_id': self[0].picking_id.id
+            }
+        else:
+            return self
 
 
 class StockWarehouse(models.Model):
