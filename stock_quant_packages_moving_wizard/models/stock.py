@@ -346,8 +346,9 @@ class StockQuant(models.Model):
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    filled_by_jobs = fields.Boolean(string="Picking filled by jobs", readonly=True)
-    picking_correctly_filled = fields.Boolean(string="Picking correctly filled", readonly=True)
+    filled_by_jobs = fields.Boolean(string="Picking filled by jobs", readonly=True, track_visibility='onchange')
+    picking_correctly_filled = fields.Boolean(string="Picking correctly filled", readonly=True,
+                                              track_visibility='onchange')
 
 
 class StockMove(models.Model):
