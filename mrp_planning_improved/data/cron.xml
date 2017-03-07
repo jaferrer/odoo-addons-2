@@ -17,5 +17,20 @@
             <field name="args"/>
         </record>
 
+        <record id="cron_mrp_recheck_availability" model="ir.cron">
+            <field name="name">MRP: recheck availibility</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall">2015-10-01 05:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">mrp.production</field>
+            <field name="function">cron_recheck_availibility</field>
+            <field name="args"/>
+        </record>
+
     </data>
 </openerp>
