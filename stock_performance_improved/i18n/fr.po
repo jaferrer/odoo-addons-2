@@ -146,3 +146,14 @@ msgstr "Confirmer"
 #: view:confirm.process.prereservations:stock_performance_improved.confirm_process_prereservations_form
 msgid "Cancel"
 msgstr "Annuler"
+
+#. module: stock_performance_improved
+#: view:stock.quant.package:stock_performance_improved.stock_performance_improved_package_form
+msgid "Open bulk content"
+msgstr "Ouvrir le contenu en vrac"
+
+#. module: stock_performance_improved
+#: code:addons\stock_performance_improved\stock_performance_improved.py:295
+#, python-format
+msgid "Bulk content for package %s"
+msgstr "Contenu en vrac pour le colis %s"

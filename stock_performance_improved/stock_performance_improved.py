@@ -286,6 +286,21 @@ class StockQuantPackageImproved(models.Model):
             res[quant["product_id"]] += quant["qty"]
         return res
 
+    @api.multi
+    def open_bulk_content(self):
+        self.ensure_one()
+        ctx = self.env.context.copy()
+        ctx['search_default_productgroup'] = True
+        return {
+            'name': _("Bulk content for package %s") % self.name,
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree',
+            'res_model': 'stock.quant',
+            'domain': [('package_id', '=', self.id)],
+            'context': ctx,
+        }
+
 
 class stock_pack_operation(models.Model):
     _inherit = "stock.pack.operation"
