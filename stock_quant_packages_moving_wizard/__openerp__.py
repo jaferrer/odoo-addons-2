@@ -43,6 +43,7 @@ This module gives two possibilities to deplace quants. In one hand, you can do i
     ],
     "data": [
         'security/ir.model.access.csv',
+        'data/cron.xml',
         "wizard/quant_move_wizard_view.xml",
         "wizard/quant_packages_move_wizard_view.xml",
         "wizard/product_line_move_wizard.xml",
