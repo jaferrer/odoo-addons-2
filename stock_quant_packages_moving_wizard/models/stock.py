@@ -27,10 +27,10 @@ from openerp.addons.connector.session import ConnectorSession
 
 
 @job(default_channel='root')
-def job_fill_new_picking_for_product(session, model_name, product_id, product_ids, move_tuples, dest_location_id,
+def job_fill_new_picking_for_product(session, model_name, product_id, move_tuples, dest_location_id,
                                      picking_type_id, new_picking_id, move_recordset=None, context=None):
     quants_obj = session.env[model_name].with_context(context)
-    quants_obj.fill_new_picking_for_product(product_id, product_ids, move_tuples, dest_location_id, picking_type_id,
+    quants_obj.fill_new_picking_for_product(product_id, move_tuples, dest_location_id, picking_type_id,
                                             new_picking_id, move_recordset=move_recordset)
     return "Picking correctly filled"
 
@@ -262,8 +262,8 @@ class StockQuant(models.Model):
         return list_reservation, move_recordset
 
     @api.model
-    def fill_new_picking_for_product(self, product_id, product_ids, move_tuples, dest_location_id, picking_type_id,
-                                     new_picking_id, move_recordset=None):
+    def fill_new_picking_for_product(self, product_id, move_tuples, dest_location_id, picking_type_id, new_picking_id,
+                                     move_recordset=None):
         if not move_recordset:
             move_recordset = self.env['stock.move']
         product = self.env['product.product'].browse(product_id)
@@ -281,10 +281,6 @@ class StockQuant(models.Model):
                                                     new_picking_id, move_recordset, quants_to_move_in_fine)
         move_recordset.filtered(lambda move: move.state == 'draft').action_confirm()
         move_recordset.delete_packops()
-        done_product_ids = [move.product_id.id for move in new_picking.move_lines]
-        if all ([product_id in done_product_ids for product_id in product_ids]):
-            new_picking.do_prepare_partial()
-            new_picking.picking_correctly_filled = True
         return move_recordset
 
     @api.multi
@@ -309,16 +305,17 @@ class StockQuant(models.Model):
                     index += 1
                     first_product = index == 1
                     if is_manual_op and filling_method == 'jobify' and not first_product:
-                        new_picking.filled_by_jobs = True
+                        new_picking.write({'filled_by_jobs': True,
+                                           'final_list_product_ids': [(6, 0, product_ids)]})
                         job_fill_new_picking_for_product.delay(ConnectorSession.from_env(self.env), 'stock.quant',
-                                                               product_id, product_ids, move_tuples, dest_location.id,
+                                                               product_id, move_tuples, dest_location.id,
                                                                picking_type.id, new_picking.id,
                                                                context=self.env.context,
                                                                description=u"Filling picking %s with product %s (%s/%s)" %
                                                                            (new_picking.name, product.display_name,
                                                                             index, chunks_number))
                     else:
-                        move_recordset = self.fill_new_picking_for_product(product_id, product_ids, move_tuples,
+                        move_recordset = self.fill_new_picking_for_product(product_id, move_tuples,
                                                                            dest_location.id,
                                                                            picking_type.id, new_picking.id,
                                                                            move_recordset=move_recordset)
@@ -349,6 +346,22 @@ class StockPicking(models.Model):
     filled_by_jobs = fields.Boolean(string="Picking filled by jobs", readonly=True, track_visibility='onchange')
     picking_correctly_filled = fields.Boolean(string="Picking correctly filled", readonly=True,
                                               track_visibility='onchange')
+    final_list_product_ids = fields.Many2many('product.product', 'picking_final_list_products_rel',
+                                              'picking_id', 'product_id',
+                                              string=u"Final list of products for this picking",
+                                              help=u"Used in case of a picking filled by jobs, to check if "
+                                                   u"the picking is entirely filled")
+
+    @api.model
+    def check_pickings_filled(self):
+        pickings_to_check = self.env['stock.picking'].search([('filled_by_jobs', '=', True),
+                                                              ('picking_correctly_filled', '=', False),
+                                                              ('state', 'not in', [('done', 'cancel')])])
+        for picking in pickings_to_check:
+            done_product_ids = [move.product_id.id for move in picking.move_lines]
+            if all([product.id in done_product_ids for product in picking.final_list_product_ids]):
+                picking.do_prepare_partial()
+                picking.picking_correctly_filled = True
 
 
 class StockMove(models.Model):
