@@ -28,6 +28,13 @@ class OdooScript(models.Model):
     script = fields.Text(string=u"Script to execute", required=True)
     last_execution_begin = fields.Datetime(string=u"Last execution begin", readonly=True)
     last_execution_end = fields.Datetime(string=u"Last execution end", readonly=True)
+    console_browse_command = fields.Char(string=u"Console browse command",
+                                         compute='_compute_console_browse_command')
+
+    @api.multi
+    def _compute_console_browse_command(self):
+        for rec in self:
+            rec.console_browse_command = rec.id and "script = self.env['odoo.script'].browse(%s)" % rec.id or False
 
     @api.multi
     def list(self):
@@ -46,7 +53,7 @@ class OdooScript(models.Model):
         glob = globals()
         loc = locals()
         self.last_execution_begin = fields.Datetime.now()
-        exec(self.script, glob, loc)
+        exec (self.script, glob, loc)
         self.last_execution_end = fields.Datetime.now()
         if autocommit:
             self.env.cr.commit()
