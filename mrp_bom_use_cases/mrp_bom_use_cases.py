@@ -54,7 +54,7 @@ class MrpBomLine(models.Model):
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
-    use_case_count = fields.Integer("No of use cases", compute='_compute_use_case_count')
+    use_case_count = fields.Integer("Number of use cases", compute='_compute_use_case_count')
 
     @api.multi
     def _compute_use_case_count(self):
