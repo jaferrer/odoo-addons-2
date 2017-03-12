@@ -17,7 +17,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
 from openerp import models, fields, api
+
+
+@job
+def run_mrp_recheck_availability(session, model_name, mrp_ids, context):
+    mrp_orders = session.env[model_name].with_context(context).browse(mrp_ids)
+    mrp_orders.action_assign()
+    return "End of assignation"
 
 
 class ManufacturingOrderPlanningImproved(models.Model):
@@ -113,6 +123,19 @@ WHERE COALESCE(mrp.procurement_id, 0) != COALESCE(procs.procurement_id, 0)""")
             if self.env.context.get('reschedule_planned_date'):
                 values['date_expected'] = rec.date_required
             rec.move_lines.write(values)
+
+    @api.model
+    def cron_recheck_availibility(self):
+        orders = self.search([('state', 'in', ['confirmed', 'in_production'])])
+        orders.action_assign()
+        chunk_number = 0
+        while orders:
+            chunk_number += 1
+            chunk_orders = orders[:100]
+            run_mrp_recheck_availability.delay(ConnectorSession.from_env(self.env), 'mrp.production', chunk_orders.ids,
+                                               self.env.context, description=u"MRP Recheck availability (chunk %s)" %
+                                                                             chunk_number)
+            orders -= chunk_orders
 
 
 class ProcurementOrderPlanningImproved(models.Model):

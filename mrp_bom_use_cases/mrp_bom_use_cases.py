@@ -54,13 +54,14 @@ class MrpBomLine(models.Model):
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
-    use_case_count = fields.Integer("No of use cases", compute='_compute_use_case_count')
+    use_case_count = fields.Integer("Number of use cases", compute='_compute_use_case_count')
 
     @api.multi
     def _compute_use_case_count(self):
         for rec in self:
             rec.use_case_count = len(self.env['mrp.bom.line'].search(
                 [('product_id', '=', rec.id),
+                 ('bom_id.active', '=', True),
                  '|', ('bom_id.date_start', '<=', fields.Date.today()), ('bom_id.date_start', '=', False),
                  '|', ('bom_id.date_stop', '>=', fields.Date.today()), ('bom_id.date_start', '=', False)])
             )

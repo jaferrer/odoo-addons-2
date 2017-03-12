@@ -53,6 +53,11 @@ msgid "Parent Product"
 msgstr "Produit parent"
 
 #. module: mrp_bom_use_cases
+#: field:product.product,use_case_count:0
+msgid "Number of use cases"
+msgstr "Nombre de cas d'emploi"
+
+#. module: mrp_bom_use_cases
 #: model:ir.model,name:mrp_bom_use_cases.model_product_product
 msgid "Product"
 msgstr "Article"
