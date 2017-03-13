@@ -183,6 +183,12 @@ msgid "Picking correctly filled"
 msgstr "Transfert rempli correctement"
 
 #. module: stock_quant_packages_moving_wizard
+#: field:stock.picking,product_to_be_filled_ids:0
+#: view:stock.picking:stock_quant_packages_moving_wizard.stock_product_line_picking_form
+msgid "Products to fill"
+msgstr "Articles à remplir"
+
+#. module: stock_quant_packages_moving_wizard
 #: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:103
 #, python-format
 msgid "Impossible to move a negative quant"
@@ -395,3 +401,27 @@ msgstr "ou"
 msgid "product+package"
 msgstr "Article + Colis"
 
+#. module: stock_quant_packages_moving_wizard
+#: field:product.to.be.filled,picking_id:0
+msgid "Stock Picking"
+msgstr "Bon de transfert"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:product.to.be.filled,product_id:0
+msgid "Product"
+msgstr "Article"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:product.to.be.filled,filled:0
+msgid "Filled"
+msgstr "Rempli"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:product.to.be.filled,create_date:0
+msgid "Created on"
+msgstr "Créé à"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:product.to.be.filled,filled_at:0
+msgid "Filled at"
+msgstr "Rempli à"
