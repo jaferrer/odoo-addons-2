@@ -50,7 +50,7 @@ class StockChangeQuantPicking(models.TransientModel):
         move_domain = [('picking_id', '!=', False),
                        ('product_id', '=', quant.product_id.id),
                        ('state', 'in', ['confirmed', 'waiting', 'assigned']),
-                       ('location_id', 'child_of', quant.location_id.id),
+                       '|', ('location_id', 'child_of', quant.location_id.id),
                        ('location_id', 'in', parent_locations.ids)]
         if self.partner_id:
             groups = self.env['procurement.group'].search([('partner_id', '=', self.partner_id.id)])
@@ -71,7 +71,7 @@ class StockChangeQuantPicking(models.TransientModel):
             parent_location = parent_location.location_id
         move_domain = [('product_id', '=', quant.product_id.id),
                        ('state', 'in', ['confirmed', 'waiting', 'assigned']),
-                       ('location_id', 'child_of', quant.location_id.id),
+                       '|', ('location_id', 'child_of', quant.location_id.id),
                        ('location_id', 'in', parent_locations.ids)]
         if self.picking_id.group_id:
             move_domain += [('group_id', '=', self.picking_id.group_id.id)]
