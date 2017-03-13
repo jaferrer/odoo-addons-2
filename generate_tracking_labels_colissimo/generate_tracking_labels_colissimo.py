@@ -86,8 +86,23 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                              bool(package_data['cod_value']) and 1 or 0, package_data['cod_value'] * 100,
                              self.instructions, self.ftd)
 
-                customer_data = (self.company_name or '', self.last_name or '', self.first_name or '', self.line0 or '',
-                                 self.line1 or '', self.line2 or '', self.line3 or '', self.country_id.code or '',
+                customer_spec = {
+                    'line0': self.line0 or '',
+                    'line1': self.line1 or '',
+                    'line2': self.line2 or '',
+                    'line3': self.line3 or ''
+                }
+                if self.country_id.code == 'BE':
+                    customer_spec = {
+                        'line0': self.line3 and (self.line2 or '') or '',
+                        'line1': '',
+                        'line2': self.line3 and (self.line3 or '') or (self.line2 or ''),
+                        'line3': ''
+                    }
+
+
+                customer_data = (self.company_name or '', self.last_name or '', self.first_name or '', customer_spec['line0'],
+                                 customer_spec['line1'], customer_spec['line2'], customer_spec['line3'], self.country_id.code or '',
                                  self.city or '', self.zip or '', self.phone_number or '', self.mobile_number or '',
                                  self.door_code1 or '', self.door_code2 or '', self.email or '', self.intercom or '',
                                  self.language)
