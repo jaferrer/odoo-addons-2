@@ -29,6 +29,7 @@
                             <field name="description"/>
                             <field name="last_execution_begin"/>
                             <field name="last_execution_end"/>
+                            <field name="console_browse_command"/>
                         </group>
                         <notebook>
                             <page string="Script to execute">

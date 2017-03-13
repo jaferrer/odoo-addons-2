@@ -462,24 +462,26 @@ class PurchaseOrderLineJustInTime(models.Model):
                 active_moves.write({'price_unit': vals['price_unit']})
         return result
 
+    @api.model
+    def get_warehouse_for_stock_report(self):
+        return self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)], limit=1)
+
     @api.multi
     def act_windows_view_graph(self):
         self.ensure_one()
-        warehouses = self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)])
-        if warehouses:
-            wid = warehouses[0].id
+        warehouse = self.get_warehouse_for_stock_report()
+        if warehouse:
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'stock.levels.report',
+                'name': _("Stock Evolution"),
+                'view_type': 'form',
+                'view_mode': 'graph,tree',
+                'context': {'search_default_warehouse_id': warehouse.id,
+                            'search_default_product_id': self.product_id.id}
+            }
         else:
             raise exceptions.except_orm(_("Error!"), _("Your company does not have a warehouse"))
-
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'stock.levels.report',
-            'name': _("Stock Evolution"),
-            'view_type': 'form',
-            'view_mode': 'graph,tree',
-            'context': {'search_default_warehouse_id': wid,
-                        'search_default_product_id': self.product_id.id}
-        }
 
     @api.multi
     def unlink(self):

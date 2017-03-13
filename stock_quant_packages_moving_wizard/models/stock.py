@@ -18,19 +18,19 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, exceptions, _
-from openerp.tools import float_compare, float_round
-from openerp.tools.sql import drop_view_if_exists
-from datetime import datetime as dt
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 
+from openerp import models, fields, api, exceptions, osv, _
+from openerp.tools import float_compare, float_round
+from openerp.tools.sql import drop_view_if_exists
+
 
 @job(default_channel='root')
-def job_fill_new_picking_for_product(session, model_name, product_id, product_ids, move_tuples, dest_location_id,
+def job_fill_new_picking_for_product(session, model_name, product_id, move_tuples, dest_location_id,
                                      picking_type_id, new_picking_id, move_recordset=None, context=None):
     quants_obj = session.env[model_name].with_context(context)
-    quants_obj.fill_new_picking_for_product(product_id, product_ids, move_tuples, dest_location_id, picking_type_id,
+    quants_obj.fill_new_picking_for_product(product_id, move_tuples, dest_location_id, picking_type_id,
                                             new_picking_id, move_recordset=move_recordset)
     return "Picking correctly filled"
 
@@ -225,10 +225,10 @@ class StockQuant(models.Model):
                 'date_expected': fields.Datetime.now(),
                 'date': fields.Datetime.now(),
                 'picking_type_id': picking_type_id,
+                'picking_id': new_picking_id
             })
             new_move.action_confirm()
             self.quants_reserve(quants_to_move_in_fine, new_move)
-            new_move.write({'picking_id': new_picking_id})
             move_recordset = move_recordset | new_move
         return move_recordset
 
@@ -262,8 +262,8 @@ class StockQuant(models.Model):
         return list_reservation, move_recordset
 
     @api.model
-    def fill_new_picking_for_product(self, product_id, product_ids, move_tuples, dest_location_id, picking_type_id,
-                                     new_picking_id, move_recordset=None):
+    def fill_new_picking_for_product(self, product_id, move_tuples, dest_location_id, picking_type_id, new_picking_id,
+                                     move_recordset=None):
         if not move_recordset:
             move_recordset = self.env['stock.move']
         product = self.env['product.product'].browse(product_id)
@@ -281,10 +281,11 @@ class StockQuant(models.Model):
                                                     new_picking_id, move_recordset, quants_to_move_in_fine)
         move_recordset.filtered(lambda move: move.state == 'draft').action_confirm()
         move_recordset.delete_packops()
-        done_product_ids = [move.product_id.id for move in new_picking.move_lines]
-        if all ([product_id in done_product_ids for product_id in product_ids]):
-            new_picking.do_prepare_partial()
-            new_picking.picking_correctly_filled = True
+        products_filled = self.env['product.to.be.filled'].search([('picking_id', '=', new_picking_id),
+                                                                   ('product_id', '=', product_id)])
+        if products_filled:
+            products_filled.write({'filled': True,
+                                   'filled_at': fields.Datetime.now()})
         return move_recordset
 
     @api.multi
@@ -299,29 +300,35 @@ class StockQuant(models.Model):
             if move_items:
                 index = 0
                 product_ids = move_items.keys()
+                product_ids = sorted(product_ids, key=lambda product_id: sum(
+                    [dict_reservation['qty'] for dict_reservation in move_items[product_id]]))
                 chunks_number = len(product_ids)
+                first_product = True
                 for product_id in product_ids:
+                    if first_product:
+                        new_picking.filled_by_jobs = True
+                    self.env['product.to.be.filled'].create({'picking_id': new_picking.id,
+                                                             'product_id': product_id})
                     product = self.env['product.product'].browse(product_id)
                     move_tuples = move_items[product_id]
                     if not move_tuples:
                         raise exceptions.except_orm(_("error"), _("No move found for product %s") %
                                                     product.display_name)
                     index += 1
-                    first_product = index == 1
                     if is_manual_op and filling_method == 'jobify' and not first_product:
-                        new_picking.filled_by_jobs = True
+                        description = u"Filling picking %s with product %s (%s/%s)" % \
+                                      (new_picking.name, product.display_name, index, chunks_number)
                         job_fill_new_picking_for_product.delay(ConnectorSession.from_env(self.env), 'stock.quant',
-                                                               product_id, product_ids, move_tuples, dest_location.id,
+                                                               product_id, move_tuples, dest_location.id,
                                                                picking_type.id, new_picking.id,
                                                                context=self.env.context,
-                                                               description=u"Filling picking %s with product %s (%s/%s)" %
-                                                                           (new_picking.name, product.display_name,
-                                                                            index, chunks_number))
+                                                               description=description)
                     else:
-                        move_recordset = self.fill_new_picking_for_product(product_id, product_ids, move_tuples,
+                        move_recordset = self.fill_new_picking_for_product(product_id, move_tuples,
                                                                            dest_location.id,
                                                                            picking_type.id, new_picking.id,
                                                                            move_recordset=move_recordset)
+                    first_product = False
             else:
                 list_reservation, move_recordset = self. \
                     move_quants_old_school(list_reservation, move_recordset, dest_location,
@@ -346,9 +353,50 @@ class StockQuant(models.Model):
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    @api.cr_uid_ids_context
+    def _compute_group_id(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for picking in self.browse(cr, uid, ids, context=context):
+            new_group = picking.move_lines and picking.move_lines[0].group_id or picking.group_id
+            if new_group == picking.group_id:
+                continue
+            res[picking.id] = new_group and new_group.id or False
+        return res
+
+    @api.cr_uid_ids_context
+    def _get_pickings(self, cr, uid, ids, context=None):
+        res = set()
+        for move in self.browse(cr, uid, ids, context=context):
+            if move.picking_id:
+                res.add(move.picking_id.id)
+        return list(res)
+
     filled_by_jobs = fields.Boolean(string="Picking filled by jobs", readonly=True, track_visibility='onchange')
     picking_correctly_filled = fields.Boolean(string="Picking correctly filled", readonly=True,
                                               track_visibility='onchange')
+    product_to_be_filled_ids = fields.One2many('product.to.be.filled', 'picking_id',
+                                               string=u"Products to fill")
+
+    _columns = {
+        'group_id': osv.fields.function(
+            _compute_group_id, type='many2one', relation='procurement.group',
+            store={
+                'stock.picking': (lambda self, cr, uid, ids, ctx: ids, ['move_lines'], 20),
+                'stock.move': (_get_pickings, ['group_id', 'picking_id'], 20)}
+        ),
+    }
+
+    @api.model
+    def check_pickings_filled(self):
+        pickings_to_check = self.env['stock.picking'].search([('filled_by_jobs', '=', True),
+                                                              ('picking_correctly_filled', '=', False),
+                                                              ('state', 'not in', [('done', 'cancel')])])
+        for picking in pickings_to_check:
+            products_not_filled = self.env['product.to.be.filled'].search([('picking_id', '=', picking.id),
+                                                                           ('filled', '=', False)])
+            if not products_not_filled:
+                picking.do_prepare_partial()
+                picking.picking_correctly_filled = True
 
 
 class StockMove(models.Model):
@@ -466,3 +514,12 @@ class Stock(models.Model):
             'target': 'new',
             'context': ctx,
         }
+
+
+class ProductToBeFilled(models.Model):
+    _name = 'product.to.be.filled'
+
+    picking_id = fields.Many2one('stock.picking', string=u"Stock Picking")
+    product_id = fields.Many2one('product.product', string=u"Product")
+    filled = fields.Boolean(string=u"Filled")
+    filled_at = fields.Datetime(string=u"Filled at")

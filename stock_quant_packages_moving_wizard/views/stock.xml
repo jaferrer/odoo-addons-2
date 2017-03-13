@@ -80,6 +80,26 @@ action = self.move_products(cr, uid, context.get('active_ids'), False, context)
                     <field name="filled_by_jobs" invisible="1"/>
                     <field name="picking_correctly_filled" attrs="{'invisible': [('filled_by_jobs', '=', False)]}"/>
                 </field>
+                <notebook position="inside">
+                    <page string="Products to fill" attrs="{'invisible': [('filled_by_jobs', '=', False)]}">
+                        <field name="product_to_be_filled_ids"/>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="product_to_be_filled_tree">
+            <field name="name">product_to_be_filled_tree</field>
+            <field name="model">product.to.be.filled</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" delete="false" edit="false">
+                    <field name="picking_id" invisible="1"/>
+                    <field name="product_id"/>
+                    <field name="filled"/>
+                    <field name="create_date"/>
+                    <field name="filled_at"/>
+                </tree>
             </field>
         </record>
 

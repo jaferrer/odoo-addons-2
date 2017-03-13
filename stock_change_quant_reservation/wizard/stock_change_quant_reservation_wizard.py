@@ -42,10 +42,16 @@ class StockChangeQuantPicking(models.TransientModel):
         self.picking_id = False
         self.move_id = False
         quant = self.env['stock.quant'].browse(self.env.context['active_ids'][0])
+        parent_locations = quant.location_id
+        parent_location = quant.location_id
+        while parent_location.location_id and parent_location.location_id.usage in ['internal', 'transit']:
+            parent_locations |= parent_location.location_id
+            parent_location = parent_location.location_id
         move_domain = [('picking_id', '!=', False),
                        ('product_id', '=', quant.product_id.id),
                        ('state', 'in', ['confirmed', 'waiting', 'assigned']),
-                       ('location_id', '=', quant.location_id.id)]
+                       '|', ('location_id', 'child_of', quant.location_id.id),
+                       ('location_id', 'in', parent_locations.ids)]
         if self.partner_id:
             groups = self.env['procurement.group'].search([('partner_id', '=', self.partner_id.id)])
             move_domain += [('picking_id.group_id', 'in', groups.ids)]
@@ -58,9 +64,15 @@ class StockChangeQuantPicking(models.TransientModel):
         self.ensure_one()
         self.move_id = False
         quant = self.env['stock.quant'].browse(self.env.context['active_ids'][0])
+        parent_locations = quant.location_id
+        parent_location = quant.location_id
+        while parent_location.location_id and parent_location.location_id.usage in ['internal', 'transit']:
+            parent_locations |= parent_location.location_id
+            parent_location = parent_location.location_id
         move_domain = [('product_id', '=', quant.product_id.id),
                        ('state', 'in', ['confirmed', 'waiting', 'assigned']),
-                       ('location_id', '=', quant.location_id.id)]
+                       '|', ('location_id', 'child_of', quant.location_id.id),
+                       ('location_id', 'in', parent_locations.ids)]
         if self.picking_id.group_id:
             move_domain += [('group_id', '=', self.picking_id.group_id.id)]
         return {'domain': {'move_id': move_domain}}

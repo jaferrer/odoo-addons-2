@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <record model="ir.cron" id="cron_check_pickings_filled">
+            <field name="name">Check end of automatic filling for pickings</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="nextcall">2015-10-01 00:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">stock.picking</field>
+            <field name="function">check_pickings_filled</field>
+            <field name="args"/>
+        </record>
+
+    </data>
+</openerp>

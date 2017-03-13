@@ -608,24 +608,27 @@ class StockLevelsReport(models.Model):
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
+    @api.model
+    def get_warehouse_for_stock_report(self):
+        return self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)], limit=1)
+
     @api.multi
     def action_show_evolution(self):
         self.ensure_one()
-        warehouses = self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)])
-        if warehouses:
-            wid = warehouses[0].id
+        warehouse = self.get_warehouse_for_stock_report()
+        if warehouse:
+            ctx = dict(self.env.context)
+            ctx.update({
+                'search_default_warehouse_id': warehouse.id,
+                'search_default_product_id': self.id,
+            })
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _("Stock Evolution"),
+                'res_model': 'stock.levels.report',
+                'view_type': 'form',
+                'view_mode': 'graph,tree',
+                'context': ctx,
+            }
         else:
             raise exceptions.except_orm(_("Error"), _("Your company does not have a warehouse"))
-        ctx = dict(self.env.context)
-        ctx.update({
-            'search_default_warehouse_id': wid,
-            'search_default_product_id': self.id,
-        })
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _("Stock Evolution"),
-            'res_model': 'stock.levels.report',
-            'view_type': 'form',
-            'view_mode': 'graph,tree',
-            'context': ctx,
-        }
