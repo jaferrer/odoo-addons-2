@@ -56,5 +56,5 @@ msgstr "Utilisateurs connecteurs"
 
 #. module: connector
 #: model:res.groups,name:connector_improved.group_connector_real_manager
-msgid "Connector Manager"
-msgstr "Responsable connecteurs"
+msgid "Connector Administrator"
+msgstr "Administrateur connecteurs"
