@@ -132,7 +132,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                       <instructions>%s</instructions>
                       <ftd>%s</ftd>
                    </parcel>""" % pack_data
-                if package_data.get('custom_declaration'):
+                if self.generate_custom_declaration:
                     xml_post_parameter += u"""
                        <customsDeclarations>
                            <includeCustomsDeclarations>1</includeCustomsDeclarations>
