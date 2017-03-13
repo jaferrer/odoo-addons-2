@@ -43,3 +43,29 @@ class QueueJob(models.Model):
             if time_delta_seconds > worker_real_limit_seconds:
                 jobs_to_enqueue |= job
         jobs_to_enqueue.requeue()
+
+    @api.multi
+    def _subscribe_users(self):
+        """ Subscribe all users having the 'Connector Manager' group """
+        group = self.env.ref('connector_improved.group_connector_real_manager')
+        if not group:
+            return
+        companies = self.mapped('company_id')
+        domain = [('groups_id', '=', group.id)]
+        if companies:
+            domain.append(('company_id', 'child_of', companies.ids))
+        users = self.env['res.users'].search(domain)
+        self.message_subscribe_users(user_ids=users.ids)
+
+
+class ConnectorCheckpointImproved(models.Model):
+    _inherit = 'connector.checkpoint'
+
+    @api.multi
+    def _subscribe_users(self):
+        """ Subscribe all users having the 'Connector Manager' group """
+        group = self.env.ref('connector_improved.group_connector_real_manager')
+        if not group:
+            return
+        users = self.env['res.users'].search([('groups_id', '=', group.id)])
+        self.message_subscribe_users(user_ids=users.ids)
