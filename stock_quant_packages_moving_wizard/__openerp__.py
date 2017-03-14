@@ -27,7 +27,7 @@
     "category": "Warehouse Management",
     "depends": ['stock', 'connector',
                 ######################### Unlink dependance to module stock_performance_improved when PR https://github.com/odoo/odoo/pull/13287 is merged.
-                'stock_performance_improved'
+                'stock_performance_improved', 'stock_split_picking',
                 ],
     'description': """
 Quants and packaging moving wizards
