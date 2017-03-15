@@ -305,7 +305,7 @@ class StockQuant(models.Model):
                 chunks_number = len(product_ids)
                 first_product = True
                 for product_id in product_ids:
-                    if first_product:
+                    if is_manual_op and filling_method == 'jobify' and first_product:
                         new_picking.filled_by_jobs = True
                     self.env['product.to.be.filled'].create({'picking_id': new_picking.id,
                                                              'product_id': product_id})
