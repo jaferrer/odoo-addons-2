@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="product_product_form_sirail">
+            <field name="name">product.product.form.sirail</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="priority" eval="12"/>
+            <field name="arch" type="xml">
+                <div name="options" position="after">
+                    <group>
+                        <field name="product_label_ids" widget="many2many_checkboxes"/>
+                    </group>
+                </div>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="product_label_tree">
+            <field name="name">product_label_tree</field>
+            <field name="model">product.label</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_product_label">
+            <field name="name">Product labels</field>
+            <field name="res_model">product.label</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_product_label" name="Product labels" action="act_window_product_label"
+                  parent="stock.menu_product_in_config_stock" sequence="10"/>
+
+    </data>
+</openerp>
