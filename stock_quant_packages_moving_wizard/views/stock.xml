@@ -27,8 +27,9 @@
                     <field name="lot_id" groups="stock.group_production_lot"/>
                     <field name="uom_id" groups="product.group_uom"/>
                     <field name="location_id"/>
+                    <field name="is_package" invisible="True"/>
                     <separator/>
-                    <filter string="Top package" domain="[('product_id', '=', False)]"/>
+                    <filter string="Package" domain="[('is_package', '=', True)]"/>
                     <filter string="Bulk items" domain="[('package_id', '=', False)]"/>
                 </search>
             </field>
