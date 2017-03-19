@@ -347,6 +347,11 @@ msgstr "Impossible de déplacer un quant dont l'unité de mesure n'est pas activ
 
 #. module: stock_quant_packages_moving_wizard
 #: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
+msgid "Top package"
+msgstr "Colis de tete"
+
+#. module: stock_quant_packages_moving_wizard
+#: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
 msgid "Package"
 msgstr "Colis"
 
