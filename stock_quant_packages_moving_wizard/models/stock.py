@@ -305,7 +305,7 @@ class StockQuant(models.Model):
                 chunks_number = len(product_ids)
                 first_product = True
                 for product_id in product_ids:
-                    if first_product:
+                    if is_manual_op and filling_method == 'jobify' and first_product:
                         new_picking.filled_by_jobs = True
                     self.env['product.to.be.filled'].create({'picking_id': new_picking.id,
                                                              'product_id': product_id})
@@ -433,28 +433,45 @@ class StockWarehouse(models.Model):
 class Stock(models.Model):
     _name = 'stock.product.line'
     _auto = False
-    _order = 'package_id asc, product_id asc'
+    _order = 'package_name asc, product_name asc'
 
     product_id = fields.Many2one('product.product', readonly=True, index=True, string="Product")
+    product_name = fields.Char(string="Product name")
     package_id = fields.Many2one("stock.quant.package", string="Package", index=True)
+    package_name = fields.Char(string="Package name")
     lot_id = fields.Many2one("stock.production.lot", string="Lot")
     qty = fields.Float(string="Quantity")
     uom_id = fields.Many2one("product.uom", string="UOM")
     location_id = fields.Many2one("stock.location", string="Location")
     parent_id = fields.Many2one("stock.quant.package", "Parent Package", index=True)
+    is_package = fields.Boolean(string="Is a package", readonly=True)
 
     def init(self, cr):
         drop_view_if_exists(cr, 'stock_product_line')
         cr.execute("""CREATE OR REPLACE VIEW stock_product_line AS (
+    WITH nb_products_by_package AS (
+        SELECT
+            sqp.id                        AS package_id,
+            count(DISTINCT sq.product_id) AS nb_products
+        FROM
+            stock_quant sq
+            LEFT JOIN stock_quant_package sqp ON sqp.id = sq.package_id
+        GROUP BY sqp.id)
+
     SELECT
         COALESCE(rqx.product_id, 0)
         || '-' || COALESCE(rqx.package_id, 0) || '-' || COALESCE(rqx.lot_id, 0) || '-' ||
         COALESCE(rqx.uom_id, 0) || '-' || COALESCE(rqx.location_id, 0) AS id,
-        rqx.*
+        rqx.*,
+        (CASE WHEN rqx.product_id IS NULL OR nb_products.nb_products <= 1
+            THEN TRUE
+         ELSE FALSE END)                                               AS is_package
     FROM
         (SELECT
              sq.product_id,
+             pp.name_template AS              product_name,
              sq.package_id,
+             sqp.name         AS              package_name,
              sq.lot_id,
              round(sum(sq.qty) :: NUMERIC, 3) qty,
              pt.uom_id,
@@ -465,9 +482,12 @@ class Stock(models.Model):
              LEFT JOIN product_product pp ON pp.id = sq.product_id
              LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
              LEFT JOIN stock_quant_package sqp ON sqp.id = sq.package_id
+             LEFT JOIN nb_products_by_package nb_products ON nb_products.package_id = sqp.id
          GROUP BY
              sq.product_id,
+             pp.name_template,
              sq.package_id,
+             sqp.name,
              sq.lot_id,
              pt.uom_id,
              sq.location_id,
@@ -475,7 +495,9 @@ class Stock(models.Model):
          UNION ALL
          SELECT
              NULL         product_id,
+             NULL     AS  product_name,
              sqp.id       package_id,
+             sqp.name AS  package_name,
              NULL         lot_id,
              0 :: NUMERIC qty,
              NULL         uom_id,
@@ -483,17 +505,14 @@ class Stock(models.Model):
              sqp.parent_id
          FROM
              stock_quant_package sqp
-         WHERE exists(SELECT 1
+             LEFT JOIN nb_products_by_package nb_products ON nb_products.package_id = sqp.id
+         WHERE nb_products.nb_products != 1 OR
+               exists(SELECT 1
                       FROM
-                          stock_quant sq
-                          LEFT JOIN stock_quant_package sqp_bis ON sqp_bis.id = sq.package_id
-                      WHERE sqp_bis.id = sqp.id
-                      GROUP BY sqp_bis.id
-                      HAVING count(DISTINCT sq.product_id) <> 1) OR exists(SELECT 1
-                                                                           FROM
-                                                                               stock_quant_package sqp_bis
-                                                                           WHERE sqp_bis.parent_id = sqp.id)
-        ) rqx)
+                          stock_quant_package sqp_bis
+                      WHERE sqp_bis.parent_id = sqp.id)
+        ) rqx
+        LEFT JOIN nb_products_by_package nb_products ON nb_products.package_id = rqx.package_id)
             """)
 
     @api.multi
