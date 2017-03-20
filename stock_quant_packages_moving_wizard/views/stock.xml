@@ -29,6 +29,7 @@
                     <field name="location_id"/>
                     <field name="is_package" invisible="True"/>
                     <separator/>
+                    <filter string="Top package" domain="[('product_id', '=', False)]"/>
                     <filter string="Package" domain="[('is_package', '=', True)]"/>
                     <filter string="Bulk items" domain="[('package_id', '=', False)]"/>
                 </search>
