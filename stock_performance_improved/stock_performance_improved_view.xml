@@ -189,5 +189,27 @@ self.run_assign_moves(cr, uid, context=context)
             </field>
         </record>
 
+        <record model="ir.ui.view" id="procurement_rule_search">
+            <field name="name">procurement_rule_search</field>
+            <field name="model">procurement.rule</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="location_src_id"/>
+                    <field name="location_id"/>
+                    <filter name="move" string="Move" domain="[('action', '=', 'move')]"/>
+                    <filter name="manufacture" string="Manufacture" domain="[('action', '=', 'manufacture')]"/>
+                    <filter name="buy" string="Buy" domain="[('action', '=', 'manufacture')]"/>
+                    <filter name="make_to_stock" string="Make to stock" domain="[('procure_method', '=', 'make_to_stock')]"/>
+                    <filter name="make_to_order" string="Make to order" domain="[('procure_method', '=', 'make_to_order')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Source location" domain="[]" context="{'group_by':'location_src_id'}"/>
+                        <filter string="Destination location" domain="[]" context="{'group_by':'location_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
     </data>
 </openerp>
