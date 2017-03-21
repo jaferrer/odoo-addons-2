@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="workflow_improved_sale_order_form">
+            <field name="name">workflow_improved_sale_order_form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <button name="action_cancel" position="attributes">
+                    <attribute name="states"/>
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ['manual', 'progress']), ('workflow_done', '=', True)]}</attribute>
+                </button>
+                <field name="state" position="before">
+                    <field name="workflow_done" invisible="1"/>
+                    <button name="reopen_order" string="Reopen order" type="object" states="done"/>
+                    <button name="action_done" string="Set to done" type="object" attrs="{'invisible': ['|', ('state', '!=', 'progress'), ('workflow_done', '=', False)]}"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
