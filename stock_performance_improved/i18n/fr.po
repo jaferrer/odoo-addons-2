@@ -157,3 +157,43 @@ msgstr "Ouvrir le contenu en vrac"
 #, python-format
 msgid "Bulk content for package %s"
 msgstr "Contenu en vrac pour le colis %s"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Move"
+msgstr "Déplacement"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Manufacture"
+msgstr "Fabrication"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Buy"
+msgstr "Achat"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Make to stock"
+msgstr "Prendre dans le stock"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Make to order"
+msgstr "Créer une demande d'approvisionnement"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Source location"
+msgstr "Emplacement de départ"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Destination location"
+msgstr "Emplacement de destination"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Group By"
+msgstr "Grouper par"
