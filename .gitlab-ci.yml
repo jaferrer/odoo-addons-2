@@ -15,12 +15,11 @@ variables:
 
 lint_flake8:
   stage: test
-  variables:
-    GIT_STRATEGY: clone
   script:
     - /run.sh
   tags:
     - lint
+  allow_failure: true
 
 runbot:
   stage: test
