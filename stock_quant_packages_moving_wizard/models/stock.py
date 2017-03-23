@@ -232,7 +232,7 @@ class StockQuant(models.Model):
             move_recordset = move_recordset | new_move
         return move_recordset
 
-    @api.model
+    @api.multi
     def move_quants_old_school(self, list_reservation, move_recordset, dest_location, picking_type_id, new_picking):
         values = self.env['stock.quant'].read_group([('id', 'in', self.ids)],
                                                     ['product_id', 'location_id', 'qty'],
