@@ -63,7 +63,7 @@
     </head>
     <body>
         <div class='openerp openerp_webclient_container'>
-            <table class='oe_webclient'>
+            <table class='oe_webclient' style="width:100%;">
                 <tr>
                     <td class='oe_application' />
                 </tr>
