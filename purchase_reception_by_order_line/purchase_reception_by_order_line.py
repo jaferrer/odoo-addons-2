@@ -36,7 +36,7 @@ class ReceptionByOrderStockPackOperation(models.Model):
         if any([ops.purchase_line_id and ops.product_id != ops.purchase_line_id.product_id for ops in self]):
             raise exceptions.except_orm(_("Error!"), _("Impossible to receive a product on a purchase order line "
                                                        "linked to another product. Please check your packing "
-                                                       "operationd and retry."))
+                                                       "operations and retry."))
         # First operation should be the ones which are linked to a purchase_order_line
         operations_with_purchase_lines = self.search([('id', 'in', self.ids), ('purchase_line_id', '!=', False)])
         operations_without_purchase_lines = self.search([('id', 'in', self.ids),

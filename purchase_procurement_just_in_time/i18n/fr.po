@@ -567,6 +567,11 @@ msgid "Stock Evolution"
 msgstr "Evolution des stocks"
 
 #. module: purchase_procurement_just_in_time
+#: view:purchase.order:purchase_procurement_just_in_time.purchase_order_view_form_jit
+msgid "Reset to confirmed"
+msgstr "Remettre en confirmé"
+
+#. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,children_line_ids:0
 msgid "Children lines"
 msgstr "Lignes enfant"
