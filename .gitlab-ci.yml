@@ -9,7 +9,7 @@ before_script:
 
 variables:
   ODOO_VERSION: "9.0"
-  GIT_STRATEGY: none
+  GIT_STRATEGY: fetch
   ODOO_DEPENDS: ''
   ODOO_MODULE: ALL
 
@@ -20,14 +20,14 @@ lint_flake8:
   script:
     - /run.sh
   tags:
-    - test
+    - lint
 
 runbot:
   stage: test
   script:
     - /run.sh
   tags:
-    - test
+    - runbot
 
 preview_odoo:
   stage: preview
