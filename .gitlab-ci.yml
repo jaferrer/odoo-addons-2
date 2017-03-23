@@ -9,10 +9,10 @@ before_script:
 
 variables:
   ODOO_VERSION: "9.0"
-  GIT_STRATEGY: fetch
+  GIT_STRATEGY: "fetch"
   ODOO_DEPENDS: "odoo-addons/community-addons"
-  ODOO_MODULE: ALL
-  VERBOSE: True
+  ODOO_MODULE: "ALL"
+  VERBOSE: "True"
 
 lint_flake8:
   stage: test
