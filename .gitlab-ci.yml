@@ -10,7 +10,7 @@ before_script:
 variables:
   ODOO_VERSION: "9.0"
   GIT_STRATEGY: fetch
-  ODOO_DEPENDS: ''
+  ODOO_DEPENDS: "odoo-addons/community-addons"
   ODOO_MODULE: ALL
 
 lint_flake8:
