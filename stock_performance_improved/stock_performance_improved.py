@@ -273,6 +273,10 @@ FROM (
 class StockQuantPackageImproved(models.Model):
     _inherit = "stock.quant.package"
 
+    _sql_constraints = [
+        ('name_uniq', 'unique (name)', 'The name of the package must be unique!')
+    ]
+
     def _get_all_products_quantities(self, cr, uid, package_id, context=None):
         '''This function computes the different product quantities for the given package
         '''
