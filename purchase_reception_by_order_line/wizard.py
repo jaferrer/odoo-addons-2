@@ -43,7 +43,7 @@ class ReceptionByOrderTransferDetails(models.TransientModel):
                 item in self.item_ids]):
             raise exceptions.except_orm(_("Error!"), _("Impossible to receive a product on a purchase order line "
                                                        "linked to another product. Please check your packing "
-                                                       "operationd and retry."))
+                                                       "operations and retry."))
         # Create new pack operations if needed
         for item in self.item_ids:
             if not item.packop_id:

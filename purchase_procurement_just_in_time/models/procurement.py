@@ -68,6 +68,11 @@ def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines
     return result
 
 
+class ProductSupplierinfoJIT(models.Model):
+    _inherit = 'product.supplierinfo'
+    _order = 'sequence, id'
+
+
 class ProcurementOrderPurchaseJustInTime(models.Model):
     _inherit = 'procurement.order'
 
@@ -97,9 +102,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         ''' returns the main supplier of the procurement's product given as argument'''
         company_supplier = self.env['product.supplierinfo']. \
             search([('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id),
-                    ('company_id', '=', procurement.company_id.id)], order='sequence asc, id asc')
+                    '|', ('company_id', '=', procurement.company_id.id), ('company_id', '=', False)],
+                   order='sequence, id', limit=1)
         if company_supplier:
-            return company_supplier[0].name
+            return company_supplier.name
         return procurement.product_id.seller_id
 
     @api.model
