@@ -26,6 +26,12 @@ class StockReservationPriorityStockMove(models.Model):
 
     priority = fields.Selection(copy=False)
 
+    @api.model
+    def get_domain_reserved_quants(self, product_id, location_id):
+        return [('product_id', '=', product_id),
+                ('location_id', 'child_of', location_id),
+                ('reservation_id', '!=', False)]
+
     @api.multi
     def action_assign(self):
         to_assign_ids = self and self.ids or []
@@ -46,10 +52,9 @@ class StockReservationPriorityStockMove(models.Model):
                 available_quants = available_quants.read(['qty'], load=False)
                 available_qty = sum([quant['qty'] for quant in available_quants])
                 if float_compare(needed_qty, available_qty, precision_rounding=prec) > 0:
-                    reserved_quants = self.env['stock.quant']. \
-                        search([('location_id', 'child_of', move_to_assign['location_id']),
-                                ('product_id', '=', move_to_assign['product_id']),
-                                ('reservation_id', '!=', False)])
+                    domain_reserved_quants = self.get_domain_reserved_quants(move_to_assign['product_id'],
+                                                                             move_to_assign['location_id'])
+                    reserved_quants = self.env['stock.quant'].search(domain_reserved_quants)
                     reserved_quants = reserved_quants.read(['reservation_id'], load=False)
                     reservation_ids = [quant['reservation_id'] for quant in reserved_quants]
                     running_moves_ordered_reverse = self.env['stock.move']. \
@@ -58,7 +63,8 @@ class StockReservationPriorityStockMove(models.Model):
                                 '&', ('priority', '=', move_to_assign['priority']),
                                 ('date', '>', move_to_assign['date'])],
                                order='priority asc, date desc, id desc')
-                    running_moves_ordered_reverse = running_moves_ordered_reverse.read(['id', 'product_qty'], load=False)
+                    running_moves_ordered_reverse = running_moves_ordered_reverse.read(['id', 'product_qty'],
+                                                                                       load=False)
                     moves_to_unreserve = []
                     for move_to_unreserve in running_moves_ordered_reverse:
                         if float_compare(available_qty, needed_qty, precision_rounding=prec) >= 0:
