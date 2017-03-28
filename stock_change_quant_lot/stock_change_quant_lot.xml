@@ -31,7 +31,7 @@ action = self.change_quants_lots(cr, uid, context.get('active_ids'), context=con
                     </group>
                     <footer>
                         <button name="change_quants_lots" string="Change quants lots" type="object" class="oe_highlight" attrs="{'invisible': [('lot_id', '=', False)]}"/>
-                        <button name="change_quants_lots" string="Change quants lots" type="object" class="oe_highlight" attrs="{'invisible': [('lot_id', '=', False)]}" confirm="Pay attention: this action will remove current quants lots. Are you sure you want to continue?"/>
+                        <button name="change_quants_lots" string="Change quants lots" type="object" class="oe_highlight" attrs="{'invisible': [('lot_id', '!=', False)]}" confirm="Pay attention: this action will remove current quants lots. Are you sure you want to continue?"/>
                         or
                         <button string="_Cancel" class="oe_link" special="cancel"/>
                     </footer>
