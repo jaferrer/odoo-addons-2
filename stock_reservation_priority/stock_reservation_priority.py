@@ -27,17 +27,20 @@ class StockReservationPriorityStockMove(models.Model):
     priority = fields.Selection(copy=False)
 
     @api.model
-    def get_domain_reserved_quants(self, product_id, location_id):
-        return [('product_id', '=', product_id),
-                ('location_id', 'child_of', location_id),
-                ('reservation_id', '!=', False)]
+    def get_domain_reserved_quants(self, product_id, location_id, picking_id):
+        domain = [('product_id', '=', product_id),
+                  ('location_id', 'child_of', location_id),
+                  ('reservation_id', '!=', False)]
+        if picking_id:
+            domain += [('reservation_id.picking_id', '!=', picking_id)]
+        return domain
 
     @api.multi
     def action_assign(self):
         to_assign_ids = self and self.ids or []
         moves_to_assign = self.search([('id', 'in', to_assign_ids)], order='priority desc, date asc, id asc')
         read_moves_to_assign = moves_to_assign.read(
-            ['id', 'location_id', 'product_id', 'priority', 'date', 'product_qty'], load=False)
+            ['id', 'location_id', 'product_id', 'priority', 'date', 'product_qty', 'picking_id'], load=False)
         for move_to_assign in read_moves_to_assign:
             prec = self.env['product.product'].browse(move_to_assign['product_id']).uom_id.rounding
             quants_on_move = self.env['stock.quant'].search([('reservation_id', '=', move_to_assign['id'])])
@@ -53,7 +56,8 @@ class StockReservationPriorityStockMove(models.Model):
                 available_qty = sum([quant['qty'] for quant in available_quants])
                 if float_compare(needed_qty, available_qty, precision_rounding=prec) > 0:
                     domain_reserved_quants = self.get_domain_reserved_quants(move_to_assign['product_id'],
-                                                                             move_to_assign['location_id'])
+                                                                             move_to_assign['location_id'],
+                                                                             move_to_assign['picking_id'])
                     reserved_quants = self.env['stock.quant'].search(domain_reserved_quants)
                     reserved_quants = reserved_quants.read(['reservation_id'], load=False)
                     reservation_ids = [quant['reservation_id'] for quant in reserved_quants]
