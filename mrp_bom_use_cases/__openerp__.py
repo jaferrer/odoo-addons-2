@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Manufacture',
-    'depends': ['mrp'],
+    'depends': ['mrp', 'connector'],
     'description': """
 Product Use Cases in BoMs
 =========================
@@ -35,7 +35,8 @@ parent BoM is itself a component of another BoM, it is also displayed as a tree 
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'mrp_bom_use_cases_view.xml'
+        'mrp_bom_use_cases_view.xml',
+        'cron.xml',
     ],
     'demo': [],
     'test': [],
