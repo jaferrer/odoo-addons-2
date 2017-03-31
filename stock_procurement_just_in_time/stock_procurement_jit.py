@@ -245,7 +245,11 @@ class StockWarehouseOrderPointJit(models.Model):
         product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
         if self.qty_multiple and product_max_qty % self.qty_multiple != 0:
             product_max_qty = (product_max_qty // self.qty_multiple + 1) * self.qty_multiple
-        return max(1.1 * product_max_qty, product_max_qty + 2)
+        relative_stock_delta = bool(self.env['ir.config_parameter'].get_param(
+            'stock_procurement_just_in_time.relative_stock_delta', default=0))
+        absolute_stock_delta = bool(self.env['ir.config_parameter'].get_param(
+            'stock_procurement_just_in_time.absolute_stock_delta', default=0))
+        return max((1 * float(relative_stock_delta) / 100) * product_max_qty, product_max_qty + absolute_stock_delta)
 
     @api.multi
     def is_over_stock_max(self, need, stock_after_event):
