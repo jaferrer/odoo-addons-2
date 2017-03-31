@@ -71,6 +71,8 @@ class StockQuant(models.Model):
     @api.model
     def get_corresponding_moves(self, quant, location_from, dest_location, picking_type_id, limit=None,
                                 force_domain=None):
+        moves_correct_chain_ids = []
+        moves_no_ancestors_ids = []
         domain = [('product_id', '=', quant.product_id.id),
                   ('state', 'not in', ['draft', 'done', 'cancel']),
                   ('location_id', '=', location_from.id),
@@ -79,23 +81,55 @@ class StockQuant(models.Model):
         if force_domain:
             domain += force_domain
         moves = self.env['stock.move'].search(domain)
-        moves_correct_chain = moves.filtered(lambda move: move in quant.history_ids or
-                                                          any([sm in quant.history_ids for sm in move.move_orig_ids]))
-        moves_correct_chain = self.env['stock.move'].search([('id', 'in', moves_correct_chain.ids)],
-                                                            order='priority desc, date asc, id')
-        moves_no_ancestors = moves.filtered(lambda move: move not in quant.history_ids and not move.move_orig_ids)
-        moves_no_ancestors = self.env['stock.move'].search([('id', 'in', moves_no_ancestors.ids)],
-                                                           order='priority desc, date asc, id')
-        return self.env['stock.move'].search([('id', 'in', moves_correct_chain.ids + moves_no_ancestors.ids)],
-                                             limit=limit)
+        move_ids = tuple(moves.ids) or (0,)
+        if moves:
+            self.env.cr.execute("""WITH correct_moves AS (
+    SELECT
+        sm.id,
+        sm.date,
+        sm.priority
+    FROM stock_move sm
+    WHERE sm.id IN %s)
+
+SELECT sm.id
+FROM correct_moves sm
+    LEFT JOIN stock_move move_orig on move_orig.move_dest_id = sm.id
+    LEFT JOIN stock_quant_move_rel rel on rel.quant_id = %s
+    LEFT JOIN stock_move move_history on move_history.id = rel.move_id
+WHERE move_orig.id = move_history.id OR
+      sm.id = move_history.id
+ORDER BY sm.priority desc, sm.date asc, sm.id asc""" % (str(move_ids).replace(',)', ')'), quant.id))
+            moves_correct_chain_ids = [move_id for move_id in set([item[0] for item in self.env.cr.fetchall()])]
+            self.env.cr.execute("""WITH nb_ancestors AS (
+    SELECT
+        sm.id,
+        sm.date,
+        sm.priority,
+        sum(COALESCE(move_orig.id, 0)) AS sum_move_ids
+    FROM stock_move sm
+        LEFT JOIN stock_move move_orig ON move_orig.move_dest_id = sm.id
+    WHERE sm.id IN %s
+    GROUP BY sm.id, sm.date, sm.priority)
+
+SELECT sm.id
+FROM nb_ancestors sm
+WHERE sm.sum_move_ids = 0 AND
+      sm.id NOT IN %s
+ORDER BY sm.priority desc, sm.date asc, sm.id asc""" % (str(move_ids).replace(',)', ')'),
+                                                        str(tuple(quant.history_ids.ids) or (0,)).replace(',)', ')')))
+            moves_no_ancestors_ids = [move_id for move_id in set([item[0] for item in self.env.cr.fetchall()])]
+        move_ids_to_return = (moves_correct_chain_ids + moves_no_ancestors_ids)[:limit]
+        return move_ids_to_return and self.env['stock.move'].search([('id', 'in', move_ids_to_return)]) or \
+               self.env['stock.move']
 
     @api.model
     def unreserve_quants_wrong_moves(self, list_reservations, location_from, dest_location, picking_type_id):
         for quant_tuple in list_reservations:
-            corresponding_moves = self.get_corresponding_moves(quant_tuple[0], location_from, dest_location,
+            quant = quant_tuple[0]
+            corresponding_moves = self.get_corresponding_moves(quant, location_from, dest_location,
                                                                picking_type_id)
-            if quant_tuple[0].reservation_id and quant_tuple[0].reservation_id not in corresponding_moves:
-                quant_tuple[0].reservation_id.do_unreserve()
+            if quant.reservation_id and quant.reservation_id not in corresponding_moves:
+                quant.reservation_id.do_unreserve()
 
     @api.model
     def split_and_reserve_moves_ok(self, list_reservations, move_recordset, new_picking):
@@ -279,7 +313,10 @@ class StockQuant(models.Model):
                            move_recordset, new_picking_id)
         move_recordset = self.move_remaining_quants(product, location_from, dest_location, picking_type_id,
                                                     new_picking_id, move_recordset, quants_to_move_in_fine)
-        move_recordset.filtered(lambda move: move.state == 'draft').action_confirm()
+        moves_to_confirm = self.env['stock.move'].search([('id', 'in', move_recordset.ids),
+                                                          ('state', '=', 'draft')])
+        if moves_to_confirm:
+            moves_to_confirm.action_confirm()
         move_recordset.delete_packops()
         products_filled = self.env['product.to.be.filled'].search([('picking_id', '=', new_picking_id),
                                                                    ('product_id', '=', product_id)])

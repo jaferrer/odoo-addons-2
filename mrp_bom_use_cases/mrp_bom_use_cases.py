@@ -18,6 +18,15 @@
 #
 
 from openerp import fields, models, api
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+
+@job
+def job_compute_use_case_count(session, model_name, product_ids, context):
+    products = session.env[model_name].with_context(context).browse(product_ids)
+    products.compute_use_case_count()
+    return "End update"
 
 
 class MrpBomLine(models.Model):
@@ -54,10 +63,10 @@ class MrpBomLine(models.Model):
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
-    use_case_count = fields.Integer("Number of use cases", compute='_compute_use_case_count')
+    use_case_count = fields.Integer("Number of use cases", readonly=True)
 
     @api.multi
-    def _compute_use_case_count(self):
+    def compute_use_case_count(self):
         for rec in self:
             rec.use_case_count = len(self.env['mrp.bom.line'].search(
                 [('product_id', '=', rec.id),
@@ -65,3 +74,15 @@ class ProductProduct(models.Model):
                  '|', ('bom_id.date_start', '<=', fields.Date.today()), ('bom_id.date_start', '=', False),
                  '|', ('bom_id.date_stop', '>=', fields.Date.today()), ('bom_id.date_start', '=', False)])
             )
+
+    @api.model
+    def cron_compute_use_case_count(self):
+        products = self.search([])
+        chunk_number = 0
+        while products:
+            chunk_products = products[:100]
+            chunk_number += 1
+            job_compute_use_case_count.delay(ConnectorSession.from_env(self.env), 'product.product', chunk_products.ids,
+                                            self.env.context, description=u"Update number of use cases (chunk %s)" %
+                                                                          chunk_number)
+            products = products[100:]
