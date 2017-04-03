@@ -41,7 +41,9 @@ class TestStockProcurementJIT(common.TransactionCase):
         # Compute parent left and right for location so that test don't fail
         self.env['stock.location']._parent_store_compute()
         # Configure cancelled moves/procs deletion
-        wizard = self.env['stock.config.settings'].create({'delete_moves_cancelled_by_planned': True})
+        wizard = self.env['stock.config.settings'].create({'delete_moves_cancelled_by_planned': True,
+                                                           'relative_stock_delta': 10,
+                                                           'absolute_stock_delta': 2})
         wizard.execute()
 
     def process_orderpoints(self):

@@ -62,7 +62,7 @@ msgstr "Changer les numéros de lot"
 
 #. module: stock_change_quant_lot
 #: view:stock.change.quant.lot:stock_change_quant_lot.stock_change_quant_lot_form
-msgid "Pay attention: this action will remove actual quants lots. Are you sure you want to continue?"
+msgid "Pay attention: this action will remove current quants lots. Are you sure you want to continue?"
 msgstr "Attentio, cette action retirera les actuels numéros de lot des quants. Etes-vous sûr de vouloir poursuivre ?"
 
 #. module: stock_change_quant_lot
