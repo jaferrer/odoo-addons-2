@@ -25,8 +25,8 @@ class StockProcurementJitConfig(models.TransientModel):
 
     delete_moves_cancelled_by_planned = fields.Boolean(string=u"Delete moves and procurements cancelled "
                                                               u"by planner")
-    relative_stock_delta = fields.Boolean(string=u"Relative tock delta allowed (%)")
-    absolute_stock_delta = fields.Boolean(string=u"Absolute tock delta allowed (product UoM)")
+    relative_stock_delta = fields.Float(string=u"Relative stock delta allowed (%)")
+    absolute_stock_delta = fields.Float(string=u"Absolute stock delta allowed (product UoM)")
 
     @api.multi
     def get_default_delete_moves_cancelled_by_planned(self):
