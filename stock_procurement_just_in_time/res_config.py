@@ -45,7 +45,7 @@ class StockProcurementJitConfig(models.TransientModel):
     def get_default_relative_stock_delta(self):
         relative_stock_delta = self.env['ir.config_parameter'].get_param(
             "stock_procurement_just_in_time.relative_stock_delta", default=0)
-        return {'relative_stock_delta': bool(relative_stock_delta)}
+        return {'relative_stock_delta': float(relative_stock_delta)}
 
     @api.multi
     def set_relative_stock_delta(self):
