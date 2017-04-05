@@ -44,7 +44,7 @@ class StockProcurementJitConfig(models.TransientModel):
     @api.multi
     def get_default_relative_stock_delta(self):
         relative_stock_delta = self.env['ir.config_parameter'].get_param(
-            "stock_procurement_just_in_time.relative_stock_delta", default=0)
+            "stock_procurement_just_in_time.relative_stock_delta", default=0.0) or 0.0
         return {'relative_stock_delta': float(relative_stock_delta)}
 
     @api.multi
@@ -52,17 +52,18 @@ class StockProcurementJitConfig(models.TransientModel):
         config_parameters = self.env["ir.config_parameter"]
         for record in self:
             config_parameters.set_param("stock_procurement_just_in_time.relative_stock_delta",
-                                        record.relative_stock_delta or '')
+                                        record.relative_stock_delta or '0.0')
 
     @api.multi
     def get_default_absolute_stock_delta(self):
         absolute_stock_delta = self.env['ir.config_parameter'].get_param(
-            "stock_procurement_just_in_time.absolute_stock_delta", default=0)
-        return {'absolute_stock_delta': bool(absolute_stock_delta)}
+            "stock_procurement_just_in_time.absolute_stock_delta", default=0) or 0.0
+        print 'absolute_stock_delta', absolute_stock_delta
+        return {'absolute_stock_delta': float(absolute_stock_delta)}
 
     @api.multi
     def set_absolute_stock_delta(self):
         config_parameters = self.env["ir.config_parameter"]
         for record in self:
             config_parameters.set_param("stock_procurement_just_in_time.absolute_stock_delta",
-                                        record.absolute_stock_delta or '')
+                                        record.absolute_stock_delta or '0.0')
