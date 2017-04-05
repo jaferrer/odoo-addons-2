@@ -37,7 +37,7 @@ class TemplateSaleOrder(models.Model):
                                         string="Sale orders generated from this template", readonly=True)
 
     @api.constrains('partner_id', 'template_name', 'partner_invoice_id', 'partner_shipping_id', 'pricelist_id',
-                    'currency_id', 'date_order')
+                    'date_order')
     def set_sale_order_constraint(self):
         if self.is_template and not self.template_name:
             raise ValidationError(_("This sale order is a template, please fill the name template field."))
@@ -49,8 +49,6 @@ class TemplateSaleOrder(models.Model):
             raise ValidationError(_("This sale order is not a template, please fill the delivery adress field."))
         if not self.is_template and not self.pricelist_id:
             raise ValidationError(_("This sale order is not a template, please fill the pricelist field."))
-        if not self.is_template and not self.currency_id:
-            raise ValidationError(_("This sale order is not a template, please fill the currency field."))
         if not self.is_template and not self.date_order:
             raise ValidationError(_("This sale order is not a template, please fill the order date field."))
 
