@@ -1,27 +1,57 @@
-image: debian:jessie
+image: ndpsystemes/odoo-ci:apr-ci
+stages:
+  - test
+  - preview
+  - deploy
 
 before_script:
-  - export GITLAB_SERVER=`echo $CI_BUILD_REPO| sed "s/\(.*\)@\([^\/]*\)\/\(.*\)$/\2/"`
-  - apt-get update -y > /dev/null
-  - 'which ssh-agent || apt-get install -y --no-install-recommends openssh-client > /dev/null'
-  - 'which git || apt-get install -y --no-install-recommends git > /dev/null'
-  - eval $(ssh-agent -s)
-  - ssh-add <(echo "$SSH_PRIVATE_KEY")
-  - mkdir -p ~/.ssh
-  - '[[ -f /.dockerinit ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  - sh /init.sh
 
-lint:
+variables:
+  ODOO_VERSION: "8.0"
+  GIT_STRATEGY: "fetch"
+  ODOO_DEPENDS: "odoo-addons/community-addons"
+  ODOO_MODULE: "ALL"
+  VERBOSE: "True"
+
+lint_flake8:
   stage: test
   script:
-    - git clone git@gitlab.ndp-systemes.fr:odoo-addons/ci-config.git /opt/ci-config
-    - "##########################################################################################"
-    - "#                            DEBUT DU TEST FLAKE8                                        #"
-    - "##########################################################################################"
-    - /opt/ci-config/test-flake8.sh /opt/ci-config/conf/flake8-ndp.conf $CI_PROJECT_DIR
-    - "##########################################################################################"
-    - "#                            DEBUT DU TEST PYLINT                                        #"
-    - "##########################################################################################"
-    - /opt/ci-config/test-pylint.sh /opt/ci-config/conf/pylint-ndp.conf $CI_PROJECT_DIR
+    - /run.sh
   tags:
-    - odoo
+    - lint
   allow_failure: true
+
+runbot:
+  stage: test
+  script:
+    - /run.sh
+  tags:
+    - runbot
+
+preview_odoo:
+  stage: preview
+  script:
+    - /run.sh
+  environment:
+    name: preview/$CI_BUILD_REF_NAME
+    url: https://$CI_ENVIRONMENT_SLUG.ndp-systemes.fr
+    on_stop: stop_preview_odoo
+  when: manual
+  tags:
+    - preview
+  only:
+    - gitlab_ci
+
+stop_preview_odoo:
+  stage: preview
+  script:
+    - /run.sh
+  when: manual
+  tags:
+    - preview
+  environment:
+    name: preview/$CI_BUILD_REF_NAME
+    action: stop
+  only:
+    - gitlab_ci
