@@ -1,4 +1,4 @@
-image: ndpsystemes/odoo-ci:apr-ci
+image: ndpsystemes/odoo-ci
 stages:
   - test
   - preview
@@ -12,7 +12,6 @@ variables:
   GIT_STRATEGY: "fetch"
   ODOO_DEPENDS: "odoo-addons/community-addons"
   ODOO_MODULE: "ALL"
-  VERBOSE: "True"
 
 lint_flake8:
   stage: test
@@ -40,8 +39,6 @@ preview_odoo:
   when: manual
   tags:
     - preview
-  only:
-    - gitlab_ci
 
 stop_preview_odoo:
   stage: preview
@@ -53,5 +50,3 @@ stop_preview_odoo:
   environment:
     name: preview/$CI_BUILD_REF_NAME
     action: stop
-  only:
-    - gitlab_ci
