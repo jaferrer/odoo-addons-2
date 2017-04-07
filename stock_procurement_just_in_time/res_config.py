@@ -58,7 +58,6 @@ class StockProcurementJitConfig(models.TransientModel):
     def get_default_absolute_stock_delta(self):
         absolute_stock_delta = self.env['ir.config_parameter'].get_param(
             "stock_procurement_just_in_time.absolute_stock_delta", default=0) or 0.0
-        print 'absolute_stock_delta', absolute_stock_delta
         return {'absolute_stock_delta': float(absolute_stock_delta)}
 
     @api.multi
