@@ -12,7 +12,7 @@
             <field name="nextcall">2015-10-01 03:00:00</field>
             <field name="numbercall">-1</field>
             <field name="doall"/>
-            <field name="model">queue.job</field>
+            <field name="model">product.product</field>
             <field name="function">cron_compute_use_case_count</field>
             <field name="args"/>
         </record>
