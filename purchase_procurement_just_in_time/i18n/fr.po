@@ -813,10 +813,10 @@ msgstr "Lignes de commande d'achat pour l'article %s"
 #: code:addons\purchase_procurement_just_in_time\models\supply_chain_control.py:116
 #, python-format
 msgid "Moves for product %s"
-msgstr "Mouvements de stock pour l'aricle %s"
+msgstr "Mouvements de stock pour l'article %s"
 
 #. module: purchase_procurement_just_in_time
 #: code:addons\purchase_procurement_just_in_time\models\supply_chain_control.py:116
 #, python-format
 msgid "Procurements for product %s"
-msgstr "Demandes d'approvisionnement pour l'aricle %s"
+msgstr "Demandes d'approvisionnement pour l'article %s"
