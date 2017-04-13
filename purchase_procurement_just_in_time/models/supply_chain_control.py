@@ -66,7 +66,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'product.product',
             'name': self.display_name,
             'views': [(False, "form")],
-            'res_id': self.id,
+            'res_id': self.product_id.id,
             'context': {}
         }
 
@@ -84,7 +84,7 @@ class SupplyChainControl(models.Model):
             'name': _("Purchase order lines for product %s") % self.display_name,
             'view_type': 'form',
             'view_mode': 'tree',
-            'context': {'search_default_product_id': self.id}
+            'context': {'search_default_product_id': self.product_id.id}
         }
 
     @api.multi
@@ -96,7 +96,7 @@ class SupplyChainControl(models.Model):
             'name': _("Moves for product %s") % self.display_name,
             'view_type': 'form',
             'view_mode': 'tree',
-            'context': {'search_default_product_id': self.id,
+            'context': {'search_default_product_id': self.product_id.id,
                         'search_default_ready': True,
                         'search_default_future': True,
                         'search_default_groupby_location_id': True,
@@ -112,7 +112,7 @@ class SupplyChainControl(models.Model):
             'name': _("Procurements for product %s") % self.display_name,
             'view_type': 'form',
             'view_mode': 'tree',
-            'context': {'search_default_product_id': self.id,
+            'context': {'search_default_product_id': self.product_id.id,
                         'search_default_group_procs_by_location': True,
                         'search_default_group_procs_by_state': True}
         }
