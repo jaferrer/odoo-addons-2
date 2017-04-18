@@ -321,7 +321,7 @@ class TestStockChangeQuantReservation(common.TransactionCase):
         self.assertEqual(move_23_1.reserved_quant_ids, quant_2)
         self.assertEqual(move_12_2.move_dest_id, move_23_1)
 
-    def test_30_incompatible_qties(self):
+    def test_30_quants_qty_higher_than_move_one(self):
         """
         Trying to reserve more quants than move quantity
         """
@@ -361,8 +361,14 @@ class TestStockChangeQuantReservation(common.TransactionCase):
         # Let's check that the system raises an error
         assignation_popup = self.env['stock.quant.picking'].with_context(active_ids=quant_1.ids). \
             create({'move_id': move_12_1.id})
-        with self.assertRaises(exceptions.except_orm):
-            assignation_popup.do_apply()
+        assignation_popup.do_apply()
+        self.assertEqual(quant_1.reservation_id, move_12_1)
+        self.assertEqual(quant_1.qty, 10)
+        remaining_quant = self.env['stock.quant'].search([('product_id', '=', self.test_product.id),
+                                                             ('location_id', '=', self.location_stock.id),
+                                                             ('qty', '=', 5)])
+        self.assertEqual(len(remaining_quant), 1)
+        self.assertFalse(remaining_quant.reservation_id)
 
     def test_40_move_assign_several_quants(self):
         self.assertFalse(self.env['stock.quant'].search([('product_id', '=', self.test_product.id)]))
