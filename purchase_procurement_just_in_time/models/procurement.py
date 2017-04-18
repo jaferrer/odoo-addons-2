@@ -100,10 +100,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.model
     def _get_product_supplier(self, procurement):
         ''' returns the main supplier of the procurement's product given as argument'''
-        company_supplier = self.env['product.supplierinfo']. \
-            search([('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id),
-                    '|', ('company_id', '=', procurement.company_id.id), ('company_id', '=', False)],
-                   order='sequence, id', limit=1)
+        company_supplier = procurement.product_id.product_tmpl_id. \
+            get_main_supplierinfo(force_company=procurement.company_id)
         if company_supplier:
             return company_supplier.name
         return procurement.product_id.seller_id

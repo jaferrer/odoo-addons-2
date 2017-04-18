@@ -118,8 +118,31 @@ class SupplyChainControl(models.Model):
         }
 
 
+class ProductTemplateJit(models.Model):
+    _inherit = 'product.template'
+
+    seller_id = fields.Many2one(compute='_compute_seller_id', store=True)
+
+    @api.multi
+    def get_main_supplierinfo(self, force_company=None):
+        self.ensure_one()
+        supplier_infos_domain = [('product_tmpl_id', '=', self.id)]
+        if force_company:
+            supplier_infos_domain += ['|', ('company_id', '=', force_company.id), ('company_id', '=', False)]
+        return self.env['product.supplierinfo'].search(supplier_infos_domain, order='sequence, id', limit=1)
+
+    @api.multi
+    @api.depends('seller_ids', 'seller_ids.sequence')
+    def _compute_seller_id(self):
+        for rec in self:
+            main_supplierinfo = rec.get_main_supplierinfo()
+            rec.seller_id = main_supplierinfo and main_supplierinfo.name or False
+
+
 class SupplyChainControlProductProduct(models.Model):
     _inherit = 'product.product'
+
+    seller_id = fields.Many2one(related='product_tmpl_id.seller_id', store=True, readonly=True)
 
     @api.multi
     def get_available_qty_supply_control(self):
