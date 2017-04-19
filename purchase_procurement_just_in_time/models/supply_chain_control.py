@@ -64,7 +64,7 @@ class SupplyChainControl(models.Model):
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'product.product',
-            'name': self.display_name,
+            'name': self.product_id.display_name,
             'views': [(False, "form")],
             'res_id': self.product_id.id,
             'context': {}
@@ -81,7 +81,7 @@ class SupplyChainControl(models.Model):
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'purchase.order.line',
-            'name': _("Purchase order lines for product %s") % self.display_name,
+            'name': _("Purchase order lines for product %s") % self.product_id.display_name,
             'view_type': 'form',
             'view_mode': 'tree',
             'context': {'search_default_product_id': self.product_id.id}
@@ -93,7 +93,7 @@ class SupplyChainControl(models.Model):
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'stock.move',
-            'name': _("Moves for product %s") % self.display_name,
+            'name': _("Moves for product %s") % self.product_id.display_name,
             'view_type': 'form',
             'view_mode': 'tree',
             'context': {'search_default_product_id': self.product_id.id,
@@ -109,7 +109,7 @@ class SupplyChainControl(models.Model):
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'procurement.order',
-            'name': _("Procurements for product %s") % self.display_name,
+            'name': _("Procurements for product %s") % self.product_id.display_name,
             'view_type': 'form',
             'view_mode': 'tree',
             'context': {'search_default_product_id': self.product_id.id,
