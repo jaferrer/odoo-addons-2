@@ -64,20 +64,51 @@ self.compute_date_due(cr, uid, context.get('active_ids'), context)
             <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_compute_date_due)"/>
         </record>
 
-        <record id="ir_cron_compute_date_due" model="ir.cron">
-            <field name="name">Compute pickings' dates due</field>
-            <field name="user_id" ref="base.user_root"/>
-            <field name="active" eval="True"/>
-            <field name="priority">5</field>
-            <field name="interval_number">1</field>
-            <field name="interval_type">days</field>
-            <field name="nextcall">2015-10-01 00:00:00</field>
-            <field name="numbercall">-1</field>
-            <field name="doall"/>
-            <field name="model">stock.picking</field>
-            <field name="function">compute_date_due_auto</field>
-            <field name="args"/>
+        <record model="ir.ui.view" id="planning_improved_move_search">
+            <field name="name">planning_improved_move_search</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_search"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <group string="Group By" position="inside">
+                    <filter string="Date" name="groupby_date_real" icon="terp-go-month" domain="[]" context="{'group_by':'date:day'}"/>
+                    <filter string="User" name="groupby_user" icon="terp-go-month" domain="[]" context="{'group_by':'write_uid'}"/>
+                </group>
+            </field>
         </record>
+
+        <record model="ir.ui.view" id="open_grouped_moves_form">
+            <field name="name">open_grouped_moves_form</field>
+            <field name="model">open.grouped.moves</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="date_begin"/>
+                        <field name="date_end"/>
+                        <field name="user_ids" widget="many2many_tags"/>
+                        <field name="only_done_moves"/>
+                    </group>
+                    <footer>
+                        <button name="open_grouped_moves" type="object" string="Moves by users" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_open_grouped_moves">
+            <field name="name">Moves by users</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">open.grouped.moves</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_open_grouped_moves" name="Moves by users" action="act_window_open_grouped_moves"
+                  parent="stock.menu_stock_warehouse_mgmt" sequence="30"/>
 
     </data>
 </openerp>
