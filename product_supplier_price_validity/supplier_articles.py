@@ -36,6 +36,7 @@ class pricelist_partnerinfo_improved (models.Model):
 
     validity_date = fields.Date("Validity date", help="Validity date from that date")
     active_line = fields.Boolean("True if this rule is used", store=True, compute="_is_active_line")
+    force_inactive = fields.Boolean(string="Inactive Price")
 
     @api.multi
     @api.depends('suppinfo_id.pricelist_ids', 'min_quantity', 'validity_date')
@@ -44,14 +45,15 @@ class pricelist_partnerinfo_improved (models.Model):
             rec.active_line = rec.is_active()
 
     @api.multi
-    def is_active(self):
+    def is_active(self, check_force_inactive=True):
         self.ensure_one()
         context = self.env.context or {}
         reference_date = context.get('date') or time.strftime('%Y-%m-%d')
         active = True
-        list_line2 = self.suppinfo_id.pricelist_ids
         list_line = []
-        for item in list_line2:
+        if check_force_inactive and self.force_inactive:
+            return False
+        for item in self.suppinfo_id.pricelist_ids:
             if item.min_quantity == self.min_quantity:
                 list_line += [item]
         if self.validity_date and self.validity_date > reference_date:
@@ -108,7 +110,7 @@ class product_pricelist_improved(models.Model):
                                 qty_in_seller_uom = product_uom_obj._compute_qty(qty_uom_id, qty, to_uom_id=seller_uom)
                             price_uom_id = seller_uom
                             good_pricelist = False
-                            for item in seller.pricelist_ids:
+                            for item in seller.pricelist_ids.filtered(lambda pricelist: not pricelist.force_inactive):
                                 if item.min_quantity <= qty_in_seller_uom:
                                     if item.validity_date and item.validity_date <= date:
                                         good_pricelist = item
