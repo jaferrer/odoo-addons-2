@@ -26,6 +26,10 @@
                                     <field name="absolute_stock_delta" class="oe_inline"/>
                                     <label for="absolute_stock_delta"/>
                                 </div>
+                                <div>
+                                    <field name="consider_end_contract_effect" class="oe_inline"/>
+                                    <label for="consider_end_contract_effect"/>
+                                </div>
                             </div>
                         </group>
                     </form>
