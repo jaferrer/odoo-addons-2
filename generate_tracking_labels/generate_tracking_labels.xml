@@ -21,6 +21,7 @@
                         <field name="total_amount"/>
                         <field name="cod_value"/>
                         <field name="sender_parcel_ref"/>
+                        <field name="insurance"/>
                     </group>
                     <separator name="donnees_colis" string="Données colis"/>
                     <group>
