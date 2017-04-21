@@ -1,4 +1,4 @@
-image: ndpsystemes/odoo-ci:apr-ci
+image: ndpsystemes/odoo-ci
 stages:
   - test
   - preview
