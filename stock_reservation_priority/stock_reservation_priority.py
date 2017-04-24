@@ -27,13 +27,23 @@ class StockReservationPriorityStockMove(models.Model):
     priority = fields.Selection(copy=False)
 
     @api.model
-    def get_domain_reserved_quants(self, product_id, location_id, picking_id):
-        domain = [('product_id', '=', product_id),
-                  ('location_id', 'child_of', location_id),
-                  ('reservation_id', '!=', False)]
+    def get_reserved_quants_query(self, product_id, location_id, picking_id):
+        location = self.env['stock.location'].search([('id', '=', location_id)])
+        res = """
+            SELECT sq.reservation_id
+            FROM stock_quant sq
+                LEFT JOIN stock_location sl ON sq.location_id = sl.id
+                LEFT JOIN stock_move sm ON sq.reservation_id = sm.id
+            WHERE sq.product_id = %s
+                AND sl.parent_left >= %s
+                AND sl.parent_left < %s
+                AND sq.reservation_id IS NOT NULL
+        """
+        params = (product_id, location.parent_left, location.parent_right)
         if picking_id:
-            domain += [('reservation_id.picking_id', '!=', picking_id)]
-        return domain
+            res += " AND sq.reservation_id != %s"
+            params += (picking_id,)
+        return res, params
 
     @api.multi
     def action_assign(self):
@@ -55,12 +65,11 @@ class StockReservationPriorityStockMove(models.Model):
                 available_quants = available_quants.read(['qty'], load=False)
                 available_qty = sum([quant['qty'] for quant in available_quants])
                 if float_compare(needed_qty, available_qty, precision_rounding=prec) > 0:
-                    domain_reserved_quants = self.get_domain_reserved_quants(move_to_assign['product_id'],
-                                                                             move_to_assign['location_id'],
-                                                                             move_to_assign['picking_id'])
-                    reserved_quants = self.env['stock.quant'].search(domain_reserved_quants)
-                    reserved_quants = reserved_quants.read(['reservation_id'], load=False)
-                    reservation_ids = [quant['reservation_id'] for quant in reserved_quants]
+                    quants_query, quants_params = self.get_reserved_quants_query(move_to_assign['product_id'],
+                                                                                 move_to_assign['location_id'],
+                                                                                 move_to_assign['picking_id'])
+                    self.env.cr.execute(quants_query, quants_params)
+                    reservation_ids = [r[0] for r in self.env.cr.fetchall()]
                     running_moves_ordered_reverse = self.env['stock.move']. \
                         search([('id', 'in', reservation_ids),
                                 '|', ('priority', '<', move_to_assign['priority']),
