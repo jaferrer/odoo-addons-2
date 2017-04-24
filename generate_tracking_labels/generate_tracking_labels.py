@@ -78,6 +78,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
                            string=u"Droits de douane", default='false',
                            help=u"Sélectionnez manuel vous souhaitez prendre à votre charge les droits de douanes en "
                                 u"cas de taxation des colis")
+    insurance = fields.Boolean(u"Assurance", help=u"Cochez la case pour assurer l'envoi à sa valeur.")
 
     @api.model
     def default_get(self, fields_list):

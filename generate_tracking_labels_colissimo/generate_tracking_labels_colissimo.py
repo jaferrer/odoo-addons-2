@@ -67,7 +67,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
             city2 = self.partner_orig_id.city or ''
             zipCode2 = self.partner_orig_id.zip or ''
             phoneNumber2 = self.partner_orig_id.phone and \
-                           self.partner_orig_id.phone.replace(' ', '').replace('-', '') or ''
+                self.partner_orig_id.phone.replace(' ', '').replace('-', '') or ''
             mobileNumber2 = ''
             doorCode12 = ''
             doorCode22 = ''
@@ -79,12 +79,23 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
             # TODO: pickuplocationid (identifiant du point de retrait), bloc custom (douane)
 
             for package_data in packages_data:
-                pack_data = (self.produit_expedition_id.code, depositDate, mailBoxPicking,
-                             int(package_data['amount_untaxed'] * 100), int(package_data['amount_total'] * 100),
-                             orderNumber, commercialName, self.return_type_choice, package_data['amount_total'],
-                             package_data['weight'], self.non_machinable,
-                             bool(package_data['cod_value']) and 1 or 0, package_data['cod_value'] * 100,
-                             self.instructions, self.ftd)
+                pack_data = (
+                    self.produit_expedition_id.code,
+                    depositDate,
+                    mailBoxPicking,
+                    int(package_data['amount_untaxed'] * 100),
+                    int(package_data['amount_total'] * 100),
+                    orderNumber,
+                    commercialName,
+                    self.return_type_choice,
+                    self.insurance and package_data['amount_total'] or 0,
+                    package_data['weight'],
+                    self.non_machinable,
+                    bool(package_data['cod_value']) and 1 or 0,
+                    package_data['cod_value'] * 100,
+                    self.instructions,
+                    self.ftd
+                )
 
                 customer_spec = {
                     'line0': self.line0 or '',
@@ -100,9 +111,10 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                         'line3': ''
                     }
 
-
-                customer_data = (self.company_name or '', self.last_name or '', self.first_name or '', customer_spec['line0'],
-                                 customer_spec['line1'], customer_spec['line2'], customer_spec['line3'], self.country_id.code or '',
+                customer_data = (
+                    self.company_name or '', self.last_name or '', self.first_name or '', customer_spec['line0'],
+                                 customer_spec['line1'], customer_spec[
+                                     'line2'], customer_spec['line3'], self.country_id.code or '',
                                  self.city or '', self.zip or '', self.phone_number or '', self.mobile_number or '',
                                  self.door_code1 or '', self.door_code2 or '', self.email or '', self.intercom or '',
                                  self.language)
@@ -251,7 +263,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                     tracking_numbers += [tracking_number]
                     response_string = response.content
                     if len(response.content.split('<pdfUrl>')) == 2 and \
-                                    len(response.content.split('<pdfUrl>')[1].split('</pdfUrl>')) == 2:
+                            len(response.content.split('<pdfUrl>')[1].split('</pdfUrl>')) == 2:
                         url = response.content.split('<pdfUrl>')[1].split('</pdfUrl>')[0].replace('amp;', '')
                         file = requests.get(url)
                         list_files += [file.content]
@@ -261,11 +273,11 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                         list_files += [pdf_binary_string]
                     continue
                 if len(response.content.split('<messageContent>')) == 2 and \
-                                len(response.content.split('<messageContent>')[1].split('</messageContent>')) == 2:
+                        len(response.content.split('<messageContent>')[1].split('</messageContent>')) == 2:
                     raise UserError(u'Colissimo : ' + ustr(response.content).
                                     split('<messageContent>')[1].split('</messageContent>')[0])
                 if len(response.content.split('<faultstring>')) == 2 and \
-                                len(response.content.split('<faultstring>')[1].split('</faultstring>')) == 2:
+                        len(response.content.split('<faultstring>')[1].split('</faultstring>')) == 2:
                     raise UserError(u'Colissimo : ' + ustr(response.content).
                                     split('<faultstring>')[1].split('</faultstring>')[0])
                 raise UserError(u"Impossible de générer l'étiquette")

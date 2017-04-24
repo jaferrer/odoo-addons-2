@@ -255,10 +255,18 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                 ship_hour = ship_date and ship_date[11:13]
                 service = self.service
                 object_type = self.content_type_id.code
-                sky_bill_value = (pack_data['cod_value'] or '',  pack_data['amount_total'] or '', evt_code or '',
-                                  pack_data['amount_total'] or '', object_type or '',
-                                  self.produit_expedition_id.code or '', service or '', ship_date, ship_hour or '',
-                                  pack_data['weight'], pack_data['height'], pack_data['lenght'], pack_data['width'])
+                sky_bill_value = (pack_data['cod_value'] or '',
+                                  pack_data['amount_total'] or '',
+                                  evt_code or '',
+                                  self.insurance and pack_data['amount_total'] or '',
+                                  object_type or '',
+                                  self.produit_expedition_id.code or '',
+                                  service or '',
+                                  ship_date, ship_hour or '',
+                                  pack_data['weight'],
+                                  pack_data['height'],
+                                  pack_data['lenght'],
+                                  pack_data['width'])
                 xml_post_parameter += u"""
          <skybillValue>
             <bulkNumber></bulkNumber>
