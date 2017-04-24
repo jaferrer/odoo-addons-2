@@ -41,7 +41,7 @@ class StockReservationPriorityStockMove(models.Model):
         """
         params = (product_id, location.parent_left, location.parent_right)
         if picking_id:
-            res += " AND sq.reservation_id != %s"
+            res += " AND sm.picking_id != %s"
             params += (picking_id,)
         return res, params
 
