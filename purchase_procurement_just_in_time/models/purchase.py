@@ -148,6 +148,11 @@ class PurchaseOrderJustInTime(models.Model):
         # if the order line has a bigger quantity than the procurement it was for (manually changed or minimal quantity), then
         # split the future stock move in two because the route followed may be different.
         for move in order_line.move_ids:
+            if  move.state not in ['draft', 'cancel'] and move.procurement_id and \
+                            move.procurement_id.purchase_line_id != order_line:
+                line_to_check = move.procurement_id.purchase_line_id
+                move.procurement_id = False
+                line_to_check.adjust_move_no_proc_qty()
             if move.state in ['draft', 'cancel'] or move.procurement_id:
                 continue
             move_qty_in_pol_uom = product_uom._compute_qty(move.product_uom.id, move.product_uom_qty,
