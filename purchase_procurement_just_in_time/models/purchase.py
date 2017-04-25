@@ -314,7 +314,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         """
         for rec in self:
             remaining_qty = 0
-            if rec.product_id.type != 'service':
+            if rec.product_id and rec.product_id.type != 'service':
                 delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
                                                                           rec.product_uom.id)
                                      for move in rec.move_ids if move.state == 'done'])
