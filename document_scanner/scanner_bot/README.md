@@ -35,5 +35,5 @@ et exécuter cette commande
 # Le Bot et ces fichiers
 **scanner.ini** dans le répertoire *$APP_DATA$/Roaming/document_scanner*
 
-les fichiers de log sont dans le répertoire *$APP_DATA$/Locale/log*
+les fichiers de log sont dans le répertoire *$APP_DATA$/Locale/Temp/scanner_bot/log*
 au format log_YYYYmmdd.log 

@@ -37,11 +37,14 @@ PATH_BOT = os.environ['TMP'] + os.sep + 'scanner_bot'
 PATH_LOG = PATH_BOT + os.sep + 'log'
 PATH_TMP = PATH_BOT + os.sep + 'tmp'
 PATH_CONFIG = os.environ['APPDATA'] + os.sep + 'scanner_bot' + os.sep + 'scanner.ini'
+print PATH_CONFIG
 if not os.path.exists(os.environ['APPDATA'] + os.sep + 'scanner_bot'):
     os.makedirs(os.environ['APPDATA'] + os.sep + 'scanner_bot')
 
-if not os.path.exists(PATH_BOT + os.sep + 'log'):
-    PATH_LOG = PATH_BOT + os.sep + 'log'
+print "fichier temporaire du bot", PATH_BOT, PATH_TMP
+print "fichier des log du bot", PATH_LOG
+print "fichier de config du bot", PATH_CONFIG
+if not os.path.exists(PATH_LOG):
     os.makedirs(PATH_LOG)
     logging.basicConfig(
         filename=PATH_LOG + os.sep + '/log_%s.log' % datetime.date.today().strftime('%Y%m%d'),
@@ -205,10 +208,12 @@ class _OdooRequests(object):
             self.register_scanner(name)
 
     def _get_last(self):
-        return self._call_model("bus.bus", "get_last").json()[0]
+        last = self._call_model("bus.bus", "get_last").json()[0]
+        print last
+        return last
 
-    def increment_last_poll(self):
-        self.last_poll += 1
+    def increment_last_poll(self, results):
+        self.last_poll = max([item['id'] for item in results.json()] or [self.last_poll])
         return self.last_poll
 
     def long_pollng(self):
@@ -304,7 +309,7 @@ class IHM(object):
     def _loop(self):
         while True:
             results = self._req.long_pollng()
-
+            logging.debug(results)
             while not results.ok():
                 logging.error(u"Reconnexion dans 30sec suite à une erreur")
                 logging.error(results.error)
@@ -313,7 +318,7 @@ class IHM(object):
                 self._init()
                 results = self._req.long_pollng()
 
-            self._req.increment_last_poll()
+            self._req.increment_last_poll(results)
             for message in [item['message']
                             for item in results.json()
                             if item.get('channel', ())
