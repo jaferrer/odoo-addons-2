@@ -54,6 +54,12 @@ class IrAttachmentScanner(models.Model):
         if not self.env.user.has_group('document_scanner.bot_ir_attachment'):
             super(IrAttachmentScanner, self).check(mode, values=values)
 
+    @api.cr_uid_context
+    def __get_partner_id(self, cr, uid, res_model, res_id, context=None):
+        if not self.env.user.has_group('document_scanner.bot_ir_attachment'):
+            return super(IrAttachmentScanner, self).__get_partner_id(cr, uid, res_model, res_id, context=context)
+        return False
+
 
 class ImBusScanner(models.Model):
     _inherit = 'bus.bus'
