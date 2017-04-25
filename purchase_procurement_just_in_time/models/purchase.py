@@ -366,6 +366,13 @@ class PurchaseOrderLineJustInTime(models.Model):
         """
         self.ensure_one()
 
+        qty_done_moves = sum([x.product_qty for x in self.move_ids if x.state == 'done'])
+        qty_done_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
+                                                                qty_done_moves,
+                                                                self.product_uom.id)
+        if self.product_id.type == 'service':
+            target_qty = qty_done_pol_uom
+
         moves_without_proc_id = self.move_ids.filtered(
             lambda m: m.state not in ['done', 'cancel'] and not m.procurement_id).sorted(key=lambda m: m.product_qty,
                                                                                          reverse=True)

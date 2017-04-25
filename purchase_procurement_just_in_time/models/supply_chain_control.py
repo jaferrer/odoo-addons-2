@@ -182,3 +182,12 @@ class SupplyChainControlProductProduct(models.Model):
                                                precision_rounding=prec),
                  'missing_date': level_report and level_report.date and level_report.date[:10] or False}
             )
+
+    @api.multi
+    def sanitize_purchase_order_lines(self):
+        for rec in self:
+            lines = self.env['purchase.order.line']. \
+                search([('order_id.state', 'in', self.env['purchase.order'].get_purchase_order_states_with_moves()),
+                        ('product_id', '=', rec.product_id.id)])
+            for line in lines:
+                line.adjust_moves_qties(line.product_qty)
