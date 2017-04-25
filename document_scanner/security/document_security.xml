@@ -1,21 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+
+        <record model="ir.module.category" id="category_scanner">
+            <field name="name">Scanner</field>
+            <field name="description">Manage scanning rights</field>
+            <field name="sequence">60</field>
+        </record>
+
         <record id="group_scanner_user" model="res.groups">
-            <field name="name">User scanner</field>
+            <field name="name">Scanner User</field>
+		    <field name="category_id" ref="category_scanner"/>
         </record>
 
         <record id="group_scanner_manager" model="res.groups">
-            <field name="name">Manager scanner</field>
+            <field name="name">Scanner Manager</field>
+		    <field name="category_id" ref="category_scanner"/>
             <field name="implied_ids" eval="[(4, ref('document_scanner.group_scanner_user'))]"/>
         </record>
 
         <record id="group_scanner_bot" model="res.groups">
-            <field name="name">Bot scanner</field>
+            <field name="name">Bot Scanner</field>
         </record>
 
         <record id="bot_ir_attachment" model="res.groups">
-            <field name="name">Bot attachment</field>
+            <field name="name">Bot Create Attachment</field>
         </record>
+
+        <record id="base.user_root" model="res.users">
+            <field name="groups_id" eval="[(4, ref('document_scanner.group_scanner_manager'))]"/>
+        </record>
+
     </data>
 </openerp>
