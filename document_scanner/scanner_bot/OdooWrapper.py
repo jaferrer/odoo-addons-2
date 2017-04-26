@@ -37,7 +37,6 @@ PATH_BOT = os.environ['TMP'] + os.sep + 'scanner_bot'
 PATH_LOG = PATH_BOT + os.sep + 'log'
 PATH_TMP = PATH_BOT + os.sep + 'tmp'
 PATH_CONFIG = os.environ['APPDATA'] + os.sep + 'scanner_bot' + os.sep + 'scanner.ini'
-print PATH_CONFIG
 if not os.path.exists(os.environ['APPDATA'] + os.sep + 'scanner_bot'):
     os.makedirs(os.environ['APPDATA'] + os.sep + 'scanner_bot')
 
@@ -208,9 +207,7 @@ class _OdooRequests(object):
             self.register_scanner(name)
 
     def _get_last(self):
-        last = self._call_model("bus.bus", "get_last").json()[0]
-        print last
-        return last
+        return self._call_model("bus.bus", "get_last").json()[0]
 
     def increment_last_poll(self, results):
         self.last_poll = max([item['id'] for item in results.json()] or [self.last_poll])
