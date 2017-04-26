@@ -172,40 +172,43 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         dict_procs = {}
         while procurements_to_run:
             seller = self.env['procurement.order']._get_product_supplier(procurements_to_run[0])
-            if seller:
-                seller_ok = bool(compute_all_products or not compute_supplier_ids or
-                                 compute_supplier_ids and seller.id in compute_supplier_ids)
-                company = procurements_to_run[0].company_id
-                product = procurements_to_run[0].product_id
-                location = procurements_to_run[0].location_id
-                domain = [('id', 'in', procurements_to_run.ids),
-                          ('company_id', '=', company.id),
-                          ('product_id', '=', product.id),
-                          ('location_id', '=', location.id)]
-                if seller_ok and ignore_past_procurements:
-                    suppliers = product.seller_ids and self.env['product.supplierinfo']. \
-                        search([('id', 'in', product.seller_ids.ids),
-                                ('name', '=', seller.id)]) or False
-                    if suppliers:
-                        min_date = fields.Datetime.to_string(
-                            seller.schedule_working_days(product.seller_delay, dt.now()))
-                    else:
-                        min_date = fields.Datetime.now()
-                    past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
-                    if past_procurements:
-                        procurements_to_run -= past_procurements
-                        past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
-                    domain += [('date_planned', '>', min_date)]
-                procurements = self.search(domain)
-                if seller_ok and procurements:
-                    if not dict_procs.get(seller):
-                        dict_procs[seller] = {}
-                    if not dict_procs[seller].get(company):
-                        dict_procs[seller][company] = {}
-                    if not dict_procs[seller][company].get(location):
-                        dict_procs[seller][company][location] = procurements
-                    else:
-                        dict_procs[seller][company][location] += procurements
+            if not seller:
+                # If the first proc has no seller, then we drop this proc and go to the next
+                procurements_to_run = procurements_to_run[1:]
+                continue
+            seller_ok = bool(compute_all_products or not compute_supplier_ids or
+                             compute_supplier_ids and seller.id in compute_supplier_ids)
+            company = procurements_to_run[0].company_id
+            product = procurements_to_run[0].product_id
+            location = procurements_to_run[0].location_id
+            domain = [('id', 'in', procurements_to_run.ids),
+                      ('company_id', '=', company.id),
+                      ('product_id', '=', product.id),
+                      ('location_id', '=', location.id)]
+            if seller_ok and ignore_past_procurements:
+                suppliers = product.seller_ids and self.env['product.supplierinfo']. \
+                    search([('id', 'in', product.seller_ids.ids),
+                            ('name', '=', seller.id)]) or False
+                if suppliers:
+                    min_date = fields.Datetime.to_string(
+                        seller.schedule_working_days(product.seller_delay, dt.now()))
+                else:
+                    min_date = fields.Datetime.now()
+                past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
+                if past_procurements:
+                    procurements_to_run -= past_procurements
+                    past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
+                domain += [('date_planned', '>', min_date)]
+            procurements = self.search(domain)
+            if seller_ok and procurements:
+                if not dict_procs.get(seller):
+                    dict_procs[seller] = {}
+                if not dict_procs[seller].get(company):
+                    dict_procs[seller][company] = {}
+                if not dict_procs[seller][company].get(location):
+                    dict_procs[seller][company][location] = procurements
+                else:
+                    dict_procs[seller][company][location] += procurements
             procurements_to_run -= procurements
         for supplier in sorted(dict_procs.keys(), key=lambda partner: partner.scheduler_sequence):
             for company in dict_procs[supplier].keys():
