@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,16 +17,27 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api
+from openerp.addons.mail.models.mail_thread import MailThread
+from openerp import models, api
 
 
-class mail_thread(models.Model):
-    _inherit = 'mail.thread'
+class BaseModelExtend(models.AbstractModel):
+    _name = 'mail_thread.extend'
 
-    @api.multi
-    def message_subscribe(self, partner_ids, subtype_ids=None):
-        """ Add partners to the records followers.
-        Overridden here to only subscribe users and not external partners."""
-        user_partners = self.env['res.users'].search([('partner_id','in',partner_ids)])
-        partner_ids = [u.partner_id.id for u in user_partners]
-        return super(mail_thread, self).message_subscribe(partner_ids, subtype_ids)
+    message_subscribe_origin = MailThread.message_subscribe
+
+    def _register_hook(self, cr):
+        @api.cr_uid_ids_context
+        def ugly_override_message_subscribe(self, cr, uid, ids, partner_ids=None, channel_ids=None, subtype_ids=None,
+                                            force=True, context=None):
+            user_ids = self.pool['res.users'].search(cr, uid, [('partner_id', 'in', partner_ids)])
+            partner_ids = [u.partner_id.id for u in self.pool['res.users'].browse(cr, uid, user_ids)]
+            return BaseModelExtend.message_subscribe_origin(self, cr, uid, ids,
+                                                 partner_ids=partner_ids,
+                                                 channel_ids=channel_ids,
+                                                 subtype_ids=subtype_ids,
+                                                 force=force,
+                                                 context=context)
+
+        MailThread.message_subscribe = ugly_override_message_subscribe
+        return super(BaseModelExtend, self)._register_hook(cr)
