@@ -13,7 +13,8 @@
             <field name="login">scanner_bot</field>
             <field name="password">hLD5w0yo1wPs5kqwu839fs!kl9QH3#uh39zr49y4Bgu4ox!*qL</field>
             <field name="company_id" ref="base.main_company"/>
-            <field name="groups_id" eval="[(6,0,[ref('base.group_user'), ref('document_scanner.group_scanner_bot'), ref('base.group_document_user')])]"/>
+            <field name="company_ids" eval="[(6,0,[ref('base.main_company')])]"/>
+            <field name="groups_id" eval="[(6,0,[ref('base.group_user'), ref('document_scanner.group_scanner_bot'), ref('document_scanner.bot_ir_attachment'), ref('base.group_document_user')])]"/>
         </record>
     </data>
 </openerp>
