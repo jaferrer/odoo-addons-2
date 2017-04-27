@@ -21,7 +21,7 @@ from openerp.tests import common
 from openerp import models
 
 
-class TestModelInheritMailThread(models.TransientModel):
+class TestModelInheritMailThread(models.BaseModel):
     _name = 'test.model.inherit.mail.thread'
     _inherit = 'mail.thread'
 
@@ -31,7 +31,11 @@ class TestMailNoAutofollow(common.TransactionCase):
     def setUp(self):
         super(TestMailNoAutofollow, self).setUp()
         self.partner_id = self.ref('base.res_partner_1')
-        self.user_id = self.ref('base.user_demo_res_partner')
+        self.user_id = self.ref('base.partner_demo')
+        print self.user_id
+        print self.partner_id
+        # Force the register of the monkeyPatch
+        self.env['mail_thread.extend']._register_hook()
 
     def test_10_post_no_autofollow(self):
         """Check that only users are subscribed."""
@@ -39,7 +43,7 @@ class TestMailNoAutofollow(common.TransactionCase):
         testmodel = self.env['test.model.inherit.mail.thread']
         testmodel._prepare_setup()
         testmodel._setup_base(False)
-        testmodel._setup_fields()
+        testmodel._setup_fields(False)
         testmodel._setup_complete()
         testmodel._auto_init()
         mt_object = self.env['test.model.inherit.mail.thread'].create({})
@@ -51,5 +55,13 @@ class TestMailNoAutofollow(common.TransactionCase):
             'res_id': mt_object.id,
         })
         wizard.with_context(mail_post_autofollow=True).send_mail()
-        self.assertIn(self.user_id, mt_object.message_follower_ids.ids)
+        partner_ids = [mail_follower.partner_id.id for mail_follower in self.env['mail.followers'].browse(mt_object.message_follower_ids.ids)]
+        partner_name = [mail_follower.partner_id.name for mail_follower in self.env['mail.followers'].browse(mt_object.message_follower_ids.ids)]
+        user_ids = [mail_follower.partner_id.user_id.id for mail_follower in self.env['mail.followers'].browse(mt_object.message_follower_ids.ids)]
+        print '=========================='
+        print mt_object.message_follower_ids.ids
+        print partner_ids
+        print partner_name
+        print user_ids
+        self.assertIn(self.user_id, partner_ids)
         self.assertNotIn(self.partner_id, mt_object.message_follower_ids.ids)
