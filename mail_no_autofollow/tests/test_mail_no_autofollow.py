@@ -36,7 +36,13 @@ class TestMailNoAutofollow(common.TransactionCase):
     def test_10_post_no_autofollow(self):
         """Check that only users are subscribed."""
         TestModelInheritMailThread._build_model(self.registry, self.cr)
-        mt_object = self.env['mail.thread'].create({})
+        testmodel = self.env['test.model.inherit.mail.thread']
+        testmodel._prepare_setup()
+        testmodel._setup_base(False)
+        testmodel._setup_fields()
+        testmodel._setup_complete()
+        testmodel._auto_init()
+        mt_object = self.env['test.model.inherit.mail.thread'].create({})
         wizard = self.env['mail.compose.message'].create({
             'partner_ids': [(6, 0, [self.partner_id, self.user_id])],
             'subject': "Test email",
