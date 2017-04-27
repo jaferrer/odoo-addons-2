@@ -20,9 +20,11 @@
 from openerp.tests import common
 from openerp import models
 
+
 class TestModelInheritMailThread(models.TransientModel):
     _name = 'test.model.inherit.mail.thread'
     _inherit = 'mail.thread'
+
 
 class TestMailNoAutofollow(common.TransactionCase):
 
@@ -32,8 +34,8 @@ class TestMailNoAutofollow(common.TransactionCase):
         self.user_id = self.ref('base.user_demo_res_partner')
 
     def test_10_post_no_autofollow(self):
-        TestModelInheritMailThread._build_model(self.registry, self.cr)
         """Check that only users are subscribed."""
+        TestModelInheritMailThread._build_model(self.registry, self.cr)
         mt_object = self.env['mail.thread'].create({})
         wizard = self.env['mail.compose.message'].create({
             'partner_ids': [(6, 0, [self.partner_id, self.user_id])],

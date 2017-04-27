@@ -48,4 +48,3 @@ https://github.com/odoo/odoo/issues/9084
     'license': 'AGPL-3',
     'application': False,
 }
-

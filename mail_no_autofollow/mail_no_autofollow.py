@@ -33,11 +33,11 @@ class BaseModelExtend(models.AbstractModel):
             user_ids = self.pool['res.users'].search(cr, uid, [('partner_id', 'in', partner_ids)])
             partner_ids = [u.partner_id.id for u in self.pool['res.users'].browse(cr, uid, user_ids)]
             return BaseModelExtend.message_subscribe_origin(self, cr, uid, ids,
-                                                 partner_ids=partner_ids,
-                                                 channel_ids=channel_ids,
-                                                 subtype_ids=subtype_ids,
-                                                 force=force,
-                                                 context=context)
+                                                            partner_ids=partner_ids,
+                                                            channel_ids=channel_ids,
+                                                            subtype_ids=subtype_ids,
+                                                            force=force,
+                                                            context=context)
 
         MailThread.message_subscribe = ugly_override_message_subscribe
         return super(BaseModelExtend, self)._register_hook(cr)
