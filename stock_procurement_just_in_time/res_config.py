@@ -25,6 +25,7 @@ class StockProcurementJitConfig(models.TransientModel):
 
     delete_moves_cancelled_by_planned = fields.Boolean(string=u"Delete moves and procurements cancelled "
                                                               u"by planner")
+    consider_end_contract_effect = fields.Boolean(string=u"Consider end contract effects")
     relative_stock_delta = fields.Float(string=u"Relative stock delta allowed (%)")
     absolute_stock_delta = fields.Float(string=u"Absolute stock delta allowed (product UoM)")
 
@@ -40,6 +41,19 @@ class StockProcurementJitConfig(models.TransientModel):
         for record in self:
             config_parameters.set_param("stock_procurement_just_in_time.delete_moves_cancelled_by_planned",
                                         record.delete_moves_cancelled_by_planned or '')
+
+    @api.multi
+    def get_default_consider_end_contract_effect(self):
+        consider_end_contract_effect = self.env['ir.config_parameter'].get_param(
+            "stock_procurement_just_in_time.consider_end_contract_effect", default=False)
+        return {'consider_end_contract_effect': bool(consider_end_contract_effect)}
+
+    @api.multi
+    def set_consider_end_contract_effect(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("stock_procurement_just_in_time.consider_end_contract_effect",
+                                        record.consider_end_contract_effect or '')
 
     @api.multi
     def get_default_relative_stock_delta(self):

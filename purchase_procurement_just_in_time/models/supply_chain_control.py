@@ -51,8 +51,8 @@ class SupplyChainControl(models.Model):
         index = 0
         while products:
             index += 1
-            chunk_products = products[:100]
-            products = products[100:]
+            chunk_products = products[:10]
+            products = products[10:]
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             job_update_supply_chain_controls.delay(session, 'product.product', chunk_products.ids,
                                                    description="Update Sypply Chain Control (chunk %s)" % index,
@@ -182,3 +182,12 @@ class SupplyChainControlProductProduct(models.Model):
                                                precision_rounding=prec),
                  'missing_date': level_report and level_report.date and level_report.date[:10] or False}
             )
+
+    @api.multi
+    def sanitize_purchase_order_lines(self):
+        for rec in self:
+            lines = self.env['purchase.order.line']. \
+                search([('order_id.state', 'in', self.env['purchase.order'].get_purchase_order_states_with_moves()),
+                        ('product_id', '=', rec.product_id.id)])
+            for line in lines:
+                line.adjust_moves_qties(line.product_qty)

@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import api, models
+from openerp import api, models, fields
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 
@@ -49,6 +49,17 @@ def run_or_check_procurements(session, model_name, domain, action, context):
     prev_procs = proc_obj
     while True:
         procs = proc_obj.sudo().search(domain)
+        if procs:
+            session.env.cr.execute("""SELECT
+            po.id
+            FROM procurement_order po
+            LEFT JOIN queue_job qj ON qj.uuid = po.run_or_confirm_job_uuid
+            WHERE po.id IN %s AND
+            (qj.id IS NULL OR
+            qj.state NOT IN ('pending', 'enqueued', 'started'))""" % (str(tuple(procs.ids)).replace(',)', ')'),))
+            res = session.env.cr.fetchall()
+            proc_ids = [item[0] for item in res]
+            procs = proc_obj.sudo().search([('id', 'in', proc_ids)])
         if not procs or prev_procs == procs:
             break
         else:
@@ -117,6 +128,8 @@ class ProcurementOrderPointComputeAsync(models.TransientModel):
 class ProcurementOrderAsync(models.Model):
     _inherit = 'procurement.order'
 
+    run_or_confirm_job_uuid = fields.Char(tring=u"Job UUID to confirm or check this procurement")
+
     @api.model
     def run_confirm_moves(self):
         group_draft_moves = {}
@@ -165,9 +178,12 @@ class ProcurementOrderAsync(models.Model):
         offset = 0
         while products:
             dom = base_dom + [('product_id', 'in', products.ids)]
-            if self.env.context.get("jobify", False):
-                run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
-                                                'run', self.env.context)
+            if self.env.context.get('jobify', False):
+                job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env),
+                                                           'procurement.order', dom,
+                                                           'run', self.env.context)
+                if job_uuid:
+                    self.search(dom).write({'run_or_confirm_job_uuid': job_uuid})
             else:
                 run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
                                           'run', self.env.context)
@@ -185,8 +201,10 @@ class ProcurementOrderAsync(models.Model):
         while products:
             dom = base_dom + [('product_id', 'in', products.ids)]
             if self.env.context.get("jobify", False):
-                run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order', dom,
-                                                'check', self.env.context)
+                job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order',
+                                                           dom, 'check', self.env.context)
+                if job_uuid:
+                    self.search(dom).write({'run_or_confirm_job_uuid': job_uuid})
             else:
                 run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
                                           'check', self.env.context)

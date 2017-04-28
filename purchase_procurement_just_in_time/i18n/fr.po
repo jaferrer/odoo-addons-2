@@ -820,3 +820,9 @@ msgstr "Mouvements de stock pour l'article %s"
 #, python-format
 msgid "Procurements for product %s"
 msgstr "Demandes d'approvisionnement pour l'article %s"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.actions.server,name:purchase_procurement_just_in_time.act_server_sanitize_purchase_order_lines
+#: model:ir.values,name:purchase_procurement_just_in_time.ir_value_sanitize_purchase_order_lines
+msgid "Sanitize purchase order lines"
+msgstr "Nettoyer les lignes de commande d'achat"

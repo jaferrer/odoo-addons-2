@@ -3,7 +3,7 @@
     <data noupdate="1">
 
         <record id="cron_update_mrp_procurement_id" model="ir.cron">
-            <field name="name">Automatic calculation of Procurmeent Orders (Production)</field>
+            <field name="name">Automatic calculation of Procurement Orders (Production)</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="active" eval="True"/>
             <field name="priority">5</field>

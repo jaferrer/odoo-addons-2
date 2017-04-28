@@ -75,6 +75,7 @@ Notes
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'stock_planning_improved_view.xml',
+        'cron.xml',
     ],
     'demo': [
         'stock_planning_improved_demo.xml',

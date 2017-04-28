@@ -49,6 +49,18 @@ class IrAttachmentScanner(models.Model):
         self.env['bus.bus'].sendone(channel=channel, message=msg)
         return {'scan_name': user.scanner_id.name}
 
+    @api.multi
+    def check(self, mode, values=None):
+        if not self.env.user.has_group('document_scanner.bot_ir_attachment'):
+            super(IrAttachmentScanner, self).check(mode, values=values)
+
+    @api.cr_uid_context
+    def __get_partner_id(self, cr, uid, res_model, res_id, context=None):
+        if not self.env.user.has_group('document_scanner.bot_ir_attachment'):
+            return super(IrAttachmentScanner, self).__get_partner_id(cr, uid, res_model, res_id, context=context)
+        return False
+
+
 class ImBusScanner(models.Model):
     _inherit = 'bus.bus'
 
@@ -58,8 +70,8 @@ class ImBusScanner(models.Model):
         return self.env.cr.fetchone()
 
 
-
 class DocumentScannerBus(openerp.addons.bus.bus.Controller):
+
     def _poll(self, dbname, channels, last, options):
         if request.session.uid:
             channels.append((request.db, 'request.scanner'))
