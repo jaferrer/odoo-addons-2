@@ -216,3 +216,8 @@ msgstr "Annuler"
 #, python-format
 msgid "Grouped moves by users"
 msgstr "Mouvements groupés par utilisateurs"
+
+#. module: stock_planning_improved
+#: view:stock.move:stock_planning_improved.stock_move_search
+msgid "Expected Day"
+msgstr "Jour prévu"
