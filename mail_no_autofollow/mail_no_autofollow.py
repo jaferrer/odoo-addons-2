@@ -30,10 +30,8 @@ class BaseModelExtend(models.AbstractModel):
         @api.cr_uid_ids_context
         def ugly_override_message_subscribe(self, cr, uid, ids, partner_ids=None, channel_ids=None, subtype_ids=None,
                                             force=True, context=None):
-            print partner_ids
             user_ids = self.pool['res.users'].search(cr, uid, [('partner_id', 'in', partner_ids)])
             partner_ids = [u.partner_id.id for u in self.pool['res.users'].browse(cr, uid, user_ids)]
-            print partner_ids
             return BaseModelExtend.message_subscribe_origin(self, cr, uid, ids,
                                                             partner_ids=partner_ids,
                                                             channel_ids=channel_ids,
