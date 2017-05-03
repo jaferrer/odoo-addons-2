@@ -51,8 +51,8 @@ class SupplyChainControl(models.Model):
         index = 0
         while products:
             index += 1
-            chunk_products = products[:100]
-            products = products[100:]
+            chunk_products = products[:10]
+            products = products[10:]
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             job_update_supply_chain_controls.delay(session, 'product.product', chunk_products.ids,
                                                    description="Update Sypply Chain Control (chunk %s)" % index,
@@ -66,7 +66,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'product.product',
             'name': self.product_id.display_name,
             'views': [(False, "form")],
-            'res_id': self.id,
+            'res_id': self.product_id.id,
             'context': {}
         }
 
@@ -84,7 +84,7 @@ class SupplyChainControl(models.Model):
             'name': _("Purchase order lines for product %s") % self.product_id.display_name,
             'view_type': 'form',
             'view_mode': 'tree',
-            'context': {'search_default_product_id': self.id}
+            'context': {'search_default_product_id': self.product_id.id}
         }
 
     @api.multi
@@ -96,7 +96,7 @@ class SupplyChainControl(models.Model):
             'name': _("Moves for product %s") % self.product_id.display_name,
             'view_type': 'form',
             'view_mode': 'tree',
-            'context': {'search_default_product_id': self.id,
+            'context': {'search_default_product_id': self.product_id.id,
                         'search_default_ready': True,
                         'search_default_future': True,
                         'search_default_groupby_location_id': True,
@@ -112,14 +112,37 @@ class SupplyChainControl(models.Model):
             'name': _("Procurements for product %s") % self.product_id.display_name,
             'view_type': 'form',
             'view_mode': 'tree',
-            'context': {'search_default_product_id': self.id,
+            'context': {'search_default_product_id': self.product_id.id,
                         'search_default_group_procs_by_location': True,
                         'search_default_group_procs_by_state': True}
         }
 
 
+class ProductTemplateJit(models.Model):
+    _inherit = 'product.template'
+
+    seller_id = fields.Many2one(compute='_compute_seller_id', store=True)
+
+    @api.multi
+    def get_main_supplierinfo(self, force_company=None):
+        self.ensure_one()
+        supplier_infos_domain = [('product_tmpl_id', '=', self.id)]
+        if force_company:
+            supplier_infos_domain += ['|', ('company_id', '=', force_company.id), ('company_id', '=', False)]
+        return self.env['product.supplierinfo'].search(supplier_infos_domain, order='sequence, id', limit=1)
+
+    @api.multi
+    @api.depends('seller_ids', 'seller_ids.sequence')
+    def _compute_seller_id(self):
+        for rec in self:
+            main_supplierinfo = rec.get_main_supplierinfo()
+            rec.seller_id = main_supplierinfo and main_supplierinfo.name or False
+
+
 class SupplyChainControlProductProduct(models.Model):
     _inherit = 'product.product'
+
+    seller_id = fields.Many2one(related='product_tmpl_id.seller_id', store=True, readonly=True)
 
     @api.multi
     def get_available_qty_supply_control(self):
@@ -159,3 +182,12 @@ class SupplyChainControlProductProduct(models.Model):
                                                precision_rounding=prec),
                  'missing_date': level_report and level_report.date and level_report.date[:10] or False}
             )
+
+    @api.multi
+    def sanitize_purchase_order_lines(self):
+        for rec in self:
+            lines = self.env['purchase.order.line']. \
+                search([('order_id.state', 'in', self.env['purchase.order'].get_purchase_order_states_with_moves()),
+                        ('product_id', '=', rec.product_id.id)])
+            for line in lines:
+                line.adjust_moves_qties(line.product_qty)

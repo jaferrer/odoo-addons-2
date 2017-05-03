@@ -187,9 +187,13 @@ class StockWarehouseOrderPointJit(models.Model):
         """
         proc = self.env['procurement.order']
         self.ensure_one()
-        qty = max(self.product_min_qty,
-                  self.get_max_qty(fields.Datetime.from_string(need['date']))) - stock_after_event
-        qty = max(qty, 0)
+        product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
+        if self.fill_strategy == 'duration':
+            consider_end_contract_effect = bool(self.env['ir.config_parameter'].get_param(
+                'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
+            if not consider_end_contract_effect:
+                product_max_qty += self.product_min_qty
+        qty = max(max(self.product_min_qty, product_max_qty) - stock_after_event, 0)
         reste = self.qty_multiple > 0 and qty % self.qty_multiple or 0.0
         if float_compare(reste, 0.0, precision_rounding=self.product_uom.rounding) > 0:
             qty += self.qty_multiple - reste
@@ -243,11 +247,16 @@ class StockWarehouseOrderPointJit(models.Model):
     def get_max_allowed_qty(self, need):
         self.ensure_one()
         product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
+        if self.fill_strategy == 'duration':
+            consider_end_contract_effect = bool(self.env['ir.config_parameter'].get_param(
+                'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
+            if not consider_end_contract_effect:
+                product_max_qty += self.product_min_qty
         if self.qty_multiple and product_max_qty % self.qty_multiple != 0:
             product_max_qty = (product_max_qty // self.qty_multiple + 1) * self.qty_multiple
-        relative_stock_delta = bool(self.env['ir.config_parameter'].get_param(
+        relative_stock_delta = float(self.env['ir.config_parameter'].get_param(
             'stock_procurement_just_in_time.relative_stock_delta', default=0))
-        absolute_stock_delta = bool(self.env['ir.config_parameter'].get_param(
+        absolute_stock_delta = float(self.env['ir.config_parameter'].get_param(
             'stock_procurement_just_in_time.absolute_stock_delta', default=0))
         return max((1 * float(relative_stock_delta) / 100) * product_max_qty, product_max_qty + absolute_stock_delta)
 

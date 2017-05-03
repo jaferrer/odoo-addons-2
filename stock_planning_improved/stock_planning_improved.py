@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api
+from openerp import fields, models, api, _
 
 
 class procurement_order_planning_improved(models.Model):
@@ -105,3 +105,40 @@ class stock_picking_planning_improved(models.Model):
     def compute_date_due_auto(self):
         pickings = self.search([('state', 'not in', ['cancel', 'done'])])
         pickings.compute_date_due()
+
+
+class OpenGroupedMoves(models.TransientModel):
+    _name = 'open.grouped.moves'
+
+    def _get_default_date_end(self):
+        return fields.Datetime.now()
+
+    date_begin = fields.Date(string=u"Date begin")
+    date_end = fields.Date(string=u"Date end", default=_get_default_date_end)
+    user_ids = fields.Many2many('res.users', string=u"User(s)")
+    only_done_moves = fields.Boolean(string=u"Focus on done moves", default=True)
+
+    @api.multi
+    def open_grouped_moves(self):
+        self.ensure_one()
+        ctx = self.env.context.copy()
+        moves_domain = [('state', '!=', 'cancel')]
+        if self.date_begin:
+            moves_domain += [('date', '>=', self.date_begin)]
+        if self.date_end:
+            moves_domain += [('date', '<=', self.date_end)]
+        if self.user_ids:
+            moves_domain += [('write_uid', 'in', self.user_ids.ids)]
+        if self.only_done_moves:
+            ctx['search_default_done'] = True
+        ctx['search_default_groupby_date_real'] = True
+        ctx['search_default_groupby_user'] = True
+        return {
+            'name': _("Grouped moves by users"),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'stock.move',
+            'domain': moves_domain,
+            'context': ctx,
+        }

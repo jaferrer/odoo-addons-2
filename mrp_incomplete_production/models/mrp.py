@@ -173,12 +173,12 @@ class IncompeteProductionMrpProduction(models.Model):
                 picking_to_change_origin |= item.picking_id
             picking_to_change_origin.write({'origin': production.name})
         procurements_to_cancel = self.env['procurement.order']
-        # Let's cancel old service moves
-        for move in initial_raw_moves:
-            procurements_to_cancel |= self.env['procurement.order'].search([('move_dest_id', '=', move.id),
+        # Let's cancel old service moves if the MO is produced
+        if production_mode == 'consume_produce':
+            procurements_to_cancel |= self.env['procurement.order'].search([('move_dest_id', 'in', initial_raw_moves.ids),
                                                                             ('state', 'not in', ['cancel', 'done'])])
-        if procurements_to_cancel:
-            procurements_to_cancel.cancel()
+            if procurements_to_cancel:
+                procurements_to_cancel.cancel()
         return result
 
     @api.model

@@ -23,7 +23,7 @@ from openerp import fields, models, api
 
 
 class StockWarehouse(models.Model):
-    _inherit = "stock.warehouse.orderpoint"
+    _inherit = 'stock.warehouse.orderpoint'
 
     fill_strategy = fields.Selection([('max', "Maximal quantity"), ('duration', 'Foresight duration')],
                                      string="Procurement strategy", help="Alert choice for a new procurement order",

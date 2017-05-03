@@ -49,7 +49,13 @@ class QuantitiesModificationsSaleOrder(models.Model):
             if procurements:
                 procurements.reset_to_confirmed()
 
-            for line in order.order_line:
+            lines = order.order_line
+            process_only_line_ids = self.env.context.get('process_only_line_ids')
+            if process_only_line_ids:
+                lines = self.env['sale.order.line'].search([('id', 'in', order.order_line.ids),
+                                                            ('id', 'in', process_only_line_ids)])
+
+            for line in lines:
                 if line.state == 'cancel':
                     continue
                 if not line.procurement_ids and line.need_procurement():
@@ -132,6 +138,7 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
             # Lets's call 'action_ship_create' function using old api, in order to allow the system to change the
             # context (which is a frozendict in new api).
             context = self.env.context.copy()
+            context['process_only_line_ids'] = result.ids
             # Creation of the corresponding procurement orders
             self.pool.get('sale.order').action_ship_create(self.env.cr, self.env.uid, [result.order_id.id], context)
         return result
