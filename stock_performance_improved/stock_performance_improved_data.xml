@@ -29,7 +29,7 @@
             <field name="doall"/>
             <field name="model">procurement.order</field>
             <field name="function">run_assign_moves</field>
-            <field name="args">([{'jobify': True}])</field>
+            <field name="args" eval="([{'jobify': True, 'no_assign_in_location_ids': [ref('sirail_config.stock_location_sirail_buffer_sortie')]}])"/>
         </record>
 
         <record id="check_procs_auto" model="ir.cron">
