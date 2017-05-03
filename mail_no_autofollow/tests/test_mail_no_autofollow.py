@@ -36,6 +36,10 @@ class TestMailNoAutofollow(common.TransactionCase):
         # Force the register of the monkeyPatch
         self.env['mail_thread.extend']._register_hook()
 
+    def tearDown(self):
+        self.env['mail_thread.extend']._unregister_hook()
+        super(TestMailNoAutofollow, self).tearDown()
+
     def test_10_post_no_autofollow(self):
         """Check that only users are subscribed."""
         ModelInheritMailThread._build_model(self.registry, self.cr)

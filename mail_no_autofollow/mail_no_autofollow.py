@@ -41,3 +41,8 @@ class BaseModelExtend(models.AbstractModel):
 
         MailThread.message_subscribe = ugly_override_message_subscribe
         return super(BaseModelExtend, self)._register_hook(cr)
+
+    @api.model
+    def _unregister_hook(self):
+        """Unregister the message modification (used for tests)"""
+        MailThread.message_subscribe = self.message_subscribe_origin
