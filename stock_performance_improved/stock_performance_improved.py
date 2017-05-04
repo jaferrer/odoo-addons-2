@@ -520,7 +520,8 @@ class StockPicking(models.Model):
                                                       'operation_id': operation_id,
                                                       'qty': qty_on_link,
                                                       'reserved_quant_id': quant_id})
-        if move_dict['remaining_qty'] == qty_on_link:
+        rounding = self.env['product.product'].browse(product_id).uom_id.rounding
+        if float_compare(move_dict['remaining_qty'], qty_on_link, precision_rounding=rounding) == 0:
             prod2move_ids[product_id].pop(index)
         else:
             move_dict['remaining_qty'] -= qty_on_link
