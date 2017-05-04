@@ -45,6 +45,7 @@ def run_procure_orderpoint_async(session, model_name, company_id, context):
 @job(default_channel='root.confprocs')
 def run_or_check_procurements(session, model_name, domain, action, context):
     """Confirm or check procurements"""
+    job_uuid = session.context.get('job_uuid')
     proc_obj = session.env[model_name].with_context(context)
     prev_procs = proc_obj
     while True:
@@ -53,10 +54,9 @@ def run_or_check_procurements(session, model_name, domain, action, context):
             session.env.cr.execute("""SELECT
             po.id
             FROM procurement_order po
-            LEFT JOIN queue_job qj ON qj.uuid = po.run_or_confirm_job_uuid
             WHERE po.id IN %s AND
-            (qj.id IS NULL OR
-            qj.state NOT IN ('pending', 'enqueued', 'started'))""" % (str(tuple(procs.ids)).replace(',)', ')'),))
+            (po.run_or_confirm_job_uuid IS NULL OR po.run_or_confirm_job_uuid = %s)""",
+                                   (tuple(procs.ids), job_uuid))
             res = session.env.cr.fetchall()
             proc_ids = [item[0] for item in res]
             procs = proc_obj.sudo().search([('id', 'in', proc_ids)])
@@ -181,12 +181,12 @@ class ProcurementOrderAsync(models.Model):
             if self.env.context.get('jobify', False):
                 job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env),
                                                            'procurement.order', dom,
-                                                           'run', self.env.context)
+                                                           'run', dict(self.env.context))
                 if job_uuid:
                     self.search(dom).write({'run_or_confirm_job_uuid': job_uuid})
             else:
                 run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
-                                          'run', self.env.context)
+                                          'run', dict(self.env.context))
             offset += PRODUCT_CHUNK
             products = self.env['product.product'].search([], limit=PRODUCT_CHUNK, offset=offset)
 
@@ -202,12 +202,12 @@ class ProcurementOrderAsync(models.Model):
             dom = base_dom + [('product_id', 'in', products.ids)]
             if self.env.context.get("jobify", False):
                 job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order',
-                                                           dom, 'check', self.env.context)
+                                                           dom, 'check', dict(self.env.context))
                 if job_uuid:
                     self.search(dom).write({'run_or_confirm_job_uuid': job_uuid})
             else:
                 run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
-                                          'check', self.env.context)
+                                          'check', dict(self.env.context))
             offset += PRODUCT_CHUNK
             products = self.env['product.product'].search([], limit=PRODUCT_CHUNK, offset=offset)
 
