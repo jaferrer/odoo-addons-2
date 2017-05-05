@@ -83,6 +83,6 @@ class ProductProduct(models.Model):
             chunk_products = products[:100]
             chunk_number += 1
             job_compute_use_case_count.delay(ConnectorSession.from_env(self.env), 'product.product', chunk_products.ids,
-                                            self.env.context, description=u"Update number of use cases (chunk %s)" %
-                                                                          chunk_number)
+                                             dict(self.env.context),
+                                             description=u"Update number of use cases (chunk %s)" % chunk_number)
             products = products[100:]

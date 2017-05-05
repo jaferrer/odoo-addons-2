@@ -135,7 +135,7 @@ HAVING sum(CASE WHEN raw_move_state = 'done' OR
             chunk_number += 1
             mrp_chunk_ids = mrp_to_update_ids[:100]
             run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
-                                            self.env.context, description=u"MRP Production Update (chunk %s)" %
+                                            dict(self.env.context), description=u"MRP Production Update (chunk %s)" %
                                                                           chunk_number)
             mrp_to_update_ids = mrp_to_update_ids[100:]
 
