@@ -133,8 +133,8 @@ WHERE COALESCE(mrp.procurement_id, 0) != COALESCE(procs.procurement_id, 0)""")
             chunk_number += 1
             chunk_orders = orders[:100]
             run_mrp_recheck_availability.delay(ConnectorSession.from_env(self.env), 'mrp.production', chunk_orders.ids,
-                                               self.env.context, description=u"MRP Recheck availability (chunk %s)" %
-                                                                             chunk_number)
+                                               dict(self.env.context),
+                                               description=u"MRP Recheck availability (chunk %s)" % chunk_number)
             orders -= chunk_orders
 
 
