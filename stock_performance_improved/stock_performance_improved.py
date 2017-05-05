@@ -1098,9 +1098,9 @@ class ProcurementOrder(models.Model):
             product_ids = product_ids[PRODUCT_CHUNK:]
             move_ids = flatten(products)
             if self.env.context.get('jobify'):
-                assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', move_ids, self.env.context)
+                assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', move_ids, dict(self.env.context))
             else:
-                assign_moves(ConnectorSession.from_env(self.env), 'stock.move', move_ids, self.env.context)
+                assign_moves(ConnectorSession.from_env(self.env), 'stock.move', move_ids, dict(self.env.context))
 
 
 class StockPrereservation(models.Model):

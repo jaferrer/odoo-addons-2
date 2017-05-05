@@ -149,10 +149,10 @@ class ProcurementOrderAsync(models.Model):
             if self.env.context.get('jobify'):
                 confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move',
                                     group_draft_moves[draft_move_ids],
-                                    self.env.context)
+                                    dict(self.env.context))
             else:
                 confirm_moves(ConnectorSession.from_env(self.env), 'stock.move', group_draft_moves[draft_move_ids],
-                              self.env.context)
+                              dict(self.env.context))
 
     @api.model
     def run_assign_moves(self):
@@ -162,10 +162,10 @@ class ProcurementOrderAsync(models.Model):
         while confirmed_moves:
             if self.env.context.get('jobify'):
                 assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:100].ids,
-                                   self.env.context)
+                                   dict(self.env.context))
             else:
                 assign_moves(ConnectorSession.from_env(self.env), 'stock.move', confirmed_moves[:100].ids,
-                             self.env.context)
+                             dict(self.env.context))
             confirmed_moves = confirmed_moves[100:]
 
     @api.model
