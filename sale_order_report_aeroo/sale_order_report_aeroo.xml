@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+
+		 <record model="report.stylesheets" id="sale_order_report_aeroo_stylesheet">
+            <field name="name">stylesheet</field>
+            <field name="report_styles" type="base64" file="sale_order_report_aeroo/stylesheet.odt"/>
+        </record>
+
+		<record id="sale_order_report_aeroo" model="ir.actions.report.xml">
+			<field name="name">Sale Order</field>
+			<field name="type">ir.actions.report.xml</field>
+			<field name="model">sale.order</field>
+			<field name="report_name">sale.order.report.aeroo</field>
+			<field name="auto" eval="True"/>
+			<field name="report_type">aeroo</field>
+			<field name="report_rml">sale_order_report_aeroo/sale_order_report.odt</field>
+			<field name="parser_state">default</field>
+			<field name="styles_mode">specified</field>
+            <field name="stylesheet_id" ref="sale_order_report_aeroo_stylesheet"/>
+            <field name="attachment">object.name.replace('/','')+'.pdf'</field>
+			<field name="tml_source">file</field>
+			<field name="in_format">oo-odt</field>
+			<field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+		</record>
+
+		<record id="value_report_sale_order_aeroo" model="ir.values">
+			<field name="name">sale.order.report.aeroo</field>
+			<field name="key">action</field>
+			<field name="key2">client_print_multi</field>
+			<field name="model">sale.order</field>
+			<field name="value" eval="'ir.actions.report.xml,'+str(ref('sale_order_report_aeroo.sale_order_report_aeroo'))"/>
+		</record>
+
+        <function model="sale.order.delete.report" name="delete_report"/>
+
+		<record id="sale.email_template_edi_sale" model="mail.template">
+			<field name="report_template" ref="sale_order_report_aeroo.sale_order_report_aeroo"/>
+		</record>
+	</data>
+</openerp>
