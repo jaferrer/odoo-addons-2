@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,29 +18,23 @@
 #
 
 {
-    'name': 'No Auto-Subscription of Partners',
+    'name': 'Sale Order Report Aeroo',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Usability',
-    'depends': ['mail'],
+    'category': 'Account',
+    'depends': ['sale', 'report_aeroo'],
     'description': """
-No Auto-Subscription of Partners
-================================
-Automatically remove partners that are not users from automatic subscription to objects.
-
-This tyically prevents customers from being automatically subscribed to their quotes, invoices, etc.
-
-We use this hack because wa can't inherit of a Abstract model
-
-link to how and why we do that
-
-http://stackoverflow.com/questions/31936122/how-to-inherit-mail-thread-abstractmodel-and-override-function-from-this-class-i
-
-https://github.com/odoo/odoo/issues/9084
+Sale Order Report Aeroo
+============================
+Replaces the basic report by a improved one.
+to customize your the report you only need to inherit like this
+<record id="sale_order_report_aeroo.sale_order_report_aeroo" model="ir.actions.report.xml">
+    <field name="report_rml">yourmodule/your_report.odt</field>
+</record>
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': ['sale_order_report_aeroo.xml'],
     'demo': [],
     'test': [],
     'installable': True,
