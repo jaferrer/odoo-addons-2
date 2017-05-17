@@ -654,7 +654,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         wizard.item_ids.quantity = 2
         wizard.do_detailed_transfer()
 
-        move_to_a_2 = proc_in_a.move_ids.filtered(lambda move: move != move_to_a)
+        move_to_a_2 = self.env['stock.move'].search([('split_from', '=', move_to_a.id)])
         self.assertEqual(len(move_to_a_2), 1)
         self.assertEqual(move_to_a.product_uom_qty, 2)
         self.assertEqual(move_to_a.state, 'done')
