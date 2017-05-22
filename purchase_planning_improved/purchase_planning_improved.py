@@ -111,11 +111,12 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                     vals['requested_date'] = vals['date_planned']
         result = super(PurchaseOrderLinePlanningImproved, self).write(vals)
         if vals.get('date_planned'):
+            date = vals.get('date_planned') + " 12:00:00"
             for line in self:
-                if line.move_ids:
-                    date = vals.get('date_planned') + " 12:00:00"
-                    if line.procurement_ids:
-                        line.move_ids.write({'date_expected': date})
-                    else:
-                        line.move_ids.write({'date_expected': date, 'date': date})
+                moves = self.env['stock.move'].search([('purchase_line_id', '=', line.id),
+                                                       ('state', 'not in', ['done', 'cancel'])])
+                if line.procurement_ids:
+                    moves.write({'date_expected': date})
+                else:
+                    moves.write({'date_expected': date, 'date': date})
         return result
