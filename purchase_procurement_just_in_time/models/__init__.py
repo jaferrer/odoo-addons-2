@@ -23,3 +23,4 @@ from . import procurement
 from . import wizard
 from . import partner
 from . import res_config
+from . import supply_chain_control

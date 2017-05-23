@@ -134,6 +134,22 @@ msgid "Manual Operation"
 msgstr "Opération Manuelle"
 
 #. module: stock_quant_packages_moving_wizard
+#: field:product.move.wizard,filling_method:0
+msgid "Filling method for the picking"
+msgstr "Méthode de remplissage pour l'opération"
+
+#. module: stock_quant_packages_moving_wizard
+#: selection:product.move.wizard,filling_method:0
+msgid "Fill picking right now"
+msgstr "Remplir l'opération tout de suite"
+
+
+#. module: stock_quant_packages_moving_wizard
+#: selection:product.move.wizard,filling_method:0
+msgid "Parallelize product by product"
+msgstr "Paralléliser le remplissage article par article"
+
+#. module: stock_quant_packages_moving_wizard
 #: model:ir.actions.act_window,name:stock_quant_packages_moving_wizard.action_move_quants
 msgid "Move Stock Quant"
 msgstr "Déplacer le quant"
@@ -157,15 +173,35 @@ msgid "Move wizard"
 msgstr "Référence popup"
 
 #. module: stock_quant_packages_moving_wizard
+#: field:stock.picking,filled_by_jobs:0
+msgid "Picking filled by jobs"
+msgstr "Transfert rempli par des jobs"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.picking,picking_correctly_filled:0
+msgid "Picking correctly filled"
+msgstr "Transfert rempli correctement"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.picking,product_to_be_filled_ids:0
+#: view:stock.picking:stock_quant_packages_moving_wizard.stock_product_line_picking_form
+msgid "Products to fill"
+msgstr "Articles à remplir"
+
+#. module: stock_quant_packages_moving_wizard
 #: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:103
 #, python-format
 msgid "Impossible to move a negative quant"
 msgstr "Impossible de déplacer un quant négatif"
 
 #. module: stock_quant_packages_moving_wizard
-#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:111
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:76
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_packages_move_wizard.py:78
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:300
+#, python-format
+msgid "No move found for product %s"
+msgstr "Aucun mouvement trouvé pour l'article %s"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:356
 #, python-format
 msgid "No line selected"
 msgstr "Aucune ligne sélectionnée"
@@ -315,6 +351,11 @@ msgid "Top package"
 msgstr "Colis de tete"
 
 #. module: stock_quant_packages_moving_wizard
+#: view:stock.product.line:stock_quant_packages_moving_wizard.stock_product_line_search
+msgid "Package"
+msgstr "Colis"
+
+#. module: stock_quant_packages_moving_wizard
 #: view:stock.quant.move:stock_quant_packages_moving_wizard.stock_quant_move_wizard
 #: view:stock.quant.package.move:stock_quant_packages_moving_wizard.stock_quant_package_move_wizard
 msgid "Transfer details"
@@ -348,9 +389,7 @@ msgstr "Annuler"
 #. module: stock_quant_packages_moving_wizard
 #: code:addons\stock_quant_packages_moving_wizard\models\stock.py:112
 #: code:addons\stock_quant_packages_moving_wizard\models\stock.py:197
-#: code:addons\stock_quant_packages_moving_wizard\wizard\product_line_move_wizard.py:105
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_move_wizard.py:76
-#: code:addons\stock_quant_packages_moving_wizard\wizard\quant_packages_move_wizard.py:78
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:356
 #, python-format
 msgid "error"
 msgstr "Erreur"
@@ -367,3 +406,27 @@ msgstr "ou"
 msgid "product+package"
 msgstr "Article + Colis"
 
+#. module: stock_quant_packages_moving_wizard
+#: field:product.to.be.filled,picking_id:0
+msgid "Stock Picking"
+msgstr "Bon de transfert"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:product.to.be.filled,product_id:0
+msgid "Product"
+msgstr "Article"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:product.to.be.filled,filled:0
+msgid "Filled"
+msgstr "Rempli"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:product.to.be.filled,create_date:0
+msgid "Created on"
+msgstr "Créé à"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:product.to.be.filled,filled_at:0
+msgid "Filled at"
+msgstr "Rempli à"

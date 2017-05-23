@@ -250,6 +250,16 @@ msgid "Delete moves and procurements cancelled by planner"
 msgstr "Supprimer les mouvements et les appovisionnements annulés par le planificateur"
 
 #. module: stock_procurement_just_in_time
+#: field:stock.config.settings,relative_stock_delta:0
+msgid "Relative stock delta allowed (%)"
+msgstr "Ecart de stock relatif autorisé (en %)"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.config.settings,absolute_stock_delta:0
+msgid "Absolute stock delta allowed (product UoM)"
+msgstr "Ecart de stock absolu autorisé (en unité de mesure de l'article)"
+
+#. module: stock_procurement_just_in_time
 #: view:stock.config.settings:stock_procurement_just_in_time.stock_procurement_jit_config
 msgid "Just-In-Time"
 msgstr "Juste-à-temps"

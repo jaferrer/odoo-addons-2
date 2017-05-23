@@ -25,13 +25,8 @@ from openerp.addons.connector.queue.job import job
 
 @job
 def refresh_materialized_view_job(session, model_name, ids):
-
-    model_instance = session.pool[model_name]
-
-    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
-    with handler.session() as session:
-        result = model_instance.refresh_materialized_view(session.cr, session.uid, ids, context=session.context)
-
+    views = session.env[model_name].browse(ids)
+    result = views.refresh_materialized_view()
     return result
 
 
@@ -92,7 +87,6 @@ class MaterializedViewImproved(models.Model):
         }
         result = self.env['ir.cron'].sudo().create(vals)
         self.cron_id = result.id
-        # self.cron=result
 
     @api.cr_uid_ids
     def refresh_materialized_view(self, cr, uid, ids, context=None):
@@ -167,5 +161,7 @@ class AbstractMaterializedSqlViewImproved(models.AbstractModel):
         }
         matview_mdl.create_if_not_exist(cr, uid, values, context=context)
         method = getattr(matview_mdl, method_name)
-        context.update({'values': values})
-        return method(cr, uid, self._sql_mat_view_name, context=context)
+        # Context may be a frozendict
+        ctx = dict(context)
+        ctx.update({'values': values})
+        return method(cr, uid, self._sql_mat_view_name, context=ctx)

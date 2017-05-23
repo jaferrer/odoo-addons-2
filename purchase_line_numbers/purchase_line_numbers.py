@@ -34,10 +34,9 @@ class ReceptionByOrderPurchaseOrder(models.Model):
     @api.multi
     def do_merge(self):
         result = super(ReceptionByOrderPurchaseOrder, self).do_merge()
-        assert len(result.keys()) == 1, "Error: multiple children purchase orders in do_merge result"
-        assert isinstance(result.keys()[0], int), "Error, type is not integer: wrong value for id"
-        children_po = self.env['purchase.order'].browse(result.keys()[0])
-        children_po.renumerate_lines()
+        if len(result.keys()) == 1 and isinstance(result.keys()[0], int):
+            children_po = self.env['purchase.order'].browse(result.keys()[0])
+            children_po.renumerate_lines()
         return result
 
 

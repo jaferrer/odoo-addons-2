@@ -27,8 +27,10 @@
                     <field name="lot_id" groups="stock.group_production_lot"/>
                     <field name="uom_id" groups="product.group_uom"/>
                     <field name="location_id"/>
+                    <field name="is_package" invisible="True"/>
                     <separator/>
                     <filter string="Top package" domain="[('product_id', '=', False)]"/>
+                    <filter string="Package" domain="[('is_package', '=', True)]"/>
                     <filter string="Bulk items" domain="[('package_id', '=', False)]"/>
                 </search>
             </field>
@@ -64,6 +66,43 @@ action = self.move_products(cr, uid, context.get('active_ids'), False, context)
             <field name="model">stock.product.line</field>
             <field name="name">Move products</field>
             <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_move_products)"/>
+        </record>
+
+        <record model="ir.ui.view" id="stock_product_line_picking_form">
+            <field name="name">stock_product_line_picking_form</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <button name="do_enter_transfer_details" position="attributes">
+                    <attribute name="states"/>
+                    <attribute name="attrs">{'invisible': ['|', ('state', 'not in', ['assigned', 'partially_available']), '&amp;', ('filled_by_jobs', '=', True), ('picking_correctly_filled', '=', False)]}</attribute>
+                </button>
+                <field name="origin" position="after">
+                    <field name="filled_by_jobs" invisible="1"/>
+                    <field name="picking_correctly_filled" attrs="{'invisible': [('filled_by_jobs', '=', False)]}"/>
+                </field>
+                <notebook position="inside">
+                    <page string="Products to fill" attrs="{'invisible': [('filled_by_jobs', '=', False)]}">
+                        <field name="product_to_be_filled_ids"/>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="product_to_be_filled_tree">
+            <field name="name">product_to_be_filled_tree</field>
+            <field name="model">product.to.be.filled</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" delete="false" edit="false">
+                    <field name="picking_id" invisible="1"/>
+                    <field name="product_id"/>
+                    <field name="filled"/>
+                    <field name="create_date"/>
+                    <field name="filled_at"/>
+                </tree>
+            </field>
         </record>
 
     </data>

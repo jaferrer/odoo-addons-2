@@ -49,3 +49,12 @@ msgstr "Queue de jobs"
 msgid "Set to Done"
 msgstr "Mettre en Terminé"
 
+#. module: connector
+#: model:res.groups,name:connector.group_connector_manager
+msgid "Connector User"
+msgstr "Utilisateurs connecteurs"
+
+#. module: connector
+#: model:res.groups,name:connector_improved.group_connector_real_manager
+msgid "Connector Administrator"
+msgstr "Administrateur connecteurs"

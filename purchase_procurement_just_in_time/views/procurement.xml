@@ -8,6 +8,9 @@
             <field name="inherit_id" ref="procurement.view_procurement_filter"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
+                <filter string="Status" position="attributes">
+                    <attribute name="name">group_procs_by_state</attribute>
+                </filter>
                 <search position="inside">
                     <separator/>
                     <filter name="buy_to_run" string="Buy rule to run" domain="[('state', '=', 'buy_to_run')]"/>

@@ -1,0 +1,81 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_change_quant_lot
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-11-05 13:36+0000\n"
+"PO-Revision-Date: 2015-11-05 13:36+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_change_quant_lot
+msgid "Change Quants Lots"
+msgstr "Changer les lot des quants"
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_change_quant_lot
+msgid ""
+"\n"
+"Change Quants Lots\n"
+"==================\n"
+"This module gives the possibility to warehouse managers to change quants lots.\n"
+msgstr ""
+"\n"
+"Changer les lot des quants\n"
+"==========================\n"
+"Ce module donne la possibilité de changer les numéros de lot des quants aux responsables entrepôt.\n"
+
+#. module: stock_change_quant_lot
+#: code:addons\stock_change_quant_lot\stock_change_quant_lot.py:30
+#, python-format
+msgid "You are not allowed to execute this action."
+msgstr "Vous n'avez pas le droit d'exécuter cette opération."
+
+#. module: stock_change_quant_lot
+#: code:addons\stock_change_quant_lot\stock_change_quant_lot.py:30
+#: code:addons\stock_change_quant_lot\stock_change_quant_lot.py:33
+#, python-format
+msgid "Error!"
+msgstr "Erreur !"
+
+#. module: stock_change_quant_lot
+#: code:addons\stock_change_quant_lot\stock_change_quant_lot.py:33
+#, python-format
+msgid "You have quants of different products: %s. Please change lots product by product"
+msgstr "Vous avez des quants d'articles différents : %s. Vous devez changer les lots article par article."
+
+#. module: stock_change_quant_lot
+#: model:ir.actions.server,name:stock_change_quant_lot.act_server_change_quants_lots
+#: model:ir.values,name:stock_change_quant_lot.ir_value_change_quants_lots
+#: view:stock.change.quant.lot:stock_change_quant_lot.stock_change_quant_lot_form
+#: code:addons\stock_change_quant_lot\stock_change_quant_lot.py:36
+msgid "Change quants lots"
+msgstr "Changer les numéros de lot"
+
+#. module: stock_change_quant_lot
+#: view:stock.change.quant.lot:stock_change_quant_lot.stock_change_quant_lot_form
+msgid "Pay attention: this action will remove current quants lots. Are you sure you want to continue?"
+msgstr "Attentio, cette action retirera les actuels numéros de lot des quants. Etes-vous sûr de vouloir poursuivre ?"
+
+#. module: stock_change_quant_lot
+#: field:stock.change.quant.lot,quant_ids:0
+msgid "Quants"
+msgstr "Quants"
+
+#. module: stock_change_quant_lot
+#: field:stock.change.quant.lot,product_id:0
+msgid "Product of the lot"
+msgstr "Article du lot"
+
+#. module: stock_change_quant_lot
+#: field:stock.change.quant.lot,lot_id:0
+msgid "New lot"
+msgstr "Nouveau lot"

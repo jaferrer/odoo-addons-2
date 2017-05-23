@@ -17,7 +17,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
 from openerp import models, fields, api
+
+
+@job
+def run_mrp_recheck_availability(session, model_name, mrp_ids, context):
+    mrp_orders = session.env[model_name].with_context(context).browse(mrp_ids)
+    mrp_orders.action_assign()
+    return "End of assignation"
 
 
 class ManufacturingOrderPlanningImproved(models.Model):
@@ -30,18 +40,31 @@ class ManufacturingOrderPlanningImproved(models.Model):
     taken_into_account = fields.Boolean(string="Taken into account",
                                         help="True if the manufacturing order has been taken into account",
                                         states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
-    procurement_id = fields.Many2one('procurement.order', string="Corresponding procurement order",
-                                                                                    compute='_compute_procurement_id')
+    procurement_id = fields.Many2one('procurement.order', string="Corresponding procurement order", readonly=True)
     final_order_id = fields.Many2one('mrp.production', string="Top parent order",
                                      help="Final parent order in the chain of raw materials and produced products",
                                      compute='_compute_final_order_id')
 
-    @api.multi
-    def _compute_procurement_id(self):
-        for rec in self:
-            list_procurements = self.env['procurement.order'].search([('production_id', '=', rec.id)])
-            if list_procurements and len(list_procurements) == 1:
-                rec.procurement_id = list_procurements[0]
+    @api.model
+    def update_procurement_id(self):
+        self.env.cr.execute("""WITH mrp_procurements AS (
+    SELECT
+        mrp.id     AS mrp_id,
+        min(po.id) AS procurement_id
+    FROM mrp_production mrp
+        LEFT JOIN procurement_order po ON po.production_id = mrp.id
+    GROUP BY mrp.id)
+
+SELECT
+    mrp.id,
+    procs.procurement_id AS new_procurement_id
+FROM mrp_production mrp
+    LEFT JOIN mrp_procurements procs ON procs.mrp_id = mrp.id
+WHERE COALESCE(mrp.procurement_id, 0) != COALESCE(procs.procurement_id, 0)""")
+        result = self.env.cr.fetchall()
+        for line in result:
+            order = self.browse(line[0])
+            order.write({'procurement_id': line[1] or False})
 
     @api.multi
     def _compute_final_order_id(self):
@@ -100,6 +123,19 @@ class ManufacturingOrderPlanningImproved(models.Model):
             if self.env.context.get('reschedule_planned_date'):
                 values['date_expected'] = rec.date_required
             rec.move_lines.write(values)
+
+    @api.model
+    def cron_recheck_availibility(self):
+        orders = self.search([('state', 'in', ['confirmed', 'in_production'])])
+        orders.action_assign()
+        chunk_number = 0
+        while orders:
+            chunk_number += 1
+            chunk_orders = orders[:100]
+            run_mrp_recheck_availability.delay(ConnectorSession.from_env(self.env), 'mrp.production', chunk_orders.ids,
+                                               dict(self.env.context),
+                                               description=u"MRP Recheck availability (chunk %s)" % chunk_number)
+            orders -= chunk_orders
 
 
 class ProcurementOrderPlanningImproved(models.Model):

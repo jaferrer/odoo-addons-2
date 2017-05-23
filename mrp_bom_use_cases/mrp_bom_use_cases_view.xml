@@ -24,7 +24,7 @@
             <field name="name">Product Use Cases in BoMs</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">mrp.bom.line</field>
-            <field name="domain">[('product_id', 'in', active_ids)]</field>
+            <field name="domain">[('product_id', 'in', active_ids), ('bom_id.active', '=', True)]</field>
             <field name="view_type">tree</field>
             <field name="view_id" ref="mrp_bom_inverted_tree_view"/>
             <field name="view_type">tree</field>

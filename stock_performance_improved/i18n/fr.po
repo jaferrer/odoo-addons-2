@@ -88,6 +88,11 @@ msgid "Picking id"
 msgstr "Id de l'opération"
 
 #. module: stock_performance_improved
+#: field:stock.picking.type,visible_for_all_companies:0
+msgid "Visible for all companies"
+msgstr "Visible pour toutes les sociétés"
+
+#. module: stock_performance_improved
 #: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_process_prereservations
 msgid "Process Prereservations"
 msgstr "Traiter les pré-réservations"
@@ -141,3 +146,54 @@ msgstr "Confirmer"
 #: view:confirm.process.prereservations:stock_performance_improved.confirm_process_prereservations_form
 msgid "Cancel"
 msgstr "Annuler"
+
+#. module: stock_performance_improved
+#: view:stock.quant.package:stock_performance_improved.stock_performance_improved_package_form
+msgid "Open bulk content"
+msgstr "Ouvrir le contenu en vrac"
+
+#. module: stock_performance_improved
+#: code:addons\stock_performance_improved\stock_performance_improved.py:295
+#, python-format
+msgid "Bulk content for package %s"
+msgstr "Contenu en vrac pour le colis %s"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Move"
+msgstr "Déplacement"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Manufacture"
+msgstr "Fabrication"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Buy"
+msgstr "Achat"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Make to stock"
+msgstr "Prendre dans le stock"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Make to order"
+msgstr "Créer une demande d'approvisionnement"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Source location"
+msgstr "Emplacement de départ"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Destination location"
+msgstr "Emplacement de destination"
+
+#. module: stock_performance_improved
+#: view:procurement.rule:stock_performance_improved.procurement_rule_search
+msgid "Group By"
+msgstr "Grouper par"

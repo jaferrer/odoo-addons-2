@@ -32,6 +32,7 @@ Creation of a new field for manufacturing order, date required, and a new button
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'mrp_planning_improved.xml',
+        'data/cron.xml',
     ],
     'demo': [
         'test_mrp_planning_improved.xml',

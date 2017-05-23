@@ -98,7 +98,7 @@ class ProcurementOrderQuantity(models.Model):
                     op.process()
             else:
                 process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                          orderpoints, self.env.context,
+                                          orderpoints, dict(self.env.context),
                                           description="Computing orderpoints %s" % orderpoints)
         return {}
 
@@ -137,7 +137,7 @@ class ProcurementOrderQuantity(models.Model):
             # Keep proc with new qty if some moves are already done
             procurement.remove_done_moves()
         return super(ProcurementOrderQuantity,
-                     self.with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
+                     self.sudo().with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
 
     @api.model
     def remove_done_moves(self):
@@ -187,9 +187,13 @@ class StockWarehouseOrderPointJit(models.Model):
         """
         proc = self.env['procurement.order']
         self.ensure_one()
-        qty = max(self.product_min_qty,
-                  self.get_max_qty(fields.Datetime.from_string(need['date']))) - stock_after_event
-        qty = max(qty, 0)
+        product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
+        if self.fill_strategy == 'duration':
+            consider_end_contract_effect = bool(self.env['ir.config_parameter'].get_param(
+                'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
+            if not consider_end_contract_effect:
+                product_max_qty += self.product_min_qty
+        qty = max(max(self.product_min_qty, product_max_qty) - stock_after_event, 0)
         reste = self.qty_multiple > 0 and qty % self.qty_multiple or 0.0
         if float_compare(reste, 0.0, precision_rounding=self.product_uom.rounding) > 0:
             qty += self.qty_multiple - reste
@@ -243,9 +247,18 @@ class StockWarehouseOrderPointJit(models.Model):
     def get_max_allowed_qty(self, need):
         self.ensure_one()
         product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
+        if self.fill_strategy == 'duration':
+            consider_end_contract_effect = bool(self.env['ir.config_parameter'].get_param(
+                'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
+            if not consider_end_contract_effect:
+                product_max_qty += self.product_min_qty
         if self.qty_multiple and product_max_qty % self.qty_multiple != 0:
             product_max_qty = (product_max_qty // self.qty_multiple + 1) * self.qty_multiple
-        return max(1.1 * product_max_qty, product_max_qty + 2)
+        relative_stock_delta = float(self.env['ir.config_parameter'].get_param(
+            'stock_procurement_just_in_time.relative_stock_delta', default=0))
+        absolute_stock_delta = float(self.env['ir.config_parameter'].get_param(
+            'stock_procurement_just_in_time.absolute_stock_delta', default=0))
+        return max((1 * float(relative_stock_delta) / 100) * product_max_qty, product_max_qty + absolute_stock_delta)
 
     @api.multi
     def is_over_stock_max(self, need, stock_after_event):
@@ -608,24 +621,27 @@ class StockLevelsReport(models.Model):
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
+    @api.model
+    def get_warehouse_for_stock_report(self):
+        return self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)], limit=1)
+
     @api.multi
     def action_show_evolution(self):
         self.ensure_one()
-        warehouses = self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)])
-        if warehouses:
-            wid = warehouses[0].id
+        warehouse = self.get_warehouse_for_stock_report()
+        if warehouse:
+            ctx = dict(self.env.context)
+            ctx.update({
+                'search_default_warehouse_id': warehouse.id,
+                'search_default_product_id': self.id,
+            })
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _("Stock Evolution"),
+                'res_model': 'stock.levels.report',
+                'view_type': 'form',
+                'view_mode': 'graph,tree',
+                'context': ctx,
+            }
         else:
             raise exceptions.except_orm(_("Error"), _("Your company does not have a warehouse"))
-        ctx = dict(self.env.context)
-        ctx.update({
-            'search_default_warehouse_id': wid,
-            'search_default_product_id': self.id,
-        })
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _("Stock Evolution"),
-            'res_model': 'stock.levels.report',
-            'view_type': 'form',
-            'view_mode': 'graph,tree',
-            'context': ctx,
-        }

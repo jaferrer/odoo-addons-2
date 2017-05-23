@@ -161,7 +161,63 @@ msgid "Stock Move"
 msgstr "Mouvement de stock"
 
 #. module: stock_planning_improved
-#: view:stock.move:0
-msgid "{'readonly': ['|',('state','in',['done','cancel']),('procurement_id','!=',False)]}"
-msgstr "{'readonly': ['|',('state','in',['done','cancel']),('procurement_id','!=',False)]}"
+#: field:open.grouped.moves,date_begin:0
+msgid "Date begin"
+msgstr "Date de début"
 
+#. module: stock_planning_improved
+#: field:open.grouped.moves,date_end:0
+msgid "Date begin"
+msgstr "Date de fin"
+
+#. module: stock_planning_improved
+#: field:open.grouped.moves,user_ids:0
+msgid "User(s)"
+msgstr "Opérateur(s)"
+
+#. module: stock_planning_improved
+#: field:open.grouped.moves,only_done_moves:0
+msgid "Focus on done moves"
+msgstr "Ouvrir uniquement les mouvements terminés"
+
+#. module: stock_planning_improved
+#: model:ir.actions.act_window,name:stock_planning_improved.act_window_open_grouped_moves
+#: model:ir.ui.menu,name:stock_planning_improved.menu_open_grouped_moves
+msgid "Moves by users"
+msgstr "Mouvements par utilisateurs"
+
+#. module: stock_planning_improved
+#: view:stock.move:stock_planning_improved.planning_improved_move_search
+msgid "Date"
+msgstr "Date"
+
+#. module: stock_planning_improved
+#: view:stock.move:stock_planning_improved.planning_improved_move_search
+msgid "User"
+msgstr "Opérateur"
+
+#. module: stock_planning_improved
+#: view:open.grouped.moves:stock_planning_improved.open_grouped_moves_form
+msgid "Moves by users"
+msgstr "Mouvements par utilisateurs"
+
+#. module: stock_planning_improved
+#: view:open.grouped.moves:stock_planning_improved.open_grouped_moves_form
+msgid "or"
+msgstr "ou"
+
+#. module: stock_planning_improved
+#: view:open.grouped.moves:stock_planning_improved.open_grouped_moves_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: stock_planning_improved
+#: code:addons\stock_planning_improved\stock_planning_improved.py:137
+#, python-format
+msgid "Grouped moves by users"
+msgstr "Mouvements groupés par utilisateurs"
+
+#. module: stock_planning_improved
+#: view:stock.move:stock_planning_improved.stock_move_search
+msgid "Expected Day"
+msgstr "Jour prévu"

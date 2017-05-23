@@ -22,6 +22,9 @@
                       <field name="validity_date"/>
                       <field name="active_line" invisible="1"/>
                   </field>
+                  <tree string="Pricelist" position="inside">
+                      <field name="force_inactive"/>
+                  </tree>
               </field>
           </record>
       </data>

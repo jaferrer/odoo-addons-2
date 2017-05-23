@@ -562,9 +562,15 @@ msgstr "ou"
 #. module: purchase_procurement_just_in_time
 #: code:addons\purchase_procurement_just_in_time\models\purchase_procurement_jit.py:359
 #: view:purchase.order.line:purchase_procurement_just_in_time.purchase_order_line_tree_jit
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_tree
 #, python-format
 msgid "Stock Evolution"
 msgstr "Evolution des stocks"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order:purchase_procurement_just_in_time.purchase_order_view_form_jit
+msgid "Reset to confirmed"
+msgstr "Remettre en confirmé"
 
 #. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,children_line_ids:0
@@ -725,3 +731,98 @@ msgstr "Redistribuer les procurements dans des jobs séparés"
 #: help:purchase.config.settings,redistribute_procurements_in_separate_jobs:0
 msgid "Used for the purchase planner"
 msgstr "Utilisé par le planificateur achats"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.actions.act_window,name:purchase_procurement_just_in_time.act_window_supply_chain_control
+#: model:ir.ui.menu,name:purchase_procurement_just_in_time.menu_supply_chain_control
+msgid "Supply Chain Control"
+msgstr "Contrôle Supply Chain"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_tree
+msgid "Product"
+msgstr "Article"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_tree
+msgid "Moves"
+msgstr "Mouvements"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_tree
+msgid "Procurements"
+msgstr "Approvisionnements"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_tree
+msgid "PO lines"
+msgstr "Lignes de CDA"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Negative forecast quantity"
+msgstr "Quantité prévue négative"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Positive forecast quantity"
+msgstr "Quantité prévue positive"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Covered Needs"
+msgstr "Besoins couverts"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Not Covered Needs"
+msgstr "Besoins non couverts"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,product_id:0
+msgid "Product"
+msgstr "Article"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,virtual_available:0
+msgid "Forecast Quantity"
+msgstr "Quantité prévue"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,draft_orders_qty:0
+msgid "Draft orders quantity"
+msgstr "Quantités dans les commandes brouillon"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,oversupply_qty:0
+msgid "Scheduler Oversupply quantity"
+msgstr "Excédent proposé par le planificateur"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,missing_date:0
+msgid "Date of first not covered need"
+msgstr "Date du premier manquant"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\supply_chain_control.py:116
+#, python-format
+msgid "Purchase order lines for product %s"
+msgstr "Lignes de commande d'achat pour l'article %s"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\supply_chain_control.py:116
+#, python-format
+msgid "Moves for product %s"
+msgstr "Mouvements de stock pour l'article %s"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\supply_chain_control.py:116
+#, python-format
+msgid "Procurements for product %s"
+msgstr "Demandes d'approvisionnement pour l'article %s"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.actions.server,name:purchase_procurement_just_in_time.act_server_sanitize_purchase_order_lines
+#: model:ir.values,name:purchase_procurement_just_in_time.ir_value_sanitize_purchase_order_lines
+msgid "Sanitize purchase order lines"
+msgstr "Nettoyer les lignes de commande d'achat"

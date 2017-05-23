@@ -68,6 +68,11 @@ def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines
     return result
 
 
+class ProductSupplierinfoJIT(models.Model):
+    _inherit = 'product.supplierinfo'
+    _order = 'sequence, id'
+
+
 class ProcurementOrderPurchaseJustInTime(models.Model):
     _inherit = 'procurement.order'
 
@@ -95,11 +100,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.model
     def _get_product_supplier(self, procurement):
         ''' returns the main supplier of the procurement's product given as argument'''
-        company_supplier = self.env['product.supplierinfo']. \
-            search([('product_tmpl_id', '=', procurement.product_id.product_tmpl_id.id),
-                    ('company_id', '=', procurement.company_id.id)], order='sequence asc, id asc')
+        company_supplier = procurement.product_id.product_tmpl_id. \
+            get_main_supplierinfo(force_company=procurement.company_id)
         if company_supplier:
-            return company_supplier[0].name
+            return company_supplier.name
         return procurement.product_id.seller_id
 
     @api.model
@@ -147,7 +151,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             job_purchase_schedule.delay(session, 'procurement.order', compute_all_products,
                                         compute_supplier_ids, compute_product_ids, jobify,
-                                        description=_("Scheduling purchase orders"), context=self.env.context)
+                                        description=_("Scheduling purchase orders"), context=dict(self.env.context))
         else:
             self.launch_purchase_schedule(compute_all_products, compute_supplier_ids, compute_product_ids,
                                           jobify)
@@ -166,40 +170,43 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         dict_procs = {}
         while procurements_to_run:
             seller = self.env['procurement.order']._get_product_supplier(procurements_to_run[0])
-            if seller:
-                seller_ok = bool(compute_all_products or not compute_supplier_ids or
-                                 compute_supplier_ids and seller.id in compute_supplier_ids)
-                company = procurements_to_run[0].company_id
-                product = procurements_to_run[0].product_id
-                location = procurements_to_run[0].location_id
-                domain = [('id', 'in', procurements_to_run.ids),
-                          ('company_id', '=', company.id),
-                          ('product_id', '=', product.id),
-                          ('location_id', '=', location.id)]
-                if seller_ok and ignore_past_procurements:
-                    suppliers = product.seller_ids and self.env['product.supplierinfo']. \
-                        search([('id', 'in', product.seller_ids.ids),
-                                ('name', '=', seller.id)]) or False
-                    if suppliers:
-                        min_date = fields.Datetime.to_string(
-                            seller.schedule_working_days(product.seller_delay, dt.now()))
-                    else:
-                        min_date = fields.Datetime.now()
-                    past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
-                    if past_procurements:
-                        procurements_to_run -= past_procurements
-                        past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
-                    domain += [('date_planned', '>', min_date)]
-                procurements = self.search(domain)
-                if seller_ok and procurements:
-                    if not dict_procs.get(seller):
-                        dict_procs[seller] = {}
-                    if not dict_procs[seller].get(company):
-                        dict_procs[seller][company] = {}
-                    if not dict_procs[seller][company].get(location):
-                        dict_procs[seller][company][location] = procurements
-                    else:
-                        dict_procs[seller][company][location] += procurements
+            if not seller:
+                # If the first proc has no seller, then we drop this proc and go to the next
+                procurements_to_run = procurements_to_run[1:]
+                continue
+            seller_ok = bool(compute_all_products or not compute_supplier_ids or
+                             compute_supplier_ids and seller.id in compute_supplier_ids)
+            company = procurements_to_run[0].company_id
+            product = procurements_to_run[0].product_id
+            location = procurements_to_run[0].location_id
+            domain = [('id', 'in', procurements_to_run.ids),
+                      ('company_id', '=', company.id),
+                      ('product_id', '=', product.id),
+                      ('location_id', '=', location.id)]
+            if seller_ok and ignore_past_procurements:
+                suppliers = product.seller_ids and self.env['product.supplierinfo']. \
+                    search([('id', 'in', product.seller_ids.ids),
+                            ('name', '=', seller.id)]) or False
+                if suppliers:
+                    min_date = fields.Datetime.to_string(
+                        seller.schedule_working_days(product.seller_delay, dt.now()))
+                else:
+                    min_date = fields.Datetime.now()
+                past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
+                if past_procurements:
+                    procurements_to_run -= past_procurements
+                    past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
+                domain += [('date_planned', '>', min_date)]
+            procurements = self.search(domain)
+            if seller_ok and procurements:
+                if not dict_procs.get(seller):
+                    dict_procs[seller] = {}
+                if not dict_procs[seller].get(company):
+                    dict_procs[seller][company] = {}
+                if not dict_procs[seller][company].get(location):
+                    dict_procs[seller][company][location] = procurements
+                else:
+                    dict_procs[seller][company][location] += procurements
             procurements_to_run -= procurements
         for supplier in sorted(dict_procs.keys(), key=lambda partner: partner.scheduler_sequence):
             for company in dict_procs[supplier].keys():
@@ -504,16 +511,18 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         })
 
     @api.multi
-    def delete_useless_draft_orders(self):
+    def delete_useless_draft_orders(self, companies):
         seller = self.env['procurement.order']._get_product_supplier(self[0])
-        orders = self.env['purchase.order'].search([('state', '=', 'draft'),
-                                                    ('partner_id', '=', seller.id),
-                                                    ('date_order', '=', False)])
-        orders_to_unlink = self.env['purchase.order']
-        for order in orders:
-            if not order.order_line:
-                orders_to_unlink |= order
-        orders_to_unlink.unlink()
+        for company in companies:
+            orders = self.env['purchase.order'].search([('state', '=', 'draft'),
+                                                        ('partner_id', '=', seller.id),
+                                                        ('date_order', '=', False),
+                                                        ('company_id', '=', company.id)])
+            orders_to_unlink = self.env['purchase.order']
+            for order in orders:
+                if not order.order_line:
+                    orders_to_unlink |= order
+            orders_to_unlink.unlink()
 
     @api.multi
     def purchase_schedule_procurements(self, jobify=False):
@@ -534,7 +543,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders()
         return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
-        self.delete_useless_draft_orders()
+        self.delete_useless_draft_orders(companies)
         return_msg += u"\nDeleting useless draft orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         not_assigned_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
@@ -550,7 +559,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.multi
     def remove_procs_from_lines(self, unlink_moves_to_procs=False):
         self.remove_done_moves()
-        self.with_context(tracking_disable=True).write({'purchase_line_id': False})
+        pickings_with_pol = self.search([('id', 'in', self.ids), ('purchase_line_id', '!=', False)])
+        pickings_with_pol.with_context(tracking_disable=True).write({'purchase_line_id': False})
         to_reset = self.search([('id', 'in', self.ids), ('state', 'in', ['running', 'exception'])])
         to_reset.with_context(tracking_disable=True).write({'state': 'buy_to_run'})
         procs_moves_to_detach = self.env['stock.move']
@@ -567,6 +577,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 proc_moves.unlink()
             else:
                 procs_moves_to_detach += proc_moves
+        procs_moves_to_detach = self.env['stock.move'].search([('id', 'in', procs_moves_to_detach.ids),
+                                                               '|', ('purchase_line_id', '!=', False),
+                                                               ('picking_id', '!=', False)])
         if procs_moves_to_detach:
             procs_moves_to_detach.write({'purchase_line_id': False, 'picking_id': False})
 
@@ -577,8 +590,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             assert rec.state not in ['done', 'cancel']
 
             orig_pol = rec.purchase_line_id
-            if orig_pol:
-                rec.remove_procs_from_lines()
+            rec.remove_procs_from_lines()
             if orig_pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
                 orig_pol.adjust_move_no_proc_qty()
 
