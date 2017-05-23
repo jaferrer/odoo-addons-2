@@ -40,8 +40,11 @@
 			<field name="name">scanner.info.tree</field>
             <field name="model">scanner.info</field>
 			<field name="arch" type="xml">
-                <tree string="Scanners" create="false">
+                <tree string="Scanners" create="false" editable="bottom">
                     <field name="name"/>
+                    <field name="color_id"/>
+                    <field name="quality_id"/>
+                    <field name="dpi_id"/>
                 </tree>
             </field>
 		</record>

@@ -18,6 +18,18 @@
                                     <field name="delete_moves_cancelled_by_planned" class="oe_inline"/>
                                     <label for="delete_moves_cancelled_by_planned"/>
                                 </div>
+                                <div>
+                                    <field name="relative_stock_delta" class="oe_inline"/>
+                                    <label for="relative_stock_delta"/>
+                                </div>
+                                <div>
+                                    <field name="absolute_stock_delta" class="oe_inline"/>
+                                    <label for="absolute_stock_delta"/>
+                                </div>
+                                <div>
+                                    <field name="consider_end_contract_effect" class="oe_inline"/>
+                                    <label for="consider_end_contract_effect"/>
+                                </div>
                             </div>
                         </group>
                     </form>

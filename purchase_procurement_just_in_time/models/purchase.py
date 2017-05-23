@@ -214,6 +214,14 @@ class PurchaseOrderJustInTime(models.Model):
         running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
         return res
 
+    @api.multi
+    def reset_to_confirmed(self):
+        for rec in self:
+            rec.signal_workflow('except_to_confirmed')
+            if rec.state in self.get_purchase_order_states_with_moves():
+                for line in rec.order_line:
+                    line.adjust_moves_qties(line.product_qty)
+
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
@@ -297,13 +305,17 @@ class PurchaseOrderLineJustInTime(models.Model):
     @api.depends('product_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
     def _get_remaining_qty(self):
         """
-        Calculates ramaining_qty
+        Calculates remaining_qty
         """
         for rec in self:
-            delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
-                                                                      rec.product_uom.id)
-                                 for move in rec.move_ids if move.state == 'done'])
-            rec.remaining_qty = rec.product_qty - delivered_qty
+            remaining_qty = 0
+            if rec.product_id and rec.product_id.type != 'service':
+                delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
+                                                                          rec.product_uom.id)
+                                     for move in rec.move_ids if move.state == 'done'])
+                remaining_qty = float_round(rec.product_qty - delivered_qty,
+                                            precision_rounding=rec.product_uom.rounding)
+            rec.remaining_qty = remaining_qty
 
     @api.depends('children_line_ids')
     def _compute_children_number(self):
@@ -332,10 +344,13 @@ class PurchaseOrderLineJustInTime(models.Model):
         """
 
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
-        if result.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
+        states_with_moves = self.env['purchase.order'].get_purchase_order_states_with_moves()
+        states_confirmed = states_with_moves + ['confirmed']
+        if result.order_id.state in states_confirmed:
             result.order_id.set_order_line_status('confirmed')
             if float_compare(result.product_qty, 0.0, precision_rounding=result.product_uom.rounding) != 0 and \
-                    not result.move_ids and not self.env.context.get('no_update_moves'):
+                    not result.move_ids and not self.env.context.get('no_update_moves') and \
+                            result.order_id.state in states_with_moves:
                 # We create associated moves
                 self.env['purchase.order']._create_stock_moves(result.order_id, result)
         return result
@@ -350,6 +365,13 @@ class PurchaseOrderLineJustInTime(models.Model):
         :param target_qty: new quantity of the purchase order line
         """
         self.ensure_one()
+
+        if self.product_id.type == 'service':
+            qty_done_moves = sum([x.product_qty for x in self.move_ids if x.state == 'done'])
+            qty_done_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
+                                                                    qty_done_moves,
+                                                                    self.product_uom.id)
+            target_qty = qty_done_pol_uom
 
         moves_without_proc_id = self.move_ids.filtered(
             lambda m: m.state not in ['done', 'cancel'] and not m.procurement_id).sorted(key=lambda m: m.product_qty,
@@ -447,30 +469,36 @@ class PurchaseOrderLineJustInTime(models.Model):
                 active_moves.write({'price_unit': vals['price_unit']})
         return result
 
+    @api.model
+    def get_warehouse_for_stock_report(self):
+        return self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)], limit=1)
+
     @api.multi
     def act_windows_view_graph(self):
         self.ensure_one()
-        warehouses = self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)])
-        if warehouses:
-            wid = warehouses[0].id
+        warehouse = self.get_warehouse_for_stock_report()
+        if warehouse:
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'stock.levels.report',
+                'name': _("Stock Evolution"),
+                'view_type': 'form',
+                'view_mode': 'graph,tree',
+                'context': {'search_default_warehouse_id': warehouse.id,
+                            'search_default_product_id': self.product_id.id}
+            }
         else:
             raise exceptions.except_orm(_("Error!"), _("Your company does not have a warehouse"))
-
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'stock.levels.report',
-            'name': _("Stock Evolution"),
-            'view_type': 'form',
-            'view_mode': 'graph,tree',
-            'context': {'search_default_warehouse_id': wid,
-                        'search_default_product_id': self.product_id.id}
-        }
 
     @api.multi
     def unlink(self):
         procurements_to_detach = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids)])
         cancelled_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids),
                                                                 ('state', '=', 'cancel')])
+        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', self.ids),
+                                                        ('procurement_id', '=', False),
+                                                        ('state', 'not in', ['done', 'cancel'])])
+        moves_no_procs.action_cancel()
         result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
         # We reset initially cancelled procs to state 'cancel', because the unlink function of module purchase would
         # have set them to state 'exception'

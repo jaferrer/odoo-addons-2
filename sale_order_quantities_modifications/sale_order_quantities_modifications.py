@@ -27,6 +27,60 @@ class QuantitiesModificationsSaleOrder(models.Model):
     order_line = fields.One2many('sale.order.line', 'order_id', readonly=False,
                                  states={'done': [('readonly', True)], 'cancel': [('readonly', True)]})
 
+    @api.multi
+    def action_ship_create(self):
+        """Create the required procurements to supply sales order lines, also connecting
+        the procurements to appropriate stock moves in order to bring the goods to the
+        sales order's requested location.
+
+        :return: True
+        """
+        for order in self:
+            vals = order._prepare_procurement_group(order)
+            if not order.procurement_group_id:
+                group = self.env['procurement.group'].create(vals)
+                order.write({'procurement_group_id': group.id})
+            procs_to_check = self.env['procurement.order'].search([('state', 'not in', ['cancel', 'done']),
+                                                                   ('sale_line_id.order_id', '=', order.id)])
+            if procs_to_check:
+                procs_to_check.check()
+            procurements = self.env['procurement.order'].search([('state', 'in', ['exception', 'cancel']),
+                                                                 ('sale_line_id.order_id', '=', order.id)])
+            if procurements:
+                procurements.reset_to_confirmed()
+
+            lines = order.order_line
+            process_only_line_ids = self.env.context.get('process_only_line_ids')
+            if process_only_line_ids:
+                lines = self.env['sale.order.line'].search([('id', 'in', order.order_line.ids),
+                                                            ('id', 'in', process_only_line_ids)])
+
+            for line in lines:
+                if line.state == 'cancel':
+                    continue
+                if not line.procurement_ids and line.need_procurement():
+                    if (line.state == 'done') or not line.product_id:
+                        continue
+                    vals = self._prepare_order_line_procurement(order, line, group_id=order.procurement_group_id.id)
+                    procurement = self.env['procurement.order']. \
+                        with_context(procurement_autorun_defer=True).create(vals)
+                    procurements |= procurement
+            # Confirm procurement order such that rules will be applied on it
+            # note that the workflow normally ensure proc_ids isn't an empty list
+            procurements.run()
+
+            # if shipping was in exception and the user choose to recreate the delivery order, write the new status of SO
+            if order.state == 'shipping_except':
+                val = {'state': 'progress', 'shipped': False}
+
+                if (order.order_policy == 'manual'):
+                    for line in order.order_line:
+                        if (not line.invoiced) and (line.state not in ('cancel', 'draft')):
+                            val['state'] = 'manual'
+                            break
+                order.write(val)
+        return True
+
 
 class QuantitiesModificationsProcurementOrder(models.Model):
     _inherit = 'procurement.order'
@@ -42,8 +96,8 @@ class QuantitiesModificationsProcurementOrder(models.Model):
                                                              ('product_uom', '=', procurement.product_uom.id),
                                                              ('state', '=', 'done')])
                 procurements_not_cancel_current_uom = self.search([('id', 'in', self.ids),
-                                                                  ('product_uom', '=', procurement.product_uom.id),
-                                                                  ('state', '!=', 'cancel')])
+                                                                   ('product_uom', '=', procurement.product_uom.id),
+                                                                   ('state', '!=', 'cancel')])
                 delivered_qty += self.env['product.uom']. \
                     _compute_qty(procurement.product_uom.id,
                                  sum([proc.product_qty for proc in procurements_done_current_uom]),
@@ -84,6 +138,7 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
             # Lets's call 'action_ship_create' function using old api, in order to allow the system to change the
             # context (which is a frozendict in new api).
             context = self.env.context.copy()
+            context['process_only_line_ids'] = result.ids
             # Creation of the corresponding procurement orders
             self.pool.get('sale.order').action_ship_create(self.env.cr, self.env.uid, [result.order_id.id], context)
         return result

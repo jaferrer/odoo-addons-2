@@ -1,12 +1,12 @@
 table .fixed_headers {
-	overflow-y: auto;
+    overflow-y: auto;
     overflow-x: hidden;
-    display:block;
+    display: block;
 }
 
 table .oe_list_header_custom {
-	position:relative;
-	z-index:1000;
+    position: relative;
+    z-index: 1000;
 }
 
 table .oe_list_header_custom > thead {
@@ -54,19 +54,23 @@ table .oe_list_header_custom th.oe_sortable div::after {
 }
 
 .openerp .oe_dropdown_menu {
-	z-index:99999 !important;
+    z-index: 99999 !important;
 }
 
 .openerp .oe_searchview .oe-autocomplete {
-	z-index:99999 !important;
+    z-index: 99999 !important;
 }
 
 .openerp .oe_collapse_invisibility {
-	border-bottom:none !important;
+    border-bottom: none !important;
 }
 
-.openerp .oe_collapse_invisibility div, .openerp .oe_collapse_invisibility input{
-	height: 0px;
+.openerp .oe_list.oe_list_editable.oe_editing .oe_form_field {
+    z-index: 1;
+}
+
+.openerp .oe_collapse_invisibility div, .openerp .oe_collapse_invisibility input {
+    height: 0px;
     padding-top: 0px;
     padding-bottom: 0px;
     margin-top: 0px;
@@ -74,17 +78,17 @@ table .oe_list_header_custom th.oe_sortable div::after {
     line-height: 0px;
 }
 
-.openerp .oe_collapse_invisibility input{
-	position: absolute;
+.openerp .oe_collapse_invisibility input {
+    position: absolute;
 }
 
-.openerp .oe_collapse_invisibility th{
-	padding-top: 0px;
+.openerp .oe_collapse_invisibility th {
+    padding-top: 0px;
     padding-bottom: 0px;
 }
 
 .oe_im {
-	z-index: 1000 !important;
+    z-index: 1000 !important;
 }
 
 /*table.fixed_headers tbody,

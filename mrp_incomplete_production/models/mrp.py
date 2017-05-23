@@ -146,7 +146,7 @@ class IncompeteProductionMrpProduction(models.Model):
             action_produce(production_id, production_qty, production_mode, wiz=wiz)
         list_cancelled_moves = production.move_lines2. \
             filtered(lambda move: move.state == 'cancel' and move not in list_cancelled_moves_1)
-        if len(list_cancelled_moves) != 0 and wiz.create_child:
+        if len(list_cancelled_moves) != 0 and wiz and wiz.create_child:
             production_data = production._get_child_order_data(wiz)
             production.action_production_end()
             new_production = self.env['mrp.production'].create(production_data)
@@ -168,17 +168,17 @@ class IncompeteProductionMrpProduction(models.Model):
             if not return_picking_type:
                 raise exceptions.except_orm(_("Error!"), _("Impossible to determine return picking type"))
             return_moves = quants_to_return.move_to(dest_location=wiz.return_location_id,
-                                                    picking_type_id=return_picking_type)
+                                                    picking_type=return_picking_type)
             for item in return_moves:
                 picking_to_change_origin |= item.picking_id
             picking_to_change_origin.write({'origin': production.name})
         procurements_to_cancel = self.env['procurement.order']
-        # Let's cancel old service moves
-        for move in initial_raw_moves:
-            procurements_to_cancel |= self.env['procurement.order'].search([('move_dest_id', '=', move.id),
+        # Let's cancel old service moves if the MO is produced
+        if production_mode == 'consume_produce':
+            procurements_to_cancel |= self.env['procurement.order'].search([('move_dest_id', 'in', initial_raw_moves.ids),
                                                                             ('state', 'not in', ['cancel', 'done'])])
-        if procurements_to_cancel:
-            procurements_to_cancel.cancel()
+            if procurements_to_cancel:
+                procurements_to_cancel.cancel()
         return result
 
     @api.model

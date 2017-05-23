@@ -25,9 +25,9 @@
     'maintainer': 'NDP Systèmes',
     "summary": "",
     "category": "Warehouse Management",
-    "depends": ['stock',
+    "depends": ['stock', 'connector',
                 ######################### Unlink dependance to module stock_performance_improved when PR https://github.com/odoo/odoo/pull/13287 is merged.
-                'stock_performance_improved'
+                'stock_performance_improved', 'stock_split_picking',
                 ],
     'description': """
 Quants and packaging moving wizards
@@ -43,6 +43,7 @@ This module gives two possibilities to deplace quants. In one hand, you can do i
     ],
     "data": [
         'security/ir.model.access.csv',
+        'data/cron.xml',
         "wizard/quant_move_wizard_view.xml",
         "wizard/quant_packages_move_wizard_view.xml",
         "wizard/product_line_move_wizard.xml",

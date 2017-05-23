@@ -35,6 +35,7 @@ This includes:
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'security.xml',
         'connector_improved_view.xml',
         'cron.xml',
     ],
@@ -44,4 +45,5 @@ This includes:
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    'sequence': 999,
 }

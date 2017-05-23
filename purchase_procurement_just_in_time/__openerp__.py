@@ -67,6 +67,8 @@ Notes
         'views/partner.xml',
         'views/procurement.xml',
         'views/product.xml',
+        'views/supply_chain_control.xml',
+        'data/purchase_workflow.xml',
         'data/cron.xml',
         'data/data_group_by_period.xml',
     ],

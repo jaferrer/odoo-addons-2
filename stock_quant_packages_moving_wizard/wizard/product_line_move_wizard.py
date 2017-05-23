@@ -20,6 +20,7 @@
 from openerp import models, fields, api, exceptions, _
 from openerp.exceptions import ValidationError
 from openerp.tools import float_compare
+from datetime import datetime as dt
 
 
 class ProductLineMoveWizard(models.TransientModel):
@@ -28,6 +29,9 @@ class ProductLineMoveWizard(models.TransientModel):
     global_dest_loc = fields.Many2one('stock.location', string="Destination Location", required=True)
     picking_type_id = fields.Many2one('stock.picking.type', string="Picking type", required=True)
     is_manual_op = fields.Boolean(string="Manual Operation")
+    filling_method = fields.Selection([('one_shot', "Fill picking right now"),
+                                       ('jobify', "Parallelize product by product")],
+                                      string="Filling method for the picking", default='one_shot', required=True)
     quant_line_ids = fields.One2many('product.move.wizard.line', 'move_wizard_id', string="Products to move",
                                      domain=['|', ('product_id', '!=', False), ('package_id', '=', False)])
     package_line_ids = fields.One2many('product.move.wizard.line', 'move_wizard_id', string="Packages",
@@ -103,20 +107,9 @@ class ProductLineMoveWizard(models.TransientModel):
                 for quant in quants_to_move]):
             raise exceptions.except_orm(_("error"), _("Impossible to move a negative quant"))
         result = quants_to_move.with_context(mail_notrack=True). \
-            move_to(self.global_dest_loc, self.picking_type_id, move_items=move_items, is_manual_op=is_manual_op)
-        if is_manual_op:
-            if not result:
-                raise exceptions.except_orm(_("error"), _("No line selected"))
-            return {
-                'name': 'picking_form',
-                'type': 'ir.actions.act_window',
-                'view_type': 'form',
-                'view_mode': 'form',
-                'res_model': 'stock.picking',
-                'res_id': result[0].picking_id.id
-            }
-        else:
-            return result
+            move_to(self.global_dest_loc, self.picking_type_id, move_items=move_items, is_manual_op=is_manual_op,
+                    filling_method=self.filling_method)
+        return result.display_picking_for_moves(is_manual_op)
 
 
 class ProductLineMoveWizardLine(models.TransientModel):
