@@ -5,6 +5,9 @@
             <li t-if="widget.view.is_action_enabled('edit') &amp;&amp; section.name == 'files'" class="oe_sidebar_scan_attachment">
                  <span class="oe_sidebar_scan_attachment_select" href="#">Scan Documents</span>
              </li>
+             <li t-if="widget.view.is_action_enabled('edit') &amp;&amp; section.name == 'files'" class="oe_sidebar_scan_attachment">
+                 <span class="oe_sidebar_scan_attachment_select_duplex" href="#">Scan Documents Duplex</span>
+             </li>
         </t>
         
         <t t-jquery='div[class="oe_sidebar"]' t-operation="append">

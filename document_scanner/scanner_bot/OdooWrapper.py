@@ -16,13 +16,14 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 import requests
 import random
 import base64
 import time
 import os
 import datetime
+
+import twain
 from pyScanLib import pyScanLib
 from PyPDF2 import PdfFileMerger, PdfFileReader
 import ConfigParser
@@ -168,9 +169,10 @@ class _OdooRequests(object):
         try:
             res.result = self._session.post(self.url + url, json=data_session_info)
         except requests.exceptions.RequestException as e:
-            logging.exception(e)
+            print e
             res.error = e.message
         if res.error or res.result.json().get('error'):
+            print res
             if 'ir.attachment/create' in url:
                 for args in data['args']:
                     args['datas'] = 'base64 pdf file too long too display'
@@ -205,6 +207,15 @@ class _OdooRequests(object):
         res = self._call_model('scanner.info', 'register', [name])
         if res.handle_error():
             self.register_scanner(name)
+
+    def register_scanner_dpi(self, supported_dpi):
+        res = self._call_model('scanner.dpi', 'register', supported_dpi)
+
+    def register_scanner_color(self, supported_color):
+        res = self._call_model('scanner.color', 'register', supported_color)
+
+    def register_scanner_bit_depth(self, supported_bitdepth):
+        res = self._call_model('scanner.bitdepth', 'register', supported_bitdepth)
 
     def _get_last(self):
         return self._call_model("bus.bus", "get_last").json()[0]
@@ -295,13 +306,20 @@ class IHM(object):
                 print u"Enregistrement des informations"
                 self._config.write()
 
-        self._scanner.set_scanner(self._config.scanner_name)
-        self._req = _OdooRequests(self._config.url)
-        print u"Connexion à Odoo avec l'utilisateur %s" % self._req.user
-        self._req.login()
-        print u"Enregistrement du scanner"
-        self._req.register_scanner(self._config.scanner_custom_name)
-        print u"En attente de demande de scan"
+        if self._scanner.set_scanner(self._config.scanner_name):
+            print u"Connextion au scanner %s reussi" % self._config.scanner_name
+            self._req = _OdooRequests(self._config.url)
+            print u"Connexion à Odoo avec l'utilisateur %s" % self._req.user
+            self._req.login()
+            print u"Enregistrement du scanner"
+            self._req.register_scanner(self._config.scanner_custom_name)
+            print u"En attente de demande de scan"
+        else:
+            print u"Veiller vous assurer que le scanner %s est bien branché" % self._config.scanner_name
+            print u"Reconnexion dans 30sec"
+            time.sleep(30)
+            self._init()
+
 
     def _loop(self):
         while True:
@@ -323,8 +341,14 @@ class IHM(object):
                             and item['channel'][0] == self._req.db
                             and item['message'].get('scan_name') == self._config.get_normalize_name()
                             ]:
-                print u"Scan en cours ..."
-                pdf = self._scanner.scan()
+                print u"Scan en cours ...", message
+                filenames = self._scanner.scan(
+                    dpi=message.get('scan_dpi_info', 300),
+                    pixeltype=message.get('scan_color_info', 'color'),
+                    bitdepth=int(message.get('scan_quality_info', 24)),
+                    duplex=message.get('scan_duplex', False)
+                )
+                pdf = self._scanner.merge_file(filenames)
                 if pdf:
                     print u"Upload en cours ..."
                     res = self._req.upload(pdf, message)
@@ -366,20 +390,30 @@ class _Scanner(object):
 
     def set_scanner(self, scanner):
         if not self._psl.scanner:
-            self._psl.setScanner(scanner)
-            self._scanner = scanner
-        self._psl.setDPI(300)
-        self._psl.setPixelType("color")
+            try:
+                self._psl.setScanner(scanner)
+                self._scanner = scanner
+                return True
+            except twain.excDSOpenFailed as e:
+                logging.error("Impossible de se connecter au scanner")
+                return False
 
-    def scan(self):
+    def scan(self, dpi=300, pixeltype='color', bitdepth=24, duplex=False):
         self.set_scanner(self._scanner)
+        self._psl.setDPI(dpi)
+        self._psl.setPixelType(pixeltype)
+        self._psl.scanner.SetCapability(twain.CAP_DUPLEXENABLED, twain.TWTY_BOOL, duplex)
+        self._psl.scanner.SetCapability(twain.ICAP_BITDEPTH, twain.TWTY_UINT16, bitdepth)
         filenames = []
         images = self._psl.scan_multi()
         self._psl.closeScanner()
         for i in range(0, len(images)):
-            f = PATH_TMP + os.sep + "tmp_img_%s.pdf" % str(i)
+            f = PATH_TMP + os.sep + "tmp_%s_scan.pdf" % str(i)
             filenames.append(f)
             images[i].save(f)
+        return filenames
+
+    def merge_file(self, filenames):
         if filenames:
             final_file = PATH_TMP + os.sep + "document-output.pdf"
             if len(filenames) > 1:
@@ -391,7 +425,7 @@ class _Scanner(object):
             else:
                 final_file = filenames[0]
             return file(final_file, 'rb')
-        return None
+
 
     def get_current_scanner(self):
         return self._psl.scanner
