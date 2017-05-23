@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Account',
-    'depends': ['account', 'report_aeroo', 'l10n_fr'],
+    'depends': ['account', 'report_aeroo'],
     'description': """
 Account Invoice Report Aeroo
 ============================

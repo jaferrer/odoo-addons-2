@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Delivery Tracking',
-    'depends': ['base', 'base_setup', 'sale', 'base_delivery_tracking', 'package_weight'],
+    'depends': ['base', 'base_setup', 'sale', 'base_delivery_tracking', 'package_weight', 'report_aeroo'],
     'description': """
 Génération des étiquettes de suivi
 ==================================
@@ -31,7 +31,11 @@ Ce module permet de générer des étiquettes d'envoi.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': ['security/ir.model.access.csv',
-             'generate_tracking_labels.xml'],
+             'generate_tracking_labels.xml',
+             'reports/reports.xml',
+             'data.xml',
+             'product.xml',
+             'country.xml'],
     'demo': [],
     'test': [],
     'installable': True,

@@ -126,7 +126,13 @@ class magentoextendCRUDAdapter(CRUDAdapter):
         try:
             _logger.debug("Start calling magentoextend api %s", method)
 
-            server = xmlrpclib.ServerProxy(self.magentoextend.param.url)
+            proxy = self.magentoextend.param.url.replace("http://","")
+
+            if self.magentoextend.param.use_http:
+                proxy = self.magentoextend.param.http_user + ":" + self.magentoextend.param.http_pwd + "@" + proxy
+
+            proxy = "http://" + proxy
+            server = xmlrpclib.ServerProxy(proxy)
             session = server.login(self.magentoextend.param.api_user, self.magentoextend.param.api_pwd)
             if session:
                 start = datetime.now()

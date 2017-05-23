@@ -30,14 +30,21 @@ No Auto-Subscription of Partners
 Automatically remove partners that are not users from automatic subscription to objects.
 
 This tyically prevents customers from being automatically subscribed to their quotes, invoices, etc.
+
+We use this hack because wa can't inherit of a Abstract model
+
+link to how and why we do that
+
+http://stackoverflow.com/questions/31936122/how-to-inherit-mail-thread-abstractmodel-and-override-function-from-this-class-i
+
+https://github.com/odoo/odoo/issues/9084
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
     'demo': [],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
 }
-

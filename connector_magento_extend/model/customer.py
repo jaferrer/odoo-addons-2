@@ -32,7 +32,7 @@ from openerp.addons.connector.unit.mapper import (mapping,
                                                   ImportMapper
                                                   )
 
-from openerp import models, fields
+from openerp import models, fields, api
 from ..backend import magentoextend
 from ..connector import get_environment
 from ..unit.backend_adapter import (GenericAdapter)
@@ -40,6 +40,26 @@ from ..unit.import_synchronizer import (DelayedBatchImporter, magentoextendImpor
 from ..unit.mapper import normalize_datetime
 
 _logger = logging.getLogger(__name__)
+
+
+class customerResPartner(models.Model):
+    _name = 'res.partner.custom.field'
+
+    partner_id = fields.Many2one(comodel_name='res.partner',
+                                 string='Partner',
+                                 required=True)
+
+    field = fields.Char(string='field odoo')
+
+    field_mapping = fields.Char(string='field source')
+
+
+class customerResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    final_customer = fields.Boolean(string='Final Customer')
+    customer_point = fields.Float(string='Customer Point')
+    custom_field_mapping = fields.One2many('res.partner.custom.field', 'partner_id', string=u"'Mapping Custom Field'")
 
 
 class magentoextendResPartner(models.Model):
@@ -76,6 +96,12 @@ class magentoextendResPartner(models.Model):
 
     created_at = fields.Datetime(string='Created At (on Magento)',
                                  readonly=True)
+
+    @api.model
+    def create(self, vals):
+        vals['final_customer'] = True
+        binding = super(magentoextendResPartner, self).create(vals)
+        return binding
 
 
 class MagentoAddress(models.Model):
@@ -127,6 +153,12 @@ class MagentoAddress(models.Model):
         ('openerp_uniq', 'unique(backend_id, openerp_id)',
          'A partner address can only have one binding by backend.'),
     ]
+
+    @api.model
+    def create(self, vals):
+        vals['final_customer'] = True
+        binding = super(MagentoAddress, self).create(vals)
+        return binding
 
 
 @magentoextend
@@ -216,7 +248,7 @@ class CustomerImporter(magentoextendImporter):
     def _after_import(self, binding):
         """ Import the addresses """
         book = self.unit_for(PartnerAddressBook, model='magentoextend.address')
-        book.import_addresses(self.magentoextend_id, binding.id)
+        #book.import_addresses(self.magentoextend_id, binding.id)
 
 
 CustomerImport = CustomerImporter
@@ -458,7 +490,7 @@ class AddressImportMapper(BaseAddressImportMapper):
         elif record.get('is_default_shipping'):
             address_type = 'delivery'
         else:
-            address_type = 'contact'
+            address_type = 'other'
         return {'type': address_type}
 
 
@@ -472,6 +504,13 @@ class CustomerImportMapper(ImportMapper):
         (normalize_datetime('created_at'), 'created_at'),
         (normalize_datetime('updated_at'), 'updated_at'),
     ]
+
+    @mapping
+    def custom_field(self, record):
+        result = {}
+        for it in self.backend_record.connector_id.home_id.partner_id.custom_field_mapping:
+            result[it.field] = record.get(it.field_mapping, False)
+        return result
 
     @only_create
     @mapping
