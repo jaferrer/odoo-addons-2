@@ -519,7 +519,6 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
 
         m4 = self.env['stock.move'].browse(self.env['stock.move'].split(m2, 10))
 
-        self.assertEqual(m4.procurement_id, procurement_order_2)
         m4.purchase_line_id = line1
 
         m4.action_done()
@@ -1034,13 +1033,17 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         picking.do_transfer()
 
         move2 = self.env['stock.move']
+        proc4b = self.env['procurement.order']
         for move in line.move_ids:
             if move.product_uom_qty == 2:
                 move2 = move
+            elif move.product_uom_qty == 5:
+                proc4b = move.procurement_id
+        for move in line.move_ids:
             self.assertIn((move.product_uom_qty, move.state, move.procurement_id),
-                          [(2, 'assigned', self.env['procurement.order']), (5, 'assigned', proc4), (3, 'done', proc4)])
+                          [(2, 'assigned', self.env['procurement.order']), (5, 'assigned', proc4b),
+                           (3, 'done', proc4)])
 
-        # self.assertEqual(m3.procurement_id, proc4)
         self.assertEqual(proc4.date_planned, "3003-05-05 17:00:00")
 
         move3 = self.env['stock.move'].browse(self.env['stock.move'].split(move2, 1))
@@ -1053,7 +1056,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
             self.assertIn((move.product_uom_qty, move.state, move.procurement_id),
                           [(1, 'assigned', self.env['procurement.order']),
                            (1, 'done', self.env['procurement.order']),
-                           (5, 'assigned', proc4),
+                           (5, 'assigned', proc4b),
                            (3, 'done', proc4)])
 
         self.env['procurement.order'].purchase_schedule(jobify=False)
@@ -1062,7 +1065,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
 
         for move in line.move_ids:
             self.assertIn((move.product_uom_qty, move.state, move.procurement_id),
-                          [(5, 'assigned', move4.procurement_id),
+                          [(5, 'assigned', proc4b),
                            (2, 'assigned', self.env['procurement.order']),
                            (1, 'done', self.env['procurement.order']),
                            (3, 'done', move4.procurement_id)])
@@ -1071,7 +1074,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         for move in line.move_ids:
             self.assertIn((move.product_uom_qty, move.state, move.procurement_id),
                           [(1, 'done', self.env['procurement.order']),
-                           (5, 'assigned', move4.procurement_id),
+                           (5, 'assigned', proc4b),
                            (3, 'done', move4.procurement_id)])
 
     def test_62_purchase_procurement_jit(self):
