@@ -158,6 +158,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
+        self.env['product.template'].update_seller_ids()
         domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']),
                                       ('rule_id.action', '=', 'buy')]
         if not compute_all_products and compute_product_ids:
