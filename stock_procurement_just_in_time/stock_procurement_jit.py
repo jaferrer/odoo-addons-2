@@ -98,7 +98,7 @@ class ProcurementOrderQuantity(models.Model):
                     op.process()
             else:
                 process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                          orderpoints, self.env.context,
+                                          orderpoints, dict(self.env.context),
                                           description="Computing orderpoints %s" % orderpoints)
         return {}
 
