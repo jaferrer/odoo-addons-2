@@ -358,7 +358,7 @@ ORDER BY sm.priority desc, sm.date asc, sm.id asc""" % (str(move_ids).replace(',
                         job_fill_new_picking_for_product.delay(ConnectorSession.from_env(self.env), 'stock.quant',
                                                                product_id, move_tuples, dest_location.id,
                                                                picking_type.id, new_picking.id,
-                                                               context=self.env.context,
+                                                               context=dict(self.env.context),
                                                                description=description)
                     else:
                         move_recordset = self.fill_new_picking_for_product(product_id, move_tuples,

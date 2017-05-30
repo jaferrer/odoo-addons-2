@@ -151,7 +151,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             job_purchase_schedule.delay(session, 'procurement.order', compute_all_products,
                                         compute_supplier_ids, compute_product_ids, jobify,
-                                        description=_("Scheduling purchase orders"), context=self.env.context)
+                                        description=_("Scheduling purchase orders"), context=dict(self.env.context))
         else:
             self.launch_purchase_schedule(compute_all_products, compute_supplier_ids, compute_product_ids,
                                           jobify)

@@ -520,7 +520,8 @@ class StockPicking(models.Model):
                                                       'operation_id': operation_id,
                                                       'qty': qty_on_link,
                                                       'reserved_quant_id': quant_id})
-        if move_dict['remaining_qty'] == qty_on_link:
+        rounding = self.env['product.product'].browse(product_id).uom_id.rounding
+        if float_compare(move_dict['remaining_qty'], qty_on_link, precision_rounding=rounding) == 0:
             prod2move_ids[product_id].pop(index)
         else:
             move_dict['remaining_qty'] -= qty_on_link
@@ -1077,7 +1078,12 @@ class ProcurementOrder(models.Model):
 
     @api.model
     def run_assign_moves(self):
-        prereservations = self.env['stock.prereservation'].search([('reserved', '=', False)])
+        dom = [('reserved', '=', False)]
+        if self.env.context.get('assign_in_location_ids'):
+            dom += [('location_id', 'in', self.env.context['assign_in_location_ids'])]
+        if self.env.context.get('no_assign_in_location_ids'):
+            dom += [('location_id', 'not in', self.env.context['no_assign_in_location_ids'])]
+        prereservations = self.env['stock.prereservation'].search(dom)
         confirmed_move_ids = prereservations.read(['move_id'], load=False)
         move_ids = [cm['id'] for cm in confirmed_move_ids]
         confirmed_moves = self.env['stock.move'].search([('id', 'in', move_ids)], limit=None,
@@ -1097,9 +1103,9 @@ class ProcurementOrder(models.Model):
             product_ids = product_ids[PRODUCT_CHUNK:]
             move_ids = flatten(products)
             if self.env.context.get('jobify'):
-                assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', move_ids, self.env.context)
+                assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', move_ids, dict(self.env.context))
             else:
-                assign_moves(ConnectorSession.from_env(self.env), 'stock.move', move_ids, self.env.context)
+                assign_moves(ConnectorSession.from_env(self.env), 'stock.move', move_ids, dict(self.env.context))
 
 
 class StockPrereservation(models.Model):
@@ -1108,6 +1114,7 @@ class StockPrereservation(models.Model):
     _auto = False
 
     move_id = fields.Many2one('stock.move', readonly=True, index=True)
+    location_id = fields.Many2one('stock.location', readonly=True, index=True)
     picking_id = fields.Many2one('stock.picking', readonly=True, index=True)
     reserved = fields.Boolean("Move has reserved quants", readonly=True, index=True)
 
@@ -1151,6 +1158,7 @@ class StockPrereservation(models.Model):
             moves_with_quants_reserved AS (
                 SELECT
                     sm.id,
+                    sm.location_id,
                     sm.picking_type_id,
                     sm.picking_id
                 FROM stock_move sm
@@ -1196,11 +1204,13 @@ class StockPrereservation(models.Model):
             SELECT
                 foo.move_id AS id,
                 foo.move_id,
+                foo.location_id,
                 foo.picking_id,
                 foo.reserved
             FROM (
                     SELECT
                         sm.id AS move_id,
+                        sm.location_id AS location_id,
                         sm.picking_id AS picking_id,
                         TRUE AS reserved
                     FROM
@@ -1209,6 +1219,7 @@ class StockPrereservation(models.Model):
                 UNION ALL
                     SELECT DISTINCT
                         sm.id AS move_id,
+                        sm.location_id AS location_id,
                         sm.picking_id AS picking_id,
                         FALSE AS reserved
                     FROM
@@ -1223,15 +1234,17 @@ class StockPrereservation(models.Model):
                 UNION ALL
                     SELECT
                         mq.move_id,
+                        mq.location_id,
                         mq.picking_id,
                         FALSE AS reserved
                     FROM move_qties mq
                     WHERE mq.qty <= mq.sum_qty
                 UNION ALL
                     SELECT
-                        sm.id         AS move_id,
-                        sm.picking_id AS picking_id,
-                        FALSE         AS reserved
+                        sm.id          AS move_id,
+                        sm.location_id AS location_id,
+                        sm.picking_id  AS picking_id,
+                        FALSE          AS reserved
                     FROM stock_move sm
                     WHERE sm.state = 'confirmed'
                         AND sm.picking_type_id IS NOT NULL

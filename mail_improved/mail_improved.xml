@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <template id="assets_backend" name="web_dialog_size assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/mail_improved/static/src/css/mail_improved.css"/>
+                <script type="text/javascript" src="/mail_improved/static/src/js/thread.js"></script>
+            </xpath>
+        </template>
+
+    </data>
+</openerp>
