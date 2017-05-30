@@ -221,7 +221,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                       description=_("Scheduling purchase orders for seller %s, "
                                                     "company %s and location %s") %
                                                   (supplier.display_name, company.display_name, location.display_name),
-                                      context=self.env.context)
+                                      context=dict(self.env.context))
                         else:
                             procurements.purchase_schedule_procurements()
 
@@ -490,7 +490,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     delay(session, 'procurement.order', {order_id: dict_lines_to_create[order_id]},
                           description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
                                       (order.name, seller.name, number_order, total_number_orders),
-                          context=self.env.context)
+                          context=dict(self.env.context))
             return_msg += u"\nCreating jobs to fill draft orders: %s s." % int((dt.now() - time_now).seconds)
         else:
             self.create_draft_lines(dict_lines_to_create)
@@ -670,7 +670,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     delay(session, 'procurement.order', {order_id: dict_procs_lines[order_id]},
                           description=_("Redistributing procurements for order %s of supplier %s (order %s/%s)") %
                                       (order.name, order.partner_id.name, number_order, total_number_orders),
-                          context=self.env.context)
+                          context=dict(self.env.context))
             return_msg += u"\nCreating jobs to redistribute procurements %s s." % int((dt.now() - time_now).seconds)
         else:
             return_msg += self.redistribute_procurements_in_lines(dict_procs_lines)
