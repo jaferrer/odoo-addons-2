@@ -30,12 +30,12 @@ class StockMove(models.Model):
         proc = move.procurement_id
         if proc:
             new_proc = proc.copy({
+                'state': 'running',
                 'product_qty': move.product_uom_qty,
                 'move_dest_id': move.move_dest_id.id,
             })
             proc.product_qty -= move.product_uom_qty
             move.procurement_id = new_proc
-            new_proc.run()
             new_proc.check()
             proc.check()
         return split_move_id
