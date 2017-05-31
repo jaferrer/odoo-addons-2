@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="backend.connector.info" id="magento_pull_product">
+            <field name="name">Magento product Connector V2</field>
+            <field name="comment">Magento product Connector V2</field>
+            <field name="model_name">magentoextend.backend</field>
+            <field name="image" type="base64" file="connector_backend_home/static/img/magento-logo.png"/>
+            <field name="type">PULL</field>
+            <field name="backend_type_id" ref="connector_backend_home.magento"/>
+            <field name="method_name">import_product_v2</field>
+        </record>
+    </data>
+</openerp>
