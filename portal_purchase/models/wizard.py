@@ -65,7 +65,8 @@ class PortalPurchasePortalWizard(models.TransientModel):
             if wizard_user.in_portal:
                 # create a user if necessary, and make sure it is in the portal group
                 if not user:
-                    user_id = wizard_user.sudo()._create_user()
+                    company_id = wizard_user.partner_id.company_id.id
+                    user_id = wizard_user.sudo().with_context(company_id=company_id)._create_user()
                 else:
                     user_id = user.id
                 wizard_user.write({'user_id': user_id})
