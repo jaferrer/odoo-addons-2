@@ -111,17 +111,6 @@ class ProductProductAdapter(GenericAdapter):
     _model_name = 'magentoextend2.product.product'
     _magentoextend_model = 'products'
 
-    def _call(self, method, arguments):
-        try:
-            return super(ProductProductAdapter, self)._call(method, arguments)
-        except xmlrpclib.Fault as err:
-            # this is the error in the magentoextendCommerce API
-            # when the customer does not exist
-            if err.faultCode == 102:
-                raise IDMissingInBackend
-            else:
-                raise
-
     def update(self, el_id, arguments):
         return self._call('%s.update' % "cataloginventory_stock_item",
                           [el_id,arguments])
@@ -221,6 +210,9 @@ class ProductProductAdapter(GenericAdapter):
             record = self._callwrite_local(filename, content)
 
         return record
+
+    def set_stock_level(self, param):
+        return self._call('stock/quantities', param, meth="POST")
 
 
 @magentoextend
@@ -562,15 +554,8 @@ class StockLevelExporter(Exporter):
 
         log = ""
 
-        csvfile = StringIO.StringIO()
-        writer = csv.writer(csvfile, delimiter=';', quoting=csv.QUOTE_NONE,
-                            quotechar=None)
-
-        filedate = dt.datetime.strptime(fields.Datetime.now(), '%Y-%m-%d %H:%M:%S').strftime(
-            '%Y%m%d%H%M%S')
-        filename = 'STK%s.csv' % (filedate)
-
         export = False
+        param = {"stockQuantities": {}}
 
         for product in self.env.cr.dictfetchall():
             export = True
@@ -578,15 +563,11 @@ class StockLevelExporter(Exporter):
             log += "\n%s : %s\n" % (product['default_code'], str(qty))
             if float_compare(product['qty'], 0, 1) <= 0:
                 qty = int(0)
-            if product['default_code']:
-                columns = [
-                    product['default_code'].encode('utf-8'),
-                    qty
-                ]
-                writer.writerow(columns)
+            if product['magentoextend_id']:
+                param["stockQuantities"][product['magentoextend_id']] = qty
 
         if export:
-            record = self.backend_adapter.write(filename, csvfile.getvalue())
+            self.backend_adapter.set_stock_level(param)
 
         return log
 
@@ -601,11 +582,11 @@ def product_import_v2_batch(session, model_name, backend_id, filters=None):
     importer.run(filters=filters)
 
 
-#@job(default_channel='root.magentoextend_push_product_level')
-#def product_export_stock_level_v2_batch(session, model_name, backend_id, filters=None):
-#    env = get_environment(session, model_name, backend_id)
-#    importer = env.get_connector_unit(StockLevelExporter)
-#    importer.run()
+@job(default_channel='root.magentoextend_push_product_level')
+def product_export_stock_level_v2_batch(session, model_name, backend_id, filters=None):
+    env = get_environment(session, model_name, backend_id)
+    importer = env.get_connector_unit(StockLevelExporter)
+    importer.run()
 
 
 @job(default_channel='root.magentoextend_pull_product_product')
