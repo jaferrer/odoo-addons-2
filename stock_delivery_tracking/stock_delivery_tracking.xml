@@ -25,7 +25,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <notebook position="inside">
-                    <page string="Delivery Tracking">
+                    <page string="Delivery Tracking" groups="stock.group_stock_user">
                         <group string="Information">
                             <field name="transporter_id" class="oe_no_button"
                                    options="{'no_open': True, 'no_create': True}"/>
@@ -36,52 +36,6 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                                 <field name="id" invisible="1"/>
                                 <field name="name"/>
                                 <field name="transporter_id"/>
-                                <field name="package_id"/>
-                                <field name="date" readonly="1"/>
-                                <field name="status" readonly="1"/>
-                                <button string="Tracking History" type="object" name="open_status_ids" icon="terp-stock_zoom"/>
-                            </tree>
-                        </field>
-                    </page>
-                </notebook>
-            </field>
-        </record>
-        
-        <record model="ir.actions.server" id="ir_actions_server_update_package_delivery_status">
-            <field name="name">Update delivery status</field>
-            <field name="model_id" ref="stock.model_stock_quant_package"/>
-            <field name="code">
-self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
-            </field>
-        </record>
-
-        <record model="ir.values" id="ir_value_update_package_delivery_status">
-            <field name="key">action</field>
-            <field name="key2">client_action_multi</field>
-            <field name="model">stock.quant.package</field>
-            <field name="name">Update delivery status</field>
-            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_update_package_delivery_status)"/>
-        </record>
-
-        <record model="ir.ui.view" id="stock_quant_package_form">
-            <field name="name">stock_quant_package_form</field>
-            <field name="model">stock.quant.package</field>
-            <field name="inherit_id" ref="stock.view_quant_package_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <notebook position="inside">
-                    <page string="Delivery Tracking">
-                        <group string="Information">
-                            <field name="transporter_id" class="oe_no_button"
-                                   options="{'no_open': True, 'no_create': True}"/>
-                            <field name="last_status_update" readonly="1"/>
-                        </group>
-                        <field name="tracking_ids">
-                            <tree name="Delivery Tracking" editable="top">
-                                <field name="id" invisible="1"/>
-                                <field name="name"/>
-                                <field name="transporter_id"/>
-                                <field name="picking_id"/>
                                 <field name="date" readonly="1"/>
                                 <field name="status" readonly="1"/>
                                 <button string="Tracking History" type="object" name="open_status_ids" icon="terp-stock_zoom"/>
@@ -100,14 +54,10 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="arch" type="xml">
                  <field name="number_trackings" position="after">
                      <field name="number_pickings"/>
-                     <field name="number_packages"/>
                  </field>
                  <notebook position="inside">
                      <page string="Stock Pickings">
                          <field name="picking_ids"/>
-                     </page>
-                     <page string="Packages">
-                         <field name="package_ids"/>
                      </page>
                  </notebook>
             </field>
@@ -120,16 +70,11 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="arch" type="xml">
                 <field name="number_trackings" position="after">
                     <field name="number_pickings"/>
-                    <field name="number_packages"/>
                 </field>
                 <div class="oe_kanban_details" position="inside">
                     <div name="pickings"/>
                     <a name="open_pickings" type="object">
                         <t t-esc="record.number_pickings.value"/> Stock Pickings
-                    </a>
-                    <div name="packages"/>
-                    <a name="open_packages" type="object">
-                        <t t-esc="record.number_packages.value"/> Packages
                     </a>
                 </div>
             </field>
@@ -144,7 +89,6 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                  <field name="partner_id" position="after">
                      <field name="picking_id"/>
                      <field name="group_id"/>
-                     <field name="package_id"/>
                  </field>
             </field>
         </record>

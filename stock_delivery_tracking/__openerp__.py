@@ -30,7 +30,10 @@ Stock delivery tracking
 This module allows to upload the status of a stock picking delivery, knowing the transporter and the tracking number.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['stock_delivery_tracking.xml'],
+    'data': [
+        'security/ir.model.access.csv',
+        'stock_delivery_tracking.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,
@@ -38,3 +41,5 @@ This module allows to upload the status of a stock picking delivery, knowing the
     'license': 'AGPL-3',
     'application': False,
 }
+#
+

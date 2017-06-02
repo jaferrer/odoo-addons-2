@@ -5,7 +5,6 @@ openerp.fix_barcode_scanner = function(instance) {
             var code = "";
             var timeStamp = 0;
             var timeout = null;
-
             this.handler = function(e){
                 if(e.which === 13){
                     if(code.length >= 3){

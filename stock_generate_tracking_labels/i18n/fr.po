@@ -64,8 +64,8 @@ msgstr "ou"
 
 #. module: stock_generate_tracking_labels
 #: model:ir.ui.view,arch_db:stock_generate_tracking_labels.stock_generate_tracking_labels_wizard
-msgid "Generate a label for each package"
-msgstr "Etiquettes colis séparées"
+msgid "or"
+msgstr "ou"
 
 #. module: stock_generate_tracking_labels
 #: model:ir.ui.view,arch_db:stock_generate_tracking_labels.stock_generate_tracking_labels_wizard
@@ -119,19 +119,22 @@ msgstr "Colis"
 
 #. module: stock_generate_tracking_labels
 #: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_picking_tracking_label_attachment
-#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_quant_package_label_attachment
 msgid "Label (attachment)"
 msgstr "Etiquette (pièce jointe)"
 
 #. module: stock_generate_tracking_labels
+#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_picking_type_use_tracking_labels
+#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_picking_use_tracking_labels
+msgid "Use tracking labels"
+msgstr "Utiliser les bordereaux d'envoi"
+
+#. module: stock_generate_tracking_labels
 #: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_picking_binary_label
-#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_quant_package_binary_label
 msgid "Label (binary)"
 msgstr "Etiquette (binaire)"
 
 #. module: stock_generate_tracking_labels
 #: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_picking_data_fname
-#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_quant_package_data_fname
 msgid "Label name"
 msgstr "Nom de l'étiquette"
 
@@ -154,3 +157,8 @@ msgstr "Formats"
 #: model:ir.model,name:stock_generate_tracking_labels.model_stock_quant_package
 msgid "Physical Packages"
 msgstr "Colis physiques"
+
+#. module: stock_generate_tracking_labels
+#: model:ir.model.fields,field_description:stock_delivery_tracking.field_stock_quant_package_transporter_weight
+msgid "Transporter weight (kg)"
+msgstr "Poids pour le transporteur (kg)"

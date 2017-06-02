@@ -19,7 +19,9 @@
                         <field name="save_tracking_number"/>
                         <field name="transportation_amount"/>
                         <field name="total_amount"/>
+                        <field name="cod_value"/>
                         <field name="sender_parcel_ref"/>
+                        <field name="insurance"/>
                     </group>
                     <separator name="donnees_colis" string="Données colis"/>
                     <group>
@@ -32,7 +34,6 @@
                             <field name="non_machinable"/>
                             <field name="output_printing_type_id" domain="[('transporter_id', '=', transporter_id)]"/>
                             <field name="return_type_choice"/>
-                            <field name="ftd"/>
                             <field name="instructions"/>
                         </group>
                     </group>
@@ -40,6 +41,7 @@
                     <group>
                         <group>
                             <field name="sale_order_id"/>
+                            <field name="partner_orig_id"/>
                             <field name="partner_id"/>
                             <field name="company_name"/>
                             <field name="first_name"/>
@@ -62,6 +64,12 @@
                             <field name="language"/>
                         </group>
                     </group>
+                    <separator name="douanes" string="Douane"/>
+                    <group>
+                        <field name="generate_custom_declaration"/>
+                        <field name="content_type_id" domain="[('transporter_id', '=', transporter_id)]" attrs="{'invisible': [('generate_custom_declaration', '=', False)]}"/>
+                        <field name="ftd" attrs="{'invisible': [('generate_custom_declaration', '=', False)]}"/>
+                    </group>
                     <footer>
                         <button name="generate_label" string="Générer l'étiquette" type="object" class="oe_highlight" />
                         or
@@ -79,11 +87,13 @@
             <field name="arch" type="xml">
                 <tree string="Types de bordereaux" create="false" delete="false" editable="top">
                     <field name="name"/>
-                    <field name="transporter_id"/>
+                    <field name="transporter_id" readonly="1"/>
                     <field name="code"/>
                     <field name="used_from_customer"/>
                     <field name="used_to_customer"/>
                     <field name="used_on_demand"/>
+                    <field name="output_printing_type_default_id"/>
+                    <field name="report_id"/>
                 </tree>
             </field>
         </record>
@@ -109,8 +119,9 @@
             <field name="arch" type="xml">
                 <tree string="Formats de bordereaux" create="false" delete="false" editable="top">
                     <field name="name"/>
-                    <field name="transporter_id"/>
+                    <field name="transporter_id" readonly="1"/>
                     <field name="code"/>
+                    <field name="print_on_a4"/>
                 </tree>
             </field>
         </record>
@@ -128,6 +139,34 @@
         <menuitem id="menu_output_printing_type" name="Formats"
                   action="act_window_output_printing_type"
                   parent="menu_bordereaux_expedition" sequence="20"/>
+
+        <record model="ir.ui.view" id="transporter_content_type_tree">
+            <field name="name">transporter_content_type_tree</field>
+            <field name="model">transporter.content.type</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree string="Types de contenu" create="false" delete="false" editable="top">
+                    <field name="name"/>
+                    <field name="transporter_id"/>
+                    <field name="code"/>
+                    <field name="used_by_default"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_content_type_tree">
+            <field name="name">Types de contenu</field>
+            <field name="res_model">transporter.content.type</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_content_type" name="Types de contenu"
+                  action="act_window_content_type_tree"
+                  parent="menu_bordereaux_expedition" sequence="30"/>
 
     </data>
 </openerp>

@@ -2,6 +2,48 @@
 <openerp>
     <data>
 
+        <record model="transporter.content.type" id="chronopost_type_cadeau">
+            <field name="name">Cadeau</field>
+            <field name="code">1</field>
+            <field name="transporter_id" ref="base_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="used_by_default"/>
+        </record>
+
+        <record model="transporter.content.type" id="chronopost_type_echantillon_commercial">
+            <field name="name">Echantillon commercial</field>
+            <field name="code">2</field>
+            <field name="transporter_id" ref="base_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="used_by_default"/>
+        </record>
+
+        <record model="transporter.content.type" id="chronopost_type_envoi_commercial">
+            <field name="name">Envoi commercial</field>
+            <field name="code">3</field>
+            <field name="transporter_id" ref="base_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="used_by_default" eval="True"/>
+        </record>
+
+        <record model="transporter.content.type" id="chronopost_type_document">
+            <field name="name">Document</field>
+            <field name="code">4</field>
+            <field name="transporter_id" ref="base_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="used_by_default"/>
+        </record>
+
+        <record model="transporter.content.type" id="chronopost_type_autre">
+            <field name="name">Autre</field>
+            <field name="code">5</field>
+            <field name="transporter_id" ref="base_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="used_by_default"/>
+        </record>
+
+        <record model="transporter.content.type" id="chronopost_type_retour_marchandise">
+            <field name="name">Retour marchandise</field>
+            <field name="code">5</field>
+            <field name="transporter_id" ref="base_delivery_tracking_colissimo.transporter_colissimo"/>
+            <field name="used_by_default"/>
+        </record>
+
         <record model="type.produit.expedition" id="colissimo_cold">
             <field name="name">Colissimo Access France</field>
             <field name="transporter_id" ref="base_delivery_tracking_colissimo.transporter_colissimo"/>
@@ -126,6 +168,7 @@
             <field name="name">PDF A4</field>
             <field name="transporter_id" ref="base_delivery_tracking_colissimo.transporter_colissimo"/>
             <field name="code">PDF_A4_300dpi</field>
+            <field name="print_on_a4">1</field>
         </record>
 
     </data>
