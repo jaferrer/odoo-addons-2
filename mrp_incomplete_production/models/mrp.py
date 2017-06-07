@@ -73,6 +73,23 @@ class IncompeteProductionMrpProduction(models.Model):
             rec.warehouse_id = warehouse_id
 
     @api.model
+    def _get_consumed_data(self, production):
+        ''' returns a dictionary containing for each raw material of the given production, its quantity already
+        consumed (in the raw material UoM)
+
+        Overridden here to remove cancel moves from the calculation
+        '''
+        consumed_data = {}
+        # Calculate already consumed qtys
+        for consumed in production.move_lines2:
+            if consumed.scrapped or consumed.state == "cancel":
+                continue
+            if not consumed_data.get(consumed.product_id.id, False):
+                consumed_data[consumed.product_id.id] = 0
+            consumed_data[consumed.product_id.id] += consumed.product_qty
+        return consumed_data
+
+    @api.model
     def _calculate_qty(self, production, product_qty=0.0):
         produced_qty = self._get_produced_qty(production)
         list_keys = []
@@ -161,10 +178,10 @@ class IncompeteProductionMrpProduction(models.Model):
             for move in list_cancelled_moves:
                 quants_to_return |= self.env['stock.quant'].search([('location_id', '=', move.location_id.id),
                                                                     ('product_id', '=', move.product_id.id)]). \
-                    filtered(lambda q: any([m.move_dest_id.raw_material_production_id == \
+                    filtered(lambda q: any([m.move_dest_id.raw_material_production_id ==
                                             move.raw_material_production_id for m in q.history_ids]))
             return_picking_type = self.env.context.get('force_return_picking_type') or \
-                                  move.get_return_picking_id()
+                move.get_return_picking_id()
             if not return_picking_type:
                 raise exceptions.except_orm(_("Error!"), _("Impossible to determine return picking type"))
             return_moves = quants_to_return.move_to(dest_location=wiz.return_location_id,
@@ -175,8 +192,9 @@ class IncompeteProductionMrpProduction(models.Model):
         procurements_to_cancel = self.env['procurement.order']
         # Let's cancel old service moves if the MO is produced
         if production_mode == 'consume_produce':
-            procurements_to_cancel |= self.env['procurement.order'].search([('move_dest_id', 'in', initial_raw_moves.ids),
-                                                                            ('state', 'not in', ['cancel', 'done'])])
+            procurements_to_cancel |= self.env[
+                'procurement.order'].search([('move_dest_id', 'in', initial_raw_moves.ids),
+                                             ('state', 'not in', ['cancel', 'done'])])
             if procurements_to_cancel:
                 procurements_to_cancel.cancel()
         return result
