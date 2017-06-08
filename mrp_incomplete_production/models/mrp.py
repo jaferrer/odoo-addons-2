@@ -167,11 +167,9 @@ class IncompeteProductionMrpProduction(models.Model):
                                   move.get_return_picking_id()
             if not return_picking_type:
                 raise exceptions.except_orm(_("Error!"), _("Impossible to determine return picking type"))
-            return_moves = quants_to_return.move_to(dest_location=wiz.return_location_id,
+            return_picking = quants_to_return.move_to(dest_location=wiz.return_location_id,
                                                     picking_type=return_picking_type)
-            for item in return_moves:
-                picking_to_change_origin |= item.picking_id
-            picking_to_change_origin.write({'origin': production.name})
+            return_picking.write({'origin': production.name})
         procurements_to_cancel = self.env['procurement.order']
         # Let's cancel old service moves if the MO is produced
         if production_mode == 'consume_produce':

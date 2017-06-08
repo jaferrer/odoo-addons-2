@@ -25,9 +25,9 @@
     'maintainer': 'NDP Systèmes',
     "summary": "",
     "category": "Warehouse Management",
-    "depends": ['stock', 'connector',
+    "depends": ['stock', 'connector', 'stock_split_picking', 'stock_planning_improved',
                 ######################### Unlink dependance to module stock_performance_improved when PR https://github.com/odoo/odoo/pull/13287 is merged.
-                'stock_performance_improved', 'stock_split_picking',
+                'stock_performance_improved',
                 ],
     'description': """
 Quants and packaging moving wizards
