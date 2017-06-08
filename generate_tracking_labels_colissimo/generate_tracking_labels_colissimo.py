@@ -262,7 +262,13 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                 if tracking_number:
                     tracking_numbers += [tracking_number]
                     response_string = response.content
-                    if len(response_string.split('%PDF')) == 2 and response_string.split('%PDF')[1].split('%EOF'):
+                    if len(response.content.split('<pdfUrl>')) == 2 and \
+                                    len(response.content.split('<pdfUrl>')[1].split('</pdfUrl>')) == 2:
+                        url = response.content.split('<pdfUrl>')[1].split('</pdfUrl>')[0].replace('amp;', '')
+                        file = requests.get(url)
+                        list_files += [file.content]
+
+                    elif len(response_string.split('%PDF')) == 2 and response_string.split('%PDF')[1].split('%EOF'):
                         pdf_binary_string = '%PDF' + response_string.split('%PDF')[1].split('%EOF')[0] + '%EOF' + '\n'
                         list_files += [pdf_binary_string]
                     continue
