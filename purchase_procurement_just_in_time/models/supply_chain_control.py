@@ -83,7 +83,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'purchase.order.line',
             'name': _("Purchase order lines for product %s") % self.product_id.display_name,
             'view_type': 'form',
-            'view_mode': 'tree',
+            'view_mode': 'tree,form',
             'context': {'search_default_product_id': self.product_id.id}
         }
 
@@ -95,7 +95,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'stock.move',
             'name': _("Moves for product %s") % self.product_id.display_name,
             'view_type': 'form',
-            'view_mode': 'tree',
+            'view_mode': 'tree,form',
             'context': {'search_default_product_id': self.product_id.id,
                         'search_default_ready': True,
                         'search_default_future': True,
@@ -111,7 +111,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'procurement.order',
             'name': _("Procurements for product %s") % self.product_id.display_name,
             'view_type': 'form',
-            'view_mode': 'tree',
+            'view_mode': 'tree,form',
             'context': {'search_default_product_id': self.product_id.id,
                         'search_default_group_procs_by_location': True,
                         'search_default_group_procs_by_state': True}
