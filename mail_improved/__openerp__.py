@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,7 +16,32 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from OdooWrapper import IHM
 
-IHM().launch()
+{
+    'name': 'Mail Improved',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Mail',
+    'depends': ['mail'],
+    'description': """
+Mail Improved
+=============
+Adds several improvements to the mail system
 
+- Allows to click on the "n more" label to show all recipients in thread. 
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'mail_improved.xml',
+    ],
+    'qweb': [
+        'static/src/xml/thread.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}
