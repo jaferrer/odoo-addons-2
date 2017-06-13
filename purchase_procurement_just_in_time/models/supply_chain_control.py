@@ -154,8 +154,9 @@ class SupplyChainControlProductProduct(models.Model):
         for product in self:
             draft_orders_qty = 0
             virtual_available = product.get_available_qty_supply_control()
-            draft_lines = self.env['purchase.order.line'].search([('order_id.state', '=', 'draft'),
-                                                                  ('product_id', '=', product.id)])
+            draft_lines = self.env['purchase.order.line']. \
+                search([('order_id.state', 'in', ['draft', 'bid', 'sent', 'confirmed']),
+                        ('product_id', '=', product.id)])
             done_uoms = []
             for line in draft_lines:
                 uom = line.product_uom
