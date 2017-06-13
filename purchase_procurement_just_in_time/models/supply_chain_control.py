@@ -83,7 +83,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'purchase.order.line',
             'name': _("Purchase order lines for product %s") % self.product_id.display_name,
             'view_type': 'form',
-            'view_mode': 'tree',
+            'view_mode': 'tree,form',
             'context': {'search_default_product_id': self.product_id.id}
         }
 
@@ -95,7 +95,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'stock.move',
             'name': _("Moves for product %s") % self.product_id.display_name,
             'view_type': 'form',
-            'view_mode': 'tree',
+            'view_mode': 'tree,form',
             'context': {'search_default_product_id': self.product_id.id,
                         'search_default_ready': True,
                         'search_default_future': True,
@@ -111,7 +111,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'procurement.order',
             'name': _("Procurements for product %s") % self.product_id.display_name,
             'view_type': 'form',
-            'view_mode': 'tree',
+            'view_mode': 'tree,form',
             'context': {'search_default_product_id': self.product_id.id,
                         'search_default_group_procs_by_location': True,
                         'search_default_group_procs_by_state': True}
@@ -154,8 +154,9 @@ class SupplyChainControlProductProduct(models.Model):
         for product in self:
             draft_orders_qty = 0
             virtual_available = product.get_available_qty_supply_control()
-            draft_lines = self.env['purchase.order.line'].search([('order_id.state', '=', 'draft'),
-                                                                  ('product_id', '=', product.id)])
+            draft_lines = self.env['purchase.order.line']. \
+                search([('order_id.state', 'in', ['draft', 'bid', 'sent', 'confirmed']),
+                        ('product_id', '=', product.id)])
             done_uoms = []
             for line in draft_lines:
                 uom = line.product_uom
