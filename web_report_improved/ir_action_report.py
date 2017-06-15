@@ -23,11 +23,11 @@ class IrAction(models.Model):
     _inherit = 'ir.actions.report.xml'
 
     type_multi_print = fields.Selection((
-        ('file', u"Fichier Unique"),
-        ('pdf', u"Pdf Unique page par page"),
-        ('zip', u"Conteneur Zip")
-    ), u"Type de post traitement lors de l'impression mutliple", default='file')
+        ('file', u"Unique File"),
+        ('pdf', u"Merged Pdf"),
+        ('zip', u"Zip Container")
+    ), u"Type container", default='file')
 
-    name_eval_report = fields.Char(u"expression for the name of the report")
+    name_eval_report = fields.Char(u"Expression for the name of the report")
 
 

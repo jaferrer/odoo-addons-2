@@ -25,7 +25,9 @@
     'category': 'Report',
     'depends': ['web'],
     'description': """
-Merge multi print into a zip file
+Merge multi print into a zip file or au merged PDF
+
+You can write an expression for the name of the report
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
