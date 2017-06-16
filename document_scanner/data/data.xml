@@ -14,7 +14,50 @@
             <field name="password">hLD5w0yo1wPs5kqwu839fs!kl9QH3#uh39zr49y4Bgu4ox!*qL</field>
             <field name="company_id" ref="base.main_company"/>
             <field name="company_ids" eval="[(6,0,[ref('base.main_company')])]"/>
-            <field name="groups_id" eval="[(6,0,[ref('base.group_user'), ref('document_scanner.group_scanner_bot'), ref('document_scanner.bot_ir_attachment'), ref('base.group_document_user')])]"/>
+            <field name="groups_id"
+                   eval="[(6,0,[ref('base.group_user'), ref('document_scanner.group_scanner_bot'), ref('document_scanner.bot_ir_attachment'), ref('base.group_document_user')])]"/>
+        </record>
+
+        <record id="scanner_info_resolution_100_dpi" model="scanner.info.dpi">
+            <field name="name">100</field>
+        </record>
+        <record id="scanner_info_resolution_150_dpi" model="scanner.info.dpi">
+            <field name="name">150</field>
+        </record>
+        <record id="scanner_info_resolution_200_dpi" model="scanner.info.dpi">
+            <field name="name">200</field>
+        </record>
+        <record id="scanner_info_resolution_300_dpi" model="scanner.info.dpi">
+            <field name="name">300</field>
+        </record>
+        <record id="scanner_info_resolution_400_dpi" model="scanner.info.dpi">
+            <field name="name">400</field>
+        </record>
+        <record id="scanner_info_resolution_600_dpi" model="scanner.info.dpi">
+            <field name="name">600</field>
+        </record>
+        <record id="scanner_info_resolution_1200_dpi" model="scanner.info.dpi">
+            <field name="name">1200</field>
+        </record>
+
+        <record id="scanner_info_color_bw" model="scanner.info.color">
+            <field name="name">bw</field>
+        </record>
+        <record id="scanner_info_color_color" model="scanner.info.color">
+            <field name="name">color</field>
+        </record>
+        <record id="scanner_info_color_grey" model="scanner.info.color">
+            <field name="name">grey</field>
+        </record>
+
+        <record id="scanner_info_quality_1" model="scanner.info.quality">
+            <field name="name">1</field>
+        </record>
+        <record id="scanner_info_quality_8" model="scanner.info.quality">
+            <field name="name">8</field>
+        </record>
+        <record id="scanner_info_quality_24" model="scanner.info.quality">
+            <field name="name">24</field>
         </record>
     </data>
 </openerp>

@@ -44,7 +44,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         # Configure cancelled moves/procs deletion
         wizard = self.env['stock.config.settings'].create({'delete_moves_cancelled_by_planned': True,
                                                            'relative_stock_delta': 10,
-                                                           'absolute_stock_delta': 2,
+                                                           'absolute_stock_delta': 1,
                                                            'consider_end_contract_effect': True})
         wizard.execute()
 
@@ -628,7 +628,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         proc_to_be_removed = procs[1]
         proc_to_be_removed_id = proc_to_be_removed.id
 
-        # Le's create a supply chain for move of proc_to_be_removed and receive 2 units for proc_to_be_removed.
+        # Let's create a supply chain for move of proc_to_be_removed and receive 2 units for proc_to_be_removed.
         move_to_b = proc_to_be_removed.move_ids
         self.assertEqual(len(move_to_b), 1)
         self.assertTrue(move_to_b.picking_id)
@@ -654,12 +654,25 @@ class TestStockProcurementJIT(common.TransactionCase):
         wizard.item_ids.quantity = 2
         wizard.do_detailed_transfer()
 
-        move_to_a_2 = proc_in_a.move_ids.filtered(lambda move: move != move_to_a)
+        move_to_a_2 = self.env['stock.move'].search([('split_from', '=', move_to_a.id)])
         self.assertEqual(len(move_to_a_2), 1)
         self.assertEqual(move_to_a.product_uom_qty, 2)
         self.assertEqual(move_to_a.state, 'done')
+        self.assertEqual(move_to_a.procurement_id.state, 'done')
+        self.assertEqual(move_to_a.procurement_id.product_qty, 2)
         self.assertEqual(move_to_a_2.product_uom_qty, 4)
         self.assertEqual(move_to_a_2.state, 'confirmed')
+        self.assertEqual(move_to_a_2.procurement_id.state, 'running')
+        self.assertEqual(move_to_a_2.procurement_id.product_qty, 4)
+
+        move_to_b_2 = self.env['stock.move'].search([('split_from', '=', move_to_b.id)])
+        self.assertEqual(move_to_a_2.move_dest_id, move_to_b_2)
+        self.assertEqual(move_to_a_2.procurement_id.move_dest_id, move_to_b_2)
+        self.assertEqual(move_to_b_2.state, 'waiting')
+        self.assertEqual(move_to_b_2.product_qty, 4)
+        self.assertEqual(move_to_b_2.procurement_id.state, 'running')
+        self.assertEqual(move_to_b_2.procurement_id.product_qty, 4)
+
         ids_to_be_removed = [move_to_a_2.id, move_to_b.id]
         ids_not_to_be_removed = [move_to_a.id]
 
@@ -673,7 +686,6 @@ class TestStockProcurementJIT(common.TransactionCase):
                                                       ('product_id', 'in', [self.test_product.id,
                                                                             self.test_product3.id])],
                                                      order='date_planned, product_id')
-
         self.assertEqual(len(procs), 4)
 
         self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
