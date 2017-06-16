@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from openerp import models, api, fields
 from openerp.tools import float_compare
 
 
@@ -51,3 +51,9 @@ class StockQuant(models.Model):
                     break
             offset += 10
         return res
+
+
+class StockPickingType(models.Model):
+    _inherit = 'stock.picking.type'
+
+    visible_for_all_companies = fields.Boolean(string="Visible for all companies")

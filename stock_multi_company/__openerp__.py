@@ -32,6 +32,7 @@ Implements various fixes for multi-company
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'security/security.xml',
         'stock_multi_company_data.xml',
     ],
     'demo': [],
