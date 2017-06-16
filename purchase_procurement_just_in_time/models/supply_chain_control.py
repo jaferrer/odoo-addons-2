@@ -19,6 +19,7 @@
 
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
+from openerp.osv import fields as old_api_fields
 
 from openerp import models, fields, api, _
 from openerp.tools.float_utils import float_round
@@ -121,7 +122,10 @@ class SupplyChainControl(models.Model):
 class ProductTemplateJit(models.Model):
     _inherit = 'product.template'
 
-    seller_id = fields.Many2one(compute='_compute_seller_id', store=True)
+    _columns = {
+        'seller_id': old_api_fields.many2one('res.partner', string='Main Supplier',
+                                             help="Main Supplier who has highest priority in Supplier List."),
+    }
 
     @api.multi
     def get_main_supplierinfo(self, force_company=None):
@@ -131,12 +135,43 @@ class ProductTemplateJit(models.Model):
             supplier_infos_domain += ['|', ('company_id', '=', force_company.id), ('company_id', '=', False)]
         return self.env['product.supplierinfo'].search(supplier_infos_domain, order='sequence, id', limit=1)
 
-    @api.multi
-    @api.depends('seller_ids', 'seller_ids.sequence')
-    def _compute_seller_id(self):
-        for rec in self:
-            main_supplierinfo = rec.get_main_supplierinfo()
-            rec.seller_id = main_supplierinfo and main_supplierinfo.name or False
+    @api.model
+    def update_seller_ids(self):
+        self.env.cr.execute("""WITH main_supplier_intermediate_table AS (
+    SELECT
+        pt.id            AS product_tmpl_id,
+        min(ps.sequence) AS sequence
+    FROM product_template pt
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pt.id
+    GROUP BY pt.id),
+
+        main_supplier_s AS (
+        SELECT
+            ps.product_tmpl_id,
+            ps.name,
+            ROW_NUMBER()
+            OVER (PARTITION BY ps.product_tmpl_id
+                ORDER BY ps.id ASC) AS constr
+        FROM
+            product_supplierinfo ps
+            INNER JOIN
+            main_supplier_intermediate_table ms
+                ON ps.product_tmpl_id = ms.product_tmpl_id AND ps.sequence = ms.sequence)
+
+SELECT
+    pt.id          AS product_tmpl_id,
+    res_partner.id AS new_seller_id
+FROM product_template pt
+    LEFT JOIN main_supplier_s ON main_supplier_s.product_tmpl_id = pt.id
+    LEFT JOIN res_partner ON res_partner.id = main_supplier_s.name
+    LEFT JOIN res_users ON res_partner.user_id = res_users.id
+WHERE (res_partner.id IS NULL OR main_supplier_s.constr = 1) AND
+      ((res_partner.id IS NULL AND pt.seller_id IS NOT NULL OR res_partner.id IS NOT NULL AND pt.seller_id IS NULL OR
+        res_partner.id != pt.seller_id))""")
+        for res_tuple in self.env.cr.fetchall():
+            product = self.browse(res_tuple[0])
+            supplier = self.env['res.partner'].browse(res_tuple[1])
+            product.seller_id = supplier
 
 
 class SupplyChainControlProductProduct(models.Model):

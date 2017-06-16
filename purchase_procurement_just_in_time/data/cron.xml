@@ -47,6 +47,22 @@
             <field name="args"/>
         </record>
 
+
+        <record model="ir.cron" id="update_seller_ids">
+            <field name="name">Update product sellers</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall">2016-10-31 18:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">product.template</field>
+            <field name="function">update_seller_ids</field>
+            <field name="args"/>
+        </record>
+
         <record model="queue.job.channel" id="root_purchase_scheduler">
             <field name="name">purchase_scheduler</field>
             <field name="parent_id" ref="connector.channel_root"/>
