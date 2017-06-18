@@ -39,7 +39,7 @@ def job_purchase_schedule(session, model_name, compute_all_products, compute_sup
 
 @job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule_procurements(session, model_name, ids):
-    result = session.env[model_name].purchase_schedule_procurements(ids, jobify=True)
+    result = session.env[model_name].browse(ids).purchase_schedule_procurements(jobify=True)
     return result
 
 
