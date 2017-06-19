@@ -54,18 +54,19 @@ class StockQuant(models.Model):
         for move_tuple in move_tuples:
             qty_reserved = 0
             qty_to_reserve = move_tuple['qty']
-            for quant_id in move_tuple['quant_ids']:
-                quant = self.env['stock.quant'].browse(quant_id)
+            quants = self.env['stock.quant'].search([('id', 'in', move_tuple['quant_ids'])])
+            for quant in quants:
+                quant_read = quant.read(['id', 'qty'], load=False)[0]
                 # If the new quant does not exceed the requested qty, we move it (end of loop) and continue
                 # If requested qty is reached, we break the loop
                 if float_compare(qty_reserved, qty_to_reserve, precision_rounding=prec) >= 0:
                     break
                 # If the new quant exceeds the requested qty, we reserve the good qty and then break
-                elif float_compare(qty_reserved + quant.qty, qty_to_reserve, precision_rounding=prec) > 0:
+                elif float_compare(qty_reserved + quant_read['qty'], qty_to_reserve, precision_rounding=prec) > 0:
                     list_reservations += [(quant, float_round(qty_to_reserve - qty_reserved, precision_rounding=prec))]
                     break
-                list_reservations += [(quant, quant.qty)]
-                qty_reserved += quant.qty
+                list_reservations += [(quant, quant_read['qty'])]
+                qty_reserved += quant_read['qty']
         return list_reservations
 
     @api.model
@@ -97,7 +98,7 @@ FROM correct_moves sm
     LEFT JOIN stock_move move_history on move_history.id = rel.move_id
 WHERE move_orig.id = move_history.id OR
       sm.id = move_history.id
-ORDER BY sm.priority desc, sm.date asc, sm.id asc""" % (str(move_ids).replace(',)', ')'), quant.id))
+ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), quant.id,))
 
             moves_correct_chain_ids = [move_id for move_id in set([item[0] for item in self.env.cr.fetchall()])]
             self.env.cr.execute("""WITH nb_ancestors AS (
@@ -115,8 +116,7 @@ SELECT sm.id
 FROM nb_ancestors sm
 WHERE sm.sum_move_ids = 0 AND
       sm.id NOT IN %s
-ORDER BY sm.priority desc, sm.date asc, sm.id asc""" % (str(move_ids).replace(',)', ')'),
-                                                        str(tuple(quant.history_ids.ids) or (0,)).replace(',)', ')')))
+ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), tuple(quant.history_ids.ids or [0]),))
             moves_no_ancestors_ids = [move_id for move_id in set([item[0] for item in self.env.cr.fetchall()])]
         move_ids_to_return = (moves_correct_chain_ids + moves_no_ancestors_ids)
         return move_ids_to_return and self.env['stock.move']. \
