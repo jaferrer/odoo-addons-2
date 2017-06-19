@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <template id="assets_backend" name="live_i10n assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/odoo_utils/static/src/onchange/on_change_action.js"/>
+            </xpath>
+        </template>
+    </data>
+</openerp>

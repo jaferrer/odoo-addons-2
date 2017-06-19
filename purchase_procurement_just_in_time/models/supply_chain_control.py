@@ -84,7 +84,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'purchase.order.line',
             'name': _("Purchase order lines for product %s") % self.product_id.display_name,
             'view_type': 'form',
-            'view_mode': 'tree',
+            'view_mode': 'tree,form',
             'context': {'search_default_product_id': self.product_id.id}
         }
 
@@ -96,7 +96,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'stock.move',
             'name': _("Moves for product %s") % self.product_id.display_name,
             'view_type': 'form',
-            'view_mode': 'tree',
+            'view_mode': 'tree,form',
             'context': {'search_default_product_id': self.product_id.id,
                         'search_default_ready': True,
                         'search_default_future': True,
@@ -112,7 +112,7 @@ class SupplyChainControl(models.Model):
             'res_model': 'procurement.order',
             'name': _("Procurements for product %s") % self.product_id.display_name,
             'view_type': 'form',
-            'view_mode': 'tree',
+            'view_mode': 'tree,form',
             'context': {'search_default_product_id': self.product_id.id,
                         'search_default_group_procs_by_location': True,
                         'search_default_group_procs_by_state': True}
@@ -159,16 +159,15 @@ class ProductTemplateJit(models.Model):
                 ON ps.product_tmpl_id = ms.product_tmpl_id AND ps.sequence = ms.sequence)
 
 SELECT
-    main_supplier_s.product_tmpl_id,
+    pt.id          AS product_tmpl_id,
     res_partner.id AS new_seller_id
-FROM main_supplier_s
+FROM product_template pt
+    LEFT JOIN main_supplier_s ON main_supplier_s.product_tmpl_id = pt.id
     LEFT JOIN res_partner ON res_partner.id = main_supplier_s.name
     LEFT JOIN res_users ON res_partner.user_id = res_users.id
-    LEFT JOIN res_partner t ON res_users.partner_id = t.id
-    LEFT JOIN product_template pt ON pt.id = main_supplier_s.product_tmpl_id
-WHERE main_supplier_s.constr = 1 AND
-      (res_partner.id IS NULL AND pt.seller_id IS NOT NULL OR res_partner.id IS NOT NULL AND pt.seller_id IS NULL OR
-       res_partner.id != pt.seller_id)""")
+WHERE (res_partner.id IS NULL OR main_supplier_s.constr = 1) AND
+      ((res_partner.id IS NULL AND pt.seller_id IS NOT NULL OR res_partner.id IS NOT NULL AND pt.seller_id IS NULL OR
+        res_partner.id != pt.seller_id))""")
         for res_tuple in self.env.cr.fetchall():
             product = self.browse(res_tuple[0])
             supplier = self.env['res.partner'].browse(res_tuple[1])
@@ -190,8 +189,9 @@ class SupplyChainControlProductProduct(models.Model):
         for product in self:
             draft_orders_qty = 0
             virtual_available = product.get_available_qty_supply_control()
-            draft_lines = self.env['purchase.order.line'].search([('order_id.state', '=', 'draft'),
-                                                                  ('product_id', '=', product.id)])
+            draft_lines = self.env['purchase.order.line']. \
+                search([('order_id.state', 'in', ['draft', 'bid', 'sent', 'confirmed']),
+                        ('product_id', '=', product.id)])
             done_uoms = []
             for line in draft_lines:
                 uom = line.product_uom
