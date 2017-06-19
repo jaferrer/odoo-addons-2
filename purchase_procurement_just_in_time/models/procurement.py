@@ -29,42 +29,29 @@ from openerp.tools.float_utils import float_compare, float_round
 
 @job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule(session, model_name, compute_all_products, compute_supplier_ids,
-                          compute_product_ids, jobify, context=None):
-    model_instance = session.pool[model_name]
-    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
-    with handler.session() as session:
-        result = model_instance.launch_purchase_schedule(session.cr, session.uid, compute_all_products,
-                                                         compute_supplier_ids, compute_product_ids, jobify,
-                                                         context=context)
+                          compute_product_ids, jobify):
+    result = session.env[model_name].launch_purchase_schedule(compute_all_products,
+                                                              compute_supplier_ids,
+                                                              compute_product_ids,
+                                                              jobify)
     return result
 
 
 @job(default_channel='root.purchase_scheduler')
-def job_purchase_schedule_procurements(session, model_name, ids, context=None):
-    model_instance = session.pool[model_name]
-    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
-    with handler.session() as session:
-        result = model_instance.purchase_schedule_procurements(session.cr, session.uid, ids, jobify=True,
-                                                               context=context)
+def job_purchase_schedule_procurements(session, model_name, ids):
+    result = session.env[model_name].browse(ids).purchase_schedule_procurements(jobify=True)
     return result
 
 
 @job(default_channel='root.purchase_scheduler_slave')
-def job_create_draft_lines(session, model_name, dict_lines_to_create, context=None):
-    model_instance = session.pool[model_name]
-    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
-    with handler.session() as session:
-        result = model_instance.create_draft_lines(session.cr, session.uid, dict_lines_to_create, context=context)
+def job_create_draft_lines(session, model_name, dict_lines_to_create):
+    result = session.env[model_name].create_draft_lines(dict_lines_to_create)
     return result
 
 
 @job(default_channel='root.purchase_scheduler_slave')
-def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines, context=None):
-    model_instance = session.pool[model_name]
-    handler = ConnectorSessionHandler(session.cr.dbname, session.uid, session.context)
-    with handler.session() as session:
-        result = model_instance.redistribute_procurements_in_lines(session.cr, session.uid, dict_procs_lines,
-                                                                   context=context)
+def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines):
+    result = session.env[model_name].redistribute_procurements_in_lines(dict_procs_lines)
     return result
 
 
@@ -151,13 +138,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             job_purchase_schedule.delay(session, 'procurement.order', compute_all_products,
                                         compute_supplier_ids, compute_product_ids, jobify,
-                                        description=_("Scheduling purchase orders"), context=dict(self.env.context))
+                                        description=_("Scheduling purchase orders"))
         else:
-            self.launch_purchase_schedule(compute_all_products, compute_supplier_ids, compute_product_ids,
-                                          jobify)
+            self.launch_purchase_schedule(compute_all_products, compute_supplier_ids, compute_product_ids, jobify)
 
     @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
+        self.env['product.template'].update_seller_ids()
         domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']),
                                       ('rule_id.action', '=', 'buy')]
         if not compute_all_products and compute_product_ids:
@@ -219,8 +206,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                 delay(session, 'procurement.order', procurements.ids,
                                       description=_("Scheduling purchase orders for seller %s, "
                                                     "company %s and location %s") %
-                                                  (supplier.display_name, company.display_name, location.display_name),
-                                      context=dict(self.env.context))
+                                                  (supplier.display_name, company.display_name, location.display_name))
                         else:
                             procurements.purchase_schedule_procurements()
 
@@ -488,8 +474,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 job_create_draft_lines. \
                     delay(session, 'procurement.order', {order_id: dict_lines_to_create[order_id]},
                           description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
-                                      (order.name, seller.name, number_order, total_number_orders),
-                          context=dict(self.env.context))
+                                      (order.name, seller.name, number_order, total_number_orders))
             return_msg += u"\nCreating jobs to fill draft orders: %s s." % int((dt.now() - time_now).seconds)
         else:
             self.create_draft_lines(dict_lines_to_create)
@@ -497,10 +482,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return return_msg
 
     @api.multi
-    def sanitize_draft_orders(self):
-        seller = self.env['procurement.order']._get_product_supplier(self[0])
+    def sanitize_draft_orders(self, company, seller):
         orders = self.env['purchase.order'].search([('state', '=', 'draft'),
-                                                    ('partner_id', '=', seller.id)], order='date_order')
+                                                    ('partner_id', '=', seller.id),
+                                                    ('company_id', '=', company.id)], order='date_order')
         order_lines = self.env['purchase.order.line'].search([('order_id', 'in', orders.ids)])
         procurements = self.env['procurement.order'].search([('purchase_line_id.order_id', 'in', orders.ids)])
         procurements.remove_procs_from_lines()
@@ -534,7 +519,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         assert len(locations) == 1, "purchase_schedule_procurements should be called with procs of the same location"
         assert len(sellers) == 1, "purchase_schedule_procurements should be called with procs of the same supplier"
         time_now = dt.now()
-        self.sanitize_draft_orders()
+        self.sanitize_draft_orders([company for company in companies][0], [seller for seller in sellers][0])
         return_msg += u"Sanitizing draft orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         dict_procs_lines, not_assigned_procs = self.compute_which_procs_for_lines()
@@ -668,8 +653,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 job_redistribute_procurements_in_lines. \
                     delay(session, 'procurement.order', {order_id: dict_procs_lines[order_id]},
                           description=_("Redistributing procurements for order %s of supplier %s (order %s/%s)") %
-                                      (order.name, order.partner_id.name, number_order, total_number_orders),
-                          context=dict(self.env.context))
+                                      (order.name, order.partner_id.name, number_order, total_number_orders))
             return_msg += u"\nCreating jobs to redistribute procurements %s s." % int((dt.now() - time_now).seconds)
         else:
             return_msg += self.redistribute_procurements_in_lines(dict_procs_lines)
