@@ -779,9 +779,39 @@ msgid "Not Covered Needs"
 msgstr "Besoins non couverts"
 
 #. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Seller defined"
+msgstr "Fournisseur défini"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Seller not defined"
+msgstr "Fournisseur non défini"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Scheduler active for seller"
+msgstr "Planificateur actif pour le fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Scheduler not active for seller"
+msgstr "Planificateur non actif pour le fournisseur"
+
+#. module: purchase_procurement_just_in_time
 #: field:supply.chain.control,product_id:0
 msgid "Product"
 msgstr "Article"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,seller_defined:0
+msgid "Seller defined"
+msgstr "Fournisseur défini"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,scheduler_active_for_seller:0
+msgid "Scheduler active for seller"
+msgstr "Planificateur actif pour le fournisseur"
 
 #. module: purchase_procurement_just_in_time
 #: field:supply.chain.control,virtual_available:0
