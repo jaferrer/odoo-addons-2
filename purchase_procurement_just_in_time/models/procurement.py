@@ -39,7 +39,7 @@ def job_purchase_schedule(session, model_name, compute_all_products, compute_sup
 
 @job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule_procurements(session, model_name, ids):
-    result = session.env[model_name].purchase_schedule_procurements(ids, jobify=True)
+    result = session.env[model_name].browse(ids).purchase_schedule_procurements(jobify=True)
     return result
 
 
@@ -144,7 +144,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
-        domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']), ('rule_id.action', '=', 'buy')]
+        self.env['product.template'].update_seller_ids()
+        domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']),
+                                      ('rule_id.action', '=', 'buy')]
         if not compute_all_products and compute_product_ids:
             domain_procurements_to_run += [('product_id', 'in', compute_product_ids)]
         procurements_to_run = self.search(domain_procurements_to_run)
