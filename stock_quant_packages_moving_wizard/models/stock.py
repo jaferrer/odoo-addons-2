@@ -70,7 +70,7 @@ class StockQuant(models.Model):
         return list_reservations
 
     @api.model
-    def get_corresponding_moves(self, quant, location_from, dest_location, picking_type_id, force_domain=None):
+    def get_corresponding_move_ids(self, quant, location_from, dest_location, picking_type_id, force_domain=None):
         moves_correct_chain_ids = []
         moves_no_ancestors_ids = []
         domain = [('product_id', '=', quant.product_id.id),
@@ -118,9 +118,7 @@ WHERE sm.sum_move_ids = 0 AND
       sm.id NOT IN %s
 ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), tuple(quant.history_ids.ids or [0]),))
             moves_no_ancestors_ids = [move_id for move_id in set([item[0] for item in self.env.cr.fetchall()])]
-        move_ids_to_return = (moves_correct_chain_ids + moves_no_ancestors_ids)
-        return move_ids_to_return and self.env['stock.move']. \
-            search([('id', 'in', move_ids_to_return)], order='product_qty desc') or self.env['stock.move']
+        return moves_correct_chain_ids + moves_no_ancestors_ids
 
     @api.model
     def move_remaining_quants(self, product, location_from, dest_location, picking_type_id, new_picking_id,
@@ -149,7 +147,7 @@ ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), tuple(qu
         for move in dict_reservation_target.keys():
             list_reservations = dict_reservation_target[move]['reservations']
             self.quants_reserve(list_reservations, move)
-    
+
     @api.model
     def get_reservation_target(self, list_reservations, product, location_from, dest_location, picking_type_id):
         prec = product.uom_id.rounding
@@ -158,9 +156,11 @@ ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), tuple(qu
         moves_to_create = []
         for reservation_tuple in list_reservations:
             quant, target_qty = reservation_tuple
-            corresponding_moves = self.get_corresponding_moves(quant, location_from, dest_location, picking_type_id,
-                                                               force_domain=[('id', 'not in', full_moves.ids)])
-            for move in corresponding_moves:
+            corresponding_move_ids = self. \
+                get_corresponding_move_ids(quant, location_from, dest_location, picking_type_id,
+                                           force_domain=[('id', 'not in', full_moves.ids)])
+            for move_id in corresponding_move_ids:
+                move = self.env['stock.move'].search([('id', '=', move_id)])
                 if move not in dict_reservation_target:
                     dict_reservation_target[move] = {'available_qty': move.product_qty, 'reservations': []}
                     move.do_unreserve()
