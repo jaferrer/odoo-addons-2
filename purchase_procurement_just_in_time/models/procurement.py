@@ -159,6 +159,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             if not seller:
                 # If the first proc has no seller, then we drop this proc and go to the next
                 procurements_to_run = procurements_to_run[1:]
+                procurements_to_run.set_exception_no_supplier()
                 continue
             seller_ok = bool(compute_all_products or not compute_supplier_ids or
                              compute_supplier_ids and seller.id in compute_supplier_ids)
@@ -659,11 +660,17 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return return_msg
 
     @api.multi
+    def set_exception_no_supplier(self):
+        for rec in self:
+            rec.message_post(_("There is no supplier associated to product %s") % (rec.product_id.name))
+        self.write({'state': 'exception'})
+
+    @api.multi
     def make_po(self):
         res = {}
         for proc in self:
             if not self.env['procurement.order']._get_product_supplier(proc):
-                proc.message_post(_('There is no supplier associated to product %s') % (proc.product_id.name))
+                proc.set_exception_no_supplier()
                 res[proc.id] = False
             else:
                 res[proc.id] = True

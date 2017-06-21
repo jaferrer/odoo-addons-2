@@ -37,6 +37,8 @@ class SupplyChainControl(models.Model):
     _name = 'supply.chain.control'
 
     product_id = fields.Many2one('product.product', string=u"Product")
+    seller_defined = fields.Boolean(string=u"Seller defined")
+    scheduler_active_for_seller = fields.Boolean(string=u"Scheduler active for seller")
     virtual_available = fields.Float(string=u"Forecast Quantity")
     draft_orders_qty = fields.Float(string=u"Draft orders quantity")
     oversupply_qty = fields.Float(string=u"Scheduler Oversupply quantity")
@@ -150,6 +152,38 @@ class SupplyChainControlProductProduct(models.Model):
         return self.virtual_available
 
     @api.multi
+    def get_missing_date(self):
+        self.ensure_one()
+        warehouse = self.get_warehouse_for_stock_report()
+        level_report = self.env['stock.levels.report'].search([('warehouse_id', '=', warehouse.id),
+                                                               ('product_id', '=', self.id),
+                                                               ('qty', '<', 0)], order='date', limit=1)
+        return level_report and level_report.date and level_report.date[:10] or False
+
+    @api.multi
+    def get_supplier_scheduler_data(self):
+        self.ensure_one()
+        seller_defined = True
+        scheduler_active_for_seller = True
+        companies = self.env['res.company'].search([])
+        for company in companies:
+            if seller_defined:
+                supplierinfo = self.product_tmpl_id.get_main_supplierinfo(force_company=company)
+                seller = supplierinfo and supplierinfo.name or False
+                if not seller:
+                    seller_defined = False
+                    scheduler_active_for_seller = False
+                elif scheduler_active_for_seller:
+                    if seller not in self.env['res.partner']. \
+                            search([('supplier', '=', True),
+                                    ('nb_days_scheduler_frequency', '!=', False),
+                                    ('nb_days_scheduler_frequency', '!=', 0),
+                                    ('next_scheduler_date', '!=', False),
+                                    ('next_scheduler_date', '<=', fields.Datetime.now())]):
+                        scheduler_active_for_seller = False
+        return seller_defined, scheduler_active_for_seller
+
+    @api.multi
     def update_supply_chain_control(self):
         for product in self:
             draft_orders_qty = 0
@@ -170,18 +204,18 @@ class SupplyChainControlProductProduct(models.Model):
                     else:
                         draft_orders_qty += self.env['product.uom']._compute_qty(uom.id, lines_uom_qty,
                                                                                  product.uom_id.id)
-            warehouse = product.get_warehouse_for_stock_report()
-            level_report = self.env['stock.levels.report'].search([('warehouse_id', '=', warehouse.id),
-                                                                   ('product_id', '=', product.id),
-                                                                   ('qty', '<', 0)], order='date', limit=1)
             prec = product.uom_id.rounding
+            missing_date = product.get_missing_date()
+            seller_defined, scheduler_active_for_seller = product.get_supplier_scheduler_data()
             self.env['supply.chain.control'].create(
                 {'product_id': product.id,
+                 'seller_defined': seller_defined,
+                 'scheduler_active_for_seller': scheduler_active_for_seller,
                  'virtual_available': float_round(virtual_available, precision_rounding=prec),
                  'draft_orders_qty': float_round(draft_orders_qty, precision_rounding=prec),
                  'oversupply_qty': float_round(min(draft_orders_qty + virtual_available, draft_orders_qty),
                                                precision_rounding=prec),
-                 'missing_date': level_report and level_report.date and level_report.date[:10] or False}
+                 'missing_date': missing_date}
             )
 
     @api.multi
