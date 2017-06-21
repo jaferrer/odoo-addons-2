@@ -32,5 +32,4 @@ class QuantitiesModificationsSaleOrder(models.Model):
             raise exceptions.except_orm(_("Error!"), _("Impossible to reopen a not done sale order."))
         self.write({'workflow_done': True,
                     'state': 'progress'})
-        for rec in self:
-            rec.message_post(body=_("Sale order reopened by %s") % self.env.user.name)
+        self.message_post(body=_("Sale order reopened by %s") % self.env.user.name)
