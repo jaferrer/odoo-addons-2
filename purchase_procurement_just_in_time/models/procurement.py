@@ -158,6 +158,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             seller = self.env['procurement.order']._get_product_supplier(procurements_to_run[0])
             if not seller:
                 # If the first proc has no seller, then we drop this proc and go to the next
+                procurements_to_run[0].set_exception_no_supplier()
                 procurements_to_run = procurements_to_run[1:]
                 continue
             seller_ok = bool(compute_all_products or not compute_supplier_ids or
