@@ -296,11 +296,11 @@ class PurchaseOrderLineJustInTime(models.Model):
     @api.depends('partner_id', 'product_id')
     def _compute_supplier_code(self):
         for rec in self:
-            list_supinfos = self.env['product.supplierinfo'].search(
-                [('product_tmpl_id', '=', rec.product_id.product_tmpl_id.id), ('name', '=', rec.partner_id.id)]
-            )
-            if list_supinfos:
-                rec.supplier_code = list_supinfos[0].product_code
+            supplierinfo = self.env['product.supplierinfo']. \
+                search([('product_tmpl_id', '=', rec.product_id.product_tmpl_id.id),
+                        ('name', '=', rec.partner_id.id)], order='sequence, id', limit=1)
+            if supplierinfo:
+                rec.supplier_code = supplierinfo.product_code
 
     @api.depends('product_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
     def _get_remaining_qty(self):
