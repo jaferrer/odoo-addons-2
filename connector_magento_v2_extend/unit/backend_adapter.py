@@ -185,9 +185,12 @@ class magentoextendCRUDAdapter(CRUDAdapter):
                 _logger.error("api.call(%s, %s) failed", method, arguments)
                 raise
             else:
+                resp = result.json()
                 _logger.debug("api.call(%s, %s) returned %s in %s seconds",
-                              method, arguments, result,
+                              method, arguments, resp,
                               (datetime.now() - start).seconds)
+                if isinstance(resp, dict) and resp.get("message") and resp.get("trace"):
+                    _logger.error("message : %s", resp.get("message"))
             return result.json()
         except (socket.gaierror, socket.error, socket.timeout) as err:
             raise NetworkRetryableError(
