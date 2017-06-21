@@ -779,9 +779,39 @@ msgid "Not Covered Needs"
 msgstr "Besoins non couverts"
 
 #. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Seller defined"
+msgstr "Fournisseur défini"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Seller not defined"
+msgstr "Fournisseur non défini"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Scheduler active for seller"
+msgstr "Planificateur actif pour le fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Scheduler not active for seller"
+msgstr "Planificateur non actif pour le fournisseur"
+
+#. module: purchase_procurement_just_in_time
 #: field:supply.chain.control,product_id:0
 msgid "Product"
 msgstr "Article"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,seller_defined:0
+msgid "Seller defined"
+msgstr "Fournisseur défini"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,scheduler_active_for_seller:0
+msgid "Scheduler active for seller"
+msgstr "Planificateur actif pour le fournisseur"
 
 #. module: purchase_procurement_just_in_time
 #: field:supply.chain.control,virtual_available:0
@@ -826,3 +856,9 @@ msgstr "Demandes d'approvisionnement pour l'article %s"
 #: model:ir.values,name:purchase_procurement_just_in_time.ir_value_sanitize_purchase_order_lines
 msgid "Sanitize purchase order lines"
 msgstr "Nettoyer les lignes de commande d'achat"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\procurement.py:665
+#, python-format
+msgid "There is no supplier associated to product %s"
+msgstr "Aucun fournisseur n'est associé à l'article %s"
