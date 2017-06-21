@@ -134,11 +134,24 @@ class ProductProductAdapter(GenericAdapter):
             filters['searchCriteria[filter_groups][1][filters][0][field]'] = 'updated_at'
             filters['searchCriteria[filter_groups][1][filters][0][condition_type]'] = 'lteq'
             filters['searchCriteria[filter_groups][1][filters][0][value]'] = to_date.strftime(dt_fmt)
-        filters['fields'] = "items[id]"
-        items = self._call('%s' % self._magentoextend_model, filters)
-        if items.get("items") is not None:
-            return [int(row['id']) for row in items.get("items")]
-        return []
+        filters['searchCriteria[pageSize]'] = 100
+        filters['searchCriteria[currentPage]'] = 1
+        products_resp = []
+        current_size = 0
+        while 1:
+            items = self._call('%s' % self._magentoextend_model, filters)
+            list_size = items.get("total_count")
+            if items.get("items"):
+                current_size += len(items.get("items"))
+                products_resp.extend(items.get("items"))
+                filters['searchCriteria[currentPage]'] = filters['searchCriteria[currentPage]'] + 1
+            if current_size >= list_size:
+                break
+
+        if products_resp:
+            return [int(row['id']) for row in products_resp]
+        return products_resp
+
 
     def read(self, filters=None, from_date=None, to_date=None):
         """ Search records according to some criteria and return a
