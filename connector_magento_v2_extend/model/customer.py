@@ -492,9 +492,10 @@ class CustomerImportMapper(ImportMapper):
             if record.get(it.field_mapping, False):
                 result[it.field] = record.get(it.field_mapping, False)
             else:
-                for item in record.get("custom_attributes"):
-                    if item["attribute_code"] == it.field_mapping:
-                        result[it.field] = item["value"]
+                if record.get("custom_attributes"):
+                    for item in record.get("custom_attributes"):
+                        if item["attribute_code"] == it.field_mapping:
+                            result[it.field] = item["value"]
         return result
 
     @only_create
