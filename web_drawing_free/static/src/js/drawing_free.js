@@ -78,8 +78,10 @@ odoo.define('web.fieldsketch', function (require) {
 	            self.$el.find('> canvas').attr("height", "" + height);
 	        });
 	        $img.on('error', function() {
-	            $img.attr('src', self.placeholder);
-	            self.do_warn(_t("Image"), _t("Could not display the selected image."));
+	            if(self.view.get("actual_mode") != "create") {
+                    self.do_warn(_t("Image"), _t("Could not display the selected image."));
+                }
+                $img.attr('src', self.placeholder);
 	        });
 	        
 	    	if (!self.get("effective_readonly")) {
