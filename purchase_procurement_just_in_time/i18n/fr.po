@@ -860,5 +860,5 @@ msgstr "Nettoyer les lignes de commande d'achat"
 #. module: purchase_procurement_just_in_time
 #: code:addons\purchase_procurement_just_in_time\models\procurement.py:665
 #, python-format
-msgid "There is no supplier associated to product %s"
-msgstr "Aucun fournisseur n'est associé à l'article %s"
+msgid "There is no supplier associated to product"
+msgstr "Aucun fournisseur n'est associé à l'article"
