@@ -160,7 +160,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 # If the first proc has no seller, then we drop this proc and go to the next
                 procurements_to_run[0].set_exception_no_supplier()
                 procurements_to_run = procurements_to_run[1:]
-                procurements_to_run.set_exception_no_supplier()
                 continue
             seller_ok = bool(compute_all_products or not compute_supplier_ids or
                              compute_supplier_ids and seller.id in compute_supplier_ids)
