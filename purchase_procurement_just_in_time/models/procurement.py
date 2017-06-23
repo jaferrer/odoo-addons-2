@@ -157,13 +157,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         dict_procs = {}
         while procurements_to_run:
             seller = self.env['procurement.order']._get_product_supplier(procurements_to_run[0])
-            if not seller:
-                # If the first proc has no seller, then we drop this proc and go to the next
-                procurements_to_run[0].set_exception_no_supplier()
-                procurements_to_run = procurements_to_run[1:]
-                continue
-            seller_ok = bool(compute_all_products or not compute_supplier_ids or
-                             compute_supplier_ids and seller.id in compute_supplier_ids)
             company = procurements_to_run[0].company_id
             product = procurements_to_run[0].product_id
             location = procurements_to_run[0].location_id
@@ -171,6 +164,14 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                       ('company_id', '=', company.id),
                       ('product_id', '=', product.id),
                       ('location_id', '=', location.id)]
+            if not seller:
+                # If the first proc has no seller, then we drop this proc and go to the next
+                procurements_exception = self.search(domain)
+                procurements_exception.set_exception_no_supplier()
+                procurements_to_run -= procurements_exception
+                continue
+            seller_ok = bool(compute_all_products or not compute_supplier_ids or
+                             compute_supplier_ids and seller.id in compute_supplier_ids)
             if seller_ok and ignore_past_procurements:
                 suppliers = product.seller_ids and self.env['product.supplierinfo']. \
                     search([('id', 'in', product.seller_ids.ids),
@@ -662,9 +663,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.multi
     def set_exception_no_supplier(self):
-        for rec in self:
-            rec.message_post(_("There is no supplier associated to product %s") % (rec.product_id.name))
-        self.write({'state': 'exception'})
+        procs_to_set_to_exception = self.search([('id', 'in', self.ids),
+                                                 ('state', '!=', 'exception')])
+        procs_to_set_to_exception.message_post(_("There is no supplier associated to product"))
+        procs_to_set_to_exception.write({'state': 'exception'})
 
     @api.multi
     def make_po(self):
