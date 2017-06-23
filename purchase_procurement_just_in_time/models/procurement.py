@@ -254,6 +254,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         dict_procs_lines = {}
         not_assigned_procs = self.env['procurement.order']
         for rec in self:
+            domain_lines = [('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
+                            ('order_id.location_id', '=', rec.location_id.id),
+                            ('product_id', '=', rec.product_id.id),
+                            ('remaining_qty', '>', 0)]
             if (rec.product_id, rec.location_id) not in list_products_done:
                 procurements = self.env['procurement.order'].search([('id', 'in', self.ids),
                                                                      ('product_id', '=', rec.product_id.id),
@@ -261,28 +265,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                                     order='date_planned asc, product_qty asc')
                 # First, let's check running lines
                 purchase_lines = self.env['purchase.order.line']. \
-                    search([('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
-                            ('order_id.state', '!=', 'draft'),
-                            ('order_id.location_id', '=', rec.location_id.id),
-                            ('product_id', '=', rec.product_id.id),
-                            ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc')
+                    search(domain_lines + [('order_id.state', '!=', 'draft')],
+                           order='date_planned asc, remaining_qty desc')
                 while procurements and purchase_lines:
                     procurements, purchase_lines, dict_procs_lines = procurements. \
                         compute_procs_for_first_line_found(purchase_lines, dict_procs_lines)
                 # If some procurements are not assigned yet, we check draft lines
                 purchase_lines = procurements and self.env['purchase.order.line']. \
-                    search([('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
-                            ('order_id.state', '=', 'draft'),
-                            ('order_id.location_id', '=', rec.location_id.id),
-                            ('product_id', '=', rec.product_id.id),
-                            ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc') or False
+                    search(domain_lines + [('order_id.state', '=', 'draft')],
+                           order='date_planned asc, remaining_qty desc') or False
                 while procurements and purchase_lines:
-                    purchase_lines = self.env['purchase.order.line']. \
-                        search([('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
-                                ('order_id.state', '=', 'draft'),
-                                ('order_id.location_id', '=', rec.location_id.id),
-                                ('product_id', '=', rec.product_id.id),
-                                ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc')
                     procurements, purchase_lines, dict_procs_lines = procurements. \
                         compute_procs_for_first_line_found(purchase_lines, dict_procs_lines)
                 list_products_done += [(rec.product_id, rec.location_id)]
