@@ -18,6 +18,7 @@
 #
 
 from openerp.addons.connector.queue.job import job
+from . import partner
 from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
 from openerp.osv import fields as old_api_fields
 
@@ -209,12 +210,7 @@ class SupplyChainControlProductProduct(models.Model):
                     seller_defined = False
                     scheduler_active_for_seller = False
                 elif scheduler_active_for_seller:
-                    if seller not in self.env['res.partner']. \
-                            search([('supplier', '=', True),
-                                    ('nb_days_scheduler_frequency', '!=', False),
-                                    ('nb_days_scheduler_frequency', '!=', 0),
-                                    ('next_scheduler_date', '!=', False),
-                                    ('next_scheduler_date', '<=', fields.Datetime.now())]):
+                    if seller not in self.env['res.partner'].search(partner.DOMAIN_PARTNER_ACTIVE_SCHEDULER):
                         scheduler_active_for_seller = False
         return seller_defined, scheduler_active_for_seller
 
