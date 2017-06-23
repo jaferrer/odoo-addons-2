@@ -22,7 +22,7 @@ from datetime import datetime
 
 from openerp import fields, models, api, exceptions, _
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
-from openerp.tools import float_compare
+from openerp.tools import float_compare, float_round
 
 
 class IncompleteProductionProductLine(models.Model):
@@ -154,11 +154,32 @@ class IncompeteProductionMrpProduction(models.Model):
             'parent_production_id': self.id,
         }
 
+    @api.multi
+    def sanitize_not_available_raw_moves(self):
+        moves_to_cancel = self.env['stock.move']
+        for rec in self:
+            moves_to_check = self.env['stock.move'].search([('id', 'in', rec.move_lines.ids), ('state', '!=', 'assigned')])
+            for move in moves_to_check:
+                prec = move.product_id.uom_id.rounding
+                reserved_quants = move.reserved_quant_ids
+                if not reserved_quants:
+                    moves_to_cancel |= move
+                    continue
+                reserved_qty = sum([quant.qty for quant in reserved_quants])
+                if float_compare(reserved_qty, move.product_qty, precision_rounding=prec) < 0:
+                    new_move_id = move.split(move, float_round(move.product_qty - reserved_qty, precision_rounding=prec))
+                    new_move = self.env['stock.move'].search([('id', '=', new_move_id)])
+                    move.action_assign()
+                    moves_to_cancel |= new_move
+        moves_to_cancel.action_cancel()
+
     @api.model
     def action_produce(self, production_id, production_qty, production_mode, wiz=False):
         production = self.browse(production_id)
         initial_raw_moves = production.move_lines
         list_cancelled_moves_1 = production.move_lines2
+        production.sanitize_not_available_raw_moves()
+        # To call super, all the raw material moves are available.
         result = super(IncompeteProductionMrpProduction, self.with_context(cancel_procurement=True)). \
             action_produce(production_id, production_qty, production_mode, wiz=wiz)
         list_cancelled_moves = production.move_lines2. \
@@ -192,9 +213,9 @@ class IncompeteProductionMrpProduction(models.Model):
         procurements_to_cancel = self.env['procurement.order']
         # Let's cancel old service moves if the MO is produced
         if production_mode == 'consume_produce':
-            procurements_to_cancel |= self.env[
-                'procurement.order'].search([('move_dest_id', 'in', initial_raw_moves.ids),
-                                             ('state', 'not in', ['cancel', 'done'])])
+            procurements_to_cancel |= self.env['procurement.order']. \
+                search([('move_dest_id', 'in', initial_raw_moves.ids),
+                        ('state', 'not in', ['cancel', 'done'])])
             if procurements_to_cancel:
                 procurements_to_cancel.cancel()
         return result
