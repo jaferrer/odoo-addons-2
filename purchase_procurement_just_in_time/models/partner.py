@@ -23,6 +23,11 @@ from dateutil.relativedelta import relativedelta
 
 from openerp import models, fields, api
 
+DOMAIN_PARTNER_ACTIVE_SCHEDULER = [('supplier', '=', True),
+                                   ('nb_days_scheduler_frequency', '!=', False),
+                                   ('nb_days_scheduler_frequency', '!=', 0),
+                                   ('next_scheduler_date', '!=', False)]
+
 
 class JitResPartner(models.Model):
     _inherit = 'res.partner'
@@ -48,11 +53,8 @@ class JitResPartner(models.Model):
 
     @api.model
     def launch_purchase_scheduler_by_supplier(self):
-        suppliers_to_launch = self.search([('supplier', '=', True),
-                                          ('nb_days_scheduler_frequency', '!=', False),
-                                          ('nb_days_scheduler_frequency', '!=', 0),
-                                          ('next_scheduler_date', '!=', False),
-                                          ('next_scheduler_date', '<=', fields.Datetime.now())])
+        domain_partner = DOMAIN_PARTNER_ACTIVE_SCHEDULER + [('next_scheduler_date', '<=', fields.Datetime.now())]
+        suppliers_to_launch = self.search(domain_partner)
         for supplier in suppliers_to_launch:
             next_scheduler_date = fields.Datetime.from_string(supplier.next_scheduler_date)
             while next_scheduler_date <= dt.now():
