@@ -144,6 +144,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
+        self.env['product.template'].update_seller_ids()
         domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']),
                                       ('rule_id.action', '=', 'buy')]
         if not compute_all_products and compute_product_ids:
@@ -156,13 +157,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         dict_procs = {}
         while procurements_to_run:
             seller = self.env['procurement.order']._get_product_supplier(procurements_to_run[0])
-            if not seller:
-                # If the first proc has no seller, then we drop this proc and go to the next
-                procurements_to_run[0].set_exception_no_supplier()
-                procurements_to_run = procurements_to_run[1:]
-                continue
-            seller_ok = bool(compute_all_products or not compute_supplier_ids or
-                             compute_supplier_ids and seller.id in compute_supplier_ids)
             company = procurements_to_run[0].company_id
             product = procurements_to_run[0].product_id
             location = procurements_to_run[0].location_id
@@ -170,6 +164,14 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                       ('company_id', '=', company.id),
                       ('product_id', '=', product.id),
                       ('location_id', '=', location.id)]
+            if not seller:
+                # If the first proc has no seller, then we drop this proc and go to the next
+                procurements_exception = self.search(domain)
+                procurements_exception.set_exception_no_supplier()
+                procurements_to_run -= procurements_exception
+                continue
+            seller_ok = bool(compute_all_products or not compute_supplier_ids or
+                             compute_supplier_ids and seller.id in compute_supplier_ids)
             if seller_ok and ignore_past_procurements:
                 suppliers = product.seller_ids and self.env['product.supplierinfo']. \
                     search([('id', 'in', product.seller_ids.ids),
@@ -252,6 +254,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         dict_procs_lines = {}
         not_assigned_procs = self.env['procurement.order']
         for rec in self:
+            domain_lines = [('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
+                            ('order_id.location_id', '=', rec.location_id.id),
+                            ('product_id', '=', rec.product_id.id),
+                            ('remaining_qty', '>', 0)]
             if (rec.product_id, rec.location_id) not in list_products_done:
                 procurements = self.env['procurement.order'].search([('id', 'in', self.ids),
                                                                      ('product_id', '=', rec.product_id.id),
@@ -259,28 +265,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                                     order='date_planned asc, product_qty asc')
                 # First, let's check running lines
                 purchase_lines = self.env['purchase.order.line']. \
-                    search([('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
-                            ('order_id.state', '!=', 'draft'),
-                            ('order_id.location_id', '=', rec.location_id.id),
-                            ('product_id', '=', rec.product_id.id),
-                            ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc')
+                    search(domain_lines + [('order_id.state', '!=', 'draft')],
+                           order='date_planned asc, remaining_qty desc')
                 while procurements and purchase_lines:
                     procurements, purchase_lines, dict_procs_lines = procurements. \
                         compute_procs_for_first_line_found(purchase_lines, dict_procs_lines)
                 # If some procurements are not assigned yet, we check draft lines
                 purchase_lines = procurements and self.env['purchase.order.line']. \
-                    search([('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
-                            ('order_id.state', '=', 'draft'),
-                            ('order_id.location_id', '=', rec.location_id.id),
-                            ('product_id', '=', rec.product_id.id),
-                            ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc') or False
+                    search(domain_lines + [('order_id.state', '=', 'draft')],
+                           order='date_planned asc, remaining_qty desc') or False
                 while procurements and purchase_lines:
-                    purchase_lines = self.env['purchase.order.line']. \
-                        search([('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
-                                ('order_id.state', '=', 'draft'),
-                                ('order_id.location_id', '=', rec.location_id.id),
-                                ('product_id', '=', rec.product_id.id),
-                                ('remaining_qty', '>', 0)], order='date_planned asc, remaining_qty desc')
                     procurements, purchase_lines, dict_procs_lines = procurements. \
                         compute_procs_for_first_line_found(purchase_lines, dict_procs_lines)
                 list_products_done += [(rec.product_id, rec.location_id)]
@@ -661,9 +655,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.multi
     def set_exception_no_supplier(self):
-        for rec in self:
-            rec.message_post(_("There is no supplier associated to product %s") % (rec.product_id.name))
-        self.write({'state': 'exception'})
+        procs_to_set_to_exception = self.search([('id', 'in', self.ids),
+                                                 ('state', '!=', 'exception')])
+        procs_to_set_to_exception.message_post(_("There is no supplier associated to product"))
+        procs_to_set_to_exception.write({'state': 'exception'})
 
     @api.multi
     def make_po(self):

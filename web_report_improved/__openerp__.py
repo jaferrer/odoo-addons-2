@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,25 +16,21 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Stock Multi-Company Fixes',
+    'name': 'Multi Report to zip',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['stock'],
+    'category': 'Report',
+    'depends': ['base'],
     'description': """
-Stock Multi-Company Fixes
-=========================
-Implements various fixes for multi-company
-- Quants can be reserved whatever their company in a multi-company environment
+Merge multi print into a zip file or au merged PDF
+
+You can write an expression for the name of the report
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/security.xml',
-        'stock_multi_company_data.xml',
-        'stock_multi_company.xml',
+        'ir_report.xml'
     ],
     'demo': [],
     'test': [],

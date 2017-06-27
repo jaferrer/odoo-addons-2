@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,25 +18,21 @@
 #
 
 {
-    'name': 'Stock Multi-Company Fixes',
+    'name': 'Live i10n',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['stock'],
+    'category': 'Sale',
+    'depends': ['onchange_action'],
     'description': """
-Stock Multi-Company Fixes
-=========================
-Implements various fixes for multi-company
-- Quants can be reserved whatever their company in a multi-company environment
+Live i10n
+=============
+Display a wizard when a translated field is change.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/security.xml',
-        'stock_multi_company_data.xml',
-        'stock_multi_company.xml',
+        'wizard/live_i10n.xml'
     ],
-    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,28 +18,26 @@
 #
 
 {
-    'name': 'Stock Multi-Company Fixes',
+    'name': 'Multi Report to zip',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['stock'],
+    'category': 'Report',
+    'depends': ['web_report_improved', 'report_aeroo'],
     'description': """
-Stock Multi-Company Fixes
-=========================
-Implements various fixes for multi-company
-- Quants can be reserved whatever their company in a multi-company environment
+Merge multi print into a zip file or au merged PDF
+
+You can write an expression for the name of the report
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/security.xml',
-        'stock_multi_company_data.xml',
-        'stock_multi_company.xml',
+        'ir_report_aeroo.xml'
     ],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
+    'sequence': 999,
 }

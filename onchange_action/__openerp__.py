@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,25 +18,22 @@
 #
 
 {
-    'name': 'Stock Multi-Company Fixes',
+    'name': 'Odoo utils',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['stock'],
+    'category': 'Sale',
+    'depends': ['product'],
     'description': """
-Stock Multi-Company Fixes
-=========================
-Implements various fixes for multi-company
-- Quants can be reserved whatever their company in a multi-company environment
+Create some facility to code with the odoo framework
+=============
+See README.md
+
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/security.xml',
-        'stock_multi_company_data.xml',
-        'stock_multi_company.xml',
+        'static/src/qweb.xml'
     ],
-    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

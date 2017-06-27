@@ -9,10 +9,10 @@
             <field name="arch" type="xml">
                 <tree edit="false" create="false" delete="false">
                     <field name="product_id"/>
-                    <field name="seller_defined"/>
-                    <field name="scheduler_active_for_seller"/>
                     <button name="open_product_form" string="Product" type="object"/>
                     <button name="action_show_evolution" string="Stock Evolution" type="object" icon="terp-stock_zoom"/>
+                    <field name="seller_defined"/>
+                    <field name="scheduler_active_for_seller"/>
                     <field name="virtual_available"/>
                     <button name="open_moves_list" string="Moves" type="object"/>
                     <button name="open_procurements_list" string="Procurements" type="object"/>
@@ -35,8 +35,10 @@
                     <filter name="positive_forecast" string="Positive forecast quantity" domain="[('virtual_available', '&gt;', 0)]"/>
                     <filter name="covered_needs" string="Covered Needs" domain="[('oversupply_qty', '&gt;', 0)]"/>
                     <filter name="not_covered_needs" string="Not Covered Needs" domain="[('oversupply_qty', '&lt;', 0)]"/>
+                    <separator/>
                     <filter name="seller_defined" string="Seller defined" domain="[('seller_defined', '=', True)]"/>
                     <filter name="seller_not_defined" string="Seller not defined" domain="[('seller_defined', '=', False)]"/>
+                    <separator/>
                     <filter name="scheduler_active_for_seller" string="Scheduler active for seller" domain="[('scheduler_active_for_seller', '=', True)]"/>
                     <filter name="scheduler_not_active_for_seller" string="Scheduler not active for seller" domain="[('scheduler_active_for_seller', '=', False)]"/>
                 </search>
