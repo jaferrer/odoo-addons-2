@@ -58,7 +58,7 @@ class PurchaseOrderJustInTime(models.Model):
 
             if order_line.product_id.type in ('product', 'consu'):
                 for vals in self._prepare_order_line_move(order, order_line, picking_id, group_id):
-                    move = self.env['stock.move'].create(vals)
+                    move = self.env['stock.move'].with_context(mail_notrack=True).create(vals)
                     todo_moves |= move
         todo_moves.with_context(mail_notrack=True).action_confirm()
         todo_moves.with_context(mail_notrack=True).force_assign()
