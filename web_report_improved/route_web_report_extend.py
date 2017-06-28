@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 import base64
 import re
 import zipfile
@@ -25,7 +26,6 @@ import json
 import time
 import zlib
 
-import sys
 from os.path import basename
 
 import unicodedata
@@ -43,9 +43,9 @@ except ImportError:
 from openerp.http import request
 from openerp.addons.web.controllers import main
 from openerp import http
-from os import path
 import tempfile
 from openerp.loglevels import ustr
+
 
 def slugify(s, max_length=None):
     """ Transform a string to a slug that can be used in a url path.
@@ -73,22 +73,19 @@ def slugify(s, max_length=None):
 
     return slug[:max_length]
 
-class WebRouteExtend(main.Reports):
 
+class WebRouteExtend(main.Reports):
     @http.route()
     def index(self, action, token):
         current_action = json.loads(action)
         context = dict(request.context)
         context.update(current_action["context"])
         # Normal mode then we call the Odoo methode
-        if current_action.get('type_multi_print') == 'file' or len(context.get('active_ids', [])) <= 1:
-            return self._file_report(current_action, token, context)
         if current_action.get('type_multi_print') == 'zip':
             return self._zip_report(current_action, token, context)
         if current_action.get('type_multi_print') == 'pdf':
             return self._pdf_report(current_action, token, context)
-
-
+        return self._file_report(current_action, token, context)
 
     def _zip_report(self, current_action, token, context):
         report_srv = request.session.proxy("report")
@@ -120,10 +117,10 @@ class WebRouteExtend(main.Reports):
             b64zip = zf.read()
 
         return request.make_response(b64zip, headers=[
-                                             ('Content-Disposition', main.content_disposition(zip_file_name)),
-                                             ('Content-Type', 'application/zip'),
-                                             ('Content-Length', size)],
-                                         cookies={'fileToken': token})
+            ('Content-Disposition', main.content_disposition(zip_file_name)),
+            ('Content-Type', 'application/zip'),
+            ('Content-Length', size)],
+                                     cookies={'fileToken': token})
 
     def _file_report(self, action, token, context):
         report_srv = request.session.proxy("report")
@@ -186,7 +183,6 @@ class WebRouteExtend(main.Reports):
 
     def _get_file_name(self, action, context, ids):
         report_obj = request.session.model('ir.actions.report.xml')
-        report = None
         if 'id' in action:
             report = report_obj.read(action['id'], ['name', 'name_eval_report'], context=context)
         else:
