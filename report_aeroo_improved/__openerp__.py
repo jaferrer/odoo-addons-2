@@ -18,16 +18,14 @@
 #
 
 {
-    'name': 'Multi Report to zip',
+    'name': 'Report Aeroo Report improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Report',
     'depends': ['web_report_improved', 'report_aeroo'],
     'description': """
-Merge multi print into a zip file or au merged PDF
-
-You can write an expression for the name of the report
+Add the feature of web_report_improved to the aeroo report
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
