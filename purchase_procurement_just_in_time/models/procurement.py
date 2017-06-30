@@ -309,10 +309,11 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                    _compute_qty(proc.product_uom.id, proc.product_qty,
                                                 proc.product_id.uom_id.id) for proc in
                                     procurements_grouping_period]) or 0
-        suppliers = first_proc.product_id.seller_ids. \
-            filtered(lambda supplier: supplier.name == self.env['procurement.order'].
-                     _get_product_supplier(first_proc))
-        moq = suppliers and suppliers[0].min_qty or False
+        seller = self.env['procurement.order']._get_product_supplier(first_proc)
+        supplierinfo = self.env['product.supplierinfo'].search([('id', 'in', first_proc.product_id.seller_ids.ids),
+                                                                ('name', '=', seller and seller.id or False)],
+                                                               order='sequence, id', limit=1)
+        moq = supplierinfo and supplierinfo.min_qty or False
         if moq and float_compare(line_qty_product_uom, moq,
                                  precision_rounding=first_proc.product_id.uom_id.rounding) < 0:
             procurements_after_period = self.search(domain_procurements +
