@@ -70,9 +70,9 @@ class StockQuantMove(models.TransientModel):
         move_items = {}
         for item in self.pack_move_items:
             move_items = item.quant.partial_move(move_items, item.quant.product_id, item.qty)
-        result = quants.with_context(mail_notrack=True). \
+        new_picking = quants.with_context(mail_notrack=True). \
             move_to(self.global_dest_loc, self.picking_type_id, move_items, self.is_manual_op)
-        return result.display_picking_for_moves(self.is_manual_op)
+        return new_picking.open_picking_form(self.is_manual_op)
 
 
 class StockQuantMoveItems(models.TransientModel):

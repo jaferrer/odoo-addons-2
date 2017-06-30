@@ -286,11 +286,11 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         # Let's force onchange to check field 'is_manual_op'
         wizard.onchange_is_manual_op()
         self.assertFalse(wizard.is_manual_op)
-        result = wizard.move_products()
-        self.assertTrue(result)
-        picking = result[0].picking_id
-        self.assertEqual(len(picking.message_ids), 1)
+        picking = wizard.move_products()
         self.assertTrue(picking)
+        self.assertEqual(len(picking.message_ids), 1)
+        moves = picking.move_lines
+        self.assertTrue(moves)
         self.assertEqual(picking.state, 'done')
         self.assertFalse(picking.backorder_id)
         self.assertEqual(self.quant_no_pack_a.location_id, self.location_dest)
@@ -560,10 +560,10 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         # Let's force onchange to check field 'is_manual_op'
         wizard.onchange_is_manual_op()
         self.assertFalse(wizard.is_manual_op)
-        moves = wizard.move_products()
-        self.assertTrue(moves)
-        picking = moves[0].picking_id
+        picking = wizard.move_products()
         self.assertTrue(picking)
+        moves = picking.move_lines
+        self.assertTrue(moves)
         self.assertEqual(picking.state, 'done')
         self.assertFalse(picking.backorder_id)
         self.assertEqual(len(moves), 2)
@@ -1145,10 +1145,8 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertEqual(move_to_set_auto.state, 'waiting')
 
         # print 'move_to_set_auto', move_to_set_auto, move_to_set_auto.state
-        moves2 = pos_quant.move_to(self.location_2, self.picking_type,
+        picking2 = pos_quant.move_to(self.location_2, self.picking_type,
                                    move_items={self.product1_auto_move.id: [{'quant_ids': pos_quant.ids, 'qty': 30}]})
-        # print 'moves2', moves2
-        picking2 = moves2[0].picking_id
         # print 'picking2', picking2.state, picking2.move_lines
         self.assertTrue(picking2)
 
@@ -1449,11 +1447,11 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         # Let's force onchange to check field 'is_manual_op'
         wizard.onchange_is_manual_op()
         self.assertFalse(wizard.is_manual_op)
-        result = wizard.move_products()
-        self.assertTrue(result)
-        picking = result[0].picking_id
-        self.assertEqual(len(picking.message_ids), 1)
+        picking = wizard.move_products()
         self.assertTrue(picking)
+        self.assertEqual(len(picking.message_ids), 1)
+        moves = picking.move_lines
+        self.assertTrue(moves)
         self.assertEqual(picking.state, 'done')
         self.assertFalse(picking.backorder_id)
         self.assertEqual(self.quant_no_pack_a.location_id, self.location_source)

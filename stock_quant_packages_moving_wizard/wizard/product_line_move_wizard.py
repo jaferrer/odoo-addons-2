@@ -106,10 +106,10 @@ class ProductLineMoveWizard(models.TransientModel):
         if any([float_compare(quant.qty, 0, precision_rounding=quant.product_id.uom_id.rounding) < 0
                 for quant in quants_to_move]):
             raise exceptions.except_orm(_("error"), _("Impossible to move a negative quant"))
-        result = quants_to_move.with_context(mail_notrack=True). \
+        new_picking = quants_to_move.with_context(mail_notrack=True). \
             move_to(self.global_dest_loc, self.picking_type_id, move_items=move_items, is_manual_op=is_manual_op,
                     filling_method=self.filling_method)
-        return result.display_picking_for_moves(is_manual_op)
+        return new_picking.open_picking_form(is_manual_op)
 
 
 class ProductLineMoveWizardLine(models.TransientModel):
