@@ -197,6 +197,11 @@ msgid "User"
 msgstr "Opérateur"
 
 #. module: stock_planning_improved
+#: view:stock.move:stock_planning_improved.planning_improved_move_search
+msgid "Creator"
+msgstr "Créateur"
+
+#. module: stock_planning_improved
 #: view:open.grouped.moves:stock_planning_improved.open_grouped_moves_form
 msgid "Moves by users"
 msgstr "Mouvements par utilisateurs"
