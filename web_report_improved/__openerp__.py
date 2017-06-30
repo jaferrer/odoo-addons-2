@@ -16,13 +16,14 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 {
     'name': 'Multi Report to zip',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Report',
-    'depends': ['base'],
+    'depends': ['web'],
     'description': """
 Merge multi print into a zip file or au merged PDF
 

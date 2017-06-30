@@ -309,10 +309,11 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                    _compute_qty(proc.product_uom.id, proc.product_qty,
                                                 proc.product_id.uom_id.id) for proc in
                                     procurements_grouping_period]) or 0
-        suppliers = first_proc.product_id.seller_ids. \
-            filtered(lambda supplier: supplier.name == self.env['procurement.order'].
-                     _get_product_supplier(first_proc))
-        moq = suppliers and suppliers[0].min_qty or False
+        seller = self.env['procurement.order']._get_product_supplier(first_proc)
+        supplierinfo = self.env['product.supplierinfo'].search([('id', 'in', first_proc.product_id.seller_ids.ids),
+                                                                ('name', '=', seller and seller.id or False)],
+                                                               order='sequence, id', limit=1)
+        moq = supplierinfo and supplierinfo.min_qty or False
         if moq and float_compare(line_qty_product_uom, moq,
                                  precision_rounding=first_proc.product_id.uom_id.rounding) < 0:
             procurements_after_period = self.search(domain_procurements +
@@ -330,12 +331,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return self.search([('id', 'in', procurements_grouping_period.ids)], order=order_by)
 
     @api.multi
-    def get_corresponding_draft_order(self, seller, purchase_date):
-        # look for any other draft PO for the same supplier to attach the new line.
-        # If no one is found, we create a new draft one
+    def get_corresponding_draft_order_main_domain(self, seller):
         self.ensure_one()
-        days_delta = int(self.env['ir.config_parameter'].
-                         get_param('purchase_procurement_just_in_time.delta_begin_grouping_period') or 0)
         main_domain = [('partner_id', '=', seller.id),
                        ('state', '=', 'draft'),
                        ('picking_type_id', '=', self.rule_id.picking_type_id.id),
@@ -343,6 +340,38 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                        ('company_id', '=', self.company_id.id)]
         if self.partner_dest_id:
             main_domain += [('dest_address_id', '=', self.partner_dest_id.id)]
+        return main_domain
+
+    @api.multi
+    def get_corresponding_draft_order_values(self, name, origin, seller, date_order, date_order_max):
+        self.ensure_one()
+        return {
+            'name': name,
+            'origin': origin,
+            'partner_id': seller.id,
+            'location_id': self.location_id.id,
+            'picking_type_id': self.rule_id.picking_type_id.id,
+            'pricelist_id': seller.property_product_pricelist_purchase.id,
+            'currency_id': seller.property_product_pricelist_purchase and
+                           seller.property_product_pricelist_purchase.currency_id.id or
+                           self.company_id.currency_id.id,
+            'date_order': date_order,
+            'date_order_max': date_order_max,
+            'company_id': self.company_id.id,
+            'fiscal_position': seller.property_account_position and
+                               seller.property_account_position.id or False,
+            'payment_term_id': seller.property_supplier_payment_term.id or False,
+            'dest_address_id': self.partner_dest_id.id,
+        }
+
+    @api.multi
+    def get_corresponding_draft_order(self, seller, purchase_date):
+        # look for any other draft PO for the same supplier to attach the new line.
+        # If no one is found, we create a new draft one
+        self.ensure_one()
+        days_delta = int(self.env['ir.config_parameter'].
+                         get_param('purchase_procurement_just_in_time.delta_begin_grouping_period') or 0)
+        main_domain = self.get_corresponding_draft_order_main_domain(seller)
         domain_date_defined = [('date_order', '!=', False),
                                ('date_order', '<=', fields.Datetime.to_string(purchase_date)[:10] + ' 23:59:59'),
                                '|', ('date_order_max', '=', False),
@@ -374,24 +403,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                    'origin': origin})
         if not draft_order and not seller.nb_max_draft_orders or seller.get_nb_draft_orders() < seller.nb_max_draft_orders:
             name = self.env['ir.sequence'].next_by_code('purchase.order') or _('PO: %s') % self.name
-            po_vals = {
-                'name': name,
-                'origin': origin,
-                'partner_id': seller.id,
-                'location_id': self.location_id.id,
-                'picking_type_id': self.rule_id.picking_type_id.id,
-                'pricelist_id': seller.property_product_pricelist_purchase.id,
-                'currency_id': seller.property_product_pricelist_purchase and
-                               seller.property_product_pricelist_purchase.currency_id.id or
-                               self.company_id.currency_id.id,
-                'date_order': date_order,
-                'date_order_max': date_order_max,
-                'company_id': self.company_id.id,
-                'fiscal_position': seller.property_account_position and
-                                   seller.property_account_position.id or False,
-                'payment_term_id': seller.property_supplier_payment_term.id or False,
-                'dest_address_id': self.partner_dest_id.id,
-            }
+            po_vals = self.get_corresponding_draft_order_values(name, origin, seller, date_order, date_order_max)
             draft_order = self.env['purchase.order'].sudo().create(po_vals)
         return draft_order
 
@@ -635,7 +647,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.model
     def launch_procurement_redistribution(self, dict_procs_lines, return_msg, jobify=False):
         redistribute_procurements_in_separate_jobs = bool(self.env['ir.config_parameter']. \
-            get_param('purchase_procurement_just_in_time.redistribute_procurements_in_separate_jobs'))
+                                                          get_param(
+            'purchase_procurement_just_in_time.redistribute_procurements_in_separate_jobs'))
         if len(dict_procs_lines.keys()) > 1 and jobify and redistribute_procurements_in_separate_jobs:
             time_now = dt.now()
             total_number_orders = len(dict_procs_lines.keys())

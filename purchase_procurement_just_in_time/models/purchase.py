@@ -58,7 +58,7 @@ class PurchaseOrderJustInTime(models.Model):
 
             if order_line.product_id.type in ('product', 'consu'):
                 for vals in self._prepare_order_line_move(order, order_line, picking_id, group_id):
-                    move = self.env['stock.move'].create(vals)
+                    move = self.env['stock.move'].with_context(mail_notrack=True).create(vals)
                     todo_moves |= move
         todo_moves.with_context(mail_notrack=True).action_confirm()
         todo_moves.with_context(mail_notrack=True).force_assign()
@@ -296,11 +296,11 @@ class PurchaseOrderLineJustInTime(models.Model):
     @api.depends('partner_id', 'product_id')
     def _compute_supplier_code(self):
         for rec in self:
-            list_supinfos = self.env['product.supplierinfo'].search(
-                [('product_tmpl_id', '=', rec.product_id.product_tmpl_id.id), ('name', '=', rec.partner_id.id)]
-            )
-            if list_supinfos:
-                rec.supplier_code = list_supinfos[0].product_code
+            supplierinfo = self.env['product.supplierinfo']. \
+                search([('product_tmpl_id', '=', rec.product_id.product_tmpl_id.id),
+                        ('name', '=', rec.partner_id.id)], order='sequence, id', limit=1)
+            if supplierinfo:
+                rec.supplier_code = supplierinfo.product_code
 
     @api.depends('product_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
     def _get_remaining_qty(self):
