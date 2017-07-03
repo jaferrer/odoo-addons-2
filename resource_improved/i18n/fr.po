@@ -1,0 +1,60 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* resource_improved
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-28 15:03+0000\n"
+"PO-Revision-Date: 2015-05-28 15:03+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_resource_improved
+msgid "Resource Improved"
+msgstr "Gestion améliorée des ressources"
+
+#. module: base
+#: model:ir.module.module,description:base.module_resource_improved
+msgid ""
+"\n"
+"Resource Improved\n"
+"=================\n"
+"This module improved the resources management."
+msgstr ""
+"\n"
+"Gestion améliorée des ressources\n"
+"================================\n"
+"Ce module améliore la gestion des ressources"
+
+#. module: resource_improved
+#: field:res.company,calendar_id:0
+msgid "Company default calendar"
+msgstr "Calendrier par défaut de l'entreprise"
+
+
+#. module: resource_improved
+#: help:res.company,calendar_id:0
+msgid "The default calendar of the company to define working days. This calendar is used for locations outside warehouses or for warehouses without a calendar defined. If undefined here the default calendar will consider working days being Monday to Friday."
+msgstr "Le calendrier par défaut de l'entreprise pour définir les jours ouvrés. Ce calendrier est utilisé pour les emplacement en dehors de l'entreprise ou pour les entrepôts sans calendrier défini. S'il n'est pas défini, le calendrier par défaut prendra les jours ouvrés du lundi au vendredi."
+
+#. module: stock_working_days
+#: model:ir.model,name:stock_working_days.model_resource_day_of_week
+msgid "Days of the week"
+msgstr "Jours de la semaine"
+
+#. module: stock_working_days
+#: field:resource.day_of_week,name:0
+msgid "Day of the week"
+msgstr "Jour de la semaine"
+
+#. module: stock_working_days
+#: field:resource.day_of_week,code:0
+msgid "# day of the week"
+msgstr "N° du jour de la semaine"
