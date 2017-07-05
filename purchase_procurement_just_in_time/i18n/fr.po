@@ -233,6 +233,11 @@ msgid "Awaiting Supplier Ack"
 msgstr "En attente d'AR fournisseur"
 
 #. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "Reception Month"
+msgstr "Mois de réception"
+
+#. module: purchase_procurement_just_in_time
 #: field:split.line,create_uid:0
 msgid "Created by"
 msgstr "Créé par"

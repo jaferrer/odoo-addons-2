@@ -117,7 +117,7 @@
                     <filter name="waiting_ack" string="Awaiting Supplier Ack" domain="['|', ('ack_ref', '=', False), ('date_ack', '=', False)]"/>
                 </filter>
                  <group string="Group By" position="inside">
-                    <filter string="Mois de réception"  domain="[]" context="{'group_by': 'date_planned:month'}"/>
+                    <filter string="Reception Month"  domain="[]" context="{'group_by': 'date_planned:month'}"/>
                 </group>
             </field>
         </record>
