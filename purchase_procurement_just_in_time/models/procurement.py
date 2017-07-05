@@ -152,6 +152,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         procurements_to_run = self.search(domain_procurements_to_run)
         ignore_past_procurements = bool(self.env['ir.config_parameter'].
                                         get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
+        suppliers_no_scheduler = self.env['res.partner'].search(['|', '|', ('nb_days_scheduler_frequency', '=', False),
+                                                                 ('nb_days_scheduler_frequency', '=', 0),
+                                                                 ('next_scheduler_date', '=', False),
+                                                                 ('supplier', '=', True)])
         # dict_procs groups procurements by supplier, company and location, in order to
         # launch the purchase planner on each group
         dict_procs = {}
@@ -168,6 +172,11 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 # If the first proc has no seller, then we drop this proc and go to the next
                 procurements_exception = self.search(domain)
                 procurements_exception.set_exception_no_supplier()
+                procurements_to_run -= procurements_exception
+                continue
+            if seller in suppliers_no_scheduler:
+                procurements_exception = self.search(domain)
+                procurements_exception.set_exception_supplier_no_scheduler()
                 procurements_to_run -= procurements_exception
                 continue
             seller_ok = bool(compute_all_products or not compute_supplier_ids or
@@ -658,6 +667,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         procs_to_set_to_exception = self.search([('id', 'in', self.ids),
                                                  ('state', '!=', 'exception')])
         procs_to_set_to_exception.message_post(_("There is no supplier associated to product"))
+        procs_to_set_to_exception.write({'state': 'exception'})
+
+    @api.multi
+    def set_exception_supplier_no_scheduler(self):
+        procs_to_set_to_exception = self.search([('id', 'in', self.ids),
+                                                 ('state', '!=', 'exception')])
+        procs_to_set_to_exception.message_post(_("Purchase scheduler is not configurated for this supplier"))
         procs_to_set_to_exception.write({'state': 'exception'})
 
     @api.multi
