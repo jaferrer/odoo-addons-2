@@ -109,6 +109,8 @@ class magentoextend_backend(models.Model):
         frmt = '%Y-%m-%d %H:%M:%S'
         # Date de départ par défaut = 2 mois avant la mise en service du
         # site Airsoft Entrepot sous Magento
+        if to_date:
+            to_date = to_date + timedelta(hours=2)
         if not from_date:
             from_date = datetime.strptime('2013-10-01 00:00:00', frmt)
         else:
