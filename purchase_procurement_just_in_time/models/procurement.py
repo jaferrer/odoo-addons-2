@@ -171,12 +171,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             if not seller:
                 # If the first proc has no seller, then we drop this proc and go to the next
                 procurements_exception = self.search(domain)
-                procurements_exception.set_exception_no_supplier()
+                procurements_exception.set_exception_for_procs()
                 procurements_to_run -= procurements_exception
                 continue
             if seller in suppliers_no_scheduler:
                 procurements_exception = self.search(domain)
-                procurements_exception.set_exception_supplier_no_scheduler()
+                msg = _("Purchase scheduler is not configurated for this supplier")
+                procurements_exception.set_exception_for_procs(msg)
                 procurements_to_run -= procurements_exception
                 continue
             seller_ok = bool(compute_all_products or not compute_supplier_ids or
@@ -676,25 +677,21 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         return return_msg
 
     @api.multi
-    def set_exception_no_supplier(self):
+    def set_exception_for_procs(self, msg=''):
+        if not msg:
+            msg = _("There is no supplier associated to product")
         procs_to_set_to_exception = self.search([('id', 'in', self.ids),
                                                  ('state', '!=', 'exception')])
-        procs_to_set_to_exception.message_post(_("There is no supplier associated to product"))
         procs_to_set_to_exception.write({'state': 'exception'})
-
-    @api.multi
-    def set_exception_supplier_no_scheduler(self):
-        procs_to_set_to_exception = self.search([('id', 'in', self.ids),
-                                                 ('state', '!=', 'exception')])
-        procs_to_set_to_exception.message_post(_("Purchase scheduler is not configurated for this supplier"))
-        procs_to_set_to_exception.write({'state': 'exception'})
+        for proc in procs_to_set_to_exception:
+            proc.message_post(msg)
 
     @api.multi
     def make_po(self):
         res = {}
         for proc in self:
             if not self.env['procurement.order']._get_product_supplier(proc):
-                proc.set_exception_no_supplier()
+                proc.set_exception_for_procs()
                 res[proc.id] = False
             else:
                 res[proc.id] = True
