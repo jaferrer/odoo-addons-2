@@ -666,14 +666,16 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     def set_exception_no_supplier(self):
         procs_to_set_to_exception = self.search([('id', 'in', self.ids),
                                                  ('state', '!=', 'exception')])
-        procs_to_set_to_exception.message_post(_("There is no supplier associated to product"))
+        for proc in procs_to_set_to_exception:
+            proc.message_post(_("There is no supplier associated to product"))
         procs_to_set_to_exception.write({'state': 'exception'})
 
     @api.multi
     def set_exception_supplier_no_scheduler(self):
         procs_to_set_to_exception = self.search([('id', 'in', self.ids),
                                                  ('state', '!=', 'exception')])
-        procs_to_set_to_exception.message_post(_("Purchase scheduler is not configurated for this supplier"))
+        for proc in procs_to_set_to_exception:
+            proc.message_post(_("Purchase scheduler is not configurated for this supplier"))
         procs_to_set_to_exception.write({'state': 'exception'})
 
     @api.multi
