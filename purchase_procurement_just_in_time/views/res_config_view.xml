@@ -41,6 +41,10 @@
                                     <label for="redistribute_procurements_in_separate_jobs"/>
                                     <field name="redistribute_procurements_in_separate_jobs" class="oe_inline"/>
                                 </div>
+                                <div>
+                                    <label for="config_sellers_manually"/>
+                                    <field name="config_sellers_manually" class="oe_inline"/>
+                                </div>
                             </div>
                         </group>
                     </form>
