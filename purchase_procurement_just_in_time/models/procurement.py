@@ -272,7 +272,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         for rec in self:
             domain_lines = [('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
                             ('order_id.location_id', '=', rec.location_id.id),
-                            ('order_id.company_id', '=', rec.company_id.id),
                             ('product_id', '=', rec.product_id.id),
                             ('remaining_qty', '>', 0)]
             if (rec.product_id, rec.location_id) not in list_products_done:
@@ -693,8 +692,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     def set_exception_for_procs(self, msg=''):
         if not msg:
             msg = _("There is no supplier associated to product")
-        procs_to_set_to_exception = self.search([('id', 'in', self.ids),
-                                                 ('state', '!=', 'exception')])
+        procs_to_set_to_exception = self.search([('id', 'in', self.ids), ('state', '!=', 'exception')])
         procs_to_set_to_exception.write({'state': 'exception'})
         for proc in procs_to_set_to_exception:
             proc.message_post(msg)
