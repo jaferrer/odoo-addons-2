@@ -424,7 +424,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         qty_to_remove = qty_not_cancelled_moves_pol_uom - qty_moves_no_proc_pol_uom - target_qty
         to_detach_procs = self.env['procurement.order']
 
-        while qty_to_remove > 0 and moves_with_proc_id:
+        while float_compare(qty_to_remove, 0, precision_rounding=self.product_uom.rounding) and moves_with_proc_id:
             move = moves_with_proc_id[0]
             moves_with_proc_id -= move
             to_detach_procs |= move.procurement_id
