@@ -21,6 +21,7 @@ from openerp import models, fields, api, _
 from urllib2 import urlopen
 import json
 from dateutil.parser import parse
+import ssl
 
 
 class DhlTrackingTransporter(models.Model):
@@ -43,10 +44,11 @@ class DhlTrackingNumber(models.Model):
         for rec in self:
             if rec.transporter_id.name == 'DHL':
                 rec.status_ids.unlink()
+                unverified_context = ssl._create_unverified_context()
                 file_translated = urlopen('http://www.dhl.fr/shipmentTracking?AWB=' + rec.name +
-                               _('&countryCode=fr&languageCode=en'))
+                                          _('&countryCode=fr&languageCode=en'), context=unverified_context)
                 file_english = urlopen('http://www.dhl.fr/shipmentTracking?AWB=' + rec.name +
-                                     '&countryCode=fr&languageCode=en')
+                                       '&countryCode=fr&languageCode=en', context=unverified_context)
                 if file_english and file_translated:
                     list_status_english = json.loads(file_english.read())
                     list_status_translated = json.loads(file_translated.read())
