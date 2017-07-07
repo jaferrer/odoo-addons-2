@@ -738,6 +738,11 @@ msgid "Used for the purchase planner"
 msgstr "Utilisé par le planificateur achats"
 
 #. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,config_sellers_manually:0
+msgid "Configure purchase scheduler manually for each supplier"
+msgstr "Configurer manuellement le planificateur achats pour chaque fournisseur"
+
+#. module: purchase_procurement_just_in_time
 #: model:ir.actions.act_window,name:purchase_procurement_just_in_time.act_window_supply_chain_control
 #: model:ir.ui.menu,name:purchase_procurement_just_in_time.menu_supply_chain_control
 msgid "Supply Chain Control"
