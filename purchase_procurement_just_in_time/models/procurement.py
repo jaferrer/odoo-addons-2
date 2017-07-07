@@ -272,6 +272,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         for rec in self:
             domain_lines = [('order_id.state', 'not in', self.get_forbidden_order_states_for_proc_assignment()),
                             ('order_id.location_id', '=', rec.location_id.id),
+                            ('order_id.company_id', '=', rec.company_id.id),
                             ('product_id', '=', rec.product_id.id),
                             ('remaining_qty', '>', 0)]
             if (rec.product_id, rec.location_id) not in list_products_done:
