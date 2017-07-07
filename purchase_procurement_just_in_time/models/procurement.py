@@ -693,8 +693,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     def set_exception_for_procs(self, msg=''):
         if not msg:
             msg = _("There is no supplier associated to product")
-        procs_to_set_to_exception = self.search([('id', 'in', self.ids),
-                                                 ('state', '!=', 'exception')])
+        procs_to_set_to_exception = self.search([('id', 'in', self.ids), ('state', '!=', 'exception')])
         procs_to_set_to_exception.write({'state': 'exception'})
         for proc in procs_to_set_to_exception:
             proc.message_post(msg)
