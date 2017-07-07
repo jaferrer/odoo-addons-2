@@ -59,7 +59,7 @@ class SupplyChainControl(models.Model):
             products = products[10:]
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             job_update_supply_chain_controls.delay(session, 'product.product', chunk_products.ids,
-                                                   description="Update Sypply Chain Control (chunk %s)" % index,
+                                                   description="Update Supply Chain Control (chunk %s)" % index,
                                                    context=dict(self.env.context))
 
     @api.multi
