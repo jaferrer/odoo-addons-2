@@ -41,7 +41,7 @@ from openerp.addons.connector.unit.mapper import (mapping,
 from openerp.addons.connector.unit.synchronizer import (Importer, Exporter
                                                         )
 
-from openerp import models, fields, api
+from openerp import models, fields, api, _
 from openerp.tools import float_compare
 from openerp.addons.connector_magento_extend.backend import magentoextend
 from ..connector import get_environment

@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 import base64
 import re
 import zipfile
@@ -25,16 +26,9 @@ import json
 import time
 import zlib
 
-import sys
 from os.path import basename
 
 import unicodedata
-
-try:
-    import xlwt
-except ImportError:
-    xlwt = None
-
 try:
     import slugify as slugify_lib
 except ImportError:
@@ -43,11 +37,11 @@ except ImportError:
 from openerp.http import request
 from openerp.addons.web.controllers import main
 from openerp import http
-from os import path
 import tempfile
 from openerp.loglevels import ustr
 
-def slugify(s, max_length=None):
+
+def slugify(string, max_length=None):
     """ Transform a string to a slug that can be used in a url path.
 
     This method will first try to do the job with python-slugify if present.
@@ -55,23 +49,24 @@ def slugify(s, max_length=None):
     converting unicode chars to ascii, lowering all chars and replacing spaces
     and underscore with hyphen "-".
 
-    :param s: str
+    :param string: str
     :param max_length: int
     :rtype: str
     """
 
-    s = ustr(s)
+    string = ustr(string)
     if slugify_lib:
         # There are 2 different libraries only python-slugify is supported
         try:
-            return slugify_lib.slugify(s, max_length=max_length)
+            return slugify_lib.slugify(string, max_length=max_length)
         except TypeError:
             pass
-    uni = unicodedata.normalize('NFKD', s).encode('ascii', 'ignore').decode('ascii')
-    slug = re.sub('[\W_]', ' ', uni).strip().lower()
-    slug = re.sub('[-\s]+', '-', slug)
+    uni = unicodedata.normalize('NFKD', string).encode('ascii', 'ignore').decode('ascii')
+    slug = re.sub(r'[\W_]', ' ', uni).strip().lower()
+    slug = re.sub(r'[-\s]+', '-', slug)
 
     return slug[:max_length]
+
 
 class WebRouteExtend(main.Reports):
 
@@ -81,14 +76,11 @@ class WebRouteExtend(main.Reports):
         context = dict(request.context)
         context.update(current_action["context"])
         # Normal mode then we call the Odoo methode
-        if current_action.get('type_multi_print') == 'file' or len(context.get('active_ids', [])) <= 1:
-            return self._file_report(current_action, token, context)
-        if current_action.get('type_multi_print') == 'zip':
+        if current_action.get('type_multi_print') == 'zip' and len(context.get('active_ids', [])) > 1:
             return self._zip_report(current_action, token, context)
-        if current_action.get('type_multi_print') == 'pdf':
+        if current_action.get('type_multi_print') == 'pdf' and len(context.get('active_ids', [])) > 1:
             return self._pdf_report(current_action, token, context)
-
-
+        return self._file_report(current_action, token, context)
 
     def _zip_report(self, current_action, token, context):
         report_srv = request.session.proxy("report")
@@ -120,10 +112,10 @@ class WebRouteExtend(main.Reports):
             b64zip = zf.read()
 
         return request.make_response(b64zip, headers=[
-                                             ('Content-Disposition', main.content_disposition(zip_file_name)),
-                                             ('Content-Type', 'application/zip'),
-                                             ('Content-Length', size)],
-                                         cookies={'fileToken': token})
+            ('Content-Disposition', main.content_disposition(zip_file_name)),
+            ('Content-Type', 'application/zip'),
+            ('Content-Length', size)],
+            cookies={'fileToken': token})
 
     def _file_report(self, action, token, context):
         report_srv = request.session.proxy("report")
@@ -164,8 +156,8 @@ class WebRouteExtend(main.Reports):
         for root, _, files in os.walk(path):
             for file in files:
                 if not file.endswith("zip"):
-                    f = os.path.join(root, file)
-                    ziph.write(f, basename(f))
+                    file_join = os.path.join(root, file)
+                    ziph.write(file_join, basename(file_join))
 
     def _get_report_struct(self, current_action, report_data, report_id_todo, report_srv, context):
         report_id = report_srv.report(request.session.db, request.session.uid, request.session.password,
@@ -186,7 +178,6 @@ class WebRouteExtend(main.Reports):
 
     def _get_file_name(self, action, context, ids):
         report_obj = request.session.model('ir.actions.report.xml')
-        report = None
         if 'id' in action:
             report = report_obj.read(action['id'], ['name', 'name_eval_report'], context=context)
         else:
