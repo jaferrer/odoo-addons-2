@@ -127,9 +127,7 @@ class magentoextendCRUDAdapter(CRUDAdapter):
         raise NotImplementedError
 
     def _create_token(self):
-        proxy = self.magentoextend.param.url.replace("http://", "")
-
-        proxy = "http://" + proxy
+        proxy = self.magentoextend.param.url
         parameters = {
             'username': self.magentoextend.param.api_user,
             'password': self.magentoextend.param.api_pwd
@@ -154,9 +152,8 @@ class magentoextendCRUDAdapter(CRUDAdapter):
         try:
             _logger.debug("Start calling magentoextend api %s", method)
 
-            proxy = self.magentoextend.param.url.replace("http://","")
+            proxy = self.magentoextend.param.url
 
-            proxy = "http://" + proxy
             head = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
