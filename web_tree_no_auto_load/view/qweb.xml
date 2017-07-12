@@ -1,0 +1,9 @@
+<openerp>
+    <data>
+       <template id="assets_backend" name="web_graph_update assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_tree_no_auto_load/static/src/js/web_tree_no_auto_load.js"></script>
+            </xpath>
+        </template>
+    </data>
+</openerp>
