@@ -37,6 +37,12 @@ msgid "Type container"
 msgstr "Type de conteneur lors de l'impression mutliple"
 
 #. module: web_report_improved
+#: field:ir.actions.report.xml,delete_old:0
+#: model:ir.model.fields,field_description:web_report_improved.field_ir_act_report_xml_delete_old
+msgid "Delete history"
+msgstr "Supprimer l'historique des impressions"
+
+#. module: web_report_improved
 #: field:ir.actions.report.xml,name_eval_report:0
 #: model:ir.model.fields,field_description:web_report_improved.field_ir_act_report_xml_name_eval_report
 msgid "Expression for the name of the report"
