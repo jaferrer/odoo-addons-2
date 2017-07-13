@@ -62,10 +62,25 @@ class ProcurementOrderQuantity(models.Model):
             qty = self.env['product.uom']._compute_qty_obj(m.product_uom, m.product_qty, m.product_id.uom_id)
             m.qty = qty
 
+    @api.multi
+    def run_cascade(self, autocommit=False):
+        self.run(autocommit=autocommit)
+        for rec in self:
+            if rec.state == 'running' and rec.rule_id:
+                if rec.rule_id.action == 'move':
+                    procs = self.search([('move_dest_id.procurement_id', '=', rec.id), ('state', '=', 'confirmed')])
+                    procs.run_cascade()
+                elif rec.rule_id.action == 'manufacture':
+                    mrp = rec.production_id
+                    if mrp:
+                        procs = self.search([('move_dest_id.raw_material_production_id', '=', mrp.id),
+                                             ('state', '=', 'confirmed')])
+                        procs.run_cascade()
+
     @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False):
         """
-        Create procurement based on Orderpoint
+        Create procurement based on orderpoint
 
         :param bool use_new_cursor: if set, use a dedicated cursor and auto-commit after processing each procurement.
             This is appropriate for batch jobs only.
@@ -205,7 +220,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 proc_vals.update({'date_planned': need['date']})
             proc = proc.create(proc_vals)
             if not self.env.context.get('procurement_no_run'):
-                proc.run()
+                proc.run_cascade()
             _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
                           (proc, proc.date_planned, proc.product_qty, self.product_id, self.location_id))
         else:
