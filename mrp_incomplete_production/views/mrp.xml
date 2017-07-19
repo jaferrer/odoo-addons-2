@@ -58,7 +58,7 @@
                     </group>
                 </group>
                 <group string="Produce" position="after">
-                    <group string="Actions">
+                    <group name="child_and_reintegration_data" string="Actions">
                         <field name="create_child"/>
                         <field name="return_raw_materials"/>
                         <field name="return_location_id" attrs="{'invisible': [('return_raw_materials', '=', False)], 'readonly': [('return_raw_materials', '=', False)]}"/>

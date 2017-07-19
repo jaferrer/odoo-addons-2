@@ -233,6 +233,11 @@ msgid "Awaiting Supplier Ack"
 msgstr "En attente d'AR fournisseur"
 
 #. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "Reception Month"
+msgstr "Mois de réception"
+
+#. module: purchase_procurement_just_in_time
 #: field:split.line,create_uid:0
 msgid "Created by"
 msgstr "Créé par"
@@ -731,6 +736,11 @@ msgstr "Redistribuer les procurements dans des jobs séparés"
 #: help:purchase.config.settings,redistribute_procurements_in_separate_jobs:0
 msgid "Used for the purchase planner"
 msgstr "Utilisé par le planificateur achats"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,config_sellers_manually:0
+msgid "Configure purchase scheduler manually for each supplier"
+msgstr "Configurer manuellement le planificateur achats pour chaque fournisseur"
 
 #. module: purchase_procurement_just_in_time
 #: model:ir.actions.act_window,name:purchase_procurement_just_in_time.act_window_supply_chain_control

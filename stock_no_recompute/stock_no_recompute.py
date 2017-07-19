@@ -43,11 +43,14 @@ class StockQuant(models.Model):
         toreserve.sudo().write({'reservation_id': move.id})
         # check if move'state needs to be set as 'assigned'
         rounding = move.product_id.uom_id.rounding
+        dict_move = {}
         if float_compare(reserved_availability, move.product_qty, precision_rounding=rounding) == 0 and \
                 move.state in ('confirmed', 'waiting'):
-            move.state = 'assigned'
+            dict_move['state'] = 'assigned'
         elif float_compare(reserved_availability, 0, precision_rounding=rounding) > 0 and not move.partially_available:
-            move.partially_available = True
+            dict_move['partially_available'] = True
+        if dict_move:
+            move.write(dict_move)
 
     @api.model
     def quants_unreserve(self, move):

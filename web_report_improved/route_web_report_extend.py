@@ -16,24 +16,28 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 import base64
 import re
 import zipfile
 
 import os
-from os.path import basename
 import json
 import time
-import tempfile
 import zlib
+
+from os.path import basename
+
 import unicodedata
 try:
     import slugify as slugify_lib
 except ImportError:
     slugify_lib = None
+
 from openerp.http import request
 from openerp.addons.web.controllers import main
 from openerp import http
+import tempfile
 from openerp.loglevels import ustr
 
 
@@ -72,12 +76,11 @@ class WebRouteExtend(main.Reports):
         context = dict(request.context)
         context.update(current_action["context"])
         # Normal mode then we call the Odoo methode
-        if current_action.get('type_multi_print') == 'file' or len(context.get('active_ids', [])) <= 1:
-            return self._file_report(current_action, token, context)
-        if current_action.get('type_multi_print') == 'zip':
+        if current_action.get('type_multi_print') == 'zip' and len(context.get('active_ids', [])) > 1:
             return self._zip_report(current_action, token, context)
-        if current_action.get('type_multi_print') == 'pdf':
+        if current_action.get('type_multi_print') == 'pdf' and len(context.get('active_ids', [])) > 1:
             return self._pdf_report(current_action, token, context)
+        return self._file_report(current_action, token, context)
 
     def _zip_report(self, current_action, token, context):
         report_srv = request.session.proxy("report")
@@ -175,7 +178,6 @@ class WebRouteExtend(main.Reports):
 
     def _get_file_name(self, action, context, ids):
         report_obj = request.session.model('ir.actions.report.xml')
-        report = None
         if 'id' in action:
             report = report_obj.read(action['id'], ['name', 'name_eval_report'], context=context)
         else:

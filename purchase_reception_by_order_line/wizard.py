@@ -32,6 +32,8 @@ class ReceptionByOrderTransferDetails(models.TransientModel):
                 item['purchase_line_id'] = packop.purchase_line_id and packop.purchase_line_id.id or False
         return result
 
+    picking_group_name = fields.Char(string="Procurement group name", related='picking_id.group_id.name', readonly=True)
+
     @api.one
     def do_detailed_transfer(self):
         linked_purchase_orders = set([item.purchase_line_id.order_id for item in self.item_ids if
