@@ -287,7 +287,7 @@ class ProductProductImporterV2(magentoextendImporterV2):
     def _after_import(self, binding, sku):
         """ Hook called at the end of the import """
         image_importer = self.unit_for(ProductImageImporterV2)
-        image_importer.run(self.magentoextend_id, binding.id, sku)
+#        image_importer.run(self.magentoextend_id, binding.id, sku)
         return
 
     def run(self, magentoextend_id, force=False):
@@ -535,7 +535,7 @@ class StockLevelExporter(Exporter):
                sum(sq.qty) qty
              FROM
                stock_quant sq
-               LEFT JOIN magentoextend_product_product mpp ON mpp.openerp_id = sq.product_id
+               LEFT JOIN magentoextend2_product_product mpp ON mpp.openerp_id = sq.product_id
                LEFT JOIN product_product pp ON mpp.openerp_id = pp.id
                LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
                LEFT JOIN stock_location sl ON sl.id = tp.top_parent_id
@@ -553,7 +553,7 @@ class StockLevelExporter(Exporter):
                pp.default_code,
                0 qty
             FROM
-               magentoextend_product_product mpp
+               magentoextend2_product_product mpp
                LEFT JOIN product_product pp ON mpp.openerp_id = pp.id
             where mpp.backend_home_id = %s) rqx
             group by
