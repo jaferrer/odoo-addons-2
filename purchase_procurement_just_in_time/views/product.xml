@@ -14,5 +14,21 @@
             </field>
         </record>
 
+        <record model="ir.actions.server" id="act_server_sanitize_purchase_order_lines">
+            <field name="name">Sanitize purchase order lines</field>
+            <field name="model_id" ref="purchase.model_purchase_order_line"/>
+            <field name="code">
+action = self.sanitize_purchase_order_lines(cr, uid, context.get('active_ids'), context=context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_sanitize_purchase_order_lines">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">purchase.order.line</field>
+            <field name="name">Sanitize purchase order lines</field>
+            <field name="value" eval="'ir.actions.server,'+str(act_server_sanitize_purchase_order_lines)"/>
+        </record>
+
     </data>
 </openerp>

@@ -129,13 +129,21 @@ HAVING sum(CASE WHEN raw_move_state = 'done' OR
   THEN 1
            ELSE 0 END) <= 0""")
         fetchall = self.env.cr.fetchall()
-        mrp_to_update_ids = [item[0] for item in fetchall]
+        mrp_to_check_ids = [item[0] for item in fetchall]
+        mrp_to_update_ids = []
+        for mrp_id in mrp_to_check_ids:
+            mrp = self.env['mrp.production'].search([('id', '=', mrp_id)])
+            bom = mrp.bom_id
+            if not bom:
+                bom = bom._bom_find(product_id=mrp.product_id.id)
+            if bom:
+                mrp_to_update_ids += [mrp_id]
         chunk_number = 0
         while mrp_to_update_ids:
             chunk_number += 1
             mrp_chunk_ids = mrp_to_update_ids[:100]
             run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
-                                            self.env.context, description=u"MRP Production Update (chunk %s)" %
+                                            dict(self.env.context), description=u"MRP Production Update (chunk %s)" %
                                                                           chunk_number)
             mrp_to_update_ids = mrp_to_update_ids[100:]
 

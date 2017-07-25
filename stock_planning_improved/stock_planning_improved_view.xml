@@ -24,7 +24,7 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <group string="Group By" position="inside">
-                    <filter string="Day Scheduled" name="groupby_day_expected" icon="terp-go-month" domain="[]" context="{'group_by':'date_expected:day'}"/>
+                    <filter string="Expected Day" name="groupby_day_expected" icon="terp-go-month" domain="[]" context="{'group_by':'date_expected:day'}"/>
                 </group>
             </field>
         </record>

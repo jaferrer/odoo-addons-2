@@ -47,7 +47,6 @@ menus to finely control the scheduler:
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
-        'security/security.xml',
         'stock_performance_improved_view.xml',
         'stock_performance_improved_data.xml',
     ],

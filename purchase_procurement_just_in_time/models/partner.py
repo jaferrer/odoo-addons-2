@@ -23,6 +23,11 @@ from dateutil.relativedelta import relativedelta
 
 from openerp import models, fields, api
 
+DOMAIN_PARTNER_ACTIVE_SCHEDULER = [('supplier', '=', True),
+                                   ('nb_days_scheduler_frequency', '!=', False),
+                                   ('nb_days_scheduler_frequency', '!=', 0),
+                                   ('next_scheduler_date', '!=', False)]
+
 
 class JitResPartner(models.Model):
     _inherit = 'res.partner'
@@ -48,18 +53,14 @@ class JitResPartner(models.Model):
 
     @api.model
     def launch_purchase_scheduler_by_supplier(self):
-        suppliers_to_check = self.search([('supplier', '=', True),
-                                          ('nb_days_scheduler_frequency', '!=', False),
-                                          ('next_scheduler_date', '!=', False)])
-        suppliers_to_launch = self.env['res.partner']
-        for supplier in suppliers_to_check:
-            if supplier.next_scheduler_date and supplier.next_scheduler_date <= fields.Datetime.now():
-                suppliers_to_launch |= supplier
-                next_scheduler_date = fields.Datetime.from_string(supplier.next_scheduler_date)
-                while next_scheduler_date <= dt.now():
-                    next_scheduler_date += relativedelta(days=supplier.nb_days_scheduler_frequency)
-                supplier.write({'next_scheduler_date': fields.Datetime.to_string(next_scheduler_date),
-                                'last_scheduler_date': fields.Datetime.now()})
+        domain_partner = DOMAIN_PARTNER_ACTIVE_SCHEDULER + [('next_scheduler_date', '<=', fields.Datetime.now())]
+        suppliers_to_launch = self.search(domain_partner)
+        for supplier in suppliers_to_launch:
+            next_scheduler_date = fields.Datetime.from_string(supplier.next_scheduler_date)
+            while next_scheduler_date <= dt.now():
+                next_scheduler_date += relativedelta(days=supplier.nb_days_scheduler_frequency)
+            supplier.write({'next_scheduler_date': fields.Datetime.to_string(next_scheduler_date),
+                            'last_scheduler_date': fields.Datetime.now()})
         if suppliers_to_launch:
             wizard = self.env['launch.purchase.planner'].create({
                 'compute_all': False,

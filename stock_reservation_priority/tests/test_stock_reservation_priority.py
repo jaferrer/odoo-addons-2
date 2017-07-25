@@ -33,6 +33,7 @@ class TestStockPushPropagation(common.TransactionCase):
         self.stock_child = self.browse_ref('stock_reservation_priority.stock_child')
         self.customers = self.browse_ref('stock.stock_location_customers')
         self.unit = self.browse_ref('product.product_uom_unit')
+        self.env['stock.location']._parent_store_compute()
 
     def create_move_and_test(self, move_priority, move_qty, move_date, dict1, dict2, dict3, dict4, location=False,
                              skip_moves_assignation=False):

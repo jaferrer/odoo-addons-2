@@ -23,6 +23,13 @@ msgid "Scan Documents"
 msgstr "Scanner les documents"
 
 #. module: document_scanner
+#. openerp-web
+#: code:addons/document_scanner/static/src/xml/qweb.xml:9
+#, python-format
+msgid "Scan Documents Duplex"
+msgstr "Scanner les documents Recto/Verso"
+
+#. module: document_scanner
 #: view:res.users:document_scanner.view_users_form_scanner
 #: field:res.users,scanner:0
 msgid "Scanner"

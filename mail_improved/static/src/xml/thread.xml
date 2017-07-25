@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<template>
+
+    <t t-extend="mail.thread.message">
+        <t t-jquery="t[t-foreach='widget.partner_ids.slice(0, 3)']" t-operation="replace">
+            <t t-set="inc" t-value="0"/>
+            <t t-if="widget.type == 'notification' or ( (widget.type == 'email' or widget.type == 'comment') and (widget.subtype or widget.partner_ids.length > 0))"
+               t-foreach="widget.partner_ids" t-as="partner">
+                <span t-attf-class="oe_partner_follower #{inc>=3?'oe_hidden_recipients':''}">
+                    <t t-if="inc" t-raw="', '"/>
+                    <a t-if="widget.options.show_link" t-attf-href="#model=res.partner&amp;id=#{partner[0]}"
+                       t-att-data-partner="partner[0]" class="oe_mail_action_author">
+                        <t t-esc="partner[1]"/>
+                    </a>
+                    <t t-if="!widget.options.show_link" t-esc="partner[1]"/>
+                </span>
+                <t t-set="inc" t-value="inc+1"/>
+            </t>
+        </t>
+
+        <t t-jquery="t[t-if='widget.partner_ids.length > 3']" t-operation="inner">
+            <span class="oe_more_recipients"> and <a><t t-esc="widget.partner_ids.length - 3"/> more</a></span>
+            <a class="oe_more_hidden_recipients"> &lt;&lt;&lt;</a>
+        </t>
+    </t>
+
+</template>

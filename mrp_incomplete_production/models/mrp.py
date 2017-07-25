@@ -22,7 +22,7 @@ from datetime import datetime
 
 from openerp import fields, models, api, exceptions, _
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
-from openerp.tools import float_compare
+from openerp.tools import float_compare, float_round
 
 
 class IncompleteProductionProductLine(models.Model):
@@ -71,6 +71,23 @@ class IncompeteProductionMrpProduction(models.Model):
             warehouse_id = rec.location_dest_id and rec.sudo().location_dest_id.get_warehouse(
                 rec.location_dest_id) or False
             rec.warehouse_id = warehouse_id
+
+    @api.model
+    def _get_consumed_data(self, production):
+        ''' returns a dictionary containing for each raw material of the given production, its quantity already
+        consumed (in the raw material UoM)
+
+        Overridden here to remove cancel moves from the calculation
+        '''
+        consumed_data = {}
+        # Calculate already consumed qtys
+        for consumed in production.move_lines2:
+            if consumed.scrapped or consumed.state == "cancel":
+                continue
+            if not consumed_data.get(consumed.product_id.id, False):
+                consumed_data[consumed.product_id.id] = 0
+            consumed_data[consumed.product_id.id] += consumed.product_qty
+        return consumed_data
 
     @api.model
     def _calculate_qty(self, production, product_qty=0.0):
@@ -137,11 +154,32 @@ class IncompeteProductionMrpProduction(models.Model):
             'parent_production_id': self.id,
         }
 
+    @api.multi
+    def sanitize_not_available_raw_moves(self):
+        moves_to_cancel = self.env['stock.move']
+        for rec in self:
+            moves_to_check = self.env['stock.move'].search([('id', 'in', rec.move_lines.ids), ('state', '!=', 'assigned')])
+            for move in moves_to_check:
+                prec = move.product_id.uom_id.rounding
+                reserved_quants = move.reserved_quant_ids
+                if not reserved_quants:
+                    moves_to_cancel |= move
+                    continue
+                reserved_qty = sum([quant.qty for quant in reserved_quants])
+                if float_compare(reserved_qty, move.product_qty, precision_rounding=prec) < 0:
+                    new_move_id = move.split(move, float_round(move.product_qty - reserved_qty, precision_rounding=prec))
+                    new_move = self.env['stock.move'].search([('id', '=', new_move_id)])
+                    move.action_assign()
+                    moves_to_cancel |= new_move
+        moves_to_cancel.action_cancel()
+
     @api.model
     def action_produce(self, production_id, production_qty, production_mode, wiz=False):
         production = self.browse(production_id)
         initial_raw_moves = production.move_lines
         list_cancelled_moves_1 = production.move_lines2
+        production.sanitize_not_available_raw_moves()
+        # To call super, all the raw material moves are available.
         result = super(IncompeteProductionMrpProduction, self.with_context(cancel_procurement=True)). \
             action_produce(production_id, production_qty, production_mode, wiz=wiz)
         list_cancelled_moves = production.move_lines2. \
@@ -161,22 +199,21 @@ class IncompeteProductionMrpProduction(models.Model):
             for move in list_cancelled_moves:
                 quants_to_return |= self.env['stock.quant'].search([('location_id', '=', move.location_id.id),
                                                                     ('product_id', '=', move.product_id.id)]). \
-                    filtered(lambda q: any([m.move_dest_id.raw_material_production_id == \
+                    filtered(lambda q: any([m.move_dest_id.raw_material_production_id ==
                                             move.raw_material_production_id for m in q.history_ids]))
             return_picking_type = self.env.context.get('force_return_picking_type') or \
-                                  move.get_return_picking_id()
+                move.get_return_picking_id()
             if not return_picking_type:
                 raise exceptions.except_orm(_("Error!"), _("Impossible to determine return picking type"))
-            return_moves = quants_to_return.move_to(dest_location=wiz.return_location_id,
+            return_picking = quants_to_return.move_to(dest_location=wiz.return_location_id,
                                                     picking_type=return_picking_type)
-            for item in return_moves:
-                picking_to_change_origin |= item.picking_id
-            picking_to_change_origin.write({'origin': production.name})
+            return_picking.write({'origin': production.name})
         procurements_to_cancel = self.env['procurement.order']
         # Let's cancel old service moves if the MO is produced
         if production_mode == 'consume_produce':
-            procurements_to_cancel |= self.env['procurement.order'].search([('move_dest_id', 'in', initial_raw_moves.ids),
-                                                                            ('state', 'not in', ['cancel', 'done'])])
+            procurements_to_cancel |= self.env['procurement.order']. \
+                search([('move_dest_id', 'in', initial_raw_moves.ids),
+                        ('state', 'not in', ['cancel', 'done'])])
             if procurements_to_cancel:
                 procurements_to_cancel.cancel()
         return result
