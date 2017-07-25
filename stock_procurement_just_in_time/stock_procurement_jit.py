@@ -160,9 +160,9 @@ class StockMoveJustInTime(models.Model):
 
     @api.multi
     def action_cancel(self):
-        return super(StockMoveJustInTime,
-                     self.filtered(lambda move: move.id not in (self.env.context.get('ignore_move_ids') or []))). \
-            action_cancel()
+        moves_to_cancel = self.search([('id', 'in', self.ids),
+                                       ('id', 'not in', (self.env.context.get('ignore_move_ids') or []))])
+        return super(StockMoveJustInTime, moves_to_cancel).action_cancel()
 
 
 class StockWarehouseOrderPointJit(models.Model):
