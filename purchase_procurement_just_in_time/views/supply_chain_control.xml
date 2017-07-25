@@ -12,6 +12,7 @@
                     <button name="open_product_form" string="Product" type="object"/>
                     <button name="action_show_evolution" string="Stock Evolution" type="object" icon="terp-stock_zoom"/>
                     <field name="seller_defined"/>
+                    <field name="main_seller_id"/>
                     <field name="scheduler_active_for_seller"/>
                     <field name="virtual_available"/>
                     <button name="open_moves_list" string="Moves" type="object"/>

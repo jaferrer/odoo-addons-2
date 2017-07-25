@@ -40,6 +40,7 @@ class SupplyChainControl(models.Model):
 
     product_id = fields.Many2one('product.product', string=u"Product")
     seller_defined = fields.Boolean(string=u"Seller defined")
+    main_seller_id = fields.Many2one('res.partner', string=u"Main seller")
     scheduler_active_for_seller = fields.Boolean(string=u"Scheduler active for seller")
     virtual_available = fields.Float(string=u"Forecast Quantity")
     draft_orders_qty = fields.Float(string=u"Draft orders quantity")
@@ -202,6 +203,7 @@ class SupplyChainControlProductProduct(models.Model):
         seller_defined = True
         scheduler_active_for_seller = True
         companies = self.env['res.company'].search([])
+        main_seller = self.product_tmpl_id.get_main_supplierinfo()
         for company in companies:
             if seller_defined:
                 supplierinfo = self.product_tmpl_id.get_main_supplierinfo(force_company=company)
@@ -212,7 +214,7 @@ class SupplyChainControlProductProduct(models.Model):
                 elif scheduler_active_for_seller:
                     if seller not in self.env['res.partner'].search(partner.DOMAIN_PARTNER_ACTIVE_SCHEDULER):
                         scheduler_active_for_seller = False
-        return seller_defined, scheduler_active_for_seller
+        return main_seller, seller_defined, scheduler_active_for_seller
 
     @api.multi
     def update_supply_chain_control(self):
@@ -237,10 +239,11 @@ class SupplyChainControlProductProduct(models.Model):
                                                                                  product.uom_id.id)
             prec = product.uom_id.rounding
             missing_date = product.get_missing_date()
-            seller_defined, scheduler_active_for_seller = product.get_supplier_scheduler_data()
+            main_seller, seller_defined, scheduler_active_for_seller = product.get_supplier_scheduler_data()
             self.env['supply.chain.control'].create(
                 {'product_id': product.id,
                  'seller_defined': seller_defined,
+                 'main_seller_id': main_seller and main_seller.id or False,
                  'scheduler_active_for_seller': scheduler_active_for_seller,
                  'virtual_available': float_round(virtual_available, precision_rounding=prec),
                  'draft_orders_qty': float_round(draft_orders_qty, precision_rounding=prec),
