@@ -131,10 +131,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.model
     def purchase_schedule(self, compute_all_products=True, compute_supplier_ids=None, compute_product_ids=None,
-                          jobify=True):
+                          jobify=True, manual=False):
         config_sellers_manually = bool(self.env['ir.config_parameter'].
                                        get_param('purchase_procurement_just_in_time.config_sellers_manually'))
-        if not config_sellers_manually:
+        if manual or not config_sellers_manually:
             compute_supplier_ids = compute_supplier_ids and compute_supplier_ids.ids or []
             compute_product_ids = compute_product_ids and compute_product_ids.ids or []
             if jobify:

@@ -129,4 +129,4 @@ class LaunchPurchasePlanner(models.TransientModel):
         self.env['procurement.order'].purchase_schedule(compute_product_ids=self.product_ids,
                                                         compute_supplier_ids=self.supplier_ids,
                                                         compute_all_products=self.compute_all,
-                                                        jobify=True)
+                                                        jobify=True, manual=True)
