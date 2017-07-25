@@ -160,8 +160,11 @@ class StockMoveJustInTime(models.Model):
 
     @api.multi
     def action_cancel(self):
-        moves_to_cancel = self.search([('id', 'in', self.ids),
-                                       ('id', 'not in', (self.env.context.get('ignore_move_ids') or []))])
+        domain = [('id', 'in', self.ids),
+                  ('id', 'not in', (self.env.context.get('ignore_move_ids') or []))]
+        if self.env.context.get('do_not_try_to_cancel_done_moves'):
+            domain += [('state', '!=', 'done')]
+        moves_to_cancel = self.search(domain)
         return super(StockMoveJustInTime, moves_to_cancel).action_cancel()
 
 
