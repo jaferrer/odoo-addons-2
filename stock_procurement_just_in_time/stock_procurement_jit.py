@@ -98,7 +98,7 @@ class ProcurementOrderQuantity(models.Model):
                     op.process()
             else:
                 process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                          orderpoints, self.env.context,
+                                          orderpoints, dict(self.env.context),
                                           description="Computing orderpoints %s" % orderpoints)
         return {}
 
@@ -160,9 +160,12 @@ class StockMoveJustInTime(models.Model):
 
     @api.multi
     def action_cancel(self):
-        return super(StockMoveJustInTime,
-                     self.filtered(lambda move: move.id not in (self.env.context.get('ignore_move_ids') or []))). \
-            action_cancel()
+        domain = [('id', 'in', self.ids),
+                  ('id', 'not in', (self.env.context.get('ignore_move_ids') or []))]
+        if self.env.context.get('do_not_try_to_cancel_done_moves'):
+            domain += [('state', '!=', 'done')]
+        moves_to_cancel = self.search(domain)
+        return super(StockMoveJustInTime, moves_to_cancel).action_cancel()
 
 
 class StockWarehouseOrderPointJit(models.Model):
