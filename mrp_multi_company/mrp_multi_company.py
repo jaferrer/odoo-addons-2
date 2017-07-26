@@ -63,3 +63,4 @@ class MrpMultiCompanyStockMove(models.Model):
                 return super(MrpMultiCompanyStockMove, self).write(vals)
             except exceptions.AccessError:
                 return super(MrpMultiCompanyStockMove, self.sudo()).write(vals)
+        return super(MrpMultiCompanyStockMove, self).write(vals)
