@@ -223,10 +223,13 @@ class IncompeteProductionMrpProduction(models.Model):
                                                       picking_type=return_picking_type)
             return_picking.write({'origin': production.name})
         # Let's cancel old service moves if the MO is totally produced
-        if not production.move_created_ids:
-            production.cancel_service_procs()
         if moves_to_detach:
             moves_to_detach.write({'raw_material_production_id': production.id})
+        if not production.move_created_ids:
+            production.cancel_service_procs()
+            for move in moves_to_detach:
+                if move.state not in ['done', 'cancel']:
+                    move.action_cancel()
         return result
 
     @api.model
