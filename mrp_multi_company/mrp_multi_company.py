@@ -62,7 +62,7 @@ class MrpMultiCompanyStockMove(models.Model):
             try:
                 return super(MrpMultiCompanyStockMove, self).write(vals)
             except exceptions.AccessError:
-                orders = list(set([move.raw_material_production_id for move in self if
+                orders = list(set([move.raw_material_production_id.sudo() for move in self if
                                    move.raw_material_production_id and
                                    move.raw_material_production_id.state == 'confirmed']))
                 for order in orders:
