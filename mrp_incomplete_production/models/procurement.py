@@ -36,10 +36,3 @@ class IncompleteProductionProcurementOrder(models.Model):
         if procurement.rule_id.child_loc_id.id:
             result['child_location_id'] = procurement.rule_id.child_loc_id.id
         return result
-
-    @api.model
-    def create(self, vals):
-        print 'create', vals
-        if not vals.get('group_id'):
-            print 1/0
-        return super(IncompleteProductionProcurementOrder, self).create(vals)
