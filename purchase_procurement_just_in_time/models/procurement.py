@@ -176,12 +176,12 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                       ('location_id', '=', location.id)]
             if not seller:
                 # If the first proc has no seller, then we drop this proc and go to the next
-                procurements_exception = self.search(domain)
+                procurements_exception = self.search(domain + [('purchase_line_id', '=', False)])
                 procurements_exception.set_exception_for_procs()
                 procurements_to_run -= procurements_exception
                 continue
             if seller in suppliers_no_scheduler:
-                procurements_exception = self.search(domain)
+                procurements_exception = self.search(domain+ [('purchase_line_id', '=', False)])
                 msg = _("Purchase scheduler is not configurated for this supplier")
                 procurements_exception.set_exception_for_procs(msg)
                 procurements_to_run -= procurements_exception
