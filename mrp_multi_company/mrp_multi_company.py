@@ -64,8 +64,8 @@ class MrpMultiCompanyStockMove(models.Model):
             except exceptions.AccessError:
                 orders = list(set([move.raw_material_production_id.sudo() for move in self if
                                    move.raw_material_production_id and
-                                   move.raw_material_production_id.state == 'confirmed']))
-                for order in orders:
+                                   move.raw_material_production_id.sudo().state == 'confirmed']))
+                for order in orders.sudo():
                     if order.test_ready():
                         workflow.trg_validate(SUPERUSER_ID, 'mrp.production', order.id, 'moves_ready', self.env.cr)
         return super(MrpMultiCompanyStockMove, self).write(vals)
