@@ -17,7 +17,9 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, exceptions, _
+from openerp import SUPERUSER_ID
+from openerp import  models, api, exceptions
+from openerp import workflow
 
 
 # Ajout de champs à la table mrp.production
@@ -49,3 +51,21 @@ class MrpProduction(models.Model):
                 except exceptions.AccessError:
                     pass
         return res
+
+
+class MrpMultiCompanyStockMove(models.Model):
+    _inherit = 'stAccessErrorock.move'
+
+    @api.multi
+    def write(self, vals):
+        if vals.get('state') == 'assigned':
+            try:
+                return super(MrpMultiCompanyStockMove, self).write(vals)
+            except exceptions.AccessError:
+                orders = list(set([move.raw_material_production_id for move in self if
+                                   move.raw_material_production_id and
+                                   move.raw_material_production_id.state == 'confirmed']))
+                for order in orders:
+                    if order.test_ready():
+                        workflow.trg_validate(SUPERUSER_ID, 'mrp.production', order.id, 'moves_ready', self.env.cr)
+        return super(MrpMultiCompanyStockMove, self).write(vals)
