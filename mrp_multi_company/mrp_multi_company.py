@@ -54,7 +54,7 @@ class MrpProduction(models.Model):
 
 
 class MrpMultiCompanyStockMove(models.Model):
-    _inherit = 'stAccessErrorock.move'
+    _inherit = 'stock.move'
 
     @api.multi
     def write(self, vals):
