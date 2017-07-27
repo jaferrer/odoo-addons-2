@@ -199,6 +199,8 @@ class IncompeteProductionMrpProduction(models.Model):
             action_produce(production_id, production_qty, production_mode, wiz=wiz)
         list_cancelled_moves = production.move_lines2. \
             filtered(lambda move: move.state == 'cancel' and move not in list_cancelled_moves_1)
+        if not production.move_created_ids:
+            list_cancelled_moves += moves_to_detach
         if len(list_cancelled_moves) != 0 and wiz and wiz.create_child:
             production_data = production._get_child_order_data(wiz)
             production.action_production_end()
