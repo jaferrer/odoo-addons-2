@@ -127,9 +127,7 @@ class magentoextendCRUDAdapter(CRUDAdapter):
         raise NotImplementedError
 
     def _create_token(self):
-        proxy = self.magentoextend.param.url.replace("http://", "")
-
-        proxy = "http://" + proxy
+        proxy = self.magentoextend.param.url
         parameters = {
             'username': self.magentoextend.param.api_user,
             'password': self.magentoextend.param.api_pwd
@@ -150,13 +148,12 @@ class magentoextendCRUDAdapter(CRUDAdapter):
 
         self.token = ret.text.replace('"', '')
 
-    def _call(self, method, arguments, meth="GET"):
+    def _call(self, method, arguments, meth="GET", retry=0):
         try:
-            _logger.debug("Start calling magentoextend api %s", method)
+            _logger.debug("Start calling magentoextend api %s numero %s", method, retry)
 
-            proxy = self.magentoextend.param.url.replace("http://","")
+            proxy = self.magentoextend.param.url
 
-            proxy = "http://" + proxy
             head = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
@@ -192,23 +189,11 @@ class magentoextendCRUDAdapter(CRUDAdapter):
                 if isinstance(resp, dict) and resp.get("message") and resp.get("trace"):
                     _logger.error("message : %s", resp.get("message"))
             return result.json()
-        except (socket.gaierror, socket.error, socket.timeout) as err:
-            raise NetworkRetryableError(
-                'A network error caused the failure of the job: '
-                '%s' % err)
-        except requests.ProtocolError as err:
-            if err.errcode in [502,  # Bad gateway
-                               503,  # Service unavailable
-                               504]:  # Gateway timeout
-                raise RetryableJobError(
-                    'A protocol error caused the failure of the job:\n'
-                    'URL: %s\n'
-                    'HTTP/HTTPS headers: %s\n'
-                    'Error code: %d\n'
-                    'Error message: %s\n' %
-                    (err.url, err.headers, err.errcode, err.errmsg))
-            else:
-                raise
+        except Exception as err:
+            if retry <= 5:
+                retry = retry + 1
+                return self._call(method, arguments, meth=meth, retry=retry)
+            raise err
 
 
 class GenericAdapter(magentoextendCRUDAdapter):
