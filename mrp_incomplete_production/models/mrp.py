@@ -156,34 +156,51 @@ class IncompeteProductionMrpProduction(models.Model):
 
     @api.multi
     def sanitize_not_available_raw_moves(self):
-        moves_to_cancel = self.env['stock.move']
+        moves_to_detach = self.env['stock.move']
         for rec in self:
-            moves_to_check = self.env['stock.move'].search([('id', 'in', rec.move_lines.ids), ('state', '!=', 'assigned')])
+            moves_to_check = self.env['stock.move'].search([('id', 'in', rec.move_lines.ids),
+                                                            ('state', '!=', 'assigned')])
             for move in moves_to_check:
                 prec = move.product_id.uom_id.rounding
                 reserved_quants = move.reserved_quant_ids
                 if not reserved_quants:
-                    moves_to_cancel |= move
+                    moves_to_detach |= move
                     continue
                 reserved_qty = sum([quant.qty for quant in reserved_quants])
                 if float_compare(reserved_qty, move.product_qty, precision_rounding=prec) < 0:
                     new_move_id = move.split(move, float_round(move.product_qty - reserved_qty, precision_rounding=prec))
                     new_move = self.env['stock.move'].search([('id', '=', new_move_id)])
                     move.action_assign()
-                    moves_to_cancel |= new_move
-        moves_to_cancel.action_cancel()
+                    moves_to_detach |= new_move
+        moves_to_detach.write({'raw_material_production_id': False})
+        return moves_to_detach
+
+    @api.multi
+    def cancel_service_procs(self):
+        procurements_to_cancel = self.env['procurement.order']. \
+            search([('move_dest_id.raw_material_production_id', 'in', self.ids),
+                    ('state', 'not in', ['cancel', 'done'])])
+        if procurements_to_cancel:
+            procurements_to_cancel.cancel()
+
+    @api.multi
+    def action_cancel(self):
+        result = super(IncompeteProductionMrpProduction, self).action_cancel()
+        self.cancel_service_procs()
+        return result
 
     @api.model
     def action_produce(self, production_id, production_qty, production_mode, wiz=False):
         production = self.browse(production_id)
-        initial_raw_moves = production.move_lines
         list_cancelled_moves_1 = production.move_lines2
-        production.sanitize_not_available_raw_moves()
+        moves_to_detach = production.sanitize_not_available_raw_moves()
         # To call super, all the raw material moves are available.
         result = super(IncompeteProductionMrpProduction, self.with_context(cancel_procurement=True)). \
             action_produce(production_id, production_qty, production_mode, wiz=wiz)
         list_cancelled_moves = production.move_lines2. \
             filtered(lambda move: move.state == 'cancel' and move not in list_cancelled_moves_1)
+        if not production.move_created_ids:
+            list_cancelled_moves += moves_to_detach
         if len(list_cancelled_moves) != 0 and wiz and wiz.create_child:
             production_data = production._get_child_order_data(wiz)
             production.action_production_end()
@@ -194,7 +211,6 @@ class IncompeteProductionMrpProduction(models.Model):
                 new_production.product_lines = new_production.product_lines + new_production_line
             new_production.signal_workflow('button_confirm')
         if len(list_cancelled_moves) != 0 and wiz.return_raw_materials and wiz.return_location_id:
-            picking_to_change_origin = self.env['stock.picking']
             quants_to_return = self.env['stock.quant']
             for move in list_cancelled_moves:
                 quants_to_return |= self.env['stock.quant'].search([('location_id', '=', move.location_id.id),
@@ -206,16 +222,16 @@ class IncompeteProductionMrpProduction(models.Model):
             if not return_picking_type:
                 raise exceptions.except_orm(_("Error!"), _("Impossible to determine return picking type"))
             return_picking = quants_to_return.move_to(dest_location=wiz.return_location_id,
-                                                    picking_type=return_picking_type)
+                                                      picking_type=return_picking_type)
             return_picking.write({'origin': production.name})
-        procurements_to_cancel = self.env['procurement.order']
-        # Let's cancel old service moves if the MO is produced
-        if production_mode == 'consume_produce':
-            procurements_to_cancel |= self.env['procurement.order']. \
-                search([('move_dest_id', 'in', initial_raw_moves.ids),
-                        ('state', 'not in', ['cancel', 'done'])])
-            if procurements_to_cancel:
-                procurements_to_cancel.cancel()
+        # Let's cancel old service moves if the MO is totally produced
+        if moves_to_detach:
+            moves_to_detach.write({'raw_material_production_id': production.id})
+        if not production.move_created_ids:
+            production.cancel_service_procs()
+            for move in moves_to_detach:
+                if move.state not in ['done', 'cancel']:
+                    move.action_cancel()
         return result
 
     @api.model

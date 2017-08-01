@@ -131,10 +131,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.model
     def purchase_schedule(self, compute_all_products=True, compute_supplier_ids=None, compute_product_ids=None,
-                          jobify=True):
+                          jobify=True, manual=False):
         config_sellers_manually = bool(self.env['ir.config_parameter'].
                                        get_param('purchase_procurement_just_in_time.config_sellers_manually'))
-        if not config_sellers_manually:
+        if manual or not config_sellers_manually:
             compute_supplier_ids = compute_supplier_ids and compute_supplier_ids.ids or []
             compute_product_ids = compute_product_ids and compute_product_ids.ids or []
             if jobify:
@@ -176,12 +176,12 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                       ('location_id', '=', location.id)]
             if not seller:
                 # If the first proc has no seller, then we drop this proc and go to the next
-                procurements_exception = self.search(domain)
+                procurements_exception = self.search(domain + [('purchase_line_id', '=', False)])
                 procurements_exception.set_exception_for_procs()
                 procurements_to_run -= procurements_exception
                 continue
             if seller in suppliers_no_scheduler:
-                procurements_exception = self.search(domain)
+                procurements_exception = self.search(domain+ [('purchase_line_id', '=', False)])
                 msg = _("Purchase scheduler is not configurated for this supplier")
                 procurements_exception.set_exception_for_procs(msg)
                 procurements_to_run -= procurements_exception
@@ -693,8 +693,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     def set_exception_for_procs(self, msg=''):
         if not msg:
             msg = _("There is no supplier associated to product")
-        procs_to_set_to_exception = self.search([('id', 'in', self.ids),
-                                                 ('state', '!=', 'exception')])
+        procs_to_set_to_exception = self.search([('id', 'in', self.ids), ('state', '!=', 'exception')])
         procs_to_set_to_exception.write({'state': 'exception'})
         for proc in procs_to_set_to_exception:
             proc.message_post(msg)
