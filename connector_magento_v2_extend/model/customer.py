@@ -146,9 +146,9 @@ class CustomerAdapter(GenericAdapter):
     _model_name = 'magentoextend2.res.partner'
     _magentoextend_model = 'customers'
 
-    def _call(self, method, arguments):
+    def _call(self, method, arguments, meth="GET", retry=0):
         try:
-            return super(CustomerAdapter, self)._call(method, arguments)
+            return super(CustomerAdapter, self)._call(method, arguments, meth=meth, retry=retry)
         except xmlrpclib.Fault as err:
             # this is the error in the magentoextendCommerce API
             # when the customer does not exist
