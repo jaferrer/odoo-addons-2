@@ -9,7 +9,7 @@ before_script:
 
 variables:
   ODOO_VERSION: "8.0"
-  GIT_STRATEGY: "fetch"
+  GIT_STRATEGY: "clone"
   ODOO_DEPENDS: "odoo-addons/community-addons"
   ODOO_MODULE: "ALL"
 

@@ -222,6 +222,39 @@ class PurchaseOrderJustInTime(models.Model):
                 for line in rec.order_line:
                     line.adjust_moves_qties(line.product_qty)
 
+    @api.multi
+    def all_pickings_done_or_cancel(self):
+        for purchase in self:
+            for picking in purchase.picking_ids:
+                if picking.state not in ['done', 'cancel']:
+                    return False
+        return True
+
+    @api.multi
+    def order_totally_received(self):
+        for purchase in self:
+            for order_line in purchase.order_line:
+                if float_compare(order_line.remaining_qty, 0, precision_rounding=order_line.product_uom.rounding) > 0:
+                    return False
+        return True
+
+    @api.multi
+    def test_moves_done(self):
+        """PO is done at the delivery side if all the pickings are done or cancel, and order not totally received."""
+        if self.all_pickings_done_or_cancel():
+            if self.order_totally_received():
+                return True
+        return False
+
+    @api.multi
+    def test_moves_except(self):
+        """PO is in exception at the delivery side if all the pickings are done or cancel, and order is not totally
+        received."""
+        if self.all_pickings_done_or_cancel():
+            if not self.order_totally_received():
+                return True
+        return False
+
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
@@ -391,7 +424,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         qty_to_remove = qty_not_cancelled_moves_pol_uom - qty_moves_no_proc_pol_uom - target_qty
         to_detach_procs = self.env['procurement.order']
 
-        while qty_to_remove > 0 and moves_with_proc_id:
+        while float_compare(qty_to_remove, 0, precision_rounding=self.product_uom.rounding) > 0 and moves_with_proc_id:
             move = moves_with_proc_id[0]
             moves_with_proc_id -= move
             to_detach_procs |= move.procurement_id
