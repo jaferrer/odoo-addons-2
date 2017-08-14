@@ -17,9 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import requests
-
-from openerp import fields, models, api, exceptions
+from openerp import models, api, exceptions
 
 
 class ResUsers(models.Model):

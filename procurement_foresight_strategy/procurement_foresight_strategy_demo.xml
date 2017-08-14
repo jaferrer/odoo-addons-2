@@ -2,7 +2,7 @@
 <openerp>
     <data>
         <record model="stock.config.settings" id="stock_config_settings_defaults">
-            <field name="group_stock_multiple_locations">1</field>
+            <field name="group_stock_multiple_locations" eval="1"/>
         </record>
         <function
             model="stock.config.settings"

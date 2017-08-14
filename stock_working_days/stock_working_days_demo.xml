@@ -9,7 +9,7 @@
         <function
             model="stock.config.settings"
             name="execute"
-            eval="[[ref('stock_config_settings_defaults')]]" />
+            eval="[[ref('stock_config_settings_defaults')]]"/>
 
         <!--##### Calendars #####-->
         <record model="resource.calendar" id="demo_calendar_1">

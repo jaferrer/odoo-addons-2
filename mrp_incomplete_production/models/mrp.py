@@ -110,8 +110,6 @@ class IncompeteProductionMrpProduction(models.Model):
             'product_id': cancelled_move.product_id.id,
             'product_qty': cancelled_move.product_qty,
             'product_uom': cancelled_move.product_uom.id,
-            'product_uos_qty': cancelled_move.product_uos_qty,
-            'product_uos': cancelled_move.product_uos.id,
             'parent_production_id': self.id,
         }
 
