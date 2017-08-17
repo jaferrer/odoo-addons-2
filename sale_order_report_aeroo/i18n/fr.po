@@ -1,6 +1,6 @@
 # Translation of OpenERP Server.
 # This file contains the translation of the following modules:
-#	* account_invoice_report_aeroo
+#	* sale_order_report_aeroo
 #
 msgid ""
 msgstr ""
@@ -15,112 +15,87 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
-#. module: account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
 #: field:res.company,capital_stock:0
 msgid "Capital Stock"
 msgstr "Capital Social"
 
-#. module: account_invoice_report_aeroo
-#: model:ir.actions.report.xml,name:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: model:ir.actions.report.xml,name:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Sale Order"
 msgstr "Devis / Commande de vente"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Customer code:"
 msgstr "N° client :"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "TIN:"
 msgstr "N° TVA :"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Invoice"
-msgstr "Facture"
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
+msgid "Draft Quotation"
+msgstr "Devis Brouillon"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Draft Invoice"
-msgstr "Facture brouillon"
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
+msgid "Quotation"
+msgstr "Devis"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Cancelled Invoice"
-msgstr "Facture annulée"
-
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Client Refund"
-msgstr "Avoir Client"
-
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Supplier Refund"
-msgstr "Avoir Fournisseur"
-
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Dated"
 msgstr "Document daté du"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Origin:"
-msgstr "Origine :"
-
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Reference"
 msgstr "Référence"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Quantity"
 msgstr "Quantité"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Unit Price"
 msgstr "Prix Unitaire"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Price"
 msgstr "Prix"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Amount duty"
-msgstr "Montant net"
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
+msgid "Taxes"
+msgstr "Taxes"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Tax"
-msgstr "Taxe"
-
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Amount"
-msgstr "Montant"
-
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Due date"
 msgstr "Date d'échéance"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Your reference"
 msgstr "Votre référence"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Invoice date"
-msgstr "Date de facture"
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
+msgid "Net Total"
+msgstr "Total HT"
 
-#. module: account_invoice_report_aeroo
-#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
+msgid "Total"
+msgstr "Total TTC"
+
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "with a registred capital of"
 msgstr "au capital de"
