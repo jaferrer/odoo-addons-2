@@ -24,6 +24,7 @@ import os
 import datetime
 
 import twain
+from fpdf import FPDF
 from pyScanLib import pyScanLib
 from PyPDF2 import PdfFileMerger, PdfFileReader
 import ConfigParser
@@ -46,11 +47,12 @@ print "fichier des log du bot", PATH_LOG
 print "fichier de config du bot", PATH_CONFIG
 if not os.path.exists(PATH_LOG):
     os.makedirs(PATH_LOG)
-    logging.basicConfig(
-        filename=PATH_LOG + os.sep + '/log_%s.log' % datetime.date.today().strftime('%Y%m%d'),
-        level=logging.DEBUG,
-        filemode='ab',
-        datefmt='%d%m%Y')
+
+logging.basicConfig(
+    filename=PATH_LOG + os.sep + '/log_%s.log' % datetime.date.today().strftime('%Y%m%d'),
+    level=logging.DEBUG,
+    filemode='ab',
+    datefmt='%d%m%Y')
 
 if not os.path.exists(PATH_TMP):
     os.makedirs(PATH_TMP)
@@ -60,6 +62,12 @@ KEY_SCANNER_NAME = 'scanner.name'
 KEY_SCANNER_CUSTOM_NAME = 'scanner.custom.name'
 KEY_SERVER_URL = 'server.url'
 PASSWORD = 'NBGEINLXGB4W6MLXKBZTK23RO52TQMZZMZZSC23MHFIUQMZDOVUDGOL2OI2DS6JUIJTXKNDPPAQSU4KM'
+
+
+def log_print(msg, show=True):
+    logging.debug(msg)
+    if show:
+        print msg
 
 
 class _Error(object):
@@ -83,13 +91,13 @@ class _Error(object):
     def handle_error(self):
         if self.ok():
             return False
-        print u"Une erreur est apparut, message de l'erreur [%s]" % self.error
-        print u"Voulez vous essayer de nouveau ou quitter le programme ?"
-        print u"q = Quitter"
-        print u"r = Réessayer"
+        log_print(u"Une erreur est apparut, message de l'erreur [%s]" % self.error)
+        log_print(u"Voulez vous essayer de nouveau ou quitter le programme ?")
+        log_print(u"q = Quitter")
+        log_print(u"r = Réessayer")
         rq = raw_input(u"-->")
         if rq == 'r':
-            print u"Relance de la requete précédente"
+            log_print(u"Relance de la requete précédente")
             return True
         elif rq == 'q':
             exit()
@@ -137,7 +145,7 @@ class _OdooRequests(object):
             if res.handle_error():
                 self.login()
         else:
-            print u"Connexion réussi au server %s comme utilisateur %s" % (self.url, self.user)
+            log_print(u"Connexion réussi au server %s comme utilisateur %s" % (self.url, self.user))
         self._load_session()
         self._check_modules()
         self.last_poll = self._get_last()
@@ -152,7 +160,7 @@ class _OdooRequests(object):
             self.uid = json['uid']
             self.company_id = json['company_id']
             self.session_id = json['session_id']
-            print u"Session chargée"
+            log_print(u"Session chargée")
 
     def _call(self, url, data=None):
         """
@@ -169,10 +177,10 @@ class _OdooRequests(object):
         try:
             res.result = self._session.post(self.url + url, json=data_session_info)
         except requests.exceptions.RequestException as e:
-            print e
+            log_print(e)
             res.error = e.message
         if res.error or res.result.json().get('error'):
-            print res
+            log_print(res)
             if 'ir.attachment/create' in url:
                 for args in data['args']:
                     args['datas'] = 'base64 pdf file too long too display'
@@ -208,15 +216,6 @@ class _OdooRequests(object):
         if res.handle_error():
             self.register_scanner(name)
 
-    def register_scanner_dpi(self, supported_dpi):
-        res = self._call_model('scanner.dpi', 'register', supported_dpi)
-
-    def register_scanner_color(self, supported_color):
-        res = self._call_model('scanner.color', 'register', supported_color)
-
-    def register_scanner_bit_depth(self, supported_bitdepth):
-        res = self._call_model('scanner.bitdepth', 'register', supported_bitdepth)
-
     def _get_last(self):
         return self._call_model("bus.bus", "get_last").json()[0]
 
@@ -237,11 +236,11 @@ class _OdooRequests(object):
             self.login()
         if r.ok():
             if 'document_scanner' not in r.json():
-                print u"Le module <Document Scanner> n'est pas present sur le serveur"
-                print u"Veuillez l'installer puis redémarer le programme"
+                log_print(u"Le module <Document Scanner> n'est pas present sur le serveur")
+                log_print(u"Veuillez l'installer puis redémarer le programme")
                 exit()
             else:
-                print u"Module <Document Scanner> installé"
+                log_print(u"Module <Document Scanner> installé")
 
 
 class _Config(object):
@@ -278,62 +277,63 @@ class IHM(object):
         self._scanner = _Scanner()
 
     def launch(self):
-        print u"==========Démarage du Script============="
+        log_print(u"==========Démarage du Script=============")
         self._init()
         self._loop()
 
     def _init(self):
         scanners = self._scanner.list_scanner()
         if self._config.file_exist:
-            print u"Lecture du fichier de config scanner.ini"
-            print u"Chargement du scanner %s alias %s" % (self._config.scanner_name, self._config.scanner_custom_name)
+            log_print(u"Lecture du fichier de config scanner.ini")
+            log_print(
+                u"Chargement du scanner %s alias %s" % (self._config.scanner_name, self._config.scanner_custom_name))
         else:
-            print u"Fichier inexistant  ... Creation du fichier"
-            print u"Etape de création de la configuration"
-            print u"Etape 1/3"
-            print u"Découverte des Scanners Disponnible..."
-            print u"Nombre de scanners découvert %s" % len(scanners)
+            log_print(u"Fichier inexistant  ... Creation du fichier")
+            log_print(u"Etape de création de la configuration")
+            log_print(u"Etape 1/3")
+            log_print(u"Découverte des Scanners Disponnible...")
+            log_print(u"Nombre de scanners découvert %s" % len(scanners))
             for i in range(0, len(scanners)):
-                print u"%s --> %s" % (i, scanners[i])
+                log_print(u"%s --> %s" % (i, scanners[i]))
             if scanners:
-                print u"Choisir le scanner voulu"
+                log_print(u"Choisir le scanner voulu")
                 choice = input(u"--> ")
                 current_scanner = scanners[choice]
                 self._scanner.set_scanner(current_scanner)
                 self._config.scanner_name = current_scanner
                 self._config.scanner_custom_name = self._choose_name()
                 self._config.url = self._choose_url()
-                print u"Enregistrement des informations"
+                log_print(u"Enregistrement des informations")
                 self._config.write()
 
         if self._scanner.set_scanner(self._config.scanner_name):
-            print u"Connextion au scanner %s reussi" % self._config.scanner_name
+            log_print(u"Connextion au scanner %s reussi" % self._config.scanner_name)
             self._req = _OdooRequests(self._config.url)
-            print u"Connexion à Odoo avec l'utilisateur %s" % self._req.user
+            log_print(u"Connexion à Odoo avec l'utilisateur %s" % self._req.user)
             self._req.login()
-            print u"Enregistrement du scanner"
+            log_print(u"Enregistrement du scanner")
             self._req.register_scanner(self._config.scanner_custom_name)
-            print u"En attente de demande de scan"
+            log_print(u"En attente de demande de scan")
         else:
-            print u"Veiller vous assurer que le scanner %s est bien branché" % self._config.scanner_name
-            print u"Reconnexion dans 30sec"
+            log_print(u"Veuiller vous assurer que le scanner %s est bien branché" % self._config.scanner_name)
+            log_print(u"Reconnexion dans 30sec")
             time.sleep(30)
             self._init()
-
 
     def _loop(self):
         while True:
             results = self._req.long_pollng()
             logging.debug(results)
+            scanne_done = False
             while not results.ok():
-                logging.error(u"Reconnexion dans 30sec suite à une erreur")
                 logging.error(results.error)
-                print u"Reconnexion dans 30sec suite à une erreur"
+                log_print(u"Reconnexion dans 30sec suite à une erreur")
                 time.sleep(30)
                 self._init()
                 results = self._req.long_pollng()
 
             self._req.increment_last_poll(results)
+
             for message in [item['message']
                             for item in results.json()
                             if item.get('channel', ())
@@ -341,29 +341,34 @@ class IHM(object):
                             and item['channel'][0] == self._req.db
                             and item['message'].get('scan_name') == self._config.get_normalize_name()
                             ]:
-                print u"Scan en cours ...", message
+                logging.debug(message)
+                log_print(u"Scan en cours ...")
                 filenames = self._scanner.scan(
                     dpi=message.get('scan_dpi_info', 300),
                     pixeltype=message.get('scan_color_info', 'color'),
-                    bitdepth=int(message.get('scan_quality_info', 24)),
                     duplex=message.get('scan_duplex', False)
                 )
-                pdf = self._scanner.merge_file(filenames)
-                if pdf:
-                    print u"Upload en cours ..."
-                    res = self._req.upload(pdf, message)
-                    if not res.ok():
-                        print u"Une erreur est apparut lors de l'upload du fichier"
-                    else:
-                        print u"Upload Fini"
+                log_print(u"Fusion des pages")
+                file = self._scanner.merge_file(filenames)
+                if file:
+                    with open(file, 'rb') as pdf:
+                        log_print(u"Envoi à Odoo en cours ...")
+                        res = self._req.upload(pdf, message)
+                        if not res.ok():
+                            log_print(u"Une erreur est apparut lors de l'upload du fichier")
+                        else:
+                            log_print(u"Upload Fini")
+                            scanne_done = True
+
                 else:
-                    print u"Aucun document a uploader"
-                print u"En attente de demande de scan"
+                    log_print(u"Aucun document a uploader")
+            if scanne_done:
+                log_print(u"En attente de demande de scan")
 
     def _choose_name(self):
-        print u"Nom du Scanner"
+        log_print(u"Nom du Scanner")
         name = raw_input(u"--> ")
-        print u"Valider le nom (y/n): %s" % name
+        log_print(u"Valider le nom (y/n): %s" % name)
         yn = raw_input(u"--> ")
         if yn != 'y':
             return self._choose_name()
@@ -371,12 +376,12 @@ class IHM(object):
             return name
 
     def _choose_url(self):
-        print u"Saisir l'adresse du serveur odoo"
+        log_print(u"Saisir l'adresse du serveur odoo")
         url = raw_input(u"-->").strip(" ")
         if _OdooRequests.test_url_odoo(url):
             return url
         else:
-            print u"Mauvaise adresse"
+            log_print(u"Mauvaise adresse")
             return self._choose_url()
 
 
@@ -394,38 +399,58 @@ class _Scanner(object):
                 self._psl.setScanner(scanner)
                 self._scanner = scanner
                 return True
-            except twain.excDSOpenFailed as e:
+            except twain.excDSOpenFailed:
                 logging.error("Impossible de se connecter au scanner")
                 return False
+        return True
 
-    def scan(self, dpi=300, pixeltype='color', bitdepth=24, duplex=False):
+    def scan(self, dpi=300, pixeltype='color', duplex=False):
+        log_print(u"Configuration du scanner : dpi=%s npixeltype=%s nduplex=%s" % (dpi, pixeltype, duplex), False)
         self.set_scanner(self._scanner)
         self._psl.setDPI(dpi)
         self._psl.setPixelType(pixeltype)
         self._psl.scanner.SetCapability(twain.CAP_DUPLEXENABLED, twain.TWTY_BOOL, duplex)
-        self._psl.scanner.SetCapability(twain.ICAP_BITDEPTH, twain.TWTY_UINT16, bitdepth)
-        filenames = []
         images = self._psl.scan_multi()
         self._psl.closeScanner()
+
+        jpgs = []
         for i in range(0, len(images)):
-            f = PATH_TMP + os.sep + "tmp_%s_scan.pdf" % str(i)
-            filenames.append(f)
-            images[i].save(f)
+            if pixeltype == 'color':
+                f = PATH_TMP + os.sep + "tmp_%s_scan.jpg" % str(i)
+                jpgs.append(f)
+                images[i].save(f, optimize=True, quality=15)
+            else:
+                f = PATH_TMP + os.sep + "tmp_%s_scan.png" % str(i)
+                jpgs.append(f)
+                images[i].save(f, optimize=True)
+        filenames = []
+
+        for jpg in jpgs:
+            width, height = Image.open(jpg).size
+            pdf = FPDF(unit="pt", format=[width, height])
+            pdf.add_page()
+            pdf.image(jpg, 0, 0)
+            destination = os.path.splitext(jpg)[0] + ".pdf"
+            filenames.append(destination)
+            pdf.output(destination, "F")
+
         return filenames
 
     def merge_file(self, filenames):
+        final_file = PATH_TMP + os.sep + "document-output.pdf"
         if filenames:
-            final_file = PATH_TMP + os.sep + "document-output.pdf"
+            log_print("fusion de %s fichiers dans le fichier %s" % (len(filenames), final_file), False)
             if len(filenames) > 1:
                 merger = PdfFileMerger()
                 for filename in filenames:
+                    log_print("ajout du fichier temporaire %s" % filename, False)
                     merger.append(PdfFileReader(file(filename, 'rb')))
                 merger.write(final_file)
                 merger.close()
             else:
                 final_file = filenames[0]
-            return file(final_file, 'rb')
-
+            log_print("creation du fichier final %s" % final_file, False)
+        return final_file
 
     def get_current_scanner(self):
         return self._psl.scanner
