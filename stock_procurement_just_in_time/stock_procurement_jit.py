@@ -36,8 +36,16 @@ _logger = logging.getLogger(__name__)
 def process_orderpoints(session, model_name, ids, context):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    for op in session.env[model_name].with_context(context).browse(ids):
+    orderpoints = session.env[model_name].with_context(context).browse(ids, order='stock_scheduler_sequence desc')
+    for op in orderpoints:
         op.process()
+
+
+class StockLocation(models.Model):
+    _inherit = 'stock.location'
+
+    stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence",
+                                              help=u"Same order as the logistic flow")
 
 
 class StockMove(models.Model):
@@ -185,6 +193,9 @@ class StockMoveJustInTime(models.Model):
 
 class StockWarehouseOrderPointJit(models.Model):
     _inherit = 'stock.warehouse.orderpoint'
+
+    stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence", default=1000,
+                                              related='location_id.stock_scheduler_sequence', store=True, readonly=True)
 
     @api.multi
     def get_list_events(self):
