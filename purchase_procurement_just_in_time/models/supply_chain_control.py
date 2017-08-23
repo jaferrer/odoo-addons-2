@@ -56,8 +56,8 @@ class SupplyChainControl(models.Model):
         index = 0
         while products:
             index += 1
-            chunk_products = products[:10]
-            products = products[10:]
+            chunk_products = products[:500]
+            products = products[500:]
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             job_update_supply_chain_controls.delay(session, 'product.product', chunk_products.ids,
                                                    description="Update Supply Chain Control (chunk %s)" % index,
