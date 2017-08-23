@@ -34,7 +34,7 @@ class MoUpdateMrpProduction(models.Model):
     _inherit = "mrp.production"
 
     product_lines = fields.One2many(readonly=False)
-    bom_id = fields.Many2one('mrp.bom', readonly=False)
+    bom_id = fields.Many2one('mrp.bom', readonly=False, track_visibility='onchange')
 
     @api.multi
     def update_moves(self):
@@ -89,7 +89,8 @@ class MoUpdateMrpProduction(models.Model):
                 product = item.product_id
                 move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, item.product_qty, False, 0)
                 self.env['stock.move'].browse(move).action_confirm()
-            mrp.message_post(post)
+            if post:
+                mrp.message_post(post)
 
     @api.multi
     def write(self, vals):

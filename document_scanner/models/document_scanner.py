@@ -43,17 +43,6 @@ class ScannerInfoColor(models.Model):
             self.create({'name': name})
 
 
-class ScannerInfoQuality(models.Model):
-    _name = 'scanner.info.quality'
-
-    name = fields.Char(u"Name")
-
-    @api.model
-    def register(self, name):
-        if not self.search([('name', '=', name)]):
-            self.create({'name': name})
-
-
 class Scanner(models.Model):
     _name = 'scanner.info'
 
@@ -62,15 +51,11 @@ class Scanner(models.Model):
     def _get_default_color_id(self):
         return self.env.ref('document_scanner.scanner_info_color_color')
 
-    def _get_default_quality_id(self):
-        return self.env.ref('document_scanner.scanner_info_quality_24')
-
     def _get_default_dpi_id(self):
         return self.env.ref('document_scanner.scanner_info_resolution_300_dpi')
 
-    color_id = fields.Many2one('scanner.info.color', u"Couleur", default=_get_default_color_id, required=True)
-    quality_id = fields.Many2one('scanner.info.quality', u"Qualité", default=_get_default_quality_id, required=True)
-    dpi_id = fields.Many2one('scanner.info.dpi', u"Resolution (DPI)", default=_get_default_dpi_id, required=True)
+    color_id = fields.Many2one('scanner.info.color', u"Color", default=_get_default_color_id, required=True)
+    dpi_id = fields.Many2one('scanner.info.dpi', u"DPI", default=_get_default_dpi_id, required=True)
 
     @api.model
     def register(self, name):
@@ -110,7 +95,6 @@ class IrAttachmentScanner(models.Model):
             'scan_name': (user.scanner_id.name or '').lower().replace(' ', '_'),
             'scan_color_info': user.scanner_id.color_id.name,
             'scan_dpi_info': user.scanner_id.dpi_id.name,
-            'scan_quality_info': user.scanner_id.quality_id.name,
             'scan_duplex': ctx.get('scan_duplex', False),
         }
         self.env['bus.bus'].sendone(channel=channel, message=msg)
