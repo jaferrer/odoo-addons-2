@@ -203,7 +203,7 @@ class SupplyChainControlProductProduct(models.Model):
         seller_defined = True
         scheduler_active_for_seller = True
         companies = self.env['res.company'].search([])
-        main_seller = self.product_tmpl_id.get_main_supplierinfo()
+        main_supplierinfo = self.product_tmpl_id.get_main_supplierinfo()
         for company in companies:
             if seller_defined:
                 supplierinfo = self.product_tmpl_id.get_main_supplierinfo(force_company=company)
@@ -214,7 +214,7 @@ class SupplyChainControlProductProduct(models.Model):
                 elif scheduler_active_for_seller:
                     if seller not in self.env['res.partner'].search(partner.DOMAIN_PARTNER_ACTIVE_SCHEDULER):
                         scheduler_active_for_seller = False
-        return main_seller, seller_defined, scheduler_active_for_seller
+        return main_supplierinfo, seller_defined, scheduler_active_for_seller
 
     @api.multi
     def update_supply_chain_control(self):
@@ -239,11 +239,11 @@ class SupplyChainControlProductProduct(models.Model):
                                                                                  product.uom_id.id)
             prec = product.uom_id.rounding
             missing_date = product.get_missing_date()
-            main_seller, seller_defined, scheduler_active_for_seller = product.get_supplier_scheduler_data()
+            main_supplierinfo, seller_defined, scheduler_active_for_seller = product.get_supplier_scheduler_data()
             self.env['supply.chain.control'].create(
                 {'product_id': product.id,
                  'seller_defined': seller_defined,
-                 'main_seller_id': main_seller and main_seller.id or False,
+                 'main_seller_id': main_supplierinfo and main_supplierinfo.name.id or False,
                  'scheduler_active_for_seller': scheduler_active_for_seller,
                  'virtual_available': float_round(virtual_available, precision_rounding=prec),
                  'draft_orders_qty': float_round(draft_orders_qty, precision_rounding=prec),
