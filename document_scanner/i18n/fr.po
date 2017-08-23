@@ -30,6 +30,26 @@ msgid "Scan Documents Duplex"
 msgstr "Scanner les documents Recto/Verso"
 
 #. module: document_scanner
+#: field:scanner.info,color_id:0
+msgid "Color"
+msgstr "Couleur"
+
+#. module: document_scanner
+#: field:scanner.info,quality_id:0
+msgid "Quality"
+msgstr "Qualité"
+
+#. module: document_scanner
+#: field:scanner.info,dpi_id:0
+msgid "DPI"
+msgstr "DPI"
+
+#. module: document_scanner
+#: field:scanner.info,img_quality_info:0
+msgid "Image Quality"
+msgstr "Qualité de l'image"
+
+#. module: document_scanner
 #: view:res.users:document_scanner.view_users_form_scanner
 #: field:res.users,scanner:0
 msgid "Scanner"
