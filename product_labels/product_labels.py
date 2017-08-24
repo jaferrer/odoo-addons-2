@@ -23,8 +23,9 @@ from openerp import models, fields
 class ProductLabel(models.Model):
     _name = 'product.label'
 
-    name = fields.Char(string=u"Name")
-
+    name = fields.Char(string=u"Name", translate=True)
+    note = fields.Text(u"Note", translate=True)
+    picto = fields.Binary(u"Image")
 
 class ProductLabelProductProduct(models.Model):
     _inherit = 'product.product'
