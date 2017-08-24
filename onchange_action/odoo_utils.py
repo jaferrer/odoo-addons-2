@@ -27,7 +27,7 @@ _logger = logging.getLogger("odoo_utils")
 class OnChangeActionModel(models.AbstractModel):
     _name = 'on_change.action'
 
-    @api.model
+    @api.multi
     def _action_on_change(self, field_name, field_value):
         return {}
 
