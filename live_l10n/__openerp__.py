@@ -31,7 +31,7 @@ Display a wizard when a translated field is change.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'wizard/live_i10n.xml'
+        'wizard/live_l10n.xml'
     ],
     'test': [],
     'installable': True,
