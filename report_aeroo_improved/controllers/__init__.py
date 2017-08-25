@@ -17,27 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Report Aeroo Report improved',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Report',
-    'depends': ['web_report_improved', 'report_aeroo'],
-    'description': """
-Report Aeroo Report improved
-============================    
-Add features to the aeroo report system
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'ir_report_aeroo.xml'
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': True,
-    'license': 'AGPL-3',
-    'application': False,
-    'sequence': 999,
-}
+from . import main
