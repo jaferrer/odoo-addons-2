@@ -897,8 +897,6 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertIn(7, [m.product_uom_qty for m in line.move_ids])
 
         # Let's increase/decrease again to check
-        self.assertEqual(line.order_id.state, 'except_picking')
-        line.order_id.signal_workflow('picking_ok')
         self.assertEqual(line.order_id.state, 'approved')
         test_decreasing_line_qty(line, 19, 3, [7, 11, 1])
         test_decreasing_line_qty(line, 18, 2, [7, 11])
@@ -909,7 +907,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         """
         procurement_order_1, procurement_order_2, procurement_order_4 = self.create_and_run_proc_1_2_4()
         purchase_order_1 = procurement_order_1.purchase_id
-        line1, line2 = self.check_purchase_order_1_2_4(purchase_order_1)
+        self.check_purchase_order_1_2_4(purchase_order_1)
 
         self.assertEqual(purchase_order_1.state, 'draft')
         self.assertEqual(procurement_order_1.state, 'running')

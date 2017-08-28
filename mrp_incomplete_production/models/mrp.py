@@ -175,6 +175,20 @@ class IncompeteProductionMrpProduction(models.Model):
         moves_to_detach.write({'raw_material_production_id': False})
         return moves_to_detach
 
+    @api.multi
+    def cancel_service_procs(self):
+        procurements_to_cancel = self.env['procurement.order']. \
+            search([('move_dest_id.raw_material_production_id', 'in', self.ids),
+                    ('state', 'not in', ['cancel', 'done'])])
+        if procurements_to_cancel:
+            procurements_to_cancel.cancel()
+
+    @api.multi
+    def action_cancel(self):
+        result = super(IncompeteProductionMrpProduction, self).action_cancel()
+        self.cancel_service_procs()
+        return result
+
     @api.model
     def action_produce(self, production_id, production_qty, production_mode, wiz=False):
         production = self.browse(production_id)
@@ -185,6 +199,8 @@ class IncompeteProductionMrpProduction(models.Model):
             action_produce(production_id, production_qty, production_mode, wiz=wiz)
         list_cancelled_moves = production.move_lines2. \
             filtered(lambda move: move.state == 'cancel' and move not in list_cancelled_moves_1)
+        if not production.move_created_ids:
+            list_cancelled_moves += moves_to_detach
         if len(list_cancelled_moves) != 0 and wiz and wiz.create_child:
             production_data = production._get_child_order_data(wiz)
             production.action_production_end()
@@ -208,16 +224,14 @@ class IncompeteProductionMrpProduction(models.Model):
             return_picking = quants_to_return.move_to(dest_location=wiz.return_location_id,
                                                       picking_type=return_picking_type)
             return_picking.write({'origin': production.name})
-        procurements_to_cancel = self.env['procurement.order']
         # Let's cancel old service moves if the MO is totally produced
-        if not production.move_created_ids:
-            procurements_to_cancel |= self.env['procurement.order']. \
-                search([('move_dest_id.raw_material_production_id', '=', production.id),
-                        ('state', 'not in', ['cancel', 'done'])])
-            if procurements_to_cancel:
-                procurements_to_cancel.cancel()
         if moves_to_detach:
             moves_to_detach.write({'raw_material_production_id': production.id})
+        if not production.move_created_ids:
+            production.cancel_service_procs()
+            for move in moves_to_detach:
+                if move.state not in ['done', 'cancel']:
+                    move.action_cancel()
         return result
 
     @api.model
