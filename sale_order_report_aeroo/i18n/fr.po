@@ -27,6 +27,16 @@ msgstr "Devis / Commande de vente"
 
 #. module: sale_order_report_aeroo
 #: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
+msgid "Sale Order"
+msgstr "Commande de vente"
+
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml,name:sale_order_report_aeroo.sale_order_report_aeroo
+msgid "Cancelled Sale Order"
+msgstr "Commande de vente annulée"
+
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Customer code:"
 msgstr "N° client :"
 
@@ -67,13 +77,18 @@ msgstr "Prix Unitaire"
 
 #. module: sale_order_report_aeroo
 #: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
+msgid "Description"
+msgstr "Désignation"
+
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Price"
 msgstr "Prix"
 
 #. module: sale_order_report_aeroo
 #: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Taxes"
-msgstr "Taxes"
+msgstr "TVA"
 
 #. module: sale_order_report_aeroo
 #: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
@@ -99,3 +114,8 @@ msgstr "Total TTC"
 #: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "with a registred capital of"
 msgstr "au capital de"
+
+#. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
+msgid "N° VAT"
+msgstr "N° TVA"
