@@ -17,11 +17,25 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api, fields, _
+from openerp import models, fields, api, _
 
 
 class ProjectImprovedProject(models.Model):
     _inherit = 'project.project'
+
+    reference_task = fields.Many2one('project.task', string=u"Reference task")
+    reference_task_end_date = fields.Datetime(string=u"Reference task end date")
+    can_change_reference_task = fields.Boolean(string="Can change reference task", readonly=True,
+                                               compute="_get_change_reference_task")
+
+    @api.multi
+    def _get_change_reference_task(self):
+        print "self: %s " % self
+        for rec in self:
+            if 63 in self.env.user.groups_id.ids or 65 in rec.env.user.groups_id.ids or 74 in rec.env.user.groups_id.ids:
+                rec.can_change_reference_task = True
+            else:
+                rec.can_change_reference_task = False
 
     @api.multi
     def open_task_planning(self):
@@ -86,3 +100,46 @@ class ProjectImprovedTask(models.Model):
                                      'next_task_id', string=u"Next tasks")
     critical_task = fields.Boolean(string=u"Critical task", readonly=True)
     planned_days = fields.Float(string=u"Initially Planned Days")
+    children_task_ids = fields.One2many('project.task', 'parent_task_id', string="Children tasks")
+    objective_start_date = fields.Datetime(string="Objective start date")
+    exepected_start_date = fields.Datetime(string="Expected start date")
+    objective_end_date = fields.Datetime(string=" Objective end date")
+    exepected_end_date = fields.Datetime(string="Expected end date")
+    allocated_time = fields.Integer(string="Allocated time")
+    allocated_time_unit_tasks = fields.Integer(string="Allocated for unit tasks",
+                                               compute="_get_allocated_time_unit_tasks")
+    total_allocated_time = fields.Integer(string=u"Total allocated time", compute="_get_total_allocated_time",
+                                          store=True)
+    progress_state = fields.Selection(
+        [('todo', u'To do'), ('inprogress', u'In progress'), ('completed', u'Completed'), ('cancelled', u'Cancelled')],
+        string=u"State of progress", default='todo', required=True, track_visibility='onchange')
+
+    @api.depends('children_task_ids.total_allocated_time')
+    def _get_allocated_time_unit_tasks(self):
+        for record in self:
+            record.allocated_time_unit_tasks = sum(line.total_allocated_time for line in record.children_task_ids)
+
+    @api.depends('allocated_time_unit_tasks', 'allocated_time')
+    def _get_total_allocated_time(self):
+        for rec in self:
+            rec.total_allocated_time = rec.allocated_time + rec.allocated_time_unit_tasks
+
+    @api.multi
+    def set_to_do(self):
+        for rec in self:
+            rec.progress_state = "todo"
+
+    @api.multi
+    def set_in_progress(self):
+        for rec in self:
+            rec.progress_state = "inprogress"
+
+    @api.multi
+    def set_completed(self):
+        for rec in self:
+            rec.progress_state = "completed"
+
+    @api.multi
+    def set_cancelled(self):
+        for rec in self:
+            rec.progress_state = "cancelled"
