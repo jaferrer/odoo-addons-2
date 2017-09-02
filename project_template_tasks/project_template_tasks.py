@@ -43,6 +43,16 @@ class ProjectTemplateTask(models.Model):
     _inherit = 'project.task'
 
     is_template = fields.Boolean(string="Template task")
+    generated_from_template_id = fields.Many2one('project.task', string=u"Generated from template task",
+                                                 domain=[('is_template', '=', True)])
+
+    @api.multi
+    def find_generated_task_for_template(self, project_id):
+        self.ensure_one()
+        assert self.is_template, u"Impossible to find generated task for a not-template task"
+        return self.env['project.task']. \
+            search([('project_id', '=', project_id),
+                    ('generated_from_template_id', '=', self.id)])
 
 
 class ProjectTemplateTaskType(models.Model):
@@ -60,7 +70,8 @@ class ProjectTemplateTaskType(models.Model):
                 'project_id': project.id,
                 'stage_id': self.id,
                 'user_id': project.user_id and project.user_id.id or False,
-                'date_start': False}
+                'date_start': False,
+                'generated_from_template_id': task.id}
 
     @api.multi
     def synchronize_default_tasks(self):
