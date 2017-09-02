@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api, _
+from openerp import models, api, fields, _
 
 
 class ProjectImprovedProject(models.Model):
@@ -40,3 +40,12 @@ class ProjectImprovedProject(models.Model):
             'context': ctx,
         }
 
+
+class ProjectImprovedTask(models.Model):
+    _inherit = 'project.task'
+
+    parent_task_id = fields.Many2one('project.task', string=u"Parent task")
+    previous_task_ids = fields.Many2many('project.task', 'project_task_order_rel', 'next_task_id',
+                                         'previous_task_id', string=u"Previous tasks")
+    next_task_ids = fields.Many2many('project.task', 'project_task_order_rel', 'previous_task_id',
+                                     'next_task_id', string=u"Next tasks")

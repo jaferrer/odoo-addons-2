@@ -29,6 +29,26 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_improved_task_form">
+            <field name="name">project_improved_task_form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="Links">
+                        <group>
+                            <field name="parent_task_id" context="{'default_project_id': id}" domain="[('project_id', '=', id)]"/>
+                        </group>
+                        <separator string="Previous tasks"/>
+                        <field name="previous_task_ids" context="{'default_project_id': id}" domain="[('project_id', '=', id)]"/>
+                        <separator string="Next tasks"/>
+                        <field name="next_task_ids" context="{'default_project_id': id}" domain="[('project_id', '=', id)]"/>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
         <record model="ir.actions.act_window" id="act_window_open_task_planning">
             <field name="name">Tasks planning</field>
             <field name="res_model">project.task</field>
