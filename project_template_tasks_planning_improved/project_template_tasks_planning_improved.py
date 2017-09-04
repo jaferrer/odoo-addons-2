@@ -24,6 +24,13 @@ class PlanningImprovedTemplateTaskType(models.Model):
     _inherit = 'project.task.type'
 
     @api.multi
+    def get_values_new_task(self, task, project):
+        result = super(PlanningImprovedTemplateTaskType, self).get_values_new_task(task, project)
+        result['next_task_ids'] = False
+        result['previous_task_ids'] = False
+        return result
+
+    @api.multi
     def synchronize_default_tasks(self):
         result = super(PlanningImprovedTemplateTaskType, self).synchronize_default_tasks()
         project_id = self.env.context.get('project_id')
