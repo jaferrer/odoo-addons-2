@@ -2,6 +2,30 @@
 <openerp>
     <data>
 
+        <record model="ir.ui.view" id="stock_location_tree">
+            <field name="name">pstock_location_tree</field>
+            <field name="model">stock.location</field>
+            <field name="inherit_id" ref="stock.view_location_tree2"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree position="inside">
+                    <field name="stock_scheduler_sequence"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="stock_location_form">
+            <field name="name">stock_location_form</field>
+            <field name="model">stock.location</field>
+            <field name="inherit_id" ref="stock.view_location_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="putaway_strategy_id" position="after">
+                    <field name="stock_scheduler_sequence"/>
+                </field>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="stock_levels_report_tree">
             <field name="name">stock.levels.report.tree</field>
             <field name="model">stock.levels.report</field>
