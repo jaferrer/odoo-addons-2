@@ -85,3 +85,9 @@ msgstr "Tâche type"
 #, python-format
 msgid "Forbidden to overwrite tasks of type %s"
 msgstr "Il est interdit d'écraser les tâches de type %s"
+
+#. module: project_template_tasks
+#: model:ir.actions.act_window,name:project_template_tasks.act_window_open_template_tasks
+#: model:ir.ui.menu,name:project_template_tasks.menu_open_template_tasks
+msgid "Template tasks"
+msgstr "Planification des tâches"

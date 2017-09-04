@@ -18,26 +18,23 @@
 #
 
 {
-    'name': 'Report Aeroo Report improved',
+    'name': 'Project Template Tasks (planning improved)',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Report',
-    'depends': ['web_report_improved', 'report_aeroo'],
+    'category': 'Project',
+    'depends': ['project_template_tasks', 'project_planning_improved'],
     'description': """
-Report Aeroo Report improved
-============================    
-Add features to the aeroo report system
+Project Template Tasks (planning improved)
+==========================================
+Auto-installed module to merge project planning improved and project template tasks
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'ir_report_aeroo.xml'
-    ],
+    'data': ['project_template_tasks_planning_improved.xml'],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
-    'sequence': 999,
 }
