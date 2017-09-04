@@ -52,9 +52,14 @@ class JitResPartner(models.Model):
                                                       ('date_order_max', '!=', False)]))
 
     @api.model
-    def launch_purchase_scheduler_by_supplier(self):
+    def get_suppliers_to_launch(self):
         domain_partner = DOMAIN_PARTNER_ACTIVE_SCHEDULER + [('next_scheduler_date', '<=', fields.Datetime.now())]
         suppliers_to_launch = self.search(domain_partner)
+        return suppliers_to_launch
+
+    @api.model
+    def launch_purchase_scheduler_by_supplier(self):
+        suppliers_to_launch = self.get_suppliers_to_launch()
         for supplier in suppliers_to_launch:
             next_scheduler_date = fields.Datetime.from_string(supplier.next_scheduler_date)
             while next_scheduler_date <= dt.now():
