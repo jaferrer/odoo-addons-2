@@ -53,3 +53,26 @@ msgstr "Planification des tâches"
 #, python-format
 msgid "Tasks planning for project %s"
 msgstr "Planification des tâches pour le projet %s"
+
+#. module: project_planning_improved
+#: field:project.task,parent_task_id:0
+msgid "Parent task"
+msgstr "Tâche parente"
+
+#. module: project_planning_improved
+#: field:project.task,previous_task_ids:0
+#: view:project.task:project_planning_improved.project_improved_task_form
+msgid "Links"
+msgstr "Liens"
+
+#. module: project_planning_improved
+#: field:project.task,previous_task_ids:0
+#: view:project.task:project_planning_improved.project_improved_task_form
+msgid "Previous tasks"
+msgstr "Tâches précédentes"
+
+#. module: project_planning_improved
+#: field:project.task,next_task_ids:0
+#: view:project.task:project_planning_improved.project_improved_task_form
+msgid "Next tasks"
+msgstr "Tâches suivantes"

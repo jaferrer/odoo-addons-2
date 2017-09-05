@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,27 +17,19 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Report Aeroo Report improved',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Report',
-    'depends': ['web_report_improved', 'report_aeroo'],
-    'description': """
-Report Aeroo Report improved
-============================    
-Add features to the aeroo report system
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'ir_report_aeroo.xml'
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': True,
-    'license': 'AGPL-3',
-    'application': False,
-    'sequence': 999,
-}
+from openerp import models, fields, api, exceptions, _
+
+
+class QuantitiesModificationsSaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    workflow_done = fields.Boolean(string="Done state reached in workflow")
+    state = fields.Selection(track_visibility='onchange')
+
+    @api.multi
+    def reopen_order(self):
+        if any([order.state != 'done' for order in self]):
+            raise exceptions.except_orm(_("Error!"), _("Impossible to reopen a not done sale order."))
+        self.write({'workflow_done': True,
+                    'state': 'sale'})
+        self.message_post(body=_("Sale order reopened by %s") % self.env.user.name)

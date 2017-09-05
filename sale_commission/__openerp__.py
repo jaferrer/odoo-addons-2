@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,26 +18,24 @@
 #
 
 {
-    'name': 'Report Aeroo Report improved',
+    'name': 'Sale Commissions',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Report',
-    'depends': ['web_report_improved', 'report_aeroo'],
+    'category': 'Sale',
+    'depends': ['sale', 'purchase'],
     'description': """
-Report Aeroo Report improved
-============================    
-Add features to the aeroo report system
+Sale Commissions
+================
+This modules allows to generate automatically commissions (as draft purchase orders) when confirming sale order.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'ir_report_aeroo.xml'
-    ],
+    'data': ['security/ir.model.access.csv',
+             'sale_commission.xml'],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': True,
+    'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
-    'sequence': 999,
 }

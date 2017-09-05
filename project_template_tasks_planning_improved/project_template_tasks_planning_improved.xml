@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="project_improved_task_form">
+            <field name="name">project_improved_task_form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project_planning_improved.project_improved_task_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="parent_task_id" position="attributes">
+                    <attribute name="context">{'default_project_id': id, 'default_is_template': is_template}</attribute>
+                    <attribute name="domain">[('is_template', '=', is_template), '|', ('project_id', '=', id), ('project_id', '=', False)]</attribute>
+                </field>
+                <field name="previous_task_ids" position="attributes">
+                    <attribute name="context">{'default_project_id': id, 'default_is_template': is_template}</attribute>
+                    <attribute name="domain">[('is_template', '=', is_template), '|', ('project_id', '=', id), ('project_id', '=', False)]</attribute>
+                </field>
+                <field name="next_task_ids" position="attributes">
+                    <attribute name="context">{'default_project_id': id, 'default_is_template': is_template}</attribute>
+                    <attribute name="domain">[('is_template', '=', is_template), '|', ('project_id', '=', id), ('project_id', '=', False)]</attribute>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
