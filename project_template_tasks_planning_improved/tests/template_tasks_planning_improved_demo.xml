@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="template_parent_task_0" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Parent task 0 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_0"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="template_parent_task_1" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Parent task 1 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_1"/>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('template_parent_task_0')])]"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="template_parent_task_2" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Parent task 2 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_2"/>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('template_parent_task_1')])]"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="template_parent_task_3" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Parent task 3 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_3"/>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('template_parent_task_2')])]"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_1" model="project.task">
+            <field name="parent_task_id" ref="template_parent_task_0"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_2" model="project.task">
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_1')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_1"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_3" model="project.task">
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_1')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_1"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_4" model="project.task">
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_2')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_1"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_5" model="project.task">
+            <field name="parent_task_id" ref="template_parent_task_1"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_6" model="project.task">
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_4'), ref('project_template_tasks.project_task_5')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_2"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_7" model="project.task">
+            <field name="parent_task_id" ref="template_parent_task_2"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_8" model="project.task">
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_6'), ref('project_template_tasks.project_task_7')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_3"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_9" model="project.task">
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_6'), ref('project_template_tasks.project_task_7')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_3"/>
+        </record>
+
+    </data>
+</openerp>

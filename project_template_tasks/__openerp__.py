@@ -32,7 +32,7 @@ selected by default for any new project.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': ['project_template_tasks.xml'],
-    'demo': [],
+    'demo': ['tests/template_tasks_demo.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,
