@@ -37,6 +37,11 @@ msgid "Open tasks planning"
 msgstr "Ouvrir la planification des tâches"
 
 #. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Start auto-planning"
+msgstr "Lancer la planification automatique"
+
+#. module: project_planning_improved
 #: model:ir.model,name:project_planning_improved.model_project_project
 msgid "Project"
 msgstr "Projet"
@@ -60,7 +65,6 @@ msgid "Parent task"
 msgstr "Tâche parente"
 
 #. module: project_planning_improved
-#: field:project.task,previous_task_ids:0
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Links"
 msgstr "Liens"
@@ -76,3 +80,14 @@ msgstr "Tâches précédentes"
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Next tasks"
 msgstr "Tâches suivantes"
+
+#. module: project_planning_improved
+#: field:project.task,critical_task:0
+#: view:project.task:project_planning_improved.project_improved_task_search
+msgid "Critical task"
+msgstr "Tâche critique"
+
+#. module: project_planning_improved
+#: field:project.task,planned_days:0
+msgid "Initially Planned Days"
+msgstr "Nombre de jours prévus initialement"
