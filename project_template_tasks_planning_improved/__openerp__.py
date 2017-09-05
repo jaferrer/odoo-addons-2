@@ -31,7 +31,7 @@ Auto-installed module to merge project planning improved and project template ta
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': ['project_template_tasks_planning_improved.xml'],
-    'demo': [],
+    'demo': ['tests/template_tasks_planning_improved_demo.xml'],
     'test': [],
     'installable': True,
     'auto_install': True,
