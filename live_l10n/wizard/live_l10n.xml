@@ -2,12 +2,12 @@
 <openerp>
     <data>
         <record model="ir.ui.view" id="live_i18n_ir_translation_form">
-            <field name="name">live.i10n.ir.translation.form</field>
-            <field name="model">live.i10n.ir.translation</field>
+            <field name="name">live.l10n.ir.translation.form</field>
+            <field name="model">live.l10n.ir.translation</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form>
-                    <field name="line_tranlate_ids">
+                    <field name="line_translate_ids">
                             <tree editable="top" create="false" delete="false">
                                 <field name="line_id" invisible="1"/>
                                 <field name="lang"/>
