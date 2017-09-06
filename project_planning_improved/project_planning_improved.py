@@ -18,6 +18,7 @@
 #
 
 from openerp import models, fields, api, _
+from openerp.exceptions import UserError
 
 
 class ProjectImprovedProject(models.Model):
@@ -25,17 +26,20 @@ class ProjectImprovedProject(models.Model):
 
     reference_task = fields.Many2one('project.task', string=u"Reference task")
     reference_task_end_date = fields.Datetime(string=u"Reference task end date")
-    can_change_reference_task = fields.Boolean(string="Can change reference task", readonly=True,
-                                               compute="_get_change_reference_task")
 
     @api.multi
-    def _get_change_reference_task(self):
-        print "self: %s " % self
+    def check_is_reference_task_allowed(self):
+        current_user = self.env.user
         for rec in self:
-            if 63 in self.env.user.groups_id.ids or 65 in rec.env.user.groups_id.ids or 74 in rec.env.user.groups_id.ids:
-                rec.can_change_reference_task = True
-            else:
-                rec.can_change_reference_task = False
+            if rec.user_id != current_user:
+                raise UserError(_(u"You are not allowed to change the reference task (or its date) for project %s, "
+                                  u"because you are not manager of this project." % rec.display_name))
+
+    @api.multi
+    def write(self, vals):
+        if vals.get('reference_task_id') or vals.get('reference_task_end_date'):
+            self.check_is_reference_task_allowed()
+        return super(ProjectImprovedProject, self).write(vals)
 
     @api.multi
     def open_task_planning(self):

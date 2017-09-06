@@ -10,9 +10,9 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='partner_id']" position="after">
-                    <field name="reference_task" attrs="{'readonly':[('can_change_reference_task','=',False)]}"/>
-                    <field name="reference_task_end_date" attrs="{'readonly':[('can_change_reference_task','=',False)]}" />
-                    <field name="can_change_reference_task" invisible="1"/>
+                    <field name="reference_task_id" context="{'default_project_id': id}"
+                           domain="[('project_id', '=', id)]"/>
+                    <field name="reference_task_end_date"/>
                 </xpath>
                 <group name="misc" position="before">
                     <button name="open_task_planning" string="Open tasks planning" type="object"/>
@@ -96,17 +96,18 @@
                 <notebook position="inside">
                     <page string="Links">
                         <group>
-                            <field name="parent_task_id" context="{'default_project_id': id}"
-                                   domain="[('project_id', '=', id)]"/>
+                            <field name="parent_task_id" context="{'default_project_id': project_id}"
+                                   domain="[('project_id', '=', project_id)]"/>
                         </group>
                         <separator string="Previous tasks"/>
-                        <field name="previous_task_ids" context="{'default_project_id': id}"
-                               domain="[('project_id', '=', id)]"/>
+                        <field name="previous_task_ids" context="{'default_project_id': project_id}"
+                               domain="[('project_id', '=', project_id)]"/>
                         <separator string="Next tasks"/>
-                        <field name="next_task_ids" context="{'default_project_id': id}"
-                               domain="[('project_id', '=', id)]"/>
+                        <field name="next_task_ids" context="{'default_project_id': project_id}"
+                               domain="[('project_id', '=', project_id)]"/>
                         <separator string="Children tasks"/>
-                        <field name="children_task_ids"  context="{'default_project_id': id}" domain="[('project_id', '=', id)]"/>
+                        <field name="children_task_ids"  context="{'default_project_id': project_id}"
+                               domain="[('project_id', '=', project_id)]"/>
                     </page>
                 </notebook>
             </field>
