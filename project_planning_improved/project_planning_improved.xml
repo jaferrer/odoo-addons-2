@@ -126,17 +126,6 @@
         <menuitem id="menu_open_task_planning" name="Tasks planning" action="act_window_open_task_planning"
                   parent="project.menu_project_management" sequence="6"/>
 
-        <!--<record model="ir.ui.view" id="project_improved_task_form">-->
-            <!--<field name="name">project_improved_task_form</field>-->
-            <!--<field name="model">project.task</field>-->
-            <!--<field name="inherit_id" ref="project.view_task_form2"/>-->
-            <!--<field name="priority" eval="16"/>-->
-            <!--<field name="arch" type="xml">-->
-                <!--<xpath expr="//notebook" position="inside">-->
-                    <!---->
-                <!--</xpath>-->
-            <!--</field>-->
-        <!--</record>-->
         <record model="ir.ui.view" id="project_task_progress_state_search_view">
             <field name="name">project_task_state_search_view</field>
             <field name="model">project.task</field>
