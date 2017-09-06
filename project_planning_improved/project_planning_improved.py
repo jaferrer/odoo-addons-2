@@ -24,7 +24,7 @@ from openerp.exceptions import UserError
 class ProjectImprovedProject(models.Model):
     _inherit = 'project.project'
 
-    reference_task = fields.Many2one('project.task', string=u"Reference task")
+    reference_task_id = fields.Many2one('project.task', string=u"Reference task")
     reference_task_end_date = fields.Datetime(string=u"Reference task end date")
 
     @api.multi

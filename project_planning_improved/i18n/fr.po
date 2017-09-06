@@ -151,8 +151,8 @@ msgid "Objective start date"
 msgstr "Date de début objective"
 
 #. module: project_planning_improved
-#: model:ir.model.fields,field_description:project_planning_improved.field_project_project_reference_task
-#: field:project.project,reference_task:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_project_reference_task_id
+#: field:project.project,reference_task_id:0
 msgid "Reference task"
 msgstr "Tâche de référence"
 
