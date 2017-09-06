@@ -74,9 +74,7 @@ Notes
     'data': [
         'purchase_planning_improved_view.xml',
     ],
-    'demo': [
-        'purchase_planning_improved_demo.xml',
-    ],
+    'demo': [],
     'test': [],
     'installable': False,
     'auto_install': False,
