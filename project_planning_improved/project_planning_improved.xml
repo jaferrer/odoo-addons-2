@@ -74,21 +74,17 @@
                 <field name="planned_hours" position="after">
                     <field name="planned_days"/>
                 </field>
-
-                <header position="inside">
-                    <field name="progress_state" widget="statusbar"/>
-                </header>
                 <xpath expr="//notebook" position="before">
                     <group>
                         <group>
                             <field name="objective_start_date"/>
-                            <field name="exepected_start_date"/>
+                            <field name="expected_start_date"/>
                             <field name="allocated_time"/>
                             <field name="allocated_time_unit_tasks"/>
                         </group>
                         <group>
                             <field name="objective_end_date"/>
-                            <field name="exepected_end_date"/>
+                            <field name="expected_end_date"/>
                             <field name="total_allocated_time"/>
                         </group>
                     </group>
@@ -127,92 +123,5 @@
         <menuitem id="menu_open_task_planning" name="Tasks planning" action="act_window_open_task_planning"
                   parent="project.menu_project_management" sequence="6"/>
 
-        <record model="ir.ui.view" id="project_task_progress_state_search_view">
-            <field name="name">project_task_state_search_view</field>
-            <field name="model">project.task</field>
-            <field name="inherit_id" ref="project.view_task_search_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <search>
-                    <field name="progress_state"/>
-                    <filter name="to_do" string="To do" domain="[('progress_state', '=','todo')]"/>
-                    <filter name="in_progress" string="In progress" domain="[('progress_state', '=','inprogress')]"/>
-                    <filter name="completed" string="Completed" domain="[('progress_state', '=','Completed')]"/>
-                    <filter name="cancelled" string="Cancelled" domain="[('progress_state', '=','cancelled')]"/>
-                </search>
-            </field>
-        </record>
-        <record id="view_task_tree_progress_search" model="ir.ui.view">
-            <field name="name">view.task.tree.progress.search</field>
-            <field name="model">project.task</field>
-            <field name="inherit_id" ref="project.view_task_tree2"/>
-            <field eval="16" name="priority"/>
-            <field name="arch" type="xml">
-                <field name="stage_id" position="after">
-                    <field name="progress_state" invisible="1"/>
-                </field>
-            </field>
-        </record>
-        <!-- Tâches actions -->
-        <record model="ir.actions.server" id="ir_actions_server_task_set_to_do">
-            <field name="name">Set to Do</field>
-            <field name="model_id" ref="model_project_task"/>
-            <field name="code">
-                self.set_to_do(cr, uid, context['active_ids'], context=context)
-            </field>
-        </record>
-        <record id="value_set_to_do" model="ir.values">
-            <field name="key">action</field>
-            <field name="key2">client_action_multi</field>
-            <field name="model">project.task</field>
-            <field name="name">Set to do</field>
-            <field name="value" eval="'ir.actions.server,' + str(ir_actions_server_task_set_to_do)"/>
-        </record>
-
-        <record model="ir.actions.server" id="ir_actions_server_task_set_in_progress">
-            <field name="name">Set to in progress</field>
-            <field name="model_id" ref="model_project_task"/>
-            <field name="code">
-                self.set_in_progress(cr, uid, context['active_ids'], context=context)
-            </field>
-        </record>
-        <record id="value_set_in_progress" model="ir.values">
-            <field name="key">action</field>
-            <field name="key2">client_action_multi</field>
-            <field name="model">project.task</field>
-            <field name="name">Set in progress</field>
-            <field name="value" eval="'ir.actions.server,' + str(ir_actions_server_task_set_in_progress)"/>
-        </record>
-
-        <record model="ir.actions.server" id="ir_actions_server_task_set_to_completed">
-            <field name="name">Set completed</field>
-            <field name="model_id" ref="model_project_task"/>
-            <field name="code">
-                self.set_completed(cr, uid, context['active_ids'], context=context)
-            </field>
-        </record>
-        <record id="value_set_completed" model="ir.values">
-            <field name="key">action</field>
-            <field name="key2">client_action_multi</field>
-            <field name="model">project.task</field>
-            <field name="name">Set completed</field>
-            <field name="value" eval="'ir.actions.server,' + str(ir_actions_server_task_set_to_completed)"/>
-        </record>
-        <record model="ir.actions.server" id="ir_actions_server_task_set_cancelled">
-            <field name="name">Set cancelled</field>
-            <field name="model_id" ref="model_project_task"/>
-            <field name="code">
-                for rec in self:
-                rec.set_cancelled()
-            </field>
-        </record>
-        <record id="value_set_cancelled" model="ir.values">
-            <field name="key">action</field>
-            <field name="key2">client_action_multi</field>
-            <field name="model">project.task</field>
-            <field name="name">Set cancelled</field>
-            <field name="value" eval="'ir.actions.server,' + str(ir_actions_server_task_set_cancelled)"/>
-        </record>
-        <!-- fin actions -->
     </data>
 </openerp>

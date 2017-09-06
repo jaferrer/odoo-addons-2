@@ -106,17 +106,14 @@ class ProjectImprovedTask(models.Model):
     planned_days = fields.Float(string=u"Initially Planned Days")
     children_task_ids = fields.One2many('project.task', 'parent_task_id', string="Children tasks")
     objective_start_date = fields.Datetime(string="Objective start date")
-    exepected_start_date = fields.Datetime(string="Expected start date")
+    expected_start_date = fields.Datetime(string="Expected start date")
     objective_end_date = fields.Datetime(string=" Objective end date")
-    exepected_end_date = fields.Datetime(string="Expected end date")
+    expected_end_date = fields.Datetime(string="Expected end date")
     allocated_time = fields.Integer(string="Allocated time")
     allocated_time_unit_tasks = fields.Integer(string="Allocated for unit tasks",
                                                compute="_get_allocated_time_unit_tasks")
     total_allocated_time = fields.Integer(string=u"Total allocated time", compute="_get_total_allocated_time",
                                           store=True)
-    progress_state = fields.Selection(
-        [('todo', u'To do'), ('inprogress', u'In progress'), ('completed', u'Completed'), ('cancelled', u'Cancelled')],
-        string=u"State of progress", default='todo', required=True, track_visibility='onchange')
 
     @api.depends('children_task_ids.total_allocated_time')
     def _get_allocated_time_unit_tasks(self):
@@ -128,22 +125,3 @@ class ProjectImprovedTask(models.Model):
         for rec in self:
             rec.total_allocated_time = rec.allocated_time + rec.allocated_time_unit_tasks
 
-    @api.multi
-    def set_to_do(self):
-        for rec in self:
-            rec.progress_state = "todo"
-
-    @api.multi
-    def set_in_progress(self):
-        for rec in self:
-            rec.progress_state = "inprogress"
-
-    @api.multi
-    def set_completed(self):
-        for rec in self:
-            rec.progress_state = "completed"
-
-    @api.multi
-    def set_cancelled(self):
-        for rec in self:
-            rec.progress_state = "cancelled"
