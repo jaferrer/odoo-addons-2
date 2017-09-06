@@ -160,7 +160,7 @@ msgstr "Tâche de référence"
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_project_reference_task_end_date
 #: field:project.project,reference_task_end_date:0
 msgid "Reference task end date"
-msgstr "Fin de la tâche de référence"
+msgstr "Date de fin de la tâche de référence"
 
 
 #. module: project_planning_improved
@@ -194,3 +194,9 @@ msgstr "A faire"
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Children tasks"
 msgstr "Tâches enfants"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:36
+#, python-format
+msgid "You are not allowed to change the reference task (or its date) for project %s, because you are not manager of this project."
+msgstr "Vous n'êtes pas autorisé à modifier la tâche de référence (ou sa date) pour le projet %s, car vous n'êtes pas responsable de ce projet."
