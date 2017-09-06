@@ -40,6 +40,41 @@ class ProjectImprovedProject(models.Model):
             'context': ctx,
         }
 
+    @api.multi
+    def start_auto_planning(self):
+        for rec in self:
+            domain_tasks = [('project_id', '=', rec.id), ('previous_task_ids', '=', False)]
+            latest_tasks = self.env['project.task'].search(domain_tasks)
+            longest_ways_to_tasks = {task: {'tasks': task, 'nb_days': task.planned_days} for task in latest_tasks}
+            while latest_tasks:
+                new_tasks_to_proceed = self.env['project.task']
+                for latest_task in latest_tasks:
+                    new_tasks_to_proceed |= latest_task.next_task_ids
+                    for next_task in latest_task.next_task_ids:
+                        set_new_way = True
+                        if next_task in longest_ways_to_tasks.keys():
+                            old_duration_to_task = longest_ways_to_tasks[next_task]['nb_days']
+                            new_duration_to_task = longest_ways_to_tasks[latest_task]['nb_days'] + next_task.planned_days
+                            if new_duration_to_task <= old_duration_to_task:
+                                set_new_way = False
+                                # Case of two critical ways
+                                if new_duration_to_task == old_duration_to_task:
+                                    longest_ways_to_tasks[next_task]['tasks'] = longest_ways_to_tasks[next_task]['tasks'] + longest_ways_to_tasks[latest_task]['tasks']
+                        if set_new_way:
+                            longest_ways_to_tasks[next_task] = {
+                                'tasks': longest_ways_to_tasks[latest_task]['tasks'] + next_task,
+                                'nb_days': longest_ways_to_tasks[latest_task]['nb_days'] + next_task.planned_days
+                            }
+                latest_tasks = new_tasks_to_proceed
+            critical_nb_days = max([longest_ways_to_tasks[task]['nb_days'] for task in longest_ways_to_tasks.keys()])
+            critical_tasks = self.env['project.task']
+            for task in longest_ways_to_tasks.keys():
+                if longest_ways_to_tasks[task]['nb_days'] == critical_nb_days:
+                    critical_tasks |= longest_ways_to_tasks[task]['tasks']
+            not_critical_tasks = self.env['project.task'].search(domain_tasks + [('id', 'not in', critical_tasks.ids)])
+            critical_tasks.write({'critical_task': True})
+            not_critical_tasks.write({'critical_task': False})
+
 
 class ProjectImprovedTask(models.Model):
     _inherit = 'project.task'
@@ -49,3 +84,5 @@ class ProjectImprovedTask(models.Model):
                                          'previous_task_id', string=u"Previous tasks")
     next_task_ids = fields.Many2many('project.task', 'project_task_order_rel', 'previous_task_id',
                                      'next_task_id', string=u"Next tasks")
+    critical_task = fields.Boolean(string=u"Critical task", readonly=True)
+    planned_days = fields.Float(string=u"Initially Planned Days")

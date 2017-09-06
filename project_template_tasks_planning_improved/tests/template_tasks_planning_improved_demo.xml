@@ -23,7 +23,7 @@
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="name">Parent task 2 (Template tasks)</field>
-            <field name="stage_id" ref="project.project_stage_2"/>
+            <field name="stage_id" ref="project.project_stage_data_1"/>
             <field name="previous_task_ids" eval="[(6, 0, [ref('template_parent_task_1')])]"/>
             <field name="is_template" eval="True"/>
         </record>
@@ -32,7 +32,7 @@
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="name">Parent task 3 (Template tasks)</field>
-            <field name="stage_id" ref="project.project_stage_3"/>
+            <field name="stage_id" ref="project.project_stage_data_2"/>
             <field name="previous_task_ids" eval="[(6, 0, [ref('template_parent_task_2')])]"/>
             <field name="is_template" eval="True"/>
         </record>
