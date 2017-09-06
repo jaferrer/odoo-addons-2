@@ -28,7 +28,7 @@ class ProjectImprovedProject(models.Model):
     reference_task_end_date = fields.Datetime(string=u"Reference task end date")
 
     @api.multi
-    def check_is_reference_task_allowed(self):
+    def check_modification_reference_task_allowed(self):
         current_user = self.env.user
         for rec in self:
             if rec.user_id != current_user:
@@ -38,7 +38,7 @@ class ProjectImprovedProject(models.Model):
     @api.multi
     def write(self, vals):
         if vals.get('reference_task_id') or vals.get('reference_task_end_date'):
-            self.check_is_reference_task_allowed()
+            self.check_modification_reference_task_allowed()
         return super(ProjectImprovedProject, self).write(vals)
 
     @api.multi
