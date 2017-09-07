@@ -105,9 +105,9 @@ class ProjectImprovedTask(models.Model):
     critical_task = fields.Boolean(string=u"Critical task", readonly=True)
     planned_days = fields.Float(string=u"Initially Planned Days")
     children_task_ids = fields.One2many('project.task', 'parent_task_id', string=u"Children tasks")
-    objective_start_date = fields.Datetime(string=u"Objective start date")
+    objective_start_date = fields.Datetime(string=u"Objective start date", readonly=True)
     expected_start_date = fields.Datetime(string=u"Expected start date")
-    objective_end_date = fields.Datetime(string=u"Objective end date")
+    objective_end_date = fields.Datetime(string=u"Objective end date", readonly=True)
     expected_end_date = fields.Datetime(string=u"Expected end date")
     allocated_time = fields.Float(string=u"Allocated number of days")
     allocated_time_unit_tasks = fields.Float(string=u"Allocated number of days for unit tasks",
