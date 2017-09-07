@@ -18,20 +18,20 @@
 #
 
 {
-    'name': 'Project Planning Improved',
+    'name': 'Project Planning Improved By Hours',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'resource_improved'],
+    'depends': ['project_planning_improved'],
     'description': """
-Project Planning Improved
-=========================
-This module implement the improved planning to the project module.
+Project Planning Improved By Hours
+==================================
+This module implement the improved planning by hours to the project module.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_planning_improved.xml'],
-    'demo': ['tests/project_planning_improved_demo.xml'],
+    'data': ['project_planning_improved_by_hours.xml'],
+    'demo': ['tests/project_planning_improved_by_hours_demo.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,

@@ -16,6 +16,7 @@
                 </xpath>
                 <group name="misc" position="before">
                     <button name="open_task_planning" string="Open tasks planning" type="object"/>
+                    <button name="start_auto_planning" type="object" string="Start auto-planning"/>
                 </group>
             </field>
         </record>
@@ -33,7 +34,7 @@
                     <field name="date_end"/>
                     <field name="date_deadline"/>
                     <field name="critical_task"/>
-                    <field name="planned_days"/>
+                    <field name="planned_duration"/>
                 </tree>
             </field>
         </record>
@@ -45,7 +46,9 @@
             <field name="arch" type="xml">
                 <tree position="inside">
                     <field name="critical_task"/>
-                    <field name="planned_days"/>
+                    <field name="planned_duration"/>
+                    <field name="previous_task_ids" widget="many2many_tags"/>
+                    <field name="next_task_ids" widget="many2many_tags"/>
                 </tree>
             </field>
         </record>
@@ -72,20 +75,20 @@
                     <field name="critical_task"/>
                 </field>
                 <field name="planned_hours" position="after">
-                    <field name="planned_days"/>
+                    <field name="planned_duration"/>
                 </field>
                 <xpath expr="//notebook" position="before">
                     <group>
                         <group>
-                            <field name="objective_start_date"/>
-                            <field name="expected_start_date"/>
-                            <field name="allocated_time"/>
-                            <field name="allocated_time_unit_tasks"/>
+                            <field name="objective_start_date" widget="date"/>
+                            <field name="expected_start_date" widget="date"/>
+                            <field name="allocated_duration"/>
+                            <field name="allocated_duration_unit_tasks"/>
                         </group>
                         <group>
-                            <field name="objective_end_date"/>
-                            <field name="expected_end_date"/>
-                            <field name="total_allocated_time"/>
+                            <field name="objective_end_date" widget="date"/>
+                            <field name="expected_end_date" widget="date"/>
+                            <field name="total_allocated_duration"/>
                         </group>
                     </group>
                 </xpath>

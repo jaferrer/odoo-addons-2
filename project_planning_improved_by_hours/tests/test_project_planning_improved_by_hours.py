@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,24 +17,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Project Planning Improved',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project', 'resource_improved'],
-    'description': """
-Project Planning Improved
-=========================
-This module implement the improved planning to the project module.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_planning_improved.xml'],
-    'demo': ['tests/project_planning_improved_demo.xml'],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from openerp.tests import common
+
+

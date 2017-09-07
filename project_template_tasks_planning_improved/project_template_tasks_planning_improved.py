@@ -29,7 +29,7 @@ class PlanningImprovedTemplateTaskType(models.Model):
         result['next_task_ids'] = False
         result['previous_task_ids'] = False
         result['critical_task'] = False
-        result['planned_days'] = task.planned_days
+        result['planned_time'] = task.planned_time
         return result
 
     @api.multi
