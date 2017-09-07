@@ -104,24 +104,19 @@ class ProjectImprovedTask(models.Model):
                                      'next_task_id', string=u"Next tasks")
     critical_task = fields.Boolean(string=u"Critical task", readonly=True)
     planned_days = fields.Float(string=u"Initially Planned Days")
-    children_task_ids = fields.One2many('project.task', 'parent_task_id', string="Children tasks")
-    objective_start_date = fields.Datetime(string="Objective start date")
-    expected_start_date = fields.Datetime(string="Expected start date")
-    objective_end_date = fields.Datetime(string=" Objective end date")
-    expected_end_date = fields.Datetime(string="Expected end date")
-    allocated_time = fields.Integer(string="Allocated time")
-    allocated_time_unit_tasks = fields.Integer(string="Allocated for unit tasks",
-                                               compute="_get_allocated_time_unit_tasks")
-    total_allocated_time = fields.Integer(string=u"Total allocated time", compute="_get_total_allocated_time",
+    children_task_ids = fields.One2many('project.task', 'parent_task_id', string=u"Children tasks")
+    objective_start_date = fields.Datetime(string=u"Objective start date")
+    expected_start_date = fields.Datetime(string=u"Expected start date")
+    objective_end_date = fields.Datetime(string=u"Objective end date")
+    expected_end_date = fields.Datetime(string=u"Expected end date")
+    allocated_time = fields.Float(string=u"Allocated number of days")
+    allocated_time_unit_tasks = fields.Float(string=u"Allocated number of days for unit tasks",
+                                             compute='_get_allocated_time', store=True)
+    total_allocated_time = fields.Integer(string=u"Total allocated number of days", compute='_get_allocated_time',
                                           store=True)
 
-    @api.depends('children_task_ids.total_allocated_time')
-    def _get_allocated_time_unit_tasks(self):
-        for record in self:
-            record.allocated_time_unit_tasks = sum(line.total_allocated_time for line in record.children_task_ids)
-
-    @api.depends('allocated_time_unit_tasks', 'allocated_time')
-    def _get_total_allocated_time(self):
+    @api.depends('children_task_ids', 'children_task_ids.total_allocated_time', 'allocated_time')
+    def _get_allocated_time(self):
         for rec in self:
+            rec.allocated_time_unit_tasks = sum(line.total_allocated_time for line in rec.children_task_ids)
             rec.total_allocated_time = rec.allocated_time + rec.allocated_time_unit_tasks
-
