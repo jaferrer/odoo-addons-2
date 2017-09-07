@@ -17,11 +17,29 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api, fields, _
+from openerp import models, fields, api, _
+from openerp.exceptions import UserError
 
 
 class ProjectImprovedProject(models.Model):
     _inherit = 'project.project'
+
+    reference_task_id = fields.Many2one('project.task', string=u"Reference task")
+    reference_task_end_date = fields.Datetime(string=u"Reference task end date")
+
+    @api.multi
+    def check_modification_reference_task_allowed(self):
+        current_user = self.env.user
+        for rec in self:
+            if rec.user_id != current_user:
+                raise UserError(_(u"You are not allowed to change the reference task (or its date) for project %s, "
+                                  u"because you are not manager of this project." % rec.display_name))
+
+    @api.multi
+    def write(self, vals):
+        if vals.get('reference_task_id') or vals.get('reference_task_end_date'):
+            self.check_modification_reference_task_allowed()
+        return super(ProjectImprovedProject, self).write(vals)
 
     @api.multi
     def open_task_planning(self):
@@ -86,3 +104,24 @@ class ProjectImprovedTask(models.Model):
                                      'next_task_id', string=u"Next tasks")
     critical_task = fields.Boolean(string=u"Critical task", readonly=True)
     planned_days = fields.Float(string=u"Initially Planned Days")
+    children_task_ids = fields.One2many('project.task', 'parent_task_id', string="Children tasks")
+    objective_start_date = fields.Datetime(string="Objective start date")
+    expected_start_date = fields.Datetime(string="Expected start date")
+    objective_end_date = fields.Datetime(string=" Objective end date")
+    expected_end_date = fields.Datetime(string="Expected end date")
+    allocated_time = fields.Integer(string="Allocated time")
+    allocated_time_unit_tasks = fields.Integer(string="Allocated for unit tasks",
+                                               compute="_get_allocated_time_unit_tasks")
+    total_allocated_time = fields.Integer(string=u"Total allocated time", compute="_get_total_allocated_time",
+                                          store=True)
+
+    @api.depends('children_task_ids.total_allocated_time')
+    def _get_allocated_time_unit_tasks(self):
+        for record in self:
+            record.allocated_time_unit_tasks = sum(line.total_allocated_time for line in record.children_task_ids)
+
+    @api.depends('allocated_time_unit_tasks', 'allocated_time')
+    def _get_total_allocated_time(self):
+        for rec in self:
+            rec.total_allocated_time = rec.allocated_time + rec.allocated_time_unit_tasks
+
