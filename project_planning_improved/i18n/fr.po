@@ -147,28 +147,6 @@ msgstr "Tâche de référence"
 msgid "Reference task end date"
 msgstr "Date de fin de la tâche de référence"
 
-
-#. module: project_planning_improved
-#: model:ir.actions.server,name:project_planning_improved.ir_actions_server_task_set_cancelled
-msgid "Set cancelled"
-msgstr "Mettre en annulé"
-
-#. module: project_planning_improved
-#: model:ir.actions.server,name:project_planning_improved.ir_actions_server_task_set_to_completed
-msgid "Set completed"
-msgstr "Mettre en terminé"
-
-
-#. module: project_planning_improved
-#: model:ir.actions.server,name:project_planning_improved.ir_actions_server_task_set_to_do
-msgid "Set to Do"
-msgstr "Mettre en à faire"
-
-#. module: project_planning_improved
-#: model:ir.actions.server,name:project_planning_improved.ir_actions_server_task_set_in_progress
-msgid "Set to in progress"
-msgstr "Mettre en cours"
-
 #. module: project_planning_improved
 #: field:project.task,children_task_ids:0
 #: view:project.task:project_planning_improved.project_improved_task_form

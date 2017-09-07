@@ -105,9 +105,9 @@ class ProjectImprovedTask(models.Model):
     critical_task = fields.Boolean(string=u"Critical task", readonly=True)
     planned_days = fields.Float(string=u"Initially Planned Days")
     children_task_ids = fields.One2many('project.task', 'parent_task_id', string=u"Children tasks")
-    objective_start_date = fields.Datetime(string=u"Objective start date")
+    objective_start_date = fields.Datetime(string=u"Objective start date", readonly=True)
     expected_start_date = fields.Datetime(string=u"Expected start date")
-    objective_end_date = fields.Datetime(string=u"Objective end date")
+    objective_end_date = fields.Datetime(string=u"Objective end date", readonly=True)
     expected_end_date = fields.Datetime(string=u"Expected end date")
     allocated_time = fields.Float(string=u"Allocated number of days")
     allocated_time_unit_tasks = fields.Float(string=u"Allocated number of days for unit tasks",
@@ -117,6 +117,13 @@ class ProjectImprovedTask(models.Model):
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_time', 'allocated_time')
     def _get_allocated_time(self):
-        for rec in self:
-            rec.allocated_time_unit_tasks = sum(line.total_allocated_time for line in rec.children_task_ids)
-            rec.total_allocated_time = rec.allocated_time + rec.allocated_time_unit_tasks
+        records = self
+        while records:
+            rec = records[0]
+            if any([task in records for task in rec.children_task_ids]):
+                records = records[1:]
+                records += rec
+            else:
+                rec.allocated_time_unit_tasks = sum(line.total_allocated_time for line in rec.children_task_ids)
+                rec.total_allocated_time = rec.allocated_time + rec.allocated_time_unit_tasks
+                records -= rec
