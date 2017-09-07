@@ -96,20 +96,20 @@ msgstr "Nombre de jours prévus initialement"
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_time
 #: field:project.task,allocated_time:0
-msgid "Allocated time"
-msgstr "Temps alloué"
+msgid "Allocated number of days"
+msgstr "Nombre de jours alloués"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_total_allocated_time
 #: field:project.task,total_allocated_time:0
-msgid "Total allocated time"
-msgstr "Temps total alloué"
+msgid "Total allocated number of days"
+msgstr "Nombre total de jours alloués"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_time_unit_tasks
 #: field:project.task,allocated_time_unit_tasks:0
-msgid "Allocated time for unit tasks"
-msgstr "Temps alloué des tâches unitaires"
+msgid "Allocated number of days for unit tasks"
+msgstr "Nombre de jours alloués pour les tâches unitaires"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_end_date
