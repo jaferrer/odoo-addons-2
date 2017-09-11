@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_resource_day_of_week,access_resource_day_of_week,model_resource_day_of_week,base.group_user,1,0,0,0
+access_pre_computed_calendar_delays,access_pre_computed_calendar_delays,model_pre_computed_calendar_delays,base.group_user,1,0,0,0
+access_resource_calendar,access_resource_calendar,resource.model_resource_calendar,base.group_user,1,0,0,0
+access_resource_calendar_attendance,access_resource_calendar_attendace,resource.model_resource_calendar_attendance,base.group_user,1,0,0,0

@@ -77,19 +77,9 @@ msgstr ""
 "  des mouvements chainés, où l'entrepôt de la demande d'approvisionnement est l'entrepôt du bout de la chaine.\n"
 
 #. module: stock_working_days
-#: field:resource.day_of_week,code:0
-msgid "# day of the week"
-msgstr "N° du jour de la semaine"
-
-#. module: stock_working_days
 #: model:ir.model,name:stock_working_days.model_res_company
 msgid "Companies"
 msgstr "Sociétés"
-
-#. module: stock_working_days
-#: field:res.company,calendar_id:0
-msgid "Company default calendar"
-msgstr "Calendrier par défaut de l'entreprise"
 
 #. module: stock_working_days
 #: field:resource.day_of_week,create_uid:0
@@ -100,16 +90,6 @@ msgstr "Créé par"
 #: field:resource.day_of_week,create_date:0
 msgid "Created on"
 msgstr "Créé le"
-
-#. module: stock_working_days
-#: field:resource.day_of_week,name:0
-msgid "Day of the week"
-msgstr "Jour de la semaine"
-
-#. module: stock_working_days
-#: model:ir.model,name:stock_working_days.model_resource_day_of_week
-msgid "Days of the week"
-msgstr "Jours de la semaine"
 
 #. module: stock_working_days
 #: field:procurement.rule,days_of_week:0
@@ -165,11 +145,6 @@ msgstr "Calendrier de la ressource"
 #: help:procurement.rule,days_of_week:0
 msgid "Set here the days of the week on which this rule can be trigerred. Leave empty for moves that can be performed on any day of the week."
 msgstr "Choisissez ici les jours de la semaine où cette règle peut être déclenchée. Laissez vide pour les mouvements qui peuvent être réalisés n'importe quel jour de la semaine."
-
-#. module: stock_working_days
-#: help:res.company,calendar_id:0
-msgid "The default calendar of the company to define working days. This calendar is used for locations outside warehouses or for warehouses without a calendar defined. If undefined here the default calendar will consider working days being Monday to Friday."
-msgstr "Le calendrier par défaut de l'entreprise pour définir les jours ouvrés. Ce calendrier est utilisé pour les emplacement en dehors de l'entreprise ou pour les entrepôts sans calendrier défini. S'il n'est pas défini, le calendrier par défaut prendra les jours ouvrés du lundi au vendredi."
 
 #. module: stock_working_days
 #: help:stock.warehouse,resource_id:0
