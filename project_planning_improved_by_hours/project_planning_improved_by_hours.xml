@@ -2,6 +2,18 @@
 <openerp>
     <data>
 
+        <record model="ir.ui.view" id="project_improved_project_form">
+            <field name="name">project_improved_project_form</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project_planning_improved.project_improved_project_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="reference_task_end_date" position="attributes">
+                    <attribute name="widget"/>
+                </field>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="project_improved_task_form">
             <field name="name">project_improved_task_form</field>
             <field name="model">project.task</field>

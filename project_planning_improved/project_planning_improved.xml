@@ -12,7 +12,7 @@
                 <xpath expr="//field[@name='partner_id']" position="after">
                     <field name="reference_task_id" context="{'default_project_id': id}"
                            domain="[('project_id', '=', id)]"/>
-                    <field name="reference_task_end_date"/>
+                    <field name="reference_task_end_date" widget="date"/>
                 </xpath>
                 <group name="misc" position="before">
                     <button name="open_task_planning" string="Open tasks planning" type="object"/>

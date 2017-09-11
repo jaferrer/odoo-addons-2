@@ -157,7 +157,7 @@ class ProjectImprovedTask(models.Model):
     allocated_duration_unit_tasks = fields.Float(string=u"Allocated duration for unit tasks",
                                              help=u"In project time unit of the comany",
                                              compute='_get_allocated_duration', store=True)
-    total_allocated_duration = fields.Integer(string=u"Total allocated number of days", compute='_get_allocated_duration',
+    total_allocated_duration = fields.Integer(string=u"Total allocated duration", compute='_get_allocated_duration',
                                           help=u"In project time unit of the comany", store=True)
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
@@ -184,26 +184,42 @@ class ProjectImprovedTask(models.Model):
         :param nb_hours: Number of hours to add/remove
         """
         self.ensure_one()
-        resource = self.env['resource.resource'].search([('user_id', '=', self.env.user.id),
-                                                         ('resource_type', '=', 'user')], limit=1)
+        resource = False
+        if self.user_id:
+            resource = self.env['resource.resource'].search([('user_id', '=', self.user_id.id),
+                                                             ('resource_type', '=', 'user')], limit=1)
+        if not resource:
+            resource = self.env['resource.resource'].search([('user_id', '=', self.env.user.id),
+                                                             ('resource_type', '=', 'user')], limit=1)
         calendar = resource and resource.calendar_id or False
         if not calendar:
             calendar = self.env.ref('resource_improved.default_calendar')
         target_date = date_ref
         if nb_days:
+            if nb_days > 0:
+                nb_days += 1
             if calendar and resource:
-                target_date = calendar.schedule_days_get_date(nb_days, date_ref, compute_leaves=True,
-                                                              resource_id=resource.id)
+                target_date = calendar.schedule_days_get_date(nb_days, target_date, compute_leaves=True,
+                                                              resource_id=resource and resource.id or False)
                 target_date = target_date and target_date[0] or False
             else:
-                target_date = date_ref - relativedelta(days=nb_days)
+                target_date = target_date - relativedelta(days=nb_days)
         if nb_hours:
             if calendar and resource:
-                target_date = calendar.schedule_days_get_date(nb_hours, date_ref, compute_leaves=True,
-                                                              resource_id=resource.id)
-                target_date = target_date and target_date[0] or False
+                available_intervals = calendar.schedule_hours(nb_hours, target_date, compute_leaves=True,
+                                                              resource_id=resource and resource.id or False)
+                if nb_hours > 0:
+                    target_date = available_intervals and \
+                                  max([max([max(interval_tuple) for interval_tuple in interval_list if
+                                            interval_tuple[0] != interval_tuple[1]]) for
+                                       interval_list in available_intervals]) or False
+                else:
+                    target_date = available_intervals and \
+                                  min([min([min(interval_tuple) for interval_tuple in interval_list if
+                                            interval_tuple[0] != interval_tuple[1]]) for
+                                       interval_list in available_intervals]) or False
             else:
-                target_date = date_ref - relativedelta(hours=nb_hours)
+                target_date = target_date - relativedelta(hours=nb_hours)
         return target_date
 
     @api.depends('objective_end_date', 'planned_duration')
