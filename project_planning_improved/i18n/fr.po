@@ -162,6 +162,11 @@ msgid "Children tasks"
 msgstr "Tâches enfants"
 
 #. module: project_planning_improved
+#: field:project.task,taken_into_account:0
+msgid "Taken into account"
+msgstr "Pris en compte"
+
+#. module: project_planning_improved
 #: code:addons\project_planning_improved\project_planning_improved.py:36
 #, python-format
 msgid "You are not allowed to change the reference task (or its date) for project %s, because you are not manager of this project."

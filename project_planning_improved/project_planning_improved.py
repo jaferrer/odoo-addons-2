@@ -187,6 +187,7 @@ class ProjectImprovedTask(models.Model):
                                              compute='_get_allocated_duration', store=True)
     total_allocated_duration = fields.Integer(string=u"Total allocated duration", compute='_get_allocated_duration',
                                           help=u"In project time unit of the comany", store=True)
+    taken_into_account = fields.Boolean(string=u"Taken into account")
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
     @api.multi
@@ -202,6 +203,12 @@ class ProjectImprovedTask(models.Model):
                                                         line in rec.children_task_ids)
                 rec.total_allocated_duration = rec.allocated_duration + rec.allocated_duration_unit_tasks
                 records -= rec
+
+    @api.onchange('expected_start_date', 'expected_end_date')
+    @api.multi
+    def onchange_expected_dates(self):
+        for rec in self:
+            rec.taken_into_account = True
 
     @api.multi
     def schedule_get_date(self, date_ref, nb_days=0, nb_hours=0):

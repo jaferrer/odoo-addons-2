@@ -89,6 +89,7 @@
                             <field name="objective_end_date" widget="date"/>
                             <field name="expected_end_date" widget="date"/>
                             <field name="total_allocated_duration"/>
+                            <field name="taken_into_account"/>
                         </group>
                     </group>
                 </xpath>
