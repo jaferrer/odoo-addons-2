@@ -88,9 +88,9 @@ msgid "Critical task"
 msgstr "Tâche critique"
 
 #. module: project_planning_improved
-#: field:project.task,planned_duration:0
-msgid "Initially Planned Duration"
-msgstr "Durée initiallement prévue"
+#: field:project.task,objective_duration:0
+msgid "Objective Needed Time"
+msgstr "Durée initialement prévue"
 
 
 #. module: project_planning_improved
@@ -112,7 +112,7 @@ msgid "Allocated duration for unit tasks"
 msgstr "Tempas alloué pour les tâches unitaires"
 
 #. module: project_planning_improved
-#: help:project.task,planned_duration:0
+#: help:project.task,objective_duration:0
 #: help:project.task,allocated_duration:0
 #: help:project.task,allocated_duration_unit_tasks:0
 #: help:project.task,total_allocated_duration:0

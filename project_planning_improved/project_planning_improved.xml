@@ -34,7 +34,7 @@
                     <field name="date_end"/>
                     <field name="date_deadline"/>
                     <field name="critical_task"/>
-                    <field name="planned_duration"/>
+                    <field name="objective_duration"/>
                 </tree>
             </field>
         </record>
@@ -46,7 +46,7 @@
             <field name="arch" type="xml">
                 <tree position="inside">
                     <field name="critical_task"/>
-                    <field name="planned_duration"/>
+                    <field name="objective_duration"/>
                     <field name="previous_task_ids" widget="many2many_tags"/>
                     <field name="next_task_ids" widget="many2many_tags"/>
                 </tree>
@@ -75,7 +75,7 @@
                     <field name="critical_task"/>
                 </field>
                 <field name="planned_hours" position="after">
-                    <field name="planned_duration"/>
+                    <field name="objective_duration"/>
                 </field>
                 <xpath expr="//notebook" position="before">
                     <group>
@@ -125,6 +125,19 @@
 
         <menuitem id="menu_open_task_planning" name="Tasks planning" action="act_window_open_task_planning"
                   parent="project.menu_project_management" sequence="6"/>
+
+        <record id="project_task_timeline" model="ir.ui.view">
+            <field name="name">project_task_timeline</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project_timeline.project_task_timeline"/>
+            <field name="type">timeline</field>
+            <field name="arch" type="xml">
+                <timeline position="attributes">
+                    <attribute name="date_start">objective_start_date</attribute>
+                    <attribute name="date_stop">objective_end_date</attribute>
+                </timeline>
+            </field>
+        </record>
 
     </data>
 </openerp>

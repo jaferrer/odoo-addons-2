@@ -25,7 +25,7 @@ class ProjectPlanningByHoursProject(models.Model):
 
     @api.multi
     def schedule_get_date(self, date_ref, nb_days=0, nb_hours=0):
-        """This function is overwritten to consider planned_duration of tasks as a number of time units of the
+        """This function is overwritten to consider objective_duration of tasks as a number of time units of the
         company."""
         hour_unit = self.env.ref('product.product_uom_hour')
         day_unit = self.env.ref('product.product_uom_day')

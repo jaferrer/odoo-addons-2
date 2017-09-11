@@ -65,7 +65,7 @@ class ProjectImprovedProject(models.Model):
         for rec in self:
             domain_tasks = [('project_id', '=', rec.id), ('previous_task_ids', '=', False)]
             latest_tasks = self.env['project.task'].search(domain_tasks)
-            longest_ways_to_tasks = {task: {'tasks': task, 'nb_days': task.planned_duration} for task in latest_tasks}
+            longest_ways_to_tasks = {task: {'tasks': task, 'nb_days': task.objective_duration} for task in latest_tasks}
             while latest_tasks:
                 new_tasks_to_proceed = self.env['project.task']
                 for latest_task in latest_tasks:
@@ -74,7 +74,7 @@ class ProjectImprovedProject(models.Model):
                         set_new_way = True
                         if next_task in longest_ways_to_tasks.keys():
                             old_duration_to_task = longest_ways_to_tasks[next_task]['nb_days']
-                            new_duration_to_task = longest_ways_to_tasks[latest_task]['nb_days'] + next_task.planned_duration
+                            new_duration_to_task = longest_ways_to_tasks[latest_task]['nb_days'] + next_task.objective_duration
                             if new_duration_to_task <= old_duration_to_task:
                                 set_new_way = False
                                 # Case of two critical ways
@@ -84,7 +84,7 @@ class ProjectImprovedProject(models.Model):
                         if set_new_way:
                             longest_ways_to_tasks[next_task] = {
                                 'tasks': longest_ways_to_tasks[latest_task]['tasks'] + next_task,
-                                'nb_days': longest_ways_to_tasks[latest_task]['nb_days'] + next_task.planned_duration
+                                'nb_days': longest_ways_to_tasks[latest_task]['nb_days'] + next_task.objective_duration
                             }
                 latest_tasks = new_tasks_to_proceed
             critical_nb_days = max([longest_ways_to_tasks[task]['nb_days'] for task in longest_ways_to_tasks.keys()])
@@ -102,6 +102,16 @@ class ProjectImprovedProject(models.Model):
             rec.update_critical_tasks()
             if rec.reference_task_id and rec.reference_task_end_date:
                 rec.update_objective_dates()
+                rec.update_objective_dates_parent_tasks()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'project.task',
+            'name': _("Tasks"),
+            'view_type': 'form',
+            'view_mode': 'timeline,tree,form',
+            'domain': [('project_id', 'in', self.ids)],
+            'context': self.env.context
+        }
 
     @api.multi
     def update_objective_dates(self):
@@ -121,14 +131,14 @@ class ProjectImprovedProject(models.Model):
                 for previous_task in previous_tasks:
                     previous_task.objective_end_date = min([task.objective_start_date for
                                                             task in previous_task.next_task_ids if
-                                                            task.objective_start_date])
+                                                            task.objective_start_date] or [False])
                     planned_tasks |= previous_task
                     new_previous_tasks |= previous_task.previous_task_ids.filtered(lambda task: task not in planned_tasks)
                     new_next_tasks |= previous_task.next_task_ids.filtered(lambda task: task not in planned_tasks)
                 for next_task in next_tasks:
                     objective_start_date = max([task.objective_end_date for
                                                 task in next_task.previous_task_ids if
-                                                task.objective_end_date])
+                                                task.objective_end_date] or [False])
                     next_task.set_objective_end_date_from_start_date(objective_start_date)
                     planned_tasks |= next_task
                     new_previous_tasks |= next_task.previous_task_ids.filtered(lambda task: task not in planned_tasks)
@@ -136,9 +146,26 @@ class ProjectImprovedProject(models.Model):
                 previous_tasks = new_previous_tasks
                 next_tasks = new_next_tasks
 
+    @api.multi
+    def update_objective_dates_parent_tasks(self):
+        for rec in self:
+            parent_tasks = self.env['project.task'].search([('project_id', '=', rec.id),
+                                                            '|', ('objective_start_date', '=', False),
+                                                            ('objective_end_date', '=', False)])
+            for parent_task in parent_tasks:
+                children_tasks = self.env['project.task'].search([('id', 'child_of', parent_task.id)])
+                if children_tasks:
+                    min_objective_start_date = min([task.objective_start_date for
+                                                    task in children_tasks if task.objective_start_date] or [False])
+                    max_objective_end_date = max([task.objective_end_date for
+                                                  task in children_tasks if task.objective_end_date] or [False])
+                    parent_task.with_context(force_objective_start_date=min_objective_start_date). \
+                        write({'objective_end_date': max_objective_end_date})
+
 
 class ProjectImprovedTask(models.Model):
     _inherit = 'project.task'
+    _parent_name = 'parent_task_id'
 
     parent_task_id = fields.Many2one('project.task', string=u"Parent task")
     previous_task_ids = fields.Many2many('project.task', 'project_task_order_rel', 'next_task_id',
@@ -146,7 +173,8 @@ class ProjectImprovedTask(models.Model):
     next_task_ids = fields.Many2many('project.task', 'project_task_order_rel', 'previous_task_id',
                                      'next_task_id', string=u"Next tasks")
     critical_task = fields.Boolean(string=u"Critical task", readonly=True)
-    planned_duration = fields.Float(string=u"Initially Planned Time", help=u"In project time unit of the comany")
+    objective_duration = fields.Float(string=u"Objective Needed Time",
+                                      help=u"In project time unit of the comany")
     children_task_ids = fields.One2many('project.task', 'parent_task_id', string=u"Children tasks")
     objective_end_date = fields.Datetime(string=u"Objective end date", readonly=True)
     expected_end_date = fields.Datetime(string=u"Expected end date")
@@ -170,7 +198,8 @@ class ProjectImprovedTask(models.Model):
                 records = records[1:]
                 records += rec
             else:
-                rec.allocated_duration_unit_tasks = sum(line.total_allocated_duration for line in rec.children_task_ids)
+                rec.allocated_duration_unit_tasks = sum(line.total_allocated_duration for
+                                                        line in rec.children_task_ids)
                 rec.total_allocated_duration = rec.allocated_duration + rec.allocated_duration_unit_tasks
                 records -= rec
 
@@ -184,6 +213,7 @@ class ProjectImprovedTask(models.Model):
         :param nb_hours: Number of hours to add/remove
         """
         self.ensure_one()
+        do_not_use_any_calendar = self.env.context.get('do_not_use_any_calendar')
         resource = False
         if self.user_id:
             resource = self.env['resource.resource'].search([('user_id', '=', self.user_id.id),
@@ -196,16 +226,16 @@ class ProjectImprovedTask(models.Model):
             calendar = self.env.ref('resource_improved.default_calendar')
         target_date = date_ref
         if nb_days:
-            if nb_days > 0:
-                nb_days += 1
-            if calendar and resource:
+            if calendar and resource and not do_not_use_any_calendar:
+                if nb_days > 0:
+                    nb_days += 1
                 target_date = calendar.schedule_days_get_date(nb_days, target_date, compute_leaves=True,
                                                               resource_id=resource and resource.id or False)
                 target_date = target_date and target_date[0] or False
             else:
                 target_date = target_date - relativedelta(days=nb_days)
         if nb_hours:
-            if calendar and resource:
+            if calendar and resource and not do_not_use_any_calendar:
                 available_intervals = calendar.schedule_hours(nb_hours, target_date, compute_leaves=True,
                                                               resource_id=resource and resource.id or False)
                 if nb_hours > 0:
@@ -222,17 +252,19 @@ class ProjectImprovedTask(models.Model):
                 target_date = target_date - relativedelta(hours=nb_hours)
         return target_date
 
-    @api.depends('objective_end_date', 'planned_duration')
+    @api.depends('objective_end_date', 'objective_duration')
     @api.multi
     def _compute_objective_start_date(self):
+        force_objective_start_date = self.env.context.get('force_objective_start_date')
         for rec in self:
-            rec.objective_start_date = rec.objective_end_date and \
+            rec.objective_start_date = force_objective_start_date or rec.objective_end_date and \
                 rec.schedule_get_date(fields.Datetime.from_string(rec.objective_end_date),
-                                      nb_days=-rec.planned_duration) or False
+                                      nb_days=-rec.objective_duration) or False
 
     @api.multi
     def set_objective_end_date_from_start_date(self, objective_start_date):
+        force_objective_end_date = self.env.context.get('force_objective_end_date')
         for rec in self:
-            rec.objective_end_date = objective_start_date and \
+            rec.objective_end_date = force_objective_end_date or objective_start_date and \
                 rec.schedule_get_date(fields.Datetime.from_string(objective_start_date),
-                                      nb_days=rec.planned_duration) or False
+                                      nb_days=rec.objective_duration) or False
