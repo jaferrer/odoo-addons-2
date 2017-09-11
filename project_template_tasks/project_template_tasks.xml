@@ -59,7 +59,6 @@
                                     <field name="name"/>
                                     <field name="user_id"/>
                                     <field name="is_template"/>
-                                    <field name="critical_task"/>
                                 </tree>
                             </field>
                         </page>
