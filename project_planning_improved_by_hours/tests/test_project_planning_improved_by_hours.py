@@ -20,9 +20,13 @@
 from openerp.tests import common
 
 
-class TestTemplateTasksPlanningImproved(common.TransactionCase):
+class TestPlanningImprovedByHours(common.TransactionCase):
     def setUp(self):
-        super(TestTemplateTasksPlanningImproved, self).setUp()
+        super(TestPlanningImprovedByHours, self).setUp()
+        self.company = self.browse_ref('base.main_company')
+        self.half_day_unit = self.browse_ref('project_planning_improved_by_hours.product_uom_unit_half_days')
+        self.day_unit = self.browse_ref('product.product_uom_day')
+        self.company.project_time_mode_id = self.half_day_unit
         self.test_project = self.browse_ref('project_planning_improved.project_planning_improved_test_project')
         self.parent_task_0 = self.browse_ref('project_planning_improved.parent_task_0')
         self.parent_task_1 = self.browse_ref('project_planning_improved.parent_task_1')
@@ -38,54 +42,11 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.project_task_8 = self.browse_ref('project_planning_improved.project_task_8')
         self.project_task_9 = self.browse_ref('project_planning_improved.project_task_9')
 
-    def test_10_critical_task(self):
-        """Testing the calculation of field 'critical_task'."""
-
-        self.test_project.start_auto_planning()
-        self.assertTrue(self.project_task_1.critical_task)
-        self.assertTrue(self.project_task_2.critical_task)
-        self.assertFalse(self.project_task_3.critical_task)
-        self.assertTrue(self.project_task_4.critical_task)
-        self.assertFalse(self.project_task_5.critical_task)
-        self.assertTrue(self.project_task_6.critical_task)
-        self.assertTrue(self.project_task_7.critical_task)
-        self.assertFalse(self.project_task_8.critical_task)
-        self.assertTrue(self.project_task_9.critical_task)
-
-    def test_20_allocated_duration(self):
-        """Testing calculation of fields 'allocated_duration_unit_tasks' and 'total_allocated_duration'."""
-        self.assertEqual(self.project_task_1.allocated_duration_unit_tasks, 0)
-        self.assertEqual(self.project_task_1.total_allocated_duration, 1)
-        self.assertEqual(self.project_task_2.allocated_duration_unit_tasks, 0)
-        self.assertEqual(self.project_task_2.total_allocated_duration, 3)
-        self.assertEqual(self.project_task_3.allocated_duration_unit_tasks, 0)
-        self.assertEqual(self.project_task_3.total_allocated_duration, 2)
-        self.assertEqual(self.project_task_4.allocated_duration_unit_tasks, 0)
-        self.assertEqual(self.project_task_4.total_allocated_duration, 5)
-        self.assertEqual(self.project_task_5.allocated_duration_unit_tasks, 0)
-        self.assertEqual(self.project_task_5.total_allocated_duration, 7)
-        self.assertEqual(self.project_task_6.allocated_duration_unit_tasks, 0)
-        self.assertEqual(self.project_task_6.total_allocated_duration, 4)
-        self.assertEqual(self.project_task_7.allocated_duration_unit_tasks, 0)
-        self.assertEqual(self.project_task_7.total_allocated_duration, 13)
-        self.assertEqual(self.project_task_8.allocated_duration_unit_tasks, 0)
-        self.assertEqual(self.project_task_8.total_allocated_duration, 6)
-        self.assertEqual(self.project_task_9.allocated_duration_unit_tasks, 0)
-        self.assertEqual(self.project_task_9.total_allocated_duration, 7)
-
-        self.assertEqual(self.parent_task_0.allocated_duration_unit_tasks, 1)
-        self.assertEqual(self.parent_task_0.total_allocated_duration, 2)
-        self.assertEqual(self.parent_task_1.allocated_duration_unit_tasks, 17)
-        self.assertEqual(self.parent_task_1.total_allocated_duration, 21)
-        self.assertEqual(self.parent_task_2.allocated_duration_unit_tasks, 17)
-        self.assertEqual(self.parent_task_2.total_allocated_duration, 19)
-        self.assertEqual(self.parent_task_3.allocated_duration_unit_tasks, 13)
-        self.assertEqual(self.parent_task_3.total_allocated_duration, 16)
-
-    def test_30_auto_planning(self):
-        """Testing the automatic planification of tasks"""
+    def test_10_auto_planning_by_days(self):
+        """Testing the automatic planification of tasks by days : it still should work."""
 
         # Using task 3 as reference task
+        self.company.project_time_mode_id = self.day_unit
         self.test_project.reference_task_id = self.project_task_3
         self.test_project.reference_task_end_date = '2017-09-07 18:00:00'
         self.test_project.start_auto_planning()
@@ -153,3 +114,76 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.project_task_2.objective_end_date[:10], '2017-08-25')
         self.assertEqual(self.project_task_1.objective_start_date[:10], '2017-08-21')
         self.assertEqual(self.project_task_1.objective_end_date[:10], '2017-08-22')
+
+    def test_20_auto_planning_by_hours(self):
+        """Testing the automatic planification of tasks by days : it still should work."""
+
+        # Using task 3 as reference task
+        self.company.project_time_mode_id = self.half_day_unit
+        self.test_project.reference_task_id = self.project_task_3
+        self.test_project.reference_task_end_date = '2017-09-07 18:00:00'
+        self.test_project.start_auto_planning()
+        self.assertEqual(self.project_task_3.objective_start_date, '2017-09-07 08:00:00')
+        self.assertEqual(self.project_task_3.objective_end_date, '2017-09-07 18:00:00')
+        self.assertEqual(self.project_task_2.objective_start_date, '2017-09-07 08:00:00')
+        self.assertEqual(self.project_task_2.objective_end_date, '2017-09-08 13:30:00')
+        self.assertEqual(self.project_task_1.objective_start_date, '2017-09-06 13:30:00')
+        self.assertEqual(self.project_task_1.objective_end_date, '2017-09-07 08:00:00')
+        self.assertEqual(self.project_task_4.objective_start_date, '2017-09-08 13:30:00')
+        self.assertEqual(self.project_task_4.objective_end_date, '2017-09-12 18:00:00')
+        self.assertEqual(self.project_task_5.objective_start_date, '2017-09-07 13:30:00')
+        self.assertEqual(self.project_task_5.objective_end_date, '2017-09-13 08:00:00')
+        self.assertEqual(self.project_task_6.objective_start_date, '2017-09-13 08:00:00')
+        self.assertEqual(self.project_task_6.objective_end_date, '2017-09-14 18:00:00')
+        self.assertEqual(self.project_task_7.objective_start_date, '2017-09-06 13:30:00')
+        self.assertEqual(self.project_task_7.objective_end_date, '2017-09-15 08:00:00')
+        self.assertEqual(self.project_task_8.objective_start_date, '2017-09-15 08:00:00')
+        self.assertEqual(self.project_task_8.objective_end_date, '2017-09-19 18:00:00')
+        self.assertEqual(self.project_task_9.objective_start_date, '2017-09-15 08:00:00')
+        self.assertEqual(self.project_task_9.objective_end_date, '2017-09-20 13:30:00')
+
+        # Using task 5 as reference task
+        self.test_project.reference_task_id = self.project_task_5
+        self.test_project.reference_task_end_date = '2017-09-07 18:00:00'
+        self.test_project.start_auto_planning()
+        self.assertEqual(self.project_task_5.objective_start_date, '2017-09-04 13:30:00')
+        self.assertEqual(self.project_task_5.objective_end_date, '2017-09-07 18:00:00')
+        self.assertEqual(self.project_task_6.objective_start_date, '2017-09-08 08:00:00')
+        self.assertEqual(self.project_task_6.objective_end_date, '2017-09-11 18:00:00')
+        self.assertEqual(self.project_task_7.objective_start_date, '2017-09-01 13:30:00')
+        self.assertEqual(self.project_task_7.objective_end_date, '2017-09-12 08:00:00')
+        self.assertEqual(self.project_task_8.objective_start_date, '2017-09-12 08:00:00')
+        self.assertEqual(self.project_task_8.objective_end_date, '2017-09-14 18:00:00')
+        self.assertEqual(self.project_task_9.objective_start_date, '2017-09-12 08:00:00')
+        self.assertEqual(self.project_task_9.objective_end_date, '2017-09-15 13:30:00')
+        self.assertEqual(self.project_task_4.objective_start_date, '2017-09-05 13:30:00')
+        self.assertEqual(self.project_task_4.objective_end_date, '2017-09-08 08:00:00')
+        self.assertEqual(self.project_task_2.objective_start_date, '2017-09-04 08:00:00')
+        self.assertEqual(self.project_task_2.objective_end_date, '2017-09-05 13:30:00')
+        self.assertEqual(self.project_task_3.objective_start_date, '2017-09-04 08:00:00')
+        self.assertEqual(self.project_task_3.objective_end_date, '2017-09-04 18:00:00')
+        self.assertEqual(self.project_task_1.objective_start_date, '2017-09-01 13:30:00')
+        self.assertEqual(self.project_task_1.objective_end_date, '2017-09-04 08:00:00')
+
+        #  Using task 6 as reference task
+        self.test_project.reference_task_id = self.project_task_6
+        self.test_project.reference_task_end_date = '2017-09-07 18:00:00'
+        self.test_project.start_auto_planning()
+        self.assertEqual(self.project_task_6.objective_start_date, '2017-09-06 08:00:00')
+        self.assertEqual(self.project_task_6.objective_end_date, '2017-09-07 18:00:00')
+        self.assertEqual(self.project_task_7.objective_start_date, '2017-08-30 13:30:00')
+        self.assertEqual(self.project_task_7.objective_end_date, '2017-09-08 08:00:00')
+        self.assertEqual(self.project_task_8.objective_start_date, '2017-09-08 08:00:00')
+        self.assertEqual(self.project_task_8.objective_end_date, '2017-09-12 18:00:00')
+        self.assertEqual(self.project_task_9.objective_start_date, '2017-09-08 08:00:00')
+        self.assertEqual(self.project_task_9.objective_end_date, '2017-09-13 13:30:00')
+        self.assertEqual(self.project_task_4.objective_start_date, '2017-09-01 13:30:00')
+        self.assertEqual(self.project_task_4.objective_end_date, '2017-09-06 08:00:00')
+        self.assertEqual(self.project_task_5.objective_start_date, '2017-08-31 13:30:00')
+        self.assertEqual(self.project_task_5.objective_end_date, '2017-09-06 08:00:00')
+        self.assertEqual(self.project_task_3.objective_start_date, '2017-08-31 08:00:00')
+        self.assertEqual(self.project_task_3.objective_end_date, '2017-08-31 18:00:00')
+        self.assertEqual(self.project_task_2.objective_start_date, '2017-08-31 08:00:00')
+        self.assertEqual(self.project_task_2.objective_end_date, '2017-09-01 13:30:00')
+        self.assertEqual(self.project_task_1.objective_start_date, '2017-08-30 13:30:00')
+        self.assertEqual(self.project_task_1.objective_end_date, '2017-08-31 08:00:00')

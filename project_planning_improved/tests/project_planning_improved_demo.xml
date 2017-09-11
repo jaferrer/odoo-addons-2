@@ -3,7 +3,7 @@
     <data>
 
         <record model="project.project" id="project_planning_improved_test_project">
-            <field name="name">Test project (Planning Improved)</field>
+            <field name="name">Test project</field>
             <field name="label_tasks">Tasks</field>
             <field name="alias_model">project.task</field>
             <field name="type_ids" eval="[(4, ref('project.project_stage_0')), (4, ref('project.project_stage_1')), (4, ref('project.project_stage_data_1')), (4, ref('project.project_stage_data_2'))]"/>
@@ -13,138 +13,142 @@
         <record id="parent_task_0" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
-            <field name="name">Parent task 0 (Planning Improved)</field>
+            <field name="project_id" ref="project_planning_improved_test_project"/>
+            <field name="name">Parent task 0</field>
             <field name="stage_id" ref="project.project_stage_0"/>
-            <field name="allocated_time" eval="1"/>
+            <field name="allocated_duration" eval="1"/>
         </record>
 
         <record id="parent_task_1" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
-            <field name="name">Parent task 1 (Planning Improved)</field>
+            <field name="project_id" ref="project_planning_improved_test_project"/>
+            <field name="name">Parent task 1</field>
             <field name="stage_id" ref="project.project_stage_0"/>
-            <field name="allocated_time" eval="4"/>
+            <field name="allocated_duration" eval="4"/>
         </record>
 
         <record id="parent_task_2" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
-            <field name="name">Parent task 2 (Planning Improved)</field>
+            <field name="project_id" ref="project_planning_improved_test_project"/>
+            <field name="name">Parent task 2</field>
             <field name="stage_id" ref="project.project_stage_0"/>
-            <field name="allocated_time" eval="2"/>
+            <field name="allocated_duration" eval="2"/>
         </record>
 
         <record id="parent_task_3" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
-            <field name="name">Parent task 3 (Planning Improved)</field>
+            <field name="project_id" ref="project_planning_improved_test_project"/>
+            <field name="name">Parent task 3</field>
             <field name="stage_id" ref="project.project_stage_0"/>
-            <field name="allocated_time" eval="3"/>
+            <field name="allocated_duration" eval="3"/>
         </record>
 
         <record id="project_task_1" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="project_id" ref="project_planning_improved_test_project"/>
-            <field name="name">Task 1 (Planning Improved)</field>
+            <field name="name">Task 1</field>
             <field name="stage_id" ref="project.project_stage_0"/>
             <field name="parent_task_id" ref="parent_task_0"/>
-            <field name="planned_days" eval="1"/>
-            <field name="allocated_time" eval="1"/>
+            <field name="objective_duration" eval="1"/>
+            <field name="allocated_duration" eval="1"/>
         </record>
 
         <record id="project_task_2" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="project_id" ref="project_planning_improved_test_project"/>
-            <field name="name">Task 2 (Planning Improved)</field>
+            <field name="name">Task 2</field>
             <field name="stage_id" ref="project.project_stage_0"/>
             <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_1')])]"/>
             <field name="parent_task_id" ref="parent_task_1"/>
-            <field name="planned_days" eval="3"/>
-            <field name="allocated_time" eval="3"/>
+            <field name="objective_duration" eval="3"/>
+            <field name="allocated_duration" eval="3"/>
         </record>
 
         <record id="project_task_3" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="project_id" ref="project_planning_improved_test_project"/>
-            <field name="name">Task 3 (Planning Improved)</field>
+            <field name="name">Task 3</field>
             <field name="stage_id" ref="project.project_stage_0"/>
             <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_1')])]"/>
             <field name="parent_task_id" ref="parent_task_1"/>
-            <field name="planned_days" eval="2"/>
-            <field name="allocated_time" eval="2"/>
+            <field name="objective_duration" eval="2"/>
+            <field name="allocated_duration" eval="2"/>
         </record>
 
         <record id="project_task_4" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="project_id" ref="project_planning_improved_test_project"/>
-            <field name="name">Task 4 (Planning Improved)</field>
+            <field name="name">Task 4</field>
             <field name="stage_id" ref="project.project_stage_0"/>
             <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_2')])]"/>
             <field name="parent_task_id" ref="parent_task_1"/>
-            <field name="planned_days" eval="5"/>
-            <field name="allocated_time" eval="5"/>
+            <field name="objective_duration" eval="5"/>
+            <field name="allocated_duration" eval="5"/>
         </record>
 
         <record id="project_task_5" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="project_id" ref="project_planning_improved_test_project"/>
-            <field name="name">Task 5 (Planning Improved)</field>
+            <field name="name">Task 5</field>
             <field name="stage_id" ref="project.project_stage_0"/>
             <field name="parent_task_id" ref="parent_task_1"/>
-            <field name="planned_days" eval="4"/>
-            <field name="allocated_time" eval="4"/>
+            <field name="objective_duration" eval="7"/>
+            <field name="allocated_duration" eval="7"/>
         </record>
 
         <record id="project_task_6" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="project_id" ref="project_planning_improved_test_project"/>
-            <field name="name">Task 6 (Planning Improved)</field>
+            <field name="name">Task 6</field>
             <field name="stage_id" ref="project.project_stage_0"/>
             <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_4'), ref('project_task_5')])]"/>
             <field name="parent_task_id" ref="parent_task_2"/>
-            <field name="planned_days" eval="4"/>
-            <field name="allocated_time" eval="4"/>
+            <field name="objective_duration" eval="4"/>
+            <field name="allocated_duration" eval="4"/>
         </record>
 
         <record id="project_task_7" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="project_id" ref="project_planning_improved_test_project"/>
-            <field name="name">Task 7 (Planning Improved)</field>
+            <field name="name">Task 7</field>
             <field name="stage_id" ref="project.project_stage_0"/>
             <field name="parent_task_id" ref="parent_task_2"/>
-            <field name="planned_days" eval="13"/>
-            <field name="allocated_time" eval="13"/>
+            <field name="objective_duration" eval="13"/>
+            <field name="allocated_duration" eval="13"/>
         </record>
 
         <record id="project_task_8" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="project_id" ref="project_planning_improved_test_project"/>
-            <field name="name">Task 8 (Planning Improved)</field>
+            <field name="name">Task 8</field>
             <field name="stage_id" ref="project.project_stage_0"/>
             <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_6'), ref('project_task_7')])]"/>
             <field name="parent_task_id" ref="parent_task_3"/>
-            <field name="planned_days" eval="6"/>
-            <field name="allocated_time" eval="6"/>
+            <field name="objective_duration" eval="6"/>
+            <field name="allocated_duration" eval="6"/>
         </record>
 
         <record id="project_task_9" model="project.task">
             <field name="user_id" ref="base.user_demo"/>
             <field name="priority">0</field>
             <field name="project_id" ref="project_planning_improved_test_project"/>
-            <field name="name">Task 9 (Planning Improved)</field>
+            <field name="name">Task 9</field>
             <field name="stage_id" ref="project.project_stage_0"/>
             <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_6'), ref('project_task_7')])]"/>
             <field name="parent_task_id" ref="parent_task_3"/>
-            <field name="planned_days" eval="7"/>
-            <field name="allocated_time" eval="7"/>
+            <field name="objective_duration" eval="7"/>
+            <field name="allocated_duration" eval="7"/>
         </record>
 
     </data>

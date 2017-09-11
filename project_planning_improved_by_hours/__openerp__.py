@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,20 +18,21 @@
 #
 
 {
-    'name': 'Translations improved',
+    'name': 'Project Planning Improved By Hours',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical',
-    'depends': ['base', 'connector'],
+    'category': 'Project',
+    'depends': ['project_planning_improved'],
     'description': """
-Translations improved
-=====================
-This modules improves a few features for translations management.
+Project Planning Improved By Hours
+==================================
+This module implement the improved planning by hours to the project module.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['cron.xml'],
-    'demo': [],
+    'data': ['data.xml',
+             'project_planning_improved_by_hours.xml'],
+    'demo': ['tests/project_planning_improved_by_hours_demo.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,

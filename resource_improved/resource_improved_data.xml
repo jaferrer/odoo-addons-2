@@ -10,7 +10,7 @@
             <field name="name">Monday</field>
             <field name="dayofweek">0</field>
             <field name="hour_from" eval="8"/>
-            <field name="hour_to" eval="16"/>
+            <field name="hour_to" eval="17"/>
             <field name="calendar_id" ref="default_calendar"/>
         </record>
 
@@ -18,7 +18,7 @@
             <field name="name">Tuesday</field>
             <field name="dayofweek">1</field>
             <field name="hour_from" eval="8"/>
-            <field name="hour_to" eval="16"/>
+            <field name="hour_to" eval="17"/>
             <field name="calendar_id" ref="default_calendar"/>
         </record>
 
@@ -26,7 +26,7 @@
             <field name="name">Wednesday</field>
             <field name="dayofweek">2</field>
             <field name="hour_from" eval="8"/>
-            <field name="hour_to" eval="16"/>
+            <field name="hour_to" eval="17"/>
             <field name="calendar_id" ref="default_calendar"/>
         </record>
 
@@ -34,7 +34,7 @@
             <field name="name">Thursday</field>
             <field name="dayofweek">3</field>
             <field name="hour_from" eval="8"/>
-            <field name="hour_to" eval="16"/>
+            <field name="hour_to" eval="17"/>
             <field name="calendar_id" ref="default_calendar"/>
         </record>
 
@@ -42,7 +42,7 @@
             <field name="name">Friday</field>
             <field name="dayofweek">4</field>
             <field name="hour_from" eval="8"/>
-            <field name="hour_to" eval="16"/>
+            <field name="hour_to" eval="17"/>
             <field name="calendar_id" ref="default_calendar"/>
         </record>
 
