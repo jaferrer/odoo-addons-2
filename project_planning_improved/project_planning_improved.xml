@@ -51,6 +51,10 @@
                     <field name="critical_task"/>
                     <field name="objective_duration"/>
                     <field name="parent_task_id"/>
+                    <field name="expected_start_date" widget="date"/>
+                    <field name="objective_start_date" widget="date"/>
+                    <field name="expected_end_date" widget="date"/>
+                    <field name="objective_end_date" widget="date"/>
                     <field name="previous_task_ids" widget="many2many_tags"/>
                     <field name="next_task_ids" widget="many2many_tags"/>
                 </tree>

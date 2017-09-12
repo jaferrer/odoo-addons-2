@@ -56,5 +56,25 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_improved_task_tree2">
+            <field name="name">project_improved_task_tree2</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project_planning_improved.project_improved_task_tree2"/>
+            <field name="arch" type="xml">
+                <field name="objective_start_date" position="attributes">
+                    <attribute name="widget"/>
+                </field>
+                <field name="expected_start_date" position="attributes">
+                    <attribute name="widget"/>
+                </field>
+                <field name="objective_end_date" position="attributes">
+                    <attribute name="widget"/>
+                </field>
+                <field name="expected_end_date" position="attributes">
+                    <attribute name="widget"/>
+                </field>
+            </field>
+        </record>
+
     </data>
 </openerp>
