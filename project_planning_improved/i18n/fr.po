@@ -60,7 +60,7 @@ msgid "Tasks planning for project %s"
 msgstr "Planification des tâches pour le projet %s"
 
 #. module: project_planning_improved
-#: field:project.task,parent_task_id:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_parent_task_id
 msgid "Parent task"
 msgstr "Tâche parente"
 
@@ -70,99 +70,90 @@ msgid "Links"
 msgstr "Liens"
 
 #. module: project_planning_improved
-#: field:project.task,previous_task_ids:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_previous_task_ids
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Previous tasks"
 msgstr "Tâches précédentes"
 
 #. module: project_planning_improved
-#: field:project.task,next_task_ids:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_next_task_ids
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Next tasks"
 msgstr "Tâches suivantes"
 
 #. module: project_planning_improved
-#: field:project.task,critical_task:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_critical_task
 #: view:project.task:project_planning_improved.project_improved_task_search
 msgid "Critical task"
 msgstr "Tâche critique"
 
 #. module: project_planning_improved
-#: field:project.task,objective_duration:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_objective_duration
 msgid "Objective Needed Time"
 msgstr "Durée initialement prévue"
 
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_duration
-#: field:project.task,allocated_duration:0
 msgid "Allocated duration"
 msgstr "Temps alloué"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_total_allocated_duration
-#: field:project.task,total_allocated_duration:0
 msgid "Total allocated duration"
 msgstr "Temps alloué total"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_duration_unit_tasks
-#: field:project.task,allocated_duration_unit_tasks:0
 msgid "Allocated duration for unit tasks"
 msgstr "Tempas alloué pour les tâches unitaires"
 
 #. module: project_planning_improved
-#: help:project.task,objective_duration:0
-#: help:project.task,allocated_duration:0
-#: help:project.task,allocated_duration_unit_tasks:0
-#: help:project.task,total_allocated_duration:0
+#: model:ir.model.fields,help:project_planning_improved.field_project_task_objective_duration
+#: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration
+#: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration_unit_tasks
+#: model:ir.model.fields,help:project_planning_improved.field_project_task_total_allocated_duration
 msgid "In project time unit of the comany"
 msgstr "Exprimé en unité de temps de la société"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_end_date
-#: field:project.task,expected_end_date:0
 msgid "Expected end date"
 msgstr "Date de fin prévue"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_start_date
-#: field:project.task,expected_start_date:0
 msgid "Expected start date"
 msgstr "Date de début prévue"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_objective_end_date
-#: field:project.task,objective_end_date:0
 msgid "Objective end date"
 msgstr "Date de fin objective"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_objective_start_date
-#: field:project.task,objective_start_date:0
 msgid "Objective start date"
 msgstr "Date de début objective"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_project_reference_task_id
-#: field:project.project,reference_task_id:0
 msgid "Reference task"
 msgstr "Tâche de référence"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_project_reference_task_end_date
-#: field:project.project,reference_task_end_date:0
 msgid "Reference task end date"
 msgstr "Date de fin de la tâche de référence"
 
 #. module: project_planning_improved
-#: field:project.task,children_task_ids:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_children_task_ids
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Children tasks"
 msgstr "Tâches enfants"
 
 #. module: project_planning_improved
-#: field:project.task,taken_into_account:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_taken_into_account
 msgid "Taken into account"
 msgstr "Pris en compte"
 
