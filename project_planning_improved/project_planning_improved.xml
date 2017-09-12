@@ -28,6 +28,7 @@
             <field name="priority" eval="999"/>
             <field name="arch" type="xml">
                 <tree string="Tasks planning" editable="top" create="false">
+                    <field name="project_id"/>
                     <field name="name"/>
                     <field name="kanban_state"/>
                     <field name="critical_task"/>
@@ -36,8 +37,9 @@
                     <field name="objective_start_date" widget="date"/>
                     <field name="expected_end_date" widget="date"/>
                     <field name="objective_end_date" widget="date"/>
-                    <field name="previous_task_ids" widget="many2many_tags"/>
-                    <field name="next_task_ids" widget="many2many_tags"/>
+                    <field name="parent_task_id" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
+                    <field name="previous_task_ids" widget="many2many_tags" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
+                    <field name="next_task_ids" widget="many2many_tags" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
                 </tree>
             </field>
         </record>
