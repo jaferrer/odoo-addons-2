@@ -164,7 +164,13 @@ msgid "You are not allowed to change the reference task (or its date) for projec
 msgstr "Vous n'êtes pas autorisé à modifier la tâche de référence (ou sa date) pour le projet %s, car vous n'êtes pas responsable de ce projet."
 
 #. module: project_planning_improved
-#: code:addons\project_planning_improved\project_planning_improved.py:109
+#: code:addons\project_planning_improved\project_planning_improved.py:110
+#, python-format
+msgid "Impossible to determine objective dates for tasks %s in project %s with current configuration"
+msgstr "Impossible de mettre à jour les dates objectives pour les tâches %s du projet %s avec la configuration actuelle"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:130
 #, python-format
 msgid "Impossible to update objective dates for project %s if reference task or its date is not defined."
 msgstr "Impossible de mettre à jour les dates objectives pour le projet %s si la date de référence ou sa date de fin ne sont pas définies"
