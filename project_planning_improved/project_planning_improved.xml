@@ -75,6 +75,9 @@
             <field name="inherit_id" ref="project.view_task_form2"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
+                <sheet position="attributes">
+                    <attribute name="class">oe_form_sheet_full_screen</attribute>
+                </sheet>
                 <field name="tag_ids" position="after">
                     <field name="critical_task"/>
                 </field>
