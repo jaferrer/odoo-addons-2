@@ -37,6 +37,11 @@ msgid "Open tasks planning"
 msgstr "Ouvrir la planification des tâches"
 
 #. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Start auto-planning"
+msgstr "Lancer la planification automatique"
+
+#. module: project_planning_improved
 #: model:ir.model,name:project_planning_improved.model_project_project
 msgid "Project"
 msgstr "Projet"
@@ -60,7 +65,6 @@ msgid "Parent task"
 msgstr "Tâche parente"
 
 #. module: project_planning_improved
-#: field:project.task,previous_task_ids:0
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Links"
 msgstr "Liens"
@@ -76,3 +80,100 @@ msgstr "Tâches précédentes"
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Next tasks"
 msgstr "Tâches suivantes"
+
+#. module: project_planning_improved
+#: field:project.task,critical_task:0
+#: view:project.task:project_planning_improved.project_improved_task_search
+msgid "Critical task"
+msgstr "Tâche critique"
+
+#. module: project_planning_improved
+#: field:project.task,objective_duration:0
+msgid "Objective Needed Time"
+msgstr "Durée initialement prévue"
+
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_duration
+#: field:project.task,allocated_duration:0
+msgid "Allocated duration"
+msgstr "Temps alloué"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_total_allocated_duration
+#: field:project.task,total_allocated_duration:0
+msgid "Total allocated duration"
+msgstr "Temps alloué total"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_duration_unit_tasks
+#: field:project.task,allocated_duration_unit_tasks:0
+msgid "Allocated duration for unit tasks"
+msgstr "Tempas alloué pour les tâches unitaires"
+
+#. module: project_planning_improved
+#: help:project.task,objective_duration:0
+#: help:project.task,allocated_duration:0
+#: help:project.task,allocated_duration_unit_tasks:0
+#: help:project.task,total_allocated_duration:0
+msgid "In project time unit of the comany"
+msgstr "Exprimé en unité de temps de la société"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_end_date
+#: field:project.task,expected_end_date:0
+msgid "Expected end date"
+msgstr "Date de fin prévue"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_start_date
+#: field:project.task,expected_start_date:0
+msgid "Expected start date"
+msgstr "Date de début prévue"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_objective_end_date
+#: field:project.task,objective_end_date:0
+msgid "Objective end date"
+msgstr "Date de fin objective"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_objective_start_date
+#: field:project.task,objective_start_date:0
+msgid "Objective start date"
+msgstr "Date de début objective"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_project_reference_task_id
+#: field:project.project,reference_task_id:0
+msgid "Reference task"
+msgstr "Tâche de référence"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_project_reference_task_end_date
+#: field:project.project,reference_task_end_date:0
+msgid "Reference task end date"
+msgstr "Date de fin de la tâche de référence"
+
+#. module: project_planning_improved
+#: field:project.task,children_task_ids:0
+#: view:project.task:project_planning_improved.project_improved_task_form
+msgid "Children tasks"
+msgstr "Tâches enfants"
+
+#. module: project_planning_improved
+#: field:project.task,taken_into_account:0
+msgid "Taken into account"
+msgstr "Pris en compte"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:36
+#, python-format
+msgid "You are not allowed to change the reference task (or its date) for project %s, because you are not manager of this project."
+msgstr "Vous n'êtes pas autorisé à modifier la tâche de référence (ou sa date) pour le projet %s, car vous n'êtes pas responsable de ce projet."
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:109
+#, python-format
+msgid "Impossible to update objective dates for project %s if reference task or its date is not defined."
+msgstr "Impossible de mettre à jour les dates objectives pour le projet %s si la date de référence ou sa date de fin ne sont pas définies"

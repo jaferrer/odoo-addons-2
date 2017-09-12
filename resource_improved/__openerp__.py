@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,21 +18,20 @@
 #
 
 {
-    'name': 'Project Template Tasks',
+    'name': 'Resource Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project'],
+    'category': 'Warehouse',
+    'depends': ['resource'],
     'description': """
-Project Template Tasks
-======================
-This module allows to generate automatically tasks from project task types. You can also define task types which are
-selected by default for any new project.
-""",
+Resource Improved
+=================
+This module improved the resources management.""",
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_template_tasks.xml'],
-    'demo': ['tests/template_tasks_demo.xml'],
+    'data': ['security/ir.model.access.csv',
+             'resource_improved_data.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

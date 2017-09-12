@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,8 @@ class TestStockWorkingDays(common.TransactionCase):
 
     def setUp(self):
         super(TestStockWorkingDays, self).setUp()
-
+        # Compute parent left and right for location so that test don't fail
+        self.env['stock.location']._parent_store_compute()
 
     def test_10_default_calendar_schedule(self):
         """Test scheduling when no specific calendar is defined."""
@@ -78,7 +79,6 @@ class TestStockWorkingDays(common.TransactionCase):
 
     def test_30_schedule_warehouse_calendar(self):
         """Schedule test with a defined warehouse resource and a defined supplier resource."""
-        company = self.browse_ref('base.main_company')
         proc_env = self.env["procurement.order"]
         resource_env = self.env["resource.resource"]
         leave_env = self.env["resource.calendar.leaves"]
@@ -87,7 +87,7 @@ class TestStockWorkingDays(common.TransactionCase):
             'name': "Warehouse0 resource",
             'calendar_id': self.ref('stock_working_days.demo_calendar_1')
         })
-        leave_w = leave_env.create({
+        leave_env.create({
             'name': "Warehouse0 leave",
             'resource_id': resource_w.id,
             'calendar_id': self.ref('stock_working_days.demo_calendar_1'),
@@ -183,4 +183,3 @@ class TestStockWorkingDays(common.TransactionCase):
         new_move = move.move_dest_id
         self.assertEqual(new_move.date[:10], "2015-02-09")
         self.assertEqual(new_move.date_expected[:10], "2015-02-09")
-
