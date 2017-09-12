@@ -23,5 +23,19 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_template_tasks_type_form">
+            <field name="name">project_template_tasks_type_form</field>
+            <field name="model">project.task.type</field>
+            <field name="inherit_id" ref="project_template_tasks.project_template_tasks_type_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='task_ids']/tree" position="inside">
+                    <field name="objective_duration"/>
+                    <field name="previous_task_ids" widget="many2many_tags"/>
+                    <field name="next_task_ids" widget="many2many_tags"/>
+                </xpath>
+            </field>
+        </record>
+
     </data>
 </openerp>
