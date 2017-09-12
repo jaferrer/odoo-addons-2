@@ -103,6 +103,14 @@ class ProjectImprovedProject(models.Model):
             if rec.reference_task_id and rec.reference_task_end_date:
                 rec.update_objective_dates()
                 rec.update_objective_dates_parent_tasks()
+                not_planned_tasks = self.env['projet.task'].search([('project_id', '=', rec.id),
+                                                                    '|', ('objective_start_date', '=', False),
+                                                                    ('objective_end_date', '=', False)])
+                if not_planned_tasks:
+                    raise UserError(_(u"Impossible to determine objective dates for tasks %s in project %s "
+                                      u"with current configuration") %
+                                    (u", ".join([task.name for task in not_planned_tasks])),
+                                    rec.display_name)
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'project.task',
