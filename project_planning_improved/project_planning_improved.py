@@ -109,8 +109,8 @@ class ProjectImprovedProject(models.Model):
                 if not_planned_tasks:
                     raise UserError(_(u"Impossible to determine objective dates for tasks %s in project %s "
                                       u"with current configuration") %
-                                    (u", ".join([task.name for task in not_planned_tasks])),
-                                    rec.display_name)
+                                    (u", ".join([task.name for task in not_planned_tasks]),
+                                    rec.display_name))
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'project.task',
