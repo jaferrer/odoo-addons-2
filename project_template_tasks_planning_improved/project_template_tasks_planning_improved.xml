@@ -55,5 +55,9 @@
             </field>
         </record>
 
+        <record model="ir.actions.act_window" id="project_planning_improved.act_window_open_task_planning">
+            <field name="domain">[('is_template', '=', False)]</field>
+        </record>
+
     </data>
 </openerp>
