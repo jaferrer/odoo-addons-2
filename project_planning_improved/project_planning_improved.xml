@@ -47,6 +47,7 @@
                 <tree position="inside">
                     <field name="critical_task"/>
                     <field name="objective_duration"/>
+                    <field name="parent_task_id"/>
                     <field name="previous_task_ids" widget="many2many_tags"/>
                     <field name="next_task_ids" widget="many2many_tags"/>
                 </tree>
@@ -106,7 +107,7 @@
                         <field name="next_task_ids" context="{'default_project_id': project_id}"
                                domain="[('project_id', '=', project_id)]"/>
                         <separator string="Children tasks"/>
-                        <field name="children_task_ids"  context="{'default_project_id': project_id}"
+                        <field name="children_task_ids" context="{'default_project_id': project_id}"
                                domain="[('project_id', '=', project_id)]"/>
                     </page>
                 </notebook>
