@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'resource_improved', 'project_timeline'],
+    'depends': ['project', 'resource_improved', 'project_timeline', 'web_sheet_full_width_selective'],
     'description': """
 Project Planning Improved
 =========================

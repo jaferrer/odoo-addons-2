@@ -27,6 +27,30 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_improved_task_tree">
+            <field name="name">project_improved_task_tree</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project_planning_improved.project_improved_task_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree position="inside">
+                    <field name="is_template" invisible="1"/>
+                </tree>
+                <field name="parent_task_id" position="attributes">
+                    <attribute name="context">{'default_project_id': project_id, 'default_is_template': is_template}</attribute>
+                    <attribute name="domain">[('is_template', '=', is_template), '|', ('project_id', '=', project_id), ('project_id', '=', False)]</attribute>
+                </field>
+                <field name="previous_task_ids" position="attributes">
+                    <attribute name="context">{'default_project_id': project_id, 'default_is_template': is_template}</attribute>
+                    <attribute name="domain">[('is_template', '=', is_template), '|', ('project_id', '=', project_id), ('project_id', '=', False)]</attribute>
+                </field>
+                <field name="next_task_ids" position="attributes">
+                    <attribute name="context">{'default_project_id': project_id, 'default_is_template': is_template}</attribute>
+                    <attribute name="domain">[('is_template', '=', is_template), '|', ('project_id', '=', project_id), ('project_id', '=', False)]</attribute>
+                </field>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="project_improved_project_form">
             <field name="name">project_improved_project_form</field>
             <field name="model">project.project</field>
