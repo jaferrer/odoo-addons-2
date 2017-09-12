@@ -50,7 +50,6 @@ msgstr "Synchroniser les tâches"
 
 #. module: project_template_tasks
 #: model:ir.model.fields,field_description:project_template_tasks.field_project_task_type_use_default_for_all_projects
-#: field:project.task.type,use_default_for_all_projects:0
 msgid "Default use for all projects"
 msgstr "Utiliser par défaut pour tous les projets"
 
@@ -76,7 +75,6 @@ msgstr "Tâches par utilisateur et par projet"
 
 #. module: project_template_tasks
 #: model:ir.model.fields,field_description:project_template_tasks.field_project_task_is_template
-#: field:project.task,is_template:0
 msgid "Template task"
 msgstr "Tâche type"
 
