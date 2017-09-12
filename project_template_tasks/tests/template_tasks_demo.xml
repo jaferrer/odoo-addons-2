@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="project_task_1" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Task 1 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_0"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="project_task_2" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Task 2 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_1"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="project_task_3" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Task 3 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_1"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="project_task_4" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Task 4 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_1"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="project_task_5" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Task 5 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_1"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="project_task_6" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Task 6 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_data_1"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="project_task_7" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Task 7 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_2"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="project_task_8" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Task 8 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_data_2"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record id="project_task_9" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="name">Task 9 (Template tasks)</field>
+            <field name="stage_id" ref="project.project_stage_data_2"/>
+            <field name="is_template" eval="True"/>
+        </record>
+
+        <record model="project.task.type" id="project.project_stage_0">
+            <field name="task_ids" eval="[(6, 0, [ref('project_task_1')])]"/>
+            <field name="use_default_for_all_projects" eval="True"/>
+        </record>
+
+        <record model="project.task.type" id="project.project_stage_1">
+            <field name="task_ids" eval="[(6, 0, [ref('project_task_2'), ref('project_task_3'), ref('project_task_4'), ref('project_task_5')])]"/>
+            <field name="use_default_for_all_projects" eval="True"/>
+        </record>
+
+        <record model="project.task.type" id="project.project_stage_data_1">
+            <field name="task_ids" eval="[(6, 0, [ref('project_task_6'), ref('project_task_7')])]"/>
+            <field name="use_default_for_all_projects" eval="True"/>
+        </record>
+
+        <record model="project.task.type" id="project.project_stage_data_2">
+            <field name="task_ids" eval="[(6, 0, [ref('project_task_8'), ref('project_task_9')])]"/>
+            <field name="use_default_for_all_projects" eval="True"/>
+        </record>
+
+    </data>
+</openerp>

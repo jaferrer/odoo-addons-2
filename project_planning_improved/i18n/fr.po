@@ -37,6 +37,11 @@ msgid "Open tasks planning"
 msgstr "Ouvrir la planification des tâches"
 
 #. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Start auto-planning"
+msgstr "Lancer la planification automatique"
+
+#. module: project_planning_improved
 #: model:ir.model,name:project_planning_improved.model_project_project
 msgid "Project"
 msgstr "Projet"
@@ -55,24 +60,117 @@ msgid "Tasks planning for project %s"
 msgstr "Planification des tâches pour le projet %s"
 
 #. module: project_planning_improved
-#: field:project.task,parent_task_id:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_parent_task_id
 msgid "Parent task"
 msgstr "Tâche parente"
 
 #. module: project_planning_improved
-#: field:project.task,previous_task_ids:0
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Links"
 msgstr "Liens"
 
 #. module: project_planning_improved
-#: field:project.task,previous_task_ids:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_previous_task_ids
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Previous tasks"
 msgstr "Tâches précédentes"
 
 #. module: project_planning_improved
-#: field:project.task,next_task_ids:0
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_next_task_ids
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Next tasks"
 msgstr "Tâches suivantes"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_critical_task
+#: view:project.task:project_planning_improved.project_improved_task_search
+msgid "Critical task"
+msgstr "Tâche critique"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_objective_duration
+msgid "Objective Needed Time"
+msgstr "Durée initialement prévue"
+
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_duration
+msgid "Allocated duration"
+msgstr "Temps alloué"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_total_allocated_duration
+msgid "Total allocated duration"
+msgstr "Temps alloué total"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_duration_unit_tasks
+msgid "Allocated duration for unit tasks"
+msgstr "Tempas alloué pour les tâches unitaires"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,help:project_planning_improved.field_project_task_objective_duration
+#: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration
+#: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration_unit_tasks
+#: model:ir.model.fields,help:project_planning_improved.field_project_task_total_allocated_duration
+msgid "In project time unit of the comany"
+msgstr "Exprimé en unité de temps de la société"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_end_date
+msgid "Expected end date"
+msgstr "Date de fin prévue"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_start_date
+msgid "Expected start date"
+msgstr "Date de début prévue"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_objective_end_date
+msgid "Objective end date"
+msgstr "Date de fin objective"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_objective_start_date
+msgid "Objective start date"
+msgstr "Date de début objective"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_project_reference_task_id
+msgid "Reference task"
+msgstr "Tâche de référence"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_project_reference_task_end_date
+msgid "Reference task end date"
+msgstr "Date de fin de la tâche de référence"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_children_task_ids
+#: view:project.task:project_planning_improved.project_improved_task_form
+msgid "Children tasks"
+msgstr "Tâches enfants"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_taken_into_account
+msgid "Taken into account"
+msgstr "Pris en compte"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:36
+#, python-format
+msgid "You are not allowed to change the reference task (or its date) for project %s, because you are not manager of this project."
+msgstr "Vous n'êtes pas autorisé à modifier la tâche de référence (ou sa date) pour le projet %s, car vous n'êtes pas responsable de ce projet."
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:110
+#, python-format
+msgid "Impossible to determine objective dates for tasks %s in project %s with current configuration"
+msgstr "Impossible de mettre à jour les dates objectives pour les tâches %s du projet %s avec la configuration actuelle"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:130
+#, python-format
+msgid "Impossible to update objective dates for project %s if reference task or its date is not defined."
+msgstr "Impossible de mettre à jour les dates objectives pour le projet %s si la date de référence ou sa date de fin ne sont pas définies"

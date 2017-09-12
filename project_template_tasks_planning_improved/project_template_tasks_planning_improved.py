@@ -28,6 +28,9 @@ class PlanningImprovedTemplateTaskType(models.Model):
         result = super(PlanningImprovedTemplateTaskType, self).get_values_new_task(task, project)
         result['next_task_ids'] = False
         result['previous_task_ids'] = False
+        result['critical_task'] = False
+        result['objective_duration'] = task.objective_duration
+        result['objective_end_date'] = False
         return result
 
     @api.multi
