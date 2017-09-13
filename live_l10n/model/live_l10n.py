@@ -21,19 +21,26 @@ from openerp import fields, models, api, _
 
 
 class AbstractLiveI10N(models.AbstractModel):
-    _name = 'live.i10n'
+    _name = 'live.l10n'
     _inherit = 'on_change.action'
+    _current_model = _name
 
-    @api.model
+    @api.multi
     def _action_on_change(self, field_name, field_value):
+        model_name = self._name
+        if not self._current_model == 'live.l10n':
+            model_name = self._current_model
         ctx = dict(self.env.context)
         ctx['translate_field'] = field_name
         ctx['translate_field_value'] = field_value
+        ctx['model_translate_field'] = model_name
+        ctx['model_id_translate'] = self.id
+        self.env['ir.translation'].translate_fields(model_name, self.id, field=field_name)
         return {
             'name': _('Translation'),
             'view_type': 'form',
             'view_mode': 'form',
-            'res_model': 'live.i10n.ir.translation',
+            'res_model': 'live.l10n.ir.translation',
             'domain': [],
             'context': ctx,
             'views': [[False, 'form']],
@@ -49,22 +56,22 @@ class AbstractLiveI10N(models.AbstractModel):
 
 
 class IrTranslationLiveEdit(models.TransientModel):
-    _name = 'live.i10n.ir.translation'
+    _name = 'live.l10n.ir.translation'
 
-    line_tranlate_ids = fields.One2many('live.i10n.ir.translation.line', 'live_translate_id', u"Lines of translate")
+    line_translate_ids = fields.One2many('live.l10n.ir.translation.line', 'live_translate_id', u"Lines of translate")
 
     @api.model
     def default_get(self, fields):
         result = super(IrTranslationLiveEdit, self).default_get(fields)
-        line_tranlate_ids = {}
-        name_filter = '%s,%s' % (self.env.context['params']['model'], self.env.context['translate_field'])
+        line_translate_ids = {}
+        name_filter = '%s,%s' % (self.env.context['model_translate_field'], self.env.context['translate_field'])
 
         for lang in self.env['ir.translation'].search(
-                [('name', '=', name_filter), ('res_id', '=', self.env.context['params']['id'])]):
+                [('name', '=', name_filter), ('res_id', '=', self.env.context['model_id_translate'])]):
             lang_value = lang.value
             if self.env.user.lang == lang.lang:
                 lang_value = self.env.context['translate_field_value']
-            line_tranlate_ids[lang.lang] = {
+            line_translate_ids[lang.lang] = {
                 'line_id': lang.id,
                 'lang': lang.lang,
                 'lang_value': lang_value
@@ -72,30 +79,30 @@ class IrTranslationLiveEdit(models.TransientModel):
             lang_src = lang.source
             if self.env.user.lang == 'en_US':
                 lang_src = self.env.context['translate_field_value']
-            line_tranlate_ids['en_US'] = {
+            line_translate_ids['en_US'] = {
                 'line_id': lang.id,
                 'lang': 'en_US',
                 'lang_value': lang_src,
             }
-        result.update(line_tranlate_ids=line_tranlate_ids.values())
+        result.update(line_translate_ids=line_translate_ids.values())
         return result
 
     @api.multi
     def apply_change(self):
         self.ensure_one()
-        en_line = self.line_tranlate_ids.filtered(lambda e: e.lang == 'en_US')
-        for lang in self.env['ir.translation'].browse(self.line_tranlate_ids.mapped('line_id')):
+        en_line = self.line_translate_ids.filtered(lambda e: e.lang == 'en_US')
+        for lang in self.env['ir.translation'].browse(self.line_translate_ids.mapped('line_id')):
             lang.source = en_line.lang_value
-            lang.value = self.line_tranlate_ids\
+            lang.value = self.line_translate_ids\
                 .filtered(lambda e: e.line_id == lang.id)\
                 .filtered(lambda e: e.lang == lang.lang)\
                 .lang_value
 
 
 class IrTranslationLiveEditLine(models.TransientModel):
-    _name = 'live.i10n.ir.translation.line'
+    _name = 'live.l10n.ir.translation.line'
 
-    live_translate_id = fields.Many2one('live.i10n.ir.translation', u"Id live.i10n.ir.translation")
+    live_translate_id = fields.Many2one('live.l10n.ir.translation', u"Id live.i10n.ir.translation")
     line_id = fields.Integer(u"Id line ir_translation")
     lang = fields.Char(u"Lang", readonly=True)
     lang_value = fields.Char(u"Value")

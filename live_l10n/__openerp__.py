@@ -18,21 +18,20 @@
 #
 
 {
-    'name': 'Odoo utils',
+    'name': 'Live i10n',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Sale',
-    'depends': ['product'],
+    'depends': ['onchange_action'],
     'description': """
-Create some facility to code with the odoo framework
+Live i10n
 =============
-See README.md
-
+Display a wizard when a translated field is change.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'qweb.xml'
+        'wizard/live_l10n.xml'
     ],
     'test': [],
     'installable': True,

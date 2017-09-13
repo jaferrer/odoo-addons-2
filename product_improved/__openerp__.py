@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,22 +18,17 @@
 #
 
 {
-    'name': 'Live i10n',
+    'name': 'Product Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Sale',
-    'depends': ['onchange_action'],
+    'category': 'Stock',
+    'depends': ['product'],
     'description': """
-Live i10n
-=============
-Display a wizard when a translated field is change.
+Product Improved
+==============
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'wizard/live_i10n.xml'
-    ],
-    'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
