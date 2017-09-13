@@ -32,7 +32,7 @@ class ProjectPlanningByHoursProject(models.Model):
         project_time_unit_of_company = self.env.user.company_id.project_time_mode_id
         new_nb_days = nb_days
         new_nb_hours = 0
-        if project_time_unit_of_company and project_time_unit_of_company != day_unit:
+        if project_time_unit_of_company and (project_time_unit_of_company != day_unit or nb_days != int(nb_days)):
             new_nb_days = 0
             new_nb_hours = self.env['product.uom']. \
                 _compute_qty(project_time_unit_of_company.id, nb_days, hour_unit.id) or 0

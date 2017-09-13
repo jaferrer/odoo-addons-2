@@ -234,8 +234,7 @@ class ProjectImprovedTask(models.Model):
         resource = False
         reference_user = self.user_id or self.env.user
         if reference_user:
-            resource = self.env['resource.resource'].search([('user_id', '=', reference_user.id),
-                                                             ('resource_type', '=', 'user')], limit=1)
+            resource = self.env['resource.resource'].search([('user_id', '=', reference_user.id), ('resource_type', '=', 'user')], limit=1)
         if not resource:
             resource = self.env['resource.resource'].search([('user_id', '=', self.env.user.id),
                                                              ('resource_type', '=', 'user')], limit=1)
@@ -247,16 +246,15 @@ class ProjectImprovedTask(models.Model):
             calendar = self.env.ref('resource_improved.default_calendar')
         target_date = date_ref
         if nb_days:
-            if calendar and resource and not do_not_use_any_calendar:
+            if calendar and not do_not_use_any_calendar:
                 if nb_days > 0:
                     nb_days += 1
-                target_date = calendar.schedule_days_get_date(nb_days, target_date, compute_leaves=True,
-                                                              resource_id=resource and resource.id or False)
+                target_date = calendar.schedule_days_get_date(nb_days, target_date, compute_leaves=True, resource_id=resource and resource.id or False)
                 target_date = target_date and target_date[0] or False
             else:
                 target_date = target_date - relativedelta(days=nb_days)
         if nb_hours:
-            if calendar and resource and not do_not_use_any_calendar:
+            if calendar and not do_not_use_any_calendar:
                 available_intervals = calendar.schedule_hours(nb_hours, target_date, compute_leaves=True,
                                                               resource_id=resource and resource.id or False)
                 if nb_hours > 0:
