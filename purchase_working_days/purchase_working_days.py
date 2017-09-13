@@ -52,7 +52,7 @@ class res_partner_with_calendar(models.Model):
         if resource:
             calendar = resource.calendar_id
         if not calendar:
-            calendar = self.env.ref("stock_working_days.default_calendar")
+            calendar = self.env.ref("resource_improved.default_calendar")
 
         newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date,
                                                   resource_id=resource and resource.id or False,

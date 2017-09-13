@@ -30,6 +30,15 @@ class SaleOrderDeleteReport(models.TransientModel):
             search([('value', '=', 'ir.actions.report.xml,' + unicode(existing_report.id))])
         ir_value.unlink()
 
+    @api.model
+    def link_report_with_mail(self):
+        mail_model = self.env.ref('sale.email_template_edi_sale')
+        report = self.env.ref(self._get_report_id())
+        mail_model.report_template = report.id
+
+    def _get_report_id(self):
+        return 'sale_order_report_aeroo.sale_order_report_aeroo'
+
 
 class SaleOrderPrint(models.Model):
     _inherit = 'sale.order'
