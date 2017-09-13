@@ -187,3 +187,21 @@ class TestPlanningImprovedByHours(common.TransactionCase):
         self.assertEqual(self.project_task_2.objective_end_date, '2017-09-01 13:30:00')
         self.assertEqual(self.project_task_1.objective_start_date, '2017-08-30 13:30:00')
         self.assertEqual(self.project_task_1.objective_end_date, '2017-08-31 08:00:00')
+
+    def test_30_auto_planning_by_hours_in_days(self):
+        """Scheduling tasks by hours, using day as refernce unit, and not integer durations"""
+
+        self.company.project_time_mode_id = self.day_unit
+        self.test_project.reference_task_id = self.project_task_3
+        self.test_project.reference_task_end_date = '2017-09-07 18:00:00'
+        self.project_task_3.objective_duration = 0.5
+        self.test_project.start_auto_planning()
+        self.assertEqual(self.project_task_3.objective_start_date, '2017-09-07 13:30:00')
+        self.assertEqual(self.project_task_3.objective_end_date, '2017-09-07 18:00:00')
+
+        # Testing en date outside working hours
+        self.test_project.reference_task_end_date = '2017-09-07 23:00:00'
+        self.project_task_3.objective_duration = 0.5
+        self.test_project.start_auto_planning()
+        self.assertEqual(self.project_task_3.objective_start_date, '2017-09-07 13:30:00')
+        self.assertEqual(self.project_task_3.objective_end_date, '2017-09-07 23:00:00')

@@ -5,12 +5,16 @@
         <record model="ir.ui.view" id="res_company_with_calendar_view_form">
             <field name="name">res_company_with_calendar_view_form</field>
             <field name="model">res.company</field>
-            <field name="inherit_id" ref="procurement.mrp_company"/>
+            <field name="inherit_id" ref="base.view_company_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <group name="logistics_grp" position="inside">
-                    <field name="calendar_id"/>
-                </group>
+                <page name="configuration" position="inside">
+                    <group>
+                        <group name="resources" string="Resources">
+                            <field name="calendar_id"/>
+                        </group>
+                    </group>
+                </page>
             </field>
         </record>
 

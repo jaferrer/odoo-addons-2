@@ -158,6 +158,11 @@ msgid "Taken into account"
 msgstr "Pris en compte"
 
 #. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_conflict
+msgid "Conflict"
+msgstr "Conflit"
+
+#. module: project_planning_improved
 #: code:addons\project_planning_improved\project_planning_improved.py:36
 #, python-format
 msgid "You are not allowed to change the reference task (or its date) for project %s, because you are not manager of this project."
