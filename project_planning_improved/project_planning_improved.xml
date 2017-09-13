@@ -35,8 +35,8 @@
                     <field name="objective_duration"/>
                     <field name="taken_into_account"/>
                     <field name="expected_start_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
-                    <field name="objective_start_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
-                    <field name="expected_end_date" widget="date"/>
+                    <field name="objective_start_date" widget="date"/>
+                    <field name="expected_end_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
                     <field name="objective_end_date" widget="date"/>
                     <field name="parent_task_id" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
                     <field name="previous_task_ids" widget="many2many_tags" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
