@@ -87,7 +87,8 @@ class ProjectImprovedProject(models.Model):
                                 'nb_days': longest_ways_to_tasks[latest_task]['nb_days'] + next_task.objective_duration
                             }
                 latest_tasks = new_tasks_to_proceed
-            critical_nb_days = max([longest_ways_to_tasks[task]['nb_days'] for task in longest_ways_to_tasks.keys()])
+            critical_nb_days = longest_ways_to_tasks and \
+                max([longest_ways_to_tasks[task]['nb_days'] for task in longest_ways_to_tasks.keys()]) or 0
             critical_tasks = self.env['project.task']
             for task in longest_ways_to_tasks.keys():
                 if longest_ways_to_tasks[task]['nb_days'] == critical_nb_days:
