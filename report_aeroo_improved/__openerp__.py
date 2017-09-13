@@ -25,7 +25,9 @@
     'category': 'Report',
     'depends': ['web_report_improved', 'report_aeroo'],
     'description': """
-Add the feature of web_report_improved to the aeroo report
+Report Aeroo Report improved
+============================    
+Add features to the aeroo report system
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -21,113 +21,13 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta, weekdays
 
 from openerp import fields, models, api, _
-from openerp.exceptions import except_orm
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT
-
-
-###################################################################################################
-# TODO: This should be removed as soon as https://github.com/odoo/odoo/pull/4030 is pulled upstream
-class resource_calendar_bugfix(models.Model):
-    """This is only while waiting for upstream bugfix."""
-    _inherit = "resource.calendar"
-
-    def _schedule_days(self, cr, uid, id, days, day_date=None, compute_leaves=False,
-                       resource_id=None, default_interval=None, context=None):
-        """Schedule days of work, using a calendar and an optional resource to
-        compute working and leave days. This method can be used backwards, i.e.
-        scheduling days before a deadline.
-        :param int days: number of days to schedule. Use a negative number to
-                         compute a backwards scheduling.
-        :param date day_date: reference date to compute working days. If days is > 0
-                              date is the starting date. If days is < 0 date is the
-                              ending date.
-        :param boolean compute_leaves: if set, compute the leaves based on calendar
-                                       and resource. Otherwise no leaves are taken
-                                       into account.
-        :param int resource_id: the id of the resource to take into account when
-                                computing the leaves. If not set, only general
-                                leaves are computed. If set, generic and
-                                specific leaves are computed.
-        :param tuple default_interval: if no id, try to return a default working
-                                       day using default_interval[0] as beginning
-                                       hour, and default_interval[1] as ending hour.
-                                       Example: default_interval = (8, 16).
-                                       Otherwise, a void list of working intervals
-                                       is returned when id is None.
-        :return tuple (datetime, intervals): datetime is the beginning/ending date
-                                             of the schedulign; intervals are the
-                                             working intervals of the scheduling.
-        Implementation note: rrule.rrule is not used because rrule it des not seem
-        to allow getting back in time.
-        """
-        if day_date is None:
-            day_date = datetime.datetime.now()
-        backwards = (days < 0)
-        days = abs(days)
-        intervals = []
-        planned_days = 0
-        iterations = 0
-        current_datetime = day_date.replace(hour=0, minute=0, second=0)
-        if backwards:
-            current_datetime = self.get_previous_day(cr, uid, id, current_datetime, context)
-
-        while planned_days < days and iterations < 1000:
-            working_intervals = self.get_working_intervals_of_day(
-                cr, uid, id, current_datetime,
-                compute_leaves=compute_leaves, resource_id=resource_id,
-                default_interval=default_interval,
-                context=context)
-            if id is None or working_intervals:  # no calendar -> no working hours, but day is considered as worked
-                planned_days += 1
-                intervals += working_intervals
-            # get next day
-            if backwards:
-                current_datetime = self.get_previous_day(cr, uid, id, current_datetime, context)
-            else:
-                current_datetime = self.get_next_day(cr, uid, id, current_datetime, context)
-            # avoid infinite loops
-            iterations += 1
-        return intervals
-###################################################################################################
-
-
-class res_company_with_calendar(models.Model):
-    _inherit = "res.company"
-
-    calendar_id = fields.Many2one("resource.calendar", "Company default calendar",
-                                  help="The default calendar of the company to define working days. This calendar is "
-                                       "used for locations outside warehouses or "
-                                       "for warehouses without a calendar defined. If undefined here the default "
-                                       "calendar will consider working days being Monday to Friday.")
-
-    @api.multi
-    def schedule_working_days(self, nb_days, day_date):
-        """Returns the date that is nb_days working days after day_date in the context of the current company.
-
-        :param nb_days: int: The number of working days to add to day_date. If nb_days is negative, counting is done
-                             backwards.
-        :param day_date: datetime: The starting date for the scheduling calculation.
-        :return: The scheduled date nb_days after (or before) day_date.
-        :rtype : datetime
-        """
-        self.ensure_one()
-        assert isinstance(day_date, datetime)
-        if nb_days == 0:
-            return day_date
-        calendar = self.calendar_id
-        if not calendar:
-            calendar = self.env.ref("stock_working_days.default_calendar")
-        newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date,
-                                                  resource_id=False,
-                                                  compute_leaves=True)
-        if isinstance(newdate, (list, tuple)):
-            newdate = newdate[0]
-        return newdate
 
 
 class stock_warehouse_with_calendar(models.Model):
     _inherit = "stock.warehouse"
 
+    view_location_id = fields.Many2one('stock.location', index=True)
     resource_id = fields.Many2one("resource.resource", "Warehouse resource",
                                   help="The resource is used to define the working days of the warehouse. If undefined "
                                        "the system will fall back to the default company calendar.")
@@ -142,23 +42,31 @@ class stock_working_days_location(models.Model):
             Returns warehouse id of warehouse that contains location
             :param location: browse record (stock.location)
 
-            Overridden here to have an implementation that checks at all levels of location tree.
+            overridden here for improved performance
         """
-        wh_views = {w.view_location_id.id: w for w in self.env['stock.warehouse'].search([])}
-        loc = location
-        while loc:
-            if loc.id in wh_views.keys():
-                return wh_views[loc.id].id
-            loc = loc.location_id
-        return False
+        query = """
+            SELECT swh.id
+            FROM
+                stock_warehouse swh
+                LEFT JOIN stock_location sl ON swh.view_location_id = sl.id
+            WHERE
+                sl.parent_left <= %s AND sl.parent_right >= %s
+            ORDER BY swh.id
+            LIMIT 1
+        """
+        self.env.cr.execute(query, (location.parent_left, location.parent_left))
+        whs = self.env.cr.fetchone()
+        return whs and whs[0] or False
 
     @api.multi
-    def schedule_working_days(self, nb_days, day_date):
+    def schedule_working_days(self, nb_days, day_date, days_of_week=False):
         """Returns the date that is nb_days working days after day_date in the context of the current location.
 
         :param nb_days: int: The number of working days to add to day_date. If nb_days is negative, counting is done
                              backwards.
         :param day_date: datetime: The starting date for the scheduling calculation.
+        :param days_of_week: a recorset of resource.day_of_week on which the returned date must be. If it is not, it
+        will increase abs(nb_days) until it does if nb_days.
         :return: The scheduled date nb_days after (or before) day_date.
         :rtype : datetime
         """
@@ -173,21 +81,29 @@ class stock_working_days_location(models.Model):
         else:
             calendar = self.company_id.calendar_id
         if not calendar:
-            calendar = self.env.ref("stock_working_days.default_calendar")
+            calendar = self.env.ref("resource_improved.default_calendar")
         newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date,
                                                   resource_id=resource and resource.id or False,
                                                   compute_leaves=True)
         if isinstance(newdate, (list, tuple)):
             newdate = newdate[0]
+
+        # Check if this is to be done only on some days of the week
+        if days_of_week:
+            day_codes = [d.code for d in days_of_week]
+            if len(day_codes) != 0:
+                dates = []
+                for dow in day_codes:
+                    if newdate + relativedelta(weekday=weekdays[dow]) == newdate:
+                        dates = [newdate]
+                        break
+                    if nb_days > 0:
+                        dates.append(newdate + relativedelta(weekday=weekdays[dow]))
+                    else:
+                        dates.append(newdate + relativedelta(weekday=weekdays[dow](-1)))
+                newdate = max(dates)
+
         return newdate
-
-
-class days_of_week_tags(models.Model):
-    _name = 'resource.day_of_week'
-    _description = "Days of the week"
-
-    name = fields.Char("Day of the week", index=True, required=True)
-    code = fields.Integer("# day of the week", index=True, required=True)
 
 
 class fixed_days_procurement_rule(models.Model):
@@ -213,17 +129,9 @@ class procurement_working_days(models.Model):
         vals = super(procurement_working_days, self)._run_move_create(procurement)
         proc_date = datetime.strptime(procurement.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
         location = procurement.location_id or procurement.warehouse_id.view_location_id
-        newdate = location.schedule_working_days(-procurement.rule_id.delay or 0, proc_date)
-        # Check if this is to be done only on some days of the week
-        day_codes = [d.code for d in procurement.rule_id.days_of_week]
-        if len(day_codes) != 0:
-            dates = []
-            for dow in day_codes:
-                if newdate + relativedelta(weekday=weekdays[dow]) == newdate:
-                    dates=[newdate]
-                    break
-                dates.append(newdate + relativedelta(weekday=weekdays[dow](-1)))
-            newdate = max(dates)
+        newdate = location.schedule_working_days(-procurement.rule_id.delay or 0,
+                                                 proc_date,
+                                                 procurement.rule_id.days_of_week)
         if newdate:
             vals.update({'date': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                          'date_expected': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT)})
@@ -232,7 +140,8 @@ class procurement_working_days(models.Model):
     @api.model
     def _get_orderpoint_date_planned(self, orderpoint, start_date):
         location = orderpoint.location_id or orderpoint.warehouse_id.view_location_id
-        newdate = location.schedule_working_days(orderpoint.product_id.seller_delay or 0.0, start_date)
+        seller_delay = orderpoint.product_id.seller_ids and orderpoint.product_id.seller_ids[0].delay
+        newdate = location.schedule_working_days(seller_delay or 0.0, start_date)
         return newdate.strftime(DEFAULT_SERVER_DATE_FORMAT)
 
 
@@ -261,26 +170,9 @@ class stock_location_path_working_days(models.Model):
                 'date_expected': newdate.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                 'location_dest_id': rule.location_dest_id.id
             })
-            #avoid looping if a push rule is not well configured
+            # avoid looping if a push rule is not well configured
             if rule.location_dest_id.id != old_dest_location:
-                #call again push_apply to see if a next step is defined
+                # call again push_apply to see if a next step is defined
                 self.env['stock.move']._push_apply(move)
         else:
             super(stock_location_path_working_days, self)._apply(rule, move)
-
-
-class ResourceWorkingDays(models.Model):
-    _inherit = 'resource.resource'
-
-    leave_ids = fields.One2many('resource.calendar.leaves', 'resource_id', string="List of related leaves")
-
-
-class LeavesWorkingDays(models.Model):
-    _inherit = 'resource.calendar.leaves'
-
-    @api.multi
-    def onchange_resource(self, resource):
-        result = super(LeavesWorkingDays, self).onchange_resource(resource)
-        if self.env.context.get('default_resource_id'):
-            return{'calendar_id': self.env.context['default_resource_id']}
-        return result
