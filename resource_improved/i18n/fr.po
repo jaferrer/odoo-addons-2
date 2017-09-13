@@ -58,3 +58,8 @@ msgstr "Jour de la semaine"
 #: field:resource.day_of_week,code:0
 msgid "# day of the week"
 msgstr "N° du jour de la semaine"
+
+#. module: project
+#: model:ir.model.fields,field_description:project.field_res_company_project_time_mode_id
+msgid "Timesheet UoM"
+msgstr "Unité de mesure des imputations de temps"
