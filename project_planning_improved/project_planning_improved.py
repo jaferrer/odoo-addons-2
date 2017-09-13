@@ -230,13 +230,17 @@ class ProjectImprovedTask(models.Model):
         self.ensure_one()
         do_not_use_any_calendar = self.env.context.get('do_not_use_any_calendar')
         resource = False
-        if self.user_id:
-            resource = self.env['resource.resource'].search([('user_id', '=', self.user_id.id),
+        reference_user = self.user_id or self.env.user
+        if reference_user:
+            resource = self.env['resource.resource'].search([('user_id', '=', reference_user.id),
                                                              ('resource_type', '=', 'user')], limit=1)
         if not resource:
             resource = self.env['resource.resource'].search([('user_id', '=', self.env.user.id),
                                                              ('resource_type', '=', 'user')], limit=1)
-        calendar = resource and resource.calendar_id or False
+        if resource:
+            calendar = resource.calendar_id
+        else:
+            calendar = self.company_id.calendar_id
         if not calendar:
             calendar = self.env.ref('resource_improved.default_calendar')
         target_date = date_ref
