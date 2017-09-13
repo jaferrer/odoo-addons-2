@@ -97,6 +97,7 @@
                         <group>
                             <field name="objective_start_date" widget="date"/>
                             <field name="expected_start_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
+                            <field name="conflict"/>
                             <field name="allocated_duration"/>
                             <field name="allocated_duration_unit_tasks"/>
                         </group>
@@ -151,6 +152,8 @@
                 <timeline position="attributes">
                     <attribute name="date_start">objective_start_date</attribute>
                     <attribute name="date_stop">objective_end_date</attribute>
+                    <attribute name="colors">#2ecb71: kanban_state == 'done'; #ff5c33: conflict == true; #ec7063: kanban_state == 'blocked';</attribute>
+                    <attribute name="order_by">parent_task_id</attribute>
                 </timeline>
             </field>
         </record>

@@ -197,6 +197,7 @@ class ProjectImprovedTask(models.Model):
     total_allocated_duration = fields.Integer(string=u"Total allocated duration", compute='_get_allocated_duration',
                                           help=u"In project time unit of the comany", store=True)
     taken_into_account = fields.Boolean(string=u"Taken into account")
+    conflict = fields.Boolean(string=u"Conflict")
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
     @api.multi
