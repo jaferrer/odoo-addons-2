@@ -46,6 +46,11 @@ class ProjectTemplateTask(models.Model):
     generated_from_template_id = fields.Many2one('project.task', string=u"Generated from template task",
                                                  domain=[('is_template', '=', True)])
 
+    _sql_constraints = [
+        ('is_template_project_id', 'check(not(is_template is true and project_id is not null))',
+         _(u"Impossible to attach a template task to a project.")),
+    ]
+
     @api.multi
     def find_generated_task_for_template(self, project_id):
         self.ensure_one()
