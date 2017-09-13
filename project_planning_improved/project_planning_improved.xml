@@ -33,8 +33,9 @@
                     <field name="kanban_state"/>
                     <field name="critical_task"/>
                     <field name="objective_duration"/>
-                    <field name="expected_start_date" widget="date"/>
-                    <field name="objective_start_date" widget="date"/>
+                    <field name="taken_into_account"/>
+                    <field name="expected_start_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
+                    <field name="objective_start_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
                     <field name="expected_end_date" widget="date"/>
                     <field name="objective_end_date" widget="date"/>
                     <field name="parent_task_id" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
@@ -53,9 +54,10 @@
                     <field name="critical_task"/>
                     <field name="objective_duration"/>
                     <field name="parent_task_id"/>
-                    <field name="expected_start_date" widget="date"/>
+                    <field name="taken_into_account"/>
+                    <field name="expected_start_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
                     <field name="objective_start_date" widget="date"/>
-                    <field name="expected_end_date" widget="date"/>
+                    <field name="expected_end_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
                     <field name="objective_end_date" widget="date"/>
                     <field name="previous_task_ids" widget="many2many_tags"/>
                     <field name="next_task_ids" widget="many2many_tags"/>
@@ -94,13 +96,13 @@
                     <group>
                         <group>
                             <field name="objective_start_date" widget="date"/>
-                            <field name="expected_start_date" widget="date"/>
+                            <field name="expected_start_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
                             <field name="allocated_duration"/>
                             <field name="allocated_duration_unit_tasks"/>
                         </group>
                         <group>
                             <field name="objective_end_date" widget="date"/>
-                            <field name="expected_end_date" widget="date"/>
+                            <field name="expected_end_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
                             <field name="total_allocated_duration"/>
                             <field name="taken_into_account"/>
                         </group>
