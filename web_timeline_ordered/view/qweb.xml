@@ -1,0 +1,9 @@
+<openerp>
+    <data>
+       <template id="assets_backend" name="web_timeline_ordered assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_timeline_ordered/static/src/js/web_timeline_ordered.js"></script>
+            </xpath>
+        </template>
+    </data>
+</openerp>
