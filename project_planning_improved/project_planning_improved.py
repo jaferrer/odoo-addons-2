@@ -87,7 +87,8 @@ class ProjectImprovedProject(models.Model):
                                 'nb_days': longest_ways_to_tasks[latest_task]['nb_days'] + next_task.objective_duration
                             }
                 latest_tasks = new_tasks_to_proceed
-            critical_nb_days = max([longest_ways_to_tasks[task]['nb_days'] for task in longest_ways_to_tasks.keys()])
+            critical_nb_days = longest_ways_to_tasks and \
+                max([longest_ways_to_tasks[task]['nb_days'] for task in longest_ways_to_tasks.keys()]) or 0
             critical_tasks = self.env['project.task']
             for task in longest_ways_to_tasks.keys():
                 if longest_ways_to_tasks[task]['nb_days'] == critical_nb_days:
@@ -196,6 +197,7 @@ class ProjectImprovedTask(models.Model):
     total_allocated_duration = fields.Integer(string=u"Total allocated duration", compute='_get_allocated_duration',
                                           help=u"In project time unit of the comany", store=True)
     taken_into_account = fields.Boolean(string=u"Taken into account")
+    conflict = fields.Boolean(string=u"Conflict")
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
     @api.multi
@@ -230,27 +232,29 @@ class ProjectImprovedTask(models.Model):
         self.ensure_one()
         do_not_use_any_calendar = self.env.context.get('do_not_use_any_calendar')
         resource = False
-        if self.user_id:
-            resource = self.env['resource.resource'].search([('user_id', '=', self.user_id.id),
-                                                             ('resource_type', '=', 'user')], limit=1)
+        reference_user = self.user_id or self.env.user
+        if reference_user:
+            resource = self.env['resource.resource'].search([('user_id', '=', reference_user.id), ('resource_type', '=', 'user')], limit=1)
         if not resource:
             resource = self.env['resource.resource'].search([('user_id', '=', self.env.user.id),
                                                              ('resource_type', '=', 'user')], limit=1)
-        calendar = resource and resource.calendar_id or False
+        if resource:
+            calendar = resource.calendar_id
+        else:
+            calendar = self.company_id.calendar_id
         if not calendar:
             calendar = self.env.ref('resource_improved.default_calendar')
         target_date = date_ref
         if nb_days:
-            if calendar and resource and not do_not_use_any_calendar:
+            if calendar and not do_not_use_any_calendar:
                 if nb_days > 0:
                     nb_days += 1
-                target_date = calendar.schedule_days_get_date(nb_days, target_date, compute_leaves=True,
-                                                              resource_id=resource and resource.id or False)
+                target_date = calendar.schedule_days_get_date(nb_days, target_date, compute_leaves=True, resource_id=resource and resource.id or False)
                 target_date = target_date and target_date[0] or False
             else:
                 target_date = target_date - relativedelta(days=nb_days)
         if nb_hours:
-            if calendar and resource and not do_not_use_any_calendar:
+            if calendar and not do_not_use_any_calendar:
                 available_intervals = calendar.schedule_hours(nb_hours, target_date, compute_leaves=True,
                                                               resource_id=resource and resource.id or False)
                 if nb_hours > 0:

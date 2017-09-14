@@ -30,6 +30,7 @@ Resource Improved
 This module improved the resources management.""",
     'website': 'http://www.ndp-systemes.fr',
     'data': ['security/ir.model.access.csv',
+             'resource_improved.xml',
              'resource_improved_data.xml'],
     'demo': [],
     'test': [],

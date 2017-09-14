@@ -79,6 +79,12 @@ msgid "Template task"
 msgstr "Tâche type"
 
 #. module: project_template_tasks
+#: code:addons\project_template_tasks\project_template_tasks.py:51
+#, python-format
+msgid "Impossible to attach a template task to a project."
+msgstr "Impossible de rattacher une tâche type à un projet."
+
+#. module: project_template_tasks
 #: code:addons\project_template_tasks\project_template_tasks.py:70
 #, python-format
 msgid "Forbidden to overwrite tasks of type %s"
