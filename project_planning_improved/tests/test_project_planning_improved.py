@@ -185,3 +185,11 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
             self.project_task_2.expected_start_date = '2017-08-21 18:00:00'
         with self.assertRaises(UserError):
             self.project_task_9.expected_end_date = '2017-09-28 18:00:00'
+
+        # Checking that parent tasks must always include their children tasks.
+        self.project_task_2.taken_into_account=True
+        self.project_task_4.taken_into_account=True
+        with self.assertRaises(UserError):
+            self.parent_task_1.expected_start_date = '2017-09-23 08:00:00'
+        with self.assertRaises(UserError):
+            self.parent_task_1.expected_end_date = '2017-08-31 18:00:00'
