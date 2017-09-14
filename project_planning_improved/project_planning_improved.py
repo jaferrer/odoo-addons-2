@@ -127,7 +127,7 @@ class ProjectImprovedProject(models.Model):
     def update_objective_dates(self):
         for rec in self:
             rec.task_ids.write({'objective_start_date': False,
-                                 'objective_end_date': False})
+                                'objective_end_date': False})
             if not rec.reference_task_id or not rec.reference_task_end_date:
                 raise UserError(_(u"Impossible to update objective dates for project %s if reference task or its date "
                                   u"is not defined.") % rec.display_name)
@@ -381,4 +381,6 @@ class ProjectImprovedTask(models.Model):
                 if not auto_planning:
                     rec.check_dates_consistency_with_parents(expected_start_date, expected_end_date)
                     rec.check_dates_consistency_with_children(expected_start_date, expected_end_date)
+                    # rec.postpone_next_tasks(expected_start_date, expected_end_date)
+                    # rec.report_next_tasks(expected_start_date, expected_end_date)
         return super(ProjectImprovedTask, self).write(vals)
