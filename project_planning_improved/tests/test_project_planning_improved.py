@@ -123,8 +123,19 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         for task in self.test_project.task_ids:
             self.assertEqual(task.objective_start_date, task.expected_start_date)
             self.assertEqual(task.objective_end_date, task.expected_end_date)
+        # Rescheduling end date and transmit it to next tasks
+        self.project_task_6.expected_end_date = '2017-09-12 18:00:00'
+        self.assertEqual(self.project_task_7.expected_start_date, '2017-09-12 18:00:00')
+        self.assertEqual(self.project_task_7.expected_end_date, '2017-09-13 18:00:00')
+        self.assertTrue(self.project_task_6.taken_into_account)
+        self.assertFalse(self.project_task_7.taken_into_account)
+        self.project_task_6.taken_into_account = False
+        # Forbidden to move task 7 out of parent task 1
+        with self.assertRaises(UserError):
+            self.project_task_6.expected_end_date = '2017-09-15 18:00:00'
 
         # Using task 5 as reference task
+        self.test_project.task_ids.write({'taken_into_account': False})
         self.test_project.reference_task_id = self.project_task_5
         self.test_project.reference_task_end_date = '2017-09-07 18:00:00'
         self.test_project.start_auto_planning()
@@ -153,8 +164,19 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         for task in self.test_project.task_ids:
             self.assertEqual(task.objective_start_date, task.expected_start_date)
             self.assertEqual(task.objective_end_date, task.expected_end_date)
+        # Rescheduling end date and transmit it to next tasks
+        self.project_task_7.expected_start_date = '2017-09-05 18:00:00'
+        self.assertEqual(self.project_task_6.expected_end_date, '2017-09-05 18:00:00')
+        self.assertEqual(self.project_task_6.expected_start_date, '2017-08-30 18:00:00')
+        self.assertTrue(self.project_task_7.taken_into_account)
+        self.assertFalse(self.project_task_6.taken_into_account)
+        self.project_task_7.taken_into_account = False
+        # Forbidden to move task 6 out of parent task 1
+        with self.assertRaises(UserError):
+            self.project_task_7.expected_start_date = '2017-08-30 18:00:00'
 
         #  Using task 8 as reference task
+        self.test_project.task_ids.write({'taken_into_account': False})
         self.test_project.reference_task_id = self.project_task_8
         self.test_project.reference_task_end_date = '2017-09-07 18:00:00'
         self.test_project.start_auto_planning()
