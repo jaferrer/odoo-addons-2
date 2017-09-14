@@ -18,6 +18,7 @@
 #
 
 from openerp.tests import common
+from openerp.exceptions import UserError
 
 
 class TestTemplateTasksPlanningImproved(common.TransactionCase):
@@ -162,3 +163,25 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         for task in self.test_project.task_ids:
             self.assertEqual(task.objective_start_date, task.expected_start_date)
             self.assertEqual(task.objective_end_date, task.expected_end_date)
+
+        # Checking TIA update
+        self.parent_task_0.expected_start_date = '2017-08-15 18:00:00'
+        self.assertTrue(self.parent_task_0.taken_into_account)
+        self.parent_task_3.expected_end_date = '2017-09-25 18:00:00'
+        self.assertTrue(self.parent_task_3.taken_into_account)
+
+        # New auto_planning should not update these dates
+        self.test_project.start_auto_planning()
+        self.assertEqual(self.parent_task_0.expected_start_date, '2017-08-15 18:00:00')
+        self.assertEqual(self.parent_task_3.expected_end_date, '2017-09-25 18:00:00')
+
+        # Checking that expected_start_date is always before expected_end_date
+        self.assertEqual(self.project_task_9.expected_end_date[:10], '2017-09-18')
+        with self.assertRaises(UserError):
+            self.project_task_9.expected_start_date = '2017-09-19 18:00:00'
+
+        # Checking that children tasks must always be included in their parent tasks.
+        with self.assertRaises(UserError):
+            self.project_task_2.expected_start_date = '2017-08-21 18:00:00'
+        with self.assertRaises(UserError):
+            self.project_task_9.expected_end_date = '2017-09-28 18:00:00'

@@ -176,9 +176,9 @@ class ProjectImprovedProject(models.Model):
     def configure_expected_dates(self):
         for rec in self:
             tasks_not_tia = self.env['project.task'].search([('project_id', '=', rec.id),
-                                                                 ('taken_into_account', '=', False)])
+                                                             ('taken_into_account', '=', False)])
             for task in tasks_not_tia:
-                task.with_context(do_not_update_tia=True).write({
+                task.with_context(auto_planning=True).write({
                     'expected_start_date': task.objective_start_date,
                     'expected_end_date': task.objective_end_date,
                 })
@@ -301,8 +301,52 @@ class ProjectImprovedTask(models.Model):
                                       nb_days=rec.objective_duration) or False
 
     @api.multi
+    def get_all_parent_tasks(self):
+        self.ensure_one()
+        parent_tasks = self.parent_task_id
+        parent = self.parent_task_id
+        while parent.parent_task_id:
+            parent = parent.parent_task_id
+            parent_tasks |= parent.parent_task_id
+        return parent_tasks
+
+    @api.model
+    def is_date_start_before_date_end(self, date_start, date_end):
+        return date_start[:10] <= date_end[:10] and True or False
+
+    @api.multi
+    def check_dates_consistency_with_parents(self, expected_start_date=None, expected_end_date=None):
+        for rec in self:
+            expected_start_date = expected_start_date or rec.expected_start_date
+            expected_end_date = expected_end_date or rec.expected_end_date
+            parent_tasks = rec.get_all_parent_tasks()
+            for parent_task in parent_tasks:
+                expected_start_date_ok = True
+                expected_end_date_ok = True
+                if parent_task.expected_start_date and expected_start_date:
+                    if not self.is_date_start_before_date_end(parent_task.expected_start_date,
+                                                              expected_start_date):
+                        expected_start_date_ok = False
+                if expected_start_date_ok and parent_task.expected_end_date and expected_end_date:
+                    if not self.is_date_start_before_date_end(expected_end_date,
+                                                              parent_task.expected_end_date):
+                        expected_end_date_ok = False
+                if not expected_start_date_ok or not expected_end_date_ok:
+                    raise UserError(_(u"Task %s must be totally included in parent task %s") %
+                                    (rec.name, parent_task.name))
+
+    @api.multi
     def write(self, vals):
-        do_not_update_tia = self.env.context.get('do_not_update_tia')
-        if not do_not_update_tia and (vals.get('expected_start_date') or vals.get('expected_end_date')):
-            vals['taken_into_account'] = True
+        auto_planning = self.env.context.get('auto_planning', False)
+        if vals.get('expected_start_date') or vals.get('expected_end_date'):
+            if not auto_planning:
+                vals['taken_into_account'] = True
+            for rec in self:
+                expected_start_date = vals.get('expected_start_date', rec.expected_start_date)
+                expected_end_date = vals.get('expected_end_date', rec.expected_end_date)
+                if not self.is_date_start_before_date_end(expected_start_date, expected_end_date):
+                    raise UserError(_(u"Task %s: expected end date can not be before expected start date") %
+                                    rec.name)
+                if not auto_planning:
+                    rec.check_dates_consistency_with_parents(expected_start_date, expected_end_date)
         return super(ProjectImprovedTask, self).write(vals)
