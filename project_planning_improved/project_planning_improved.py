@@ -112,6 +112,7 @@ class ProjectImprovedProject(models.Model):
                                       u"with current configuration") %
                                     (u", ".join([task.name for task in not_planned_tasks]),
                                     rec.display_name))
+                rec.configure_expected_dates()
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'project.task',
@@ -170,6 +171,17 @@ class ProjectImprovedProject(models.Model):
                                                   task in children_tasks if task.objective_end_date] or [False])
                     parent_task.with_context(force_objective_start_date=min_objective_start_date). \
                         write({'objective_end_date': max_objective_end_date})
+
+    @api.multi
+    def configure_expected_dates(self):
+        for rec in self:
+            tasks_not_tia = self.env['project.task'].search([('project_id', '=', rec.id),
+                                                                 ('taken_into_account', '=', False)])
+            for task in tasks_not_tia:
+                task.with_context(do_not_update_tia=True).write({
+                    'expected_start_date': task.objective_start_date,
+                    'expected_end_date': task.objective_end_date,
+                })
 
 
 class ProjectImprovedTask(models.Model):
@@ -287,3 +299,10 @@ class ProjectImprovedTask(models.Model):
             rec.objective_end_date = force_objective_end_date or objective_start_date and \
                 rec.schedule_get_date(fields.Datetime.from_string(objective_start_date),
                                       nb_days=rec.objective_duration) or False
+
+    @api.multi
+    def write(self, vals):
+        do_not_update_tia = self.env.context.get('do_not_update_tia')
+        if not do_not_update_tia and (vals.get('expected_start_date') or vals.get('expected_end_date')):
+            vals['taken_into_account'] = True
+        return super(ProjectImprovedTask, self).write(vals)
