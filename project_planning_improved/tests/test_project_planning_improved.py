@@ -107,6 +107,9 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.project_task_8.objective_end_date[:10], '2017-09-29')
         self.assertEqual(self.project_task_9.objective_start_date[:10], '2017-09-21')
         self.assertEqual(self.project_task_9.objective_end_date[:10], '2017-10-02')
+        for task in self.test_project.task_ids:
+            self.assertEqual(task.objective_start_date, task.expected_start_date)
+            self.assertEqual(task.objective_end_date, task.expected_end_date)
 
         # Using task 5 as reference task
         self.test_project.reference_task_id = self.project_task_5
@@ -130,6 +133,9 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.project_task_3.objective_end_date[:10], '2017-08-30')
         self.assertEqual(self.project_task_1.objective_start_date[:10], '2017-08-25')
         self.assertEqual(self.project_task_1.objective_end_date[:10], '2017-08-28')
+        for task in self.test_project.task_ids:
+            self.assertEqual(task.objective_start_date, task.expected_start_date)
+            self.assertEqual(task.objective_end_date, task.expected_end_date)
 
         #  Using task 6 as reference task
         self.test_project.reference_task_id = self.project_task_6
@@ -153,3 +159,6 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.project_task_2.objective_end_date[:10], '2017-08-25')
         self.assertEqual(self.project_task_1.objective_start_date[:10], '2017-08-21')
         self.assertEqual(self.project_task_1.objective_end_date[:10], '2017-08-22')
+        for task in self.test_project.task_ids:
+            self.assertEqual(task.objective_start_date, task.expected_start_date)
+            self.assertEqual(task.objective_end_date, task.expected_end_date)
