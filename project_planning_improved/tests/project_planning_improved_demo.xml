@@ -2,6 +2,14 @@
 <openerp>
     <data>
 
+        <record model="res.users" id="base.user_root">
+            <field name="tz">Greenwich</field>
+        </record>
+
+        <record model="res.users" id="base.user_demo">
+            <field name="tz">Greenwich</field>
+        </record>
+
         <record model="project.project" id="project_planning_improved_test_project">
             <field name="name">Test project</field>
             <field name="label_tasks">Tasks</field>

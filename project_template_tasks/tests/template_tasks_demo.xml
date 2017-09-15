@@ -47,6 +47,7 @@
             <field name="priority">0</field>
             <field name="name">Task 6</field>
             <field name="stage_id" ref="project.project_stage_1"/>
+            <field name="is_template" eval="True"/>
         </record>
 
         <record id="project_task_7" model="project.task">
@@ -54,6 +55,7 @@
             <field name="priority">0</field>
             <field name="name">Task 7</field>
             <field name="stage_id" ref="project.project_stage_1"/>
+            <field name="is_template" eval="True"/>
         </record>
 
         <record id="project_task_8" model="project.task">
