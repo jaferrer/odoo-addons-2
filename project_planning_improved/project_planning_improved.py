@@ -127,7 +127,7 @@ class ProjectImprovedProject(models.Model):
     def update_objective_dates(self):
         for rec in self:
             rec.task_ids.write({'objective_start_date': False,
-                                 'objective_end_date': False})
+                                'objective_end_date': False})
             if not rec.reference_task_id or not rec.reference_task_end_date:
                 raise UserError(_(u"Impossible to update objective dates for project %s if reference task or its date "
                                   u"is not defined.") % rec.display_name)
@@ -178,7 +178,7 @@ class ProjectImprovedProject(models.Model):
             tasks_not_tia = self.env['project.task'].search([('project_id', '=', rec.id),
                                                              ('taken_into_account', '=', False)])
             for task in tasks_not_tia:
-                task.with_context(auto_planning=True).write({
+                task.with_context(auto_planning=True, do_not_update_tia=True).write({
                     'expected_start_date': task.objective_start_date,
                     'expected_end_date': task.objective_end_date,
                 })
@@ -369,10 +369,33 @@ class ProjectImprovedTask(models.Model):
                                         (rec.name, tia_children_task.name))
 
     @api.multi
+    def reschedule_start_date(self, new_date):
+        self.ensure_one()
+        if not self.taken_into_account:
+            self.expected_start_date = new_date
+            self.expected_end_date = self.schedule_get_date(fields.Datetime.from_string(new_date),
+                                                            nb_days=self.objective_duration)
+            for next_task in self.next_task_ids:
+                if next_task.expected_start_date < self.expected_end_date:
+                    next_task.reschedule_start_date(self.expected_end_date)
+
+    @api.multi
+    def reschedule_end_date(self, new_date):
+        self.ensure_one()
+        if not self.taken_into_account:
+            self.expected_end_date = new_date
+            self.expected_start_date = self.schedule_get_date(fields.Datetime.from_string(new_date),
+                                                            nb_days=-self.objective_duration)
+            for previous_task in self.previous_task_ids:
+                if previous_task.expected_end_date > self.expected_start_date:
+                    previous_task.reschedule_end_date(self.expected_start_date)
+
+    @api.multi
     def write(self, vals):
+        do_not_update_tia = self.env.context.get('do_not_update_tia', False)
         auto_planning = self.env.context.get('auto_planning', False)
         if vals.get('expected_start_date') or vals.get('expected_end_date'):
-            if not auto_planning:
+            if not do_not_update_tia:
                 vals['taken_into_account'] = True
             for rec in self:
                 expected_start_date = vals.get('expected_start_date', rec.expected_start_date)
@@ -381,4 +404,16 @@ class ProjectImprovedTask(models.Model):
                 if not auto_planning:
                     rec.check_dates_consistency_with_parents(expected_start_date, expected_end_date)
                     rec.check_dates_consistency_with_children(expected_start_date, expected_end_date)
-        return super(ProjectImprovedTask, self).write(vals)
+        result = super(ProjectImprovedTask, self).write(vals)
+        if vals.get('expected_start_date') or vals.get('expected_end_date'):
+            for rec in self:
+                expected_start_date = vals.get('expected_start_date', rec.expected_start_date)
+                expected_end_date = vals.get('expected_end_date', rec.expected_end_date)
+                if not auto_planning:
+                    for task in rec.next_task_ids:
+                        if expected_end_date > task.expected_start_date:
+                            task.with_context(do_not_update_tia=True).reschedule_start_date(expected_end_date)
+                    for task in rec.previous_task_ids:
+                        if expected_start_date < task.expected_end_date:
+                            task.with_context(do_not_update_tia=True).reschedule_end_date(expected_start_date)
+        return result

@@ -32,7 +32,7 @@ This module implement the improved planning by hours to the project module.
     'website': 'http://www.ndp-systemes.fr',
     'data': ['data.xml',
              'project_planning_improved_by_hours.xml'],
-    'demo': ['tests/project_planning_improved_by_hours_demo.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
