@@ -36,7 +36,8 @@ _logger = logging.getLogger(__name__)
 def process_orderpoints(session, model_name, ids, context):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    orderpoints = session.env[model_name].with_context(context).browse(ids, order='stock_scheduler_sequence desc')
+    orderpoints = session.env[model_name].with_context(context).search([('id', 'in', ids)],
+                                                                       order='stock_scheduler_sequence desc')
     for op in orderpoints:
         op.process()
 
@@ -117,8 +118,8 @@ class ProcurementOrderQuantity(models.Model):
             product_ids = product_ids[ORDERPOINT_CHUNK:]
             orderpoints = flatten(products)
             if self.env.context.get('without_job'):
-                for op in self.env['stock.warehouse.orderpoint'].browse(orderpoints):
-                    op.process()
+                process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint', orderpoints,
+                                    dict(self.env.context))
             else:
                 process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
                                           orderpoints, dict(self.env.context),
@@ -140,7 +141,7 @@ class ProcurementOrderQuantity(models.Model):
                         if move.state == 'cancel':
                             moves_to_unlink += move
                             if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
-                                            move.procurement_id.state == 'cancel' and \
+                                move.procurement_id.state == 'cancel' and \
                                     not any([move.state == 'done' for move in move.procurement_id.move_ids]):
                                 procurements_to_unlink += move.procurement_id
                 if moves_to_unlink:
@@ -251,7 +252,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-              fields.Datetime.from_string(last_schedule[0].get('date')) or False
+            fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
