@@ -33,6 +33,7 @@
             <field name="project_id" ref="project_planning_improved_test_project"/>
             <field name="name">Parent task 1</field>
             <field name="stage_id" ref="project.project_stage_0"/>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('parent_task_0')])]"/>
             <field name="allocated_duration" eval="4"/>
         </record>
 
@@ -42,6 +43,7 @@
             <field name="project_id" ref="project_planning_improved_test_project"/>
             <field name="name">Parent task 2</field>
             <field name="stage_id" ref="project.project_stage_0"/>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('parent_task_1')])]"/>
             <field name="allocated_duration" eval="2"/>
         </record>
 
@@ -51,6 +53,7 @@
             <field name="project_id" ref="project_planning_improved_test_project"/>
             <field name="name">Parent task 3</field>
             <field name="stage_id" ref="project.project_stage_0"/>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('parent_task_2')])]"/>
             <field name="allocated_duration" eval="3"/>
         </record>
 
