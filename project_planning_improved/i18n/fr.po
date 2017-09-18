@@ -179,3 +179,15 @@ msgstr "Impossible de mettre à jour les dates objectives pour les tâches %s du
 #, python-format
 msgid "Impossible to update objective dates for project %s if reference task or its date is not defined."
 msgstr "Impossible de mettre à jour les dates objectives pour le projet %s si la date de référence ou sa date de fin ne sont pas définies"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:323
+#, python-format
+msgid "Task %s: expected end date can not be before expected start date"
+msgstr "Tâche %s : la date de fin prévue ne peut pas être située avant la date de début prévue"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:322
+#, python-format
+msgid "Task %s must be totally included in parent task %s"
+msgstr "La tâche %s doit être entièrement incluse dans sa tâche parente %s"
