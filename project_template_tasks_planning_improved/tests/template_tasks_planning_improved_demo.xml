@@ -39,44 +39,76 @@
 
         <record id="project_template_tasks.project_task_1" model="project.task">
             <field name="parent_task_id" ref="template_parent_task_0"/>
+            <field name="objective_duration" eval="1"/>
+            <field name="allocated_duration" eval="1"/>
         </record>
 
         <record id="project_template_tasks.project_task_2" model="project.task">
             <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_1')])]"/>
             <field name="parent_task_id" ref="template_parent_task_1"/>
+            <field name="objective_duration" eval="3"/>
+            <field name="allocated_duration" eval="3"/>
         </record>
 
         <record id="project_template_tasks.project_task_3" model="project.task">
             <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_1')])]"/>
             <field name="parent_task_id" ref="template_parent_task_1"/>
+            <field name="objective_duration" eval="2"/>
+            <field name="allocated_duration" eval="2"/>
         </record>
 
         <record id="project_template_tasks.project_task_4" model="project.task">
             <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_2')])]"/>
             <field name="parent_task_id" ref="template_parent_task_1"/>
+            <field name="objective_duration" eval="5"/>
+            <field name="allocated_duration" eval="5"/>
         </record>
 
         <record id="project_template_tasks.project_task_5" model="project.task">
             <field name="parent_task_id" ref="template_parent_task_1"/>
+            <field name="objective_duration" eval="7"/>
+            <field name="allocated_duration" eval="7"/>
         </record>
 
         <record id="project_template_tasks.project_task_6" model="project.task">
-            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_4'), ref('project_template_tasks.project_task_5')])]"/>
-            <field name="parent_task_id" ref="template_parent_task_2"/>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_1')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_1"/>
+            <field name="objective_duration" eval="4"/>
+            <field name="allocated_duration" eval="4"/>
         </record>
 
         <record id="project_template_tasks.project_task_7" model="project.task">
-            <field name="parent_task_id" ref="template_parent_task_2"/>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_6')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_1"/>
+            <field name="objective_duration" eval="1"/>
+            <field name="allocated_duration" eval="1"/>
         </record>
 
         <record id="project_template_tasks.project_task_8" model="project.task">
-            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_6'), ref('project_template_tasks.project_task_7')])]"/>
-            <field name="parent_task_id" ref="template_parent_task_3"/>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_4'), ref('project_template_tasks.project_task_5'), ref('project_template_tasks.project_task_7')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_2"/>
+            <field name="objective_duration" eval="4"/>
+            <field name="allocated_duration" eval="4"/>
         </record>
 
         <record id="project_template_tasks.project_task_9" model="project.task">
-            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_6'), ref('project_template_tasks.project_task_7')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_2"/>
+            <field name="objective_duration" eval="13"/>
+            <field name="allocated_duration" eval="13"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_10" model="project.task">
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_8'), ref('project_template_tasks.project_task_9')])]"/>
             <field name="parent_task_id" ref="template_parent_task_3"/>
+            <field name="objective_duration" eval="6"/>
+            <field name="allocated_duration" eval="6"/>
+        </record>
+
+        <record id="project_template_tasks.project_task_11" model="project.task">
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_template_tasks.project_task_8'), ref('project_template_tasks.project_task_9')])]"/>
+            <field name="parent_task_id" ref="template_parent_task_3"/>
+            <field name="objective_duration" eval="7"/>
+            <field name="allocated_duration" eval="7"/>
         </record>
 
     </data>
