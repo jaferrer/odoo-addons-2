@@ -200,7 +200,7 @@ msgstr "La tâche %s doit être entièrement incluse dans sa tâche parente %s"
 #. module: project_planning_improved
 #: code:addons\project_planning_improved\project_planning_improved.py:404
 #, python-format
-msgid "Task %s must totally contain task %s"
+msgid "Task %s must totally include task %s"
 msgstr "La tâche %s doit contenir totalement la tâche %s"
 
 #. module: project_planning_improved
