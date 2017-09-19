@@ -24,8 +24,8 @@ class ProjectPlanningByHoursProject(models.Model):
     _inherit = 'project.task'
 
     @api.model
-    def is_date_start_before_date_end(self, date_start, date_end):
-        return date_start <= date_end and True or False
+    def is_date_end_after_date_start(self, date_end, date_start):
+        return date_end >= date_start and True or False
 
     @api.multi
     def schedule_get_date(self, date_ref, nb_days=0, nb_hours=0):

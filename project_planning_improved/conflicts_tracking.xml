@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="conflicts_tracking_form">
+            <field name="name">conflicts_tracking_form</field>
+            <field name="model">open.conflict.tracking</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="user_ids" widget="many2many_tags"/>
+                        <field name="start_date" widget="date"/>
+                        <field name="end_date" widget="date"/>
+                    </group>
+                    <footer>
+                        <button name="execute" type="object" string="Execute" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_conflicts_tracking">
+            <field name="name">Conflicts trackingg</field>
+            <field name="res_model">open.conflict.tracking</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_conflicts_tracking" name="Conflicts tracking" action="act_window_conflicts_tracking"
+                  parent="project.menu_project_management" sequence="20"/>
+
+    </data>
+</openerp>
