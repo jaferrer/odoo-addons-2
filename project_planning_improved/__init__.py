@@ -18,3 +18,4 @@
 #
 
 from . import project_planning_improved
+from . import conflicts_tracking
