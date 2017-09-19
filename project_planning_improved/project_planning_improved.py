@@ -313,7 +313,7 @@ class ProjectImprovedTask(models.Model):
         return target_date
 
     @api.multi
-    def get_nb_working_hours_from_expected_dates(self, start_dt=None, end_dt=None):
+    def get_nb_working_hours_from_expected_dates(self):
         self.ensure_one()
         resource, calendar = self.get_default_calendar_and_resource()
         result = calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
@@ -410,31 +410,14 @@ class ProjectImprovedTask(models.Model):
                                         (rec.name, tia_children_task.name))
 
     @api.multi
-    def update_expected_dates_parents_not_tia(self, expected_start_date=None, expected_end_date=None):
+    def reschedule_start_date(self, new_date, even_if_tia=False):
         for rec in self:
-            expected_start_date = expected_start_date or rec.expected_start_date
-            expected_end_date = expected_end_date or rec.expected_end_date
-            parent_tasks_not_tia = rec.get_all_parent_tasks(only_not_tia=True)
-            for parent_task in parent_tasks_not_tia:
-                new_vals = {}
-                if expected_start_date and expected_start_date < parent_task.expected_start_date:
-                    new_vals['expected_start_date'] = expected_start_date
-                if expected_end_date and expected_end_date > parent_task.expected_end_date:
-                    new_vals['expected_end_date'] = expected_end_date
-                if new_vals:
-                    parent_task.write(new_vals)
-
-    @api.multi
-    def reschedule_start_date(self, new_date):
-        for rec in self:
-            if not rec.taken_into_account:
+            if even_if_tia or not rec.taken_into_account:
                 new_expected_start_date = new_date
                 nb_hours = rec.get_nb_working_hours_from_expected_dates() or 0
                 new_expected_end_date = fields.Datetime.to_string(
                     rec.schedule_get_date(fields.Datetime.from_string(new_date), nb_hours=nb_hours))
                 if rec.expected_start_date != new_expected_start_date or rec.expected_end_date != new_expected_end_date:
-                    if self.env.context.get('reschedule_parent_tasks_not_tia=True'):
-                        rec.update_expected_dates_parents_not_tia(new_expected_start_date, new_expected_end_date)
                     rec.write({
                         'expected_start_date': new_expected_start_date,
                         'expected_end_date': new_expected_end_date,
@@ -444,9 +427,9 @@ class ProjectImprovedTask(models.Model):
                         next_task.reschedule_start_date(rec.expected_end_date)
 
     @api.multi
-    def reschedule_end_date(self, new_date):
+    def reschedule_end_date(self, new_date, even_if_tia=False):
         for rec in self:
-            if not rec.taken_into_account:
+            if even_if_tia or not rec.taken_into_account:
                 new_expected_end_date = new_date
                 nb_hours = rec.get_nb_working_hours_from_expected_dates() or 0
                 new_expected_start_date = fields.Datetime.to_string(
