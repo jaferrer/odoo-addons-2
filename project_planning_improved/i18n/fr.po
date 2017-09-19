@@ -47,6 +47,16 @@ msgid "Start auto-planning"
 msgstr "Lancer la planification automatique"
 
 #. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Set tasks to 'not taken into account'"
+msgstr "Passer les tâches en 'non pris en compte'"
+
+#. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Are you sure?"
+msgstr "Êtes-vous sûr ?"
+
+#. module: project_planning_improved
 #: model:ir.model,name:project_planning_improved.model_project_project
 msgid "Project"
 msgstr "Projet"
