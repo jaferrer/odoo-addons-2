@@ -152,7 +152,7 @@
                 <timeline position="attributes">
                     <attribute name="date_start">expected_start_date</attribute>
                     <attribute name="date_stop">expected_end_date</attribute>
-                    <attribute name="colors">#2ecb71: kanban_state == 'done'; #ff5c33: conflict == true; #ec7063: kanban_state == 'blocked'; #f4fa58: taken_into_account == True;</attribute>
+                    <attribute name="colors">#2ecb71: kanban_state == 'done'; #ff5c33: conflict == true; #ec7063: kanban_state == 'blocked'; #f4fa58: taken_into_account == true;</attribute>
                     <attribute name="order_by">parent_task_id</attribute>
                 </timeline>
             </field>
