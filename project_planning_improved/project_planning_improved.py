@@ -98,6 +98,18 @@ class ProjectImprovedProject(models.Model):
             not_critical_tasks.write({'critical_task': False})
 
     @api.multi
+    def open_tasks_timeline(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'project.task',
+            'name': _("Tasks"),
+            'view_type': 'form',
+            'view_mode': 'timeline,tree,form',
+            'domain': [('project_id', 'in', self.ids)],
+            'context': self.env.context
+        }
+
+    @api.multi
     def start_auto_planning(self):
         for rec in self:
             rec.update_critical_tasks()
@@ -114,15 +126,7 @@ class ProjectImprovedProject(models.Model):
                                     (u", ".join([task.name for task in not_planned_tasks]),
                                     rec.display_name))
                 rec.configure_expected_dates()
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'project.task',
-            'name': _("Tasks"),
-            'view_type': 'form',
-            'view_mode': 'timeline,tree,form',
-            'domain': [('project_id', 'in', self.ids)],
-            'context': self.env.context
-        }
+        return self.open_tasks_timeline()
 
     @api.multi
     def reset_dates(self):
