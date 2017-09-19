@@ -17,7 +17,8 @@
                 <group name="misc" position="before">
                     <button name="open_task_planning" string="Open tasks planning" type="object"/>
                     <button name="open_tasks_timeline" type="object" string="Open tasks timeline"/>
-                    <button name="start_auto_planning" type="object" string="Start auto-planning"/>
+                    <button name="start_auto_planning" type="object" string="Start auto-planning" confirm="Are you sure?"/>
+                    <button name="set_tasks_not_tia" type="object" string="Set tasks to 'not taken into account'" confirm="Are you sure?"/>
                 </group>
             </field>
         </record>
@@ -74,6 +75,8 @@
             <field name="arch" type="xml">
                 <search position="inside">
                     <filter name="critical_task" string="Critical task" domain="[('critical_task', '=', True)]"/>
+                    <separator/>
+                    <filter name="taken_into_account" string="Taken into account" domain="[('taken_into_account', '=', True)]"/>
                 </search>
             </field>
         </record>
