@@ -86,7 +86,10 @@ class ProjectTemplateTaskType(models.Model):
             project = self.env['project.project'].browse(project_id)
             for rec in self:
                 generated_tasks = self.env['project.task']
-                if not project.tasks.filtered(lambda task: task.stage_id == rec):
+                tasks_for_stage = project.tasks.filtered(lambda task: task.stage_id == rec)
+                if tasks_for_stage:
+                    result[rec] = tasks_for_stage
+                else:
                     for task in rec.task_ids:
                         vals_copy = rec.get_values_new_task(task, project)
                         generated_tasks |= task.copy(vals_copy)
