@@ -86,12 +86,11 @@ class ProjectTemplateTaskType(models.Model):
             project = self.env['project.project'].browse(project_id)
             for rec in self:
                 generated_tasks = self.env['project.task']
-                if project.tasks.filtered(lambda task: task.stage_id == rec):
-                    raise UserError(_("Forbidden to overwrite tasks of type %s") % rec.name)
-                for task in rec.task_ids:
-                    vals_copy = rec.get_values_new_task(task, project)
-                    generated_tasks |= task.copy(vals_copy)
-                result[rec] = generated_tasks
+                if not project.tasks.filtered(lambda task: task.stage_id == rec):
+                    for task in rec.task_ids:
+                        vals_copy = rec.get_values_new_task(task, project)
+                        generated_tasks |= task.copy(vals_copy)
+                    result[rec] = generated_tasks
         return result
 
 
