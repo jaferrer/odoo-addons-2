@@ -198,6 +198,11 @@ class ProjectImprovedProject(models.Model):
                     'expected_end_date': task.objective_end_date,
                 })
 
+    @api.multi
+    def set_tasks_not_tia(self):
+        tasks = self.env['project.task'].search([('project_id', 'in', self.ids)])
+        tasks.write({'taken_into_account': False})
+
 
 class ProjectImprovedTask(models.Model):
     _inherit = 'project.task'
