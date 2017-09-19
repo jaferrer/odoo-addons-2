@@ -38,6 +38,11 @@ msgstr "Ouvrir la planification des tâches"
 
 #. module: project_planning_improved
 #: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Open tasks timeline"
+msgstr "Ouvrir la timeline des tâches"
+
+#. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
 msgid "Start auto-planning"
 msgstr "Lancer la planification automatique"
 
