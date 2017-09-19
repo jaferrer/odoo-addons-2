@@ -135,7 +135,7 @@ class ProjectImprovedProject(models.Model):
                                 'expected_start_date': False, 'expected_end_date': False}
         tasks_not_tia = self.env['project.task'].search([('project_id', 'in', self.ids),
                                                          ('taken_into_account', '=', False)])
-        tasks_not_tia.write(values_tasks_not_tia)
+        tasks_not_tia.with_context(do_not_propagate_dates=True).write(values_tasks_not_tia)
         tasks_tia = self.env['project.task'].search([('project_id', 'in', self.ids),
                                                      ('taken_into_account', '=', True)])
         tasks_tia.write(values_tasks_tia)
@@ -355,7 +355,8 @@ class ProjectImprovedTask(models.Model):
         for rec in self:
             expected_start_date = expected_start_date or rec.expected_start_date
             expected_end_date = expected_end_date or rec.expected_end_date
-            if rec.is_date_end_after_date_start(expected_start_date, expected_end_date):
+            if expected_start_date != expected_end_date and \
+                    rec.is_date_end_after_date_start(expected_start_date, expected_end_date):
                 raise UserError(_(u"Task %s: expected end date can not be before expected start date") %
                                 rec.name)
 
