@@ -401,7 +401,7 @@ class ProjectImprovedTask(models.Model):
                     if not self.is_time_interval_included_in_another(tia_children_task.expected_start_date,
                                                                      tia_children_task.expected_end_date,
                                                                      expected_start_date, expected_end_date):
-                        raise UserError(_(u"Task %s must be totally contain task %s") %
+                        raise UserError(_(u"Task %s must totally contain task %s") %
                                         (rec.name, tia_children_task.name))
 
     @api.multi
