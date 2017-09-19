@@ -58,10 +58,8 @@ class OpenConflictTracking(models.TransientModel):
                 first_task = tasks_user[0]
                 tasks_user = tasks_user[1:]
                 for task in tasks_user:
-                    if not task.is_date_start_before_date_end(first_task.expected_end_date,
-                                                              task.expected_start_date) and \
-                            not task.is_date_start_before_date_end(task.expected_end_date,
-                                                                   first_task.expected_start_date):
+                    if task.is_date_end_after_date_start(first_task.expected_end_date, task.expected_start_date) and \
+                            task.is_date_end_after_date_start(task.expected_end_date, first_task.expected_start_date):
                         conflict_tasks |= task
                         conflict_tasks |= first_task
         if display_tasks and conflict_tasks:

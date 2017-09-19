@@ -347,15 +347,15 @@ class ProjectImprovedTask(models.Model):
         return parent_tasks
 
     @api.model
-    def is_date_start_before_date_end(self, date_start, date_end):
-        return date_start[:10] <= date_end[:10] and True or False
+    def is_date_end_after_date_start(self, date_end, date_start):
+        return date_end[:10] >= date_start[:10] and True or False
 
     @api.multi
     def check_expected_dates_consistency(self, expected_start_date=None, expected_end_date=None):
         for rec in self:
             expected_start_date = expected_start_date or rec.expected_start_date
             expected_end_date = expected_end_date or rec.expected_end_date
-            if not rec.is_date_start_before_date_end(expected_start_date, expected_end_date):
+            if rec.is_date_end_after_date_start(expected_start_date, expected_end_date):
                 raise UserError(_(u"Task %s: expected end date can not be before expected start date") %
                                 rec.name)
 
@@ -366,11 +366,9 @@ class ProjectImprovedTask(models.Model):
         expected_start_date_ok = True
         expected_end_date_ok = True
         if start_date_1 and start_date_2:
-            if not self.is_date_start_before_date_end(start_date_2, start_date_1):
-                expected_start_date_ok = False
+            expected_start_date_ok = self.is_date_end_after_date_start(start_date_1, start_date_2)
         if expected_start_date_ok and end_date_1 and end_date_2:
-            if not self.is_date_start_before_date_end(end_date_1, end_date_2):
-                expected_end_date_ok = False
+            expected_end_date_ok = self.is_date_end_after_date_start(end_date_2, end_date_1)
         if expected_start_date_ok and expected_end_date_ok:
             return True
         return False
@@ -396,12 +394,13 @@ class ProjectImprovedTask(models.Model):
                 expected_end_date = expected_end_date or rec.expected_end_date
                 tia_children_tasks = self.env['project.task'].search([('project_id', '=', rec.project_id.id),
                                                                       ('taken_into_account', '=', True),
-                                                                      ('id', 'child_of', rec.id)])
+                                                                      ('id', 'child_of', rec.id),
+                                                                      ('id', '!=', rec.id)])
                 for tia_children_task in tia_children_tasks:
                     if not self.is_time_interval_included_in_another(tia_children_task.expected_start_date,
                                                                      tia_children_task.expected_end_date,
                                                                      expected_start_date, expected_end_date):
-                        raise UserError(_(u"Task %s must totally contain task %s") %
+                        raise UserError(_(u"Task %s must totally include task %s") %
                                         (rec.name, tia_children_task.name))
 
     @api.multi
