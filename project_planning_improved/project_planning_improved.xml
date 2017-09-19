@@ -74,6 +74,8 @@
             <field name="arch" type="xml">
                 <search position="inside">
                     <filter name="critical_task" string="Critical task" domain="[('critical_task', '=', True)]"/>
+                    <separator/>
+                    <filter name="taken_into_account" string="Taken into account" domain="[('taken_into_account', '=', True)]"/>
                 </search>
             </field>
         </record>
