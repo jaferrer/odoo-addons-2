@@ -484,6 +484,8 @@ class ProjectImprovedTask(models.Model):
         tia_to_update = not self.env.context.get('do_not_update_tia', False)
         propagate_dates = not self.env.context.get('do_not_propagate_dates', False)
         dates_changed = False
+        tasks_start_date_changed = self.env['project.task']
+        tasks_end_date_changed = self.env['project.task']
         if vals.get('expected_start_date') or vals.get('expected_end_date'):
             dates_changed = True
             if tia_to_update:
