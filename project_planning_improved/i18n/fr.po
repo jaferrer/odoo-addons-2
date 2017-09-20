@@ -76,6 +76,7 @@ msgstr "Planification des tâches pour le projet %s"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_parent_task_id
+#: view:project.task:project_planning_improved.project_improved_task_search
 msgid "Parent task"
 msgstr "Tâche parente"
 
