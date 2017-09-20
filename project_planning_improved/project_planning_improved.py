@@ -79,8 +79,7 @@ class ProjectImprovedProject(models.Model):
                                 set_new_way = False
                                 # Case of two critical ways
                                 if new_duration_to_task == old_duration_to_task:
-                                    longest_ways_to_tasks[next_task]['tasks'] = longest_ways_to_tasks[next_task]['tasks'] + \
-                                                                                longest_ways_to_tasks[latest_task]['tasks']
+                                    longest_ways_to_tasks[next_task]['tasks'] |= longest_ways_to_tasks[latest_task]['tasks']
                         if set_new_way:
                             longest_ways_to_tasks[next_task] = {
                                 'tasks': longest_ways_to_tasks[latest_task]['tasks'] + next_task,
@@ -189,6 +188,7 @@ class ProjectImprovedProject(models.Model):
 
     @api.multi
     def configure_expected_dates(self):
+        # TODO: à reprendre pour pouvoir planifier les tâches ajoutées depuis la dernière fois
         for rec in self:
             tasks_not_tia = self.env['project.task'].search([('project_id', '=', rec.id),
                                                              ('taken_into_account', '=', False)])
