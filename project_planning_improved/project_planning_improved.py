@@ -79,8 +79,7 @@ class ProjectImprovedProject(models.Model):
                                 set_new_way = False
                                 # Case of two critical ways
                                 if new_duration_to_task == old_duration_to_task:
-                                    longest_ways_to_tasks[next_task]['tasks'] = longest_ways_to_tasks[next_task]['tasks'] + \
-                                                                                longest_ways_to_tasks[latest_task]['tasks']
+                                    longest_ways_to_tasks[next_task]['tasks'] |= longest_ways_to_tasks[latest_task]['tasks']
                         if set_new_way:
                             longest_ways_to_tasks[next_task] = {
                                 'tasks': longest_ways_to_tasks[latest_task]['tasks'] + next_task,
@@ -130,15 +129,9 @@ class ProjectImprovedProject(models.Model):
 
     @api.multi
     def reset_dates(self):
-        values_tasks_tia = {'objective_start_date': False, 'objective_end_date': False}
-        values_tasks_not_tia = {'objective_start_date': False, 'objective_end_date': False,
-                                'expected_start_date': False, 'expected_end_date': False}
-        tasks_not_tia = self.env['project.task'].search([('project_id', 'in', self.ids),
-                                                         ('taken_into_account', '=', False)])
-        tasks_not_tia.with_context(do_not_propagate_dates=True).write(values_tasks_not_tia)
-        tasks_tia = self.env['project.task'].search([('project_id', 'in', self.ids),
-                                                     ('taken_into_account', '=', True)])
-        tasks_tia.write(values_tasks_tia)
+        values = {'objective_start_date': False, 'objective_end_date': False}
+        tasks = self.env['project.task'].search([('project_id', 'in', self.ids)])
+        tasks.with_context(do_not_propagate_dates=True).write(values)
 
     @api.multi
     def update_objective_dates(self):
@@ -190,13 +183,43 @@ class ProjectImprovedProject(models.Model):
     @api.multi
     def configure_expected_dates(self):
         for rec in self:
-            tasks_not_tia = self.env['project.task'].search([('project_id', '=', rec.id),
-                                                             ('taken_into_account', '=', False)])
-            for task in tasks_not_tia:
+            parent_tasks = self.env['project.task']
+            domain_not_planned_tasks = [('project_id', '=', rec.id),
+                                        ('children_task_ids', '=', False),
+                                        '|', ('expected_start_date', '=', False),
+                                        ('expected_end_date', '=', False)]
+            not_planned_tasks_with_ancestors = self.env['project.task']. \
+                search(domain_not_planned_tasks + [('previous_task_ids', '!=', False)])
+            for task in not_planned_tasks_with_ancestors:
+                start_date = max([pt.expected_end_date for pt in task.previous_task_ids])
+                parent_tasks |= task.get_all_parent_tasks()
+                if start_date:
+                    task.with_context(do_not_update_tia=True).reschedule_start_date(start_date)
+            not_planned_tasks_with_successors = self.env['project.task']. \
+                search(domain_not_planned_tasks + [('next_task_ids', '!=', False)])
+            for task in not_planned_tasks_with_successors:
+                end_date = min([pt.expected_start_date for pt in task.next_task_ids])
+                parent_tasks |= task.get_all_parent_tasks()
+                if end_date:
+                    task.with_context(do_not_update_tia=True).reschedule_end_date(end_date)
+            still_not_planned_tasks = self.env['project.task'].search(domain_not_planned_tasks)
+            for task in still_not_planned_tasks:
+                parent_tasks |= task.get_all_parent_tasks()
                 task.with_context(do_not_update_tia=True, do_not_propagate_dates=True).write({
                     'expected_start_date': task.objective_start_date,
                     'expected_end_date': task.objective_end_date,
                 })
+            for parent_task in parent_tasks:
+                children_tasks = self.env['project.task'].search([('id', 'child_of', parent_task.id),
+                                                                  ('children_task_ids', '=', False),
+                                                                  ('id', '!=', parent_task.id)])
+                start_date = min([task.expected_start_date for task in children_tasks])
+                end_date = max([task.expected_end_date for task in children_tasks])
+                if end_date and parent_task.expected_end_date != end_date:
+                    parent_task.with_context(do_not_update_tia=True, do_not_propagate_dates=True).write({
+                        'expected_start_date': start_date,
+                        'expected_end_date': end_date,
+                    })
 
     @api.multi
     def set_tasks_not_tia(self):
@@ -316,11 +339,16 @@ class ProjectImprovedTask(models.Model):
     def get_nb_working_hours_from_expected_dates(self):
         self.ensure_one()
         resource, calendar = self.get_default_calendar_and_resource()
-        result = self.expected_start_date and self.expected_end_date and \
-                 calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
-                                            fields.Datetime.from_string(self.expected_end_date),
-                                            compute_leaves=True, resource_id=resource.id)
-        return result and result[0] or 0
+        nb_days = 0
+        nb_hours = 0
+        if self.expected_start_date and self.expected_end_date:
+            nb_hours = calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
+                                                  fields.Datetime.from_string(self.expected_end_date),
+                                                  compute_leaves=True, resource_id=resource.id)
+            nb_hours = nb_hours and nb_hours[0] or 0
+        else:
+            nb_days = self.objective_duration
+        return nb_days, nb_hours
 
     @api.depends('objective_end_date', 'objective_duration')
     @api.multi
@@ -415,9 +443,15 @@ class ProjectImprovedTask(models.Model):
         for rec in self:
             if even_if_tia or not rec.taken_into_account:
                 new_expected_start_date = new_date
-                nb_hours = rec.get_nb_working_hours_from_expected_dates() or 0
-                new_expected_end_date = fields.Datetime.to_string(
-                    rec.schedule_get_date(fields.Datetime.from_string(new_date), nb_hours=nb_hours))
+                nb_days, nb_hours = rec.get_nb_working_hours_from_expected_dates() or 0
+                if nb_hours:
+                    new_expected_end_date = fields.Datetime.to_string(
+                        rec.schedule_get_date(fields.Datetime.from_string(new_date), nb_hours=nb_hours))
+                elif nb_days:
+                    new_expected_end_date = fields.Datetime.to_string(
+                        rec.schedule_get_date(fields.Datetime.from_string(new_date), nb_days=nb_days))
+                else:
+                    new_expected_end_date = new_expected_start_date
                 if rec.expected_start_date != new_expected_start_date or rec.expected_end_date != new_expected_end_date:
                     rec.write({
                         'expected_start_date': new_expected_start_date,
@@ -432,7 +466,7 @@ class ProjectImprovedTask(models.Model):
         for rec in self:
             if even_if_tia or not rec.taken_into_account:
                 new_expected_end_date = new_date
-                nb_hours = rec.get_nb_working_hours_from_expected_dates() or 0
+                nb_days, nb_hours = rec.get_nb_working_hours_from_expected_dates() or 0
                 new_expected_start_date = fields.Datetime.to_string(
                     rec.schedule_get_date(fields.Datetime.from_string(new_date), nb_hours=-nb_hours))
                 if rec.expected_start_date != new_expected_start_date or rec.expected_end_date != new_expected_end_date:
