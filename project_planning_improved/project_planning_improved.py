@@ -316,9 +316,10 @@ class ProjectImprovedTask(models.Model):
     def get_nb_working_hours_from_expected_dates(self):
         self.ensure_one()
         resource, calendar = self.get_default_calendar_and_resource()
-        result = calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
-                                          fields.Datetime.from_string(self.expected_end_date),
-                                          compute_leaves=True, resource_id=resource.id)
+        result = self.expected_start_date and self.expected_end_date and \
+                 calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
+                                            fields.Datetime.from_string(self.expected_end_date),
+                                            compute_leaves=True, resource_id=resource.id)
         return result and result[0] or 0
 
     @api.depends('objective_end_date', 'objective_duration')
@@ -461,29 +462,33 @@ class ProjectImprovedTask(models.Model):
         return tasks_start_date_changed, tasks_end_date_changed
 
     @api.multi
-    def propagate_dates(self, tasks_propagate_start, tasks_propagate_end):
+    def propagate_dates(self, tasks_propagate_start, tasks_propagate_end, propagate_to_next_tasks=True,
+                        propagate_to_previous_tasks=True, propagate_to_children=True):
         for rec in self:
             children_tasks = self.env['project.task'].search([('id', 'child_of', rec.children_task_ids.ids),
                                                               ('taken_into_account', '=', False)])
             if rec in tasks_propagate_end:
                 for task in rec.next_task_ids:
-                    if rec.expected_end_date > task.expected_start_date:
+                    if propagate_to_next_tasks and rec.expected_end_date > task.expected_start_date:
                         task.with_context(do_not_update_tia=True).reschedule_start_date(rec.expected_end_date)
             if rec in tasks_propagate_start:
                 for task in rec.previous_task_ids:
-                    if rec.expected_start_date < task.expected_end_date:
+                    if propagate_to_previous_tasks and rec.expected_start_date < task.expected_end_date:
                         task.with_context(do_not_update_tia=True).reschedule_end_date(rec.expected_start_date)
-            for child_task in children_tasks:
-                if rec in tasks_propagate_end and rec.expected_end_date < child_task.expected_end_date:
-                    child_task.with_context(do_not_update_tia=True).reschedule_end_date(rec.expected_end_date)
-                if rec in tasks_propagate_start and rec.expected_start_date > child_task.expected_start_date:
-                    child_task.with_context(do_not_update_tia=True).reschedule_start_date(rec.expected_start_date)
+            if propagate_to_children:
+                for child_task in children_tasks:
+                    if rec in tasks_propagate_end and rec.expected_end_date < child_task.expected_end_date:
+                        child_task.with_context(do_not_update_tia=True).reschedule_end_date(rec.expected_end_date)
+                    if rec in tasks_propagate_start and rec.expected_start_date > child_task.expected_start_date:
+                        child_task.with_context(do_not_update_tia=True).reschedule_start_date(rec.expected_start_date)
 
     @api.multi
     def write(self, vals):
         tia_to_update = not self.env.context.get('do_not_update_tia', False)
         propagate_dates = not self.env.context.get('do_not_propagate_dates', False)
         dates_changed = False
+        tasks_start_date_changed = self.env['project.task']
+        tasks_end_date_changed = self.env['project.task']
         if vals.get('expected_start_date') or vals.get('expected_end_date'):
             dates_changed = True
             if tia_to_update:
