@@ -316,9 +316,10 @@ class ProjectImprovedTask(models.Model):
     def get_nb_working_hours_from_expected_dates(self):
         self.ensure_one()
         resource, calendar = self.get_default_calendar_and_resource()
-        result = calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
-                                          fields.Datetime.from_string(self.expected_end_date),
-                                          compute_leaves=True, resource_id=resource.id)
+        result = self.expected_start_date and self.expected_end_date and \
+                 calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
+                                            fields.Datetime.from_string(self.expected_end_date),
+                                            compute_leaves=True, resource_id=resource.id)
         return result and result[0] or 0
 
     @api.depends('objective_end_date', 'objective_duration')
