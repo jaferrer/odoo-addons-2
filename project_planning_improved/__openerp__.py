@@ -23,14 +23,16 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'resource_improved', 'project_timeline', 'web_sheet_full_width_selective'],
+    'depends': ['project', 'resource_improved', 'project_timeline', 'web_timeline_ordered',
+                'web_sheet_full_width_selective'],
     'description': """
 Project Planning Improved
 =========================
 This module implement the improved planning to the project module.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_planning_improved.xml'],
+    'data': ['project_planning_improved.xml',
+             'conflicts_tracking.xml'],
     'demo': ['tests/project_planning_improved_demo.xml'],
     'test': [],
     'installable': True,

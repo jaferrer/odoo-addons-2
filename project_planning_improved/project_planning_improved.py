@@ -79,8 +79,7 @@ class ProjectImprovedProject(models.Model):
                                 set_new_way = False
                                 # Case of two critical ways
                                 if new_duration_to_task == old_duration_to_task:
-                                    longest_ways_to_tasks[next_task]['tasks'] = longest_ways_to_tasks[next_task]['tasks'] + \
-                                                                                longest_ways_to_tasks[latest_task]['tasks']
+                                    longest_ways_to_tasks[next_task]['tasks'] |= longest_ways_to_tasks[latest_task]['tasks']
                         if set_new_way:
                             longest_ways_to_tasks[next_task] = {
                                 'tasks': longest_ways_to_tasks[latest_task]['tasks'] + next_task,
@@ -98,20 +97,7 @@ class ProjectImprovedProject(models.Model):
             not_critical_tasks.write({'critical_task': False})
 
     @api.multi
-    def start_auto_planning(self):
-        for rec in self:
-            rec.update_critical_tasks()
-            if rec.reference_task_id and rec.reference_task_end_date:
-                rec.update_objective_dates()
-                rec.update_objective_dates_parent_tasks()
-                not_planned_tasks = self.env['project.task'].search([('project_id', '=', rec.id),
-                                                                     '|', ('objective_start_date', '=', False),
-                                                                     ('objective_end_date', '=', False)])
-                if not_planned_tasks:
-                    raise UserError(_(u"Impossible to determine objective dates for tasks %s in project %s "
-                                      u"with current configuration") %
-                                    (u", ".join([task.name for task in not_planned_tasks]),
-                                    rec.display_name))
+    def open_tasks_timeline(self):
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'project.task',
@@ -123,10 +109,33 @@ class ProjectImprovedProject(models.Model):
         }
 
     @api.multi
+    def start_auto_planning(self):
+        for rec in self:
+            rec.update_critical_tasks()
+            if rec.reference_task_id and rec.reference_task_end_date:
+                rec.reset_dates()
+                rec.update_objective_dates()
+                rec.update_objective_dates_parent_tasks()
+                not_planned_tasks = self.env['project.task'].search([('project_id', '=', rec.id),
+                                                                     '|', ('objective_start_date', '=', False),
+                                                                     ('objective_end_date', '=', False)])
+                if not_planned_tasks:
+                    raise UserError(_(u"Impossible to determine objective dates for tasks %s in project %s "
+                                      u"with current configuration") %
+                                    (u", ".join([task.name for task in not_planned_tasks]),
+                                    rec.display_name))
+                rec.configure_expected_dates()
+        return self.open_tasks_timeline()
+
+    @api.multi
+    def reset_dates(self):
+        values = {'objective_start_date': False, 'objective_end_date': False}
+        tasks = self.env['project.task'].search([('project_id', 'in', self.ids)])
+        tasks.with_context(do_not_propagate_dates=True).write(values)
+
+    @api.multi
     def update_objective_dates(self):
         for rec in self:
-            rec.task_ids.write({'objective_start_date': False,
-                                 'objective_end_date': False})
             if not rec.reference_task_id or not rec.reference_task_end_date:
                 raise UserError(_(u"Impossible to update objective dates for project %s if reference task or its date "
                                   u"is not defined.") % rec.display_name)
@@ -170,6 +179,52 @@ class ProjectImprovedProject(models.Model):
                                                   task in children_tasks if task.objective_end_date] or [False])
                     parent_task.with_context(force_objective_start_date=min_objective_start_date). \
                         write({'objective_end_date': max_objective_end_date})
+
+    @api.multi
+    def configure_expected_dates(self):
+        for rec in self:
+            parent_tasks = self.env['project.task']
+            domain_not_planned_tasks = [('project_id', '=', rec.id),
+                                        ('children_task_ids', '=', False),
+                                        '|', ('expected_start_date', '=', False),
+                                        ('expected_end_date', '=', False)]
+            not_planned_tasks_with_ancestors = self.env['project.task']. \
+                search(domain_not_planned_tasks + [('previous_task_ids', '!=', False)])
+            for task in not_planned_tasks_with_ancestors:
+                start_date = max([pt.expected_end_date for pt in task.previous_task_ids])
+                parent_tasks |= task.get_all_parent_tasks()
+                if start_date:
+                    task.with_context(do_not_update_tia=True).reschedule_start_date(start_date)
+            not_planned_tasks_with_successors = self.env['project.task']. \
+                search(domain_not_planned_tasks + [('next_task_ids', '!=', False)])
+            for task in not_planned_tasks_with_successors:
+                end_date = min([pt.expected_start_date for pt in task.next_task_ids])
+                parent_tasks |= task.get_all_parent_tasks()
+                if end_date:
+                    task.with_context(do_not_update_tia=True).reschedule_end_date(end_date)
+            still_not_planned_tasks = self.env['project.task'].search(domain_not_planned_tasks)
+            for task in still_not_planned_tasks:
+                parent_tasks |= task.get_all_parent_tasks()
+                task.with_context(do_not_update_tia=True, do_not_propagate_dates=True).write({
+                    'expected_start_date': task.objective_start_date,
+                    'expected_end_date': task.objective_end_date,
+                })
+            for parent_task in parent_tasks:
+                children_tasks = self.env['project.task'].search([('id', 'child_of', parent_task.id),
+                                                                  ('children_task_ids', '=', False),
+                                                                  ('id', '!=', parent_task.id)])
+                start_date = min([task.expected_start_date for task in children_tasks])
+                end_date = max([task.expected_end_date for task in children_tasks])
+                if end_date and parent_task.expected_end_date != end_date:
+                    parent_task.with_context(do_not_update_tia=True, do_not_propagate_dates=True).write({
+                        'expected_start_date': start_date,
+                        'expected_end_date': end_date,
+                    })
+
+    @api.multi
+    def set_tasks_not_tia(self):
+        tasks = self.env['project.task'].search([('project_id', 'in', self.ids)])
+        tasks.write({'taken_into_account': False})
 
 
 class ProjectImprovedTask(models.Model):
@@ -221,6 +276,27 @@ class ProjectImprovedTask(models.Model):
             rec.taken_into_account = True
 
     @api.multi
+    def get_default_calendar_and_resource(self):
+        use_calendar = not self.env.context.get('do_not_use_any_calendar')
+        resource = False
+        reference_user = self.user_id or self.env.user
+        if reference_user:
+            resource = self.env['resource.resource'].search(
+                [('user_id', '=', reference_user.id), ('resource_type', '=', 'user')], limit=1)
+        if not resource:
+            resource = self.env['resource.resource'].search([('user_id', '=', self.env.user.id),
+                                                             ('resource_type', '=', 'user')], limit=1)
+        calendar = False
+        if use_calendar:
+            if resource:
+                calendar = resource.calendar_id
+            else:
+                calendar = self.company_id.calendar_id
+            if not calendar:
+                calendar = self.env.ref('resource_improved.default_calendar')
+        return resource, calendar
+
+    @api.multi
     def schedule_get_date(self, date_ref, nb_days=0, nb_hours=0):
         """
         From a task (self), this function computes the date which is 'nb_days' days and 'nb_hours' hours after date
@@ -230,31 +306,19 @@ class ProjectImprovedTask(models.Model):
         :param nb_hours: Number of hours to add/remove
         """
         self.ensure_one()
-        do_not_use_any_calendar = self.env.context.get('do_not_use_any_calendar')
-        resource = False
-        reference_user = self.user_id or self.env.user
-        if reference_user:
-            resource = self.env['resource.resource'].search([('user_id', '=', reference_user.id), ('resource_type', '=', 'user')], limit=1)
-        if not resource:
-            resource = self.env['resource.resource'].search([('user_id', '=', self.env.user.id),
-                                                             ('resource_type', '=', 'user')], limit=1)
-        if resource:
-            calendar = resource.calendar_id
-        else:
-            calendar = self.company_id.calendar_id
-        if not calendar:
-            calendar = self.env.ref('resource_improved.default_calendar')
+        resource, calendar = self.get_default_calendar_and_resource()
         target_date = date_ref
         if nb_days:
-            if calendar and not do_not_use_any_calendar:
+            if calendar:
                 if nb_days > 0:
                     nb_days += 1
-                target_date = calendar.schedule_days_get_date(nb_days, target_date, compute_leaves=True, resource_id=resource and resource.id or False)
+                target_date = calendar.schedule_days_get_date(nb_days, target_date, compute_leaves=True,
+                                                              resource_id=resource and resource.id or False)
                 target_date = target_date and target_date[0] or False
             else:
                 target_date = target_date - relativedelta(days=nb_days)
         if nb_hours:
-            if calendar and not do_not_use_any_calendar:
+            if calendar:
                 available_intervals = calendar.schedule_hours(nb_hours, target_date, compute_leaves=True,
                                                               resource_id=resource and resource.id or False)
                 if nb_hours > 0:
@@ -270,6 +334,21 @@ class ProjectImprovedTask(models.Model):
             else:
                 target_date = target_date - relativedelta(hours=nb_hours)
         return target_date
+
+    @api.multi
+    def get_nb_working_hours_from_expected_dates(self):
+        self.ensure_one()
+        resource, calendar = self.get_default_calendar_and_resource()
+        nb_days = 0
+        nb_hours = 0
+        if self.expected_start_date and self.expected_end_date:
+            nb_hours = calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
+                                                  fields.Datetime.from_string(self.expected_end_date),
+                                                  compute_leaves=True, resource_id=resource.id)
+            nb_hours = nb_hours and nb_hours[0] or 0
+        else:
+            nb_days = self.objective_duration
+        return nb_days, nb_hours
 
     @api.depends('objective_end_date', 'objective_duration')
     @api.multi
@@ -287,3 +366,169 @@ class ProjectImprovedTask(models.Model):
             rec.objective_end_date = force_objective_end_date or objective_start_date and \
                 rec.schedule_get_date(fields.Datetime.from_string(objective_start_date),
                                       nb_days=rec.objective_duration) or False
+
+    @api.multi
+    def get_all_parent_tasks(self, only_not_tia=False):
+        self.ensure_one()
+        parent_tasks = self.parent_task_id
+        parent = self.parent_task_id
+        while parent.parent_task_id:
+            parent = parent.parent_task_id
+            parent_tasks |= parent.parent_task_id
+        if only_not_tia:
+            return self.env['project.task'].search([('id', 'in', parent_tasks.ids),
+                                                    ('taken_into_account', '=', False)])
+        return parent_tasks
+
+    @api.model
+    def is_date_end_after_date_start(self, date_end, date_start):
+        return date_end[:10] >= date_start[:10] and True or False
+
+    @api.multi
+    def check_expected_dates_consistency(self, expected_start_date=None, expected_end_date=None):
+        for rec in self:
+            expected_start_date = expected_start_date or rec.expected_start_date
+            expected_end_date = expected_end_date or rec.expected_end_date
+            if expected_start_date != expected_end_date and \
+                    rec.is_date_end_after_date_start(expected_start_date, expected_end_date):
+                raise UserError(_(u"Task %s: expected end date can not be before expected start date") %
+                                rec.name)
+
+    @api.model
+    def is_time_interval_included_in_another(self, start_date_1, end_date_1, start_date_2, end_date_2):
+        """This function checks if interval [start_date_1, end_date_1] is included in
+        interval [start_date_2, end_date_2]"""
+        expected_start_date_ok = True
+        expected_end_date_ok = True
+        if start_date_1 and start_date_2:
+            expected_start_date_ok = self.is_date_end_after_date_start(start_date_1, start_date_2)
+        if expected_start_date_ok and end_date_1 and end_date_2:
+            expected_end_date_ok = self.is_date_end_after_date_start(end_date_2, end_date_1)
+        if expected_start_date_ok and expected_end_date_ok:
+            return True
+        return False
+
+    @api.multi
+    def check_dates_consistency_with_parents(self, expected_start_date=None, expected_end_date=None):
+        for rec in self:
+            expected_start_date = expected_start_date or rec.expected_start_date
+            expected_end_date = expected_end_date or rec.expected_end_date
+            parent_tasks = rec.get_all_parent_tasks()
+            for parent_task in parent_tasks:
+                if not self.is_time_interval_included_in_another(expected_start_date, expected_end_date,
+                                                                 parent_task.expected_start_date,
+                                                                 parent_task.expected_end_date):
+                    raise UserError(_(u"Task %s must be totally included in parent task %s") %
+                                    (rec.name, parent_task.name))
+
+    @api.multi
+    def check_dates_consistency_with_children(self, expected_start_date=None, expected_end_date=None):
+        for rec in self:
+            if rec.project_id:
+                expected_start_date = expected_start_date or rec.expected_start_date
+                expected_end_date = expected_end_date or rec.expected_end_date
+                tia_children_tasks = self.env['project.task'].search([('project_id', '=', rec.project_id.id),
+                                                                      ('taken_into_account', '=', True),
+                                                                      ('id', 'child_of', rec.id),
+                                                                      ('id', '!=', rec.id)])
+                for tia_children_task in tia_children_tasks:
+                    if not self.is_time_interval_included_in_another(tia_children_task.expected_start_date,
+                                                                     tia_children_task.expected_end_date,
+                                                                     expected_start_date, expected_end_date):
+                        raise UserError(_(u"Task %s must totally include task %s") %
+                                        (rec.name, tia_children_task.name))
+
+    @api.multi
+    def reschedule_start_date(self, new_date, even_if_tia=False):
+        for rec in self:
+            if even_if_tia or not rec.taken_into_account:
+                new_expected_start_date = new_date
+                nb_days, nb_hours = rec.get_nb_working_hours_from_expected_dates() or 0
+                if nb_hours:
+                    new_expected_end_date = fields.Datetime.to_string(
+                        rec.schedule_get_date(fields.Datetime.from_string(new_date), nb_hours=nb_hours))
+                elif nb_days:
+                    new_expected_end_date = fields.Datetime.to_string(
+                        rec.schedule_get_date(fields.Datetime.from_string(new_date), nb_days=nb_days))
+                else:
+                    new_expected_end_date = new_expected_start_date
+                if rec.expected_start_date != new_expected_start_date or rec.expected_end_date != new_expected_end_date:
+                    rec.write({
+                        'expected_start_date': new_expected_start_date,
+                        'expected_end_date': new_expected_end_date,
+                    })
+                for next_task in rec.next_task_ids:
+                    if next_task.expected_start_date < rec.expected_end_date:
+                        next_task.reschedule_start_date(rec.expected_end_date)
+
+    @api.multi
+    def reschedule_end_date(self, new_date, even_if_tia=False):
+        for rec in self:
+            if even_if_tia or not rec.taken_into_account:
+                new_expected_end_date = new_date
+                nb_days, nb_hours = rec.get_nb_working_hours_from_expected_dates() or 0
+                new_expected_start_date = fields.Datetime.to_string(
+                    rec.schedule_get_date(fields.Datetime.from_string(new_date), nb_hours=-nb_hours))
+                if rec.expected_start_date != new_expected_start_date or rec.expected_end_date != new_expected_end_date:
+                    rec.write({
+                        'expected_start_date': new_expected_start_date,
+                        'expected_end_date': new_expected_end_date,
+                    })
+                for previous_task in rec.previous_task_ids:
+                    if previous_task.expected_end_date > rec.expected_start_date:
+                        previous_task.reschedule_end_date(rec.expected_start_date)
+
+    @api.multi
+    def check_dates(self, vals):
+        tasks_start_date_changed = self.env['project.task']
+        tasks_end_date_changed = self.env['project.task']
+        for rec in self:
+            expected_start_date = vals.get('expected_start_date', rec.expected_start_date)
+            expected_end_date = vals.get('expected_end_date', rec.expected_end_date)
+            if expected_start_date != rec.expected_start_date:
+                tasks_start_date_changed |= rec
+            if expected_end_date != rec.expected_end_date:
+                tasks_end_date_changed |= rec
+            if expected_start_date and expected_end_date:
+                rec.check_expected_dates_consistency(expected_start_date, expected_end_date)
+                rec.check_dates_consistency_with_parents(expected_start_date, expected_end_date)
+                rec.check_dates_consistency_with_children(expected_start_date, expected_end_date)
+        return tasks_start_date_changed, tasks_end_date_changed
+
+    @api.multi
+    def propagate_dates(self, tasks_propagate_start, tasks_propagate_end, propagate_to_next_tasks=True,
+                        propagate_to_previous_tasks=True, propagate_to_children=True):
+        for rec in self:
+            children_tasks = self.env['project.task'].search([('id', 'child_of', rec.children_task_ids.ids),
+                                                              ('taken_into_account', '=', False)])
+            if rec in tasks_propagate_end:
+                for task in rec.next_task_ids:
+                    if propagate_to_next_tasks and rec.expected_end_date > task.expected_start_date:
+                        task.with_context(do_not_update_tia=True).reschedule_start_date(rec.expected_end_date)
+            if rec in tasks_propagate_start:
+                for task in rec.previous_task_ids:
+                    if propagate_to_previous_tasks and rec.expected_start_date < task.expected_end_date:
+                        task.with_context(do_not_update_tia=True).reschedule_end_date(rec.expected_start_date)
+            if propagate_to_children:
+                for child_task in children_tasks:
+                    if rec in tasks_propagate_end and rec.expected_end_date < child_task.expected_end_date:
+                        child_task.with_context(do_not_update_tia=True).reschedule_end_date(rec.expected_end_date)
+                    if rec in tasks_propagate_start and rec.expected_start_date > child_task.expected_start_date:
+                        child_task.with_context(do_not_update_tia=True).reschedule_start_date(rec.expected_start_date)
+
+    @api.multi
+    def write(self, vals):
+        tia_to_update = not self.env.context.get('do_not_update_tia', False)
+        propagate_dates = not self.env.context.get('do_not_propagate_dates', False)
+        dates_changed = False
+        tasks_start_date_changed = self.env['project.task']
+        tasks_end_date_changed = self.env['project.task']
+        if vals.get('expected_start_date') or vals.get('expected_end_date'):
+            dates_changed = True
+            if tia_to_update:
+                vals['taken_into_account'] = True
+            tasks_start_date_changed, tasks_end_date_changed = self.check_dates(vals)
+        result = super(ProjectImprovedTask, self).write(vals)
+        if dates_changed and propagate_dates:
+            self.propagate_dates(tasks_start_date_changed, tasks_end_date_changed)
+        return result
