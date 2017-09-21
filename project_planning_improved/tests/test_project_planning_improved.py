@@ -91,8 +91,8 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.parent_task_3.allocated_duration_unit_tasks, 13)
         self.assertEqual(self.parent_task_3.total_allocated_duration, 16)
 
-    def test_30_auto_planning(self):
-        """Testing the automatic scheduling of tasks"""
+    def test_30_auto_planning_task_no_next_task(self):
+        """Testing the automatic scheduling of tasks. The reference task here has no next task"""
 
         # Using task 3 as reference task
         self.test_project.reference_task_id = self.project_task_3
@@ -133,6 +133,9 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         # Forbidden to move task 7 out of parent task 1
         with self.assertRaises(UserError):
             self.project_task_6.expected_end_date = '2017-09-15 18:00:00'
+
+    def test_40_auto_planning_task_no_previous_task(self):
+        """Testing the automatic scheduling of tasks. The reference task here has no previous task"""
 
         # Using task 5 as reference task
         self.test_project.task_ids.write({'taken_into_account': False})
@@ -175,6 +178,9 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         with self.assertRaises(UserError):
             self.project_task_7.expected_start_date = '2017-08-30 18:00:00'
 
+    def test_50_auto_planning_task_both_next_previous_task(self):
+        """Testing the automatic scheduling of tasks. The reference task here has a previous task and a next task"""
+
         #  Using task 8 as reference task
         self.test_project.task_ids.write({'taken_into_account': False})
         self.test_project.reference_task_id = self.project_task_8
@@ -206,7 +212,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
             self.assertEqual(task.objective_start_date, task.expected_start_date)
             self.assertEqual(task.objective_end_date, task.expected_end_date)
 
-    def test_40_reschedule_next_and_previous_tasks(self):
+    def test_60_reschedule_next_and_previous_tasks(self):
         """Testing the automatic rescheduling of next and previous tasks during manual moves"""
 
         #  Using task 8 as reference task
@@ -270,7 +276,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         with self.assertRaises(UserError):
             self.parent_task_1.expected_end_date = '2017-08-31 18:00:00'
 
-    def test_50_reschedule_children_tasks(self):
+    def test_70_reschedule_children_tasks(self):
         """Testing the automatic rescheduling of children tasks during manual moves"""
 
         #  Using task 8 as reference task
@@ -315,6 +321,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         # Reschedulind end date of parent task 2
         self.parent_task_2.expected_end_date = '2017-09-18 18:00:00'
         self.assertTrue(self.parent_task_2.taken_into_account)
+        self.assertEqual(self.parent_task_2.expected_start_date[:10], '2017-08-21')
         # Tasks 8, task 9 and parent task 1 should not have been rescheduled
         self.assertFalse(self.project_task_8.taken_into_account)
         self.assertEqual(self.project_task_8.expected_start_date[:10], '2017-09-01')
@@ -336,7 +343,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.project_task_11.expected_start_date[:10], '2017-09-18')
         self.assertEqual(self.project_task_11.expected_end_date[:10], '2017-09-27')
         with self.assertRaises(UserError):
-            self.parent_task_2.expected_end_date = '2017-09-07 18:00:00'
+            self.parent_task_2.expected_end_date = '2017-09-05 18:00:00'
 
         # Rescheduling start date of parent task 1
         self.parent_task_1.expected_start_date = '2017-08-21 13:30:00'
