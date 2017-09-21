@@ -343,7 +343,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.project_task_11.expected_start_date[:10], '2017-09-18')
         self.assertEqual(self.project_task_11.expected_end_date[:10], '2017-09-27')
         with self.assertRaises(UserError):
-            self.parent_task_2.expected_end_date = '2017-09-05 18:00:00'
+            self.parent_task_2.expected_end_date = '2017-09-06 13:30:00'
 
         # Rescheduling start date of parent task 1
         self.parent_task_1.expected_start_date = '2017-08-21 13:30:00'
