@@ -91,7 +91,6 @@ class PlanningImprovedTemplateTaskType(models.Model):
         ctx = self.env.context.copy()
         ctx['search_default_project_id'] = project_id
         ctx['search_default_stage_id'] = stage_id
-        ctx['search_default_stage_id'] = stage_id
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'project.task',
