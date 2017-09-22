@@ -27,6 +27,8 @@
     'description': """A module that allows to set a default display order in calendar view. This parameter must be a field of the object.
     
     Example: <timeline date_start="date_start" date_stop="date_end" order_by="parent_id"/>""",
-    'qweb': [],
+    'qweb': [
+        'static/src/xml/web_timeline.xml',
+    ],
     'data': ['view/qweb.xml'],
 }
