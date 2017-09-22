@@ -157,9 +157,6 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
         },
         list_parameters: ["date_start", "date_delay", "date_stop", "progress", "order_by"],
         do_search: function (domains, contexts, group_bys) {
-            console.log("domains = ", domains)
-            console.log("contexts = ", contexts)
-            console.log("group_bys = ", group_bys)
             var self = this;
             self.last_domains = domains;
             self.last_contexts = contexts;
