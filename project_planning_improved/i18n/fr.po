@@ -262,3 +262,8 @@ msgstr "ou"
 #: view:open.conflict.tracking:project_planning_improved.conflicts_tracking_form
 msgid "Cancel"
 msgstr "Annuler"
+
+#. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_search
+msgid "Without starting milestone"
+msgstr "Cacher le jalon de départ"

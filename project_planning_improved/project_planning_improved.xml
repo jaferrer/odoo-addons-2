@@ -17,8 +17,10 @@
                 <group name="misc" position="before">
                     <button name="open_task_planning" string="Open tasks planning" type="object"/>
                     <button name="open_tasks_timeline" type="object" string="Open tasks timeline"/>
-                    <button name="start_auto_planning" type="object" string="Start auto-planning" confirm="Are you sure?"/>
-                    <button name="set_tasks_not_tia" type="object" string="Set tasks to 'not taken into account'" confirm="Are you sure?"/>
+                    <button name="start_auto_planning" type="object" string="Start auto-planning"
+                            confirm="Are you sure?"/>
+                    <button name="set_tasks_not_tia" type="object" string="Set tasks to 'not taken into account'"
+                            confirm="Are you sure?"/>
                 </group>
             </field>
         </record>
@@ -36,13 +38,18 @@
                     <field name="critical_task"/>
                     <field name="objective_duration"/>
                     <field name="taken_into_account"/>
-                    <field name="expected_start_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
+                    <field name="expected_start_date" widget="date"
+                           attrs="{'required': [('taken_into_account', '=', True)]}"/>
                     <field name="objective_start_date" widget="date"/>
-                    <field name="expected_end_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
+                    <field name="expected_end_date" widget="date"
+                           attrs="{'required': [('taken_into_account', '=', True)]}"/>
                     <field name="objective_end_date" widget="date"/>
-                    <field name="parent_task_id" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
-                    <field name="previous_task_ids" widget="many2many_tags" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
-                    <field name="next_task_ids" widget="many2many_tags" context="{'default_project_id': project_id}" domain="[('project_id', '=', project_id)]"/>
+                    <field name="parent_task_id" context="{'default_project_id': project_id}"
+                           domain="[('project_id', '=', project_id)]"/>
+                    <field name="previous_task_ids" widget="many2many_tags" context="{'default_project_id': project_id}"
+                           domain="[('project_id', '=', project_id)]"/>
+                    <field name="next_task_ids" widget="many2many_tags" context="{'default_project_id': project_id}"
+                           domain="[('project_id', '=', project_id)]"/>
                 </tree>
             </field>
         </record>
@@ -57,9 +64,11 @@
                     <field name="objective_duration"/>
                     <field name="parent_task_id"/>
                     <field name="taken_into_account"/>
-                    <field name="expected_start_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
+                    <field name="expected_start_date" widget="date"
+                           attrs="{'required': [('taken_into_account', '=', True)]}"/>
                     <field name="objective_start_date" widget="date"/>
-                    <field name="expected_end_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
+                    <field name="expected_end_date" widget="date"
+                           attrs="{'required': [('taken_into_account', '=', True)]}"/>
                     <field name="objective_end_date" widget="date"/>
                     <field name="previous_task_ids" widget="many2many_tags"/>
                     <field name="next_task_ids" widget="many2many_tags"/>
@@ -76,7 +85,10 @@
                 <search position="inside">
                     <filter name="critical_task" string="Critical task" domain="[('critical_task', '=', True)]"/>
                     <separator/>
-                    <filter name="taken_into_account" string="Taken into account" domain="[('taken_into_account', '=', True)]"/>
+                    <filter name="taken_into_account" string="Taken into account"
+                            domain="[('taken_into_account', '=', True)]"/>
+                    <filter name="without_starting_milestone" string="Without starting milestone"
+                            domain="[('duration', '>', 0)]"/>
                 </search>
                 <group expand="0" position="inside">
                     <filter string="Parent task" name="group_parent_task" context="{'group_by':'parent_task_id'}"/>
@@ -103,14 +115,16 @@
                     <group>
                         <group>
                             <field name="objective_start_date" widget="date"/>
-                            <field name="expected_start_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
+                            <field name="expected_start_date" widget="date"
+                                   attrs="{'required': [('taken_into_account', '=', True)]}"/>
                             <field name="conflict"/>
                             <field name="allocated_duration"/>
                             <field name="allocated_duration_unit_tasks"/>
                         </group>
                         <group>
                             <field name="objective_end_date" widget="date"/>
-                            <field name="expected_end_date" widget="date" attrs="{'required': [('taken_into_account', '=', True)]}"/>
+                            <field name="expected_end_date" widget="date"
+                                   attrs="{'required': [('taken_into_account', '=', True)]}"/>
                             <field name="total_allocated_duration"/>
                             <field name="taken_into_account"/>
                         </group>
@@ -161,6 +175,7 @@
                     <attribute name="date_stop">expected_end_date</attribute>
                     <attribute name="colors">#2ecb71: kanban_state == 'done'; #ff5c33: conflict == true; #ec7063: kanban_state == 'blocked'; #fa58d0: taken_into_account == true;</attribute>
                     <attribute name="order_by">parent_task_id</attribute>
+                    <attribute name="className">"macro_tache": macro_tache == true;</attribute>
                 </timeline>
             </field>
         </record>
