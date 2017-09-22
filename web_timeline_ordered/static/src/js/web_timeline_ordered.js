@@ -181,11 +181,6 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
                     context: contexts
                 }).then(function (data) {
                     return self.on_data_loaded(data, n_group_bys);
-                }).then(function(){
-                    if(contexts.set_last_position)
-                    {
-                        this.on_scale_last_position();
-                    }
                 })
             });
         },
