@@ -237,8 +237,7 @@ class ProjectImprovedTask(models.Model):
     next_task_ids = fields.Many2many('project.task', 'project_task_order_rel', 'previous_task_id',
                                      'next_task_id', string=u"Next tasks")
     critical_task = fields.Boolean(string=u"Critical task", readonly=True)
-    objective_duration = fields.Float(string=u"Objective Needed Time",
-                                      help=u"In project time unit of the comany")
+    objective_duration = fields.Integer(string=u"Objective Needed Time (in days)")
     children_task_ids = fields.One2many('project.task', 'parent_task_id', string=u"Children tasks")
     objective_end_date = fields.Datetime(string=u"Objective end date", readonly=True)
     expected_end_date = fields.Datetime(string=u"Expected end date")
