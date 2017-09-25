@@ -33,6 +33,7 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
             this.$el.find(".oe_timeline_button_scale_month").click($.proxy(this.on_scale_month_clicked, this));
             this.$el.find(".oe_timeline_button_scale_year").click($.proxy(this.on_scale_year_clicked, this));
             this.$el.find(".oe_timeline_button_scale_last_position").click($.proxy(this.on_scale_last_position, this));
+            this.$el.find(".oe_timeline_button_refresh_with_last_position").click($.proxy(this.refresh_with_last_position, this));
             this.current_window = {
                 start: new moment(),
                 end: new moment().add(24, 'hours'),
@@ -137,16 +138,22 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
             return $.when(self.fields_get, self.get_perm('unlink'), self.get_perm('write'), self.get_perm('create')).then(init);
         },
         on_scale_last_position: function(){
-                var timeline_end = localStorage.getItem('timeline_end');
-                var timeline_start = localStorage.getItem('timeline_start');
-                if (!isNullOrUndef(timeline_end) && !isNullOrUndef(timeline_start)) {
-                    this.current_window = {
-                        start: moment(timeline_start),
-                        end: moment(timeline_end)
-                    }
-                    this.timeline.setWindow(this.current_window);
-
+            var timeline_end = localStorage.getItem('timeline_end');
+            var timeline_start = localStorage.getItem('timeline_start');
+            if (!isNullOrUndef(timeline_end) && !isNullOrUndef(timeline_start)) {
+                this.current_window = {
+                    start: moment(timeline_start),
+                    end: moment(timeline_end)
                 }
+                this.timeline.setWindow(this.current_window);
+
+            }
+        },
+        refresh_with_last_position: function(){
+            var self = this;
+            $.when(this.reload()).then(function(){
+                self.on_scale_last_position()
+            })
         },
         list_parameters: ["date_start", "date_delay", "date_stop", "progress", "order_by"],
         do_search: function (domains, contexts, group_bys) {
@@ -174,7 +181,7 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
                     context: contexts
                 }).then(function (data) {
                     return self.on_data_loaded(data, n_group_bys);
-                });
+                })
             });
         },
         event_data_transform: function (evt) {
