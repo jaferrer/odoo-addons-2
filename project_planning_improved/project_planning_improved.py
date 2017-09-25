@@ -380,7 +380,8 @@ class ProjectImprovedTask(models.Model):
             if duration:
                 objective_start_date = objective_start_date and \
                     rec.schedule_get_date(objective_start_date, nb_days=-duration) or False
-            objective_start_date = objective_start_date and self.get_effective_start_date(objective_start_date) or False
+            objective_start_date = objective_start_date and \
+                self[0].get_effective_start_date(objective_start_date) or False
             rec.objective_start_date = force_objective_start_date or objective_start_date or False
             assert rec.is_date_end_after_date_start(rec.objective_end_date, rec.objective_start_date), \
                 u"Error in objective start date calculation"
