@@ -87,7 +87,7 @@
                     <separator/>
                     <filter name="taken_into_account" string="Taken into account"
                             domain="[('taken_into_account', '=', True)]"/>
-                    <filter name="without_starting_milestone" string="Without starting milestone"
+                    <filter name="without_starting_milestone" string="Without milestones"
                             domain="[('expected_start_date', '!=', 'expected_end_date')]"/>
                 </search>
                 <group expand="0" position="inside">
