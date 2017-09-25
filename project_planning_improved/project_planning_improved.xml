@@ -84,11 +84,10 @@
             <field name="arch" type="xml">
                 <search position="inside">
                     <filter name="critical_task" string="Critical task" domain="[('critical_task', '=', True)]"/>
-                    <filter name="is_milestone" invisible="1"/>
                     <separator/>
                     <filter name="taken_into_account" string="Taken into account"
                             domain="[('taken_into_account', '=', True)]"/>
-                    <filter name="filter_without_milestone" string="Without milestone"
+                    <filter name="filter_without_milestone" string="Without milestones"
                             domain="[('is_milestone', '=', False)]"/>
                 </search>
                 <group expand="0" position="inside">

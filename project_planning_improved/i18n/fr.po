@@ -105,8 +105,8 @@ msgstr "Tâche critique"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_objective_duration
-msgid "Objective Needed Time"
-msgstr "Durée initialement prévue"
+msgid "Objective Needed Time (in days)"
+msgstr "Durée initialement prévue (en jours)"
 
 
 #. module: project_planning_improved
@@ -125,7 +125,6 @@ msgid "Allocated duration for unit tasks"
 msgstr "Tempas alloué pour les tâches unitaires"
 
 #. module: project_planning_improved
-#: model:ir.model.fields,help:project_planning_improved.field_project_task_objective_duration
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration_unit_tasks
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_total_allocated_duration
@@ -265,5 +264,5 @@ msgstr "Annuler"
 
 #. module: project_planning_improved
 #: view:project.task:project_planning_improved.project_improved_task_search
-msgid "Without milestone"
+msgid "Without milestones"
 msgstr "Cacher les jalons"
