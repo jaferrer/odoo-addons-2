@@ -37,6 +37,7 @@ Includes:
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'project_improved_views.xml',
+        'data.xml',
     ],
     'demo': [],
     'test': [],
