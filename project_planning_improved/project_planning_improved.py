@@ -63,13 +63,17 @@ class ProjectImprovedProject(models.Model):
     @api.multi
     def update_critical_tasks(self):
         for rec in self:
-            domain_tasks = [('project_id', '=', rec.id), ('previous_task_ids', '=', False)]
+            domain_tasks = [('project_id', '=', rec.id),
+                            ('previous_task_ids', '=', False),
+                            ('children_task_ids', '=', False)]
             latest_tasks = self.env['project.task'].search(domain_tasks)
             longest_ways_to_tasks = {task: {'tasks': task, 'nb_days': task.objective_duration} for task in latest_tasks}
             while latest_tasks:
                 new_tasks_to_proceed = self.env['project.task']
                 for latest_task in latest_tasks:
-                    new_tasks_to_proceed |= latest_task.next_task_ids
+                    new_tasks_to_proceed |= self.env['project.task']. \
+                        search([('id', 'child_of', latest_task.next_task_ids.ids),
+                                ('children_task_ids', '=', False)])
                     for next_task in latest_task.next_task_ids:
                         set_new_way = True
                         if next_task in longest_ways_to_tasks.keys():
@@ -92,7 +96,8 @@ class ProjectImprovedProject(models.Model):
             for task in longest_ways_to_tasks.keys():
                 if longest_ways_to_tasks[task]['nb_days'] == critical_nb_days:
                     critical_tasks |= longest_ways_to_tasks[task]['tasks']
-            not_critical_tasks = self.env['project.task'].search(domain_tasks + [('id', 'not in', critical_tasks.ids)])
+            not_critical_tasks = self.env['project.task'].search([('project_id', '=', rec.id),
+                                                                  ('id', 'not in', critical_tasks.ids)])
             critical_tasks.write({'critical_task': True})
             not_critical_tasks.write({'critical_task': False})
 
