@@ -619,5 +619,4 @@ class ProjectImprovedTask(models.Model):
     @api.depends('expected_start_date', 'expected_end_date')
     def _get_is_milestone(self):
         for rec in self:
-            if rec.expected_start_date == rec.expected_end_date:
-                rec.is_milestone = True
+            rec.is_milestone = rec.expected_start_date == rec.expected_end_date
