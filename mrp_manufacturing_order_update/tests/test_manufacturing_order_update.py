@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 from datetime import *
 from openerp.tests import common
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
@@ -122,7 +123,8 @@ class TestOrderUpdate(common.TransactionCase):
         def test_quantity(product, mrp_production):
             self.assertTrue(product in [x.product_id for x in mrp_production.product_lines])
             needed_qty = sum([y.product_qty for y in mrp_production.product_lines if y.product_id == product])
-            ordered_qty = sum([z.product_qty for z in mrp_production.move_lines if z.product_id == product and z.state != 'cancel'])
+            ordered_qty = sum(
+                [z.product_qty for z in mrp_production.move_lines if z.product_id == product and z.state != 'cancel'])
             self.assertEqual(needed_qty, ordered_qty)
 
         def test_quantities(mrp_production):
@@ -144,28 +146,38 @@ class TestOrderUpdate(common.TransactionCase):
                 item.unlink()
             for dict in list_line_to_add:
                 dict['product_uom'] = self.unit.id
-                dict['bom_id'] =  self.bom1.id
+                dict['bom_id'] = self.bom1.id
                 self.env['mrp.bom.line'].create(dict)
             self.mrp_production1.button_update()
             test_quantities(self.mrp_production1)
 
-        test_update([[self.line1, 10]], [], []) # increase one quantity
-        test_update([[self.line1, 15], [self.line2, 15], [self.line4, 25], [self.line5, 30]], [], []) # increase two different quantities for two different product
-        test_update([[self.line2, 5]], [], []) # decrease one quantity with one move to cancel
-        test_update([[self.line3, 1], [self.line6, 5]], [], []) # decrease two quantities with two moves to cancel
-        test_update([[self.line1, 5], [self.line2, 10], [self.line4, 20], [self.line5, 25]], [], []) # decrease two different quantities for two different product, one move for each to delete
-        test_update([[self.line1, 1], [self.line2, 1], [self.line4, 1], [self.line5, 1]], [], []) # decrease two different quantities for two different product, two moves for each to delete
-        test_update([[self.line1, 5], [self.line2, 10], [self.line4, 20], [self.line5, 25]], [], []) # back to first quantities
-        test_update([[self.line1, 10], [self.line2, 9], [self.line4, 25], [self.line5, 24]], [], []) # for each product 1&2, one quantity decreases, the other one increases, new need superior to first need
-        test_update([[self.line1, 11], [self.line2, 1], [self.line4, 1], [self.line5, 25]], [], []) # for each product 1&2, one quantity decreases, the other one increases, new need inferior to first need, several moves to delete for each
-        test_update([], [self.line1], []) # deletion of one line
-        test_update([], [self.line2, self.line3], []) # deletion of two lines
+        test_update([[self.line1, 10]], [], [])  # increase one quantity
+        test_update([[self.line1, 15], [self.line2, 15], [self.line4, 25], [self.line5, 30]], [], [])
+                    # increase two different quantities for two different product
+        test_update([[self.line2, 5]], [], [])  # decrease one quantity with one move to cancel
+        test_update([[self.line3, 1], [self.line6, 5]], [], [])  # decrease two quantities with two moves to cancel
+        test_update([[self.line1, 5], [self.line2, 10], [self.line4, 20], [self.line5, 25]], [], [])
+                    # decrease two different quantities for two different product, one move for each to delete
+        test_update([[self.line1, 1], [self.line2, 1], [self.line4, 1], [self.line5, 1]], [], [])
+                    # decrease two different quantities for two different product, two moves for each to delete
+        test_update([[self.line1, 5], [self.line2, 10], [self.line4, 20], [self.line5, 25]], [], [])
+                    # back to first quantities
+        test_update([[self.line1, 10], [self.line2, 9], [self.line4, 25], [self.line5, 24]], [], [])
+                    # for each product 1&2, one quantity decreases, the other one increases,
+                    # new need superior to first need
+        test_update([[self.line1, 11], [self.line2, 1], [self.line4, 1], [self.line5, 25]], [], [])
+                    # for each product 1&2, one quantity decreases, the other one increases,
+                    # new need inferior to first need, several moves to delete for each
+        test_update([], [self.line1], [])  # deletion of one line
+        test_update([], [self.line2, self.line3], [])  # deletion of two lines
         new_line0 = {'product_id': self.product1.id, 'product_qty': 5}
-        test_update([], [], [new_line0]) # creation of one line
+        test_update([], [], [new_line0])  # creation of one line
         new_line1 = {'product_id': self.product2.id, 'product_qty': 10}
         new_line2 = {'product_id': self.product3.id, 'product_qty': 15}
-        test_update([], [], [new_line1, new_line2]) # creation of two lines
-        test_update([[self.line4, 100], [self.line6, 1]], [self.line5], [new_line1, new_line2]) #everything together : one quantity increase, another decrease, a line is deleted and two others created
+        test_update([], [], [new_line1, new_line2])  # creation of two lines
+        test_update([[self.line4, 100], [self.line6, 1]], [self.line5], [new_line1, new_line2])
+                    # everything together : one quantity increase, another decrease, a line is
+                    # deleted and two others created
 
         # testing modifications of field product_lines (function write from model mrp.production)
         # afterwards, function used tu update moves is the same as before: useless to test it again
