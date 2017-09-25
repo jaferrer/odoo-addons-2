@@ -265,5 +265,5 @@ msgstr "Annuler"
 
 #. module: project_planning_improved
 #: view:project.task:project_planning_improved.project_improved_task_search
-msgid "Without starting milestone"
-msgstr "Cacher le jalon de départ"
+msgid "Without milestone"
+msgstr "Cacher les jalons"

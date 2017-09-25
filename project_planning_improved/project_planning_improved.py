@@ -253,6 +253,7 @@ class ProjectImprovedTask(models.Model):
                                           help=u"In project time unit of the comany", store=True)
     taken_into_account = fields.Boolean(string=u"Taken into account")
     conflict = fields.Boolean(string=u"Conflict")
+    is_milestone = fields.Boolean(string="Is milestone", compute="_get_is_milestone", store=True, default=False)
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
     @api.multi
@@ -532,3 +533,9 @@ class ProjectImprovedTask(models.Model):
         if dates_changed and propagate_dates:
             self.propagate_dates(tasks_start_date_changed, tasks_end_date_changed)
         return result
+
+    @api.depends('expected_start_date', 'expected_end_date')
+    def _get_is_milestone(self):
+        for rec in self:
+            if rec.expected_start_date == rec.expected_end_date:
+                rec.is_milestone = True
