@@ -377,11 +377,12 @@ class ProjectImprovedTask(models.Model):
         for rec in self:
             duration = rec.objective_duration
             objective_start_date = rec.objective_end_date and \
-                self.get_start_day_date(fields.Datetime.from_string(rec.objective_end_date)) or False
+                rec.get_start_day_date(fields.Datetime.from_string(rec.objective_end_date)) or False
             if duration:
                 objective_start_date = objective_start_date and \
                     rec.schedule_get_date(objective_start_date, nb_days=-duration) or False
-            objective_start_date = objective_start_date and self.get_effective_start_date(objective_start_date) or False
+            objective_start_date = objective_start_date and \
+                rec.get_effective_start_date(objective_start_date) or False
             rec.objective_start_date = force_objective_start_date or objective_start_date or False
             assert rec.is_date_end_after_date_start(rec.objective_end_date, rec.objective_start_date), \
                 u"Error in objective start date calculation"
@@ -396,7 +397,7 @@ class ProjectImprovedTask(models.Model):
             if nb_days:
                 objective_end_date = objective_end_date and \
                     rec.schedule_get_date(objective_end_date, nb_days=nb_days) or False
-            objective_end_date = objective_end_date and self.get_end_day_date(objective_end_date) or False
+            objective_end_date = objective_end_date and rec.get_end_day_date(objective_end_date) or False
             rec.objective_end_date = force_objective_end_date or objective_end_date or False
             assert rec.is_date_end_after_date_start(rec.objective_end_date, rec.objective_start_date), \
                 u"Error in objective end date calculation"
