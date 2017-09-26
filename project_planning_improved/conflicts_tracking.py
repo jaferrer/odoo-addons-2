@@ -17,6 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from dateutil.relativedelta import relativedelta
+
 from openerp import models, fields, api, _
 from openerp.exceptions import UserError
 
@@ -51,17 +53,29 @@ class OpenConflictTracking(models.TransientModel):
         self.ensure_one()
         conflict_tasks = self.env['project.task']
         display_tasks = self.env['project.task']
+        tasks_occupation_rate = {}
         for user in self.user_ids:
             tasks_user = user.get_tasks(self.start_date, self.end_date)
             display_tasks |= tasks_user
-            while tasks_user:
-                first_task = tasks_user[0]
-                tasks_user = tasks_user[1:]
-                for task in tasks_user:
-                    if task.is_date_end_after_date_start(first_task.expected_end_date, task.expected_start_date) and \
-                            task.is_date_end_after_date_start(task.expected_end_date, first_task.expected_start_date):
-                        conflict_tasks |= task
-                        conflict_tasks |= first_task
+            list_working_days = tasks_user.get_all_working_days_for_tasks()
+            for working_day in list_working_days:
+                date_start_day = fields.Datetime.to_string(working_day.replace(hour=0, minute=0, second=0))
+                date_end_day = fields.Datetime.to_string(working_day.replace(hour=23, minute=59, second=59))
+                total_task_rate = 0
+                concerned_tasks = self.env['project.task'].search([('id', 'in', tasks_user.ids),
+                                                                  ('expected_end_date', '>=', date_start_day),
+                                                                  ('expected_start_date', '<=', date_end_day)])
+                for task in concerned_tasks:
+                    if task not in tasks_occupation_rate:
+                        tasks_occupation_rate[task] = task.get_occupation_task_rate()
+                    total_task_rate += tasks_occupation_rate[task]
+                if total_task_rate > 1:
+                    conflict_tasks |= concerned_tasks
+        not_conflicted_tasks = self.env['project.task'].search([('id', 'in', display_tasks.ids),
+                                                                ('id', 'not in', conflict_tasks.ids),
+                                                                ('conflict', '=', True)])
+        if not_conflicted_tasks:
+            not_conflicted_tasks.write({'conflict': False})
         if display_tasks and conflict_tasks:
             conflict_tasks.write({'conflict': True})
             return {

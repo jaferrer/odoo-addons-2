@@ -78,12 +78,14 @@ class ProjectImprovedProject(models.Model):
                         set_new_way = True
                         if next_task in longest_ways_to_tasks.keys():
                             old_duration_to_task = longest_ways_to_tasks[next_task]['nb_days']
-                            new_duration_to_task = longest_ways_to_tasks[latest_task]['nb_days'] + next_task.objective_duration
+                            new_duration_to_task = longest_ways_to_tasks[latest_task]['nb_days'] + \
+                                next_task.objective_duration
                             if new_duration_to_task <= old_duration_to_task:
                                 set_new_way = False
                                 # Case of two critical ways
                                 if new_duration_to_task == old_duration_to_task:
-                                    longest_ways_to_tasks[next_task]['tasks'] |= longest_ways_to_tasks[latest_task]['tasks']
+                                    longest_ways_to_tasks[next_task]['tasks'] |= \
+                                        longest_ways_to_tasks[latest_task]['tasks']
                         if set_new_way:
                             longest_ways_to_tasks[next_task] = {
                                 'tasks': longest_ways_to_tasks[latest_task]['tasks'] + next_task,
@@ -91,7 +93,8 @@ class ProjectImprovedProject(models.Model):
                             }
                 latest_tasks = new_tasks_to_proceed
             critical_nb_days = longest_ways_to_tasks and \
-                max([longest_ways_to_tasks[task]['nb_days'] for task in longest_ways_to_tasks.keys()]) or 0
+                               max([longest_ways_to_tasks[task]['nb_days'] for task in
+                                    longest_ways_to_tasks.keys()]) or 0
             critical_tasks = self.env['project.task']
             for task in longest_ways_to_tasks.keys():
                 if longest_ways_to_tasks[task]['nb_days'] == critical_nb_days:
@@ -128,7 +131,7 @@ class ProjectImprovedProject(models.Model):
                     raise UserError(_(u"Impossible to determine objective dates for tasks %s in project %s "
                                       u"with current configuration") %
                                     (u", ".join([task.name for task in not_planned_tasks]),
-                                    rec.display_name))
+                                     rec.display_name))
                 rec.configure_expected_dates()
         return self.open_tasks_timeline()
 
@@ -164,7 +167,8 @@ class ProjectImprovedProject(models.Model):
                             to_string(previous_task.get_effective_end_date(objective_end_date_dt))
                     previous_task.objective_end_date = objective_end_date
                     planned_tasks |= previous_task
-                    new_previous_tasks |= previous_task.previous_task_ids.filtered(lambda task: task not in planned_tasks)
+                    new_previous_tasks |= previous_task.previous_task_ids. \
+                        filtered(lambda task: task not in planned_tasks)
                     new_next_tasks |= previous_task.next_task_ids. \
                         filtered(lambda task: task not in planned_tasks and
                                  not (task.critical_task and not previous_task.critical_task))
@@ -266,10 +270,10 @@ class ProjectImprovedTask(models.Model):
     expected_start_date = fields.Datetime(string=u"Expected start date")
     allocated_duration = fields.Float(string=u"Allocated duration", help=u"In project time unit of the comany")
     allocated_duration_unit_tasks = fields.Float(string=u"Allocated duration for unit tasks",
-                                             help=u"In project time unit of the comany",
-                                             compute='_get_allocated_duration', store=True)
+                                                 help=u"In project time unit of the comany",
+                                                 compute='_get_allocated_duration', store=True)
     total_allocated_duration = fields.Integer(string=u"Total allocated duration", compute='_get_allocated_duration',
-                                          help=u"In project time unit of the comany", store=True)
+                                              help=u"In project time unit of the comany", store=True)
     taken_into_account = fields.Boolean(string=u"Taken into account")
     conflict = fields.Boolean(string=u"Conflict")
     is_milestone = fields.Boolean(string="Is milestone", compute="_get_is_milestone", store=True, default=False)
@@ -288,6 +292,11 @@ class ProjectImprovedTask(models.Model):
                                                         line in rec.children_task_ids)
                 rec.total_allocated_duration = rec.allocated_duration + rec.allocated_duration_unit_tasks
                 records -= rec
+
+    @api.depends('expected_start_date', 'expected_end_date')
+    def _get_is_milestone(self):
+        for rec in self:
+            rec.is_milestone = rec.expected_start_date == rec.expected_end_date
 
     @api.onchange('expected_start_date', 'expected_end_date')
     @api.multi
@@ -561,7 +570,6 @@ class ProjectImprovedTask(models.Model):
             return calendar.get_start_day_date(date, compute_leaves=True, resource_id=resource and resource.id or False)
         return date.replace(hour=0, minute=0, second=0)
 
-
     @api.multi
     def get_end_day_date(self, date=None):
         self.ensure_one()
@@ -571,7 +579,6 @@ class ProjectImprovedTask(models.Model):
         if calendar:
             return calendar.get_end_day_date(date, compute_leaves=True, resource_id=resource and resource.id or False)
         return date.replace(hour=23, minute=59, second=59)
-
 
     @api.multi
     def get_effective_start_date(self, date):
@@ -646,7 +653,48 @@ class ProjectImprovedTask(models.Model):
             self.propagate_dates(tasks_start_date_changed, tasks_end_date_changed)
         return result
 
-    @api.depends('expected_start_date', 'expected_end_date')
-    def _get_is_milestone(self):
-        for rec in self:
-            rec.is_milestone = rec.expected_start_date == rec.expected_end_date
+    @api.multi
+    def is_working_day(self, date):
+        self.ensure_one()
+        resource, calendar = self[0].get_default_calendar_and_resource()
+        if calendar:
+            list_intervals = calendar.get_working_intervals_of_day(start_dt=date.replace(hour=0, minute=0, second=0),
+                                                                   compute_leaves=True,
+                                                                   resource_id=resource and resource.id or False)
+        return list_intervals and list_intervals[0] and True or False
+
+    @api.multi
+    def get_task_number_open_days(self):
+        self.ensure_one()
+        open_days = 0
+        start = fields.Datetime.from_string(self.expected_start_date)
+        end = fields.Datetime.from_string(self.expected_end_date)
+        while start <= end:
+            if self.is_working_day(start):
+                open_days += 1
+            start += relativedelta(days=1)
+        return open_days
+
+    @api.multi
+    def get_occupation_task_rate(self):
+        self.ensure_one()
+        task_rate = 0
+        open_days = self.get_task_number_open_days()
+        if open_days > 0:
+            task_rate = self.allocated_duration / open_days
+        return task_rate
+
+    @api.multi
+    def get_all_working_days_for_tasks(self):
+        list_working_days = []
+        if self:
+            min_date = min([task.expected_start_date for task in self if task.expected_start_date])
+            max_date = max([task.expected_end_date for task in self if task.expected_end_date])
+            if min_date and max_date:
+                ref_date = fields.Datetime.from_string(min_date).replace(hour=0, minute=0, second=0)
+                max_date = fields.Datetime.from_string(max_date).replace(hour=0, minute=0, second=0)
+                while ref_date <= max_date:
+                    if self[0].is_working_day(ref_date):
+                        list_working_days += [ref_date]
+                    ref_date += relativedelta(days=1)
+        return list_working_days
