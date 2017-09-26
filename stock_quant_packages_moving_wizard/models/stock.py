@@ -226,6 +226,8 @@ ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), tuple(qu
         """
         if not move_items:
             move_items = self.get_default_move_items()
+        if not move_items:
+            return self.env['stock.picking']
         new_picking = self.env['stock.picking'].create({'picking_type_id': picking_type.id})
         index = 0
         product_ids = move_items.keys()
@@ -263,9 +265,6 @@ ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), tuple(qu
             # If the transfer is not manual, we do not want the putaway strategies to be applied.
             new_picking.pack_operation_ids.write({'location_dest_id': dest_location.id})
             new_picking.do_transfer()
-        if not new_picking.move_lines:
-            new_picking.unlink()
-            new_picking = self.env['stock.picking']
         return new_picking
 
 
