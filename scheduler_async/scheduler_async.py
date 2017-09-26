@@ -79,8 +79,23 @@ def run_or_check_procurements(session, model_name, domain, action, context):
 @job
 def confirm_moves(session, model_name, ids, context):
     """Confirm draft moves"""
-    moves = session.env[model_name].with_context(context).browse(ids)
-    moves.action_confirm()
+    job_uuid = session.context.get('job_uuid')
+    move_obj = session.env[model_name].with_context(context)
+    not_runned_yet = True
+    if ids:
+        session.env.cr.execute("""SELECT
+            sm.id
+            FROM stock_move sm
+            WHERE sm.id IN %s AND (
+                sm.confirm_job_uuid IS NULL or sm.confirm_job_uuid = %s
+            )""", (tuple(ids), job_uuid))
+        res = session.env.cr.fetchall()
+        move_ids = [item[0] for item in res]
+        if not_runned_yet and not move_ids:
+            # In case the job runs before the moves have been assigned their job uuid
+            raise RetryableJobError("No moves found for this job's UUID")
+        moves = move_obj.search([('id', 'in', move_ids)])
+        moves.action_confirm()
 
 
 @job(default_channel='root.asgnmoves')
@@ -152,9 +167,22 @@ class ProcurementOrderAsync(models.Model):
 
         for draft_move_ids in group_draft_moves:
             if self.env.context.get('jobify'):
-                confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move',
-                                    group_draft_moves[draft_move_ids],
-                                    dict(self.env.context))
+                job_uuid = confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move',
+                                               group_draft_moves[draft_move_ids],
+                                               dict(self.env.context))
+                # We want to write confirm_job_uuid only if the move has none
+                # or if the uuid points to a done or cancelled job
+                dom_with_uuid = [('id', 'in', group_draft_moves[draft_move_ids]),
+                                 ('confirm_job_uuid', '!=', False)]
+                running_moves = self.env['stock.move']. \
+                    read_group(dom_with_uuid, ['confirm_job_uuid'], ['confirm_job_uuid'])
+                running_uuids = [l['confirm_job_uuid'] for l in running_moves]
+                done_or_failed_jobs = self.env['queue.job'].search([('uuid', 'in', running_uuids),
+                                                                    ('state', 'in', ('done', 'failed'))])
+                moves_for_job = self.env['stock.move'].search([('id', 'in', group_draft_moves[draft_move_ids]),
+                                                               '|', ('confirm_job_uuid', '=', False),
+                                                               ('id', 'in', done_or_failed_jobs.ids)])
+                moves_for_job.write({'confirm_job_uuid': job_uuid})
             else:
                 confirm_moves(ConnectorSession.from_env(self.env), 'stock.move', group_draft_moves[draft_move_ids],
                               dict(self.env.context))
@@ -263,3 +291,9 @@ class ProcurementOrderAsync(models.Model):
 
         # Try to assign moves
         self.run_assign_moves()
+
+
+class StockMoveAsync(models.Model):
+    _inherit = 'stock.move'
+
+    confirm_job_uuid = fields.Char(tring=u"Job UUID to confirm this move")
