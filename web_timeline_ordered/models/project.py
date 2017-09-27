@@ -32,3 +32,4 @@ class ProjectTask(models.Model):
             for rec in self:
                 if vals.get('project_id') != rec.project_id.id:
                     raise UserError(_(u"You are not allowed to change the project of the task"))
+        return super(ProjectTask, self).write(vals)
