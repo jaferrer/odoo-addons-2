@@ -131,3 +131,21 @@ class RessourceCalendar(models.Model):
                                'result': fields.Datetime.to_string(date)}
                 self.env['pre.computed.calendar.delays'].sudo().create(dict_result)
         return result
+
+    @api.multi
+    def get_start_day_date(self, date, leaves=None, compute_leaves=False, resource_id=None, default_interval=None):
+        self.ensure_one()
+        date_end_day = date.replace(hour=23, minute=59, second=59)
+        list_intervals = self.get_working_intervals_of_day(end_dt=date_end_day, leaves=leaves,
+                                                           compute_leaves=compute_leaves, resource_id=resource_id,
+                                                           default_interval=default_interval)
+        return min([interval[0] for interval in list_intervals[0]])
+
+    @api.multi
+    def get_end_day_date(self, date, leaves=None, compute_leaves=False, resource_id=None, default_interval=None):
+        self.ensure_one()
+        date_end_day = date.replace(hour=23, minute=59, second=59)
+        list_intervals = self.get_working_intervals_of_day(end_dt=date_end_day, leaves=leaves,
+                                                           compute_leaves=compute_leaves, resource_id=resource_id,
+                                                           default_interval=default_interval)
+        return max([interval[1] for interval in list_intervals[0]])
