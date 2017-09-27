@@ -27,7 +27,8 @@ class ProjectTask(models.Model):
     @api.multi
     def write(self, vals):
         # prohibits the change of project of a task on the timeline view
-        if self.env.context.get('params').get('view_type') == 'timeline' and 'project_id' in vals:
+        if self.env.context.get('params') and self.env.context.get('params').get(
+                'view_type') == 'timeline' and 'project_id' in vals:
             for rec in self:
                 if vals.get('project_id') != rec.project_id.id:
                     raise UserError(_(u"You are not allowed to change the project of the task"))
