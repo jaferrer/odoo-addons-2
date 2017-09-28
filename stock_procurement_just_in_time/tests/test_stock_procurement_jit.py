@@ -770,7 +770,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         proc1 = self.env['procurement.order'].create({
             'name': "Test procurement",
             'product_id': self.test_product.id,
-            'product_qty': 1,
+            'product_qty': 5,
+            'product_uos_qty': 5,
             'product_uom': self.unit.id,
             'location_id': self.customer.id,
             'rule_id': self.rule_move.id,
@@ -780,7 +781,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         move1 = self.env['stock.move'].create({
             'name': "Move dest",
             'product_id': self.test_product.id,
-            'product_uom_qty': 1,
+            'product_uom_qty': 2,
             'product_uom': self.unit.id,
             'location_id': self.stock.id,
             'location_dest_id': self.customer.id,
@@ -792,7 +793,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         move2 = self.env['stock.move'].create({
             'name': "Move parent",
             'product_id': self.test_product.id,
-            'product_uom_qty': 1,
+            'product_uom_qty': 3,
             'product_uom': self.unit.id,
             'location_id': self.stock.id,
             'location_dest_id': self.customer.id,
@@ -807,6 +808,9 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(move1.state, 'confirmed')
         proc1.cancel()
         self.assertEqual(proc1.state, 'cancel')
+        self.assertEqual(proc1.product_qty, 3)
+        self.assertEqual(proc1.product_uos_qty, 3)
+        self.assertEqual(move2.state, 'done')
         self.assertEqual(move1.state, 'cancel')
     
     def test_14_procurement_jit_duration_end_contract(self):
@@ -888,7 +892,6 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[6].date_planned, "2015-03-26 18:00:00")
         self.assertEqual(procs[6].product_qty, 5)
         self.assertEqual(procs[6].state, 'confirmed')
-
 
     def test_15_procurement_jit_duration_no_end_contract(self):
         """Check jit with deletion of confirmed procurement."""

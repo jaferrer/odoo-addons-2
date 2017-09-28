@@ -69,7 +69,8 @@ class QuantitiesModificationsSaleOrder(models.Model):
             # note that the workflow normally ensure proc_ids isn't an empty list
             procurements.run()
 
-            # if shipping was in exception and the user choose to recreate the delivery order, write the new status of SO
+            # if shipping was in exception and the user choose to recreate the
+            # delivery order, write the new status of SO
             if order.state == 'shipping_except':
                 val = {'state': 'progress', 'shipped': False}
 
@@ -144,11 +145,17 @@ class QuantitiesModificationsSaleOrderLine(models.Model):
         return result
 
     @api.model
-    def _copy_procurement(self, proc, new_qty, new_uom):
+    def _copy_procurement(self, proc, new_qty, new_uom_id):
+        if not proc.product_uos or proc.product_uos.id == new_uom_id:
+            product_uos_qty = new_qty
+        else:
+            product_uos_qty = self.env['product.uom']._compute_qty(new_uom_id, new_qty, proc.product_uos.id,
+                                                                   rounding_method='HALF-UP')
         new_proc = proc.copy({
             'product_qty': new_qty,
-            'product_uom': new_uom,
-            'product_uos_qty': new_qty * proc.product_uos_qty / proc.product_qty,
+            'product_uom': new_uom_id,
+            'product_uos': proc.product_uos.id,
+            'product_uos_qty': product_uos_qty,
         })
         new_proc.run()
 
