@@ -224,10 +224,10 @@ ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), tuple(qu
         """
         :param move_items: {product_id: [{'quant_ids': quants IDs list, 'qty': float}, ...], ...}
         """
+        if not self:
+            return self.env['stock.picking']
         if not move_items:
             move_items = self.get_default_move_items()
-        if not move_items:
-            return self.env['stock.picking']
         new_picking = self.env['stock.picking'].create({'picking_type_id': picking_type.id})
         index = 0
         product_ids = move_items.keys()
