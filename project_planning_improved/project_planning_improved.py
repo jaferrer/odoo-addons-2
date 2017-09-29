@@ -620,11 +620,15 @@ class ProjectImprovedTask(models.Model):
     @api.multi
     def get_dates_sart_end_day(self, vals):
         if vals.get('expected_start_date'):
+            if len(vals['expected_start_date']) == 10:
+                vals['expected_start_date'] += ' 12:00:00'
             expected_start_date_dt = fields.Datetime.from_string(vals['expected_start_date'])
             checked_expected_start_date_dt = self[0].get_effective_start_date(expected_start_date_dt)
             new_expected_start_date_dt = self[0].get_start_day_date(checked_expected_start_date_dt)
             vals['expected_start_date'] = fields.Datetime.to_string(new_expected_start_date_dt)
         if vals.get('expected_end_date'):
+            if len(vals['expected_end_date']) == 10:
+                vals['expected_end_date'] += ' 12:00:00'
             expected_end_date_dt = fields.Datetime.from_string(vals['expected_end_date'])
             checked_end_date_dt = self[0].get_effective_end_date(expected_end_date_dt)
             new_expected_end_date_dt = self[0].get_end_day_date(checked_end_date_dt)
