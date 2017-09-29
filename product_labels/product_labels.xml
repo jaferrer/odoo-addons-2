@@ -2,8 +2,8 @@
 <openerp>
     <data>
 
-        <record model="ir.ui.view" id="product_product_form_sirail">
-            <field name="name">product.product.form.sirail</field>
+        <record model="ir.ui.view" id="product_product_form_product_label">
+            <field name="name">product.product.form.product.label</field>
             <field name="model">product.product</field>
             <field name="inherit_id" ref="product.product_normal_form_view"/>
             <field name="priority" eval="12"/>
@@ -21,9 +21,35 @@
             <field name="model">product.label</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree editable="top">
+                <tree>
+                    <field name="picto" options="{'size':[128,128]}" widget="image"/>
                     <field name="name"/>
+                    <field name="note"/>
                 </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="product_label_form">
+            <field name="name">product_label_form</field>
+            <field name="model">product.label</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_right oe_button_box" style="width: 300px;" name="buttons">
+                        </div>
+                        <div class="oe_left" style="width: 500px;">
+                            <field name="picto" widget="image" class="oe_avatar oe_left"/>
+                            <div class="oe_title" style="width: 390px;">
+                                <label class="oe_edit_only" for="name" string="Product Name"/>
+                                <h1>
+                                    <field name="name" class="oe_inline"/>
+                                </h1>
+                            </div>
+                        </div>
+                        <field name="note"/>
+                    </sheet>
+                </form>
             </field>
         </record>
 
@@ -31,7 +57,7 @@
             <field name="name">Product labels</field>
             <field name="res_model">product.label</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree</field>
+            <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
             <field name="context">{}</field>
             <field name="help"></field>

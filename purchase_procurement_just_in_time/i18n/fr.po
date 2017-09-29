@@ -819,6 +819,11 @@ msgid "Seller defined"
 msgstr "Fournisseur défini"
 
 #. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,main_seller_id:0
+msgid "Main seller"
+msgstr "Fournisseur principal"
+
+#. module: purchase_procurement_just_in_time
 #: field:supply.chain.control,scheduler_active_for_seller:0
 msgid "Scheduler active for seller"
 msgstr "Planificateur actif pour le fournisseur"
