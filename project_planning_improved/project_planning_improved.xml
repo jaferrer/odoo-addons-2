@@ -21,6 +21,8 @@
                             confirm="Are you sure?"/>
                     <button name="set_tasks_not_tia" type="object" string="Set tasks to 'not taken into account'"
                             confirm="Are you sure?"/>
+                    <button name="reset_scheduling" type="object" string="Reset scheduling"
+                            confirm="Are you sure?"/>
                 </group>
             </field>
         </record>

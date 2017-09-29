@@ -248,6 +248,14 @@ class ProjectImprovedProject(models.Model):
     def set_tasks_not_tia(self):
         tasks = self.env['project.task'].search([('project_id', 'in', self.ids)])
         tasks.write({'taken_into_account': False})
+        return tasks
+
+    @api.multi
+    def reset_scheduling(self):
+        tasks = self.set_tasks_not_tia()
+        tasks.write({'objective_end_date': False,
+                     'expected_start_date': False,
+                     'expected_end_date': False})
 
 
 class ProjectImprovedTask(models.Model):
