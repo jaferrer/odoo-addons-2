@@ -180,5 +180,18 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_task_calendar">
+            <field name="name">project_task_calendar</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_calendar"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <calendar position="attributes">
+                    <attribute name="date_start">expected_start_date</attribute>
+                    <attribute name="date_delay">expected_end_date</attribute>
+                </calendar>
+            </field>
+        </record>
+
     </data>
 </openerp>
