@@ -148,7 +148,10 @@ class ProjectImprovedProject(models.Model):
                                   u"is not defined.") % rec.display_name)
             end_date_dt = fields.Datetime.from_string(rec.reference_task_end_date)
             end_date_reference_task = fields.Datetime.to_string(rec.reference_task_id.get_end_day_date(end_date_dt))
-            rec.reference_task_id.objective_end_date = end_date_reference_task
+            rec.reference_task_id.write({
+                'objective_end_date': end_date_reference_task,
+                'taken_into_account': True,
+            })
             previous_tasks = rec.reference_task_id.previous_task_ids
             next_tasks = rec.reference_task_id.next_task_ids
             planned_tasks = rec.reference_task_id
@@ -245,6 +248,14 @@ class ProjectImprovedProject(models.Model):
     def set_tasks_not_tia(self):
         tasks = self.env['project.task'].search([('project_id', 'in', self.ids)])
         tasks.write({'taken_into_account': False})
+        return tasks
+
+    @api.multi
+    def reset_scheduling(self):
+        tasks = self.set_tasks_not_tia()
+        tasks.write({'objective_end_date': False,
+                     'expected_start_date': False,
+                     'expected_end_date': False})
 
 
 class ProjectImprovedTask(models.Model):
@@ -617,11 +628,15 @@ class ProjectImprovedTask(models.Model):
     @api.multi
     def get_dates_sart_end_day(self, vals):
         if vals.get('expected_start_date'):
+            if len(vals['expected_start_date']) == 10:
+                vals['expected_start_date'] += ' 12:00:00'
             expected_start_date_dt = fields.Datetime.from_string(vals['expected_start_date'])
             checked_expected_start_date_dt = self[0].get_effective_start_date(expected_start_date_dt)
             new_expected_start_date_dt = self[0].get_start_day_date(checked_expected_start_date_dt)
             vals['expected_start_date'] = fields.Datetime.to_string(new_expected_start_date_dt)
         if vals.get('expected_end_date'):
+            if len(vals['expected_end_date']) == 10:
+                vals['expected_end_date'] += ' 12:00:00'
             expected_end_date_dt = fields.Datetime.from_string(vals['expected_end_date'])
             checked_end_date_dt = self[0].get_effective_end_date(expected_end_date_dt)
             new_expected_end_date_dt = self[0].get_end_day_date(checked_end_date_dt)
