@@ -148,7 +148,10 @@ class ProjectImprovedProject(models.Model):
                                   u"is not defined.") % rec.display_name)
             end_date_dt = fields.Datetime.from_string(rec.reference_task_end_date)
             end_date_reference_task = fields.Datetime.to_string(rec.reference_task_id.get_end_day_date(end_date_dt))
-            rec.reference_task_id.objective_end_date = end_date_reference_task
+            rec.reference_task_id.write({
+                'objective_end_date': end_date_reference_task,
+                'taken_into_account': True,
+            })
             previous_tasks = rec.reference_task_id.previous_task_ids
             next_tasks = rec.reference_task_id.next_task_ids
             planned_tasks = rec.reference_task_id

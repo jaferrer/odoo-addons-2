@@ -98,6 +98,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.test_project.reference_task_id = self.project_task_3
         self.test_project.reference_task_end_date = '2017-09-07 13:30:00'
         self.test_project.start_auto_planning()
+        self.assertTrue(self.project_task_3.taken_into_account)
         self.assertEqual(self.project_task_3.objective_start_date, '2017-09-06 08:00:00')
         self.assertEqual(self.project_task_3.objective_end_date, '2017-09-07 18:00:00')
         self.assertEqual(self.project_task_1.objective_start_date, '2017-09-05 08:00:00')
@@ -331,7 +332,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertTrue(self.parent_task_2.taken_into_account)
         self.assertEqual(self.parent_task_2.expected_start_date, '2017-08-22 08:00:00')
         # Tasks 8, task 9 and parent task 1 should not have been rescheduled
-        self.assertFalse(self.project_task_8.taken_into_account)
+        self.assertTrue(self.project_task_8.taken_into_account)
         self.assertEqual(self.project_task_8.expected_start_date, '2017-09-04 08:00:00')
         self.assertEqual(self.project_task_8.expected_end_date, '2017-09-07 18:00:00')
         self.assertFalse(self.project_task_9.taken_into_account)
