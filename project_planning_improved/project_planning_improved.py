@@ -577,27 +577,42 @@ class ProjectImprovedTask(models.Model):
     def get_effective_start_date(self, date):
         self.ensure_one()
         resource, calendar = self.get_default_calendar_and_resource()
-        new_date = date
-        if new_date and calendar:
-            list_intervals = calendar.get_working_intervals_of_day(start_dt=date, compute_leaves=True,
-                                                                   resource_id=resource and resource.id or False)
-            if not list_intervals or not list_intervals[0]:
-                date_tomorrow = self.schedule_get_date(new_date, nb_days=1)
-                new_date = self.get_start_day_date(date_tomorrow)
-        return new_date
+        date_next_working_day = date
+        if date and calendar:
+            nb_iterations = 0
+            while nb_iterations < 100:
+                nb_iterations += 1
+                list_intervals = calendar.get_working_intervals_of_day(start_dt=date_next_working_day,
+                                                                       compute_leaves=True,
+                                                                       resource_id=resource and resource.id or False)
+                if list_intervals and list_intervals[0] and list_intervals[0][0]:
+                    date_next_working_day = list_intervals[0][0][0]
+                    date_next_working_day = self.get_start_day_date(date_next_working_day)
+                    break
+                else:
+                    date_next_working_day = date_next_working_day.replace(hour=0, minute=0, second=0) + \
+                        relativedelta(days=1)
+        return date_next_working_day
 
     @api.multi
     def get_effective_end_date(self, date):
         self.ensure_one()
         resource, calendar = self.get_default_calendar_and_resource()
-        new_date = date
-        if new_date and calendar:
-            list_intervals = calendar.get_working_intervals_of_day(end_dt=date, compute_leaves=True,
-                                                                   resource_id=resource and resource.id or False)
-            if not list_intervals or not list_intervals[0]:
-                date_yesterday = self.schedule_get_date(new_date, nb_days=-1)
-                new_date = self.get_end_day_date(date_yesterday)
-        return new_date
+        date_previous_working_day = date
+        if date and calendar:
+            nb_iterations = 0
+            while nb_iterations < 100:
+                list_intervals = calendar.get_working_intervals_of_day(end_dt=date_previous_working_day,
+                                                                       compute_leaves=True,
+                                                                       resource_id=resource and resource.id or False)
+                if list_intervals and list_intervals[-1] and list_intervals[-1][-1]:
+                    date_previous_working_day = list_intervals[-1][-1][-1]
+                    date_previous_working_day = self.get_end_day_date(date_previous_working_day)
+                    break
+                else:
+                    date_previous_working_day = date_previous_working_day.replace(hour=23, minute=59, second=59) - \
+                        relativedelta(days=1)
+        return date_previous_working_day
 
     @api.multi
     def get_dates_sart_end_day(self, vals):
