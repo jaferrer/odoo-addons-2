@@ -31,6 +31,7 @@ Add features to the aeroo report system
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'security/ir.model.access.csv',
         'ir_report_aeroo.xml'
     ],
     'demo': [],
