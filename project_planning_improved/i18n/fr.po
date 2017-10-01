@@ -53,6 +53,11 @@ msgstr "Passer les tâches en 'non pris en compte'"
 
 #. module: project_planning_improved
 #: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Reset scheduling"
+msgstr "Réinitialiser la planification"
+
+#. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
 msgid "Are you sure?"
 msgstr "Êtes-vous sûr ?"
 

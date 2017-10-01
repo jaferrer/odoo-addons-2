@@ -92,7 +92,7 @@ class ProjectTemplateTaskType(models.Model):
                 else:
                     for task in rec.task_ids:
                         vals_copy = rec.get_values_new_task(task, project)
-                        generated_tasks |= task.copy(vals_copy)
+                        generated_tasks |= task.with_context(mail_notrack=True).copy(vals_copy)
                     result[rec] = generated_tasks
         return result
 
