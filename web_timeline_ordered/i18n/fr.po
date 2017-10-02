@@ -1,0 +1,17 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* web_timeline_ordered
+#
+#. module: web_timeline_ordered
+#. openerp-web
+#: code:addons/web_timeline/static/src/xml/web_timeline.xml:5
+#, python-format
+msgid "Last position"
+msgstr "Dernière position"
+
+#. module: web_timeline_ordered
+#. openerp-web
+#: code:addons/web_timeline/static/src/xml/web_timeline.xml:8
+#, python-format
+msgid "Refresh"
+msgstr "Rafraîchir"

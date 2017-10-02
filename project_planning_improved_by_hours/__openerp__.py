@@ -34,7 +34,7 @@ This module implement the improved planning by hours to the project module.
              'project_planning_improved_by_hours.xml'],
     'demo': [],
     'test': [],
-    'installable': True,
+    'installable': False,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

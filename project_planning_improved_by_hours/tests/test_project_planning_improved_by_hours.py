@@ -122,7 +122,7 @@ class TestPlanningImprovedByHours(common.TransactionCase):
         # Rescheduling end date and transmit it to next tasks
         self.project_task_7.expected_start_date = '2017-09-05 18:00:00'
         self.assertEqual(self.project_task_6.expected_end_date, '2017-09-05 18:00:00')
-        self.assertEqual(self.project_task_6.expected_start_date, '2017-08-30 18:00:00')
+        self.assertEqual(self.project_task_6.expected_start_date, '2017-08-31 08:00:00')
         self.assertTrue(self.project_task_7.taken_into_account)
         self.assertFalse(self.project_task_6.taken_into_account)
         self.project_task_7.taken_into_account = False

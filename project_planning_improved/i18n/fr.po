@@ -38,8 +38,28 @@ msgstr "Ouvrir la planification des tâches"
 
 #. module: project_planning_improved
 #: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Open tasks timeline"
+msgstr "Ouvrir la timeline des tâches"
+
+#. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
 msgid "Start auto-planning"
 msgstr "Lancer la planification automatique"
+
+#. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Set tasks to 'not taken into account'"
+msgstr "Passer les tâches en 'non pris en compte'"
+
+#. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Reset scheduling"
+msgstr "Réinitialiser la planification"
+
+#. module: project_planning_improved
+#: model:ir.ui.view,arch_db:project_planning_improved.project_improved_project_form
+msgid "Are you sure?"
+msgstr "Êtes-vous sûr ?"
 
 #. module: project_planning_improved
 #: model:ir.model,name:project_planning_improved.model_project_project
@@ -61,6 +81,7 @@ msgstr "Planification des tâches pour le projet %s"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_parent_task_id
+#: view:project.task:project_planning_improved.project_improved_task_search
 msgid "Parent task"
 msgstr "Tâche parente"
 
@@ -89,8 +110,8 @@ msgstr "Tâche critique"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_objective_duration
-msgid "Objective Needed Time"
-msgstr "Durée initialement prévue"
+msgid "Objective Needed Time (in days)"
+msgstr "Durée initialement prévue (en jours)"
 
 
 #. module: project_planning_improved
@@ -109,7 +130,6 @@ msgid "Allocated duration for unit tasks"
 msgstr "Tempas alloué pour les tâches unitaires"
 
 #. module: project_planning_improved
-#: model:ir.model.fields,help:project_planning_improved.field_project_task_objective_duration
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration_unit_tasks
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_total_allocated_duration
@@ -154,6 +174,7 @@ msgstr "Tâches enfants"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_taken_into_account
+#: view:project.task:project_planning_improved.project_improved_task_search
 msgid "Taken into account"
 msgstr "Pris en compte"
 
@@ -191,3 +212,68 @@ msgstr "Tâche %s : la date de fin prévue ne peut pas être située avant la da
 #, python-format
 msgid "Task %s must be totally included in parent task %s"
 msgstr "La tâche %s doit être entièrement incluse dans sa tâche parente %s"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:404
+#, python-format
+msgid "Task %s must totally include task %s"
+msgstr "La tâche %s doit contenir totalement la tâche %s"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:641
+#, python-format
+msgid "Impossible to schedule entirely a task in a not working period"
+msgstr "Impossible de planifier une tâche entièrement dans une période non ouvrée"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\conflicts_tracking.py:77
+#, python-format
+msgid "Conflicts"
+msgstr "Conflits"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\conflicts_tracking.py:84
+#, python-format
+msgid "No conflict found"
+msgstr "Aucun conflit détecté"
+
+#. module: project_planning_improved
+#: model:ir.actions.act_window,name:project_planning_improved.act_window_conflicts_tracking
+#: model:ir.ui.menu,name:project_planning_improved.menu_conflicts_tracking
+msgid "Conflicts tracking"
+msgstr "Détection des conflits"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_open_conflict_tracking_user_ids
+msgid "Users"
+msgstr "Utilisateurs"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_open_conflict_tracking_start_date
+msgid "Start date"
+msgstr "Date de début"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_open_conflict_tracking_end_date
+msgid "End date"
+msgstr "Date de fin"
+
+#. module: project_planning_improved
+#: view:open.conflict.tracking:project_planning_improved.conflicts_tracking_form
+msgid "Execute"
+msgstr "Exécuter"
+
+#. module: project_planning_improved
+#: view:open.conflict.tracking:project_planning_improved.conflicts_tracking_form
+msgid "or"
+msgstr "ou"
+
+#. module: project_planning_improved
+#: view:open.conflict.tracking:project_planning_improved.conflicts_tracking_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_search
+msgid "Without milestones"
+msgstr "Cacher les jalons"

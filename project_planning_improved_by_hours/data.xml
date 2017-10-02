@@ -2,10 +2,6 @@
 <openerp>
     <data noupdate="1">
 
-        <record id="product.product_uom_hour" model="product.uom">
-            <field name="factor" eval="9"/>
-        </record>
-
         <record id="product_uom_unit_half_days" model="product.uom">
             <field name="name">Half Day</field>
             <field name="uom_type">smaller</field>

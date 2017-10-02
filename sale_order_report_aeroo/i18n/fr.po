@@ -32,8 +32,8 @@ msgstr "Commande de vente"
 
 #. module: sale_order_report_aeroo
 #: report:ir.actions.report.xml,name:sale_order_report_aeroo.sale_order_report_aeroo
-msgid "Cancelled Sale Order"
-msgstr "Commande de vente annulée"
+msgid "Sale Order"
+msgstr "Commande de vente"
 
 #. module: sale_order_report_aeroo
 #: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
