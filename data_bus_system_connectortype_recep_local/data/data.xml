@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="connector.type" id="connecteur_recep_local">
+            <field name="name">Connecteur réception local</field>
+            <field name="description">connecteur de réception type : LOCAL</field>
+            <field name="model_param_name">connector.type.recep.local.parameter</field>
+            <field name="method_name">pull_local</field>
+            <field name="type">RECEP</field>
+        </record>
+    </data>
+</openerp>
