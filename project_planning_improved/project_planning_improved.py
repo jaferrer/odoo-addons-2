@@ -634,14 +634,19 @@ class ProjectImprovedTask(models.Model):
 
     @api.multi
     def get_dates_sart_end_day(self, vals):
-        if vals.get('expected_start_date'):
+        if self and vals.get('expected_start_date') and vals.get('expected_end_date'):
+            start_date_working_day = self[0].is_working_day(fields.Datetime.from_string(vals['expected_start_date']))
+            end_date_working_day = self[0].is_working_day(fields.Datetime.from_string(vals['expected_end_date']))
+            if self and not start_date_working_day and not end_date_working_day:
+                raise UserError(_(u"Impossible to schedule entirely a task in a not working period"))
+        if self and vals.get('expected_start_date'):
             if len(vals['expected_start_date']) == 10:
                 vals['expected_start_date'] += ' 12:00:00'
             expected_start_date_dt = fields.Datetime.from_string(vals['expected_start_date'])
             checked_expected_start_date_dt = self[0].get_effective_start_date(expected_start_date_dt)
             new_expected_start_date_dt = self[0].get_start_day_date(checked_expected_start_date_dt)
             vals['expected_start_date'] = fields.Datetime.to_string(new_expected_start_date_dt)
-        if vals.get('expected_end_date'):
+        if self and vals.get('expected_end_date'):
             if len(vals['expected_end_date']) == 10:
                 vals['expected_end_date'] += ' 12:00:00'
             expected_end_date_dt = fields.Datetime.from_string(vals['expected_end_date'])
