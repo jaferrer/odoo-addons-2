@@ -442,3 +442,9 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.project_task_10.expected_end_date = '2017-09-16 02:00:00'
         self.env.invalidate_all()
         self.assertEqual(self.project_task_10.expected_end_date, '2017-09-15 18:00:00')
+
+        # Rescheduling a task entirely in a weekend
+        with self.assertRaises(UserError):
+            self.project_task_10.write({
+                'expected_start_date': '2017-09-09 08:00:00',
+                'expected_end_date': '2017-09-09 18:00:00'})
