@@ -76,5 +76,19 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="conflicts_tracking_form">
+            <field name="name">conflicts_tracking_form</field>
+            <field name="model">open.conflict.tracking</field>
+            <field name="inherit_id" ref="project_planning_improved.conflicts_tracking_form"/>
+            <field name="arch" type="xml">
+                <field name="start_date" position="attributes">
+                    <attribute name="widget"/>
+                </field>
+                <field name="end_date" position="attributes">
+                    <attribute name="widget"/>
+                </field>
+            </field>
+        </record>
+
     </data>
 </openerp>

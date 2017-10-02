@@ -29,6 +29,18 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_improved_task_form">
+            <field name="name">project_improved_task_form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="name" position="attributes">
+                    <attribute name="default_focus">1</attribute>
+                </field>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="project_issue_form_improved">
             <field name="name">project.issue.form.improved</field>
             <field name="model">project.issue</field>

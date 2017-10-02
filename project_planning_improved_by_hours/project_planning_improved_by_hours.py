@@ -24,8 +24,8 @@ class ProjectPlanningByHoursProject(models.Model):
     _inherit = 'project.task'
 
     @api.model
-    def is_date_start_before_date_end(self, date_start, date_end):
-        return date_start <= date_end and True or False
+    def is_date_end_after_date_start(self, date_end, date_start):
+        return date_end >= date_start and True or False
 
     @api.multi
     def schedule_get_date(self, date_ref, nb_days=0, nb_hours=0):
@@ -35,9 +35,10 @@ class ProjectPlanningByHoursProject(models.Model):
         day_unit = self.env.ref('product.product_uom_day')
         project_time_unit_of_company = self.env.user.company_id.project_time_mode_id
         new_nb_days = nb_days
-        new_nb_hours = 0
-        if project_time_unit_of_company and (project_time_unit_of_company != day_unit or nb_days != int(nb_days)):
+        new_nb_hours = nb_hours
+        if nb_days and project_time_unit_of_company and \
+                (project_time_unit_of_company != day_unit or nb_days != int(nb_days)):
             new_nb_days = 0
-            new_nb_hours = self.env['product.uom']. \
+            new_nb_hours = nb_hours + self.env['product.uom']. \
                 _compute_qty(project_time_unit_of_company.id, nb_days, hour_unit.id) or 0
         return super(ProjectPlanningByHoursProject, self).schedule_get_date(date_ref, new_nb_days, new_nb_hours)

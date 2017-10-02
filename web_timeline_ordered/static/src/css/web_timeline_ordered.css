@@ -1,0 +1,11 @@
+
+.vis.timeline .vispanel.left {
+    width: 250px;
+}
+
+.vis.timeline .macro_tache {
+    top: 0px !important
+}
+.vis.timeline .timeaxis .grid.minor {
+    border-color: #bbbbbb;
+}

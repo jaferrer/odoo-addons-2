@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from openerp import models, api, _
 
 
 class PlanningImprovedTemplateTaskType(models.Model):
@@ -61,3 +61,42 @@ class PlanningImprovedTemplateTaskType(models.Model):
                 if new_vals_for_generated_task:
                     generated_task.write(new_vals_for_generated_task)
         return result
+
+    @api.multi
+    def open_task_planning(self):
+        project_id = self.env.context.get('project_id')
+        stage_id = self.env.context.get('stage_id')
+        print project_id, stage_id
+        self.ensure_one()
+        view = self.env.ref('project_planning_improved.project_improved_task_tree')
+        ctx = self.env.context.copy()
+        ctx['search_default_project_id'] = project_id
+        ctx['search_default_stage_id'] = stage_id
+        return {
+            'name': _("Tasks planning for stage %s") % self.name,
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree',
+            'res_model': 'project.task',
+            'views': [(view.id, 'tree')],
+            'view_id': view.id,
+            'context': ctx,
+        }
+
+    @api.multi
+    def open_tasks_timeline(self):
+        project_id = self.env.context.get('project_id')
+        stage_id = self.env.context.get('stage_id')
+        self.ensure_one()
+        ctx = self.env.context.copy()
+        ctx['search_default_project_id'] = project_id
+        ctx['search_default_stage_id'] = stage_id
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'project.task',
+            'name': _("Tasks timeline for stage %s"),
+            'view_type': 'form',
+            'view_mode': 'timeline,tree,form',
+            'domain': [],
+            'context': ctx
+        }
