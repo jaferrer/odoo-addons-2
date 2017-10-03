@@ -554,8 +554,6 @@ class ProjectImprovedTask(models.Model):
     def propagate_dates(self, tasks_propagate_start, tasks_propagate_end, propagate_to_next_tasks=True,
                         propagate_to_previous_tasks=True, propagate_to_children=True):
         for rec in self:
-            children_tasks = self.env['project.task'].search([('id', 'child_of', rec.children_task_ids.ids),
-                                                              ('taken_into_account', '=', False)])
             if rec in tasks_propagate_end:
                 for task in rec.next_task_ids:
                     if propagate_to_next_tasks and rec.expected_end_date > task.expected_start_date:
@@ -565,6 +563,8 @@ class ProjectImprovedTask(models.Model):
                     if propagate_to_previous_tasks and rec.expected_start_date < task.expected_end_date:
                         task.with_context(do_not_update_tia=True).reschedule_end_date(rec.expected_start_date)
             if propagate_to_children:
+                children_tasks = self.env['project.task'].search([('id', 'child_of', rec.children_task_ids.ids),
+                                                                  ('taken_into_account', '=', False)])
                 for child_task in children_tasks:
                     if rec in tasks_propagate_end and rec.expected_end_date < child_task.expected_end_date:
                         child_task.with_context(do_not_update_tia=True).reschedule_end_date(rec.expected_end_date)
@@ -633,15 +633,20 @@ class ProjectImprovedTask(models.Model):
         return date_previous_working_day
 
     @api.multi
-    def get_dates_sart_end_day(self, vals):
-        if vals.get('expected_start_date'):
+    def get_dates_start_end_day(self, vals):
+        if self and vals.get('expected_start_date') and vals.get('expected_end_date'):
+            start_date_working_day = self[0].is_working_day(fields.Datetime.from_string(vals['expected_start_date']))
+            end_date_working_day = self[0].is_working_day(fields.Datetime.from_string(vals['expected_end_date']))
+            if self and not start_date_working_day and not end_date_working_day:
+                raise UserError(_(u"Impossible to schedule entirely a task in a not working period"))
+        if self and vals.get('expected_start_date'):
             if len(vals['expected_start_date']) == 10:
                 vals['expected_start_date'] += ' 12:00:00'
             expected_start_date_dt = fields.Datetime.from_string(vals['expected_start_date'])
             checked_expected_start_date_dt = self[0].get_effective_start_date(expected_start_date_dt)
             new_expected_start_date_dt = self[0].get_start_day_date(checked_expected_start_date_dt)
             vals['expected_start_date'] = fields.Datetime.to_string(new_expected_start_date_dt)
-        if vals.get('expected_end_date'):
+        if self and vals.get('expected_end_date'):
             if len(vals['expected_end_date']) == 10:
                 vals['expected_end_date'] += ' 12:00:00'
             expected_end_date_dt = fields.Datetime.from_string(vals['expected_end_date'])
@@ -652,7 +657,7 @@ class ProjectImprovedTask(models.Model):
 
     @api.multi
     def write(self, vals):
-        vals = self.get_dates_sart_end_day(vals)
+        vals = self.get_dates_start_end_day(vals)
         tia_to_update = not self.env.context.get('do_not_update_tia', False)
         propagate_dates = not self.env.context.get('do_not_propagate_dates', False)
         dates_changed = False
