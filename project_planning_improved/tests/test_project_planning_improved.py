@@ -442,3 +442,59 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.project_task_10.expected_end_date = '2017-09-16 02:00:00'
         self.env.invalidate_all()
         self.assertEqual(self.project_task_10.expected_end_date, '2017-09-15 18:00:00')
+
+    def test_90_reschedule_both_start_and_end_dates(self):
+
+        #  Using task 8 as reference task
+        self.test_project.task_ids.write({'taken_into_account': False})
+        self.test_project.reference_task_id = self.project_task_8
+        self.test_project.reference_task_end_date = '2017-09-07 08:00:00'
+        self.test_project.start_auto_planning()
+        self.assertEqual(self.project_task_8.objective_start_date, '2017-09-04 08:00:00')
+        self.assertEqual(self.project_task_8.objective_end_date, '2017-09-07 18:00:00')
+        self.assertEqual(self.project_task_9.objective_start_date, '2017-08-22 08:00:00')
+        self.assertEqual(self.project_task_9.objective_end_date, '2017-09-07 18:00:00')
+        self.assertEqual(self.project_task_10.objective_start_date, '2017-09-08 08:00:00')
+        self.assertEqual(self.project_task_10.objective_end_date, '2017-09-15 18:00:00')
+        self.assertEqual(self.project_task_11.objective_start_date, '2017-09-08 08:00:00')
+        self.assertEqual(self.project_task_11.objective_end_date, '2017-09-18 18:00:00')
+        self.assertEqual(self.project_task_4.objective_start_date, '2017-08-28 08:00:00')
+        self.assertEqual(self.project_task_4.objective_end_date, '2017-09-01 18:00:00')
+        self.assertEqual(self.project_task_5.objective_start_date, '2017-08-24 08:00:00')
+        self.assertEqual(self.project_task_5.objective_end_date, '2017-09-01 18:00:00')
+        self.assertEqual(self.project_task_6.objective_start_date, '2017-08-28 08:00:00')
+        self.assertEqual(self.project_task_6.objective_end_date, '2017-08-31 18:00:00')
+        self.assertEqual(self.project_task_7.objective_start_date, '2017-09-01 08:00:00')
+        self.assertEqual(self.project_task_7.objective_end_date, '2017-09-01 18:00:00')
+        self.assertEqual(self.project_task_2.objective_start_date, '2017-08-23 08:00:00')
+        self.assertEqual(self.project_task_2.objective_end_date, '2017-08-25 18:00:00')
+        self.assertEqual(self.project_task_3.objective_start_date, '2017-08-23 08:00:00')
+        self.assertEqual(self.project_task_3.objective_end_date, '2017-08-24 18:00:00')
+        self.assertEqual(self.project_task_1.objective_start_date, '2017-08-22 08:00:00')
+        self.assertEqual(self.project_task_1.objective_end_date, '2017-08-22 18:00:00')
+        self.assertEqual(self.parent_task_0.objective_start_date, '2017-08-22 08:00:00')
+        self.assertEqual(self.parent_task_0.objective_end_date, '2017-08-22 18:00:00')
+        self.assertEqual(self.parent_task_1.objective_start_date, '2017-08-23 08:00:00')
+        self.assertEqual(self.parent_task_1.objective_end_date, '2017-09-01 18:00:00')
+        self.assertEqual(self.parent_task_2.objective_start_date, '2017-08-22 08:00:00')
+        self.assertEqual(self.parent_task_2.objective_end_date, '2017-09-07 18:00:00')
+        self.assertEqual(self.parent_task_3.objective_start_date, '2017-09-08 08:00:00')
+        self.assertEqual(self.parent_task_3.objective_end_date, '2017-09-18 18:00:00')
+        for task in self.test_project.task_ids:
+            self.assertEqual(task.objective_start_date, task.expected_start_date)
+            self.assertEqual(task.objective_end_date, task.expected_end_date)
+
+        # Rescheduling a task entirely in a weekend
+        with self.assertRaises(UserError):
+            self.project_task_10.write({
+                'expected_start_date': '2017-09-09 08:00:00',
+                'expected_end_date': '2017-09-09 18:00:00'})
+
+        # Rescheduling both start and end dates for a parent task
+        self.test_project.task_ids.write({'taken_into_account': False})
+        self.assertEqual(self.parent_task_2.expected_start_date, '2017-08-22 08:00:00')
+        self.assertEqual(self.parent_task_2.expected_end_date, '2017-09-07 18:00:00')
+        self.parent_task_2.write({
+            'expected_start_date': '2017-09-05 08:00:00',
+            'expected_end_date': '2017-09-21 18:00:00',
+        })
