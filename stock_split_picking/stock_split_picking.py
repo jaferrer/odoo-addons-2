@@ -82,9 +82,10 @@ class StockSplitPicking(models.Model):
     @api.multi
     def delete_packops(self):
         """Removes packing operations from this picking."""
-        self.ensure_one()
-        self.pack_operation_ids.unlink()
-        self.packing_details_saved = False
+        not_done_pickings = self.env['stock.picking'].search([('id', 'in', self.ids), ('state', '!=', 'done')])
+        pack_operations = self.env['stock.pack.operation'].search([('picking_id', 'in', not_done_pickings.ids)])
+        pack_operations.unlink()
+        not_done_pickings.write({'packing_details_saved': False})
 
     @api.multi
     def do_prepare_partial(self):
