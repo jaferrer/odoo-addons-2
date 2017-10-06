@@ -418,13 +418,6 @@ class Application(models.Model):
         string="Destination distribution",
     )
 
-    _sql_constraints = [
-        ('identifiant_uniq', 'unique(code)',
-         'Le code exist deja.'),
-        ('name_uniq', 'unique(name)',
-         'Le nom exist deja')
-    ]
-
 
 class TypeMessage(models.Model):
     _name = 'archive'
