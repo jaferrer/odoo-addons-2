@@ -457,6 +457,12 @@ class TypeMessage(models.Model):
         string="Logs du traitement"
     )
 
+    archive_ids = fields.One2many(
+        comodel_name='archive',
+        inverse_name='archive_parent_id',
+        string="Archives de la transactiont"
+    )
+
     @api.multi
     def exec_distri_seq(self, archive):
         try:

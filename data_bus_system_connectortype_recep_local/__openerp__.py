@@ -32,6 +32,7 @@ Data Bus System Backend
     'data': [
         'data/data.xml',
         'views/bus_home.xml',
+        'security/ir.model.access.csv'
     ],
     'demo': [],
     'test': [],

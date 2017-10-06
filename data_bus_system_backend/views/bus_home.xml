@@ -376,6 +376,19 @@
                                     <field name="message" readonly="1"></field>
                                 </group>
                             </page>
+                            <page id="Message" string="Message de la transaction">
+                                <group>
+                                    <field name="archive_ids" readonly="1">
+                                        <tree>
+                                            <field name="message_name"/>
+                                            <field name="type_message_id"/>
+                                            <field name="dest"/>
+                                            <field name="origin"/>
+                                            <field name="create_date" string="Reçu le"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
                             <page id="logs" string="Logs">
                                 <group>
                                     <field name="logs_id" string="Logs du traitement">
