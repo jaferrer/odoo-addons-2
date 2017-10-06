@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,26 +18,26 @@
 #
 
 {
-    'name': 'Connector Home Backend',
+    'name': 'Data Bus System Connector Réception Type local',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['connector', 'stock'],
+    'depends': ['data_bus_system_backend'],
     'description': """
-Connector Home Backend
-======================
+Data Bus System Backend
+=======================
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/flux-tendu_connector_type.xml',
-        'views/home_backend.xml',
-        'security/ir.model.access.csv',
+        'data/data.xml',
+        'views/bus_home.xml',
+        'security/ir.model.access.csv'
     ],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
-    'application': False,
+    'application': True,
 }
