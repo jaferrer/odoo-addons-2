@@ -91,9 +91,18 @@
                             domain="[('taken_into_account', '=', True)]"/>
                     <filter name="filter_without_milestone" string="Without milestones"
                             domain="[('is_milestone', '=', False)]"/>
+                    <separator/>
+                    <filter name="next_month" string="Next month"
+                            domain="[('expected_start_date','&lt;=', (context_today() + datetime.timedelta(days=31)).strftime('%%Y-%%m-%%d'))]"/>
                 </search>
                 <group expand="0" position="inside">
                     <filter string="Parent task" name="group_parent_task" context="{'group_by':'parent_task_id'}"/>
+                    <filter name="expected_start_date" string="Expected start date" context="{'group_by':'expected_start_date:day'}"/>
+                    <filter name="expected_start_week" string="Expected start week" context="{'group_by':'expected_start_date:week'}"/>
+                    <filter name="expected_start_month" string="Expected start month" context="{'group_by':'expected_start_date:month'}"/>
+                    <filter name="expected_end_date" string="Expected end date" context="{'group_by':'expected_end_date:day'}"/>
+                    <filter name="expected_end_week" string="Expected end week" context="{'group_by':'expected_end_date:week'}"/>
+                    <filter name="expected_end_month" string="Expected end month" context="{'group_by':'expected_end_date:month'}"/>
                 </group>
             </field>
         </record>
@@ -149,6 +158,19 @@
                                domain="[('project_id', '=', project_id)]"/>
                     </page>
                 </notebook>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_improved_task_graph">
+            <field name="name">project_improved_task_graph</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id"/>
+            <field name="priority" eval="1"/>
+            <field name="arch" type="xml">
+                <graph type="line">
+                    <field name="expected_start_date" interval="day"/>
+                    <field name="allocated_duration" type="measure"/>
+                </graph>
             </field>
         </record>
 

@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_conf_reception_recepteur_tree" model="ir.ui.view">
+            <field name="name">recepteur.tree</field>
+            <field name="model">recepteur</field>
+            <field name="arch" type="xml">
+                <tree string="Récepteur" editable="bottom">
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="range"/>
+                    <field name="ident_id"/>
+                    <field name="type_id"/>
+                    <field name="actif"/>
+                    <field name="init_conf" invisible="1"/>
+                    <field name="image" options="{'size':[128,128]}" widget="image"
+                                                   readonly="1"/>
+                    <button string="Détails" name="open_popup_parameter" type="object"
+                                            context="{'recep_id':id}"/>
+                    <button string="Init" name="create_cron" type="object"
+                                                    attrs="{'invisible':[('init_conf','=',True)]}"/>
+                    <button string="Edit cron" name="edit_cron" type="object"
+                            attrs="{'invisible':[('init_conf','=',False)]}"/>
+                    <button string="run" name="run_batch" type="object"
+                            attrs="{'invisible':[('init_conf','=',False)]}"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_conf_reception_recepteur" model="ir.actions.act_window">
+            <field name="name">Récepteurs</field>
+            <field name="res_model">recepteur</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_conf_reception_recepteur_tree"/>
+        </record>
+
+
+        <record id="view_conf_reception_indentificateur_tree" model="ir.ui.view">
+            <field name="name">identificateur.tree</field>
+            <field name="model">module.dynamique</field>
+            <field name="arch" type="xml">
+                <tree string="Identificateur" editable="bottom">
+                    <field name="name"/>
+                    <field name="description"/>
+                    <field name="method_name"/>
+                    <field name="type" readonly="1"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_conf_reception_indentificateur" model="ir.actions.act_window">
+            <field name="name">Identificateur</field>
+            <field name="res_model">module.dynamique</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_conf_reception_indentificateur_tree"/>
+            <field name="domain">[('type','=','IDENT')]</field>
+            <field name="context">{'default_type':'IDENT'}</field>
+        </record>
+
+
+        <record id="view_conf_reception_type_recepteur_tree" model="ir.ui.view">
+            <field name="name">recepteur.type.tree</field>
+            <field name="model">connector.type</field>
+            <field name="arch" type="xml">
+                <tree string="Type Récepteur" editable="bottom">
+                    <field name="name"/>
+                    <field name="description"/>
+                    <field name="model_param_name"/>
+                    <field name="method_name"/>
+                    <field name="type" readonly="1"/>
+                    <field name="image" options="{'size':[128,128]}" widget="image"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_conf_reception_type_recepteur" model="ir.actions.act_window">
+            <field name="name">Type Récepteur</field>
+            <field name="res_model">connector.type</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_conf_reception_type_recepteur_tree"/>
+            <field name="domain">[('type','=','RECEP')]</field>
+            <field name="context">{'default_type':'RECEP'}</field>
+        </record>
+
+
+        <record id="view_conf_type_message_tree" model="ir.ui.view">
+            <field name="name">message.type.tree</field>
+            <field name="model">message.type</field>
+            <field name="arch" type="xml">
+                <tree string="Type Récepteur" editable="bottom">
+                    <field name="name"/>
+                    <field name="description"/>
+                    <field name="code"/>
+                    <field name="index_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_conf_type_message" model="ir.actions.act_window">
+            <field name="name">Type Message</field>
+            <field name="res_model">message.type</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_conf_type_message_tree"/>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <record id="action_conf_reception_indexeur" model="ir.actions.act_window">
+            <field name="name">Indexeur</field>
+            <field name="res_model">module.dynamique</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_conf_reception_indentificateur_tree"/>
+            <field name="domain">[('type','=','INDEX')]</field>
+            <field name="context">{'default_type':'INDEX'}</field>
+        </record>
+
+
+        <record id="view_conf_application_tree" model="ir.ui.view">
+            <field name="name">application.tree</field>
+            <field name="model">application</field>
+            <field name="arch" type="xml">
+                <tree string="Clients">
+                    <field name="name"/>
+                    <field name="description"/>
+                    <field name="identifiant"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_conf_application_form" model="ir.ui.view">
+            <field name="name">application.form</field>
+            <field name="model">application</field>
+            <field name="arch" type="xml">
+                <form string="Clients">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="identifiant"/>
+                            <field name="description"/>
+                        </group>
+                        <notebook>
+                            <page string="Administration identifiants messages">
+                                <group>
+                                    <field name="config_lines">
+                                        <tree editable="bottom">
+                                            <field name="identifiant"></field>
+                                            <field name="type_id"></field>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Administration Origine distribution">
+                                <group>
+                                    <field name="config_distri_origine_lines">
+                                        <tree editable="bottom">
+                                            <field name="distributeur_id"/>
+                                            <field name="type_id"></field>
+                                            <field name="origine"></field>
+                                            <field name="dest"></field>
+                                            <field name="traitement_id"></field>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page string="Administration destination distribution">
+                                <group>
+                                    <field name="config_distri_dest_lines">
+                                        <tree editable="bottom">
+                                            <field name="distributeur_id"/>
+                                            <field name="type_id"></field>
+                                            <field name="origine"></field>
+                                            <field name="dest"></field>
+                                            <field name="traitement_id"></field>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_conf_application" model="ir.actions.act_window">
+            <field name="name">Clients</field>
+            <field name="res_model">application</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <record id="view_conf_application_conf" model="ir.ui.view">
+            <field name="name">application.tree</field>
+            <field name="model">application.config</field>
+            <field name="arch" type="xml">
+                <tree string="Administration Clients" editable="bottom">
+                    <field name="application"/>
+                    <field name="identifiant"></field>
+                    <field name="type_id"></field>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_conf_application_conf" model="ir.actions.act_window">
+            <field name="name">Administration Clients</field>
+            <field name="res_model">application.config</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+
+        <record id="view_analyse_archive_tree" model="ir.ui.view">
+            <field name="name">analyse.archive.tree</field>
+            <field name="model">archive</field>
+            <field name="arch" type="xml">
+                <tree string="Archive">
+                    <field name="message_name"/>
+                    <field name="type_message_id"/>
+                    <field name="dest"/>
+                    <field name="origin"/>
+                    <field name="recep_id"/>
+                    <field name="create_date" string="Reçu le"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_conf_traitement" model="ir.ui.view">
+            <field name="name">traitement.tree</field>
+            <field name="model">traitement</field>
+            <field name="arch" type="xml">
+                <tree string="Traitement">
+                    <field name="name"/>
+                    <field name="type_id"></field>
+                    <field name="compute_nb_trt"></field>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_conf_traitement_form" model="ir.ui.view">
+            <field name="name">traitement.form</field>
+            <field name="model">traitement</field>
+            <field name="arch" type="xml">
+                <form string="Clients">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="description"/>
+                            <field name="type_id"></field>
+                        </group>
+                        <group>
+                            <field name="traitement_lines">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"></field>
+                                    <field name="traitement_module_id"></field>
+                                </tree>
+                            </field>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_conf_traitement_conf" model="ir.actions.act_window">
+            <field name="name">Traitement</field>
+            <field name="res_model">traitement</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <record id="action_conf_traitement_spe" model="ir.actions.act_window">
+            <field name="name">Traitement Spécifique</field>
+            <field name="res_model">module.dynamique</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_conf_reception_indentificateur_tree"/>
+            <field name="domain">[('type','=','TRT')]</field>
+            <field name="context">{'default_type':'TRT'}</field>
+        </record>
+
+        <record id="action_conf_distri_type" model="ir.actions.act_window">
+            <field name="name">Type Distributeur</field>
+            <field name="res_model">connector.type</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_conf_reception_type_recepteur_tree"/>
+            <field name="domain">[('type','=','DISTRI')]</field>
+            <field name="context">{'default_type':'DISTRI'}</field>
+        </record>
+
+        <record id="view_conf_distribution_conf" model="ir.ui.view">
+            <field name="name">distributeur.config.tree</field>
+            <field name="model">distributeur.config</field>
+            <field name="arch" type="xml">
+                <tree string="Distribution config" editable="bottom">
+                    <field name="distributeur_id"/>
+                    <field name="type_id"></field>
+                    <field name="origine"></field>
+                    <field name="dest"></field>
+                    <field name="traitement_id"></field>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_conf_distributeur_conf" model="ir.actions.act_window">
+            <field name="name">Administration distribution</field>
+            <field name="res_model">distributeur.config</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <record id="view_conf_distributeur_tree" model="ir.ui.view">
+            <field name="name">distributeur.tree</field>
+            <field name="model">distributeur</field>
+            <field name="arch" type="xml">
+                <tree string="Récepteur" editable="bottom">
+                    <field name="name"/>
+                    <field name="type_id"/>
+                    <field name="image" options="{'size':[128,128]}" widget="image"
+                                                   readonly="1"/>
+                    <button string="Détails" name="open_popup_parameter" type="object"
+                                            context="{'distributeur_id':id}"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_conf_distributeur" model="ir.actions.act_window">
+            <field name="name">Distributeurs</field>
+            <field name="res_model">distributeur</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_conf_distributeur_tree"/>
+        </record>
+
+        <record id="view_analyse_archive_form" model="ir.ui.view">
+            <field name="name">analyse.archive.form</field>
+            <field name="model">archive</field>
+            <field name="arch" type="xml">
+                <form string="Archive">
+                    <header>
+                        <button name="run_replay" string="Rejouer le message" type="object"  class="oe_highlight"></button>
+                        <button name="erreur_trt" string="Erreur traité" type="object"  class="oe_highlight"
+                        attrs="{'invisible':[('state', '!=', 'ERROR')]}"></button>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="message_name" readonly="1"/>
+                                <field name="create_date" string="Reçu le" readonly="1"></field>
+                                <field name="recep_id" readonly="1"/>
+                                <field name="type_message_id" readonly="1"/>
+                            </group>
+                            <group>
+                                <field name="origin" readonly="1"/>
+                                <field name="origin_code" readonly="1"/>
+                                <field name="dest" readonly="1"/>
+                                <field name="dest_code" readonly="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page id="Message" string="Message">
+                                <group>
+                                    <field name="message" readonly="1"></field>
+                                </group>
+                            </page>
+                            <page id="Message" string="Message de la transaction">
+                                <group>
+                                    <field name="archive_ids" readonly="1">
+                                        <tree>
+                                            <field name="message_name"/>
+                                            <field name="type_message_id"/>
+                                            <field name="dest"/>
+                                            <field name="origin"/>
+                                            <field name="create_date" string="Reçu le"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page id="logs" string="Logs">
+                                <group>
+                                    <field name="logs_id" string="Logs du traitement">
+                                        <tree>
+                                            <field name="create_date"></field>
+                                            <field name="message" invisible="1"/>
+                                            <field name="log"></field>
+                                            <button type="object" icon="fa-rocket" name="get_message_log" attrs="{'invisible':[('message', '=', False)]}"></button>
+                                            <field name="state"></field>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                            <page id="Info_compl" string="Informations complmentairse">
+                                <group>
+                                    <field name="mot_cles" readonly="1"></field>
+                                    <field name="archive_parent_id" readonly="1"></field>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_analyse_archive" model="ir.actions.act_window">
+            <field name="name">Archives</field>
+            <field name="res_model">archive</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <record id="log_details" model="ir.ui.view">
+            <field name="name">détails</field>
+            <field name="model">archive.log</field>
+            <field name="arch" type="xml">
+                <form string="Log détails" version="7">
+                    <group>
+                        <field name="create_date" readonly="1"/>
+                        <field name="log" readonly="1"/>
+                        <field name="message" readonly="1"/>
+                    </group>
+                    <footer>
+                        <button string="Fermer" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="erreur_log_trt" model="ir.ui.view">
+            <field name="name">Traitement des erreurs</field>
+            <field name="model">archive.log</field>
+            <field name="arch" type="xml">
+                <form string="Log détails" version="7">
+                    <group>
+                        <field name="state_selection" required="1"/>
+                        <field name="log" required="1"/>
+                    </group>
+                    <footer>
+                        <button name="save" string="Valider" type="object" class="oe_highlight"/>
+                        <button string="Annuler" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="dashboard_monitoring" model="ir.ui.view">
+            <field name="name">dashboard_monitoring</field>
+            <field name="model">monitoring</field>
+            <field name="arch" type="xml">
+                <kanban class="oe_background_grey o_kanban_dashboard o_stock_kanban" create="0">
+                    <field name="name"/>
+                    <field name="color"/>
+                    <field name="recu_in_current"/>
+                    <field name="ident_waiting"/>
+                    <field name="ident_in_current"/>
+                    <field name="index_waiting"/>
+                    <field name="index_in_current"/>
+                    <field name="total_in_current"/>
+                    <field name="trt_waiting"/>
+                    <field name="distri_waiting"/>
+                    <field name="trt_in_current"/>
+                    <field name="distri_in_current"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="#{kanban_color(record.color.raw_value)}">
+                                <div class="o_kanban_card_header">
+                                    <div class="o_kanban_card_header_title">
+                                        <div class="o_primary"><field name="name"/></div>
+                                        <div class="o_secondary"><!--<field class="o_secondary" name="warehouse_id"/>--></div>
+                                    </div>
+                                    <div class="o_kanban_manage_button_section">
+                                        <a class="o_kanban_manage_toggle_button" href="#">More <i class="fa fa-caret-down"/></a>
+                                    </div>
+                                </div>
+                                <div class="container o_kanban_card_content o_visible">
+                                    <div class="row">
+                                        <div class="col-xs-6 o_kanban_primary_left">
+                                            <button class="btn btn-primary" name="get_action_picking_tree_ready" type="object">
+                                                <span t-if="record.name.raw_value =='Réception'"><t t-esc="record.recu_in_current.value"/> En cours</span>
+                                                <span t-if="record.name.raw_value =='Identification'"><t t-esc="record.ident_in_current.value"/> En cours</span>
+                                                <span t-if="record.name.raw_value =='Indexation'"><t t-esc="record.index_in_current.value"/> En cours</span>
+                                                <span t-if="record.name.raw_value =='Traitement'"><t t-esc="record.trt_in_current.value"/> En cours</span>
+                                                <span t-if="record.name.raw_value =='Distribution'"><t t-esc="record.distri_in_current.value"/> En cours</span>
+                                            </button>
+                                        </div>
+                                        <div class="col-xs-6 o_kanban_primary_right">
+                                            <div class="row">
+                                                <div class="col-xs-9">
+                                                    <a name="get_action_picking_tree_waiting" type="object">
+                                                        En attente
+                                                    </a>
+                                                </div>
+                                                <div t-if="record.name.raw_value =='Réception'" class="col-xs-3">
+                                                    <field name="recu_waiting"/>
+                                                </div>
+                                                <div t-if="record.name.raw_value =='Identification'" class="col-xs-3">
+                                                    <field name="ident_waiting"/>
+                                                </div>
+                                                <div t-if="record.name.raw_value =='Indexation'" class="col-xs-3">
+                                                    <field name="index_waiting"/>
+                                                </div>
+                                                <div t-if="record.name.raw_value =='Traitement'" class="col-xs-3">
+                                                    <field name="trt_waiting"/>
+                                                </div>
+                                                <div t-if="record.name.raw_value =='Distribution'" class="col-xs-3">
+                                                    <field name="distri_waiting"/>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-xs-9">
+                                                    <a name="get_action_picking_tree_waiting" type="object">
+                                                        Total en cours
+                                                    </a>
+                                                </div>
+                                                <div class="col-xs-3">
+                                                    <field name="total_in_current"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div t-if="record.name.raw_value =='Réception'" class="row">
+                                        <field name="recu_in_current" widget="gauge" style="width:150px; height: 150px;" options="{'levelcolors': ['#a9d70b', '#f9c802', '#ff0000'], 'action_jump': '357', 'max_field': 'total_in_current'}">Taux</field>
+                                    </div>
+                                    <div t-if="record.name.raw_value =='Identification'" class="row">
+                                        <field name="ident_in_current" widget="gauge" style="width:150px; height: 150px;" options="{'levelcolors': ['#a9d70b', '#f9c802', '#ff0000'], 'action_jump': '357', 'max_field': 'total_in_current'}">Taux</field>
+                                    </div>
+                                    <div t-if="record.name.raw_value =='Indexation'" class="row">
+                                        <field name="index_in_current" widget="gauge" style="width:150px; height: 150px;" options="{'levelcolors': ['#a9d70b', '#f9c802', '#ff0000'], 'action_jump': '357', 'max_field': 'total_in_current'}">Taux</field>
+                                    </div>
+                                    <div t-if="record.name.raw_value =='Traitement'" class="row">
+                                        <field name="trt_in_current" widget="gauge" style="width:150px; height: 150px;" options="{'levelcolors': ['#a9d70b', '#f9c802', '#ff0000'], 'action_jump': '357', 'max_field': 'total_in_current'}">Taux</field>
+                                    </div>
+                                    <div t-if="record.name.raw_value =='Distribution'" class="row">
+                                        <field name="distri_in_current" widget="gauge" style="width:150px; height: 150px;" options="{'levelcolors': ['#a9d70b', '#f9c802', '#ff0000'], 'action_jump': '357', 'max_field': 'total_in_current'}">Taux</field>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="action_monitoring_bus" model="ir.actions.act_window">
+            <field name="name">Tableau de Bord</field>
+            <field name="res_model">monitoring</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+    </data>
+</openerp>

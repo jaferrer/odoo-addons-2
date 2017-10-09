@@ -78,14 +78,16 @@ class OpenConflictTracking(models.TransientModel):
             not_conflicted_tasks.write({'conflict': False})
         if display_tasks and conflict_tasks:
             conflict_tasks.write({'conflict': True})
+            ctx = self.env.context.copy()
+            ctx['search_default_next_month'] = True
             return {
                 'type': 'ir.actions.act_window',
                 'res_model': 'project.task',
                 'name': _(u"Conflicts"),
                 'view_type': 'form',
-                'view_mode': 'timeline,tree,form',
+                'view_mode': 'timeline,tree,form,graph',
                 'domain': [('id', 'in', display_tasks.ids)],
-                'context': self.env.context
+                'context': ctx
             }
         else:
             raise UserError(_(u"No conflict found"))
