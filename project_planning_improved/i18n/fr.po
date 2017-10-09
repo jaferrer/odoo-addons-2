@@ -138,11 +138,13 @@ msgstr "Exprimé en unité de temps de la société"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_end_date
+#: view:project.task:project_planning_improved.project_improved_task_search
 msgid "Expected end date"
 msgstr "Date de fin prévue"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_start_date
+#: view:project.task:project_planning_improved.project_improved_task_search
 msgid "Expected start date"
 msgstr "Date de début prévue"
 
@@ -277,3 +279,28 @@ msgstr "Annuler"
 #: view:project.task:project_planning_improved.project_improved_task_search
 msgid "Without milestones"
 msgstr "Cacher les jalons"
+
+#. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_search
+msgid "Next month"
+msgstr "Le prochain mois"
+
+#. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_search
+msgid "Expected start week"
+msgstr "Semaine de début prévue"
+
+#. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_search
+msgid "Expected start month"
+msgstr "Mois de début prévue"
+
+#. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_search
+msgid "Expected end week"
+msgstr "Semaine de fin prévue"
+
+#. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_search
+msgid "Expected end month"
+msgstr "Mois de fin prévue"
