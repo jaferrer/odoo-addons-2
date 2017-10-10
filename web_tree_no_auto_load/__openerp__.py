@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,19 +16,20 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+{
+    'name': "Web tree no auto load",
 
-from openerp import models, fields
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Technical',
+    'description': """Add a context value 
+    no_auto_load=True pour que la vue tree ne se charge que lors de l'appuis sur la loupe""",
 
-
-class ProductLabel(models.Model):
-    _name = 'product.label'
-
-    name = fields.Char(string=u"Name", translate=True)
-    note = fields.Text(u"Note", translate=True)
-    picto = fields.Binary(u"Image")
-
-class ProductLabelProductProduct(models.Model):
-    _inherit = 'product.product'
-
-    product_label_ids = fields.Many2many('product.label', string=u"Product labels")
-
+    'depends': ['web'],
+    'qweb': [
+    ],
+    'data': [
+        'view/qweb.xml',
+    ],
+}

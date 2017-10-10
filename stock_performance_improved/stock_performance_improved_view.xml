@@ -81,6 +81,25 @@ self.run_assign_moves(cr, uid, context=context)
             </field>
         </record>
 
+        <record model="ir.ui.view" id="stock_move_search_view">
+            <field name="name">stock.move.search.view</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_search"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search position="inside">
+                    <separator/>
+                    <filter name="not_cancelled" string="Not Cancelled" domain="[('state', '!=', 'cancel')]"/>
+                    <separator/>
+                    <filter name="not_done" string="Not Done" domain="[('state', '!=', 'done')]"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="stock.action_move_form2" model="ir.actions.act_window">
+            <field name="context">{'search_default_not_cancelled': True}</field>
+        </record>
+
         <record model="ir.ui.view" id="procurement_rule_form_view">
             <field name="name">procurement.rule.form.view</field>
             <field name="model">procurement.rule</field>
