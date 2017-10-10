@@ -192,3 +192,8 @@ msgstr "Emplacement de destination"
 #: view:procurement.rule:stock_performance_improved.procurement_rule_search
 msgid "Group By"
 msgstr "Grouper par"
+
+#. module: stock_performance_improved
+#: view:stock.move:stock_performance_improved.stock_move_search_view
+msgid "Not Cancelled"
+msgstr "Non annulé"
