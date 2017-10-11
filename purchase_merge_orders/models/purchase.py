@@ -24,6 +24,11 @@ class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
     @api.multi
+    def _make_merge_key(self):
+        self.ensure_one()
+        return self.partner_id.id, self.picking_type_id.id, self.currency_id.id
+
+    @api.multi
     def do_merge(self):
         """
         To merge similar type of purchase orders.
@@ -42,7 +47,7 @@ class PurchaseOrder(models.Model):
         order_lines_to_move = {}
 
         for porder in self.filtered(lambda p: p.state == 'draft'):
-            order_key = (porder.partner_id.id, porder.picking_type_id.id, porder.currency_id.id)
+            order_key = porder._make_merge_key()
             new_order = new_orders.setdefault(order_key, ({}, []))
             new_order[1].append(porder.id)
             order_infos = new_order[0]
