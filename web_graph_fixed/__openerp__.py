@@ -27,7 +27,6 @@
     'description': """A module that fix te graph widget BUG
         """,
     'qweb': [
-        'static/src/xml/template.xml',
     ],
     'data': [
         'view/qweb.xml',
