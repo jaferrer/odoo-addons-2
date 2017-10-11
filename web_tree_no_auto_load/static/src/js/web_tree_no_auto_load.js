@@ -10,7 +10,10 @@ openerp.web_tree_no_auto_load = function(instance) {
         },
 
         do_search: function (_query, options) {
-            var parent_context = this.getParent().action.context;
+            var parent_context = this.getParent().context;
+            if (this.getParent().action && this.getParent().action.context){
+                parent_context = this.getParent().action.context
+            }
             if (parent_context && parent_context.no_auto_load
                 && _query !== 'on_click_oe_searchview_search') {
                 return
