@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,28 +16,19 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Connector Home Backend',
+    'name': "Web graph fixed",
+
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['connector', 'stock'],
-    'description': """
-Connector Home Backend
-======================
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'data/flux-tendu_connector_type.xml',
-        'views/home_backend.xml',
-        'security/ir.model.access.csv',
+    'category': 'Technical',
+    'depends': ['web'],
+    'description': """A module that fix te graph widget BUG
+        """,
+    'qweb': [
     ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
+    'data': [
+        'view/qweb.xml',
+    ],
 }

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <menuitem id="menu_data_bus_manage_root"
+            name="Administration du Bus de données"/>
+
+        <menuitem id="menu_data_bus_analyse_root"
+            name="Analyse du Bus de données"/>
+
+        <menuitem id="menu_data_bus_monitoring_root"
+            name="Monitoring du Bus de données"/>
+
+        <menuitem id="menu_conf_dashboard"
+            name="Tableau de bord"
+            sequence="1"
+            parent="menu_data_bus_manage_root"/>
+
+        <menuitem id="menu_conf_reception"
+            name="Réception"
+            sequence="2"
+            parent="menu_data_bus_manage_root"/>
+
+        <menuitem id="menu_conf_traitement"
+            name="Traitement"
+            sequence="10"
+            parent="menu_data_bus_manage_root"/>
+
+        <menuitem id="menu_conf_distribution"
+            name="Distribution"
+            sequence="20"
+            parent="menu_data_bus_manage_root"/>
+
+        <menuitem id="menu_conf_message"
+            name="Message"
+            sequence="30"
+            parent="menu_data_bus_manage_root"/>
+
+        <menuitem id="menu_conf_application"
+            name="Clients"
+            sequence="40"
+            parent="menu_data_bus_manage_root"/>
+
+        <menuitem id="menu_conf_reception_recepteur"
+            name="Récepteurs"
+            action="action_conf_reception_recepteur"
+            sequence="3"
+            parent="menu_conf_reception"/>
+
+        <menuitem id="menu_conf_reception_indentificateur"
+            name="Identificateur"
+            action="action_conf_reception_indentificateur"
+            sequence="4"
+            parent="menu_conf_reception"/>
+
+        <menuitem id="menu_conf_reception_type_recepteur"
+            name="Type de récepteur"
+            action="action_conf_reception_type_recepteur"
+            sequence="5"
+            parent="menu_conf_reception"/>
+
+        <menuitem id="menu_conf_traitement_config"
+            name="Administration traitement spécifique"
+            action="action_conf_traitement_conf"
+            sequence="11"
+            parent="menu_conf_traitement"/>
+
+        <menuitem id="menu_conf_traitement_module_trt"
+            name="Modules de traitement spécifique"
+            action="action_conf_traitement_spe"
+            sequence="12"
+            parent="menu_conf_traitement"/>
+
+        <menuitem id="menu_conf_distribution_distributeur"
+            name="Distributeurs"
+            action="action_conf_distributeur"
+            sequence="21"
+            parent="menu_conf_distribution"/>
+
+        <menuitem id="menu_conf_distribution_type_distributeur"
+            name="Type de distributeur"
+            action="action_conf_distri_type"
+            sequence="22"
+            parent="menu_conf_distribution"/>
+
+        <menuitem id="menu_conf_distribution_config"
+            name="Administration distribution"
+            action="action_conf_distributeur_conf"
+            sequence="23"
+            parent="menu_conf_distribution"/>
+
+        <menuitem id="menu_conf_message_type_message"
+            name="Type message"
+            action="action_conf_type_message"
+            sequence="31"
+            parent="menu_conf_message"/>
+
+        <menuitem id="menu_conf_message_index"
+            name="Indexeurs"
+            action="action_conf_reception_indexeur"
+            sequence="32"
+            parent="menu_conf_message"/>
+
+        <menuitem id="menu_conf_application_app"
+            name="Clients"
+            action="action_conf_application"
+            sequence="41"
+            parent="menu_conf_application"/>
+
+        <menuitem id="menu_conf_application_config"
+            name="Administration clients"
+            action="action_conf_application_conf"
+            sequence="42"
+            parent="menu_conf_application"/>
+
+<!-- analyse -->
+
+        <menuitem id="menu_analyse_archives"
+            name="Archives"
+            action="action_analyse_archive"
+            sequence="1"
+            parent="menu_data_bus_analyse_root"/>
+
+<!-- monitoring -->
+
+        <menuitem id="menu_monitoring_dashboard"
+            name="Tableau de bord"
+            action="action_monitoring_bus"
+            sequence="1"
+            parent="menu_data_bus_monitoring_root"/>
+
+    </data>
+</openerp>

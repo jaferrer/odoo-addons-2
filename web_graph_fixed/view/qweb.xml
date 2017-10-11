@@ -1,0 +1,9 @@
+<openerp>
+    <data>
+       <template id="assets_backend" name="web_graph_fixed assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+            	<script type="text/javascript" src="/web_graph_fixed/static/src/js/web_graph_fixed.js"></script>
+            </xpath>
+        </template>
+    </data>
+</openerp>
