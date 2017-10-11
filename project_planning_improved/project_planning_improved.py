@@ -171,7 +171,8 @@ class ProjectImprovedProject(models.Model):
                     previous_task.objective_end_date = objective_end_date
                     planned_tasks |= previous_task
                     new_previous_tasks |= previous_task.previous_task_ids. \
-                        filtered(lambda task: task not in planned_tasks)
+                        filtered(lambda task: task not in planned_tasks and
+                                 not (task.critical_task and not previous_task.critical_task))
                     new_next_tasks |= previous_task.next_task_ids. \
                         filtered(lambda task: task not in planned_tasks and
                                  not (task.critical_task and not previous_task.critical_task))
@@ -184,7 +185,9 @@ class ProjectImprovedProject(models.Model):
                             to_string(next_task.get_effective_start_date(objective_start_date_dt))
                     next_task.set_objective_end_date_from_start_date(objective_start_date)
                     planned_tasks |= next_task
-                    new_previous_tasks |= next_task.previous_task_ids.filtered(lambda task: task not in planned_tasks)
+                    new_previous_tasks |= next_task.previous_task_ids. \
+                        filtered(lambda task: task not in planned_tasks and
+                                 not (task.critical_task and not next_task.critical_task))
                     new_next_tasks |= next_task.next_task_ids. \
                         filtered(lambda task: task not in planned_tasks and
                                  not (task.critical_task and not next_task.critical_task))
