@@ -47,7 +47,9 @@ def traitement_distri_odoo(session, model_name, distri_id, archive, archive_id):
             })
             return "OK"
 
-        server = jsonrpclib.Server(param.url)
+        url = "http://%s:%s/jsonrpc" % (param.url, param.port)
+
+        server = jsonrpclib.Server(url)
 
         # log in the given database
         uid = server.call(service="common", method="login", args=[param.db, param.login, param.pwd])
