@@ -47,6 +47,7 @@ def run_procure_orderpoint_async(session, model_name, company_id, context):
 def run_or_check_procurements(session, model_name, domain, action, context):
     """Confirm or check procurements"""
     job_uuid = session.context.get('job_uuid')
+    job = job_uuid and session.env['queue.job'].search([('uuid', '=', job_uuid)]) or session.env['queue.job']
     proc_obj = session.env[model_name].with_context(context)
     prev_procs = proc_obj
     not_runned_yet = True
@@ -63,7 +64,10 @@ def run_or_check_procurements(session, model_name, domain, action, context):
             proc_ids = [item[0] for item in res]
             if not_runned_yet and procs and not proc_ids:
                 # In case the job runs before the procs have been assigned their job uuid
-                raise RetryableJobError("No procurements found for this job's UUID")
+                msg = "No procurements found for this job's UUID"
+                if job and job.max_retries and job.retry >= job.max_retries:
+                    return msg
+                raise RetryableJobError(msg)
             procs = proc_obj.sudo().search([('id', 'in', proc_ids)])
         if not procs or prev_procs == procs:
             break
@@ -80,6 +84,7 @@ def run_or_check_procurements(session, model_name, domain, action, context):
 def confirm_moves(session, model_name, ids, context):
     """Confirm draft moves"""
     job_uuid = session.context.get('job_uuid')
+    job = job_uuid and session.env['queue.job'].search([('uuid', '=', job_uuid)]) or session.env['queue.job']
     move_obj = session.env[model_name].with_context(context)
     not_runned_yet = True
     if ids:
@@ -93,7 +98,10 @@ def confirm_moves(session, model_name, ids, context):
         move_ids = [item[0] for item in res]
         if not_runned_yet and not move_ids:
             # In case the job runs before the moves have been assigned their job uuid
-            raise RetryableJobError("No moves found for this job's UUID")
+            msg = "No moves found for this job's UUID"
+            if job and job.max_retries and job.retry >= job.max_retries:
+                return msg
+            raise RetryableJobError(msg)
         moves = move_obj.search([('id', 'in', move_ids)])
         moves.action_confirm()
 
