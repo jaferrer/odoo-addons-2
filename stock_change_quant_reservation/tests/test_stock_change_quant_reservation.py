@@ -130,11 +130,11 @@ class TestStockChangeQuantReservation(common.TransactionCase):
         self.assertEqual(move_12_1.reserved_quant_ids, quant_1)
         pick_1 = move_12_1.picking_id
         self.assertTrue(pick_1)
-        self.assertEqual(pick_1.move_lines, move_12_1)
-        pick_1.action_assign()
-        pick_1.do_prepare_partial()
-        pick_1.do_transfer()
-        self.assertEqual(move_12_1.quant_ids, quant_1)
+        self.assertEqual(len(pick_1.move_lines), 2)
+        self.assertIn(move_12_1, pick_1.move_lines)
+        self.assertIn(move_12_2, pick_1.move_lines)
+        move_12_1.picking_id = False
+        move_12_1.action_done()
         self.assertEqual(quant_1.location_id, self.location_shelf)
         self.assertEqual(quant_2.location_id, self.location_stock)
 
@@ -275,11 +275,11 @@ class TestStockChangeQuantReservation(common.TransactionCase):
         self.assertEqual(move_12_1.reserved_quant_ids, quant_1)
         pick_1 = move_12_1.picking_id
         self.assertTrue(pick_1)
-        self.assertEqual(pick_1.move_lines, move_12_1)
-        pick_1.action_assign()
-        pick_1.do_prepare_partial()
-        pick_1.do_transfer()
-        self.assertEqual(move_12_1.quant_ids, quant_1)
+        self.assertEqual(len(pick_1.move_lines), 2)
+        self.assertIn(move_12_1, pick_1.move_lines)
+        self.assertIn(move_12_2, pick_1.move_lines)
+        move_12_1.picking_id = False
+        move_12_1.action_done()
         self.assertEqual(quant_1.location_id, self.location_shelf)
         self.assertEqual(quant_2.location_id, self.location_stock)
 
