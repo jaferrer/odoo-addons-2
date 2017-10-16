@@ -35,13 +35,14 @@ class JitResPartner(models.Model):
     order_group_period = fields.Many2one('procurement.time.frame', string="Order grouping period",
                                          help="Select here the time frame by which orders line placed to this supplier"
                                               " should be grouped by PO. This is value should be set to the typical "
-                                              "delay between two orders to this supplier.")
-    nb_max_draft_orders = fields.Integer(string="Maximal number of draft purchase orders",
+                                              "delay between two orders to this supplier.", track_visibility='onchange')
+    nb_max_draft_orders = fields.Integer(string="Maximal number of draft purchase orders",  track_visibility='onchange',
                                          help="Used by the purchase planner to generate draft orders")
-    nb_days_scheduler_frequency = fields.Integer(string="Scheduler frequency (in days)")
+    nb_days_scheduler_frequency = fields.Integer(string="Scheduler frequency (in days)", track_visibility='onchange')
     last_scheduler_date = fields.Datetime(string="Last scheduler date", readonly=True)
     next_scheduler_date = fields.Datetime(string="Next scheduler date")
-    scheduler_sequence = fields.Integer(string="Sequence for purchase scheduler")
+    scheduler_sequence = fields.Integer(string="Sequence for purchase scheduler",
+                                        track_visibility='onchange')
 
     @api.multi
     def get_nb_draft_orders(self):
