@@ -358,7 +358,7 @@ class StockMove(models.Model):
             for picking in pickings:
                 if not picking.move_lines:
                     picking.delete_packops()
-                    picking.unlink()
+                    picking.sudo().unlink()
 
 
 class StockWarehouse(models.Model):
