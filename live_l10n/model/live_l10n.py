@@ -27,15 +27,21 @@ class AbstractLiveI10N(models.AbstractModel):
 
     @api.multi
     def _action_on_change(self, field_name, field_value):
+        if not self.exists():
+            return {}
         model_name = self._name
-        if not self._current_model == 'live.l10n':
-            model_name = self._current_model
+        model_id = self.id
+        for key, value in self._inherits.iteritems():
+            if field_name in self.env[key]._fields:
+                model_name = key
+                model_id = getattr(self, value).id
+
         ctx = dict(self.env.context)
         ctx['translate_field'] = field_name
         ctx['translate_field_value'] = field_value
         ctx['model_translate_field'] = model_name
-        ctx['model_id_translate'] = self.id
-        self.env['ir.translation'].translate_fields(model_name, self.id, field=field_name)
+        ctx['model_id_translate'] = model_id
+        self.env['ir.translation'].translate_fields(model_name, model_id, field=field_name)
         return {
             'name': _('Translation'),
             'view_type': 'form',
