@@ -48,7 +48,7 @@ aggregate functions depend from this module so that they get updated.
     ],
     'demo': [],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

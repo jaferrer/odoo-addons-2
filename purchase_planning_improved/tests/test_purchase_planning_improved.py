@@ -60,11 +60,30 @@ class TestPurchasePlanningImproved(common.TransactionCase):
             self.assertEqual(move.date[0:10], '2015-01-30')
             self.assertEqual(move.date_expected[0:10], '2015-01-30')
 
-        # Let's reschedule the procurement
+        # Let's reschedule the procurement (draft, date in the past)
         proc.date_planned = "2015-02-13 18:00:00"
         proc.action_reschedule()
         self.assertEqual(pol_id.date_required[0:10], '2015-02-12')
-        self.assertEqual(pol_id.date_planned[0:10], '2015-01-30')
+        self.assertEqual(pol_id.date_planned[0:10], '2015-02-12')
+        for move in pol_id.move_ids:
+            self.assertEqual(move.date[0:10], '2015-02-12')
+            self.assertEqual(move.date_expected[0:10], '2015-01-30')
+
+        # Latest date
+        proc.date_planned = "2016-05-02 18:00:00"
+        proc.action_reschedule()
+        self.assertEqual(pol_id.date_required[0:10], '2016-04-29')
+        self.assertEqual(pol_id.date_planned[0:10], '2016-04-29')
+        for move in pol_id.move_ids:
+            self.assertEqual(move.date[0:10], '2015-02-12')
+            self.assertEqual(move.date_expected[0:10], '2015-01-30')
+
+        # Let's reschedule the procurement (sent, date in the past)
+        pol_id.order_id.state = 'sent'
+        proc.date_planned = "2015-02-13 18:00:00"
+        proc.action_reschedule()
+        self.assertEqual(pol_id.date_required[0:10], '2015-02-12')
+        self.assertEqual(pol_id.date_planned[0:10], '2016-04-29')
         for move in pol_id.move_ids:
             self.assertEqual(move.date[0:10], '2015-02-12')
             self.assertEqual(move.date_expected[0:10], '2015-01-30')

@@ -30,31 +30,31 @@ class ProcurementOrderPurchasePlanningImproved(models.Model):
     def action_reschedule(self):
         """Reschedules the moves associated to this procurement."""
         for proc in self:
-            if proc.state not in ['done', 'cancel', 'exception'] and proc.rule_id and proc.rule_id.action == 'buy':
-                schedule_date = self._get_purchase_schedule_date(proc, proc.company_id)
-                order_date = self._get_purchase_order_date(proc, proc.company_id, schedule_date)
-                date_planned = proc.purchase_line_id.date_planned
-                if proc.purchase_id.state in ['draft', 'sent', 'bid']:
-                    # If the purchase line is not confirmed yet, try to set planned date to schedule_date
-                    if order_date > datetime.now():
-                        date_planned = fields.Date.to_string(schedule_date)
-                proc.purchase_line_id.write({
-                    'date_planned': date_planned,
-                })
-                if proc.purchase_id and fields.Datetime.from_string(proc.purchase_id.date_order) > order_date:
+            if proc.state not in ['done', 'cancel', 'exception'] and proc.rule_id and proc.rule_id.action == 'buy' and \
+                    not self.env.context.get('do_not_propagate_rescheduling'):
+                schedule_date = proc._get_purchase_schedule_date()
+                order_date = proc._get_purchase_order_date(schedule_date)
+                # We sudo because the user has not necessarily the rights to update PO and PO lines
+                proc = proc.sudo()
+                # If the purchase line is not confirmed yet, try to set planned date to schedule_date
+                if proc.purchase_id.state in ['sent', 'bid'] and order_date > datetime.now() and not \
+                        self.env.context.get('do_not_reschedule_bigd_and_sent') or proc.purchase_id.state == 'draft':
+                    proc.purchase_line_id.date_planned = fields.Date.to_string(schedule_date)
+                if proc.purchase_id and fields.Datetime.from_string(proc.purchase_id.date_order) > order_date and not \
+                        self.env.context.get('do_not_move_purchase_order'):
                     proc.purchase_id.date_order = fields.Datetime.to_string(order_date)
                 proc.purchase_line_id.set_moves_dates(proc.purchase_line_id.date_required)
-        super(ProcurementOrderPurchasePlanningImproved, self).action_reschedule()
+        return super(ProcurementOrderPurchasePlanningImproved, self).action_reschedule()
 
-    @api.model
-    def _get_po_line_values_from_proc(self, procurement, partner, company, schedule_date):
-        """Overridden to set date_required."""
-        res = super(ProcurementOrderPurchasePlanningImproved, self)._get_po_line_values_from_proc(
-                                                                        procurement, partner, company, schedule_date)
-        res.update({
-            'requested_date': schedule_date.strftime(DEFAULT_SERVER_DATE_FORMAT),
-        })
-        return res
+    # TODO: reprendre la fonction ci-dessous suite à passage en V9 (requested_date n'existe plus)
+    # @api.multi
+    # def _prepare_purchase_order(self, partner):
+    #     """Overridden to set date_required."""
+    #     self.ensure_one()
+    #     schedule_date = self[0]._get_purchase_schedule_date()
+    #     res = super(ProcurementOrderPurchasePlanningImproved, self)._prepare_purchase_order(partner)
+    #     res.update({'requested_date': schedule_date.strftime(DEFAULT_SERVER_DATE_FORMAT)})
+    #     return res
 
 
 class PurchaseOrderLinePlanningImproved(models.Model):
@@ -66,8 +66,8 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     requested_date = fields.Date("Requested date", help="The line was required to the supplier at that date",
                                  default=fields.Date.context_today, states={'sent': [('readonly', True)],
                                                                             'bid': [('readonly', True)],
-                                                                            'confirmed': [('readonly', True)],
-                                                                            'approved': [('readonly', True)],
+                                                                            'to approve': [('readonly', True)],
+                                                                            'purchase': [('readonly', True)],
                                                                             'except_picking': [('readonly', True)],
                                                                             'except_invoice': [('readonly', True)],
                                                                             'done': [('readonly', True)],
@@ -78,7 +78,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     def set_moves_dates(self, date_required):
         for rec in self:
             moves = rec.move_ids.filtered(lambda m: m.state not in ['draft', 'cancel'])
-            moves.write({'date': date_required})
+            moves.filtered(lambda move: move.date != date_required).write({'date': date_required})
 
     @api.multi
     @api.depends('procurement_ids', 'procurement_ids.date_planned', 'date_planned')
@@ -88,12 +88,18 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                 min_date = fields.Datetime.from_string(min([p.date_planned for p in rec.procurement_ids]))
                 min_proc = rec.procurement_ids.filtered(lambda proc: str(proc.date_planned) == str(min_date))[0]
                 if min_proc.rule_id:
-                    date_required = self.env['procurement.order']._get_purchase_schedule_date(min_proc, rec.company_id)
+                    date_required = min_proc.with_context(do_not_save_result=True)._get_purchase_schedule_date()
                 else:
                     date_required = min_date
             else:
                 date_required = rec.date_planned
             rec.date_required = date_required
+
+    @api.model
+    def create(self, vals):
+        if vals.get('date_planned'):
+            vals['requested_date'] = vals['date_planned']
+        return super(PurchaseOrderLinePlanningImproved, self).create(vals)
 
     @api.multi
     def write(self, vals):
@@ -104,11 +110,12 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                     vals['requested_date'] = vals['date_planned']
         result = super(PurchaseOrderLinePlanningImproved, self).write(vals)
         if vals.get('date_planned'):
+            date = vals.get('date_planned') + " 12:00:00"
             for line in self:
-                if line.move_ids:
-                    date = vals.get('date_planned')+" 12:00:00"
-                    if line.procurement_ids:
-                        line.move_ids.write({'date_expected': date})
-                    else:
-                        line.move_ids.write({'date_expected': date, 'date': date})
+                moves = self.env['stock.move'].search([('purchase_line_id', '=', line.id),
+                                                       ('state', 'not in', ['done', 'cancel'])])
+                if line.procurement_ids:
+                    moves.write({'date_expected': date})
+                else:
+                    moves.write({'date_expected': date, 'date': date})
         return result

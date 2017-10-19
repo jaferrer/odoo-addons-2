@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_procurement_time_frame,procurement_time_frame user,model_procurement_time_frame,purchase.group_purchase_user,1,0,0,0
+manage_procurement_time_frame,procurement_time_frame manager,model_procurement_time_frame,purchase.group_purchase_manager,1,1,1,1
+supply_chain_control_manager,supply_chain_control_manager,model_supply_chain_control,purchase.group_purchase_manager,1,0,0,0

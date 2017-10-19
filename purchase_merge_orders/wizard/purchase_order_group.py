@@ -17,7 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, exceptions
+from openerp.exceptions import UserError
+from openerp import fields, models, api
 from openerp.tools.translate import _
 
 
@@ -43,8 +44,7 @@ class PurchaseOrderGroup(models.TransientModel):
         res = super(PurchaseOrderGroup, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar,
                                                               submenu=False)
         if self.env.context.get('active_model', '') == 'purchase.order' and len(self.env.context['active_ids']) < 2:
-            raise exceptions.except_orm(_('Warning!'),
-                                        _('Please select multiple order to merge in the list view.'))
+            raise UserError(_('Please select multiple order to merge in the list view.'))
         return res
 
     @api.multi

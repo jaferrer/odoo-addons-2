@@ -51,10 +51,10 @@ class TestPurchaseWorkingDays(common.TransactionCase):
         rfq = proc.purchase_id
         self.assertEquals(len(rfq.order_line), 1)
         order_line = rfq.order_line[0]
-        self.assertEqual(order_line.date_planned[0:10], '2015-01-30')
-        self.assertEqual(rfq.minimum_planned_date[0:10], '2015-01-30')
         # RFQ order date
-        self.assertEqual(rfq.date_order[0:10],'2015-01-21')
+        self.assertEqual(rfq.date_order[:10], '2015-01-21')
+        self.assertEqual(order_line.date_planned[:10], '2015-01-30')
+        self.assertEqual(min([line.date_planned for line in rfq.order_line])[:10], '2015-01-30')
 
     def test_20_schedule_company_calendar(self):
         """PO schedule test with fallback on defined company calendar."""
@@ -79,12 +79,12 @@ class TestPurchaseWorkingDays(common.TransactionCase):
         self.assertTrue(proc.purchase_id.id)
         # RFQ expected date
         rfq = proc.purchase_id
+        # RFQ order date => Check we falled back on default calendar and not company calendar
+        self.assertEqual(rfq.date_order[:10], '2015-01-15')
         self.assertEquals(len(rfq.order_line), 1)
         order_line = rfq.order_line[0]
-        self.assertEqual(order_line.date_planned[0:10], '2015-01-26')
-        self.assertEqual(rfq.minimum_planned_date[0:10], '2015-01-26')
-        # RFQ order date => Check we falled back on default calendar and not company calendar
-        self.assertEqual(rfq.date_order[0:10],'2015-01-15')
+        self.assertEqual(order_line.date_planned[:10], '2015-01-26')
+        self.assertEqual(min([line.date_planned for line in rfq.order_line])[:10], '2015-01-26')
 
     def test_30_schedule_warehouse_calendar(self):
         """Schedule test with a defined supplier resource."""
@@ -98,7 +98,7 @@ class TestPurchaseWorkingDays(common.TransactionCase):
             'name': "Supplier resource",
             'calendar_id': self.ref('stock_working_days.demo_calendar_1')
         })
-        leave_s = leave_env.create({
+        leave_env.create({
             'name': "Supplier leave",
             'resource_id': resource_s.id,
             'calendar_id': self.ref('stock_working_days.demo_calendar_1'),
@@ -124,25 +124,38 @@ class TestPurchaseWorkingDays(common.TransactionCase):
         self.assertTrue(proc.purchase_id.id)
         # RFQ expected date
         rfq = proc.purchase_id
+        # RFQ order date
+        # TODO: à reprendre. La V8 disait 2014-12-08 pour rfq.date_order[:10] et 2015-01-30 pour order_line.date_planned[:10], mais :
+        # - on part du 30/01 (chômé), on veut retirer 7 jours
+        # - 28/01 : jour ouvré (mercredi), mais ne compte pas car on a demo_leave_1
+        # - 26/01 : jour ouvré 0 (lundi)
+        # - 21/01 : jour ouvré 1 (mercredi)
+        # - 19/01 : jour ouvré 2 (lundi)
+        # - 14/01 : jour ouvré 3 (mercredi)
+        # - 12/01 : jour ouvré 4 (lundi)
+        # - vacances du 15/12 au 10/01
+        # - 10/12 : jour ouvré 5 (mercredi)
+        # - 08/12 : jour ouvré 6 (lundi)
+        # - 03/12 : jour ouvré 7 (mercredi)
+        self.assertEqual(rfq.date_order[:10], '2014-12-03')
         self.assertEquals(len(rfq.order_line), 1)
         order_line = rfq.order_line[0]
-        self.assertEqual(order_line.date_planned[0:10], '2015-01-30')
-        self.assertEqual(rfq.minimum_planned_date[0:10], '2015-01-30')
-        # RFQ order date
-        self.assertEqual(rfq.date_order[0:10],'2014-12-08')
+        self.assertEqual(order_line.date_planned[:10], '2015-01-26')
 
     def test_40_pol_date_planned(self):
         """Check correct date_planned in manual purchase_order_line creation."""
         # Note: Forward calculation starts from this morning 00:00, so it counts the first day
         # No calendar
         supplier_info = self.browse_ref("purchase_working_days.product_supplier_info_test")
-        date1 = self.env['purchase.order.line']._get_date_planned(supplier_info, "2015-01-21 22:00:00")
-        self.assertEqual(date1.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[0:10], "2015-01-30")
+        date1 = self.env['purchase.order.line'].with_context(force_order_date="2015-01-21 22:00:00"). \
+            _get_date_planned(supplier_info)
+        self.assertEqual(date1.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10], "2015-01-30")
         # With default company calendar
         company = self.browse_ref('base.main_company')
         company.calendar_id = self.browse_ref('stock_working_days.demo_calendar_1')
-        date2 = self.env['purchase.order.line']._get_date_planned(supplier_info, "2015-01-15 22:00:00")
-        self.assertEqual(date2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[0:10], "2015-01-26")
+        date2 = self.env['purchase.order.line'].with_context(force_order_date="2015-01-15 22:00:00"). \
+            _get_date_planned(supplier_info)
+        self.assertEqual(date2.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10], "2015-01-26")
         # With supplier calendar
         resource_env = self.env["resource.resource"]
         leave_env = self.env["resource.calendar.leaves"]
@@ -151,7 +164,7 @@ class TestPurchaseWorkingDays(common.TransactionCase):
             'name': "Supplier resource",
             'calendar_id': self.ref('stock_working_days.demo_calendar_1')
         })
-        leave_s = leave_env.create({
+        leave_env.create({
             'name': "Supplier leave",
             'resource_id': resource_s.id,
             'calendar_id': self.ref('stock_working_days.demo_calendar_1'),
@@ -159,6 +172,7 @@ class TestPurchaseWorkingDays(common.TransactionCase):
             'date_to': "2015-01-10",
         })
         supplier_id.resource_id = resource_s.id
-        date3 = self.env['purchase.order.line']._get_date_planned(supplier_info, "2014-12-08 12:00:00")
-        self.assertEqual(date3.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[0:10], "2015-02-02")
+        date3 = self.env['purchase.order.line'].with_context(force_order_date="2014-12-08 12:00:00"). \
+            _get_date_planned(supplier_info)
+        self.assertEqual(date3.strftime(DEFAULT_SERVER_DATETIME_FORMAT)[:10], "2015-02-02")
 

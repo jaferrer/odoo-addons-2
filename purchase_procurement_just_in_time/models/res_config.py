@@ -23,16 +23,26 @@ from openerp import fields, models, api
 class purchase_jit_config(models.TransientModel):
     _inherit = 'purchase.config.settings'
 
-    opmsg_min_late_delay = fields.Integer("Delay to be late (in days)",
+    opmsg_min_late_delay = fields.Integer(string="Delay to be late (in days)",
                                           help="Minimum delay to create an operational message specifying that the "
                                                "purchase order line is late. If the planned date is less than this "
                                                "number of days beyond the required date, no message will be displayed."
                                                "\nDefaults to 1 day.")
-    opmsg_min_early_delay = fields.Integer("Delay to be early (in days)",
+    opmsg_min_early_delay = fields.Integer(string="Delay to be early (in days)",
                                            help="Minimum delay to create an operational message specifying that the "
                                                 "purchase order line is early. If the planned date is less than this "
                                                 "number of days before the required date, no message will be displayed."
                                                 "\nDefaults to 7 days.")
+    delta_begin_grouping_period = fields.Integer(string="Delta begin grouping period",
+                                                 help="Grouping periods will be centered on the date of tomorrow, "
+                                                      "increased by this delta")
+    ignore_past_procurements = fields.Boolean(string="Ignore past procurements",
+                                              help="Used for the purchase planner")
+    fill_orders_in_separate_jobs = fields.Boolean(string="Fill draft orders in separate jobs",
+                                                  help="Used for the purchase planner")
+    redistribute_procurements_in_separate_jobs = fields.Boolean(string="Redistribute procurements in separate jobs",
+                                                                help="Used for the purchase planner")
+    config_sellers_manually = fields.Boolean(string="Configure purchase scheduler manually for each supplier")
 
     @api.multi
     def get_default_opmsg_min_late_delay(self):
@@ -41,21 +51,86 @@ class purchase_jit_config(models.TransientModel):
         return {'opmsg_min_late_delay': int(opmsg_min_late_delay)}
 
     @api.multi
+    def set_opmsg_min_late_delay(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.opmsg_min_late_delay",
+                                        record.opmsg_min_late_delay or '1')
+
+    @api.multi
     def get_default_opmsg_min_early_delay(self):
         opmsg_min_early_delay = self.env['ir.config_parameter'].get_param(
             "purchase_procurement_just_in_time.opmsg_min_early_delay", default=7)
         return {'opmsg_min_early_delay': int(opmsg_min_early_delay)}
 
     @api.multi
-    def set_opmsg_min_late_delay(self):
-        config_parameters = self.env["ir.config_parameter"]
-        for record in self:
-            config_parameters.set_param("purchase_procurement_just_in_time.opmsg_min_late_delay",
-                                        record.opmsg_min_late_delay or "1")
-
-    @api.multi
     def set_opmsg_min_early_delay(self):
         config_parameters = self.env["ir.config_parameter"]
         for record in self:
             config_parameters.set_param("purchase_procurement_just_in_time.opmsg_min_early_delay",
-                                        record.opmsg_min_early_delay or "7")
+                                        record.opmsg_min_early_delay or '7')
+
+    @api.multi
+    def get_default_delta_begin_grouping_period(self):
+        delta_begin_grouping_period = self.env['ir.config_parameter'].get_param(
+            "purchase_procurement_just_in_time.delta_begin_grouping_period", default=0)
+        return {'delta_begin_grouping_period': int(delta_begin_grouping_period)}
+
+    @api.multi
+    def set_delta_begin_grouping_period(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.delta_begin_grouping_period",
+                                        record.delta_begin_grouping_period or '0')
+
+    @api.multi
+    def get_default_ignore_past_procurements(self):
+        ignore_past_procurements = self.env['ir.config_parameter'].get_param(
+            "purchase_procurement_just_in_time.ignore_past_procurements", default=False)
+        return {'ignore_past_procurements': bool(ignore_past_procurements)}
+
+    @api.multi
+    def set_ignore_past_procurements(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.ignore_past_procurements",
+                                        record.ignore_past_procurements or '')
+
+    @api.multi
+    def get_default_fill_orders_in_separate_jobs(self):
+        fill_orders_in_separate_jobs = self.env['ir.config_parameter'].get_param(
+            "purchase_procurement_just_in_time.fill_orders_in_separate_jobs", default=False)
+        return {'fill_orders_in_separate_jobs': bool(fill_orders_in_separate_jobs)}
+
+    @api.multi
+    def set_fill_orders_in_separate_jobs(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.fill_orders_in_separate_jobs",
+                                        record.fill_orders_in_separate_jobs or '')
+
+    @api.multi
+    def get_default_redistribute_procurements_in_separate_jobs(self):
+        redistribute_procurements_in_separate_jobs = self.env['ir.config_parameter'].get_param(
+            "purchase_procurement_just_in_time.redistribute_procurements_in_separate_jobs", default=False)
+        return {'redistribute_procurements_in_separate_jobs': bool(redistribute_procurements_in_separate_jobs)}
+
+    @api.multi
+    def set_redistribute_procurements_in_separate_jobs(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.redistribute_procurements_in_separate_jobs",
+                                        record.redistribute_procurements_in_separate_jobs or '')
+
+    @api.multi
+    def get_default_config_sellers_manually(self):
+        config_sellers_manually = self.env['ir.config_parameter'].get_param(
+            "purchase_procurement_just_in_time.config_sellers_manually", default=False)
+        return {'config_sellers_manually': bool(config_sellers_manually)}
+
+    @api.multi
+    def set_config_sellers_manually(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.config_sellers_manually",
+                                        record.config_sellers_manually or '')

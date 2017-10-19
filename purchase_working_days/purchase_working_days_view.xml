@@ -19,12 +19,12 @@
             <field name="inherit_id" ref="base.view_partner_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <xpath expr="//div[@name='buttons']" position="inside">
+                <div name="button_box" position="inside">
                     <button class="oe_inline oe_stat_button" name="%(working_days_open_partner_leaves)d" type="action"
                             icon="fa-tasks" context="{'search_default_resource_id': resource_id}">
                         <field name="partner_leaves_count" widget="statinfo"/>
                     </button>
-                </xpath>
+                </div>
                 <field name="ref" position="after">
                     <field name="resource_id" attrs="{'invisible': [('supplier','=',False)]}"/>
                 </field>
@@ -41,8 +41,9 @@
             <field name="help"></field>
         </record>
 
-        <menuitem id="working_days_menu_resource_purchase" name="Resource" action="working_days_act_resource_purchase"
-                  parent="purchase.menu_purchase_partner_cat" sequence="30"/>
+        <menuitem id="working_days_menu_resource_purchase" name="Resource"
+                  action="working_days_act_resource_purchase"
+                  parent="purchase.menu_purchase_config" sequence="30"/>
 
     </data>
 </openerp>
