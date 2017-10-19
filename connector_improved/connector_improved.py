@@ -59,7 +59,13 @@ class QueueJob(models.Model):
 
     @api.multi
     def create(self, vals):
+        # The creation message is useless
         return super(QueueJob, self.with_context(mail_notrack=True)).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        # The fail message is useless
+        return super(QueueJob, self.with_context(mail_notrack=vals.get('state') == 'failed')).write(vals)
 
 
 class ConnectorCheckpointImproved(models.Model):
