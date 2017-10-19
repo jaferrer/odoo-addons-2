@@ -23,17 +23,19 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Mail',
-    'depends': ['mail'],
+    'depends': ['mail', 'connector'],
     'description': """
 Mail Improved
 =============
 Adds several improvements to the mail system
 
 - Allows to click on the "n more" label to show all recipients in thread. 
+- Deletes every night messages linked to an deleted object. 
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'mail_improved.xml',
+        'cron.xml',
     ],
     'qweb': [
         'static/src/xml/thread.xml',
