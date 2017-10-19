@@ -288,7 +288,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertFalse(wizard.is_manual_op)
         picking = wizard.move_products()
         self.assertTrue(picking)
-        self.assertEqual(len(picking.message_ids), 1)
+        self.assertFalse(picking.message_ids)
         moves = picking.move_lines
         self.assertTrue(moves)
         self.assertEqual(picking.state, 'done')
@@ -1449,7 +1449,7 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertFalse(wizard.is_manual_op)
         picking = wizard.move_products()
         self.assertTrue(picking)
-        self.assertEqual(len(picking.message_ids), 1)
+        self.assertFalse(picking.message_ids)
         moves = picking.move_lines
         self.assertTrue(moves)
         self.assertEqual(picking.state, 'done')

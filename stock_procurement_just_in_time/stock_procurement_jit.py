@@ -685,3 +685,14 @@ class ProductProduct(models.Model):
             }
         else:
             raise exceptions.except_orm(_("Error"), _("Your company does not have a warehouse"))
+
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    state = fields.Selection(track_visibility=False)
+
+    @api.model
+    def create(self, vals):
+        # The creation messages are useless
+        return super(StockPicking, self.with_context(mail_notrack=True, mail_create_nolog=True)).create(vals)
