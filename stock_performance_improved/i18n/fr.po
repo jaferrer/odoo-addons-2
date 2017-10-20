@@ -88,11 +88,6 @@ msgid "Picking id"
 msgstr "Id de l'opération"
 
 #. module: stock_performance_improved
-#: field:stock.picking.type,visible_for_all_companies:0
-msgid "Visible for all companies"
-msgstr "Visible pour toutes les sociétés"
-
-#. module: stock_performance_improved
 #: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_process_prereservations
 msgid "Process Prereservations"
 msgstr "Traiter les pré-réservations"
@@ -197,3 +192,8 @@ msgstr "Emplacement de destination"
 #: view:procurement.rule:stock_performance_improved.procurement_rule_search
 msgid "Group By"
 msgstr "Grouper par"
+
+#. module: stock_performance_improved
+#: view:stock.move:stock_performance_improved.stock_move_search_view
+msgid "Not Cancelled"
+msgstr "Non annulé"

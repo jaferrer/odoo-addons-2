@@ -1,0 +1,3 @@
+.modal-content.openerp .oe_kanban_groups .oe_kanban_column_cards.ui-sortable{
+    min-height: 200px;
+}

@@ -24,7 +24,15 @@ from openerp.osv import fields, osv
 class Purchase(osv.osv):
 
     def _amount_all_improved(self, cr, uid, ids, field_name, arg, context=None):
-        result = self.pool.get('purchase.order')._amount_all(cr, uid, ids, field_name, arg, context=context)
+        result = {}
+        for order_id in ids:
+            order = self.pool.get('purchase.order').browse(cr, uid, order_id, context=context)
+            target_data = self.pool.get('purchase.order')._amount_all(cr, uid, order_id, field_name, arg, context=context)
+            order_data = {'amount_tax': order.amount_tax,
+                          'amount_untaxed': order.amount_untaxed,
+                          'amount_total': order.amount_total}
+            if order_data != target_data.get(order_id):
+                result[order_id] = target_data.get(order_id)
         return result
 
     def _get_order_improved(self, cr, uid, ids, context=None):

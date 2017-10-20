@@ -24,7 +24,7 @@ from openerp.tools import config
 
 
 class QueueJob(models.Model):
-    _inherit = "queue.job"
+    _inherit = 'queue.job'
 
     @api.multi
     def set_to_done(self):
@@ -56,6 +56,16 @@ class QueueJob(models.Model):
             domain.append(('company_id', 'child_of', companies.ids))
         users = self.env['res.users'].search(domain)
         self.message_subscribe_users(user_ids=users.ids)
+
+    @api.model
+    def create(self, vals):
+        # The creation message is useless
+        return super(QueueJob, self.with_context(mail_notrack=True, mail_create_nolog=True)).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        # The fail message is useless
+        return super(QueueJob, self.with_context(mail_notrack=vals.get('state') == 'failed')).write(vals)
 
 
 class ConnectorCheckpointImproved(models.Model):

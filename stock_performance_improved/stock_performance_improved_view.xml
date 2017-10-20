@@ -81,6 +81,25 @@ self.run_assign_moves(cr, uid, context=context)
             </field>
         </record>
 
+        <record model="ir.ui.view" id="stock_move_search_view">
+            <field name="name">stock.move.search.view</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_search"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search position="inside">
+                    <separator/>
+                    <filter name="not_cancelled" string="Not Cancelled" domain="[('state', '!=', 'cancel')]"/>
+                    <separator/>
+                    <filter name="not_done" string="Not Done" domain="[('state', '!=', 'done')]"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="stock.action_move_form2" model="ir.actions.act_window">
+            <field name="context">{'search_default_not_cancelled': True}</field>
+        </record>
+
         <record model="ir.ui.view" id="procurement_rule_form_view">
             <field name="name">procurement.rule.form.view</field>
             <field name="model">procurement.rule</field>
@@ -164,18 +183,6 @@ self.run_assign_moves(cr, uid, context=context)
 
         <record id="stock.menu_stock_proc_schedulers" model="ir.ui.menu">
             <field name="groups_id" eval="[(4, ref('base.group_no_one'))]"/>
-        </record>
-
-        <record model="ir.ui.view" id="stock_performance_improved_picking_type_form">
-            <field name="name">stock_performance_improved_picking_type_form</field>
-            <field name="model">stock.picking.type</field>
-            <field name="inherit_id" ref="stock.view_picking_type_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <field name="warehouse_id" position="after">
-                    <field name="visible_for_all_companies"/>
-                </field>
-            </field>
         </record>
 
         <record model="ir.ui.view" id="stock_performance_improved_package_form">

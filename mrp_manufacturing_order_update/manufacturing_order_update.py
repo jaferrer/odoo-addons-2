@@ -34,7 +34,7 @@ class MoUpdateMrpProduction(models.Model):
     _inherit = "mrp.production"
 
     product_lines = fields.One2many(readonly=False)
-    bom_id = fields.Many2one('mrp.bom', readonly=False)
+    bom_id = fields.Many2one('mrp.bom', readonly=False, track_visibility='onchange')
 
     @api.multi
     def update_moves(self):
@@ -89,7 +89,8 @@ class MoUpdateMrpProduction(models.Model):
                 product = item.product_id
                 move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, item.product_qty, False, 0)
                 self.env['stock.move'].browse(move).action_confirm()
-            mrp.message_post(post)
+            if post:
+                mrp.message_post(post)
 
     @api.multi
     def write(self, vals):
@@ -129,7 +130,15 @@ HAVING sum(CASE WHEN raw_move_state = 'done' OR
   THEN 1
            ELSE 0 END) <= 0""")
         fetchall = self.env.cr.fetchall()
-        mrp_to_update_ids = [item[0] for item in fetchall]
+        mrp_to_check_ids = [item[0] for item in fetchall]
+        mrp_to_update_ids = []
+        for mrp_id in mrp_to_check_ids:
+            mrp = self.env['mrp.production'].search([('id', '=', mrp_id)])
+            bom = mrp.bom_id
+            if not bom:
+                bom = bom._bom_find(product_id=mrp.product_id.id)
+            if bom:
+                mrp_to_update_ids += [mrp_id]
         chunk_number = 0
         while mrp_to_update_ids:
             chunk_number += 1

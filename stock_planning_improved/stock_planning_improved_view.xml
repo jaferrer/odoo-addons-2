@@ -17,18 +17,6 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="stock_move_search">
-            <field name="name">stock_move_search</field>
-            <field name="model">stock.move</field>
-            <field name="inherit_id" ref="stock.view_move_search"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <group string="Group By" position="inside">
-                    <filter string="Expected Day" name="groupby_day_expected" icon="terp-go-month" domain="[]" context="{'group_by':'date_expected:day'}"/>
-                </group>
-            </field>
-        </record>
-
         <record model="ir.ui.view" id="stock_move_form_planning_improved">
             <field name="name">stock.move.form.planning.improvec</field>
             <field name="model">stock.move</field>
@@ -83,8 +71,10 @@ self.compute_date_due(cr, uid, context.get('active_ids'), context)
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <group string="Group By" position="inside">
+                    <filter string="Expected Day" name="groupby_day_expected" icon="terp-go-month" domain="[]" context="{'group_by':'date_expected:day'}"/>
                     <filter string="Date" name="groupby_date_real" icon="terp-go-month" domain="[]" context="{'group_by':'date:day'}"/>
                     <filter string="User" name="groupby_user" icon="terp-go-month" domain="[]" context="{'group_by':'write_uid'}"/>
+                    <filter string="Creator" name="groupby_creator" icon="terp-go-month" domain="[]" context="{'group_by':'create_uid'}"/>
                 </group>
             </field>
         </record>

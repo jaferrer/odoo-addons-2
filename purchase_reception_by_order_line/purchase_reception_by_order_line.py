@@ -161,8 +161,9 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
     @api.model
     def _prepare_values_extra_move(self, op, product, remaining_qty):
         result = super(ReceptionByOrderStockPicking, self)._prepare_values_extra_move(op, product, remaining_qty)
+        purchase_line = False
         if op.purchase_line_id:
-            result['purchase_line_id'] = op.purchase_line_id and op.purchase_line_id.id or False
+            purchase_line = op.purchase_line_id
         else:
             picking = self.browse([result['picking_id']])
             order_ids = [move.purchase_line_id.order_id.id for move in picking.move_lines if move.purchase_line_id]
@@ -171,4 +172,34 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                                                                         limit=1)
             if corresponding_line:
                 result['purchase_line_id'] = corresponding_line.id
+            purchase_line = corresponding_line or purchase_line
+        if purchase_line:
+            price_unit = purchase_line.price_unit
+            if purchase_line.taxes_id:
+                taxes = purchase_line.taxes_id.compute_all(price_unit, 1.0, purchase_line.product_id,
+                                                           purchase_line.order_id.partner_id)
+                price_unit = taxes['total']
+            if purchase_line.product_uom.id != purchase_line.product_id.uom_id.id:
+                price_unit *= purchase_line.product_uom.factor / purchase_line.product_id.uom_id.factor
+            if purchase_line.order_id.currency_id.id != purchase_line.order_id.company_id.currency_id.id:
+                # we don't round the price_unit, as we may want to store the standard price with more digits than
+                # allowed by the currency
+                price_unit = self.env['res.currency'].compute(purchase_line.order_id.currency_id.id,
+                                                              purchase_line.order_id.company_id.currency_id.id,
+                                                              price_unit, round=False)
+            new_vals = {
+                'date': purchase_line.order_id.date_order,
+                'date_expected': purchase_line.date_planned + ' 12:00:00',
+                'partner_id': purchase_line.order_id.dest_address_id.id,
+                'purchase_line_id': purchase_line.id,
+                'price_unit': price_unit,
+                'company_id': purchase_line.order_id.company_id.id,
+                'picking_type_id': purchase_line.order_id.picking_type_id.id,
+                'origin': purchase_line.order_id.name,
+                'route_ids': purchase_line.order_id.picking_type_id.warehouse_id and [
+                    (6, 0, [x.id for x in purchase_line.order_id.picking_type_id.warehouse_id.route_ids])] or [],
+                'warehouse_id': purchase_line.order_id.picking_type_id.warehouse_id.id,
+                'invoice_state': purchase_line.order_id.invoice_method == 'picking' and '2binvoiced' or 'none',
+            }
+            result.update(new_vals)
         return result
