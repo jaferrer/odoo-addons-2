@@ -172,10 +172,20 @@ class ProcurementOrderQuantity(models.Model):
                 qty_done = sum([move.product_qty for move in procurement.move_ids if move.state == 'done'])
                 qty_done_proc_uom = self.env['product.uom']. \
                     _compute_qty_obj(procurement.product_id.uom_id, qty_done, procurement.product_uom)
+                if procurement.product_uos:
+                    qty_done_proc_uos = float_round(
+                        self.env['product.uom']._compute_qty_obj(procurement.product_id.uom_id, qty_done,
+                                                                 procurement.product_uos),
+                        precision_rounding=procurement.product_uos.rounding
+                    )
+                else:
+                    qty_done_proc_uos = float_round(qty_done_proc_uom,
+                                                    precision_rounding=procurement.product_uom.rounding)
                 if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
                     procurement.write({
                         'product_qty': float_round(qty_done_proc_uom,
                                                    precision_rounding=procurement.product_uom.rounding),
+                        'product_uos_qty': qty_done_proc_uos,
                     })
 
 
@@ -675,3 +685,14 @@ class ProductProduct(models.Model):
             }
         else:
             raise exceptions.except_orm(_("Error"), _("Your company does not have a warehouse"))
+
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    state = fields.Selection(track_visibility=False)
+
+    @api.model
+    def create(self, vals):
+        # The creation messages are useless
+        return super(StockPicking, self.with_context(mail_notrack=True, mail_create_nolog=True)).create(vals)

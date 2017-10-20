@@ -250,6 +250,11 @@ msgid "Delete moves and procurements cancelled by planner"
 msgstr "Supprimer les mouvements et les appovisionnements annulés par le planificateur"
 
 #. module: stock_procurement_just_in_time
+#: field:stock.config.settings,consider_end_contract_effect:0
+msgid "Consider end contract effects"
+msgstr "Prendre en compte les effets de fin de contrat"
+
+#. module: stock_procurement_just_in_time
 #: field:stock.config.settings,relative_stock_delta:0
 msgid "Relative stock delta allowed (%)"
 msgstr "Ecart de stock relatif autorisé (en %)"

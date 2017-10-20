@@ -176,8 +176,8 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         if purchase_line:
             price_unit = purchase_line.price_unit
             if purchase_line.taxes_id:
-                taxes = self.env['account.tax'].compute_all(purchase_line.taxes_id, price_unit, 1.0,
-                                                            purchase_line.product_id, purchase_line.order_id.partner_id)
+                taxes = purchase_line.taxes_id.compute_all(price_unit, 1.0, purchase_line.product_id,
+                                                           purchase_line.order_id.partner_id)
                 price_unit = taxes['total']
             if purchase_line.product_uom.id != purchase_line.product_id.uom_id.id:
                 price_unit *= purchase_line.product_uom.factor / purchase_line.product_id.uom_id.factor

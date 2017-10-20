@@ -56,8 +56,8 @@ class SupplyChainControl(models.Model):
         index = 0
         while products:
             index += 1
-            chunk_products = products[:100]
-            products = products[100:]
+            chunk_products = products[:500]
+            products = products[500:]
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             job_update_supply_chain_controls.delay(session, 'product.product', chunk_products.ids,
                                                    description="Update Supply Chain Control (chunk %s)" % index,
@@ -184,9 +184,8 @@ class SupplyChainControlProductProduct(models.Model):
     seller_id = fields.Many2one(related='product_tmpl_id.seller_id', store=True, readonly=True)
 
     @api.multi
-    def get_available_qty_supply_control(self):
-        self.ensure_one()
-        return self.virtual_available
+    def get_available_qty_supply_control(self, available_quantities):
+        return available_quantities
 
     @api.multi
     def get_missing_date(self):
@@ -218,9 +217,12 @@ class SupplyChainControlProductProduct(models.Model):
 
     @api.multi
     def update_supply_chain_control(self):
+        available_quantities = self._product_available()
+        available_quantities = self.get_available_qty_supply_control(available_quantities)
         for product in self:
             draft_orders_qty = 0
-            virtual_available = product.get_available_qty_supply_control()
+            virtual_available = available_quantities.get(product.id) and \
+                available_quantities[product.id].get('virtual_available', 0)
             draft_lines = self.env['purchase.order.line']. \
                 search([('order_id.state', 'in', ['draft', 'bid', 'sent', 'confirmed']),
                         ('product_id', '=', product.id)])
