@@ -1101,6 +1101,11 @@ class ProcurementOrder(models.Model):
             else:
                 assign_moves(ConnectorSession.from_env(self.env), 'stock.move', move_ids, dict(self.env.context))
 
+    @api.model
+    def create(self, vals):
+        # The creation message is useless
+        return super(ProcurementOrder, self.with_context(mail_notrack=True, mail_create_nolog=True)).create(vals)
+
 
 class StockPrereservation(models.Model):
     _name = 'stock.prereservation'
