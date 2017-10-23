@@ -35,13 +35,15 @@ class OnChangeActionModel(models.AbstractModel):
     def onchange(self, values, field_name, field_onchange):
         res = super(OnChangeActionModel, self).onchange(values, field_name, field_onchange)
         env = self.env
+        if isinstance(field_name, list):
+            return res
 
         with env.do_in_onchange():
             def is_onchange_action_id(func):
                 return callable(func) and hasattr(func, '_onchange_action_id')
 
             # If the value is unset then return the value
-            if not res.get('value', {}):
+            if res.get('value', {}):
                 res['value'] = values[field_name]
 
             for _, func in getmembers(type(self), is_onchange_action_id):
