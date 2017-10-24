@@ -15,9 +15,8 @@
             <field name="company_id" ref="base.main_company"/>
             <field name="company_ids" eval="[(6,0,[ref('base.main_company')])]"/>
             <field name="groups_id"
-                   eval="[(6,0,[ref('base.group_user'), ref('document_scanner.group_scanner_bot'), ref('document_scanner.bot_ir_attachment'), ref('base.group_document_user'), ref('base.user_root')])]"/>
+                   eval="[(6,0,[ref('base.group_user'), ref('document_scanner.group_scanner_bot'), ref('document_scanner.bot_ir_attachment'), ref('base.group_document_user'), ref('document_scanner.group_scanner_manager')])]"/>
         </record>
-
         <record id="scanner_info_resolution_100_dpi" model="scanner.info.dpi">
             <field name="name">100</field>
         </record>
