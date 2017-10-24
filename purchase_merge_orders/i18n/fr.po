@@ -1,0 +1,56 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* purchase_merge_order_lines
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-10-23 08:59+0000\n"
+"PO-Revision-Date: 2015-10-23 08:59+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_purchase_merge_order_lines
+msgid "Merge purchase order lines"
+msgstr "Fusion des lignes d'achat"
+
+#. module: base
+#: model:ir.module.module,description:base.module_purchase_merge_order_lines
+msgid ""
+"\n"
+"Merge purchase order lines\n"
+"==========================\n"
+"This module allows to merge the purchase order lines when merging purchase orders.\n"
+"When the date planned of two lines to merge are different, it holds ths minimal value.\n"
+msgstr ""
+"\n"
+"Fusion des lignes d'achat\n"
+"=========================\n"
+"Ce module permet de fusionner les lignes de commande lors d'une fusion de commande. Lorsque la date plannifiee de deux lignes sont differentes, le systeme conserve la plus faible des deux.\n"
+
+#. module: purchase_merge_order_lines
+#: help:purchase.order.group,merge_different_dates:0
+msgid "It will merge the lines anyway. For instance, you could lose the differences in required dates or unit prices between lines of same product."
+msgstr "Attention ! Les lignes seront modifiees sans se preoccuper des eventuelles differences de date demandee ou de prix unitaire entre les differentes lignes"
+
+#. module: purchase_merge_order_lines
+#: field:purchase.order.group,merge_different_dates:0
+msgid "Merge purchase order lines"
+msgstr "Fusionner les lignes de commande"
+
+#. module: purchase_merge_order_lines
+#: model:ir.model,name:purchase_merge_order_lines.model_purchase_order
+msgid "Purchase Order"
+msgstr "Bon de commande"
+
+#. module: purchase_merge_order_lines
+#: model:ir.model,name:purchase_merge_order_lines.model_purchase_order_group
+msgid "Purchase Order Merge"
+msgstr "Fusion de bons de commandes"
+

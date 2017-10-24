@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,24 +18,25 @@
 #
 
 {
-    'name': 'Connector Home Backend',
+    'name': 'Purchase Merge Orders',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['connector', 'stock'],
+    'category': 'Purchase',
+    'depends': ['purchase'],
     'description': """
-Connector Home Backend
-======================
+Purchase Merge Orders
+=====================
+This module allows to merge draft purchase orders like in V8. 
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/flux-tendu_connector_type.xml',
-        'views/home_backend.xml',
-        'security/ir.model.access.csv',
+        'wizard/purchase_order_group.xml',
     ],
     'demo': [],
-    'test': [],
+    'test': [
+        'test/merge_order.yml',
+    ],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',

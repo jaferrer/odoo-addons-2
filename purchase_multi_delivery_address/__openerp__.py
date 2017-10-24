@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,21 +18,21 @@
 #
 
 {
-    'name': 'Connector Home Backend',
+    'name': 'Multiple Delivery Addresses for Purchases',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['connector', 'stock'],
+    'category': 'Purchase',
+    'depends': ['purchase_merge_orders', 'stock_dropshipping'],
     'description': """
-Connector Home Backend
-======================
+Multiple Delivery Addresses for Purchases
+=========================================
+This module allows to specify a delivery adress for each purchase order line so as to group into a single order 
+multiple dropshipping orders.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/flux-tendu_connector_type.xml',
-        'views/home_backend.xml',
-        'security/ir.model.access.csv',
+        'views/purchase.xml',
     ],
     'demo': [],
     'test': [],

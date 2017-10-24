@@ -1,0 +1,14 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_archive,access_archive,model_archive,connector.group_connector_manager,1,1,1,1
+access_traitement,access_traitement,model_traitement,connector.group_connector_manager,1,1,1,1
+access_message_type,access_message_type,model_message_type,connector.group_connector_manager,1,1,1,1
+access_application,access_application,model_application,connector.group_connector_manager,1,1,1,1
+access_traitement_config,access_traitement_config,model_traitement_config,connector.group_connector_manager,1,1,1,1
+access_recepteur,access_recepteur,model_recepteur,connector.group_connector_manager,1,1,1,1
+access_archive_log,access_archive_log,model_archive_log,connector.group_connector_manager,1,1,1,1
+access_application_config,access_application_config,model_application_config,connector.group_connector_manager,1,1,1,1
+access_connector_type,access_connector_type,model_connector_type,connector.group_connector_manager,1,1,1,1
+access_distributeur_config,access_distributeur_config,model_distributeur_config,connector.group_connector_manager,1,1,1,1
+access_monitoring,access_monitoring,model_monitoring,connector.group_connector_manager,1,1,1,1
+access_distributeur,access_distributeur,model_distributeur,connector.group_connector_manager,1,1,1,1
+access_module_dynamique,access_module_dynamique,model_module_dynamique,connector.group_connector_manager,1,1,1,1
