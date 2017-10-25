@@ -197,3 +197,13 @@ msgstr "Grouper par"
 #: view:stock.move:stock_performance_improved.stock_move_search_view
 msgid "Not Cancelled"
 msgstr "Non annulé"
+
+#. module: stock_performance_improved
+#: field:procurement.order,date_running:0
+msgid "Running date"
+msgstr "Date de passage à confirmé"
+
+#. module: stock_performance_improved
+#: field:procurement.order,date_done:0
+msgid "Done date"
+msgstr "Date de passage à terminé"
