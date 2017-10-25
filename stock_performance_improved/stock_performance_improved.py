@@ -1064,6 +1064,12 @@ class StockLocationPath(models.Model):
 class ProcurementOrder(models.Model):
     _inherit = 'procurement.order'
 
+    priority = fields.Selection(track_visibility=False)
+    state = fields.Selection(track_visibility=False)
+    rule_id = fields.Many2one(track_visibility=False)
+    date_running = fields.Datetime(string=u"Running date", copy=False, readonly=True)
+    date_done = fields.Datetime(string=u"Done date", copy=False, readonly=True)
+
     @api.model
     def _run_move_create(self, procurement):
         res = super(ProcurementOrder, self)._run_move_create(procurement)
@@ -1105,6 +1111,14 @@ class ProcurementOrder(models.Model):
     def create(self, vals):
         # The creation message is useless
         return super(ProcurementOrder, self.with_context(mail_notrack=True, mail_create_nolog=True)).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        if vals.get('state') == 'running':
+            vals['date_running'] = fields.Datetime.now()
+        elif vals.get('state') == 'done':
+            vals['date_done'] = fields.Datetime.now()
+        return super(ProcurementOrder, self).write(vals)
 
 
 class StockPrereservation(models.Model):
