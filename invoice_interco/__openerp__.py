@@ -23,7 +23,7 @@
  'version': '1.0',
  'author': 'NDP Systèmes',
  'maintainer': 'NDP Systèmes',
- 'category': 'Generic Modules/Human Resources',
+ 'category': 'Accounting',
  'description': """
 Module to create reverse invoice inside a multi company
 =======================================================
