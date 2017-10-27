@@ -146,6 +146,10 @@
             </field>
         </record>
 
+        <record id="purchase.purchase_rfq" model="ir.actions.act_window">
+            <field name="domain">['|', ('state','in',('sent','bid','cancel', 'confirmed')), '&amp;', ('state', '=', 'draft'), ('order_line', '!=', False)]</field>
+        </record>
+
         <record model="ir.actions.act_window" id="jit_act_window_purchase_order_lines">
             <field name="name">Supplier Backlog</field>
             <field name="res_model">purchase.order.line</field>
