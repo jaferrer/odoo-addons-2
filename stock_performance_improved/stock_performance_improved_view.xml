@@ -220,7 +220,7 @@ self.run_assign_moves(cr, uid, context=context)
         </record>
 
         <record model="ir.ui.view" id="stock_improved_procurement_form">
-            <field name="name"></field>
+            <field name="name">stock_improved_procurement_form</field>
             <field name="model">procurement.order</field>
             <field name="inherit_id" ref="procurement.procurement_form_view"/>
             <field name="priority" eval="16"/>
