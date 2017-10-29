@@ -53,13 +53,9 @@ class MergePolPurchaseOrder(models.Model):
                     if len(line_to_keep) > 1:
                         line_to_keep = line_to_keep[0]
                     lines_to_delete = lines_current_product.filtered(lambda l: l != line_to_keep)
-                    (qty, price) = line_to_keep.procurement_ids and self.env['procurement.order']. \
-                        _calc_new_qty_price(line_to_keep.procurement_ids[0], po_line=line_to_keep, cancel=False) or\
-                                   (line_to_keep.product_qty + sum([x.product_qty for x in lines_to_delete]),
-                                    line_to_keep.price_unit)
                     for line in lines_to_delete:
                         line_to_keep.procurement_ids = line_to_keep.procurement_ids + line.procurement_ids
-                    line_to_keep.write({'product_qty': qty, 'price_unit': price})
+                    line_to_keep.update_qty_price()
                     lines_to_delete.unlink()
             if result.get(key):
                 merged_orders = self.env['purchase.order'].search([('id', 'in', result.get(key))], order='date_order')

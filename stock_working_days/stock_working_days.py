@@ -176,3 +176,70 @@ class stock_location_path_working_days(models.Model):
                 self.env['stock.move']._push_apply(move)
         else:
             super(stock_location_path_working_days, self)._apply(rule, move)
+
+
+class ResourceWorkingDays(models.Model):
+    _inherit = 'resource.resource'
+
+    leave_ids = fields.One2many('resource.calendar.leaves', 'resource_id', string="List of related leaves")
+
+
+class LeavesWorkingDays(models.Model):
+    _inherit = 'resource.calendar.leaves'
+
+    @api.multi
+    def onchange_resource(self, resource):
+        result = super(LeavesWorkingDays, self).onchange_resource(resource)
+        if self.env.context.get('default_resource_id'):
+            return {'calendar_id': self.env.context['default_resource_id']}
+        return result
+
+
+class PreComputedCalendarDelays(models.Model):
+    _name = 'pre.computed.calendar.delays'
+
+    days = fields.Integer(string=u"Nb of days")
+    day_date = fields.Date(string=u"Day date")
+    compute_leaves = fields.Boolean(string=u"Compute leaves")
+    resource_id = fields.Integer(string=u"Resource ID")
+    default_interval = fields.Char(string=u"Default interval")
+    result = fields.Datetime(string=u"Scheduled day")
+
+    @api.model
+    def sweep_table(self):
+        self.env.cr.execute("""TRUNCATE TABLE pre_computed_calendar_delays RESTART IDENTITY;""")
+
+
+class RessourceCalendar(models.Model):
+    _inherit = 'resource.calendar'
+
+    @api.multi
+    def schedule_days_get_date(self, days, day_date=None, compute_leaves=False, resource_id=None,
+                               default_interval=None):
+        self.ensure_one()
+        do_not_save_result = self.env.context.get('do_not_save_result')
+        domain = [('days', '=', days or 0),
+                  ('day_date', '=', day_date and fields.Date.to_string(day_date) or False),
+                  ('compute_leaves', '=', compute_leaves),
+                  ('resource_id', '=', resource_id or 0),
+                  ('default_interval', '=', default_interval and str(default_interval) or False)]
+        pre_compute_result = self.env['pre.computed.calendar.delays'].sudo().search(domain, limit=1)
+        if pre_compute_result:
+            result = [fields.Datetime.from_string(pre_compute_result.sudo().result)]
+        else:
+            result = super(RessourceCalendar, self).schedule_days_get_date(days, day_date=day_date,
+                                                                           compute_leaves=compute_leaves,
+                                                                           resource_id=resource_id,
+                                                                           default_interval=default_interval)
+            date = result
+            if isinstance(result, (list, tuple)):
+                date = result[0]
+            if not do_not_save_result:
+                dict_result = {'days': days or 0,
+                               'day_date': day_date and fields.Date.to_string(day_date) or False,
+                               'compute_leaves': compute_leaves,
+                               'resource_id': resource_id or False,
+                               'default_interval': default_interval and str(default_interval) or False,
+                               'result': fields.Datetime.to_string(date)}
+                self.env['pre.computed.calendar.delays'].sudo().create(dict_result)
+        return result

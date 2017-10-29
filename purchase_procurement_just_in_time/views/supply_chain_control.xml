@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="supply_chain_control_tree">
+            <field name="name">supply_chain_control_tree</field>
+            <field name="model">supply.chain.control</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree edit="false" create="false" delete="false">
+                    <field name="product_id"/>
+                    <button name="open_product_form" string="Product" type="object"/>
+                    <button name="action_show_evolution" string="Stock Evolution" type="object" icon="terp-stock_zoom"/>
+                    <field name="seller_defined"/>
+                    <field name="scheduler_active_for_seller"/>
+                    <field name="virtual_available"/>
+                    <button name="open_moves_list" string="Moves" type="object"/>
+                    <button name="open_procurements_list" string="Procurements" type="object"/>
+                    <field name="draft_orders_qty"/>
+                    <button name="open_purchase_lines_list" string="PO lines" type="object"/>
+                    <field name="oversupply_qty"/>
+                    <field name="missing_date"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="supply_chain_control_search">
+            <field name="name">supply_chain_control_search</field>
+            <field name="model">supply.chain.control</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="product_id"/>
+                    <filter name="negative_forecast" string="Negative forecast quantity" domain="[('virtual_available', '&lt;', 0)]"/>
+                    <filter name="positive_forecast" string="Positive forecast quantity" domain="[('virtual_available', '&gt;', 0)]"/>
+                    <filter name="covered_needs" string="Covered Needs" domain="[('oversupply_qty', '&gt;', 0)]"/>
+                    <filter name="not_covered_needs" string="Not Covered Needs" domain="[('oversupply_qty', '&lt;', 0)]"/>
+                    <separator/>
+                    <filter name="seller_defined" string="Seller defined" domain="[('seller_defined', '=', True)]"/>
+                    <filter name="seller_not_defined" string="Seller not defined" domain="[('seller_defined', '=', False)]"/>
+                    <separator/>
+                    <filter name="scheduler_active_for_seller" string="Scheduler active for seller" domain="[('scheduler_active_for_seller', '=', True)]"/>
+                    <filter name="scheduler_not_active_for_seller" string="Scheduler not active for seller" domain="[('scheduler_active_for_seller', '=', False)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_supply_chain_control">
+            <field name="name">Supply Chain Control</field>
+            <field name="res_model">supply.chain.control</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{'search_default_not_covered_needs': True}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_supply_chain_control" name="Supply Chain Control"
+                  action="act_window_supply_chain_control"
+                  parent="stock.menu_stock_sched" sequence="22"/>
+
+    </data>
+</openerp>

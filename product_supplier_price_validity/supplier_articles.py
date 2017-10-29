@@ -18,7 +18,7 @@
 #
 import time
 
-from openerp.exceptions import except_orm
+from openerp.exceptions import UserError
 from openerp import fields, models, api, _
 
 
@@ -88,7 +88,7 @@ class product_pricelist_improved(models.Model):
                             try:
                                 qty_in_product_uom = product_uom_obj._compute_qty(
                                     context['uom'], qty, product.uom_id.id or product.uos_id.id)
-                            except except_orm:
+                            except UserError:
                                 # Ignored - incompatible UoM in context, use default product UoM
                                 pass
                         seller = False
@@ -125,13 +125,15 @@ class product_pricelist_improved(models.Model):
 class procurement_order(models.Model):
     _inherit = 'procurement.order'
 
-    @api.model
-    def _get_po_line_values_from_proc(self, procurement, partner, company, schedule_date):
+    @api.multi
+    def _prepare_purchase_order(self, partner):
         pricelist_id = partner.property_product_pricelist_purchase
-        result = super(procurement_order, self)._get_po_line_values_from_proc(procurement, partner, company, schedule_date)
+        result = super(procurement_order, self)._prepare_purchase_order(partner)
         qty = result['product_qty']
         uom_id = result['product_uom']
+        schedule_date = self[0]._get_purchase_schedule_date()
         date = fields.Date.to_string(schedule_date)
-        price = pricelist_id.with_context(date=date, uom=uom_id).price_get(procurement.product_id.id, qty, partner.id)[pricelist_id.id]
+        price = pricelist_id.with_context(date=date, uom=uom_id). \
+            price_get(self[0].product_id.id, qty, partner.id)[pricelist_id.id]
         result['price_unit'] = price
         return result
