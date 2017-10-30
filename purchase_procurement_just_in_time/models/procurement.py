@@ -69,6 +69,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                               ('buy_to_run', "Buy rule to run"),
                               ('running', "Running"),
                               ('done', "Done")])
+    date_buy_to_run = fields.Datetime(string=u"Date buy to run", copy=False, readonly=True)
 
     @api.model
     def propagate_cancel(self, procurement):

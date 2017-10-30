@@ -18,5 +18,17 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="purchase_jit_procurement_form">
+            <field name="name">purchase_jit_procurement_form</field>
+            <field name="model">procurement.order</field>
+            <field name="inherit_id" ref="procurement.procurement_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="date_planned" position="after">
+                    <field name="date_buy_to_run"/>
+                </field>
+            </field>
+        </record>
+
     </data>
 </openerp>
