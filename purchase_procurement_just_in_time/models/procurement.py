@@ -697,7 +697,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         procs_to_set_to_exception = self.search([('id', 'in', self.ids), ('state', '!=', 'exception')])
         procs_to_set_to_exception.write({'state': 'exception'})
         for proc in procs_to_set_to_exception:
-            proc.message_post(msg)
+            proc.with_context(message_code='delete_when_proc_no_exception').message_post(msg)
 
     @api.multi
     def make_po(self):
@@ -738,3 +738,17 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     procurement.write({'state': 'cancel'})
                 return False
         return super(ProcurementOrderPurchaseJustInTime, self)._check(procurement)
+
+    @api.model
+    def unlink_useless_messages(self):
+        self.env.cr.execute("""WITH message_ids_to_delete AS (
+    SELECT mm.id AS message_id
+    FROM mail_message mm
+      LEFT JOIN procurement_order po ON po.id = mm.res_id
+    WHERE mm.model = 'procurement.order' AND po.state NOT IN ('exception', 'buy_to_run')
+          AND mm.code = 'delete_when_proc_no_exception')
+
+DELETE FROM mail_message mm
+WHERE exists(SELECT message_id
+             FROM message_ids_to_delete
+             WHERE message_id = mm.id)""")
