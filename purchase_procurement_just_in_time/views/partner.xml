@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="res_partner_form">
+            <field name="name">res_partner_form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <xpath expr="//notebook/page[@name='sales_purchases']/group" position="inside">
+                        <group name="grouping_period" attrs="{'invisible': [('supplier','=',False)]}">
+                            <field name="order_group_period"/>
+                            <field name="nb_max_draft_orders"/>
+                        </group>
+                    </xpath>
+                </data>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="purchase_scheduler_management_tree">
+            <field name="name">purchase_scheduler_management_tree</field>
+            <field name="model">res.partner</field>
+            <field name="priority" eval="999"/>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="name"/>
+                    <field name="order_group_period"/>
+                    <field name="nb_max_draft_orders"/>
+                    <field name="nb_days_scheduler_frequency"/>
+                    <field name="last_scheduler_date"/>
+                    <field name="next_scheduler_date"/>
+                    <field name="scheduler_sequence"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_purchase_scheduler_management">
+            <field name="name">Manage purchase scheduler</field>
+            <field name="res_model">res.partner</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[('supplier', '=', True)]</field>
+            <field name="context">{}</field>
+            <field name="view_id" ref="purchase_scheduler_management_tree"/>
+        </record>
+
+        <menuitem id="menu_purchase_scheduler_management" name="Manage purchase scheduler"
+                  action="act_window_purchase_scheduler_management"
+                  parent="stock.menu_stock_sched" sequence="22"/>
+
+    </data>
+</openerp>

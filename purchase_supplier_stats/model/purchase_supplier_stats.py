@@ -68,7 +68,7 @@ class res_partner_purchase_supplier_stat(models.Model):
     def _compute_total_purchase_order(self):
         for rec in self:
             orders = rec.env['purchase.order.line'].search(
-                        [('order_id.state','in',['approved', 'picking_in_progress', 'confirmed', 'picking_done',
+                        [('order_id.state','in',['purchase', 'picking_in_progress', 'to approve', 'picking_done',
                                                  'except_picking', 'except_invoice']),
                          ('partner_id','=',rec.id)])
             total_orders = 0

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="stock_procurement_jit_config">
+            <field name="name">stock_procurement_jit_config</field>
+            <field name="model">stock.config.settings</field>
+            <field name="inherit_id" ref="stock.view_stock_config_settings"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <form position="inside">
+                        <separator string="Just-In-Time"/>
+                        <group>
+                            <label for="id" string="Stock Planner"/>
+                            <div name="stock_planner">
+                                <div>
+                                    <field name="delete_moves_cancelled_by_planned" class="oe_inline"/>
+                                    <label for="delete_moves_cancelled_by_planned"/>
+                                </div>
+                                <div>
+                                    <field name="relative_stock_delta" class="oe_inline"/>
+                                    <label for="relative_stock_delta"/>
+                                </div>
+                                <div>
+                                    <field name="absolute_stock_delta" class="oe_inline"/>
+                                    <label for="absolute_stock_delta"/>
+                                </div>
+                                <div>
+                                    <field name="consider_end_contract_effect" class="oe_inline"/>
+                                    <label for="consider_end_contract_effect"/>
+                                </div>
+                            </div>
+                        </group>
+                    </form>
+                </data>
+            </field>
+        </record>
+
+    </data>
+</openerp>

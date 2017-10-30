@@ -38,7 +38,7 @@ Foresight strategy calculates this maximum quantity according to the scheduled s
         'procurement_foresight_strategy_demo.xml',
     ],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

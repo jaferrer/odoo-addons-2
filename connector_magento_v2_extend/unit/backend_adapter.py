@@ -169,13 +169,11 @@ class magentoextendCRUDAdapter(CRUDAdapter):
             start = datetime.now()
             head["Authorization"] = "Bearer %s" % (self.token)
             try:
-                print method
                 if meth == "GET":
                     result = s.get(proxy+'/'+method, params=arguments, headers=head)
                     test = result.json()
                     if not isinstance(test, list) and test.get("message"):
                         _logger.error("api call failed %s %s %", method, arguments, test.get("message"))
-                    print result.url
                 else:
                     result = s.post(proxy + '/' + method, data=json.dumps(arguments), headers=head)
             except:

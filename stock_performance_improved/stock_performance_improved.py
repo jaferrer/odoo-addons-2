@@ -78,7 +78,7 @@ class StockMove(models.Model):
                                                "assigned a picking as soon as the move is confirmed.")
 
     @api.multi
-    def _picking_assign(self, procurement_group, location_from, location_to):
+    def _picking_assign(self):
         """Assigns these moves that share the same procurement.group, location_from and location_to to a stock picking.
 
         Overridden here to assign only if the move is prereserved.
@@ -92,6 +92,9 @@ class StockMove(models.Model):
         todo_moves = not_deferred_moves | prereserved_moves
         # Only assign prereserved or outgoing moves to pickings
         if todo_moves:
+            procurement_group = todo_moves[0].group_id
+            location_from = todo_moves[0].location_id
+            location_to = todo_moves[0].location_dest_id
             # Use a SQL query as doing with the ORM will split it in different queries with id IN (,,)
             # In the next version, the locations on the picking should be stored again.
             query = """
@@ -102,12 +105,12 @@ class StockMove(models.Model):
                     stock_move.location_id = %s AND
                     stock_move.location_dest_id = %s AND
             """
-            params = (location_from, location_to)
+            params = (location_from.id, location_to.id)
             if not procurement_group:
                 query += "stock_picking.group_id IS NULL LIMIT 1"
             else:
                 query += "stock_picking.group_id = %s LIMIT 1"
-                params += (procurement_group,)
+                params += (procurement_group.id,)
             self.env.cr.execute(query, params)
             [pick_id] = self.env.cr.fetchone() or [None]
             if not pick_id:
