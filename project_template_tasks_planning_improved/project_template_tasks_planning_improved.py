@@ -66,7 +66,6 @@ class PlanningImprovedTemplateTaskType(models.Model):
     def open_task_planning(self):
         project_id = self.env.context.get('project_id')
         stage_id = self.env.context.get('stage_id')
-        print project_id, stage_id
         self.ensure_one()
         view = self.env.ref('project_planning_improved.project_improved_task_tree')
         ctx = self.env.context.copy()

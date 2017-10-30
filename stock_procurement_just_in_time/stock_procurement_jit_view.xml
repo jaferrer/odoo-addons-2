@@ -2,15 +2,6 @@
 <openerp>
     <data>
 
-        <record model="ir.actions.act_window" id="act_window_stock_levels_report">
-            <field name="name">Stock Levels Report</field>
-            <field name="res_model">stock.levels.report</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">graph,tree</field>
-            <field name="domain">[]</field>
-            <field name="context">{}</field>
-        </record>
-
         <record model="ir.ui.view" id="stock_levels_report_tree">
             <field name="name">stock.levels.report.tree</field>
             <field name="model">stock.levels.report</field>
@@ -55,8 +46,7 @@
             <field name="model">stock.levels.report</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <graph type="pivot">
-                    <field name="warehouse_id" type="row"/>
+                <graph type="bar">
                     <field name="date" interval="week" type="row"/>
                     <field name="move_qty" type="measure"/>
                     <field name="qty" type="measure"/>
@@ -70,15 +60,14 @@
             <field name="inherit_id" ref="product.product_normal_form_view"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <xpath expr="//div[@name='buttons']" position="inside">
+                <div name="button_box" position="inside">
                     <button class="oe_stat_button"
-                            name="%(act_window_stock_levels_report)d"
+                            name="action_show_evolution"
                             icon="fa-bar-chart"
-                            type="action"  attrs="{'invisible':[('type', '=', 'service')]}"
-                            context="{'default_product_id': active_id, 'search_default_product_id': active_id}">
+                            type="object"  attrs="{'invisible':[('type', '=', 'service')]}">
                         <div>Stock<br/>Evolution</div>
                     </button>
-                </xpath>
+                </div>
             </field>
         </record>
 
@@ -92,6 +81,7 @@
                     <group>
                         <field name="compute_all"/>
                         <field name="product_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
+                        <field name="supplier_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
                     </group>
                 </form>
             </field>
@@ -107,6 +97,7 @@
                     <group>
                         <field name="compute_all"/>
                         <field name="product_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
+                        <field name="supplier_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
                     </group>
                 </form>
             </field>

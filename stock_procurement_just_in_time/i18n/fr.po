@@ -220,6 +220,11 @@ msgid "Products to compute"
 msgstr "Produits à traiter"
 
 #. module: stock_procurement_just_in_time
+#: field:procurement.order.compute.all,supplier_ids:0
+msgid "Suppliers"
+msgstr "Fournisseurs"
+
+#. module: stock_procurement_just_in_time
 #: field:procurement.orderpoint.compute,compute_all:0
 msgid "Compute all the products"
 msgstr "Traiter l'ensemble des produits"
@@ -230,6 +235,36 @@ msgid "Products to compute"
 msgstr "Produits à traiter"
 
 #. module: stock_procurement_just_in_time
+#: field:procurement.orderpoint.compute,supplier_ids:0
+msgid "Suppliers"
+msgstr "Fournisseurs"
+
+#. module: stock_procurement_just_in_time
 #: view:stock.quant:stock_procurement_just_in_time.stock_quant_view_search
 msgid "Non Reserved Quants"
 msgstr "Quants non réservés"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.config.settings,delete_moves_cancelled_by_planned:0
+msgid "Delete moves and procurements cancelled by planner"
+msgstr "Supprimer les mouvements et les appovisionnements annulés par le planificateur"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.config.settings,relative_stock_delta:0
+msgid "Relative stock delta allowed (%)"
+msgstr "Ecart de stock relatif autorisé (en %)"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.config.settings,absolute_stock_delta:0
+msgid "Absolute stock delta allowed (product UoM)"
+msgstr "Ecart de stock absolu autorisé (en unité de mesure de l'article)"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.config.settings:stock_procurement_just_in_time.stock_procurement_jit_config
+msgid "Just-In-Time"
+msgstr "Juste-à-temps"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.config.settings:stock_procurement_just_in_time.stock_procurement_jit_config
+msgid "Stock Planner"
+msgstr "Planificateur stock"

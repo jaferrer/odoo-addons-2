@@ -24,7 +24,8 @@ import werkzeug.utils
 
 import requests
 
-from openerp import fields, models, api, exceptions, http
+from openerp import fields, models, api, http
+from openerp.exceptions import UserError
 from openerp.http import request
 
 _logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ def check_response(response):
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         _logger.error("GitLab request error: %s", e.message)
-        raise exceptions.UserError(e)
+        raise UserError(e)
 
 
 class ProjectProject(models.Model):
@@ -54,7 +55,7 @@ class ProjectProject(models.Model):
         """Updates the list of GitLab projects"""
         self.ensure_one()
         if not self.gitlab_url:
-            raise exceptions.UserError("GitLab URL must be filled before loading GitLab Projects")
+            raise UserError("GitLab URL must be filled before loading GitLab Projects")
         self.env['project.gitlab.project'].load_gitlab_projects(self.gitlab_url, self.gitlab_api_token)
 
     @api.multi
@@ -62,13 +63,13 @@ class ProjectProject(models.Model):
         """Set up the 'Custom Issue Tracker' service in GitLab through API."""
         self.ensure_one()
         if not self.gitlab_url or not self.gitlab_id:
-            raise exceptions.UserError(
+            raise UserError(
                 "GitLab URL must be filled and GitLab project must be selected before setting up integration"
             )
         url = "%s/api/v3/projects/%s/services/custom-issue-tracker" % (self.gitlab_url, self.gitlab_id)
         base_url = self.env['ir.config_parameter'].get_param('web.base.url')
         if not base_url:
-            raise exceptions.UserError(
+            raise UserError(
                 "'web.base.url' key must be filled in 'ir.config_parameters' table"
             )
         res = requests.put(url, data={
@@ -88,7 +89,7 @@ class ProjectProject(models.Model):
         """Set up the 'Custom Issue Tracker' service in GitLab through API."""
         self.ensure_one()
         if not self.gitlab_url or not self.gitlab_id:
-            raise exceptions.UserError(
+            raise UserError(
                 "GitLab URL must be filled and GitLab project must be selected before removing integration"
             )
         url = "%s/api/v3/projects/%s/services/custom-issue-tracker?private_token=%s" % (self.gitlab_url, self.gitlab_id,

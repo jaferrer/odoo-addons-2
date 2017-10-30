@@ -38,7 +38,7 @@ class TestSupplierPriceValidity(common.TransactionCase):
         self.assertTrue(supplier1)
         location1 = self.browse_ref('stock.stock_location_stock')
         self.assertTrue(location1)
-        pricelist = self.browse_ref('purchase.list0')
+        pricelist = self.browse_ref('product.list0')
         self.assertTrue(pricelist)
 
         # order year 2015
@@ -48,7 +48,6 @@ class TestSupplierPriceValidity(common.TransactionCase):
             "partner_id": supplier1.id,
             "date_order": '2015-05-04 15:00:00',
             "location_id": location1.id,
-            "pricelist_id": pricelist.id,
         })
 
         purchase_order_line = self.env['purchase.order.line'].create({
@@ -87,7 +86,6 @@ class TestSupplierPriceValidity(common.TransactionCase):
             "partner_id": supplier1.id,
             "date_order": '2017-05-04 15:00:00',
             "location_id": location1.id,
-            "pricelist_id": pricelist.id,
         })
 
         purchase_order_line2 = self.env['purchase.order.line'].create({
@@ -124,7 +122,7 @@ class TestSupplierPriceValidity(common.TransactionCase):
         product1.route_ids = [(4, self.ref("purchase.route_warehouse0_buy"))]
         location1 = self.browse_ref('stock.stock_location_stock')
         self.assertTrue(location1)
-        pricelist = self.browse_ref('purchase.list0')
+        pricelist = self.browse_ref('product.list0')
         self.assertTrue(pricelist)
         warehouse = self.browse_ref('stock.warehouse0')
         self.assertTrue(warehouse)

@@ -28,6 +28,14 @@ class IrMailServer(models.Model):
     _inherit = "ir.mail_server"
 
     @api.model
+    def get_attachment_id_by_src(self, src):
+        img_id = False
+        matches = re.search(r'(/\web/\image\/)[\d]*', src)
+        if matches:
+            img_id = matches.group(0).split('/')[-1]
+        return img_id
+
+    @api.model
     def embedd_ir_attachment(self, message, body_part):
         # a unicode string is required here
         html_unicode_str = tools.ustr(body_part.get_payload(decode=True))
@@ -36,12 +44,10 @@ class IrMailServer(models.Model):
         for child in root.iter():
             # have to replace src by cid of the future attachement
             if child.tag == 'img':
-                cid = uuid4()
-                cid_id = ''.join('%s' % cid)
-                matches = re.search(r'(/\web/\image\/)[\d]*',
-                                    child.attrib.get('src'))
-                if matches:
-                    img_id = matches.group(0).split('/')[-1]
+                img_id = self.get_attachment_id_by_src(child.attrib.get('src'))
+                if img_id:
+                    cid = uuid4()
+                    cid_id = ''.join('%s' % cid)
                     matching_buffer[img_id] = cid_id
                     child.attrib['src'] = "cid:%s" % cid_id
         del body_part["Content-Transfer-Encoding"]

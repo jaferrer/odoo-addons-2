@@ -138,6 +138,32 @@
             </field>
         </record>
 
+        <record id="view_type_odoo_parameter_form" model="ir.ui.view">
+            <field name="name">connector.type.odoo.parameter.form</field>
+            <field name="model">connector.type.odoo.parameter</field>
+            <field name="arch" type="xml">
+                <form>
+                    <notebook>
+                        <page string="API" name="api">
+                            <group colspan="4" col="4">
+                                <field name="url" placeholder="e.g. http://my.magento.com" colspan="4"/>
+                                <field name="api_user" colspan="2"/>
+                                <field name="api_pwd" password="1" colspan="2"/>
+                                <field name="db_odoo" colspan="2"/>
+                                <field name="model_odoo" colspan="2"/>
+                                <field name="method_odoo" colspan="2"/>
+                            </group>
+                        </page>
+                    </notebook>
+                    <footer>
+                        <button name="write" string="Sauver" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Annuler" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
         <record id="view_type_ftp_parameter_form" model="ir.ui.view">
             <field name="name">connector.type.ftp.parameter.form</field>
             <field name="model">connector.type.ftp.parameter</field>

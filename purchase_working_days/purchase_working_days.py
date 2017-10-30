@@ -42,7 +42,6 @@ class res_partner_with_calendar(models.Model):
         :return: The scheduled date nb_days after (or before) day_date.
         :rtype : datetime
         """
-        self.ensure_one()
         assert isinstance(day_date, datetime)
         if nb_days == 0:
             return day_date
@@ -75,7 +74,7 @@ class purchase_order_line_working_days(models.Model):
     _inherit = 'purchase.order.line'
 
     @api.model
-    def _get_date_planned(self, supplier_info, date_order_str):
+    def _get_date_planned(self, supplier_info, po=False):
         """Return the datetime value to use as Schedule Date (``date_planned``) for
            PO Lines that correspond to the given product.supplierinfo,
            when ordered at `date_order_str`.
@@ -88,19 +87,21 @@ class purchase_order_line_working_days(models.Model):
            :rtype: datetime
            :return: desired Schedule Date for the PO line
         """
-        order_date = datetime.strptime(date_order_str, DEFAULT_SERVER_DATETIME_FORMAT)
+        date_order = self.env.context.get('force_order_date',
+                                          po.date_order if po else self.order_id.date_order)
+        date_order = fields.Datetime.from_string(date_order)
         # We add one day to supplier dalay because day scheduling counts the first day
         if supplier_info:
-            return supplier_info.name.schedule_working_days(int(supplier_info.delay) + 1, order_date)
+            return supplier_info.name.schedule_working_days(int(supplier_info.delay) + 1, date_order)
         else:
-            return order_date
+            return date_order
 
 
 class purchase_working_days(models.Model):
     _inherit = "procurement.order"
 
     @api.model
-    def _get_purchase_schedule_date(self, procurement, company):
+    def _get_purchase_schedule_date(self):
         """Return the datetime value to use as Schedule Date (``date_planned``) for the
            Purchase Order Lines created to satisfy the given procurement.
            Overriden here to calculate dates taking into account the applicable working days calendar of our warehouse
@@ -111,13 +112,16 @@ class purchase_working_days(models.Model):
            :rtype: datetime
            :return: the desired Schedule Date for the PO lines
         """
-        proc_date = datetime.strptime(procurement.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
-        location = procurement.location_id or procurement.warehouse_id.view_location_id
-        schedule_date = location.schedule_working_days(-company.po_lead, proc_date)
+        do_not_save_result = self.env.context.get('do_not_save_result', False)
+        proc_date = datetime.strptime(self.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
+        location = self.location_id or self.warehouse_id.view_location_id
+        # If key 'do_not_save_result' in context of self, we transfer it to location's context.
+        schedule_date = location.with_context(do_not_save_result=do_not_save_result). \
+            schedule_working_days(-self.company_id.po_lead, proc_date)
         return schedule_date
 
-    @api.model
-    def _get_purchase_order_date(self, procurement, company, schedule_date):
+    @api.multi
+    def _get_purchase_order_date(self, schedule_date):
         """Return the datetime value to use as Order Date (``date_order``) for the
            Purchase Order created to satisfy the given procurement.
            Overriden here to calculate dates taking into account the applicable working days calendar.
@@ -128,7 +132,9 @@ class purchase_working_days(models.Model):
            :rtype: datetime
            :return: the desired Order Date for the PO
         """
-        seller_delay = int(procurement.product_id.seller_delay)
-        partner = procurement.product_id.seller_id
+        self.ensure_one()
+        supplierinfos = self.product_id.seller_ids
+        partner = supplierinfos and supplierinfos[0].name or self.env['res.partner']
+        seller_delay = int(supplierinfos and supplierinfos[0].delay or 0.0)
         order_date = partner.schedule_working_days(-seller_delay, schedule_date)
         return order_date
