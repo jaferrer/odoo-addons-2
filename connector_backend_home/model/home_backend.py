@@ -201,6 +201,21 @@ class ConnectorTypeMagentoParameter(models.Model):
     line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
 
 
+class ConnectorTypeOdooParameter(models.Model):
+    _name = 'connector.type.odoo.parameter'
+
+    url = fields.Char(string=u'api')
+    api_user = fields.Char(string=u'Username')
+    api_pwd = fields.Char(string=u'Password')
+    db_odoo = fields.Char(string=u'Base de données odoo')
+
+    model_odoo = fields.Char(u"Model Odoo")
+
+    method_odoo = fields.Char(string=u'Method Odoo')
+
+    line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
+
+
 class ConnectorTypeFtpParameter(models.Model):
     _name = 'connector.type.ftp.parameter'
 

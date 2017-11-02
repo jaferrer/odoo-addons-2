@@ -21,5 +21,13 @@
             <field name="model_name">connector.type.local.parameter</field>
             <field name="image" type="base64" file="connector_backend_home/static/img/local.ico"/>
         </record>
+
+        <record model="backend.type" id="odoo">
+            <field name="name">Odoo</field>
+            <field name="comment">Interface Odoo</field>
+            <field name="model_name">connector.type.odoo.parameter</field>
+            <field name="image" type="base64" file="connector_backend_home/static/img/Odoo_Official_Logo.png"/>
+        </record>
+
     </data>
 </openerp>
