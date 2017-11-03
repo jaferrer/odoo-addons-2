@@ -532,7 +532,8 @@ class PurchaseOrderLineJustInTime(models.Model):
                                                         ('procurement_id', '=', False),
                                                         ('state', 'not in', ['done', 'cancel'])])
         moves_no_procs.action_cancel()
-        result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
+        result = super(PurchaseOrderLineJustInTime,
+                       self.with_context(tracking_disable=True, message_code='delete_when_proc_no_exception')).unlink()
         # We reset initially cancelled procs to state 'cancel', because the unlink function of module purchase would
         # have set them to state 'exception'
         cancelled_procs.with_context(tracking_disable=True).write({'state': 'cancel'})

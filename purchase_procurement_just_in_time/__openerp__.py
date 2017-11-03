@@ -26,7 +26,7 @@
     'category': 'Purchase',
     'depends': ['purchase', 'purchase_order_quantities_improved', 'purchase_planning_improved',
                 'stock_procurement_just_in_time', 'purchase_line_numbers', 'purchase_working_days',
-                'stock_moves_to_assigned_pickings',
+                'stock_moves_to_assigned_pickings', 'mail_improved',
                 ],
     'description': """
 Purchase Just-In-Time Extension

@@ -287,6 +287,11 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         proc = self.create_procurement_order_5()
         proc.run()
         self.assertEqual(proc.state, 'exception')
+        self.assertEqual(len(proc.message_ids), 1)
+        proc.cancel()
+        self.env.invalidate_all()
+        proc.unlink_useless_messages()
+        self.assertEqual(len(proc.message_ids), 0)
 
     def test_20_purchase_procurement_jit(self):
         """
@@ -575,6 +580,11 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(purchase_order_1.order_line), 1)
         self.assertIn(line1, purchase_order_1.order_line)
         self.assertEqual(procurement_order_4.state, 'buy_to_run')
+        self.assertEqual(len(procurement_order_4.message_ids), 1)
+        procurement_order_4.cancel()
+        self.env.invalidate_all()
+        procurement_order_4.unlink_useless_messages()
+        self.assertEqual(len(procurement_order_4.message_ids), 0)
 
     def test_38_purchase_procurement_jit(self):
         """
