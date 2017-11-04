@@ -471,13 +471,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 line_vals = dict_lines_to_create[order_id][product_id]['vals']
                 pol_procurements = self.search([('id', 'in',
                                                  dict_lines_to_create[order_id][product_id]['procurement_ids'])])
-                line = self.env['purchase.order.line'].sudo().create(line_vals)
+                line = self.env['purchase.order.line'].with_context(check_product_qty=False).sudo().create(line_vals)
                 last_proc = pol_procurements[-1]
                 for procurement in pol_procurements:
                     # We compute new qty and new price, and write it only for the last procurement added
                     new_qty, new_price = self.with_context().with_context(focus_on_procurements=True). \
                         _calc_new_qty_price(procurement, po_line=line)
-                    procurement.add_proc_to_line(line)
+                    procurement.with_context(check_product_qty=False).add_proc_to_line(line)
                     if procurement == last_proc and new_qty > line.product_qty:
                         line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
         return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
