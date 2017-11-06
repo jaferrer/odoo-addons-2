@@ -52,13 +52,31 @@ class TestStockProcurementJIT(common.TransactionCase):
 
     def process_orderpoints(self):
         """Function to call the scheduler without needing connector to work."""
-        compute_wizard = self.env['procurement.order.compute.all'].create({
-            'compute_all': False,
-            'product_ids': [(4, self.test_product.id), (4, self.test_product3.id), (4, self.test_product4.id)],
-        })
-        self.env['procurement.order'].with_context(compute_product_ids=compute_wizard.product_ids.ids,
-                                                   compute_all_products=compute_wizard.compute_all,
-                                                   without_job=True)._procure_orderpoint_confirm()
+        existing_controller_lines = self.env['stock.scheduler.controller'].search([])
+        product_ids = [self.test_product.id, self.test_product3.id, self.test_product4.id]
+        self.env['procurement.order'].with_context(compute_product_ids=product_ids,
+                                                   compute_all_products=False)._procure_orderpoint_confirm()
+        orderpoints = self.env['stock.warehouse.orderpoint'].search([('product_id', 'in', product_ids)])
+        controller_lines = self.env['stock.scheduler.controller']. \
+            search([('id', 'not in', existing_controller_lines.ids)])
+        self.assertEqual(len(orderpoints), len(controller_lines))
+        controller_lines_data = [(line.orderpoint_id, line.product_id, line.location_id,
+                                  line.stock_scheduler_sequence, line.done)
+                                 for line in controller_lines]
+        for op in orderpoints:
+            self.assertIn((op, op.product_id, op.location_id, '0-0', False), controller_lines_data)
+        self.env['stock.scheduler.controller'].update_scheduler_controller(jobify=False)
+        self.env['stock.scheduler.controller'].update_scheduler_controller(jobify=False)
+        orderpoints = self.env['stock.warehouse.orderpoint'].search([('product_id', 'in', product_ids)])
+        controller_lines = self.env['stock.scheduler.controller']. \
+            search([('id', 'not in', existing_controller_lines.ids)])
+        self.assertEqual(len(orderpoints), len(controller_lines))
+        controller_lines_data = [(line.orderpoint_id, line.product_id, line.location_id,
+                                  line.stock_scheduler_sequence, line.job_uuid, line.done)
+                                 for line in controller_lines]
+        for op in orderpoints:
+            self.assertIn((op, op.product_id, op.location_id, '0-0', str(op.id), True), controller_lines_data)
+
 
     def test_01_procurement_jit_basic(self):
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
