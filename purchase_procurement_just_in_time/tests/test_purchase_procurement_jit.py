@@ -18,13 +18,16 @@
 #
 
 from openerp import exceptions
+from openerp.tools.misc import frozendict
 from openerp.tests import common
+
 
 
 class TestPurchaseProcurementJIT(common.TransactionCase):
 
     def setUp(self):
         super(TestPurchaseProcurementJIT, self).setUp()
+        self.env.context = frozendict(dict(self.env.context, check_product_qty=False))
         self.supplier1 = self.browse_ref('purchase_procurement_just_in_time.supplier1')
         self.product1 = self.browse_ref('purchase_procurement_just_in_time.product1')
         self.product2 = self.browse_ref('purchase_procurement_just_in_time.product2')

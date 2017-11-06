@@ -19,11 +19,13 @@
 
 from openerp import fields
 from openerp.tests import common
+from openerp.tools.misc import frozendict
 
 
 class TestStockProcurementJIT(common.TransactionCase):
     def setUp(self):
         super(TestStockProcurementJIT, self).setUp()
+        self.env.context = frozendict(dict(self.env.context, check_product_qty=False))
         self.test_product = self.browse_ref("stock_procurement_just_in_time.product_test_product")
         self.test_product2 = self.browse_ref("stock_procurement_just_in_time.product_test_product2")
         self.test_product3 = self.browse_ref("stock_procurement_just_in_time.product_test_product3")
@@ -812,7 +814,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(proc1.product_uos_qty, 3)
         self.assertEqual(move2.state, 'done')
         self.assertEqual(move1.state, 'cancel')
-    
+
     def test_14_procurement_jit_duration_end_contract(self):
         """Check jit with deletion of confirmed procurement."""
         # Check that procurement_jit is not installed, otherwise this test is useless
