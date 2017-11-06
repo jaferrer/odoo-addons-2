@@ -22,11 +22,13 @@ from dateutil.relativedelta import relativedelta
 
 from openerp import fields
 from openerp.tests import common
+from openerp.tools.misc import frozendict
 
 
 class TestPurchaseScheduler(common.TransactionCase):
     def setUp(self):
         super(TestPurchaseScheduler, self).setUp()
+        self.env.context = frozendict(dict(self.env.context, check_product_qty=False))
         self.company = self.browse_ref('base.main_company')
         self.company.write({'po_lead': 5})
         self.supplier = self.browse_ref('purchase_procurement_just_in_time.supplier1')
@@ -42,6 +44,9 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.unit = self.browse_ref('product.product_uom_unit')
         self.uom_couple = self.browse_ref('purchase_procurement_just_in_time.uom_couple')
         self.uom_four = self.browse_ref('purchase_procurement_just_in_time.uom_four')
+        self.cron_stock_scheduler = self.browse_ref('stock_procurement_just_in_time.job_update_scheduler_controller')
+        self.cron_stock_scheduler.active = False
+        self.env['stock.scheduler.controller'].search([]).write({'done': True})
 
         self.prepare_procurements()
 

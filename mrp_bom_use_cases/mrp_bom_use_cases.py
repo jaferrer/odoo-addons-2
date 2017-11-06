@@ -77,7 +77,7 @@ class ProductProduct(models.Model):
 
     @api.model
     def cron_compute_use_case_count(self):
-        products = self.search([])
+        products = self.search(['|', ('active', '=', False), ('active', '=', True)])
         chunk_number = 0
         while products:
             chunk_products = products[:100]

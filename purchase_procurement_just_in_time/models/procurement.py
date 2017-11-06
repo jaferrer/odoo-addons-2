@@ -25,6 +25,7 @@ from openerp.addons.connector.session import ConnectorSession, ConnectorSessionH
 
 from openerp import models, fields, api, _
 from openerp.tools.float_utils import float_compare, float_round
+from openerp.addons.connector.exception import RetryableJobError
 
 
 @job(default_channel='root.purchase_scheduler')
@@ -69,6 +70,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                               ('buy_to_run', "Buy rule to run"),
                               ('running', "Running"),
                               ('done', "Done")])
+    date_buy_to_run = fields.Datetime(string=u"Date buy to run", copy=False, readonly=True)
 
     @api.model
     def propagate_cancel(self, procurement):
@@ -148,6 +150,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
         self.env['product.template'].update_seller_ids()
+        stock_scheduler_controller_line = self.env['stock.scheduler.controller'].search([('done', '=', False)], limit=1)
+        if stock_scheduler_controller_line:
+            raise RetryableJobError(u"Impossible to launch purchase scheduler when stock scheduler is running",
+                                    seconds=1200)
         domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']),
                                       ('rule_id.action', '=', 'buy')]
         if not compute_all_products and compute_product_ids:
@@ -470,13 +476,13 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 line_vals = dict_lines_to_create[order_id][product_id]['vals']
                 pol_procurements = self.search([('id', 'in',
                                                  dict_lines_to_create[order_id][product_id]['procurement_ids'])])
-                line = self.env['purchase.order.line'].sudo().create(line_vals)
+                line = self.env['purchase.order.line'].with_context(check_product_qty=False).sudo().create(line_vals)
                 last_proc = pol_procurements[-1]
                 for procurement in pol_procurements:
                     # We compute new qty and new price, and write it only for the last procurement added
                     new_qty, new_price = self.with_context().with_context(focus_on_procurements=True). \
                         _calc_new_qty_price(procurement, po_line=line)
-                    procurement.add_proc_to_line(line)
+                    procurement.with_context(check_product_qty=False).add_proc_to_line(line)
                     if procurement == last_proc and new_qty > line.product_qty:
                         line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
         return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
@@ -696,7 +702,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         procs_to_set_to_exception = self.search([('id', 'in', self.ids), ('state', '!=', 'exception')])
         procs_to_set_to_exception.write({'state': 'exception'})
         for proc in procs_to_set_to_exception:
-            proc.message_post(msg)
+            proc.with_context(message_code='delete_when_proc_no_exception').message_post(msg)
 
     @api.multi
     def make_po(self):
@@ -737,3 +743,17 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     procurement.write({'state': 'cancel'})
                 return False
         return super(ProcurementOrderPurchaseJustInTime, self)._check(procurement)
+
+    @api.model
+    def unlink_useless_messages(self):
+        self.env.cr.execute("""WITH message_ids_to_delete AS (
+    SELECT mm.id AS message_id
+    FROM mail_message mm
+      LEFT JOIN procurement_order po ON po.id = mm.res_id
+    WHERE mm.model = 'procurement.order' AND po.state NOT IN ('exception', 'buy_to_run')
+          AND mm.code = 'delete_when_proc_no_exception')
+
+DELETE FROM mail_message mm
+WHERE exists(SELECT message_id
+             FROM message_ids_to_delete
+             WHERE message_id = mm.id)""")
