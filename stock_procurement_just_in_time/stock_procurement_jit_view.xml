@@ -26,6 +26,18 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="stock_route_form">
+            <field name="name">stock_route_form</field>
+            <field name="model">stock.location.route</field>
+            <field name="inherit_id" ref="stock.stock_location_route_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="sequence" position="after">
+                    <field name="stock_scheduler_sequence"/>
+                </field>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="stock_levels_report_tree">
             <field name="name">stock.levels.report.tree</field>
             <field name="model">stock.levels.report</field>
@@ -139,6 +151,51 @@
                 </filter>
             </field>
         </record>
+
+        <record model="ir.ui.view" id="stock_scheduler_controller_tree">
+            <field name="name">stock_scheduler_controller_tree</field>
+            <field name="model">stock.scheduler.controller</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" edit="false" delete="false">
+                    <field name="product_id"/>
+                    <field name="location_id"/>
+                    <field name="stock_scheduler_sequence"/>
+                    <field name="job_creation_date"/>
+                    <field name="job_uuid"/>
+                    <field name="date_done"/>
+                    <field name="done"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="stock_scheduler_controller_search">
+            <field name="name">stock_scheduler_controller_search</field>
+            <field name="model">stock.scheduler.controller</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="product_id"/>
+                    <field name="location_id"/>
+                    <field name="job_uuid"/>
+                    <filter name="running" string="Running" domain="[('done', '=', False)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_stock_scheduler_controller">
+            <field name="name">Stock Scheduler Controller</field>
+            <field name="res_model">stock.scheduler.controller</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{'search_default_running': True}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_stock_scheduler_controller" name="Stock Scheduler Controller"
+                  action="act_window_stock_scheduler_controller"
+                  parent="stock.menu_stock_sched" sequence="30"/>
 
     </data>
 </openerp>

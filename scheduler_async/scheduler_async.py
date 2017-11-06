@@ -289,9 +289,7 @@ GROUP BY po.run_or_confirm_job_uuid""")
         self.run_confirm_procurements(company_id)
 
         # Run minimum stock rules
-        without_job = not self.env.context.get("jobify", False)
-        self.with_context(without_job=without_job).sudo()._procure_orderpoint_confirm(use_new_cursor=True,
-                                                                                      company_id=company_id)
+        self.sudo()._procure_orderpoint_confirm(use_new_cursor=True, company_id=company_id)
 
         # Check if running procurements are done
         self.run_check_procurements(company_id)

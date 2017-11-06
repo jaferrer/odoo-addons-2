@@ -25,6 +25,7 @@ from openerp.addons.connector.session import ConnectorSession, ConnectorSessionH
 
 from openerp import models, fields, api, _
 from openerp.tools.float_utils import float_compare, float_round
+from openerp.addons.connector.exception import RetryableJobError
 
 
 @job(default_channel='root.purchase_scheduler')
@@ -149,6 +150,10 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
         self.env['product.template'].update_seller_ids()
+        stock_scheduler_controller_line = self.env['stock.scheduler.controller'].search([('done', '=', False)], limit=1)
+        if stock_scheduler_controller_line:
+            raise RetryableJobError(u"Impossible to launch purchase scheduler when stock scheduler is running",
+                                    seconds=1200)
         domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']),
                                       ('rule_id.action', '=', 'buy')]
         if not compute_all_products and compute_product_ids:
