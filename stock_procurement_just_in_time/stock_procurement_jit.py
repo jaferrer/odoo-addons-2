@@ -38,8 +38,13 @@ def process_orderpoints(session, model_name, ids, context):
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
     orderpoints = session.env[model_name].with_context(context).search([('id', 'in', ids)],
                                                                        order='stock_scheduler_sequence desc')
-    for op in orderpoints:
-        op.process()
+    orderpoints.process()
+    job_uuid = session.context.get('job_uuid')
+    if job_uuid:
+        line = session.env['stock.scheduler.controller'].search([('job_uuid', '=', job_uuid),
+                                                                 ('done', '=', False)])
+        line.write({'done': True,
+                    'date_done': fields.Datetime.now()})
 
 
 class StockLocation(models.Model):
@@ -47,6 +52,13 @@ class StockLocation(models.Model):
 
     stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence",
                                               help=u"Same order as the logistic flow")
+
+
+class StockLocationRoute(models.Model):
+    _inherit = 'stock.location.route'
+
+    stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence",
+                                              help=u"Highest sequences will be processed first")
 
 
 class StockMove(models.Model):
@@ -103,27 +115,37 @@ class ProcurementOrderQuantity(models.Model):
                 search([('name', 'in', self.env.context['compute_supplier_ids'])])
             read_supplierinfos = supplierinfo_ids.read(['id', 'product_tmpl_id'], load=False)
             dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
-        orderpoint_ids = orderpoint_env.search(dom)
-        op_ids = orderpoint_ids.read(['id', 'product_id'], load=False)
+        orderpoints = orderpoint_env.search(dom)
 
-        result = dict()
-        for row in op_ids:
-            if row['product_id'] not in result:
-                result[row['product_id']] = list()
-            result[row['product_id']].append(row['id'])
-        product_ids = result.values()
-
-        while product_ids:
-            products = product_ids[:ORDERPOINT_CHUNK]
-            product_ids = product_ids[ORDERPOINT_CHUNK:]
-            orderpoints = flatten(products)
-            if self.env.context.get('without_job'):
-                process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint', orderpoints,
-                                    dict(self.env.context))
-            else:
-                process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                          orderpoints, dict(self.env.context),
-                                          description="Computing orderpoints %s" % orderpoints)
+        self.env.cr.execute("""INSERT INTO stock_scheduler_controller
+(orderpoint_id,
+product_id,
+location_id,
+stock_scheduler_sequence,
+done,
+create_date,
+write_date,
+create_uid,
+write_uid)
+ 
+ SELECT
+  op.id                                                 AS orderpoint_id,
+  op.product_id,
+  op.location_id,
+  max(COALESCE(sl.stock_scheduler_sequence, 0)) :: CHAR || '-' ||
+  max(COALESCE(sl.stock_scheduler_sequence, 0)) :: CHAR AS stock_scheduler_sequence,
+  FALSE                                                 AS done,
+  CURRENT_TIMESTAMP                                     AS create_date,
+  CURRENT_TIMESTAMP                                     AS write_date,
+  %s                                                    AS create_uid,
+  %s                                                    AS write_uid
+FROM stock_warehouse_orderpoint op
+  LEFT JOIN stock_location sl ON sl.id = op.location_id
+  LEFT JOIN product_product pp ON pp.id = op.product_id
+  LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
+  LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
+  WHERE op.id IN %s
+  GROUP BY op.id""", (self.env.uid, self.env.uid, tuple(orderpoints.ids)))
         return {}
 
     @api.multi
@@ -696,3 +718,43 @@ class StockPicking(models.Model):
     def create(self, vals):
         # The creation messages are useless
         return super(StockPicking, self.with_context(mail_notrack=True, mail_create_nolog=True)).create(vals)
+
+
+class StockSchedulerController(models.Model):
+    _name = 'stock.scheduler.controller'
+    _order = 'orderpoint_id'
+
+    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Orderpoint")
+    product_id = fields.Many2one('product.product', string=u"Product", readonly=True, required=True)
+    location_id = fields.Many2one('stock.location', string=u"Location", readonly=True, required=True)
+    stock_scheduler_sequence = fields.Char(string=u"Stock scheduler sequence", readonly=True, group_operator='max')
+    job_creation_date = fields.Datetime(string=u"Job Creation Date", readonly=True)
+    job_uuid = fields.Char(string=u"Job UUID", readonly=True)
+    date_done = fields.Datetime(string=u"Date done")
+    done = fields.Boolean(string=u"Done")
+
+    @api.model
+    def update_scheduler_controller(self, jobify=True):
+        max_running_sequence = self.read_group([('done', '=', False)], ['stock_scheduler_sequence'],
+                                               ['stock_scheduler_sequence'], orderby='stock_scheduler_sequence desc',
+                                               limit=1)
+        if max_running_sequence:
+            max_running_sequence = max_running_sequence[0]['stock_scheduler_sequence']
+            controller_lines = self.search([('done', '=', False),
+                                            ('job_uuid', '=', False),
+                                            ('stock_scheduler_sequence', '=', max_running_sequence)])
+            for line in controller_lines:
+                if jobify:
+                    job_uuid = process_orderpoints. \
+                        delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                              line.orderpoint_id.ids, dict(self.env.context),
+                              description="Computing orderpoints for product %s and location %s" %
+                                          (line.product_id.name, line.location_id.display_name))
+                    line.job_uuid = job_uuid
+                    line.write({'job_uuid': job_uuid,
+                                'job_creation_date': fields.Datetime.now()})
+                else:
+                    line.job_uuid = str(line.orderpoint_id.id)
+                    self.env.context = dict(self.env.context, job_uuid=line.job_uuid)
+                    process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                        line.orderpoint_id.ids, dict(self.env.context))
