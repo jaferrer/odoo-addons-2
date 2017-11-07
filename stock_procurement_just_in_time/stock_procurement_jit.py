@@ -145,7 +145,7 @@ FROM stock_warehouse_orderpoint op
   LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
   LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
   WHERE op.id IN %s
-  GROUP BY op.id""", (self.env.uid, self.env.uid, tuple(orderpoints.ids)))
+  GROUP BY op.id""", (self.env.uid, self.env.uid, tuple(orderpoints.ids + [0])))
         return {}
 
     @api.multi
