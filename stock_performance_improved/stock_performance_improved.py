@@ -926,6 +926,18 @@ WHERE nb_moves = 0""")
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
+    @api.multi
+    def _check_package_from_moves(self):
+        result = self.env['stock.quant'].search_read(
+            fields=['package_id'],
+            domain=[('history_ids', 'in', self.ids), ('package_id', '!=', False), ('qty', '>', 0)]
+        )
+        package_ids = {dict_result['package_id'][0] for dict_result in result}
+        return self.env['stock.quant.package']._check_location_constraint(
+            self.env['stock.quant.package'].browse(list(package_ids)))
+
+
+
     def _get_reserved_availability(self, cr, uid, ids, field_name, args, context=None):
         """Rewritten here to have the database do the sum for us through read_group."""
         res = dict.fromkeys(ids, 0)
