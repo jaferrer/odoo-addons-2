@@ -340,6 +340,12 @@ msgid "Running"
 msgstr "En cours"
 
 #. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,run_procs:0
+#: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
+msgid "Run procurements"
+msgstr "Lancer les approvisionnements"
+
+#. module: stock_procurement_just_in_time
 #: model:ir.actions.act_window,name:stock_procurement_just_in_time.act_window_stock_scheduler_controller
 #: model:ir.ui.menu,name:stock_procurement_just_in_time.menu_stock_scheduler_controller
 msgid "Stock Scheduler Controller"
