@@ -77,6 +77,10 @@ def run_or_check_procurements(session, model_name, domain, action, context):
             procs.sudo().run(autocommit=True)
         elif action == 'check':
             procs.sudo().check(autocommit=True)
+        moves_to_run = session.env['stock.move'].search([('procurement_id', 'in', procs.ids),
+                                                         ('state', '=', 'draft')])
+        if moves_to_run:
+            session.env['procurement.order'].run_confirm_moves(domain=[('id', 'in', moves_to_run.ids)])
         session.commit()
 
 
@@ -159,10 +163,12 @@ class ProcurementOrderAsync(models.Model):
     run_or_confirm_job_uuid = fields.Char(tring=u"Job UUID to confirm or check this procurement")
 
     @api.model
-    def run_confirm_moves(self):
+    def run_confirm_moves(self, domain=False):
         group_draft_moves = {}
+        if not domain:
+            domain = []
 
-        all_draft_moves = self.env['stock.move'].search([('state', '=', 'draft')], limit=None,
+        all_draft_moves = self.env['stock.move'].search(domain + [('state', '=', 'draft')], limit=None,
                                                         order='priority desc, date_expected asc')
 
         all_draft_moves_ids = all_draft_moves.read(['id', 'group_id', 'location_id', 'location_dest_id'], load=False)
@@ -296,6 +302,21 @@ GROUP BY po.run_or_confirm_job_uuid""")
 
         # Try to assign moves
         self.run_assign_moves()
+
+    @api.model
+    def is_procs_confirmation_ok(self):
+        return not self.env['queue.job']. \
+            search([('job_function_id.name', '=',
+                     'openerp.addons.scheduler_async.scheduler_async.run_or_check_procurements'),
+                    ('state', 'not in', ('done', 'failed'))], limit=1)
+
+
+    @api.model
+    def is_moves_confirmation_ok(self):
+        return not self.env['queue.job']. \
+            search([('job_function_id.name', '=',
+                     'openerp.addons.scheduler_async.scheduler_async.confirm_moves'),
+                    ('state', 'not in', ('done', 'failed'))], limit=1)
 
 
 class StockMoveAsync(models.Model):
