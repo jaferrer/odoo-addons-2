@@ -85,7 +85,8 @@ WITH
             sq.product_id,
             sum(sq.qty)      AS qty
         FROM stock_quant sq
-            LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
+            INNER JOIN top_parent tp ON tp.loc_id = sq.location_id
+            INNER JOIN stock_move sm ON sm.product_id = sq.product_id AND sm.id IN %s
         WHERE sq.reservation_id IS NULL
         GROUP BY tp.top_parent_id, sq.product_id
     )
@@ -999,7 +1000,7 @@ class StockMove(models.Model):
         :param location_from: The source location of the moves
         :param location_to: The destination lcoation of the moves
         """
-        self.env.cr.execute(SQL_REQUEST_BY_MOVE, (tuple(self.ids), tuple(self.ids), tuple(self.ids)))
+        self.env.cr.execute(SQL_REQUEST_BY_MOVE, (tuple(self.ids), tuple(self.ids), tuple(self.ids), tuple(self.ids)))
         prereservations = self.env.cr.fetchall()
         prereserved_move_ids = [p[0] for p in prereservations]
         not_deferred_moves = self.filtered(lambda m: m.defer_picking_assign is False)
@@ -1200,7 +1201,7 @@ class StockPrereservation(models.Model):
                     sq.product_id,
                     sum(sq.qty) AS qty
                 FROM stock_quant sq
-                LEFT JOIN top_parent tp ON tp.loc_id=sq.location_id
+                INNER JOIN top_parent tp ON tp.loc_id=sq.location_id
                 WHERE tp.top_parent_id IN (SELECT location_id FROM move_qties_interm) AND sq.reservation_id IS NULL
                 GROUP BY tp.top_parent_id, sq.product_id
             ),
