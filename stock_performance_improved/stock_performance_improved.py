@@ -85,7 +85,8 @@ WITH
             sq.product_id,
             sum(sq.qty)      AS qty
         FROM stock_quant sq
-            LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
+            INNER JOIN top_parent tp ON tp.loc_id = sq.location_id
+            INNER JOIN stock_move sm ON sm.product_id = sq.product_id AND sm.id IN %s
         WHERE sq.reservation_id IS NULL
         GROUP BY tp.top_parent_id, sq.product_id
     )
@@ -926,6 +927,18 @@ WHERE nb_moves = 0""")
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
+    @api.multi
+    def _check_package_from_moves(self):
+        result = self.env['stock.quant'].search_read(
+            fields=['package_id'],
+            domain=[('history_ids', 'in', self.ids), ('package_id', '!=', False), ('qty', '>', 0)]
+        )
+        package_ids = {dict_result['package_id'][0] for dict_result in result}
+        return self.env['stock.quant.package']._check_location_constraint(
+            self.env['stock.quant.package'].browse(list(package_ids)))
+
+
+
     def _get_reserved_availability(self, cr, uid, ids, field_name, args, context=None):
         """Rewritten here to have the database do the sum for us through read_group."""
         res = dict.fromkeys(ids, 0)
@@ -999,7 +1012,7 @@ class StockMove(models.Model):
         :param location_from: The source location of the moves
         :param location_to: The destination lcoation of the moves
         """
-        self.env.cr.execute(SQL_REQUEST_BY_MOVE, (tuple(self.ids), tuple(self.ids), tuple(self.ids)))
+        self.env.cr.execute(SQL_REQUEST_BY_MOVE, (tuple(self.ids), tuple(self.ids), tuple(self.ids), tuple(self.ids)))
         prereservations = self.env.cr.fetchall()
         prereserved_move_ids = [p[0] for p in prereservations]
         not_deferred_moves = self.filtered(lambda m: m.defer_picking_assign is False)
@@ -1200,7 +1213,7 @@ class StockPrereservation(models.Model):
                     sq.product_id,
                     sum(sq.qty) AS qty
                 FROM stock_quant sq
-                LEFT JOIN top_parent tp ON tp.loc_id=sq.location_id
+                INNER JOIN top_parent tp ON tp.loc_id=sq.location_id
                 WHERE tp.top_parent_id IN (SELECT location_id FROM move_qties_interm) AND sq.reservation_id IS NULL
                 GROUP BY tp.top_parent_id, sq.product_id
             ),
