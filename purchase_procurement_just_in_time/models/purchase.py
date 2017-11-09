@@ -437,6 +437,7 @@ class PurchaseOrderLineJustInTime(models.Model):
 
     def adjust_move_no_proc_qty(self):
         """Adjusts the quantity of the move without proc, recreating it if necessary."""
+        self = self.with_context(check_product_qty=False)
         moves_no_procs = self.env['stock.move'].search(
             [('purchase_line_id', 'in', self.ids),
              ('procurement_id', '=', False),
