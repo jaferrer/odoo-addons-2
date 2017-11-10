@@ -40,7 +40,7 @@ class IntercoAccountInvoice(models.Model):
         res = self.env['account.invoice']
         for rec in self:
             if rec._is_allowed_company_auto_reverse_invoice():
-                res |= rec.copy(rec._prepare_reverse_invoice())
+                res |= rec.sudo().copy(rec._prepare_reverse_invoice())
         res = self._manage_reverse_invoice(res)
         return res
 

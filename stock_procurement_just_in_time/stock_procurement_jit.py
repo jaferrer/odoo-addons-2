@@ -43,8 +43,7 @@ def process_orderpoints(session, model_name, ids, context):
     if job_uuid:
         line = session.env['stock.scheduler.controller'].search([('job_uuid', '=', job_uuid),
                                                                  ('done', '=', False)])
-        line.write({'done': True,
-                    'date_done': fields.Datetime.now()})
+        line.set_to_done()
 
 
 class StockLocation(models.Model):
@@ -83,23 +82,9 @@ class ProcurementOrderQuantity(models.Model):
             qty = self.env['product.uom']._compute_qty_obj(m.product_uom, m.product_qty, m.product_id.uom_id)
             m.qty = qty
 
-    @api.multi
-    def run_cascade(self, autocommit=False):
-        self.run(autocommit=autocommit)
-        for rec in self:
-            if rec.state == 'running' and rec.rule_id:
-                if rec.rule_id.action == 'move':
-                    procs = self.search([('move_dest_id.procurement_id', '=', rec.id), ('state', '=', 'confirmed')])
-                    procs.run_cascade()
-                elif rec.rule_id.action == 'manufacture':
-                    mrp = rec.production_id
-                    if mrp:
-                        procs = self.search([('move_dest_id.raw_material_production_id', '=', mrp.id),
-                                             ('state', '=', 'confirmed')])
-                        procs.run_cascade()
-
     @api.model
-    def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False):
+    def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
+                                    run_moves=True):
         """
         Create procurement based on orderpoint
 
@@ -116,36 +101,72 @@ class ProcurementOrderQuantity(models.Model):
             read_supplierinfos = supplierinfo_ids.read(['id', 'product_tmpl_id'], load=False)
             dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
         orderpoints = orderpoint_env.search(dom)
+        if run_procurements:
+            self.env['procurement.order'].run_confirm_procurements()
+        if run_moves:
+            self.env['procurement.order'].run_confirm_moves()
 
         self.env.cr.execute("""INSERT INTO stock_scheduler_controller
 (orderpoint_id,
 product_id,
 location_id,
 stock_scheduler_sequence,
+run_procs,
 done,
 create_date,
 write_date,
 create_uid,
 write_uid)
  
- SELECT
-  op.id                                                 AS orderpoint_id,
-  op.product_id,
-  op.location_id,
-  max(COALESCE(sl.stock_scheduler_sequence, 0)) :: CHAR || '-' ||
-  max(COALESCE(sl.stock_scheduler_sequence, 0)) :: CHAR AS stock_scheduler_sequence,
-  FALSE                                                 AS done,
-  CURRENT_TIMESTAMP                                     AS create_date,
-  CURRENT_TIMESTAMP                                     AS write_date,
-  %s                                                    AS create_uid,
-  %s                                                    AS write_uid
-FROM stock_warehouse_orderpoint op
-  LEFT JOIN stock_location sl ON sl.id = op.location_id
-  LEFT JOIN product_product pp ON pp.id = op.product_id
-  LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
-  LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
-  WHERE op.id IN %s
-  GROUP BY op.id""", (self.env.uid, self.env.uid, tuple(orderpoints.ids + [0])))
+ WITH user_id AS (SELECT %s AS user_id),
+
+    orderpoints_to_insert AS (
+      SELECT
+        op.id                                                 AS orderpoint_id,
+        op.product_id,
+        op.location_id,
+        max(COALESCE(slr.stock_scheduler_sequence, 0)) :: TEXT || '-' ||
+        max(COALESCE(sl.stock_scheduler_sequence, 0)) :: TEXT AS stock_scheduler_sequence,
+        FALSE                                                 AS run_procs,
+        FALSE                                                 AS done,
+        CURRENT_TIMESTAMP                                     AS create_date,
+        CURRENT_TIMESTAMP                                     AS write_date,
+        (SELECT user_id
+         FROM user_id)                                        AS create_uid,
+        (SELECT user_id
+         FROM user_id)                                        AS write_uid
+      FROM stock_warehouse_orderpoint op
+        LEFT JOIN stock_location sl ON sl.id = op.location_id
+        LEFT JOIN product_product pp ON pp.id = op.product_id
+        LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
+        LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
+      WHERE op.id IN %s
+      GROUP BY op.id),
+
+    list_sequences AS (
+      SELECT stock_scheduler_sequence
+      FROM orderpoints_to_insert
+      GROUP BY stock_scheduler_sequence)
+
+SELECT *
+FROM orderpoints_to_insert
+
+UNION ALL
+
+SELECT
+  NULL              AS orderpoint_id,
+  NULL              AS product_id,
+  NULL              AS location_id,
+  stock_scheduler_sequence,
+  TRUE              AS run_procs,
+  FALSE             AS done,
+  CURRENT_TIMESTAMP AS create_date,
+  CURRENT_TIMESTAMP AS write_date,
+  (SELECT user_id
+   FROM user_id)    AS create_uid,
+  (SELECT user_id
+   FROM user_id)    AS write_uid
+FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
         return {}
 
     @api.multi
@@ -267,7 +288,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 proc_vals.update({'date_planned': need['date']})
             proc = proc.create(proc_vals)
             if not self.env.context.get('procurement_no_run'):
-                proc.run_cascade()
+                proc.run()
             _logger.debug("Created proc: %s, (%s, %s). Product: %s, Location: %s" %
                           (proc, proc.date_planned, proc.product_qty, self.product_id, self.location_id))
         else:
@@ -725,36 +746,55 @@ class StockSchedulerController(models.Model):
     _order = 'orderpoint_id'
 
     orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Orderpoint")
-    product_id = fields.Many2one('product.product', string=u"Product", readonly=True, required=True)
-    location_id = fields.Many2one('stock.location', string=u"Location", readonly=True, required=True)
+    product_id = fields.Many2one('product.product', string=u"Product", readonly=True)
+    location_id = fields.Many2one('stock.location', string=u"Location", readonly=True)
     stock_scheduler_sequence = fields.Char(string=u"Stock scheduler sequence", readonly=True, group_operator='max')
+    run_procs = fields.Boolean(string=u"Run procurements", readonly=True)
     job_creation_date = fields.Datetime(string=u"Job Creation Date", readonly=True)
     job_uuid = fields.Char(string=u"Job UUID", readonly=True)
     date_done = fields.Datetime(string=u"Date done")
     done = fields.Boolean(string=u"Done")
 
+    @api.multi
+    def set_to_done(self):
+        self.write({'done': True, 'date_done': fields.Datetime.now()})
+
     @api.model
-    def update_scheduler_controller(self, jobify=True):
+    def update_scheduler_controller(self, jobify=True, run_procurements=True):
         max_running_sequence = self.read_group([('done', '=', False)], ['stock_scheduler_sequence'],
                                                ['stock_scheduler_sequence'], orderby='stock_scheduler_sequence desc',
                                                limit=1)
         if max_running_sequence:
             max_running_sequence = max_running_sequence[0]['stock_scheduler_sequence']
-            controller_lines = self.search([('done', '=', False),
-                                            ('job_uuid', '=', False),
-                                            ('stock_scheduler_sequence', '=', max_running_sequence)])
-            for line in controller_lines:
-                if jobify:
-                    job_uuid = process_orderpoints. \
-                        delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                              line.orderpoint_id.ids, dict(self.env.context),
-                              description="Computing orderpoints for product %s and location %s" %
-                                          (line.product_id.name, line.location_id.display_name))
-                    line.job_uuid = job_uuid
-                    line.write({'job_uuid': job_uuid,
-                                'job_creation_date': fields.Datetime.now()})
-                else:
-                    line.job_uuid = str(line.orderpoint_id.id)
-                    self.env.context = dict(self.env.context, job_uuid=line.job_uuid)
-                    process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                        line.orderpoint_id.ids, dict(self.env.context))
+            is_procs_confirmation_ok = self.env['procurement.order'].is_procs_confirmation_ok()
+            is_moves_confirmation_ok = self.env['procurement.order'].is_moves_confirmation_ok()
+            if is_procs_confirmation_ok and is_moves_confirmation_ok:
+                controller_lines_no_run = self.search([('done', '=', False),
+                                                       ('job_uuid', '=', False),
+                                                       ('stock_scheduler_sequence', '=', max_running_sequence),
+                                                       ('run_procs', '=', False)])
+                for line in controller_lines_no_run:
+                    if jobify:
+                        job_uuid = process_orderpoints. \
+                            delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                  line.orderpoint_id.ids, dict(self.env.context),
+                                  description="Computing orderpoints for product %s and location %s" %
+                                              (line.product_id.name, line.location_id.display_name))
+                        line.job_uuid = job_uuid
+                        line.write({'job_uuid': job_uuid,
+                                    'job_creation_date': fields.Datetime.now()})
+                    else:
+                        line.job_uuid = str(line.orderpoint_id.id)
+                        self.env.context = dict(self.env.context, job_uuid=line.job_uuid)
+                        process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                            line.orderpoint_id.ids, dict(self.env.context))
+                if not controller_lines_no_run:
+                    controller_lines_run_procs = self.search([('done', '=', False),
+                                                              ('stock_scheduler_sequence', '=', max_running_sequence),
+                                                              ('run_procs', '=', True)])
+                    if controller_lines_run_procs:
+                        if run_procurements:
+                            self.env['procurement.order'].with_context(jobify=jobify).run_confirm_procurements()
+                        else:
+                            _logger.info(u"No procurement confirmation required")
+                        controller_lines_run_procs.set_to_done()

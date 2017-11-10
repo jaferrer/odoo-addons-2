@@ -2,6 +2,10 @@
 <openerp>
     <data>
 
+        <record model="ir.cron" id="job_update_scheduler_controller">
+            <field name="active" eval="False"/>
+        </record>
+
         <record id="stock_location_view" model="stock.location">
             <field name="name">View Location</field>
             <field name="location_id" ref="stock.stock_location_stock"/>

@@ -161,6 +161,7 @@
                     <field name="product_id"/>
                     <field name="location_id"/>
                     <field name="stock_scheduler_sequence"/>
+                    <field name="run_procs"/>
                     <field name="job_creation_date"/>
                     <field name="job_uuid"/>
                     <field name="date_done"/>
@@ -179,6 +180,7 @@
                     <field name="location_id"/>
                     <field name="job_uuid"/>
                     <filter name="running" string="Running" domain="[('done', '=', False)]"/>
+                    <filter name="run_procs" string="Run procurements" domain="[('run_procs', '=', True)]"/>
                 </search>
             </field>
         </record>
