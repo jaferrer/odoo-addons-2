@@ -125,8 +125,8 @@ write_uid)
         op.id                                                 AS orderpoint_id,
         op.product_id,
         op.location_id,
-        max(COALESCE(slr.stock_scheduler_sequence, 0)) :: TEXT || '-' ||
-        max(COALESCE(sl.stock_scheduler_sequence, 0)) :: TEXT AS stock_scheduler_sequence,
+        max(COALESCE(sl.stock_scheduler_sequence, 0)) :: TEXT || '-' ||
+        max(COALESCE(slr.stock_scheduler_sequence, 0)) :: TEXT AS stock_scheduler_sequence,
         FALSE                                                 AS run_procs,
         FALSE                                                 AS done,
         CURRENT_TIMESTAMP                                     AS create_date,
