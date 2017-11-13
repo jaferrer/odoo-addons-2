@@ -32,7 +32,7 @@ Fix the display of sub-objects on calculated values (type int / float) during ex
 Have to remove if odoo fix this error
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': ['security/ir.model.access.csv'],
     'demo': [],
     'test': [],
     'installable': True,
