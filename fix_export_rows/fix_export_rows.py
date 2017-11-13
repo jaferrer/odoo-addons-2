@@ -75,11 +75,11 @@ class BaseModelExtend(models.BaseModel):
                             if lines2:
                                 # merge first line with record's main line
                                 for j, val in enumerate(lines2[0]):
-                                    if val or isinstance(val, bool) or isinstance(val, int):
+                                    if val or isinstance(val, bool) or isinstance(val, int) or isinstance(val, float):
                                         current[j] = val
                                 # check value of current field
                                 if not current[i] and not isinstance(current[i], bool) and \
-                                        not isinstance(current[i], int):
+                                        not isinstance(current[i], int) and not isinstance(current[i], float):
                                     # assign xml_ids, and forget about remaining lines
                                     xml_ids = [item[1] for item in value.name_get()]
                                     current[i] = ','.join(xml_ids)
@@ -88,7 +88,6 @@ class BaseModelExtend(models.BaseModel):
                                     lines += lines2[1:]
                             else:
                                 current[i] = False
-
             return lines
 
         @api.multi
