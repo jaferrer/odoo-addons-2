@@ -159,6 +159,8 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
             corresponding_move_ids = self. \
                 get_corresponding_move_ids(quant, location_from, dest_location, picking_type_id,
                                            force_domain=[('id', 'not in', full_moves.ids)])
+            if quant.reservation_id and quant.reservation_id.id not in corresponding_move_ids:
+                quant.reservation_id.do_unreserve()
             for move_id in corresponding_move_ids:
                 move = self.env['stock.move'].search([('id', '=', move_id)])
                 if move not in dict_reservation_target:
