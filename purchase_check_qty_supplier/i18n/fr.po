@@ -32,3 +32,9 @@ msgstr "Warning!"
 #, python-format
 msgid "Error!"
 msgstr "Error!"
+
+#. module: purchase_check_qty_supplier
+#: code:addons/purchase_check_qty_supplier/purchase_order.py:58
+#, python-format
+msgid "The selected supplier has a minimal quantity set to %s %s for the product %s, you should not purchase less."
+msgstr "Le fournisseur sélectionné à une quantité minimale de %s %s pour l'article %s, vous ne pouvez pas en commander moins."
