@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
-    'depends': ['base', 'flux_tendu_config'],
+    'depends': ['base'],
     'description': """
 Computed field database
 ========================
