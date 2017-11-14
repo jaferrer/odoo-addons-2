@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, exceptions, _
+from openerp import models, exceptions
 
 
 # Ajout de champs à la table mrp.production

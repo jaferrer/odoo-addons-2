@@ -23,7 +23,7 @@ from openerp import fields, models, api
 
 
 class StockWarehouse(models.Model):
-    _inherit = "stock.warehouse.orderpoint"
+    _inherit = 'stock.warehouse.orderpoint'
 
     fill_strategy = fields.Selection([('max', "Maximal quantity"), ('duration', 'Foresight duration')],
                                      string="Procurement strategy", help="Alert choice for a new procurement order",
@@ -45,14 +45,18 @@ class StockWarehouse(models.Model):
     def _set_max_quantity(self):
         self.product_max_qty_operator = self.product_max_qty
 
+    @api.multi
     def get_max_qty(self, date):
         """Returns the orderpoint maximum quantity for the given date.
 
         :param date: datetime at which we want to calculate the maximum quantity
         """
+        self.ensure_one()
         if self.fill_strategy == 'max':
             return self.product_max_qty_operator
         else:
+            if not date:
+                return 0
             search_end_date = self.location_id.schedule_working_days(self.fill_duration + 1, date)
             moves = self.env['stock.move'].search([('product_id', '=', self.product_id.id),
                                                    ('location_id', '=', self.location_id.id),

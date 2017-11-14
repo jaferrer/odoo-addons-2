@@ -514,7 +514,6 @@ def import_record_product(session, model_name, backend_id, magentoextend_ids, fo
     importer = env.get_connector_unit(magentoextendImporter)
     log = ""
     for id in magentoextend_ids:
-        print id
         log = log + '\n' + str(id) + '\n' + '----------' + '\n'
         resp = str(importer.run(id, force=force))
         log = log + resp

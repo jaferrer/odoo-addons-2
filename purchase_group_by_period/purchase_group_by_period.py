@@ -114,8 +114,8 @@ class procurement_order_group_by_period(models.Model):
             if not partner or not partner.order_group_period:
                 return super(procurement_order_group_by_period, self).make_po()
             else:
-                schedule_date = self._get_purchase_schedule_date(procurement, company)
-                purchase_date = self._get_purchase_order_date(procurement, company, schedule_date)
+                schedule_date = procurement._get_purchase_schedule_date()
+                purchase_date = procurement._get_purchase_order_date(schedule_date)
                 line_vals = self._get_po_line_values_from_proc(procurement, partner, company, schedule_date)
                 # look for any other draft PO for the same supplier, to attach the new line on instead of creating
                 # a new draft one
@@ -139,10 +139,9 @@ class procurement_order_group_by_period(models.Model):
                     if available_po_line_ids:
                         po_line = available_po_line_ids[0]
                         po_line_id = po_line.id
-                        new_qty, new_price = self._calc_new_qty_price(procurement, po_line=po_line)
-
-                        if new_qty > po_line.product_qty:
-                            po_line.write({'product_qty': new_qty, 'price_unit': new_price})
+                        old_qty = po_line.product_qty
+                        po_line.update_qty_price()
+                        if po_line.product_qty > old_qty:
                             self.update_origin_po(po_line, procurement)
                             sum_po_line_ids.append(procurement)
                     else:
@@ -159,14 +158,13 @@ class procurement_order_group_by_period(models.Model):
                         'partner_id': partner.id,
                         'location_id': procurement.location_id.id,
                         'picking_type_id': procurement.rule_id.picking_type_id.id,
-                        'pricelist_id': partner.property_product_pricelist_purchase.id,
                         'currency_id': partner.property_product_pricelist_purchase and \
                                        partner.property_product_pricelist_purchase.currency_id.id or \
                                        procurement.company_id.currency_id.id,
                         'date_order': date_order.strftime(DEFAULT_SERVER_DATETIME_FORMAT),
                         'company_id': procurement.company_id.id,
-                        'fiscal_position': partner.property_account_position and \
-                                           partner.property_account_position.id or False,
+                        'fiscal_position_id': partner.property_account_position and \
+                                              partner.property_account_position.id or False,
                         'payment_term_id': partner.property_supplier_payment_term.id or False,
                         'dest_address_id': procurement.partner_dest_id.id,
                     }

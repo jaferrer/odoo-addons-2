@@ -17,7 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, exceptions, _
+from openerp.exceptions import UserError
+from openerp import models, fields, api, _
 
 
 class StockChangeQuantPicking(models.TransientModel):
@@ -28,7 +29,7 @@ class StockChangeQuantPicking(models.TransientModel):
         quants = self.env['stock.quant'].browse(self.env.context['active_ids'])
         products = quants.mapped('product_id')
         if len(products) != 1:
-            raise exceptions.except_orm(_("Error!"), _("Impossible to reserve quants of different products."))
+            raise UserError(_("Impossible to reserve quants of different products."))
         return {}
 
     partner_id = fields.Many2one('res.partner', string='Partner')

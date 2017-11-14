@@ -23,8 +23,8 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Warehouse',
-    'depends': ['stock_planning_improved','group_operators','procurement_foresight_strategy',
-                'connector'],
+    'depends': ['stock_planning_improved', 'group_operators', 'procurement_foresight_strategy',
+                'stock_procurement_split', 'connector'],
     'description': """
 Stock Procurement Just-In-Time
 ==============================
@@ -51,12 +51,14 @@ Notes
     'data': [
         'security/ir.model.access.csv',
         'stock_procurement_jit_view.xml',
+        'res_config.xml',
+        'data.xml',
     ],
     'demo': [
         'stock_procurement_jit_demo.xml',
     ],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

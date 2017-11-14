@@ -35,4 +35,4 @@ class PurchaseOrderLine(models.Model):
             cur = rec.order_id.pricelist_id.currency_id
             company_cur = self.env.user.company_id.currency_id
             rec.subtotal_cur = rec.order_id.currency_id.with_context(date=rec.order_id.date_order).compute(
-                cur.round(taxes['total']), company_cur, round=True)
+                cur.round(taxes['total_included']), company_cur, round=True)

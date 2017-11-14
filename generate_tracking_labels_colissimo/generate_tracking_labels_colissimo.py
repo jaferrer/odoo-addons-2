@@ -19,7 +19,7 @@
 
 import requests
 
-from openerp import models, api, fields, exceptions
+from openerp import models, api, fields
 from openerp.exceptions import UserError
 from openerp.tools import ustr
 
@@ -36,11 +36,11 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
             password = self.env['ir.config_parameter']. \
                 get_param('generate_tracking_labels_colissimo.password_colissimo', default='')
             if self.code_bar_for_reference == 'true' and self.produit_expedition_id.code != 'CORE':
-                raise exceptions.except_orm('Erreur !', "Impossible d'afficher le code barre retour pour un autre "
-                                                        "produit que Colissimo retour")
+                raise UserError("Impossible d'afficher le code barre retour pour un autre "
+                                "produit que Colissimo retour")
             if self.service_info and self.produit_expedition_id.code != 'CORE':
-                raise exceptions.except_orm('Erreur !', "Impossible de définir un nom de service en retour pour un "
-                                                        "autre produit que Colissimo retour")
+                raise UserError("Impossible de définir un nom de service en retour pour un "
+                                "autre produit que Colissimo retour")
             depositDate = fields.Date.today()
             x = 0
             y = 0

@@ -93,8 +93,7 @@ class HolidaysImport(orm.TransientModel):
                     date_utc_from, date_utc_to, uid))
         holidays = cr.fetchall()
         if not holidays:
-            raise orm.except_orm(
-                _('Information'), _('No holidays for the current timesheet.'))
+            raise UserError(_('No holidays for the current timesheet.'))
         for holiday in holidays:
             valid = True
             h_id = holiday[0]
@@ -116,8 +115,7 @@ class HolidaysImport(orm.TransientModel):
                 if line_ids:
                     valid = False
             if not valid:
-                raise orm.except_orm(
-                    _('UserError'), _('Holidays already imported.'))
+                raise UserError(_('Holidays already imported.'))
             res.append(h_id)
         return res
 
@@ -144,28 +142,20 @@ class HolidaysImport(orm.TransientModel):
         employee_id = employee_obj.search(
             cr, uid, [('user_id', '=', uid)], context=context)[0]
         if timesheet.state != 'draft':
-            raise orm.except_orm(
-                _('UserError'),
-                _('You can not modify a confirmed timesheet, please ask the '
-                  'manager !'))
+            raise UserError(_('You can not modify a confirmed timesheet, please ask the manager !'))
         wizard = self.browse(cr, uid, ids, context=context)[0]
         employee = employee_obj.browse(cr, uid, employee_id, context=context)
         hours_per_day = employee.company_id.timesheet_hours_per_day
         if not hours_per_day:
-            raise orm.except_orm(
-                _('UserError'),
-                _('The number of hours per day is not configured on the '
-                  'company.'))
+            raise UserError(_('The number of hours per day is not configured on the company.'))
         if not wizard.holidays_ids:
-            raise orm.except_orm(_('Information'), _('No holidays to import.'))
+            raise UserError(_('No holidays to import.'))
         local_tz = timezone(context.get('tz'))
         errors = []
         for holiday in wizard.holidays_ids:
             if not holiday.holiday_status_id.analytic_account_id.id:
-                raise orm.except_orm(
-                    _('Error !'),
-                    _("Holiday Leave Type %s has no associated analytic "
-                      "account !") % holiday.holiday_status_id.name)
+                raise UserError(_("Holiday Leave Type %s has no associated analytic account !") %
+                                holiday.holiday_status_id.name)
             analytic_account_id = \
                 holiday.holiday_status_id.analytic_account_id.id
             anl_account = anl_account_obj.browse(cr, uid, analytic_account_id,
@@ -257,5 +247,5 @@ class HolidaysImport(orm.TransientModel):
                                   str_dt_current)
         if errors:
             errors_str = "\n".join(errors)
-            raise orm.except_orm(_('Errors'), errors_str)
+            raise UserError(errors_str)
         return {'type': 'ir.actions.act_window_close'}
