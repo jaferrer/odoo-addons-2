@@ -430,3 +430,8 @@ msgstr "Créé à"
 #: field:product.to.be.filled,filled_at:0
 msgid "Filled at"
 msgstr "Rempli à"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.picking.type,force_is_manual_op:0
+msgid "Force manual moves"
+msgstr "Forcer les déplacements en manuel"

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,21 +18,22 @@
 #
 
 {
-    'name': 'Stock Product Improved',
+    'name': 'Report Aeroo Fix',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Stock',
-    'depends': ['stock'],
+    'category': 'Report',
+    'depends': ['report_aeroo'],
     'description': """
-Stock Product Improved
-======================
-This module improves products management.
+Fix bug inside report_aeroo
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['product_improved.xml'],
+    'data': ['security/ir.model.access.csv'],
+    'demo': [],
+    'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
+    'sequence': 999,
 }

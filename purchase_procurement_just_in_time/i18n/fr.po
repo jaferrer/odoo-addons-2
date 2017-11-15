@@ -887,4 +887,4 @@ msgstr "Le planificateur achats n'est pas configuré pour ce fournisseur"
 #. module: purchase_procurement_just_in_time
 #: field:procurement.order,date_buy_to_run:0
 msgid "Date buy to run"
-msgstr "Date de passage à 'PA en attente'"
+msgstr "Date de passage à 'PA à créer'"

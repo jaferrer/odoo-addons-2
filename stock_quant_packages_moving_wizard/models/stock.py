@@ -93,12 +93,12 @@ class StockQuant(models.Model):
 
 SELECT sm.id
 FROM correct_moves sm
-    LEFT JOIN stock_move move_orig on move_orig.move_dest_id = sm.id
-    LEFT JOIN stock_quant_move_rel rel on rel.quant_id = %s
-    LEFT JOIN stock_move move_history on move_history.id = rel.move_id
+    LEFT JOIN stock_move move_orig ON move_orig.move_dest_id = sm.id
+    LEFT JOIN stock_quant_move_rel rel ON rel.quant_id = %s
+    LEFT JOIN stock_move move_history ON move_history.id = rel.move_id
 WHERE move_orig.id = move_history.id OR
       sm.id = move_history.id
-ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), quant.id,))
+ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), quant.id,))
 
             moves_correct_chain_ids = [move_id for move_id in set([item[0] for item in self.env.cr.fetchall()])]
             self.env.cr.execute("""WITH nb_ancestors AS (
@@ -116,7 +116,7 @@ SELECT sm.id
 FROM nb_ancestors sm
 WHERE sm.sum_move_ids = 0 AND
       sm.id NOT IN %s
-ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), tuple(quant.history_ids.ids or [0]),))
+ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(quant.history_ids.ids or [0]),))
             moves_no_ancestors_ids = [move_id for move_id in set([item[0] for item in self.env.cr.fetchall()])]
         return moves_correct_chain_ids + moves_no_ancestors_ids
 
@@ -159,6 +159,8 @@ ORDER BY sm.priority desc, sm.date asc, sm.id asc""", (tuple(move_ids), tuple(qu
             corresponding_move_ids = self. \
                 get_corresponding_move_ids(quant, location_from, dest_location, picking_type_id,
                                            force_domain=[('id', 'not in', full_moves.ids)])
+            if quant.reservation_id and quant.reservation_id.id not in corresponding_move_ids:
+                quant.reservation_id.do_unreserve()
             for move_id in corresponding_move_ids:
                 move = self.env['stock.move'].search([('id', '=', move_id)])
                 if move not in dict_reservation_target:
@@ -367,6 +369,12 @@ class StockWarehouse(models.Model):
     picking_type_id = fields.Many2one('stock.picking.type', string="Default picking type")
 
 
+class StockPickingType(models.Model):
+    _inherit = 'stock.picking.type'
+
+    force_is_manual_op = fields.Boolean(string=u"Force manual moves")
+
+
 class Stock(models.Model):
     _name = 'stock.product.line'
     _auto = False
@@ -452,6 +460,33 @@ class Stock(models.Model):
         LEFT JOIN nb_products_by_package nb_products ON nb_products.package_id = rqx.package_id)
             """)
 
+    @api.model
+    def get_default_lines_data_for_wizard(self):
+        quant_lines = []
+        package_lines = []
+        for line in self:
+            line_dict = {
+                'product_id': line.product_id.id,
+                'product_name': line.product_id.display_name,
+                'package_id': line.package_id and line.package_id.id or False,
+                'package_name': line.package_id and line.package_id.display_name or False,
+                'parent_id': line.parent_id and line.parent_id.id or False,
+                'lot_id': line.lot_id and line.lot_id.id or False,
+                'lot_name': line.lot_id and line.lot_id.display_name or False,
+                'available_qty': line.qty,
+                'qty': line.qty,
+                'uom_id': line.uom_id and line.uom_id.id or False,
+                'uom_name': line.uom_id and line.uom_id.display_name or False,
+                'location_id': line.location_id.id,
+                'location_name': line.location_id.display_name,
+                'created_from_id': line.id,
+            }
+            if line.product_id or not line.package_id:
+                quant_lines.append(line_dict)
+            else:
+                package_lines.append(line_dict)
+        return quant_lines, package_lines
+
     @api.multi
     def move_products(self):
         if self:
@@ -479,3 +514,51 @@ class ProductToBeFilled(models.Model):
     product_id = fields.Many2one('product.product', string=u"Product")
     filled = fields.Boolean(string=u"Filled")
     filled_at = fields.Datetime(string=u"Filled at")
+
+
+class StockLocation(models.Model):
+    _inherit = 'stock.location'
+
+    @api.multi
+    def get_default_loc_picking_type(self, product):
+        self.ensure_one()
+        if product:
+            product.ensure_one()
+        pull_rule = False
+        push_rule = False
+        if product:
+            pull_rule = self.env['procurement.rule'].search([('location_src_id', '=', self.id),
+                                                             ('route_id.product_selectable', '=', True),
+                                                             ('route_id', 'in', product.route_ids.ids)],
+                                                            limit=1)
+            push_rule = self.env['stock.location.path'].search([('location_from_id', '=', self.id),
+                                                                ('route_id.product_selectable', '=', True),
+                                                                ('route_id', 'in', product.route_ids.ids)],
+                                                               limit=1)
+            if not pull_rule and not push_rule and product.categ_id:
+                pull_rule = self.env['procurement.rule'].search([('location_src_id', '=', self.id),
+                                                                 ('route_id.product_categ_selectable', '=', True),
+                                                                 ('route_id', 'in', product.categ_id.route_ids.ids)],
+                                                                limit=1)
+                push_rule = self.env['stock.location.path'].search([('location_from_id', '=', self.id),
+                                                                    ('route_id.product_categ_selectable', '=', True),
+                                                                    ('route_id', 'in', product.categ_id.route_ids.ids)],
+                                                                   limit=1)
+        if not pull_rule and not push_rule and self:
+            warehouse_id = self.get_warehouse(location=self)
+            if warehouse_id:
+                warehouse = self.env['stock.warehouse'].search([('id', '=', warehouse_id)])
+                pull_rule = self.env['procurement.rule'].search([('location_src_id', '=', self.id),
+                                                                 ('route_id.warehouse_selectable', '=', True),
+                                                                 ('route_id', 'in', warehouse.route_ids.ids)],
+                                                                limit=1)
+                push_rule = self.env['stock.location.path'].search([('location_from_id', '=', self.id),
+                                                                    ('route_id.warehouse_selectable', '=', True),
+                                                                    ('route_id', 'in', warehouse.route_ids.ids)],
+                                                                   limit=1)
+        if pull_rule:
+            return pull_rule.location_id, pull_rule.picking_type_id
+        elif push_rule:
+            return push_rule.location_dest_id, push_rule.picking_type_id
+        else:
+            return False, False

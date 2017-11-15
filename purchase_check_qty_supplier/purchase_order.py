@@ -27,14 +27,14 @@ class CheckQtySupplierPurchaseOrder(models.Model):
     @api.model
     def create(self, vals):
         result = super(CheckQtySupplierPurchaseOrder, self.with_context(check_product_qty=False)).create(vals)
-        if self.env.context.get('check_product_qty', True) and self.state != 'cancel':
+        if self.env.context.get('check_product_qty', True) and self.state != 'cancel' and 'order_line' in vals:
             self._check_qty_on_order()
         return result
 
     @api.multi
     def write(self, vals):
         result = super(CheckQtySupplierPurchaseOrder, self.with_context(check_product_qty=False)).write(vals)
-        if self.env.context.get('check_product_qty', True):
+        if self.env.context.get('check_product_qty', True) and 'order_line' in vals:
             for rec in self.filtered(lambda it: it.state != 'cancel'):
                 rec._check_qty_on_order()
         return result
@@ -50,12 +50,14 @@ class CheckQtySupplierPurchaseOrder(models.Model):
             supplierinfo = supplierinfo and supplierinfo[0] or False
             if supplierinfo:
                 qty = rec._get_qty_on_order_by_product(product_id.id, supplierinfo)
-                if float_compare(supplierinfo.min_qty, qty, precision_digits=precision) == 1 and \
-                                float_compare(qty, 0, precision_digits=precision) == 1:
-                    raise exceptions.except_orm(_(u"Error!"),
-                                                _(u'The selected supplier has a minimal quantity set to %s %s,'
-                                                  u' you should not purchase less.')
-                                                % (supplierinfo.min_qty, supplierinfo.product_uom.name))
+                if float_compare(supplierinfo.min_qty, qty, precision_digits=precision) > 0 and \
+                        float_compare(qty, 0, precision_digits=precision) > 0:
+                    raise exceptions.except_orm(
+                        _(u"Error!"),
+                        _(u'The selected supplier has a minimal quantity set to %s %s for the product %s,'
+                          u' you should not purchase less.')
+                        % (supplierinfo.min_qty, supplierinfo.product_uom.name, product_id.name)
+                    )
 
     def _get_qty_on_order_by_product(self, product_id, supplierinfo):
         self.ensure_one()
@@ -77,15 +79,16 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
     @api.model
     def create(self, vals):
         result = super(CheckQtySupplierPurchaseOrderLine, self).create(vals)
-        if self.env.context.get('check_product_qty', True) and self.state != 'cancel' \
-                or self.order_id.state != 'cancel':
+        if self.env.context.get('check_product_qty', True) \
+                and (self.state != 'cancel' or self.order_id.state != 'cancel')\
+                and 'product_qty' in vals:
             self.order_id._check_qty_for_product(self.product_id)
         return result
 
     @api.multi
     def write(self, vals):
         result = super(CheckQtySupplierPurchaseOrderLine, self).write(vals)
-        if self.env.context.get('check_product_qty', True):
+        if self.env.context.get('check_product_qty', True) and 'product_qty' in vals:
             for rec in self.filtered(lambda it: it.state != 'cancel' or it.order_id.state != 'cancel'):
                 rec.order_id._check_qty_for_product(rec.product_id)
         return result
@@ -125,7 +128,7 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
                     if float_compare(min_qty, qty, precision_digits=precision) == 1 and qty:
                         message = _(
                             'The selected supplier has a minimal quantity set to %s %s, you should not purchase less.') \
-                                  % (supplierinfo.min_qty, supplierinfo.product_uom.name)
+                            % (supplierinfo.min_qty, supplierinfo.product_uom.name)
                         if result['warning']['message'] == message:
                             del result['warning']
                             result['value'].update({'product_qty': qty})
