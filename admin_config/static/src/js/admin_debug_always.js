@@ -2,7 +2,6 @@ odoo.define('web.DebugManager_always', function (require) {
    "use strict";
    	
    var core = require('web.core');
-   var $ = require('$');
    var utils = require('web.utils');
    var session = require('web.session');
    var debug=require('web.DebugManager');
@@ -25,6 +24,3 @@ odoo.define('web.DebugManager_always', function (require) {
 	   return wid;
    }
 });
-
-
-

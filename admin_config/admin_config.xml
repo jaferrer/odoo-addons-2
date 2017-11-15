@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
     <data>
 
         <record model="ir.actions.server" id="ir_actions_server_delete_field_translations">
             <field name="name">Delete all translations of this item</field>
             <field name="model_id" ref="base.model_ir_translation"/>
             <field name="code">
-self.delete_field_translations(cr, uid, context.get('active_ids'), False, context)
+                self.delete_field_translations(cr, uid, context.get('active_ids'), False, context)
             </field>
         </record>
 
@@ -85,12 +85,13 @@ self.delete_field_translations(cr, uid, context.get('active_ids'), False, contex
         <record model="ir.actions.act_window" id="base.open_module_tree">
             <field name="context">{'search_default_ndp': True}</field>
         </record>
-        
-        <template id="assets_backend" name="admin_config assets" inherit_id="web.assets_backend">
-            <xpath expr="." position="inside">
-                <script type="text/javascript" src="/admin_config/static/src/js/admin_debug_always.js"></script>
-            </xpath>
-        </template>
-
     </data>
-</openerp>
+
+    <template id="assets_backend" name="admin_config assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/admin_config/static/src/js/admin_debug_always.js"></script>
+        </xpath>
+    </template>
+
+
+</odoo>
