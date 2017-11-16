@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="procuremenr_time_frame_tree">
+            <field name="name">procurement.time.frame.tree</field>
+            <field name="model">procurement.time.frame</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="name"/>
+                    <field name="nb"/>
+                    <field name="period_type"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_procurement_time_frames">
+            <field name="name">Time Frames</field>
+            <field name="res_model">procurement.time.frame</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <menuitem id="menu_procurement_time_frames" name="Time Frames" action="act_window_procurement_time_frames"
+                  parent="purchase.menu_purchase_config" sequence="10"/>
+
+    </data>
+</openerp>

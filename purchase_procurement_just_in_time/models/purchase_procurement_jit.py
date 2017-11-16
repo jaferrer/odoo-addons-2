@@ -17,9 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
-from openerp import fields, models, api, _, exceptions
+from openerp.exceptions import UserError
+from openerp import fields, models, api, _
 from openerp.tools.float_utils import float_compare
 
 
@@ -97,7 +96,6 @@ class PurchaseOrderJustInTime(models.Model):
                 else:
                     final_uom_qty = qty_needed - qty_received
             r['product_uom_qty'] = min(final_uom_qty, remaining_qty)
-            r['product_uos_qty'] = min(final_uom_qty, remaining_qty) * order_line.product_id.uos_coeff
             remaining_qty -= min(final_uom_qty, remaining_qty)
         for r in to_remove:
             res.remove(r)
@@ -135,8 +133,8 @@ class PurchaseOrderLineJustInTime(models.Model):
 
         for rec in self:
             if rec.date_planned and rec.date_required:
-                date_planned = datetime.strptime(rec.date_planned, DEFAULT_SERVER_DATE_FORMAT)
-                date_required = datetime.strptime(rec.date_required, DEFAULT_SERVER_DATE_FORMAT)
+                date_planned = fields.Datetime.from_string(rec.date_planned)
+                date_required = fields.Datetime.from_string(rec.date_required)
                 min_late_days = int(self.env['ir.config_parameter'].get_param(
                     "purchase_procurement_just_in_time.opmsg_min_late_delay"))
                 min_early_days = int(self.env['ir.config_parameter'].get_param(
@@ -250,8 +248,8 @@ class PurchaseOrderLineJustInTime(models.Model):
             vals['line_no'] = str(theo_value)
         result = super(PurchaseOrderLineJustInTime, self).create(vals)
 
-        if result.order_id.state not in ['draft', 'sent', 'bid', 'confirmed', 'done', 'cancel']:
-            result.order_id.set_order_line_status('confirmed')
+        if result.order_id.state not in ['draft', 'sent', 'bid', 'to approve', 'done', 'cancel']:
+            result.order_id.set_procs_to_exception_if_needed()
             if result.product_qty != 0 and not result.move_ids and not self.env.context.get('no_update_moves'):
                 # We create associated moves
                 order_lines = result.order_id.order_line.filtered(lambda l: l != result)
@@ -346,9 +344,9 @@ class PurchaseOrderLineJustInTime(models.Model):
 
         self.ensure_one()
         if vals['product_qty'] < sum([x.product_uom_qty for x in self.move_ids if x.state == 'done']):
-            raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
+            raise UserError(_("Impossible to cancel moves at state done."))
         global_qty_ordered = sum(x.product_uom_qty for x in self.move_ids if x.state != 'cancel')
-        if self.state == 'confirmed':
+        if self.state not in ['draft', 'done', 'cancel']:
             if vals['product_qty'] == 0:
                 for move in self.move_ids:
                     move.with_context({'cancel_procurement': True}).action_cancel()
@@ -364,7 +362,7 @@ class PurchaseOrderLineJustInTime(models.Model):
             if len(self.move_ids) == 0:
                 self.action_cancel()
             if len(order.order_line) == 0:
-                order.action_cancel()
+                order.button_cancel()
 
     @api.multi
     def write(self, vals):
@@ -404,56 +402,54 @@ class PurchaseOrderLineJustInTime(models.Model):
 class ProcurementOrderPurchaseJustInTime(models.Model):
     _inherit = 'procurement.order'
 
-    @api.model
-    def propagate_cancel(self, procurement):
+    @api.multi
+    def propagate_cancels(self):
 
         """
         Improves the original propagate_cancel function. If the corresponding purchase order is draft, it eventually
         cancels and/or deletes the purchase order line and the purchase order.
         """
 
-        result = None
         to_delete = False
-        if procurement.rule_id.action == 'buy' and procurement.purchase_line_id:
-            # Canceling a confirmed procurement order if needed
-            line = procurement.purchase_line_id
-            order = line.order_id
-            total_need = 0
-            for order_line in order.order_line:
-                total_need += sum(
-                    [x.product_qty for x in order_line.procurement_ids if x.product_id == line.product_id
-                     and x != procurement and x.state != 'cancel'])
-            if float_compare(total_need, 0.0, precision_rounding=procurement.product_uom.rounding) != 0:
-                total_need = self.with_context(cancelling_active_proc=True). \
-                    _calc_new_qty_price(procurement)[0]
-            # Considering the case of different lines with same product in one order
-            total_need = total_need - sum([l.product_qty for l in order.order_line if l != line and
-                                           l.product_id == line.product_id])
-            if procurement.purchase_line_id.order_id.state not in ['draft', 'cancel', 'done']:
-                opmsg_reduce_qty = total_need
-                if float_compare(total_need, 0.0, precision_rounding=procurement.product_uom.rounding) == 0:
-                    to_delete = True
+        cancelling_procs = self.env['procurement.order']
+        for procurement in self:
+            if procurement.rule_id.action == 'buy' and procurement.purchase_line_id:
+                # Canceling a confirmed procurement order if needed
                 line = procurement.purchase_line_id
-                procurement.purchase_line_id.write({'opmsg_reduce_qty': opmsg_reduce_qty,
-                                                    'to_delete': to_delete})
-                vals_to_write = {'purchase_id': False, 'purchase_line_id': False}
-                if [x for x in procurement.move_ids if x.state == 'done']:
-                    vals_to_write['product_qty'] = sum([x.product_qty for x in procurement.move_ids if x.state == 'done'])
-                moves_to_unlink = line.move_ids.filtered(lambda x: x.state not in ['done', 'cancel'] and
-                                                                   (not x.procurement_id or
-                                                                    x.procurement_id == procurement))
-                moves_to_unlink.action_cancel()
-                moves_to_unlink.unlink()
-                procurement.check()
-                procurement.write(vals_to_write)
-                line.order_id._create_stock_moves(line.order_id, line)
-            else:
-                result = super(ProcurementOrderPurchaseJustInTime,
-                               self.with_context(cancelling_active_proc=True)). \
-                    propagate_cancel(procurement)
-        else:
-            result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
-        return result
+                order = line.order_id
+                total_need = 0
+                for order_line in order.order_line:
+                    total_need += sum(
+                        [x.product_qty for x in order_line.procurement_ids if x.product_id == line.product_id
+                         and x != procurement and x.state != 'cancel'])
+                if float_compare(total_need, 0.0, precision_rounding=procurement.product_uom.rounding) != 0:
+                    line.with_context(cancelling_procs=procurement).update_qty_price()
+                    total_need = line.product_qty
+                # Considering the case of different lines with same product in one order
+                total_need = total_need - sum([l.product_qty for l in order.order_line if l != line and
+                                               l.product_id == line.product_id])
+                if procurement.purchase_line_id.order_id.state not in ['draft', 'cancel', 'done']:
+                    opmsg_reduce_qty = total_need
+                    if float_compare(total_need, 0.0, precision_rounding=procurement.product_uom.rounding) == 0:
+                        to_delete = True
+                    line = procurement.purchase_line_id
+                    procurement.purchase_line_id.write({'opmsg_reduce_qty': opmsg_reduce_qty,
+                                                        'to_delete': to_delete})
+                    vals_to_write = {'purchase_id': False, 'purchase_line_id': False}
+                    if [x for x in procurement.move_ids if x.state == 'done']:
+                        vals_to_write['product_qty'] = sum([x.product_qty for x in procurement.move_ids if x.state == 'done'])
+                    moves_to_unlink = line.move_ids.filtered(lambda x: x.state not in ['done', 'cancel'] and
+                                                                       (not x.procurement_id or
+                                                                        x.procurement_id == procurement))
+                    moves_to_unlink.action_cancel()
+                    moves_to_unlink.unlink()
+                    procurement.check()
+                    procurement.write(vals_to_write)
+                    line.order_id._create_stock_moves(line.order_id, line)
+                else:
+                    cancelling_procs |= procurement
+        return super(ProcurementOrderPurchaseJustInTime,
+                     self.with_context(cancelling_procs=cancelling_procs)).propagate_cancels()
 
 
 class SplitLine(models.TransientModel):
@@ -476,22 +472,22 @@ class SplitLine(models.TransientModel):
 
         self.ensure_one()
         if self.env.context.get('active_ids') and len(self.env.context.get('active_ids')) > 1:
-            raise exceptions.except_orm(_('Error!'), _("Please split lines one by one"))
+            raise UserError(_("Please split lines one by one"))
         else:
             if self.qty <= 0:
-                raise exceptions.except_orm(_('Error!'), _("Impossible to split a negative or null quantity"))
-            if self.line_id.state not in ['draft', 'confirmed']:
-                raise exceptions.except_orm(_('Error!'), _("Impossible to split line which is not in state draft or "
+                raise UserError(_("Impossible to split a negative or null quantity"))
+            if self.line_id.state not in ['done', 'cancel']:
+                raise UserError(_("Impossible to split line which is not in state draft or "
                                                            "confirmed"))
             if self.line_id.state == 'draft':
                 if self.qty >= self.line_id.product_qty:
-                    raise exceptions.except_orm(_('Error!'), _("Please choose a lower quantity to split"))
-        if self.line_id.state == 'confirmed':
+                    raise UserError(_("Please choose a lower quantity to split"))
+        if self.line_id.state not in ['draft', 'done', 'cancel']:
             _sum = sum(x.product_uom_qty for x in self.line_id.move_ids if x.state == 'done')
             if self.qty < _sum:
-                raise exceptions.except_orm(_('Error!'), _("Impossible to split a move in state done"))
+                raise UserError(_("Impossible to split a move in state done"))
             if self.qty >= sum([m.product_uom_qty for m in self.line_id.move_ids if m.state != 'cancel']):
-                raise exceptions.except_orm(_('Error!'), _("Please choose a lower quantity to split"))
+                raise UserError(_("Please choose a lower quantity to split"))
 
     @api.multi
     def do_split(self):
@@ -522,7 +518,7 @@ class SplitLine(models.TransientModel):
         })
 
         # Dispatch moves if the original purchase.order.line was confirmed
-        if self.line_id.state == 'confirmed':
+        if self.line_id.state in ['draft', 'done', 'cancel']:
             moves = self.line_id.move_ids.filtered(lambda m: m.state not in ['draft', 'done', 'cancel']) \
                 .sorted(key=lambda m: m.product_qty)
             moves_to_keep = self.env['stock.move']
@@ -552,4 +548,4 @@ class SplitLine(models.TransientModel):
             # Try to assign all moves
             moves.action_assign()
             # Set the status of all lines
-            self.line_id.order_id.set_order_line_status(self.line_id.state)
+            self.line_id.order_id.set_procs_to_exception_if_needed()

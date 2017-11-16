@@ -137,7 +137,6 @@ class magentoextendCRUDAdapter(CRUDAdapter):
             if session:
                 start = datetime.now()
                 try:
-                    print method
                     result = server.call(session, method, *arguments)
                 except:
                     _logger.error("api.call(%s, %s) failed", method, arguments)

@@ -75,12 +75,13 @@ Notes
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'stock_planning_improved_view.xml',
+        'cron.xml',
     ],
     'demo': [
         'stock_planning_improved_demo.xml',
     ],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

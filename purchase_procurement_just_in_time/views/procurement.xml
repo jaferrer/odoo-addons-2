@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="procurement_order_jit_search">
+            <field name="name">procurement_order_jit_search</field>
+            <field name="model">procurement.order</field>
+            <field name="inherit_id" ref="procurement.view_procurement_filter"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <filter context="{'group_by':'state'}" position="attributes">
+                    <attribute name="name">group_procs_by_state</attribute>
+                </filter>
+                <search position="inside">
+                    <separator/>
+                    <filter name="buy_to_run" string="Buy rule to run" domain="[('state', '=', 'buy_to_run')]"/>
+                </search>
+            </field>
+        </record>
+
+    </data>
+</openerp>

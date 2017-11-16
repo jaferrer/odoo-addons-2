@@ -5,7 +5,7 @@
          <!--allows the system to deal with different uom-->
 
         <record model="stock.config.settings" id="stock_config_settings_defaults">
-            <field name="group_uom">1</field>
+            <field name="group_uom" eval="1"/>
         </record>
         <function
             model="stock.config.settings"

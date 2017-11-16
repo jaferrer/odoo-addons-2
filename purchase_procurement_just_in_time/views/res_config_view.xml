@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+
         <record model="ir.ui.view" id="purchase_config_form_jit">
             <field name="name">purchase.config.form.jit</field>
             <field name="model">purchase.config.settings</field>
@@ -22,10 +23,34 @@
                                     <field name="opmsg_min_early_delay" class="oe_inline"/>
                                 </div>
                             </div>
+                            <label for="id" string="Purchase planner"/>
+                            <div name="purchase_planner">
+                                <div>
+                                    <label for="delta_begin_grouping_period"/>
+                                    <field name="delta_begin_grouping_period" class="oe_inline"/>
+                                </div>
+                                <div>
+                                    <label for="ignore_past_procurements"/>
+                                    <field name="ignore_past_procurements" class="oe_inline"/>
+                                </div>
+                                <div>
+                                    <label for="fill_orders_in_separate_jobs"/>
+                                    <field name="fill_orders_in_separate_jobs" class="oe_inline"/>
+                                </div>
+                                <div>
+                                    <label for="redistribute_procurements_in_separate_jobs"/>
+                                    <field name="redistribute_procurements_in_separate_jobs" class="oe_inline"/>
+                                </div>
+                                <div>
+                                    <label for="config_sellers_manually"/>
+                                    <field name="config_sellers_manually" class="oe_inline"/>
+                                </div>
+                            </div>
                         </group>
                     </form>
                 </data>
             </field>
         </record>
+
     </data>
 </openerp>

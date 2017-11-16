@@ -17,7 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, exceptions, _
+from openerp.exceptions import UserError
+from openerp import models, fields, api, _
 
 
 class QuantitiesModificationsSaleOrder(models.Model):
@@ -29,7 +30,7 @@ class QuantitiesModificationsSaleOrder(models.Model):
     @api.multi
     def reopen_order(self):
         if any([order.state != 'done' for order in self]):
-            raise exceptions.except_orm(_("Error!"), _("Impossible to reopen a not done sale order."))
+            raise UserError(_("Impossible to reopen a not done sale order."))
         self.write({'workflow_done': True,
                     'state': 'sale'})
         self.message_post(body=_("Sale order reopened by %s") % self.env.user.name)
