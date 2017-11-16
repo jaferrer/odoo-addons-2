@@ -74,6 +74,9 @@ class ProductLabelProductProduct(models.Model):
             'view_type': 'form',
             'view_mode': 'tree,form',
             'res_model': 'stock.move',
-            'domain': ['|', ('company_id', '=', False), ('company_id', 'child_of', [self.env.user.company_id.id])],
+            'domain': ['|', ('location_id.company_id', '=', False),
+                       ('location_id.company_id', 'child_of', self.env.user.company_id.id),
+                       '|', ('location_dest_id.company_id', '=', False),
+                       ('location_dest_id.company_id', 'child_of', self.env.user.company_id.id)],
             'context': ctx,
         }
