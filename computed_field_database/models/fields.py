@@ -207,7 +207,7 @@ def get_pg_type(f, type_override=None):
     return pg_type
 
 @api.cr_context
-def _auto_init(self):
+def _auto_init(self, cr, context=None):
     """
 
     Call _field_create and, unless _auto is False:
