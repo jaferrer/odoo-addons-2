@@ -1,9 +1,0 @@
-<openerp>
-    <data>
-       <template id="assets_backend" name="web_kanban_m2m_tags_improved assets" inherit_id="web.assets_backend">
-            <xpath expr="." position="inside">
-                <script type="text/javascript" src="/web_kanban_m2m_tags_improved/static/src/js/web_kanban_m2m_tags_improved.js"></script>
-            </xpath>
-        </template>
-    </data>
-</openerp>
