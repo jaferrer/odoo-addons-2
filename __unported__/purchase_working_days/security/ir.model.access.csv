@@ -1,8 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_resource_calendar,"purchase_working_days.resource_calendar user",resource.model_resource_calendar,purchase.group_purchase_user,1,0,0,0
-access_resource_calendar_attendance,"purchase_working_days.resource_calendar_attendance user",resource.model_resource_calendar_attendance,purchase.group_purchase_user,1,0,0,0
-access_resource_calendar_leaves_user,"purchase_working_days.resource_calendar_leaves user",resource.model_resource_calendar_leaves,purchase.group_purchase_user,1,0,0,0
-manager_resource_calendar,"purchase_working_days.resource_calendar manager",resource.model_resource_calendar,purchase.group_purchase_manager,1,1,1,1
-manager_resource_calendar_attendance,"purchase_working_days.resource_calendar_attendance manager",resource.model_resource_calendar_attendance,purchase.group_purchase_manager,1,1,1,1
-manager_resource_calendar_leaves_user,"purchase_working_days.resource_calendar_leaves manager",resource.model_resource_calendar_leaves,purchase.group_purchase_manager,1,1,1,1
-manager_resource_resource,"resource.resource purchase manager",resource.model_resource_resource,purchase.group_purchase_manager,1,1,1,1
