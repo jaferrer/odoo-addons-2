@@ -278,6 +278,68 @@ class StockQuantPackageImproved(models.Model):
         ('name_uniq', 'unique (name)', 'The name of the package must be unique!')
     ]
 
+    def _get_packages(self, cr, uid, ids, context=None):
+        """Returns packages from quants for store"""
+        res = set()
+        for quant in self.browse(cr, uid, ids, context=context):
+            pack = quant.package_id
+            while pack:
+                res.add(pack.id)
+                pack = pack.parent_id
+        return list(res)
+
+    def _get_package_info(self, cr, uid, ids, name, args, context=None):
+        result = super(StockQuantPackageImproved, self)._get_package_info(cr, uid, ids, name, args, context=context)
+        for package in self.pool.get('stock.quant.package').browse(cr, uid, ids):
+            if result.get(package.id):
+                old_location_id = package.location_id and package.location_id.id or False
+                old_company_id = package.company_id and package.company_id.id or False
+                old_owner_id = package.owner_id and package.owner_id.id or False
+                new_location_id = result[package.id].get('location_id', old_location_id)
+                new_company_id = result[package.id].get('company_id', old_company_id)
+                new_owner_id = result[package.id].get('owner_id', old_owner_id)
+                if new_location_id == old_location_id and new_company_id == old_company_id and \
+                        new_owner_id == old_owner_id:
+                    del result[package.id]
+        return result
+
+    def _get_packages_to_relocate(self, cr, uid, ids, context=None):
+        res = set()
+        for pack in self.browse(cr, uid, ids, context=context):
+            res.add(pack.id)
+            if pack.parent_id:
+                res.add(pack.parent_id.id)
+        return list(res)
+
+    _columns = {
+        'location_id': old_api_fields.function(_get_package_info, type='many2one', relation='stock.location',
+                                               string='Location',
+                                               multi="package",
+                                               store={
+                                                   'stock.quant': (_get_packages, ['location_id'], 10),
+                                                   'stock.quant.package': (
+                                                       _get_packages_to_relocate,
+                                                       ['quant_ids', 'children_ids', 'parent_id'], 10),
+                                               }, readonly=True, select=True),
+        'company_id': old_api_fields.function(_get_package_info, type="many2one", relation='res.company',
+                                              string='Company',
+                                              multi="package",
+                                              store={
+                                                  'stock.quant': (_get_packages, ['company_id'], 10),
+                                                  'stock.quant.package': (
+                                                      _get_packages_to_relocate,
+                                                      ['quant_ids', 'children_ids', 'parent_id'], 10),
+                                              }, readonly=True, select=True),
+        'owner_id': old_api_fields.function(_get_package_info, type='many2one', relation='res.partner', string='Owner',
+                                            multi="package",
+                                            store={
+                                                'stock.quant': (_get_packages, ['owner_id'], 10),
+                                                'stock.quant.package': (
+                                                    _get_packages_to_relocate,
+                                                    ['quant_ids', 'children_ids', 'parent_id'], 10),
+                                            }, readonly=True, select=True),
+    }
+
     def _get_all_products_quantities(self, cr, uid, package_id, context=None):
         '''This function computes the different product quantities for the given package
         '''
