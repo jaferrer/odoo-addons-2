@@ -191,7 +191,7 @@ class SupplyChainControlProductProduct(models.Model):
     @api.multi
     def get_main_supplierinfo(self, force_company=None):
         self.ensure_one()
-        return self.product_tmpl_id.get_main_supplierinfo(force_company=None)
+        return self.product_tmpl_id.get_main_supplierinfo(force_company=force_company)
 
     @api.multi
     def get_available_qty_supply_control(self, available_quantities):
