@@ -176,12 +176,22 @@ WHERE (res_partner.id IS NULL OR main_supplier_s.constr = 1) AND
             product = self.browse(res_tuple[0])
             supplier = self.env['res.partner'].browse(res_tuple[1])
             product.seller_id = supplier
+        self.env['product.product'].update_seller_ids()
 
 
 class SupplyChainControlProductProduct(models.Model):
     _inherit = 'product.product'
 
     seller_id = fields.Many2one(related='product_tmpl_id.seller_id', store=True, readonly=True)
+
+    @api.model
+    def update_seller_ids(self):
+        return False
+
+    @api.multi
+    def get_main_supplierinfo(self, force_company=None):
+        self.ensure_one()
+        return self.product_tmpl_id.get_main_supplierinfo(force_company=None)
 
     @api.multi
     def get_available_qty_supply_control(self, available_quantities):
@@ -202,10 +212,10 @@ class SupplyChainControlProductProduct(models.Model):
         seller_defined = True
         scheduler_active_for_seller = True
         companies = self.env['res.company'].search([])
-        main_supplierinfo = self.product_tmpl_id.get_main_supplierinfo()
+        main_supplierinfo = self.get_main_supplierinfo()
         for company in companies:
             if seller_defined:
-                supplierinfo = self.product_tmpl_id.get_main_supplierinfo(force_company=company)
+                supplierinfo = self.get_main_supplierinfo(force_company=company)
                 seller = supplierinfo and supplierinfo.name or False
                 if not seller:
                     seller_defined = False
