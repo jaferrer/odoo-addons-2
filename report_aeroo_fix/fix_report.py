@@ -35,7 +35,7 @@ class FixExtrafunction(models.BaseModel):
                                               ('lang', '=', self.context['lang'] or self.context['user_lang'])
                                           ],
                                           limit=1,
-                                          order='sequence desc')
+                                          order='id desc')
             trans_value = trans and trans[0] and trans[0]['value'] or False
             if not trans_value:
                 trans_obj.create(self.cr, self.uid,
