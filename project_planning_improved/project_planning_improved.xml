@@ -78,6 +78,22 @@
             </field>
         </record>
 
+        <record model="ir.actions.server" id="ir_actions_server_update_ready_for_execution">
+            <field name="name">Update field 'ready for execution'</field>
+            <field name="model_id" ref="project.model_project_task"/>
+            <field name="code">
+self.update_ready_for_execution(cr, uid, context.get('active_ids'), False, context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_update_ready_for_execution">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">project.task</field>
+            <field name="name">Update field 'ready for execution'</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_update_ready_for_execution)"/>
+        </record>
+
         <record model="ir.ui.view" id="project_improved_task_search">
             <field name="name">project_improved_task_search</field>
             <field name="model">project.task</field>
@@ -129,6 +145,7 @@
                             <field name="expected_start_date" widget="date"
                                    attrs="{'required': [('taken_into_account', '=', True)]}"/>
                             <field name="conflict"/>
+                            <field name="ready_for_execution"/>
                             <field name="allocated_duration"/>
                             <field name="allocated_duration_unit_tasks"/>
                         </group>
