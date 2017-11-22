@@ -269,6 +269,28 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
             new_picking.do_transfer()
         return new_picking
 
+    @api.multi
+    def get_natural_loc_picking_type(self):
+        natural_dest_loc = False
+        natural_picking_type = False
+        list_next_moves = self.env['stock.move']
+        for rec in self:
+            service_moves = self.env['stock.move']. \
+                search([('id', 'in', rec.history_ids.ids),
+                        ('state', '=', 'done'),
+                        ('location_dest_id', '=', rec.location_id.id),
+                        ('move_dest_id', '!=', False),
+                        ('move_dest_id.state', 'not in', [('draft', 'done', 'cancel')])])
+            for service_move in service_moves:
+                list_next_moves  |= service_move.move_dest_id
+        list_dest_locs = [move.location_dest_id for move in list_next_moves]
+        list_picking_types = [move.picking_type_id for move in list_next_moves]
+        if len(set(list_dest_locs)) == 1:
+            natural_dest_loc = list_dest_locs[0]
+        if len(set(list_picking_types)) == 1:
+            natural_picking_type = list_picking_types[0]
+        return natural_dest_loc, natural_picking_type
+
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
