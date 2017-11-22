@@ -199,7 +199,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                    ('product_id', '=', product_id),
                                                    ('location_id', '=', location_id)]
             procurements_to_run = self.search(domain)
-            seller = procurements_to_run and self.env['procurement.order']._get_product_supplier(procurements_to_run[0])
+            seller = procurements_to_run and self.env['procurement.order']. \
+                _get_product_supplier(procurements_to_run[0]) or False
             if not seller:
                 # If the first proc has no seller, then we drop this proc and go to the next
                 procurements_exception = self.search(domain + [('purchase_line_id', '=', False)])
