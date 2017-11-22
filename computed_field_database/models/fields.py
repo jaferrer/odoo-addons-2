@@ -290,6 +290,9 @@ def _auto_init(self, cr, context=None):
                 # The field already exists in database. Possibly
                 # change its type, rename it, drop it or change its
                 # constraints.
+                if f._args.get("compute_sql"):
+                    cr.execute('ALTER TABLE "%s" DROP COLUMN "%s" CASCADE' % (self._table, k))
+                    res = False
                 if res:
                     f_pg_type = res['typname']
                     f_pg_size = res['size']
