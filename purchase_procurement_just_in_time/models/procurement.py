@@ -148,6 +148,28 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 self.launch_purchase_schedule(compute_all_products, compute_supplier_ids, compute_product_ids, jobify)
 
     @api.model
+    def determine_list_scheduler_keys(self, compute_all_products, compute_product_ids):
+        """This functions returns a list of tuple (company, location, product) for procurements to process"""
+        query = """SELECT
+          po.company_id,
+          po.location_id,
+          po.product_id
+        FROM procurement_order po
+          LEFT JOIN procurement_rule pr ON pr.id = po.rule_id
+        WHERE po.state NOT IN ('cancel', 'done', 'exception') AND pr.action = 'buy'"""
+        arguments_needed = False,
+        if not compute_all_products and compute_product_ids:
+            arguments_needed = True
+            query += """ AND po.product_id IN %s"""
+        query += """
+        GROUP BY po.company_id, po.location_id, po.product_id"""
+        if arguments_needed:
+            self.env.cr.execute(query, (tuple(compute_product_ids),))
+        else:
+            self.env.cr.execute(query)
+        return self.env.cr.fetchall()
+
+    @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
         self.env['product.template'].update_seller_ids()
         stock_scheduler_controller_line = self.env['stock.scheduler.controller'].search([('done', '=', False)], limit=1)
@@ -158,7 +180,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                       ('rule_id.action', '=', 'buy')]
         if not compute_all_products and compute_product_ids:
             domain_procurements_to_run += [('product_id', 'in', compute_product_ids)]
-        procurements_to_run = self.search(domain_procurements_to_run)
+        list_scheduler_keys = self.determine_list_scheduler_keys(compute_all_products, compute_product_ids)
         ignore_past_procurements = bool(self.env['ir.config_parameter'].
                                         get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
         config_sellers_manually = bool(self.env['ir.config_parameter'].
@@ -168,29 +190,25 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     ('nb_days_scheduler_frequency', '=', 0),
                     ('next_scheduler_date', '=', False),
                     ('supplier', '=', True)]) or []
-        # dict_procs groups procurements by supplier, company and location, in order to
-        # launch the purchase planner on each group
         dict_procs = {}
-        while procurements_to_run:
+        for company_id, location_id, product_id in list_scheduler_keys:
+            company = self.env['res.company'].search([('id', '=', company_id)])
+            location = self.env['stock.location'].search([('id', '=', location_id)])
+            product = self.env['product.product'].search([('id', '=', product_id)])
+            domain = domain_procurements_to_run + [('company_id', '=', company_id),
+                                                   ('product_id', '=', product_id),
+                                                   ('location_id', '=', location_id)]
+            procurements_to_run = self.search(domain)
             seller = self.env['procurement.order']._get_product_supplier(procurements_to_run[0])
-            company = procurements_to_run[0].company_id
-            product = procurements_to_run[0].product_id
-            location = procurements_to_run[0].location_id
-            domain = [('id', 'in', procurements_to_run.ids),
-                      ('company_id', '=', company.id),
-                      ('product_id', '=', product.id),
-                      ('location_id', '=', location.id)]
             if not seller:
                 # If the first proc has no seller, then we drop this proc and go to the next
                 procurements_exception = self.search(domain + [('purchase_line_id', '=', False)])
                 procurements_exception.set_exception_for_procs()
-                procurements_to_run -= self.search(domain)
                 continue
             if seller in suppliers_no_scheduler:
-                procurements_exception = self.search(domain+ [('purchase_line_id', '=', False)])
+                procurements_exception = self.search(domain + [('purchase_line_id', '=', False)])
                 msg = _("Purchase scheduler is not configurated for this supplier")
                 procurements_exception.set_exception_for_procs(msg)
-                procurements_to_run -= self.search(domain)
                 continue
             seller_ok = bool(compute_all_products or not compute_supplier_ids or
                              compute_supplier_ids and seller.id in compute_supplier_ids)
@@ -205,7 +223,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     min_date = fields.Datetime.now()
                 past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
                 if past_procurements:
-                    procurements_to_run -= past_procurements
                     past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
                 domain += [('date_planned', '>', min_date)]
             procurements = self.search(domain)
@@ -218,7 +235,6 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     dict_procs[seller][company][location] = procurements
                 else:
                     dict_procs[seller][company][location] += procurements
-            procurements_to_run -= procurements
         for supplier in sorted(dict_procs.keys(), key=lambda partner: partner.scheduler_sequence):
             for company in dict_procs[supplier].keys():
                 for location in dict_procs[supplier][company].keys():
