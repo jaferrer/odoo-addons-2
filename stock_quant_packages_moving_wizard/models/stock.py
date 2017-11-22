@@ -273,16 +273,15 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
     def get_natural_loc_picking_type(self):
         natural_dest_loc = False
         natural_picking_type = False
+        service_moves = self.env['stock.move']
         list_next_moves = self.env['stock.move']
         for rec in self:
-            service_moves = self.env['stock.move']. \
-                search([('id', 'in', rec.history_ids.ids),
-                        ('state', '=', 'done'),
-                        ('location_dest_id', '=', rec.location_id.id),
-                        ('move_dest_id', '!=', False),
-                        ('move_dest_id.state', 'not in', [('draft', 'done', 'cancel')])])
-            for service_move in service_moves:
-                list_next_moves  |= service_move.move_dest_id
+            for move in rec.history_ids:
+                if move.location_dest_id == rec.location_id and move.move_dest_id and \
+                        move.move_dest_id. state not in ['draft', 'done', 'cancel']:
+                    service_moves |= move
+        for service_move in service_moves:
+            list_next_moves  |= service_move.move_dest_id
         list_dest_locs = [move.location_dest_id for move in list_next_moves]
         list_picking_types = [move.picking_type_id for move in list_next_moves]
         if len(set(list_dest_locs)) == 1:
