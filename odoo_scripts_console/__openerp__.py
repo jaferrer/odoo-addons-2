@@ -23,15 +23,18 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
-    'depends': ['base'],
+    'depends': ['base', 'connector'],
     'description': """
 Odoo Scripts for Console
 ========================
 This modules allows to write scripts from frontend, and launch it manually. It is also optimized to be used in odoo console.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['security/ir.model.access.csv',
-             'odoo_scripts_console.xml'],
+    'data': ['security/groups.xml',
+             'security/ir.model.access.csv',
+             'odoo_scripts_console.xml',
+             'data.xml',
+             ],
     'demo': [],
     'test': [],
     'installable': True,
