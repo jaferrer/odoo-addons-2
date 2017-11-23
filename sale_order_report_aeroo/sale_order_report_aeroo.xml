@@ -2,11 +2,6 @@
 <openerp>
 	<data>
 
-		 <record model="report.stylesheets" id="sale_order_report_aeroo_stylesheet">
-            <field name="name">stylesheet</field>
-            <field name="report_styles" type="base64" file="sale_order_report_aeroo/stylesheet.odt"/>
-        </record>
-
 		<record id="sale_order_report_aeroo" model="ir.actions.report.xml">
 			<field name="name">Sale Order</field>
 			<field name="type">ir.actions.report.xml</field>
@@ -15,9 +10,6 @@
 			<field name="auto" eval="True"/>
 			<field name="report_type">aeroo</field>
 			<field name="report_rml">sale_order_report_aeroo/sale_order_report.odt</field>
-			<field name="parser_state">default</field>
-			<field name="styles_mode">specified</field>
-            <field name="stylesheet_id" ref="sale_order_report_aeroo_stylesheet"/>
             <field name="attachment">object.name.replace('/','')+'.pdf'</field>
 			<field name="tml_source">file</field>
 			<field name="in_format">oo-odt</field>

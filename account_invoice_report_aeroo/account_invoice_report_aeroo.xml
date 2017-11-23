@@ -2,11 +2,6 @@
 <openerp>
 	<data>
 
-		 <record model="report.stylesheets" id="report_stylesheet_account_invoice">
-            <field name="name">stylesheet</field>
-            <field name="report_styles" type="base64" file="account_invoice_report_aeroo/stylesheet.odt"/>
-        </record>
-
 		<record id="account_invoice_report_aeroo" model="ir.actions.report.xml">
 			<field name="name">Invoices</field>
 			<field name="type">ir.actions.report.xml</field>
@@ -15,9 +10,6 @@
 			<field name="auto" eval="True"/>
 			<field name="report_type">aeroo</field>
 			<field name="report_rml">account_invoice_report_aeroo/account_invoice_report.odt</field>
-			<field name="parser_state">default</field>
-			<field name="styles_mode">specified</field>
-            <field name="stylesheet_id" ref="report_stylesheet_account_invoice"/>
             <field name="attachment">(object.state in ('open','paid')) and ('INV'+(object.number or '').replace('/','')+'.pdf')</field>
 			<field name="tml_source">file</field>
 			<field name="in_format">oo-odt</field>
