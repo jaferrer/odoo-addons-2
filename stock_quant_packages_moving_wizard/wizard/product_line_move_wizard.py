@@ -21,6 +21,9 @@ from openerp import models, fields, api, exceptions, _
 from openerp.exceptions import ValidationError
 from openerp.tools import float_compare
 from datetime import datetime as dt
+import logging
+
+_logger = logging.getLogger('product_line_move_wizard')
 
 
 class ProductLineMoveWizard(models.TransientModel):
@@ -47,7 +50,7 @@ class ProductLineMoveWizard(models.TransientModel):
         result.update(package_line_ids=package_lines)
         if lines:
             global_dest_loc, picking_type = lines[0].location_id.get_default_loc_picking_type(lines[0].product_id)
-            print 'data', global_dest_loc, picking_type
+            _logger.info('data: %s, %s' % global_dest_loc, picking_type)
             result.update(global_dest_loc=global_dest_loc and global_dest_loc.id or False)
             result.update(picking_type_id=picking_type and picking_type.id or False)
         return result
