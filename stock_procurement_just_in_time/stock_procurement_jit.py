@@ -780,7 +780,7 @@ class StockSchedulerController(models.Model):
                             delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
                                   line.orderpoint_id.ids, dict(self.env.context),
                                   description="Computing orderpoints for product %s and location %s" %
-                                              (line.product_id.name, line.location_id.display_name))
+                                              (line.product_id.display_name, line.location_id.display_name))
                         line.job_uuid = job_uuid
                         line.write({'job_uuid': job_uuid,
                                     'job_creation_date': fields.Datetime.now()})
