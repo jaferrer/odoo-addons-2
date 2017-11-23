@@ -34,7 +34,6 @@ class TestSchedulerAsyncCheckProcs(common.TransactionCase):
             'product_uom': self.test_product.uom_id.id,
         })
         self.assertEqual(self.proc.state, 'confirmed')
-        self.proc.state = 'running'
 
     def get_jobs_for_proc(self, proc):
         job_uuid = proc.run_or_confirm_job_uuid
