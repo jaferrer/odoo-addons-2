@@ -225,19 +225,23 @@ GROUP BY sm.confirm_job_uuid""")
         while products:
             dom = base_dom + [('product_id', 'in', products.ids)]
             if self.env.context.get('jobify', False):
+                params = company_id and (tuple(products.ids), company_id,) or (tuple(products.ids),)
+                query = """SELECT po.id
+FROM procurement_order po
+  LEFT JOIN queue_job qj ON qj.uuid = po.run_or_confirm_job_uuid
+  WHERE (po.run_or_confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND
+                      po.state = 'confirmed' AND
+                      po.product_id IN %s"""
+                if company_id:
+                    query += """ AND po.company_id = %s"""
                 job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env),
                                                            'procurement.order', dom,
                                                            'run', dict(self.env.context))
                 # We want to write run_or_confirm_job_uuid only if the proc has none
                 # or if the uuid points to a done or cancelled job
-                self.env.cr.execute("""SELECT po.run_or_confirm_job_uuid
-FROM procurement_order po
-  INNER JOIN queue_job qj ON qj.uuid = po.run_or_confirm_job_uuid
-WHERE po.run_or_confirm_job_uuid IS NOT NULL AND qj.state IN ('done', 'failed')
-GROUP BY po.run_or_confirm_job_uuid""")
-                done_or_failed_uuids = [item[0] for item in self.env.cr.fetchall()]
-                procs_for_job = self.search(dom + ['|', ('run_or_confirm_job_uuid', '=', False),
-                                                   ('run_or_confirm_job_uuid', 'in', done_or_failed_uuids)])
+                self.env.cr.execute(query, params)
+                proc_for_job_ids = [item[0] for item in self.env.cr.fetchall()]
+                procs_for_job = self.search([('id', 'in', proc_for_job_ids)])
                 procs_for_job.write({'run_or_confirm_job_uuid': job_uuid})
             else:
                 run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,

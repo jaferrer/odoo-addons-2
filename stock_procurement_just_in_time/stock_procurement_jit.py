@@ -102,9 +102,10 @@ class ProcurementOrderQuantity(models.Model):
             dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
         orderpoints = orderpoint_env.search(dom)
         if run_procurements:
-            self.env['procurement.order'].run_confirm_procurements()
+            self.env['procurement.order'].run_confirm_procurements(company_id=company_id)
         if run_moves:
-            self.env['procurement.order'].run_confirm_moves()
+            domain = company_id and [('company_id', '=', company_id)] or False
+            self.env['procurement.order'].run_confirm_moves(domain)
 
         self.env.cr.execute("""INSERT INTO stock_scheduler_controller
 (orderpoint_id,
