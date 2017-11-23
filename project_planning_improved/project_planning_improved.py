@@ -291,6 +291,7 @@ class ProjectImprovedTask(models.Model):
     taken_into_account = fields.Boolean(string=u"Taken into account")
     conflict = fields.Boolean(string=u"Conflict")
     is_milestone = fields.Boolean(string="Is milestone", compute="_get_is_milestone", store=True, default=False)
+    ready_for_execution = fields.Boolean(string=u"Ready for execution", readonly=True, track_visibility=True)
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
     @api.multi
@@ -663,11 +664,10 @@ class ProjectImprovedTask(models.Model):
         vals = self.get_dates_start_end_day(vals)
         tia_to_update = not self.env.context.get('do_not_update_tia', False)
         propagate_dates = not self.env.context.get('do_not_propagate_dates', False)
-        dates_changed = False
+        dates_changed = vals.get('expected_start_date') or vals.get('expected_end_date') or False
         tasks_start_date_changed = self.env['project.task']
         tasks_end_date_changed = self.env['project.task']
-        if vals.get('expected_start_date') or vals.get('expected_end_date'):
-            dates_changed = True
+        if dates_changed:
             if tia_to_update:
                 vals['taken_into_account'] = True
             tasks_start_date_changed, tasks_end_date_changed = self.check_dates(vals)
@@ -721,3 +721,13 @@ class ProjectImprovedTask(models.Model):
                         list_working_days += [ref_date]
                     ref_date += relativedelta(days=1)
         return list_working_days
+
+    @api.multi
+    def update_ready_for_execution(self):
+        for rec in self:
+            rec.ready_for_execution = all([task.kanban_state == 'ready' for task in rec.previous_task_ids])
+
+    @api.model
+    def cron_update_ready_for_execution(self):
+        self.search([('project_id.state', 'not in', ['cancelled', 'close'])]). \
+            with_context(do_not_propagate_dates=True, tia_to_update=False).update_ready_for_execution()

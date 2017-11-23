@@ -71,6 +71,7 @@ def slugify(string, max_length=None):
 class WebRouteExtend(main.Reports):
 
     @http.route()
+    @main.serialize_exception
     def index(self, action, token):
         current_action = json.loads(action)
         context = dict(request.context)
