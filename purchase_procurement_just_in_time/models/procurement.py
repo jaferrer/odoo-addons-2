@@ -72,6 +72,12 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                               ('done', "Done")])
     date_buy_to_run = fields.Datetime(string=u"Date buy to run", copy=False, readonly=True)
 
+    @api.multi
+    def write(self, vals):
+        if vals.get('state') == 'buy_to_run':
+            vals['date_buy_to_run'] = fields.Datetime.now()
+        return super(ProcurementOrderPurchaseJustInTime, self).write(vals)
+
     @api.model
     def propagate_cancel(self, procurement):
         """
