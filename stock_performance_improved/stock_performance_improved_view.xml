@@ -137,8 +137,8 @@ self.run_assign_moves(cr, uid, context=context)
                     <attribute name="attrs">{'invisible': [('state', 'not in', ('waiting', 'partially_available', 'assigned'))]}</attribute>
                 </button>
                 <field name="company_id" position="after">
-                    <field name="create_date"/>
-                    <field name="create_uid"/>
+                    <field name="create_date" readonly="1"/>
+                    <field name="create_uid" readonly="1"/>
                 </field>
             </field>
         </record>
@@ -230,8 +230,8 @@ self.run_assign_moves(cr, uid, context=context)
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <field name="date_planned" position="after">
-                    <field name="create_date"/>
-                    <field name="create_uid"/>
+                    <field name="create_date" readonly="1"/>
+                    <field name="create_uid" readonly="1"/>
                     <field name="date_running"/>
                     <field name="date_done"/>
                 </field>
