@@ -185,19 +185,6 @@ def get_pg_type(f, type_override=None):
 
     return pg_type
 
-def setup(self, env):
-    """ Make sure that ``self`` is set up, except for recomputation triggers. """
-    if not self.setup_done:
-        if self._attrs.get("compute_sql"):
-            pass
-        elif self.related:
-            self._setup_related(env)
-        else:
-            self._setup_regular(env)
-        self.setup_done = True
-
-openerp.fields.Field.setup = setup
-
 
 def _auto_init(self, cr, context=None):
     """
@@ -291,7 +278,7 @@ def _auto_init(self, cr, context=None):
                 # change its type, rename it, drop it or change its
                 # constraints.
                 if f._args.get("compute_sql"):
-                    cr.execute('ALTER TABLE "%s" DROP COLUMN "%s" CASCADE' % (self._table, k))
+                    cr.execute('ALTER TABLE "%s" DROP COLUMN IF EXISTS "%s" CASCADE' % (self._table, k))
                     res = False
                 if res:
                     f_pg_type = res['typname']
