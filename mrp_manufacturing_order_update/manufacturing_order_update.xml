@@ -11,7 +11,8 @@
                 <field name="bom_id" position="replace">
                     <div class="oe_subtotal_footer_separator oe_inline">
                         <label for="bom_id" class="oe_force_bold"/>
-                        <button name="button_update" string="(update)" type="object" states="confirmed,ready"
+                        <button name="button_update" string="(update)" type="object"
+                                attrs="{'invisible': [('state', 'in', [('draft', 'done', 'cancel')])]}"
                                 class="oe_link" groups="mrp.group_mrp_manager"/>
                     </div>
                     <field name="bom_id"
