@@ -20,6 +20,7 @@
 from datetime import *
 from openerp.tests import common
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp import exceptions
 
 
 class TestOrderUpdate(common.TransactionCase):
@@ -42,6 +43,8 @@ class TestOrderUpdate(common.TransactionCase):
         self.product1 = self.browse_ref('mrp_manufacturing_order_update.product1')
         self.product2 = self.browse_ref('mrp_manufacturing_order_update.product2')
         self.product3 = self.browse_ref('mrp_manufacturing_order_update.product3')
+        self.location_suppliers = self.browse_ref("stock.stock_location_suppliers")
+        self.picking_type_id = self.ref("stock.picking_type_internal")
 
         self.mrp_production1 = self.env['mrp.production'].create({
             'name': 'mrp_production1',
@@ -114,6 +117,26 @@ class TestOrderUpdate(common.TransactionCase):
         self.assertIn([self.product2, 25], lines_data)
         self.assertIn([self.product3, 30], lines_data)
 
+    def serve_move(self, move, qty=False):
+        supply_move = self.env['stock.move'].create({
+            'name': "Move from supplier (for quant %s)" % move.id,
+            'product_id': move.product_id.id,
+            'product_uom': move.product_uom.id,
+            'product_uom_qty': qty or move.product_uom_qty,
+            'location_id': self.location_suppliers.id,
+            'location_dest_id': move.location_id.id,
+            'picking_type_id': self.picking_type_id,
+            'move_dest_id': move.id,
+        })
+        supply_move.action_confirm()
+        supply_move.action_assign()
+        supply_move.action_done()
+        self.assertTrue(supply_move.quant_ids)
+        move.action_assign()
+        for quant in supply_move.quant_ids:
+            self.assertIn(quant, move.reserved_quant_ids)
+        return supply_move
+
     def test_10_order_quantity_calculation(self):
 
         self.assertTrue(self.mrp_production2.product_lines)
@@ -123,8 +146,7 @@ class TestOrderUpdate(common.TransactionCase):
         def test_quantity(product, mrp_production):
             self.assertTrue(product in [x.product_id for x in mrp_production.product_lines])
             needed_qty = sum([y.product_qty for y in mrp_production.product_lines if y.product_id == product])
-            ordered_qty = sum(
-                [z.product_qty for z in mrp_production.move_lines if z.product_id == product and z.state != 'cancel'])
+            ordered_qty = sum([z.product_qty for z in mrp_production.move_lines if z.product_id == product])
             self.assertEqual(needed_qty, ordered_qty)
 
         def test_quantities(mrp_production):
@@ -225,7 +247,7 @@ class TestOrderUpdate(common.TransactionCase):
         self.mrp_production2.write(vals)
         test_quantities(self.mrp_production2)
 
-    def test_20_increase_order_qty(self):
+    def test_20_increase_order_qty_confirmed_mo(self):
 
         # Let's increase order quantity
         wizard = self.env['change.production.qty'].with_context(active_id=self.mrp_production1.id,
@@ -262,7 +284,7 @@ class TestOrderUpdate(common.TransactionCase):
         self.assertIn([self.product2, 35, 'confirmed'], moves_data)
         self.assertIn([self.product3, 45, 'confirmed'], moves_data)
 
-    def test_30_decrease_order_qty(self):
+    def test_30_decrease_order_qty_confirmed_mo(self):
 
         # Let's decrease order quantity
         wizard = self.env['change.production.qty'].with_context(active_id=self.mrp_production1.id,
@@ -296,6 +318,128 @@ class TestOrderUpdate(common.TransactionCase):
         self.assertIn([self.product2, 7.5, 'confirmed'], moves_data1)
         self.assertIn([self.product3, 7.5, 'confirmed'], moves_data1)
         moves_data2 = [[move.product_id, move.product_uom_qty, move.state] for move in self.mrp_production1.move_lines2]
+        self.assertIn([self.product1, 20, 'cancel'], moves_data2)
+        self.assertIn([self.product2, 25, 'cancel'], moves_data2)
+        self.assertIn([self.product3, 30, 'cancel'], moves_data2)
+
+    def test_40_increase_order_qty_running_mo(self):
+
+        # Let's serve some moves, and consume a first one
+        self.serve_move(self.mrp_production1.move_lines[0], 2)
+        move = self.mrp_production1.move_lines. \
+            filtered(lambda m: m.product_id == self.product2 and m.product_qty == 10)
+        self.assertEqual(len(move), 1)
+        self.serve_move(move, move.product_uom_qty)
+        move.action_done()
+        self.serve_move(self.mrp_production1.move_lines[2], 5)
+        self.serve_move(self.mrp_production1.move_lines[3], 4)
+        self.mrp_production1.action_assign()
+
+        # Let's increase order quantity
+        wizard = self.env['change.production.qty'].with_context(active_id=self.mrp_production1.id,
+                                                                active_ids=[self.mrp_production1.id]).create({})
+        self.assertEqual(wizard.product_qty, 1)
+        wizard.product_qty = 2
+        wizard.change_prod_qty()
+
+        self.assertEqual(self.mrp_production1.product_qty, 2)
+
+        # Let's check production moves
+        self.assertEqual(len(self.mrp_production1.move_created_ids), 1)
+        self.assertEqual(self.mrp_production1.move_created_ids.product_uom_qty, 2)
+
+        # Let's check product_lines
+        self.assertEqual(sum([line.product_qty for
+                              line in self.mrp_production1.product_lines if line.product_id == self.product1]), 50)
+        self.assertEqual(sum([line.product_qty for
+                              line in self.mrp_production1.product_lines if line.product_id == self.product2]), 70)
+        self.assertEqual(sum([line.product_qty for
+                              line in self.mrp_production1.product_lines if line.product_id == self.product3]), 90)
+
+        # Let's check raw material moves
+        self.assertEqual(self.mrp_production1.move_lines2, move)
+        self.assertEqual(move.product_uom_qty, 10)
+        self.assertEqual(len(self.mrp_production1.move_lines), 8)
+        moves_data = [[move.product_id, move.product_uom_qty, move.state] for move in self.mrp_production1.move_lines]
+        self.assertIn([self.product1, 5, 'confirmed'], moves_data)
+        self.assertIn([self.product3, 15, 'confirmed'], moves_data)
+        self.assertIn([self.product1, 20, 'confirmed'], moves_data)
+        self.assertIn([self.product2, 25, 'confirmed'], moves_data)
+        self.assertIn([self.product3, 30, 'confirmed'], moves_data)
+        self.assertIn([self.product1, 25, 'confirmed'], moves_data)
+        self.assertIn([self.product2, 35, 'confirmed'], moves_data)
+        self.assertIn([self.product3, 45, 'confirmed'], moves_data)
+
+    def test_50_try_to_cancel_available_move(self):
+
+        # Let's decrease order quantity
+        wizard = self.env['change.production.qty'].with_context(active_id=self.mrp_production1.id,
+                                                                active_ids=[self.mrp_production1.id]).create({})
+        self.assertEqual(wizard.product_qty, 1)
+        self.serve_move(self.mrp_production1.move_lines[0], 2)
+        with self.assertRaises(exceptions.except_orm):
+            wizard.product_qty = 0.1
+            wizard.change_prod_qty()
+
+    def test_60_try_to_cancel_a_done_move(self):
+
+        # Let's consume a first move
+        move = self.mrp_production1.move_lines[1]
+        self.serve_move(move, move.product_uom_qty)
+        move.action_done()
+        self.mrp_production1.action_assign()
+
+        # Let's decrease order quantity
+        wizard = self.env['change.production.qty'].with_context(active_id=self.mrp_production1.id,
+                                                                active_ids=[self.mrp_production1.id]).create({})
+        self.assertEqual(wizard.product_qty, 1)
+        with self.assertRaises(exceptions.except_orm):
+            wizard.product_qty = 0.1
+            wizard.change_prod_qty()
+
+    def test_70_decrease_order_qty_running_mo(self):
+
+        # Let's consume a first move
+        move = self.mrp_production1.move_lines. \
+            filtered(lambda m: m.product_id == self.product2 and m.product_qty == 10)
+        self.assertEqual(len(move), 1)
+        self.serve_move(move, move.product_uom_qty)
+        move.action_done()
+        self.mrp_production1.action_assign()
+
+        # Let's decrease order quantity
+        wizard = self.env['change.production.qty'].with_context(active_id=self.mrp_production1.id,
+                                                                active_ids=[self.mrp_production1.id]).create({})
+        self.assertEqual(wizard.product_qty, 1)
+
+        wizard.product_qty = 0.5
+        wizard.change_prod_qty()
+        self.assertEqual(self.mrp_production1.product_qty, 0.5)
+
+        # Let's check production moves
+        self.assertEqual(len(self.mrp_production1.move_created_ids), 1)
+        self.assertEqual(self.mrp_production1.move_created_ids.product_uom_qty, 0.5)
+
+        # Let's check product_lines
+        self.assertEqual(sum([line.product_qty for
+                              line in self.mrp_production1.product_lines if line.product_id == self.product1]), 12.5)
+        self.assertEqual(sum([line.product_qty for
+                              line in self.mrp_production1.product_lines if line.product_id == self.product2]), 17.5)
+        self.assertEqual(sum([line.product_qty for
+                              line in self.mrp_production1.product_lines if line.product_id == self.product3]), 22.5)
+
+        # Let's check raw material moves
+        self.assertEqual(len(self.mrp_production1.move_lines2.filtered(lambda move: move.state == 'cancel')), 3)
+        self.assertEqual(self.mrp_production1.move_lines2.filtered(lambda move: move.state == 'done'), move)
+        self.assertEqual(len(self.mrp_production1.move_lines), 5)
+        moves_data1 = [[move.product_id, move.product_uom_qty, move.state] for move in self.mrp_production1.move_lines]
+        self.assertIn([self.product1, 5, 'confirmed'], moves_data1)
+        self.assertIn([self.product3, 15, 'confirmed'], moves_data1)
+        self.assertIn([self.product1, 7.5, 'confirmed'], moves_data1)
+        self.assertIn([self.product2, 7.5, 'confirmed'], moves_data1)
+        self.assertIn([self.product3, 7.5, 'confirmed'], moves_data1)
+        moves_data2 = [[move.product_id, move.product_uom_qty, move.state] for
+                       move in self.mrp_production1.move_lines2 if move.state == 'cancel']
         self.assertIn([self.product1, 20, 'cancel'], moves_data2)
         self.assertIn([self.product2, 25, 'cancel'], moves_data2)
         self.assertIn([self.product3, 30, 'cancel'], moves_data2)

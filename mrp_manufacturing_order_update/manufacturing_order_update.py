@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, _
+from openerp import fields, models, api, exceptions, _
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 from openerp.tools import float_compare
@@ -41,40 +41,50 @@ class MoUpdateMrpProduction(models.Model):
         for mrp in self:
             post = ''
             changes_to_do = []
-            list_products_to_change = []
+            done_products = []
             needed_new_moves = []
             useless_moves = mrp.move_lines.filtered(lambda m: m.product_id not in
                                                               [x.product_id for x in mrp.product_lines])
             for product in list(set([x.product_id for x in useless_moves])):
                 post += _("Product %s: not needed anymore<br>") % (product.display_name)
-            useless_moves.with_context({'cancel_procurement': True}).action_cancel()
+            useless_moves.with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
             for item in mrp.move_lines:
-                if not item.product_id in list_products_to_change:
+                if not item.product_id in done_products:
+                    total_done_moves = sum([x.product_qty for x in mrp.move_lines2 if x.product_id == item.product_id
+                                            and x.state == 'done' and x.location_dest_id.usage == 'production'])
                     total_old_need = sum([x.product_qty for x in mrp.move_lines if x.product_id == item.product_id])
                     total_new_need = sum([x.product_qty for x in mrp.product_lines if x.product_id == item.product_id])
                     prec = item.product_id.uom_id.rounding
-                    if float_compare(total_new_need, total_old_need, precision_rounding=prec) != 0 and \
-                                    float_compare(total_new_need, 0, precision_rounding=prec) != 0:
-                        changes_to_do += [(item.product_id, total_new_need - total_old_need, total_new_need,
-                                           total_old_need)]
-                        list_products_to_change += [item.product_id]
-            for product, qty, total_new_need, total_old_need in changes_to_do:
+                    if float_compare(total_new_need, total_done_moves, precision_rounding=prec) < 0:
+                        raise exceptions.except_orm(_(u"Error!"),
+                                                    _(u"Product %s on MO %s : %s %s where consumed, impossible to "
+                                                      u"decrease this quantity to %s") %
+                                                    (item.product_id.display_name, mrp.name, total_done_moves,
+                                                     item.product_id.uom_id.display_name, total_new_need))
+                    total_old_need += total_done_moves
+                    if float_compare(total_new_need, total_old_need, precision_rounding=prec) != 0 \
+                            and float_compare(total_new_need, 0, precision_rounding=prec) != 0:
+                        changes_to_do += [(item.product_id, total_new_need, total_old_need, total_done_moves)]
+                    done_products += [item.product_id]
+            for product, total_new_need, total_old_need, total_done_moves in changes_to_do:
+                qty = total_new_need - total_old_need
                 if float_compare(qty, 0, precision_rounding=prec) > 0:
                     move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, qty, False, 0)
                     self.env['stock.move'].browse(move).action_confirm()
                 else:
+                    final_running_qty = total_new_need - total_done_moves
                     moves = self.env['stock.move'].search([('raw_material_production_id', '=', mrp.id),
                                                            ('state', 'not in', ['done', 'cancel']),
                                                            ('product_id', '=', product.id)],
-                                                          order='product_qty desc')
+                                                          order='product_qty desc, id asc')
                     qty_ordered = sum([x.product_qty for x in moves])
-                    while float_compare(qty_ordered, total_new_need, precision_rounding=product.uom_id.rounding) > 0:
-                        moves[0].with_context({'cancel_procurement': True}).action_cancel()
+                    while float_compare(qty_ordered, final_running_qty, precision_rounding=product.uom_id.rounding) > 0:
+                        moves[0].with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
                         qty_ordered -= moves[0].product_qty
                         moves -= moves[0]
-                    if float_compare(qty_ordered, total_new_need, precision_rounding=product.uom_id.rounding) < 0:
+                    if float_compare(qty_ordered, final_running_qty, precision_rounding=product.uom_id.rounding) < 0:
                         move = self._make_consume_line_from_data(mrp, product, product.uom_id.id,
-                                                                 total_new_need - qty_ordered, False, 0)
+                                                                 final_running_qty - qty_ordered, False, 0)
                         self.env['stock.move'].browse(move).action_confirm()
                 post += _("Product %s: quantity changed from %s to %s<br>") % \
                         (product.display_name, total_old_need, total_new_need)
@@ -166,3 +176,17 @@ class UpdateChangeProductionQty(models.TransientModel):
                 if order.move_prod_id:
                     order.move_prod_id.write({'product_uom_qty': rec.product_qty})
                 self._update_product_to_produce(order, rec.product_qty)
+
+
+class UpdateChangeStockMove(models.Model):
+    _inherit = 'stock.move'
+
+    @api.multi
+    def action_cancel(self):
+        if self.env.context.get('forbid_unreserve_quants'):
+            reserved_quant = self.env['stock.quant'].search([('reservation_id', 'in', self.ids)], limit=1)
+            if reserved_quant:
+                raise exceptions.except_orm(_(u"Error!"),
+                                            _(u"Product %s: forbidden to cancel a move with reserved quants") %
+                                            reserved_quant.product_id.display_name)
+        return super(UpdateChangeStockMove, self).action_cancel()
