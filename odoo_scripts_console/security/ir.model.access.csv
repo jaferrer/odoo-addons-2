@@ -1,2 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_odoo_script,access_odoo_script,model_odoo_script,base.group_system,1,0,0,0
+access_odoo_script_watcher,access_odoo_script_watcher,model_odoo_script_watcher,odoo_scripts_console.group_sripts_user,1,0,0,0
+access_odoo_script_watcher_manager,access_odoo_script_watcher_manager,model_odoo_script_watcher,odoo_scripts_console.group_sripts_manager,1,1,1,1
+access_odoo_script,access_odoo_script,model_odoo_script,odoo_scripts_console.group_sripts_user,1,0,0,0
+access_odoo_script_manager,access_odoo_script_manager,model_odoo_script,odoo_scripts_console.group_sripts_manager,1,1,1,1

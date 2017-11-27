@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="product_product_improved_form">
+            <field name="name">product_product_improved_form</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="stock.product_form_view_procurement_button"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <button name="%(stock.act_product_stock_move_open)d" position="replace">
+                    <button class="oe_inline oe_stat_button" string="Moves" name="open_moves_for_product" type="object"
+                            attrs="{'invisible':[('type', '=', 'service')]}" groups="stock.group_stock_user"
+                            icon="fa-arrows-v"/>
+                </button>
+            </field>
+        </record>
+
+    </data>
+</openerp>

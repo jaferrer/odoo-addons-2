@@ -85,7 +85,8 @@ WITH
             sq.product_id,
             sum(sq.qty)      AS qty
         FROM stock_quant sq
-            LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
+            INNER JOIN top_parent tp ON tp.loc_id = sq.location_id
+            INNER JOIN stock_move sm ON sm.product_id = sq.product_id AND sm.id IN %s
         WHERE sq.reservation_id IS NULL
         GROUP BY tp.top_parent_id, sq.product_id
     )
@@ -276,6 +277,68 @@ class StockQuantPackageImproved(models.Model):
     _sql_constraints = [
         ('name_uniq', 'unique (name)', 'The name of the package must be unique!')
     ]
+
+    def _get_packages(self, cr, uid, ids, context=None):
+        """Returns packages from quants for store"""
+        res = set()
+        for quant in self.browse(cr, uid, ids, context=context):
+            pack = quant.package_id
+            while pack:
+                res.add(pack.id)
+                pack = pack.parent_id
+        return list(res)
+
+    def _get_package_info(self, cr, uid, ids, name, args, context=None):
+        result = super(StockQuantPackageImproved, self)._get_package_info(cr, uid, ids, name, args, context=context)
+        for package in self.pool.get('stock.quant.package').browse(cr, uid, ids):
+            if result.get(package.id):
+                old_location_id = package.location_id and package.location_id.id or False
+                old_company_id = package.company_id and package.company_id.id or False
+                old_owner_id = package.owner_id and package.owner_id.id or False
+                new_location_id = result[package.id].get('location_id', old_location_id)
+                new_company_id = result[package.id].get('company_id', old_company_id)
+                new_owner_id = result[package.id].get('owner_id', old_owner_id)
+                if new_location_id == old_location_id and new_company_id == old_company_id and \
+                        new_owner_id == old_owner_id:
+                    del result[package.id]
+        return result
+
+    def _get_packages_to_relocate(self, cr, uid, ids, context=None):
+        res = set()
+        for pack in self.browse(cr, uid, ids, context=context):
+            res.add(pack.id)
+            if pack.parent_id:
+                res.add(pack.parent_id.id)
+        return list(res)
+
+    _columns = {
+        'location_id': old_api_fields.function(_get_package_info, type='many2one', relation='stock.location',
+                                               string='Location',
+                                               multi="package",
+                                               store={
+                                                   'stock.quant': (_get_packages, ['location_id'], 10),
+                                                   'stock.quant.package': (
+                                                       _get_packages_to_relocate,
+                                                       ['quant_ids', 'children_ids', 'parent_id'], 10),
+                                               }, readonly=True, select=True),
+        'company_id': old_api_fields.function(_get_package_info, type="many2one", relation='res.company',
+                                              string='Company',
+                                              multi="package",
+                                              store={
+                                                  'stock.quant': (_get_packages, ['company_id'], 10),
+                                                  'stock.quant.package': (
+                                                      _get_packages_to_relocate,
+                                                      ['quant_ids', 'children_ids', 'parent_id'], 10),
+                                              }, readonly=True, select=True),
+        'owner_id': old_api_fields.function(_get_package_info, type='many2one', relation='res.partner', string='Owner',
+                                            multi="package",
+                                            store={
+                                                'stock.quant': (_get_packages, ['owner_id'], 10),
+                                                'stock.quant.package': (
+                                                    _get_packages_to_relocate,
+                                                    ['quant_ids', 'children_ids', 'parent_id'], 10),
+                                            }, readonly=True, select=True),
+    }
 
     def _get_all_products_quantities(self, cr, uid, package_id, context=None):
         '''This function computes the different product quantities for the given package
@@ -926,6 +989,18 @@ WHERE nb_moves = 0""")
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
+    @api.multi
+    def _check_package_from_moves(self):
+        result = self.env['stock.quant'].search_read(
+            fields=['package_id'],
+            domain=[('history_ids', 'in', self.ids), ('package_id', '!=', False), ('qty', '>', 0)]
+        )
+        package_ids = {dict_result['package_id'][0] for dict_result in result}
+        return self.env['stock.quant.package']._check_location_constraint(
+            self.env['stock.quant.package'].browse(list(package_ids)))
+
+
+
     def _get_reserved_availability(self, cr, uid, ids, field_name, args, context=None):
         """Rewritten here to have the database do the sum for us through read_group."""
         res = dict.fromkeys(ids, 0)
@@ -999,7 +1074,7 @@ class StockMove(models.Model):
         :param location_from: The source location of the moves
         :param location_to: The destination lcoation of the moves
         """
-        self.env.cr.execute(SQL_REQUEST_BY_MOVE, (tuple(self.ids), tuple(self.ids), tuple(self.ids)))
+        self.env.cr.execute(SQL_REQUEST_BY_MOVE, (tuple(self.ids), tuple(self.ids), tuple(self.ids), tuple(self.ids)))
         prereservations = self.env.cr.fetchall()
         prereserved_move_ids = [p[0] for p in prereservations]
         not_deferred_moves = self.filtered(lambda m: m.defer_picking_assign is False)
@@ -1064,6 +1139,12 @@ class StockLocationPath(models.Model):
 class ProcurementOrder(models.Model):
     _inherit = 'procurement.order'
 
+    priority = fields.Selection(track_visibility=False)
+    state = fields.Selection(track_visibility=False)
+    rule_id = fields.Many2one(track_visibility=False)
+    date_running = fields.Datetime(string=u"Running date", copy=False, readonly=True)
+    date_done = fields.Datetime(string=u"Done date", copy=False, readonly=True)
+
     @api.model
     def _run_move_create(self, procurement):
         res = super(ProcurementOrder, self)._run_move_create(procurement)
@@ -1100,6 +1181,19 @@ class ProcurementOrder(models.Model):
                 assign_moves.delay(ConnectorSession.from_env(self.env), 'stock.move', move_ids, dict(self.env.context))
             else:
                 assign_moves(ConnectorSession.from_env(self.env), 'stock.move', move_ids, dict(self.env.context))
+
+    @api.model
+    def create(self, vals):
+        # The creation message is useless
+        return super(ProcurementOrder, self.with_context(mail_notrack=True, mail_create_nolog=True)).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        if vals.get('state') == 'running':
+            vals['date_running'] = fields.Datetime.now()
+        elif vals.get('state') == 'done':
+            vals['date_done'] = fields.Datetime.now()
+        return super(ProcurementOrder, self).write(vals)
 
 
 class StockPrereservation(models.Model):
@@ -1181,7 +1275,7 @@ class StockPrereservation(models.Model):
                     sq.product_id,
                     sum(sq.qty) AS qty
                 FROM stock_quant sq
-                LEFT JOIN top_parent tp ON tp.loc_id=sq.location_id
+                INNER JOIN top_parent tp ON tp.loc_id=sq.location_id
                 WHERE tp.top_parent_id IN (SELECT location_id FROM move_qties_interm) AND sq.reservation_id IS NULL
                 GROUP BY tp.top_parent_id, sq.product_id
             ),

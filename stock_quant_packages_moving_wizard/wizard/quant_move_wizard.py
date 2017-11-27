@@ -25,15 +25,9 @@ from openerp.exceptions import ValidationError
 class StockQuantMove(models.TransientModel):
     _name = 'stock.quant.move'
 
-    pack_move_items = fields.One2many(
-        comodel_name='stock.quant.move_items', inverse_name='move_id', string="Packages")
-
-    global_dest_loc = fields.Many2one(
-        comodel_name='stock.location', string='Destination Location',
-        required=True)
-
+    pack_move_items = fields.One2many('stock.quant.move_items', 'move_id', string="Packages")
+    global_dest_loc = fields.Many2one('stock.location', string='Destination Location', required=True)
     is_manual_op = fields.Boolean(string="Manual Operation")
-
     picking_type_id = fields.Many2one('stock.picking.type', 'Picking type', required=True)
 
     def default_get(self, cr, uid, fields, context=None):
@@ -45,9 +39,7 @@ class StockQuantMove(models.TransientModel):
         quant_obj = self.pool['stock.quant']
         quants = quant_obj.browse(cr, uid, quants_ids, context=context)
         items = []
-        loc = False
         for quant in quants:
-            loc = quant.location_id
             if not quant.package_id:
                 item = {
                     'quant': quant.id,
@@ -55,12 +47,13 @@ class StockQuantMove(models.TransientModel):
                     'qty': quant.qty
                 }
                 items.append(item)
-        if loc:
-            warehouses = self.pool['stock.warehouse'].browse(
-                cr, uid, self.pool['stock.location'].get_warehouse(cr, uid, loc, context=context), context=context)
-            if warehouses:
-                res.update(picking_type_id=warehouses[0].picking_type_id.id)
         res.update(pack_move_items=items)
+        natural_dest_loc, natural_picking_type = quants.get_natural_loc_picking_type()
+        global_dest_loc, picking_type = quants[0].location_id.get_default_loc_picking_type(quants[0].product_id)
+        global_dest_loc = natural_dest_loc or global_dest_loc
+        picking_type = natural_picking_type or global_dest_loc
+        res.update(global_dest_loc=global_dest_loc and global_dest_loc.id or False)
+        res.update(picking_type_id=picking_type and picking_type.id or False)
         return res
 
     @api.multi
@@ -79,16 +72,10 @@ class StockQuantMoveItems(models.TransientModel):
     _name = 'stock.quant.move_items'
     _description = 'Picking wizard items'
 
-    move_id = fields.Many2one(
-        comodel_name='stock.quant.move', string='Quant move')
-    quant = fields.Many2one(
-        comodel_name='stock.quant', string='Quant',
-        domain=[('package_id', '=', False)])
-    source_loc = fields.Many2one(
-        comodel_name='stock.location', string='Source Location', required=True)
-    dest_loc = fields.Many2one(
-        comodel_name='stock.location', string='Destination Location')
-
+    move_id = fields.Many2one('stock.quant.move', string='Quant move')
+    quant = fields.Many2one('stock.quant', string='Quant', domain=[('package_id', '=', False)])
+    source_loc = fields.Many2one('stock.location', string='Source Location', required=True)
+    dest_loc = fields.Many2one('stock.location', string='Destination Location')
     qty = fields.Float(string='Quantity', required=True)
 
     @api.one

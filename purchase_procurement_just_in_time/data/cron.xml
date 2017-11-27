@@ -17,6 +17,21 @@
             <field name="args"/>
         </record>
 
+        <record model="ir.cron" id="job_proc_unlink_useless_messages">
+            <field name="name">Unlink useless messages for procurements</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">weeks</field>
+            <field name="nextcall">2017-10-29 12:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">procurement.order</field>
+            <field name="function">unlink_useless_messages</field>
+            <field name="args"/>
+        </record>
+
         <record model="ir.cron" id="launch_purchase_scheduler_by_supplier">
             <field name="name">Schedule buy procurements by supplier</field>
             <field name="user_id" ref="base.user_root"/>

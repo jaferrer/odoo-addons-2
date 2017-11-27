@@ -18,13 +18,16 @@
 #
 
 from openerp import exceptions
+from openerp.tools.misc import frozendict
 from openerp.tests import common
+
 
 
 class TestPurchaseProcurementJIT(common.TransactionCase):
 
     def setUp(self):
         super(TestPurchaseProcurementJIT, self).setUp()
+        self.env.context = frozendict(dict(self.env.context, check_product_qty=False))
         self.supplier1 = self.browse_ref('purchase_procurement_just_in_time.supplier1')
         self.product1 = self.browse_ref('purchase_procurement_just_in_time.product1')
         self.product2 = self.browse_ref('purchase_procurement_just_in_time.product2')
@@ -37,6 +40,9 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.unit = self.browse_ref('product.product_uom_unit')
         self.uom_couple = self.browse_ref('purchase_procurement_just_in_time.uom_couple')
         self.uom_four = self.browse_ref('purchase_procurement_just_in_time.uom_four')
+        self.cron_stock_scheduler = self.browse_ref('stock_procurement_just_in_time.job_update_scheduler_controller')
+        self.cron_stock_scheduler.active = False
+        self.env['stock.scheduler.controller'].search([]).write({'done': True})
 
     def create_procurement_order_1(self):
         return self.env['procurement.order'].create({
@@ -287,6 +293,11 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         proc = self.create_procurement_order_5()
         proc.run()
         self.assertEqual(proc.state, 'exception')
+        self.assertEqual(len(proc.message_ids), 1)
+        proc.cancel()
+        self.env.invalidate_all()
+        proc.unlink_useless_messages()
+        self.assertEqual(len(proc.message_ids), 0)
 
     def test_20_purchase_procurement_jit(self):
         """
@@ -575,6 +586,11 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(len(purchase_order_1.order_line), 1)
         self.assertIn(line1, purchase_order_1.order_line)
         self.assertEqual(procurement_order_4.state, 'buy_to_run')
+        self.assertEqual(len(procurement_order_4.message_ids), 1)
+        procurement_order_4.cancel()
+        self.env.invalidate_all()
+        procurement_order_4.unlink_useless_messages()
+        self.assertEqual(len(procurement_order_4.message_ids), 0)
 
     def test_38_purchase_procurement_jit(self):
         """
