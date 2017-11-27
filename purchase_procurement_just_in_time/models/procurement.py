@@ -72,6 +72,12 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                               ('done', "Done")])
     date_buy_to_run = fields.Datetime(string=u"Date buy to run", copy=False, readonly=True)
 
+    @api.multi
+    def write(self, vals):
+        if vals.get('state') == 'buy_to_run':
+            vals['date_buy_to_run'] = fields.Datetime.now()
+        return super(ProcurementOrderPurchaseJustInTime, self).write(vals)
+
     @api.model
     def propagate_cancel(self, procurement):
         """
@@ -199,7 +205,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                    ('product_id', '=', product_id),
                                                    ('location_id', '=', location_id)]
             procurements_to_run = self.search(domain)
-            seller = self.env['procurement.order']._get_product_supplier(procurements_to_run[0])
+            seller = procurements_to_run and self.env['procurement.order']. \
+                _get_product_supplier(procurements_to_run[0]) or False
             if not seller:
                 # If the first proc has no seller, then we drop this proc and go to the next
                 procurements_exception = self.search(domain + [('purchase_line_id', '=', False)])
