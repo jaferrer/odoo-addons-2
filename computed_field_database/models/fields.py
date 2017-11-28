@@ -48,6 +48,7 @@ from openerp.tools.func import frame_codeinfo
 from openerp.tools.misc import CountingStream, DEFAULT_SERVER_DATETIME_FORMAT, DEFAULT_SERVER_DATE_FORMAT, pickle
 from openerp.tools.safe_eval import safe_eval as eval
 from openerp.tools.translate import _
+from openerp.models import FIELDS_TO_PGTYPES
 
 _logger = logging.getLogger(__name__)
 _schema = logging.getLogger(__name__ + '.schema')
@@ -133,18 +134,6 @@ def pg_varchar(size=0):
             return 'VARCHAR(%d)' % size
     return 'VARCHAR'
 
-FIELDS_TO_PGTYPES = {
-    fields.boolean: 'bool',
-    fields.integer: 'int4',
-    fields.text: 'text',
-    fields.html: 'text',
-    fields.date: 'date',
-    fields.datetime: 'timestamp',
-    fields.binary: 'bytea',
-    fields.many2one: 'int4',
-    fields.serialized: 'text',
-}
-
 def get_pg_type(f, type_override=None):
     """
     :param fields._column f: field to get a Postgres type for
@@ -186,6 +175,7 @@ def get_pg_type(f, type_override=None):
     return pg_type
 
 
+@api.cr_context
 def _auto_init(self, cr, context=None):
     """
 
