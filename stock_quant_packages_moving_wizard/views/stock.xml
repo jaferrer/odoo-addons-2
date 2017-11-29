@@ -99,7 +99,7 @@ action = self.move_products(cr, uid, context.get('active_ids'), False, context)
                     <field name="picking_id" invisible="1"/>
                     <field name="product_id"/>
                     <field name="filled"/>
-                    <field name="create_date"/>
+                    <field name="create_date" readonly="1"/>
                     <field name="filled_at"/>
                 </tree>
             </field>

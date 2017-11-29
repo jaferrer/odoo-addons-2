@@ -281,7 +281,7 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
                         move.move_dest_id. state not in ['draft', 'done', 'cancel']:
                     service_moves |= move
         for service_move in service_moves:
-            list_next_moves  |= service_move.move_dest_id
+            list_next_moves |= service_move.move_dest_id
         list_dest_locs = [move.location_dest_id for move in list_next_moves]
         list_picking_types = [move.picking_type_id for move in list_next_moves]
         if len(set(list_dest_locs)) == 1:
@@ -547,8 +547,13 @@ class StockLocation(models.Model):
             product.ensure_one()
         pull_rule = False
         push_rule = False
+        parent_locations = self
+        parent_location = self
+        while parent_location.location_id:
+            parent_location = parent_location.location_id
+            parent_locations |= parent_location
         if product:
-            pull_rule = self.env['procurement.rule'].search([('location_src_id', '=', self.id),
+            pull_rule = self.env['procurement.rule'].search([('location_src_id', 'in', parent_locations.ids),
                                                              ('route_id.product_selectable', '=', True),
                                                              ('route_id', 'in', product.route_ids.ids)],
                                                             limit=1)
@@ -557,7 +562,7 @@ class StockLocation(models.Model):
                                                                 ('route_id', 'in', product.route_ids.ids)],
                                                                limit=1)
             if not pull_rule and not push_rule and product.categ_id:
-                pull_rule = self.env['procurement.rule'].search([('location_src_id', '=', self.id),
+                pull_rule = self.env['procurement.rule'].search([('location_src_id', 'in', parent_locations.ids),
                                                                  ('route_id.product_categ_selectable', '=', True),
                                                                  ('route_id', 'in', product.categ_id.route_ids.ids)],
                                                                 limit=1)
@@ -569,7 +574,7 @@ class StockLocation(models.Model):
             warehouse_id = self.get_warehouse(location=self)
             if warehouse_id:
                 warehouse = self.env['stock.warehouse'].search([('id', '=', warehouse_id)])
-                pull_rule = self.env['procurement.rule'].search([('location_src_id', '=', self.id),
+                pull_rule = self.env['procurement.rule'].search([('location_src_id', 'in', parent_locations.ids),
                                                                  ('route_id.warehouse_selectable', '=', True),
                                                                  ('route_id', 'in', warehouse.route_ids.ids)],
                                                                 limit=1)

@@ -20,7 +20,6 @@
 from openerp import models, fields, api, exceptions, _
 from openerp.exceptions import ValidationError
 from openerp.tools import float_compare
-from datetime import datetime as dt
 
 
 class ProductLineMoveWizard(models.TransientModel):

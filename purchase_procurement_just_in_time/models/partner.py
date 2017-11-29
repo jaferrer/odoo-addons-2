@@ -10,7 +10,7 @@
 #    This program is distributed in the hope that it will be useful,
 #
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See theEUCHNER FRANCE
 #    GNU Affero General Public License for more details.
 #
 #    You should have received a copy of the GNU Affero General Public License
@@ -73,3 +73,9 @@ class JitResPartner(models.Model):
                 'supplier_ids': [(6, 0, suppliers_to_launch.ids)]
             })
             wizard.procure_calculation()
+
+    @api.multi
+    def _is_valid_supplier_for_scheduler(self, compute_all_products, compute_supplier_ids):
+        self.ensure_one()
+        return bool(compute_all_products or not compute_supplier_ids or
+                    compute_supplier_ids and self.id in compute_supplier_ids)

@@ -102,9 +102,10 @@ class ProcurementOrderQuantity(models.Model):
             dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
         orderpoints = orderpoint_env.search(dom)
         if run_procurements:
-            self.env['procurement.order'].run_confirm_procurements()
+            self.env['procurement.order'].run_confirm_procurements(company_id=company_id)
         if run_moves:
-            self.env['procurement.order'].run_confirm_moves()
+            domain = company_id and [('company_id', '=', company_id)] or False
+            self.env['procurement.order'].run_confirm_moves(domain)
 
         self.env.cr.execute("""INSERT INTO stock_scheduler_controller
 (orderpoint_id,
@@ -779,7 +780,7 @@ class StockSchedulerController(models.Model):
                             delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
                                   line.orderpoint_id.ids, dict(self.env.context),
                                   description="Computing orderpoints for product %s and location %s" %
-                                              (line.product_id.name, line.location_id.display_name))
+                                              (line.product_id.display_name, line.location_id.display_name))
                         line.job_uuid = job_uuid
                         line.write({'job_uuid': job_uuid,
                                     'job_creation_date': fields.Datetime.now()})
