@@ -52,25 +52,25 @@ class TestMrpWorkingDays(common.TransactionCase):
         workcenter = self.browse_ref('mrp_workorder_planning.test_workcenter_a')
         date = '2017-11-27 14:00:00'
 
-        def compare_dates_scheduled(date_start, nb_hours, date_expected):
+        def compare_dates_scheduled(date_start, nb_hours, date_expected, zero_backwards=False):
             """date_start and date_expected are in client tz"""
             dt_start = fields.Datetime.from_string(date_start)
             tz_info = fields.Datetime.context_timestamp(workcenter, dt_start).tzinfo
             dt_start_utc = dt_start.replace(tzinfo=tz_info).astimezone(pytz.UTC).replace(tzinfo=None)
-            dt_end = workcenter.schedule_working_hours(nb_hours, dt_start_utc)
+            dt_end = workcenter.schedule_working_hours(nb_hours, dt_start_utc, zero_backwards=zero_backwards)
             dt_end_loc = fields.Datetime.context_timestamp(workcenter, dt_end).replace(tzinfo=None)
             self.assertEqual(fields.Datetime.to_string(dt_end_loc), date_expected)
 
         compare_dates_scheduled(date, 0, '2017-11-27 14:00:00')
         compare_dates_scheduled(date, 1, '2017-11-27 15:00:00')
         compare_dates_scheduled(date, 3, '2017-11-27 17:00:00')
-        compare_dates_scheduled(date, 3.5, '2017-11-27 17:30:00')
-        compare_dates_scheduled(date, 4, '2017-12-04 08:00:00')
+        compare_dates_scheduled(date, 4, '2017-11-27 18:00:00')
+        compare_dates_scheduled(date, 4.5, '2017-12-04 08:30:00')
         compare_dates_scheduled(date, 5, '2017-12-04 09:00:00')
         compare_dates_scheduled(date, -1, '2017-11-27 13:00:00')
         compare_dates_scheduled(date, -5, '2017-11-27 09:00:00')
-        compare_dates_scheduled(date, -5.5, '2017-11-27 08:30:00')
-        compare_dates_scheduled(date, -6, '2017-11-22 18:00:00')
+        compare_dates_scheduled(date, -6, '2017-11-27 08:00:00')
+        compare_dates_scheduled(date, -6.5, '2017-11-22 17:30:00')
         compare_dates_scheduled(date, -7, '2017-11-22 17:00:00')
 
         workcenter = self.browse_ref('mrp_workorder_planning.test_workcenter_b')
@@ -78,17 +78,19 @@ class TestMrpWorkingDays(common.TransactionCase):
         compare_dates_scheduled(date, 0, '2017-11-30 14:00:00')
         compare_dates_scheduled(date, 1, '2017-11-30 15:00:00')
         compare_dates_scheduled(date, 2, '2017-11-30 16:00:00')
-        compare_dates_scheduled(date, 2.5, '2017-11-30 16:30:00')
-        compare_dates_scheduled(date, 3, '2017-12-05 10:00:00')
+        compare_dates_scheduled(date, 3, '2017-11-30 17:00:00')
+        compare_dates_scheduled(date, 3.5, '2017-12-05 10:30:00')
         compare_dates_scheduled(date, 4, '2017-12-05 11:00:00')
         compare_dates_scheduled(date, -1, '2017-11-30 13:00:00')
         compare_dates_scheduled(date, -3, '2017-11-30 11:00:00')
-        compare_dates_scheduled(date, -3.5, '2017-11-30 10:30:00')
-        compare_dates_scheduled(date, -4, '2017-11-28 17:00:00')
+        compare_dates_scheduled(date, -4, '2017-11-30 10:00:00')
+        compare_dates_scheduled(date, -4.5, '2017-11-28 16:30:00')
         compare_dates_scheduled(date, -5, '2017-11-28 16:00:00')
 
         date = '2017-12-01 14:00:00'
         compare_dates_scheduled(date, 0, '2017-12-05 10:00:00')
+        compare_dates_scheduled(date, 0, '2017-11-30 17:00:00', zero_backwards=True)
+
 
     def test_20_default_calendar_schedule(self):
         """Test scheduling production orders."""
@@ -124,8 +126,7 @@ class TestMrpWorkingDays(common.TransactionCase):
                 first_order = order
             else:
                 last_order = order
-        self.assertEqual(last_order.date_planned_finished, production_order.date_planned_finished)
-        self.assertEqual(last_order.date_planned_finished, '2017-12-01 14:00:00')
+        self.assertEqual(last_order.date_planned_finished, self.utcize_date('2017-11-30 17:00:00'))
         self.assertEqual(last_order.date_planned_start, self.utcize_date('2017-11-30 13:40:00'))
-        self.assertEqual(first_order.date_planned_finished, self.utcize_date('2017-11-30 13:40:00'))
+        self.assertEqual(first_order.date_planned_finished, self.utcize_date('2017-11-27 18:00:00'))
         self.assertEqual(first_order.date_planned_start, self.utcize_date('2017-11-27 16:20:00'))

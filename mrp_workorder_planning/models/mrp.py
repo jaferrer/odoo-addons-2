@@ -30,11 +30,11 @@ class MrpProduction(models.Model):
         for rec in self:
             if not rec.workorder_ids:
                 continue
-            if 'date_planned_start' in vals and \
+            if 'date_planned_finished' in vals and \
                     vals['date_planned_finished'] < max(w.date_planned_finished for w in rec.workorder_ids):
                 raise exceptions.UserError(u"You cannot set the planned end date of a production order after "
                                            u"the latest end date of its work orders.")
-            if 'date_planned_finished' in vals and \
+            if 'date_planned_start' in vals and \
                     vals['date_planned_start'] > min(w.date_planned_start for w in rec.workorder_ids):
                 raise exceptions.UserError(u"You cannot set the planned start date of a production order after "
                                            u"the earliest start date of its work orders.")
@@ -49,13 +49,14 @@ class MrpProduction(models.Model):
         last_orders = workorders.filtered(lambda w: not w.next_work_order_id)
         for workorder in last_orders:
             date_end = self.date_planned_finished
+            dt_end = fields.Datetime.from_string(date_end)
             current = workorder
             while current:
-                current.date_planned_finished = date_end
-                date_start = current.workcenter_id.schedule_working_hours(-current.duration_expected / 60.0,
-                                                                          fields.Datetime.from_string(date_end))
-                current.date_planned_start = date_start
-                date_end = fields.Datetime.to_string(date_start)
+                dt_end = current.workcenter_id.schedule_working_hours(0, dt_end, zero_backwards=True)
+                current.date_planned_finished = dt_end
+                dt_start = current.workcenter_id.schedule_working_hours(-current._compute_duration(), dt_end)
+                current.date_planned_start = dt_start
+                dt_end = dt_start
                 current = current.previous_workorder_ids and current.previous_workorder_ids[0] or False
 
 
@@ -65,54 +66,49 @@ class MrpWorkorder(models.Model):
     previous_workorder_ids = fields.One2many('mrp.workorder', 'next_work_order_id', u"Previous Work Order(s)")
 
     @api.multi
-    @api.constrains('date_planned_start', 'date_planned_finished', 'duration_expected')
-    def _check_dates_duration(self):
+    def name_get(self):
+        res = []
         for rec in self:
-            if not rec.date_planned_start or not rec.date_planned_finished:
-                continue
-            dps = fields.Datetime.from_string(rec.date_planned_start)
-            dpf = fields.Datetime.from_string(rec.date_planned_finished)
-            computed_date_end = rec.workcenter_id.schedule_working_hours(rec.duration_expected / 60.0, dps)
-            if rec.workcenter_id.calendar_id.get_working_hours(dpf, computed_date_end):
-                raise exceptions.ValidationError(u"The difference between the planned start date and end date must be "
-                                                 u"at least the expected duration.\n"
-                                                 u"Expected duration: %s\n"
-                                                 u"Date start: %s\n"
-                                                 u"Date end: %s\n"
-                                                 u"Expected end date: %s" % (rec.duration_expected, dps, dpf,
-                                                                             computed_date_end))
+            res.append((rec.id, "%s - %s" % (rec.production_id.name, rec.name)))
+        return res
+
+    def _compute_duration(self):
+        res = max(self.duration_expected / 60.0, self.workcenter_id.min_wo_duration)
+        return res
 
     @api.multi
     def write(self, vals):
-        res = super(MrpWorkorder, self).write(vals)
         for rec in self:
-            # Sync end dates with next work order start dates and production end date
-            if 'date_planned_finished' in vals:
-                if rec.next_work_order_id:
-                    if rec.next_work_order_id.date_planned_start < vals['date_planned_finished']:
-                        rec.next_work_order_id.date_planned_start = vals['date_planned_finished']
-                else:
-                    if rec.production_id.date_planned_finished < vals['date_planned_finished']:
-                        rec.production_id.date_planned_finished = vals['date_planned_finished']
-
-            # Sync end dates with previous work order end dates and production start date
             if 'date_planned_start' in vals:
                 if rec.previous_workorder_ids:
                     if rec.previous_workorder_ids[0].date_planned_finished > vals['date_planned_start']:
-                        rec.previous_workorder_ids[0].date_planned_finished = vals['date_planned_start']
+                        raise exceptions.UserError(u"You cannot plan this work order before the previous one: %s" %
+                                                   rec.previous_workorder_ids[0].name)
                 else:
                     if rec.production_id.date_planned_start > vals['date_planned_start']:
                         rec.production_id.date_planned_start = vals['date_planned_start']
+                dps = fields.Datetime.from_string(vals['date_planned_start'])
+                dpf = rec.workcenter_id.schedule_working_hours(rec._compute_duration(), dps)
+                vals['date_planned_finished'] = fields.Datetime.to_string(dpf)
 
-        # Check that are date_planned_start and date_planned_finished are compatible with the expected duration
-        self._check_dates_duration()
+            if 'date_planned_finished' in vals:
+                if rec.next_work_order_id:
+                    if rec.next_work_order_id.date_planned_start < vals['date_planned_finished']:
+                        raise exceptions.UserError(u"You cannot plan this work order after the next one: %s" %
+                                                   rec.next_work_order_id.display_name)
+                else:
+                    if rec.production_id.date_planned_finished < vals['date_planned_finished']:
+                        rec.production_id.date_planned_finished = vals['date_planned_finished']
+        res = super(MrpWorkorder, self).write(vals)
         return res
 
 
 class MrpWorkcenter(models.Model):
     _inherit = 'mrp.workcenter'
 
-    def schedule_working_hours(self, nb_hours, date):
+    min_wo_duration = fields.Float(u"Min duration of a workorder (h)")
+
+    def schedule_working_hours(self, nb_hours, date, zero_backwards=False):
         """Returns the datetime that is nb_hours working hours after date in the context of this workcenter."""
         self.ensure_one()
         assert isinstance(date, datetime), u"date should be a datetime.datime. Received %s" % type(date)
@@ -122,4 +118,21 @@ class MrpWorkcenter(models.Model):
         if not calendar:
             raise exceptions.UserError(u"You must define a calendar for this workcenter (%s) or this company to "
                                        u"schedule production work orders." % self.name)
-        return calendar.schedule_hours_get_date(nb_hours, date, compute_leaves=True)
+
+        available_intervals = calendar.schedule_hours(nb_hours, date, compute_leaves=True)
+        target_date = None
+        if nb_hours == 0:
+            if zero_backwards:
+                prev_date = self.schedule_working_hours(-1, date)
+                target_date = self.schedule_working_hours(1, prev_date)
+            else:
+                target_date = available_intervals[-1][1]
+        elif nb_hours > 0:
+            if available_intervals[-1][0] == available_intervals[-1][1]:
+                available_intervals = available_intervals[:-1]
+            target_date = available_intervals[-1][1]
+        else:
+            if available_intervals[0][0] == available_intervals[0][1]:
+                available_intervals = available_intervals[1:]
+            target_date = available_intervals[0][0]
+        return target_date
