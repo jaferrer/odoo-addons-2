@@ -91,7 +91,6 @@ class TestMrpWorkingDays(common.TransactionCase):
         compare_dates_scheduled(date, 0, '2017-12-05 10:00:00')
         compare_dates_scheduled(date, 0, '2017-11-30 17:00:00', zero_backwards=True)
 
-
     def test_20_default_calendar_schedule(self):
         """Test scheduling production orders."""
         company = self.browse_ref('base.main_company')
