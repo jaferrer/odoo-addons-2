@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--##### Calendars #####-->
+        <record model="resource.calendar" id="calendar_1">
+            <field name="name">Demo Calendar 1</field>
+        </record>
+
+        <record model="resource.calendar.attendance" id="calendar_1_monday">
+            <field name="name">Monday</field>
+            <field name="dayofweek">0</field>
+            <field name="hour_from" eval="8"/>
+            <field name="hour_to" eval="18"/>
+            <field name="calendar_id" ref="calendar_1"/>
+        </record>
+
+        <record model="resource.calendar.attendance" id="calendar_1_wednesday">
+            <field name="name">Wednesday</field>
+            <field name="dayofweek">2</field>
+            <field name="hour_from" eval="8"/>
+            <field name="hour_to" eval="18"/>
+            <field name="calendar_id" ref="calendar_1"/>
+        </record>
+
+        <record id="demo_leave_1" model="resource.calendar.leaves">
+            <field name="name">Leave november 2017</field>
+            <field name="date_from">2017-11-28 00:00:00</field>
+            <field name="date_to">2017-11-30 23:59:59</field>
+            <field name="calendar_id" ref="calendar_1"/>
+        </record>
+
+        <record model="resource.calendar" id="calendar_2">
+            <field name="name">Demo Calendar 2</field>
+        </record>
+
+        <record model="resource.calendar.attendance" id="calendar_2_tuesday">
+            <field name="name">Tuesday</field>
+            <field name="dayofweek">1</field>
+            <field name="hour_from" eval="10"/>
+            <field name="hour_to" eval="17"/>
+            <field name="calendar_id" ref="calendar_2"/>
+        </record>
+
+        <record model="resource.calendar.attendance" id="calendar_2_thursday">
+            <field name="name">Thursday</field>
+            <field name="dayofweek">3</field>
+            <field name="hour_from" eval="10"/>
+            <field name="hour_to" eval="17"/>
+            <field name="calendar_id" ref="calendar_2"/>
+        </record>
+
+        <!-- PRODUCTS -->
+        <record id="product_test_product_raw" model="product.product">
+            <field name="name">Test Raw material</field>
+            <field name="default_code">TRM</field>
+            <field name="type">product</field>
+        </record>
+
+        <record id="product_test_product_mo" model="product.product">
+            <field name="name">Test Product to produce</field>
+            <field name="default_code">TPP</field>
+            <field name="type">product</field>
+            <field name="produce_delay" eval="6"/>
+            <field name="route_ids" eval="[(4,ref('mrp.route_warehouse0_manufacture'))]"/>
+        </record>
+
+        <record id="test_workcenter_a" model="mrp.workcenter">
+            <field name="name">Workcenter A</field>
+            <field name="time_efficiency" eval="1"/>
+            <field name="calendar_id" ref="calendar_1"/>
+        </record>
+
+        <record id="test_workcenter_b" model="mrp.workcenter">
+            <field name="name">Workcenter B</field>
+            <field name="time_efficiency" eval="1"/>
+            <field name="calendar_id" ref="calendar_2"/>
+        </record>
+
+        <record id="routing_test_mo" model="mrp.routing">
+            <field name="name">Test Routing</field>
+        </record>
+
+        <record id="routing_worcenter_1" model="mrp.routing.workcenter">
+            <field name="name">Operation 1</field>
+            <field name="routing_id" ref="routing_test_mo"/>
+            <field name="workcenter_id" ref="test_workcenter_a"/>
+            <field name="time_mode">manual</field>
+            <field name="time_cycle_manual">1</field>
+        </record>
+
+        <record id="routing_worcenter_2" model="mrp.routing.workcenter">
+            <field name="name">Operation 2</field>
+            <field name="routing_id" ref="routing_test_mo"/>
+            <field name="workcenter_id" ref="test_workcenter_b"/>
+            <field name="time_mode">manual</field>
+            <field name="time_cycle_manual">2</field>
+        </record>
+
+        <record id="bom_test_mo" model="mrp.bom">
+            <field name="product_tmpl_id" ref="product_test_product_mo_product_template"/>
+            <field name="product_qty" eval="1"/>
+            <field name="type">normal</field>
+            <field name="routing_id" ref="routing_test_mo"/>
+        </record>
+
+        <record id="test_bom_line_1" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_test_mo"/>
+            <field name="sequence" eval="1"/>
+            <field name="product_id" ref="product_test_product_raw"/>
+            <field name="product_qty" eval="2"/>
+        </record>
+
+    </data>
+</openerp>
