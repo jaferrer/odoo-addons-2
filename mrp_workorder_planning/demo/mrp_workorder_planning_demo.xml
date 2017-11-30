@@ -65,6 +65,18 @@
             <field name="route_ids" eval="[(4,ref('mrp.route_warehouse0_manufacture'))]"/>
         </record>
 
+        <record id="test_workcenter_a" model="mrp.workcenter">
+            <field name="name">Workcenter A</field>
+            <field name="time_efficiency" eval="1"/>
+            <field name="calendar_id" ref="calendar_1"/>
+        </record>
+
+        <record id="test_workcenter_b" model="mrp.workcenter">
+            <field name="name">Workcenter B</field>
+            <field name="time_efficiency" eval="1"/>
+            <field name="calendar_id" ref="calendar_2"/>
+        </record>
+
         <record id="routing_test_mo" model="mrp.routing">
             <field name="name">Test Routing</field>
         </record>
@@ -97,18 +109,6 @@
             <field name="sequence" eval="1"/>
             <field name="product_id" ref="product_test_product_raw"/>
             <field name="product_qty" eval="2"/>
-        </record>
-
-        <record id="test_workcenter_a" model="mrp.workcenter">
-            <field name="name">Workcenter A</field>
-            <field name="time_efficiency" eval="1"/>
-            <field name="calendar_id" ref="calendar_1"/>
-        </record>
-
-        <record id="test_workcenter_b" model="mrp.workcenter">
-            <field name="name">Workcenter B</field>
-            <field name="time_efficiency" eval="1"/>
-            <field name="calendar_id" ref="calendar_2"/>
         </record>
 
     </data>

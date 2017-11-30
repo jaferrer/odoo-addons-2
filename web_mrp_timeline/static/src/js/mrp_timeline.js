@@ -30,7 +30,6 @@ odoo.define('web_mrp_timeline.TimelineView', function (require) {
         on_scale_last_position: function () {
             var timeline_end = localStorage.getItem('timeline_end');
             var timeline_start = localStorage.getItem('timeline_start');
-            console.log(timeline_start, timeline_end);
             if (!isNullOrUndef(timeline_end) && !isNullOrUndef(timeline_start)) {
                 this.current_window = this.timeline.getWindow();
                 this.current_window.start = timeline_start;
