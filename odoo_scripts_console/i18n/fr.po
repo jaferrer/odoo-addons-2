@@ -1,0 +1,30 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* odoo_scripts_console
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-12-22 09:10+0000\n"
+"PO-Revision-Date: 2014-12-22 11:06+0100\n"
+"Last-Translator: Nicolas PIGANEAU <nicolas.piganeau@ndp-systemes.fr>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 1.7.1\n"
+
+#. module: odoo_scripts_console
+#: model:ir.actions.act_window,name:odoo_scripts_console.act_window_odoo_script
+#: model:ir.ui.menu,name:odoo_scripts_console.menu_odoo_script
+msgid "Odoo Scripts"
+msgstr "Scripts Odoo"
+
+#. module: odoo_scripts_console
+#: model:ir.actions.act_window,name:odoo_scripts_console.act_window_odoo_script_watcher
+#: model:ir.ui.menu,name:odoo_scripts_console.menu_odoo_script_watcher
+msgid "Odoo Script Watchers"
+msgstr "Watchers Odoo"

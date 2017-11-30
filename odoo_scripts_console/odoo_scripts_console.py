@@ -85,9 +85,10 @@ class OdooScriptWatcher(models.Model):
     name = fields.Char(string=u"Name", required=True)
     description = fields.Char(string=u"Description")
     query = fields.Text(string=u"Query to execute", required=True)
-    has_result = fields.Boolean(string=u"Has result", track_visibility='onchange', readonly=True)
-    nb_lines = fields.Integer(string=u"Number of lines detected", track_visibility='onchange', readonly=True)
-    script_id = fields.Many2one('odoo.script', string=u"Linked script")
+    has_result = fields.Boolean(string=u"Has result", track_visibility='onchange', readonly=True, copy=False)
+    nb_lines = fields.Integer(string=u"Number of lines detected", track_visibility='onchange', readonly=True,
+                              copy=False)
+    script_id = fields.Many2one('odoo.script', string=u"Linked script", copy=False)
 
     @api.multi
     def watch(self):
