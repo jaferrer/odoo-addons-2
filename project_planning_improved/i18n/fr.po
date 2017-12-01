@@ -304,3 +304,13 @@ msgstr "Semaine de fin prévue"
 #: view:project.task:project_planning_improved.project_improved_task_search
 msgid "Expected end month"
 msgstr "Mois de fin prévue"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_ready_for_execution
+msgid "Ready for execution"
+msgstr "Prêt pour exécution"
+
+#. module: project_planning_improved
+#: model:ir.actions.server,name:project_planning_improved.ir_actions_server_update_ready_for_execution
+msgid "Update field 'ready for execution'"
+msgstr "Mettre à jour le champ 'prêt pour exécution'"

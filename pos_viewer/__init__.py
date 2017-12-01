@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -15,21 +15,4 @@
 #
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-{
-    'name': 'Invoice merge in all state',
-    'version': '1.0',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'website': 'https://www.ndp-systemes.fr/',
-    'category': 'Account',
-    'depends': ['account_invoice_merge'],
-    'data': ['views.xml'],
-    'description': """
-Invoice merge in all state
-==========================
-This Module allow to merge invoice even if the state is payed or open""",
-    'license': 'AGPL-3',
-    'installable': True,
-    'auto_install': False,
-}
+#
