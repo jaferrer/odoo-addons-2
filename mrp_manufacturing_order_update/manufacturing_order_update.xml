@@ -24,6 +24,9 @@
                            context="{'default_product_id': product_id}" nolabel="1"
                            attrs="{'readonly': [('state', 'not in', ['draft','confirmed','ready'])]}"/>
                 </field>
+                <button name="%(mrp.action_change_production_qty)d" position="attributes">
+                    <attribute name="states">confirmed,ready,in_production</attribute>
+                </button>
                 <field name="product_lines" position="attributes">
                     <attribute name="context" eval="{'by_user': True}"/>
                 </field>
