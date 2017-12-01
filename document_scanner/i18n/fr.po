@@ -139,4 +139,7 @@ msgstr "Vous devez définir un scanner dans vos préférences"
 msgid "You are not allowed to scan a document"
 msgstr "Vous n'êtes pas autorisé à numériser un document"
 
-
+#. module: document_scanner
+#: model:ir.actions.act_window,name:document_scanner.scanner_info_tree_act_window
+msgid "Scanners"
+msgstr "Scanners"
