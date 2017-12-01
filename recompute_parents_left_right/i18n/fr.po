@@ -28,4 +28,4 @@ msgstr "Colis physiques"
 #. module: recompute_parents_left_right
 #: model:ir.actions.server,name:recompute_parents_left_right.ir_actions_server_compute_parents
 msgid "Recompute parents left and right"
-msgstr "Recompute parents left and right"
+msgstr "Recalculer les parents gauche et droit"

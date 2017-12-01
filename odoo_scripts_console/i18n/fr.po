@@ -130,4 +130,4 @@ msgstr "Utilisateur"
 #: model:ir.actions.server,name:odoo_scripts_console.act_server_script_watcher
 #: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
 msgid "Watch"
-msgstr "Watch"
+msgstr "Lancer l'analyse"
