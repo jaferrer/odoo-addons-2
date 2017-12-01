@@ -1013,7 +1013,7 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.supplierinfo2.min_qty = 10
         purchase_order_1 = proc4.purchase_id
         _, line = self.check_purchase_order_1_2_4(purchase_order_1)
-        self.assertEqual(proc4.date_planned, "3003-05-05 17:00:00")
+        self.assertEqual(proc4.date_planned, "3003-05-05 16:00:00")
 
         purchase_order_1.button_confirm()
         self.assertEqual(purchase_order_1.state, 'purchase')

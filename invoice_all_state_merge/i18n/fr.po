@@ -74,6 +74,18 @@ msgid "Not all invoices are of the same type!"
 msgstr "Toutes les factures ne sont pas du même type!"
 
 #. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:28
+#, python-format
+msgid "Open Invoice"
+msgstr "Valider la facture"
+
+#. module: invoice_all_state_merge
+#: code:addons/invoice_all_state_merge/invoice_merge.py:29
+#, python-format
+msgid "Only type invoice selected"
+msgstr "Seulement des factures sont séléctionnées"
+
+#. module: invoice_all_state_merge
 #: code:addons/invoice_all_state_merge/invoice_merge.py:49
 #, python-format
 msgid "Not all invoices use the same account!"

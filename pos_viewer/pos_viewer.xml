@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="pos_viewer_pos_form">
+            <field name="name">pos_viewer_pos_form</field>
+            <field name="model">pos.order</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <button name="%(point_of_sale.action_pos_payment)d" position="attributes">
+                    <attribute name="groups">point_of_sale.group_pos_user</attribute>
+                </button>
+                <button name="action_invoice" position="attributes">
+                    <attribute name="groups">point_of_sale.group_pos_user</attribute>
+                </button>
+                <button name="refund" position="attributes">
+                    <attribute name="groups">point_of_sale.group_pos_user</attribute>
+                </button>
+                <button name="%(point_of_sale.action_report_pos_receipt)d" position="attributes">
+                    <attribute name="groups">point_of_sale.group_pos_user</attribute>
+                </button>
+            </field>
+        </record>
+
+
+    </data>
+</openerp>

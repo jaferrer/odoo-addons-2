@@ -24,17 +24,22 @@ from openerp import exceptions
 class InvoiceMergeExtends(models.TransientModel):
     _inherit = 'invoice.merge'
 
-    description = fields.Char(u"Description", default="Merge invoice")
+    description = fields.Char(u"Description", default="Merge invoice", required=True)
+    auto_set_payment = fields.Boolean(u"Open Invoice")
+    only_invoice = fields.Boolean(u"Only type invoice selected", readonly=True)
 
     @api.model
     def default_get(self, fields_list):
         defaults = super(InvoiceMergeExtends, self).default_get(fields_list)
         ids = self.env.context.get('active_ids', [])
+        selected = self.env['account.invoice'].browse(ids)
         defaults['description'] = \
-            _(u"Merge of ") + ", ".join([b for b in self.env['account.invoice'].browse(ids).mapped('number') if b])
+            _(u"Merge of ") + ", ".join([b for b in selected.mapped('number') if b])
         defaults['date_invoice'] = fields.Date.today()
+        defaults['only_invoice'] = all([invoice.type in ('in_invoice', 'out_invoice') for invoice in selected])
         return defaults
 
+    @api.model
     def _dirty_check(self):
         if self.env.context.get('active_model', '') == 'account.invoice':
             ids = self.env.context['active_ids']
@@ -74,24 +79,26 @@ class InvoiceMergeExtends(models.TransientModel):
         invoices = self.env['account.invoice'].browse(self.env.context.get('active_ids', []))
         new_invoices = self.env['account.invoice']
         payments_to_reconcile = self.env['account.move.line']
-
-        if invoices and all(invoice.partner_id == invoices[0].partner_id for invoice in invoices):
+        if all([invoice.partner_id == invoices[0].partner_id for invoice in invoices]):
             for rec in invoices:
                 payments_to_reconcile |= rec.payment_move_line_ids
                 # Remove payment
                 rec.payment_move_line_ids.remove_move_reconcile()
                 # Open dialogue to create refund
-                res = self.env['account.invoice.refund'] \
-                    .with_context(active_ids=[rec.id], active_id=rec.id) \
-                    .create(self._value_create_refund()) \
-                    .invoice_refund()
-                if res and 'domain' in res:
-                    new_invoices |= rec.search(res['domain'])
-            new_ids = new_invoices.filtered(lambda it: it.type in ('in_invoice', 'out_invoice'))
-            res = super(InvoiceMergeExtends, self.with_context(active_ids=new_ids.ids)).merge_invoices()
-            new_invocie = self.env['account.invoice'].browse(set(res['domain'][0][2]) - set(new_ids.ids))
-            new_invocie.signal_workflow('invoice_open')
-            new_invocie.register_payment(payments_to_reconcile)
+                if rec.state != 'draft':
+                    res = self.env['account.invoice.refund'] \
+                        .with_context(active_ids=[rec.id], active_id=rec.id) \
+                        .create(self._value_create_refund()) \
+                        .invoice_refund()
+                    if res and 'domain' in res:
+                        new_invoices |= rec.search(res['domain'] + [('state', '=', 'draft')])
+                else:
+                    new_invoices |= rec
+            res = super(InvoiceMergeExtends, self.with_context(active_ids=new_invoices.ids)).merge_invoices()
+            if self.auto_set_payment and self.only_invoice:
+                new_invocie = self.env['account.invoice'].browse(set(res['domain'][0][2]) - set(new_invoices.ids))
+                new_invocie.signal_workflow('invoice_open')
+                new_invocie.register_payment(payments_to_reconcile)
             return res
         else:
             raise exceptions.UserError(_(u"You can't merge multiple invoice without the same Partner"))
