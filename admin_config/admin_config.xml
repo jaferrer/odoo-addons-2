@@ -89,7 +89,7 @@ self.delete_field_translations(cr, uid, context.get('active_ids'), False, contex
         <!-- Installation des modules en masse -->
 
         <record model="ir.actions.server" id="ir_actions_server_mass_install">
-            <field name="name">Immediate upgrate of the module</field>
+            <field name="name">Immediate upgrade of the module</field>
             <field name="model_id" ref="base.model_ir_module_module"/>
             <field name="code">
 self.button_immediate_upgrade(cr, uid, context.get('active_ids'), False, context)

@@ -28,3 +28,106 @@ msgstr "Scripts Odoo"
 #: model:ir.ui.menu,name:odoo_scripts_console.menu_odoo_script_watcher
 msgid "Odoo Script Watchers"
 msgstr "Watchers Odoo"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,create_uid:0
+#: field:odoo.script.watcher,create_uid:0
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,create_date:0
+#: field:odoo.script.watcher,create_date:0
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: odoo_scripts_console
+#: help:odoo.script.watcher,message_last_post:0
+msgid "Date of the last message posted on the record."
+msgstr "Date du dernier message posté dans l'enregistrement."
+
+#. module: odoo_scripts_console
+#: field:odoo.script,description:0
+#: field:odoo.script.watcher,description:0
+msgid "Description"
+msgstr "Déscription"
+
+#. module: odoo_scripts_console
+#: field:odoo.script.watcher,has_result:0
+msgid "Has result"
+msgstr "As des résultats"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,write_uid:0
+#: field:odoo.script.watcher,write_uid:0
+msgid "Last Updated by"
+msgstr "Dernière modification par"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,write_date:0
+#: field:odoo.script.watcher,write_date:0
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,last_execution_begin:0
+msgid "Last execution begin"
+msgstr "Dernière date d'exécution (début)"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,last_execution_end:0
+msgid "Last execution end"
+msgstr "Dernière date d'exécution (fin)"
+
+#. module: odoo_scripts_console
+#: field:odoo.script.watcher,script_id:0
+msgid "Linked script"
+msgstr "Script liée"
+
+#. module: odoo_scripts_console
+#: model:res.groups,name:odoo_scripts_console.group_sripts_manager
+msgid "Manager"
+msgstr "Responsable"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,name:0
+#: field:odoo.script.watcher,name:0
+msgid "Name"
+msgstr "Nom"
+
+#. module: odoo_scripts_console
+#: field:odoo.script.watcher,nb_lines:0
+msgid "Number of lines detected"
+msgstr "Nombre de ligne trouvées"
+
+#. module: odoo_scripts_console
+#: field:odoo.script.watcher,query:0
+msgid "Query to execute"
+msgstr "Requete à exécuter"
+
+#. module: odoo_scripts_console
+#: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
+msgid "SQL query to execute"
+msgstr "Requete SQL à exécuter"
+
+#. module: odoo_scripts_console
+#: view:odoo.script:odoo_scripts_console.odoo_script_form
+#: field:odoo.script,script:0
+msgid "Script to execute"
+msgstr "Script à exécuter"
+
+#. module: odoo_scripts_console
+#: model:ir.module.category,name:odoo_scripts_console.category_scripts
+msgid "Scripts"
+msgstr "Scripts"
+
+#. module: odoo_scripts_console
+#: model:res.groups,name:odoo_scripts_console.group_sripts_user
+msgid "Utilisateur"
+msgstr "Utilisateur"
+
+#. module: odoo_scripts_console
+#: model:ir.actions.server,name:odoo_scripts_console.act_server_script_watcher
+#: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
+msgid "Watch"
+msgstr "Lancer l'analyse"
