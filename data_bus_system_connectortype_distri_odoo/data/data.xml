@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-        <record model="connector.type" id="connecteur_distri_local">
+        <record model="connector.type" id="connecteur_distri_odoo">
             <field name="name">Connecteur distribtion odoo</field>
             <field name="description">connecteur de distribution type : odoo</field>
             <field name="model_param_name">connector.type.distri.odoo.parameter</field>
