@@ -30,7 +30,9 @@ Computed field database
 This module create a compute field function in database.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv'
+    ],
     'demo': [],
     'test': [],
     'installable': True,
