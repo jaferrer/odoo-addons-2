@@ -30,14 +30,16 @@ class MrpProduction(models.Model):
         for rec in self:
             if not rec.workorder_ids:
                 continue
-            if 'date_planned_finished' in vals and \
-                    vals['date_planned_finished'] < max(w.date_planned_finished for w in rec.workorder_ids):
-                raise exceptions.UserError(u"You cannot set the planned end date of a production order after "
-                                           u"the latest end date of its work orders.")
-            if 'date_planned_start' in vals and \
-                    vals['date_planned_start'] > min(w.date_planned_start for w in rec.workorder_ids):
-                raise exceptions.UserError(u"You cannot set the planned start date of a production order after "
-                                           u"the earliest start date of its work orders.")
+            if 'date_planned_finished' in vals:
+                wo_dates = [w.date_planned_finished for w in rec.workorder_ids if w.date_planned_finished]
+                if wo_dates and vals['date_planned_finished'] < max(wo_dates):
+                    raise exceptions.UserError(u"You cannot set the planned end date of a production order before "
+                                               u"the latest end date of its work orders.")
+            if 'date_planned_start' in vals:
+                wo_dates = [w.date_planned_start for w in rec.workorder_ids if w.date_planned_start]
+                if wo_dates and vals['date_planned_start'] > min(wo_dates):
+                    raise exceptions.UserError(u"You cannot set the planned start date of a production order after "
+                                               u"the earliest start date of its work orders.")
         return super(MrpProduction, self).write(vals)
 
     @api.multi
