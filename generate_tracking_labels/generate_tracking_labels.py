@@ -117,6 +117,10 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
             self.mobile_number = self.partner_id.mobile or ''
             self.email = self.partner_id.email or ''
 
+    @api.model
+    def is_relais(self, code):
+        return False
+
     @api.onchange('transporter_id')
     def onchange_transporter_id(self):
         self.ensure_one()

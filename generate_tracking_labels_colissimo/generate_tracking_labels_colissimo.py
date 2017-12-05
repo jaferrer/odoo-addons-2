@@ -24,8 +24,22 @@ from openerp.exceptions import UserError
 from openerp.tools import ustr
 
 
+COLISSIMO_RELAIS = [
+    'A2P',
+    'BPR'
+]
+
+
 class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
     _inherit = 'generate.tracking.labels.wizard'
+
+    @api.model
+    def is_relais(self, code):
+        relais = super(GenerateTrackingLabelsWizardColissimo, self).is_relais(code)
+        if self.transporter_id == self.env.ref('base_delivery_tracking_colissimo.transporter_colissimo'):
+            if code in COLISSIMO_RELAIS:
+                relais = True
+        return relais
 
     @api.multi
     def generate_label(self):
@@ -94,6 +108,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                     bool(package_data['cod_value']) and 1 or 0,
                     package_data['cod_value'] * 100,
                     self.instructions,
+                    self.is_relais(self.produit_expedition_id.code) and u"""<pickupLocationId>%s</pickupLocationId>""" % self.partner_id.id_relais or u"""""",
                     self.ftd
                 )
 
@@ -110,6 +125,9 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                         'line2': self.line3 and (self.line3 or '') or (self.line2 or ''),
                         'line3': ''
                     }
+
+                self.mobile_number = self.is_relais(self.produit_expedition_id.code) and \
+                                     (self.mobile_number and self.mobile_number or self.phone_number) or self.mobile_number
 
                 customer_data = (
                     self.company_name or '', self.last_name or '', self.first_name or '', customer_spec['line0'],
@@ -157,8 +175,10 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                       <COD>%s</COD>
                       <CODAmount>%s</CODAmount>
                       <instructions>%s</instructions>
+                      %s
                       <ftd>%s</ftd>
                    </parcel>""" % pack_data
+
                 if self.generate_custom_declaration:
                     xml_post_parameter += u"""
                        <customsDeclarations>
