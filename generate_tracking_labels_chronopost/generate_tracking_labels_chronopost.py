@@ -123,8 +123,8 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
 
             customer_name_1 = self.company_name
             customer_civility = self.convert_title_chronopost(self.partner_id.title)
-            customer_name_2 = self.is_relais(self.produit_expedition_id.code) and self.partner_id.name or ''
-            shipper_name_2 = ''
+            customer_name_2 = ''
+            shipper_name_2 = self.is_relais(self.produit_expedition_id.code) and self.partner_id.name or ''
             customer_adress_1 = self.line2 or ''
             customer_adress_2 = self.line3 or ''
             customer_zip = self.zip
