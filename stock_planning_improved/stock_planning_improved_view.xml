@@ -34,6 +34,18 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="stock_move_tree_planning_improved">
+            <field name="name">stock_move_tree_planning_improved</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_picking_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="location_dest_id" position="after">
+                    <field name="date"/>
+                </field>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="stock_picking_form_planning_improved">
             <field name="name">stock.picking.form.planning.improved</field>
             <field name="model">stock.picking</field>

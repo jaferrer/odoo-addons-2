@@ -72,6 +72,12 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                               ('done', "Done")])
     date_buy_to_run = fields.Datetime(string=u"Date buy to run", copy=False, readonly=True)
 
+    @api.multi
+    def write(self, vals):
+        if vals.get('state') == 'buy_to_run':
+            vals['date_buy_to_run'] = fields.Datetime.now()
+        return super(ProcurementOrderPurchaseJustInTime, self).write(vals)
+
     @api.model
     def propagate_cancel(self, procurement):
         """
@@ -108,7 +114,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 remaining_qty = procurement.product_qty - qty_done_proc_uom
                 prec = procurement.product_uom.rounding
                 if float_compare(qty_done_proc_uom, 0.0, precision_rounding=prec) > 0 and \
-                                float_compare(remaining_qty, 0.0, precision_rounding=prec) > 0:
+                        float_compare(remaining_qty, 0.0, precision_rounding=prec) > 0:
                     new_proc = procurement.copy({
                         'product_qty': float_round(qty_done_proc_uom,
                                                    precision_rounding=procurement.product_uom.rounding),
@@ -198,9 +204,9 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             domain = domain_procurements_to_run + [('company_id', '=', company_id),
                                                    ('product_id', '=', product_id),
                                                    ('location_id', '=', location_id)]
-            procurements_to_run = self.search(domain)
-            seller = procurements_to_run and self.env['procurement.order']. \
-                _get_product_supplier(procurements_to_run[0]) or False
+            first_proc_to_run = self.search(domain, limit=1)
+            seller = first_proc_to_run and self.env['procurement.order']. \
+                _get_product_supplier(first_proc_to_run) or False
             if not seller:
                 # If the first proc has no seller, then we drop this proc and go to the next
                 procurements_exception = self.search(domain + [('purchase_line_id', '=', False)])
@@ -211,8 +217,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 msg = _("Purchase scheduler is not configurated for this supplier")
                 procurements_exception.set_exception_for_procs(msg)
                 continue
-            seller_ok = bool(compute_all_products or not compute_supplier_ids or
-                             compute_supplier_ids and seller.id in compute_supplier_ids)
+            seller_ok = seller._is_valid_supplier_for_scheduler(compute_all_products, compute_supplier_ids)
             if seller_ok and ignore_past_procurements:
                 suppliers = product.seller_ids and self.env['product.supplierinfo']. \
                     search([('id', 'in', product.seller_ids.ids),
@@ -247,7 +252,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                 delay(session, 'procurement.order', procurements.ids,
                                       description=_("Scheduling purchase orders for seller %s, "
                                                     "company %s and location %s") %
-                                                  (supplier.display_name, company.display_name, location.display_name))
+                                      (supplier.display_name, company.display_name, location.display_name))
                         else:
                             procurements.purchase_schedule_procurements()
 
@@ -260,7 +265,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         procurements = self
         for proc in procurements:
             remaining_proc_qty_pol_uom = self.env['product.uom']. \
-                                             _compute_qty(proc.product_uom.id, proc.product_qty, pol.product_uom.id) - \
+                _compute_qty(proc.product_uom.id, proc.product_qty, pol.product_uom.id) - \
                                          self.env['product.uom']. \
                                              _compute_qty(proc.product_id.uom_id.id,
                                                           sum([move.product_qty for move in proc.move_ids
@@ -521,7 +526,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 job_create_draft_lines. \
                     delay(session, 'procurement.order', {order_id: dict_lines_to_create[order_id]},
                           description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
-                                      (order.name, seller.name, number_order, total_number_orders))
+                          (order.name, seller.name, number_order, total_number_orders))
             return_msg += u"\nCreating jobs to fill draft orders: %s s." % int((dt.now() - time_now).seconds)
         else:
             self.create_draft_lines(dict_lines_to_create)
@@ -692,8 +697,8 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
 
     @api.model
     def launch_procurement_redistribution(self, dict_procs_lines, return_msg, jobify=False):
-        redistribute_procurements_in_separate_jobs = bool(self.env['ir.config_parameter']. \
-            get_param(
+        redistribute_procurements_in_separate_jobs = bool(self.env['ir.config_parameter'].
+                                                          get_param(
             'purchase_procurement_just_in_time.redistribute_procurements_in_separate_jobs'))
         if len(dict_procs_lines.keys()) > 1 and jobify and redistribute_procurements_in_separate_jobs:
             time_now = dt.now()
@@ -706,7 +711,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 job_redistribute_procurements_in_lines. \
                     delay(session, 'procurement.order', {order_id: dict_procs_lines[order_id]},
                           description=_("Redistributing procurements for order %s of supplier %s (order %s/%s)") %
-                                      (order.name, order.partner_id.name, number_order, total_number_orders))
+                          (order.name, order.partner_id.name, number_order, total_number_orders))
             return_msg += u"\nCreating jobs to redistribute procurements %s s." % int((dt.now() - time_now).seconds)
         else:
             return_msg += self.redistribute_procurements_in_lines(dict_procs_lines)

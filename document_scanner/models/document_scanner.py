@@ -128,6 +128,7 @@ class ImBusScanner(models.Model):
 
 class DocumentScannerBus(openerp.addons.bus.bus.Controller):
     def _poll(self, dbname, channels, last, options):
+        channels_copy = list(channels)
         if request.session.uid:
-            channels.append((request.db, 'request.scanner'))
-        return super(DocumentScannerBus, self)._poll(dbname, channels, last, options)
+            channels_copy.append((request.db, 'request.scanner'))
+        return super(DocumentScannerBus, self)._poll(dbname, channels_copy, last, options)

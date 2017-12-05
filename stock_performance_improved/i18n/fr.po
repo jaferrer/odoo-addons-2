@@ -207,3 +207,23 @@ msgstr "Date de passage à confirmé"
 #: field:procurement.order,date_done:0
 msgid "Done date"
 msgstr "Date de passage à terminé"
+
+#. module: stock_performance_improved
+#: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_assign_moves
+msgid "Assign Moves"
+msgstr "Assigner les mouvements"
+
+#. module: stock_performance_improved
+#: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_check_procurements
+msgid "Check Procurements"
+msgstr "Vérifier les achats"
+
+#. module: stock_performance_improved
+#: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_confirm_procurements
+msgid "Run Procurements"
+msgstr "Lancer les achats"
+
+#. module: stock_performance_improved
+#: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_confirm_moves
+msgid "Confirm Moves"
+msgstr "Confirmer les mouvements"

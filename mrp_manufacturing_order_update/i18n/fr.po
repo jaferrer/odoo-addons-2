@@ -64,3 +64,22 @@ msgstr "Article %s : quantité modifiée de %s à %s<br>"
 #, python-format
 msgid "Raw material move created of quantity %s for product %s<br>"
 msgstr "Mouvement de %s créé pour l'article %s<br>"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:60
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:190
+#, python-format
+msgid "Error!"
+msgstr "Erreur !"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:60
+#, python-format
+msgid "Product %s on MO %s : %s %s where consumed, impossible to decrease this quantity to %s"
+msgstr "Article %s sur l'OF %s : %s %s ont été consommés, impossible de baisser cette quantité à %s"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:190
+#, python-format
+msgid "Product %s: forbidden to cancel a move with reserved quants"
+msgstr "Article %s : interdit d'annuler un mouvement qui a des quants réservés"

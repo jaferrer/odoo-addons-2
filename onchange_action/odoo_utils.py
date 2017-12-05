@@ -43,7 +43,7 @@ class OnChangeActionModel(models.AbstractModel):
                 return callable(func) and hasattr(func, '_onchange_action_id')
 
             # If the value is unset then return the value
-            if res.get('value', {}):
+            if not res.get('value', {}):
                 res['value'] = values[field_name]
 
             for _, func in getmembers(type(self), is_onchange_action_id):

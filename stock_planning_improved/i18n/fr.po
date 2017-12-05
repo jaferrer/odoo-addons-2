@@ -226,3 +226,8 @@ msgstr "Mouvements groupés par utilisateurs"
 #: view:stock.move:stock_planning_improved.stock_move_search
 msgid "Expected Day"
 msgstr "Jour prévu"
+
+#. module: stock_planning_improved
+#: model:ir.actions.server,name:stock_planning_improved.ir_actions_server_compute_date_due
+msgid "Compute Date Due"
+msgstr "Calculer la date d'échéance"
