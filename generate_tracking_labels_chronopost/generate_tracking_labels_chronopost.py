@@ -25,6 +25,12 @@ from openerp.exceptions import UserError
 from openerp.tools import ustr
 
 
+CHRONO_RELAIS = [
+    '86',
+    '80'
+]
+
+
 class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
     _inherit = 'generate.tracking.labels.wizard'
 
@@ -54,6 +60,13 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
         elif self.env.ref('base.res_partner_title_mister'):
             shipper_civility = 'M'
         return shipper_civility
+
+    @api.model
+    def is_relais(self, code):
+        relais = False
+        if code in CHRONO_RELAIS:
+            relais = True
+        return relais
 
     @api.multi
     def generate_label(self):
@@ -110,7 +123,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
 
             customer_name_1 = self.company_name
             customer_civility = self.convert_title_chronopost(self.partner_id.title)
-            customer_name_2 = ''
+            customer_name_2 = self.is_relais(self.produit_expedition_id.code) and self.partner_id.name or ''
             shipper_name_2 = ''
             customer_adress_1 = self.line2 or ''
             customer_adress_2 = self.line3 or ''
