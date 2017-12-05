@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -15,29 +15,21 @@
 #
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 
 {
-    'name': 'Data Bus System Connector Type  Distribution odoo',
-    'version': '0.1',
+    'name': 'Invoice merge in all state',
+    'version': '1.0',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['data_bus_system_backend'],
+    'website': 'https://www.ndp-systemes.fr/',
+    'category': 'Account',
+    'depends': ['account_invoice_merge'],
+    'data': ['views.xml'],
     'description': """
-Data Bus System Backend
-=======================
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'data/data.xml',
-        'views/bus_home.xml',
-        'security/ir.model.access.csv'
-    ],
-    'demo': [],
-    'test': [],
+Invoice merge in all state
+==========================
+This Module allow to merge invoice even if the state is payed or open""",
+    'license': 'AGPL-3',
     'installable': True,
     'auto_install': False,
-    'license': 'AGPL-3',
-    'application': True,
 }

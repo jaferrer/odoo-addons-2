@@ -18,26 +18,28 @@
 #
 
 {
-    'name': 'Data Bus System Connector Type  Distribution odoo',
-    'version': '0.1',
+    'name': 'Human Resources Viewer',
+    'summary': """Adds a group 'Point Of Sale Viewer'""",
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['data_bus_system_backend'],
+    'version': '1.0',
+    'category': 'Point of Sale',
+    'depends': ['hr_holidays'],
+    'license': 'AGPL-3',
     'description': """
-Data Bus System Backend
-=======================
-""",
+Human Resources Viewer
+======================
+
+This module adds a group *Human resources viewer* in the *Human Resource* application.
+    """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/data.xml',
-        'views/bus_home.xml',
-        'security/ir.model.access.csv'
+        'security/hr_viewer.xml',
     ],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
-    'application': True,
+    'application': False,
 }

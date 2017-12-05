@@ -16,28 +16,3 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-{
-    'name': 'Data Bus System Connector Type  Distribution odoo',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['data_bus_system_backend'],
-    'description': """
-Data Bus System Backend
-=======================
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'data/data.xml',
-        'views/bus_home.xml',
-        'security/ir.model.access.csv'
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': True,
-}

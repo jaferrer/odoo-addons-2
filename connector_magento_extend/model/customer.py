@@ -59,6 +59,8 @@ class customerResPartner(models.Model):
 
     final_customer = fields.Boolean(string='Final Customer')
     customer_point = fields.Float(string='Customer Point')
+    address_company_name = fields.Char(string="Nom de la boutique point relais")
+    id_relais = fields.Char(string="Id point relais")
     custom_field_mapping = fields.One2many('res.partner.custom.field', 'partner_id', string=u"'Mapping Custom Field'")
 
 
