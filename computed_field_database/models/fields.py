@@ -20,13 +20,14 @@
 import logging
 
 import psycopg2
+import itertools
 
 import openerp
 from openerp import SUPERUSER_ID
 from openerp import api
 from openerp.exceptions import except_orm, MissingError
 from openerp.osv import fields
-from openerp.models import raise_on_invalid_object_name, pg_varchar, get_pg_type
+from openerp.models import raise_on_invalid_object_name, pg_varchar, get_pg_type, MAGIC_COLUMNS
 
 
 _logger = logging.getLogger(__name__)
@@ -399,6 +400,48 @@ class BaseModelExtend(openerp.models.BaseModel):
                 # mark the computed fields as done
                 map(recs._recompute_done, field.computed_fields)
 
+        @api.model
+        @api.returns('self', lambda value: value.id)
+        def create_custom(self, vals):
+            self.check_access_rights('create')
+
+            # add missing defaults, and drop fields that may not be set by user
+            vals = self._add_missing_default_values(vals)
+            for field in itertools.chain(MAGIC_COLUMNS, ('parent_left', 'parent_right')):
+                vals.pop(field, None)
+
+            # split up fields into old-style and pure new-style ones
+            old_vals, new_vals, unknown = {}, {}, []
+            for key, val in vals.iteritems():
+                field = self._fields.get(key)
+                if field and (not field._attrs or not field._attrs.get('compute_sql')):
+                    if field.column or field.inherited:
+                        old_vals[key] = val
+                    if field.inverse and not field.inherited:
+                        new_vals[key] = val
+                else:
+                    unknown.append(key)
+
+            if unknown:
+                _logger.warning("%s.create() with unknown fields: %s", self._name, ', '.join(sorted(unknown)))
+
+            # create record with old-style fields
+            record = self.browse(self._create(old_vals))
+
+            # put the values of pure new-style fields into cache
+            record._cache.update(record._convert_to_cache(new_vals))
+            # mark the fields as being computed, to avoid their invalidation
+            for key in new_vals:
+                self.env.computed[self._fields[key]].add(record.id)
+            # inverse the fields
+            for key in new_vals:
+                self._fields[key].determine_inverse(record)
+            for key in new_vals:
+                self.env.computed[self._fields[key]].discard(record.id)
+
+            return record
+
         openerp.models.BaseModel._auto_init = _auto_init_custom
         openerp.models.BaseModel.recompute = recompute_custom
+        openerp.models.BaseModel.create = create_custom
         super(BaseModelExtend, self).__init__(pool, cr)
