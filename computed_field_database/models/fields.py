@@ -40,7 +40,7 @@ class BaseModelExtend(openerp.models.BaseModel):
 
     def __init__(self, pool, cr):
 
-        openerp.models.BaseModel._create_original = openerp.models.BaseModel._create
+        _create_original = openerp.models.BaseModel._create
 
         @api.cr_context
         def _auto_init_custom(self, cr, context=None):
@@ -412,7 +412,7 @@ class BaseModelExtend(openerp.models.BaseModel):
                     if field.column or field.inherited:
                         old_vals[key] = val
 
-            id_new = self._create_original(cr, user, old_vals, context)
+            id_new = _create_original(self, cr, user, old_vals, context)
             return id_new
 
         openerp.models.BaseModel._auto_init = _auto_init_custom
