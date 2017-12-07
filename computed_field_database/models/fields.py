@@ -40,8 +40,6 @@ class BaseModelExtend(openerp.models.BaseModel):
 
     def __init__(self, pool, cr):
 
-        _create_original = openerp.models.BaseModel._create
-
         @api.cr_context
         def _auto_init_custom(self, cr, context=None):
             """
@@ -415,7 +413,10 @@ class BaseModelExtend(openerp.models.BaseModel):
             id_new = _create_original(self, cr, user, old_vals, context)
             return id_new
 
-        openerp.models.BaseModel._auto_init = _auto_init_custom
-        openerp.models.BaseModel.recompute = recompute_custom
-        openerp.models.BaseModel._create = _create_custom
+        if not hasattr(openerp.models.BaseModel, "monkey_done"):
+            _create_original = openerp.models.BaseModel._create
+            openerp.models.BaseModel.monkey_done = True
+            openerp.models.BaseModel._auto_init = _auto_init_custom
+            openerp.models.BaseModel.recompute = recompute_custom
+            openerp.models.BaseModel._create = _create_custom
         super(BaseModelExtend, self).__init__(pool, cr)
