@@ -133,6 +133,9 @@ class ProjectTask(models.Model):
                                      help="This is the GitLab cross-project reference of this task")
     gitlab_integrated = fields.Boolean(related='project_id.gitlab_integrated', readonly=True)
 
+    expected_date = fields.Date(u"Date de livraison prévue")
+    real_date = fields.Date(u"Date de livraison réelle")
+
     @api.multi
     @api.depends('name')
     def _compute_gitlab_issue_id(self):
@@ -154,6 +157,10 @@ class ProjectIssue(models.Model):
     gitlab_cross_project_id = fields.Char("GitLab Reference", compute="_compute_gitlab_cross_project_id", store=True,
                                      help="This is the GitLab cross-project reference of this issue")
     gitlab_integrated = fields.Boolean(related='project_id.gitlab_integrated', readonly=True)
+
+    expected_date = fields.Date(u"Date de livraison prévue")
+    dead_line_date = fields.Date(u"Dead line")
+    real_date = fields.Date(u"Date de livraison réelle")
 
     @api.multi
     @api.depends('name')
