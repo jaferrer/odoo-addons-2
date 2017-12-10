@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <record model="restaurant.allergen" id="restaurant_gluten">
+            <field name="name">Gluten</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_shellfish">
+            <field name="name">Shellfish and shellfish-based products</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_eggs">
+            <field name="name">Eggs and eggs-based products</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_fish">
+            <field name="name">Fishes and fishes-based products</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_peanut">
+            <field name="name">Peanuts and peanuts-based products</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_soya">
+            <field name="name">Soya and soya-based products</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_milk">
+            <field name="name">Milk and milk-based products</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_nuts">
+            <field name="name">Nuts</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_celery">
+            <field name="name">Celery and celery-based products</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_mustard">
+            <field name="name">Mustard and mustard-based products</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_sesame_seeds">
+            <field name="name">Sesame seeds and sesame seeds based products</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_sulphur_dioxide_sulfites">
+            <field name="name">Sulphur dioxide and sulfites</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_lupin">
+            <field name="name">Lupin and lupin-based products</field>
+        </record>
+
+        <record model="restaurant.allergen" id="restaurant_mollusc">
+            <field name="name">Molluscs and molluscs-based products</field>
+        </record>
+
+    </data>
+</openerp>
