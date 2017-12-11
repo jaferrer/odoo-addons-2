@@ -34,3 +34,8 @@ msgstr "Installation de langue"
 #: view:ir.module.module:admin_config.admin_config_modules_view_kanban
 msgid "NDP Systèmes"
 msgstr "NDP Systèmes"
+
+#. module: admin_config
+#: field:ir.translation,module_sequence:0
+msgid "Sequence"
+msgstr "Séquence"

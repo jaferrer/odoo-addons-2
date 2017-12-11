@@ -286,6 +286,7 @@ msgstr "Même ordre que le flux logistique"
 
 #. module: stock_procurement_just_in_time
 #: field:stock.location.route,stock_scheduler_sequence:0
+#: field:stock.warehouse.orderpoint,stock_scheduler_sequence:0
 msgid "Stock scheduler sequence"
 msgstr "Séquence pour le planificateur stock"
 
