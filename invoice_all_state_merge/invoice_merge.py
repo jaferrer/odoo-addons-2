@@ -95,10 +95,14 @@ class InvoiceMergeExtends(models.TransientModel):
                 else:
                     new_invoices |= rec
             res = super(InvoiceMergeExtends, self.with_context(active_ids=new_invoices.ids)).merge_invoices()
+            merged_invoice_result = self.env['account.invoice'].browse(set(res['domain'][0][2]) - set(new_invoices.ids))
+
+            for id_invoice, dict_value in merged_invoice_result._prepare_data_post_merge(new_invoices).iteritems():
+                self.env['account.invoice'].browse(id_invoice).write(dict_value)
+
             if self.auto_set_payment and self.only_invoice:
-                new_invocie = self.env['account.invoice'].browse(set(res['domain'][0][2]) - set(new_invoices.ids))
-                new_invocie.signal_workflow('invoice_open')
-                new_invocie.register_payment(payments_to_reconcile)
+                merged_invoice_result.signal_workflow('invoice_open')
+                merged_invoice_result.register_payment(payments_to_reconcile)
             return res
         else:
             raise exceptions.UserError(_(u"You can't merge multiple invoice without the same Partner"))
@@ -110,3 +114,11 @@ class InvoiceMergeExtends(models.TransientModel):
                     filter_refund='modify',
                     description=self.description,
                     date_invoice=self.date_invoice or fields.Date.today())
+
+
+class InvoiceMerge(models.Model):
+    _inherit = 'account.invoice'
+
+    @api.multi
+    def _prepare_data_post_merge(self, old_invoices):
+        return {invoice.id: {} for invoice in self}
