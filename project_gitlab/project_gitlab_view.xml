@@ -18,9 +18,10 @@
                             <group>
                                 <button type="object" name="update_gitlab_projects"
                                         string="Update GitLab Projects List"/>
-                                <div> </div>
+                                <div></div>
                                 <field name="gitlab_integrated" invisible="1"/>
-                                <field name="gitlab_project_id" attrs="{'readonly': [('gitlab_integrated', '=', True)]}"/>
+                                <field name="gitlab_project_id"
+                                       attrs="{'readonly': [('gitlab_integrated', '=', True)]}"/>
                                 <field name="gitlab_id"/>
                             </group>
                         </group>
@@ -45,6 +46,10 @@
                     <field name="gitlab_integrated" invisible="1"/>
                     <field name="gitlab_cross_project_id"
                            attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
+                </field>
+                <field name="date_last_stage_update" position="after">
+                    <field name="expected_date"/>
+                    <field name="real_date"/>
                 </field>
             </field>
         </record>
@@ -74,6 +79,13 @@
                     <field name="gitlab_cross_project_id"
                            attrs="{'invisible': [('gitlab_integrated', '=', False)]}"/>
                 </field>
+                <xpath expr="//page[@name='extra_info']/group" position="inside">
+                    <group>
+                        <field name="dead_line_date"/>
+                        <field name="expected_date"/>
+                        <field name="real_date"/>
+                    </group>
+                </xpath>
             </field>
         </record>
 
@@ -90,6 +102,36 @@
                 </field>
                 <field name="id" position="attributes">
                     <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_task_kanban_date">
+            <field name="name">project.task.kanban_date</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_kanban"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="legend_done" position="before">
+                    <field name="expected_date"/>
+                </field>
+                <field name="project_id" position="after">
+                    <field name="expected_date"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_issue_kanban_date">
+            <field name="name">project.issue.kanban_date</field>
+            <field name="model">project.issue</field>
+            <field name="inherit_id" ref="project_issue.project_issue_kanban_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="legend_done" position="before">
+                    <field name="expected_date"/>
+                </field>
+                <field name="partner_id" position="after">
+                    <br/> <field name="expected_date"/>
                 </field>
             </field>
         </record>

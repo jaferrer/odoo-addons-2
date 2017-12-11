@@ -460,6 +460,14 @@ class AddressImportMapper(BaseAddressImportMapper):
         return {'name': ' '.join(parts)}
 
     @mapping
+    def get_id_relais(self, record):
+        return {'id_relais': record.get('pickup_id')}
+
+    @mapping
+    def get_address_company_name(self, record):
+        return {'address_company_name': record.get('company')}
+
+    @mapping
     def use_parent_address(self, record):
         return {'use_parent_address': False}
 
