@@ -2,7 +2,20 @@
 <openerp>
     <data>
 
-        
+        <record model="ir.ui.view" id="res_company_form_prodex">
+            <field name="name">res.company.form.prodex</field>
+            <field name="model">res.company</field>
+            <field name="inherit_id" ref="base.view_company_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page/group" position="inside">
+                    <group>
+                        <field name="calendar_id"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
 
     </data>
 </openerp>
