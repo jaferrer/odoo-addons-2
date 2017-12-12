@@ -17,14 +17,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models
+from odoo import models, api
 
 
 class DbUnaccent(models.Model):
     _name = "db.unaccent"
-    _auto = False
 
-    def init(self, cr):
-        cr.execute("""
+    @api.model_cr
+    def init(self):
+        self.env.cr.execute("""
         CREATE EXTENSION IF NOT EXISTS "unaccent";
         """)
+        return super(DbUnaccent, self).init()
