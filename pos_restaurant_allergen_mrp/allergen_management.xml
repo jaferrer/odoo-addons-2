@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="manufactured_allergens_product_template_form">
+            <field name="name">manufactured_allergens_product_template_form</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="pos_restaurant_allergen.allergens_product_template_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="allergen_ids" position="before">
+                    <field name="compute_allergens" invisible="1"/>
+                </field>
+                <field name="allergen_ids" position="attributes">
+                    <attribute name="attrs">{'invisible': [('compute_allergens', '=', True)]}</attribute>
+                </field>
+                <field name="allergen_ids" position="after">
+                    <field name="manufactured_allergen_ids" attrs="{'invisible': [('compute_allergens', '=', False)]}" widget="many2many_checkboxes"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.menu" id="pos_restaurant_allergen.menu_restaurant_allergen">
+            <field name="parent_id" ref="mrp.menu_mrp_bom"/>
+        </record>
+
+    </data>
+</openerp>
