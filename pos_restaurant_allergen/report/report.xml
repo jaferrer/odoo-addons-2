@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="launch_allergens_report_form">
+            <field name="name">launch_allergens_report_form</field>
+            <field name="model">launch.allergens.report</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Print allergens report">
+                    <group>
+                        <field name="language_id" options="{'no_create': True}"/>
+                    </group>
+                    <footer>
+                        <button name="launch_allergens_report" string="Print allergens report" type="object" class="oe_highlight"/>
+                        ou
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_launch_allergens">
+            <field name="name">Print allergens report</field>
+            <field name="res_model">launch.allergens.report</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_allergens_report" name="Print allergens report" action="act_window_launch_allergens"
+                  parent="point_of_sale.menu_point_rep" sequence="200"/>
+
+        <record model="ir.actions.report.xml" id="ir_actions_report_xml_allergens">
+            <field name="name">Allergens report</field>
+            <field name="type">ir.actions.report.xml</field>
+            <field name="model">launch.allergens.report</field>
+            <field name="report_name">allergens_report</field>
+            <field name="report_type">aeroo</field>
+            <field name="in_format">oo-odt</field>
+            <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+            <field name="report_rml">pos_restaurant_allergen/report/allergens_report.odt</field>
+            <field name="parser_loc">pos_restaurant_allergen/report/allergens_report.py</field>
+            <field name="parser_state">loc</field>
+            <field name="tml_source">file</field>
+        </record>
+
+    </data>
+</openerp>

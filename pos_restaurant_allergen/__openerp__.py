@@ -18,26 +18,31 @@
 #
 
 {
-    'name': 'Data Bus System Connector Type  Distribution odoo',
-    'version': '0.1',
+    'name': 'Restaurant - Allergen Management',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['data_bus_system_backend'],
+    'version': '1.0',
+    'category': 'Point of Sale',
+    'depends': ['point_of_sale'],
+    'license': 'AGPL-3',
     'description': """
-Data Bus System Backend
-=======================
-""",
+Restaurant - Allergen Management
+================================
+
+This module adds a new menu *Allergens* in the *Sale* application. For each product present in POS application, it checks the main BOM to compute which allergens are present in the preparation.
+
+It is also possible to print a report of all the allergens present in the menu.""",
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/data.xml',
-        'views/bus_home.xml',
-        'security/ir.model.access.csv'
+        'security/ir.model.access.csv',
+        'allergen_management.xml',
+        'data.xml',
+        'report/report.xml',
     ],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
-    'application': True,
+    'application': False,
 }

@@ -18,26 +18,26 @@
 #
 
 {
-    'name': 'Data Bus System Connector Type  Distribution odoo',
-    'version': '0.1',
+    'name': 'Restaurant - Allergen Management (MRP)',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['data_bus_system_backend'],
+    'version': '1.0',
+    'category': 'Point of Sale',
+    'depends': ['pos_restaurant_allergen', 'mrp'],
+    'license': 'AGPL-3',
     'description': """
-Data Bus System Backend
-=======================
-""",
+Restaurant - Allergen Management (MRP)
+======================================
+
+This module computes automatically allergens for manufactured products, knowing allergens in raw materials and receipts.""",
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/data.xml',
-        'views/bus_home.xml',
-        'security/ir.model.access.csv'
+        'allergen_management.xml',
     ],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
-    'application': True,
+    'application': False,
 }
