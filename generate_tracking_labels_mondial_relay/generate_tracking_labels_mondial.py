@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import requests
 from .mondialrelay_pyt import MRWebService
 from openerp import models, api, fields, tools
 from openerp.exceptions import UserError
@@ -119,6 +120,14 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
                 'CRT_Valeur': str(int(sum([package_data['amount_total'] for package_data in packages_data])*100))
             }
             reqst = connexion.make_shipping_label(vals, labelformat=self.output_printing_type_id.code)
-
-            raise UserError(u"Impossible de générer l'étiquette")
+            if reqst and reqst.get("ExpeditionNum") and reqst.get("URL_Etiquette"):
+                reservation_number = reqst.get("ExpeditionNum")
+                tracking_numbers = [reservation_number]
+                label = requests.get(reqst.get("URL_Etiquette"))
+                if len(label.content.split('%PDF')) == 2 and label.content.split('%PDF')[1].split('%EOF'):
+                    pdf_binary_string = '%PDF' + label.content.split('%PDF')[1].split('%EOF')[0] + '%EOF' + '\n'
+                    self.create_attachment([pdf_binary_string])
+                    return tracking_numbers
+            else:
+                raise UserError(u"Impossible de générer l'étiquette")
         return result
