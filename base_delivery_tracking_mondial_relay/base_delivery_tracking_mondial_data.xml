@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="transporter_mondial_relay" model="tracking.transporter">
+            <field name="name">Mondial Relay</field>
+            <field name="image" type="base64" file="base_delivery_tracking_mondial_relay/static/img/mondial.png"/>
+        </record>
+
+    </data>
+</openerp>
