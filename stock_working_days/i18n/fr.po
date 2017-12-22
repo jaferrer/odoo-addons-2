@@ -195,3 +195,33 @@ msgstr "Liste des congés correspondants"
 #: view:resource.resource:stock_working_days.working_days_resource_form
 msgid "Resource leaves"
 msgstr "Congés de la ressource"
+
+#. module: stock_working_days
+#: field:pre.computed.calendar.delays,default_interval:0
+msgid "Default interval"
+msgstr "Intervalle par défaut"
+
+#. module: stock_working_days
+#: field:pre.computed.calendar.delays,compute_leaves:0
+msgid "Compute leaves"
+msgstr "Calculer les congés"
+
+#. module: stock_working_days
+#: field:pre.computed.calendar.delays,resource_id:0
+msgid "Resource ID"
+msgstr "ID Ressource"
+
+#. module: stock_working_days
+#: field:pre.computed.calendar.delays,days:0
+msgid "Nb of days"
+msgstr "Nombre de jours"
+
+#. module: stock_working_days
+#: field:pre.computed.calendar.delays,day_date:0
+msgid "Day date"
+msgstr "Date du jour"
+
+#. module: stock_working_days
+#: field:pre.computed.calendar.delays,result:0
+msgid "Scheduled day"
+msgstr "Jour prévu"

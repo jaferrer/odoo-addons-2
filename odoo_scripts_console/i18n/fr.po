@@ -131,3 +131,13 @@ msgstr "Utilisateur"
 #: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
 msgid "Watch"
 msgstr "Lancer l'analyse"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,console_browse_command:0
+msgid "Console browse command"
+msgstr "Commande 'browse' en console"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,console_execute_command:0
+msgid "Console execute command"
+msgstr "Commande d'exécution du script"
