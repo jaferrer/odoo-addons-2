@@ -143,3 +143,9 @@ msgstr "Vous n'êtes pas autorisé à numériser un document"
 #: model:ir.actions.act_window,name:document_scanner.scanner_info_tree_act_window
 msgid "Scanners"
 msgstr "Scanners"
+
+#. module: document_scanner
+#: field:scanner.info.color,name:0
+#: field:scanner.info.dpi,name:0
+msgid "Name"
+msgstr "Nom"

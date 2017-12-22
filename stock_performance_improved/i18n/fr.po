@@ -227,3 +227,13 @@ msgstr "Lancer les achats"
 #: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_confirm_moves
 msgid "Confirm Moves"
 msgstr "Confirmer les mouvements"
+
+#. module: stock_performance_improved
+#: field:stock.prereservation,reserved:0
+msgid "Move has reserved quants"
+msgstr "Le mouvement a des quants réservés"
+
+#. module: stock_performance_improved
+#: field:stock.prereservation,location_id:0
+msgid "Location"
+msgstr "Emplacement"

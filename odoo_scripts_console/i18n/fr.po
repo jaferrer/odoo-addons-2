@@ -50,12 +50,12 @@ msgstr "Date du dernier message posté dans l'enregistrement."
 #: field:odoo.script,description:0
 #: field:odoo.script.watcher,description:0
 msgid "Description"
-msgstr "Déscription"
+msgstr "Description"
 
 #. module: odoo_scripts_console
 #: field:odoo.script.watcher,has_result:0
 msgid "Has result"
-msgstr "As des résultats"
+msgstr "A des résultats"
 
 #. module: odoo_scripts_console
 #: field:odoo.script,write_uid:0
@@ -103,12 +103,12 @@ msgstr "Nombre de ligne trouvées"
 #. module: odoo_scripts_console
 #: field:odoo.script.watcher,query:0
 msgid "Query to execute"
-msgstr "Requete à exécuter"
+msgstr "Requête à exécuter"
 
 #. module: odoo_scripts_console
 #: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
 msgid "SQL query to execute"
-msgstr "Requete SQL à exécuter"
+msgstr "Requête SQL à exécuter"
 
 #. module: odoo_scripts_console
 #: view:odoo.script:odoo_scripts_console.odoo_script_form
@@ -131,3 +131,13 @@ msgstr "Utilisateur"
 #: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
 msgid "Watch"
 msgstr "Lancer l'analyse"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,console_browse_command:0
+msgid "Console browse command"
+msgstr "Commande 'browse' en console"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,console_execute_command:0
+msgid "Console execute command"
+msgstr "Commande d'exécution du script"

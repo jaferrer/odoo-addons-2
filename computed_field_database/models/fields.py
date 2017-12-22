@@ -99,8 +99,10 @@ class BaseModelExtend(openerp.models.BaseModel):
                 column_data = self._select_column_data(cr)
 
                 for k, f in self._columns.iteritems():
-                    drop = """drop function if exists "%s"(%s)""" % (k, self._table)
-                    cr.execute(drop)
+                    cr.execute("select exists(select * from pg_proc where proname = '%s')" % k)
+                    res = cr.dictfetchone()
+                    if res['exists'] and not f._args.get("compute_sql"):
+                        cr.execute('drop function if exists "%s"(%s)' % (k, self._table))
                     if k == 'id':
                         continue
                     # Don't update custom (also called manual) fields
@@ -133,7 +135,10 @@ class BaseModelExtend(openerp.models.BaseModel):
                         # change its type, rename it, drop it or change its
                         # constraints.
                         if f._args.get("compute_sql"):
-                            cr.execute('ALTER TABLE "%s" DROP COLUMN IF EXISTS "%s" CASCADE' % (self._table, k))
+                            try:
+                                cr.execute('ALTER TABLE "%s" DROP COLUMN IF EXISTS "%s" CASCADE' % (self._table, k))
+                            except BaseException as e:
+                                _logger.debug(e.message)
                             res = False
                         if res:
                             f_pg_type = res['typname']
@@ -281,15 +286,11 @@ class BaseModelExtend(openerp.models.BaseModel):
                         else:
                             if not isinstance(f, fields.function) or f.store:
                                 if f._args.get("compute_sql"):
-                                    drop = """drop function if exists %s(%s)""" % (k, self._table)
-                                    cr.execute(drop)
-                                    query = """
-                                        CREATE FUNCTION %s(%s)
+                                    query = """CREATE OR REPLACE FUNCTION %s(%s)
                                           RETURNS %s AS
                                         $func$
                                             %s
-                                        $func$ LANGUAGE SQL STABLE
-                                                                        """ % (
+                                        $func$ LANGUAGE SQL STABLE""" % (
                                         k, self._table, get_pg_type(f)[1], f._args.get("compute_sql"))
                                     cr.execute(query.replace("return_type", get_pg_type(f)[1]))
                                 else:

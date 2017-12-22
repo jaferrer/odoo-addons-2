@@ -27,16 +27,16 @@ class product_putaway_dispatch_strategy(models.Model):
     @api.cr_uid_context
     def _get_putaway_options(self, cr, uid, context=None):
         res = super(product_putaway_dispatch_strategy, self)._get_putaway_options(cr, uid, context)
-        res.append(('dispatch', _("Dispatch where needed")))
+        res.append(('dispatch', _(u"Dispatch where needed")))
         return res
 
-    method = fields.Selection(_get_putaway_options, "Method", required=True)
+    method = fields.Selection(_get_putaway_options, u"Method", required=True)
 
 
 class product_putaway_dispatch_transfer_details(models.TransientModel):
     _inherit = 'stock.transfer_details'
 
-    hide_dispatch_button = fields.Boolean("Hide Dispatch Button", compute="_compute_hide_dispatch_button")
+    hide_dispatch_button = fields.Boolean(u"Hide Dispatch Button", compute="_compute_hide_dispatch_button")
 
     @api.depends('picking_destination_location_id.putaway_strategy_id')
     def _compute_hide_dispatch_button(self):

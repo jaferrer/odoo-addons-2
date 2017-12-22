@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.actions.server" id="act_server_change_quants_valorisation">
+            <field name="name">Change quants valorisation</field>
+            <field name="model_id" ref="stock.model_stock_quant"/>
+            <field name="code">
+action = self.change_quants_valorisation(cr, uid, context.get('active_ids'), context=context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_change_quants_valorisation">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">stock.quant</field>
+            <field name="name">Change quants valorisation</field>
+            <field name="value" eval="'ir.actions.server,'+str(act_server_change_quants_valorisation)"/>
+        </record>
+
+        <record model="ir.ui.view" id="stock_change_quant_valorisation_form">
+            <field name="name">stock_change_quant_valorisation_form</field>
+            <field name="model">stock.change.quant.valorisation</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="new_cost"/>
+                    </group>
+                    <footer>
+                        <button name="change_quants_valorisation" string="Change quants valorisation" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="quant_cost_history_tree">
+            <field name="name">quant_cost_history_tree</field>
+            <field name="model">quant.cost.history</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="top" create="false" delete="false">
+                    <field name="date"/>
+                    <field name="previous_cost"/>
+                    <field name="new_cost"/>
+                    <field name="user_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="stock_cost_history_form">
+            <field name="name">stock_cost_history_form</field>
+            <field name="model">stock.quant</field>
+            <field name="inherit_id" ref="stock.view_stock_quant_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form position="inside">
+                    <field name="display_cost_history" invisible="1"/>
+                    <group string="Unit Cost History" attrs="{'invisible': [('display_cost_history', '=', False)]}"/>
+                    <field name="cost_history_ids" attrs="{'invisible': [('display_cost_history', '=', False)]}"/>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>
