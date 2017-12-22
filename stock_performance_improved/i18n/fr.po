@@ -237,3 +237,13 @@ msgstr "Le mouvement a des quants réservés"
 #: field:stock.prereservation,location_id:0
 msgid "Location"
 msgstr "Emplacement"
+
+#. module: stock_performance_improved
+#: field:procurement.order,date_cancel:0
+msgid "Cancel date"
+msgstr "Date de passage à annulé"
+
+#. module: stock_performance_improved
+#: field:procurement.order,cancel_user_id:0
+msgid "Cancel user"
+msgstr "Utilisateur ayant annulé"

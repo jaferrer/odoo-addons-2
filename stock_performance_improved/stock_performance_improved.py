@@ -1144,6 +1144,8 @@ class ProcurementOrder(models.Model):
     rule_id = fields.Many2one(track_visibility=False)
     date_running = fields.Datetime(string=u"Running date", copy=False, readonly=True)
     date_done = fields.Datetime(string=u"Done date", copy=False, readonly=True)
+    date_cancel = fields.Datetime(string=u"Cancel date", copy=False, readonly=True)
+    cancel_user_id = fields.Many2one('res.users', string=u"Cancel user", copy=False, readonly=True)
 
     @api.model
     def _run_move_create(self, procurement):
@@ -1193,6 +1195,9 @@ class ProcurementOrder(models.Model):
             vals['date_running'] = fields.Datetime.now()
         elif vals.get('state') == 'done':
             vals['date_done'] = fields.Datetime.now()
+        elif vals.get('state') == 'cancel':
+            vals['date_cancel'] = fields.Datetime.now()
+            vals['cancel_user_id'] = self.env.user.id
         return super(ProcurementOrder, self).write(vals)
 
 

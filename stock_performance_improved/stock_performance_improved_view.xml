@@ -234,6 +234,8 @@ self.run_assign_moves(cr, uid, context=context)
                     <field name="create_uid" readonly="1"/>
                     <field name="date_running"/>
                     <field name="date_done"/>
+                    <field name="date_cancel"/>
+                    <field name="cancel_user_id"/>
                 </field>
             </field>
         </record>
