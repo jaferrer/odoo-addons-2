@@ -1,0 +1,143 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* odoo_scripts_console
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-12-22 09:10+0000\n"
+"PO-Revision-Date: 2014-12-22 11:06+0100\n"
+"Last-Translator: Nicolas PIGANEAU <nicolas.piganeau@ndp-systemes.fr>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 1.7.1\n"
+
+#. module: odoo_scripts_console
+#: model:ir.actions.act_window,name:odoo_scripts_console.act_window_odoo_script
+#: model:ir.ui.menu,name:odoo_scripts_console.menu_odoo_script
+msgid "Odoo Scripts"
+msgstr "Scripts Odoo"
+
+#. module: odoo_scripts_console
+#: model:ir.actions.act_window,name:odoo_scripts_console.act_window_odoo_script_watcher
+#: model:ir.ui.menu,name:odoo_scripts_console.menu_odoo_script_watcher
+msgid "Odoo Script Watchers"
+msgstr "Watchers Odoo"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,create_uid:0
+#: field:odoo.script.watcher,create_uid:0
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,create_date:0
+#: field:odoo.script.watcher,create_date:0
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: odoo_scripts_console
+#: help:odoo.script.watcher,message_last_post:0
+msgid "Date of the last message posted on the record."
+msgstr "Date du dernier message posté dans l'enregistrement."
+
+#. module: odoo_scripts_console
+#: field:odoo.script,description:0
+#: field:odoo.script.watcher,description:0
+msgid "Description"
+msgstr "Description"
+
+#. module: odoo_scripts_console
+#: field:odoo.script.watcher,has_result:0
+msgid "Has result"
+msgstr "A des résultats"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,write_uid:0
+#: field:odoo.script.watcher,write_uid:0
+msgid "Last Updated by"
+msgstr "Dernière modification par"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,write_date:0
+#: field:odoo.script.watcher,write_date:0
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,last_execution_begin:0
+msgid "Last execution begin"
+msgstr "Dernière date d'exécution (début)"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,last_execution_end:0
+msgid "Last execution end"
+msgstr "Dernière date d'exécution (fin)"
+
+#. module: odoo_scripts_console
+#: field:odoo.script.watcher,script_id:0
+msgid "Linked script"
+msgstr "Script liée"
+
+#. module: odoo_scripts_console
+#: model:res.groups,name:odoo_scripts_console.group_sripts_manager
+msgid "Manager"
+msgstr "Responsable"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,name:0
+#: field:odoo.script.watcher,name:0
+msgid "Name"
+msgstr "Nom"
+
+#. module: odoo_scripts_console
+#: field:odoo.script.watcher,nb_lines:0
+msgid "Number of lines detected"
+msgstr "Nombre de ligne trouvées"
+
+#. module: odoo_scripts_console
+#: field:odoo.script.watcher,query:0
+msgid "Query to execute"
+msgstr "Requête à exécuter"
+
+#. module: odoo_scripts_console
+#: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
+msgid "SQL query to execute"
+msgstr "Requête SQL à exécuter"
+
+#. module: odoo_scripts_console
+#: view:odoo.script:odoo_scripts_console.odoo_script_form
+#: field:odoo.script,script:0
+msgid "Script to execute"
+msgstr "Script à exécuter"
+
+#. module: odoo_scripts_console
+#: model:ir.module.category,name:odoo_scripts_console.category_scripts
+msgid "Scripts"
+msgstr "Scripts"
+
+#. module: odoo_scripts_console
+#: model:res.groups,name:odoo_scripts_console.group_sripts_user
+msgid "Utilisateur"
+msgstr "Utilisateur"
+
+#. module: odoo_scripts_console
+#: model:ir.actions.server,name:odoo_scripts_console.act_server_script_watcher
+#: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
+msgid "Watch"
+msgstr "Lancer l'analyse"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,console_browse_command:0
+msgid "Console browse command"
+msgstr "Commande 'browse' en console"
+
+#. module: odoo_scripts_console
+#: field:odoo.script,console_execute_command:0
+msgid "Console execute command"
+msgstr "Commande d'exécution du script"

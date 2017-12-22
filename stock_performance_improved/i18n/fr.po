@@ -197,3 +197,43 @@ msgstr "Grouper par"
 #: view:stock.move:stock_performance_improved.stock_move_search_view
 msgid "Not Cancelled"
 msgstr "Non annulé"
+
+#. module: stock_performance_improved
+#: field:procurement.order,date_running:0
+msgid "Running date"
+msgstr "Date de passage à confirmé"
+
+#. module: stock_performance_improved
+#: field:procurement.order,date_done:0
+msgid "Done date"
+msgstr "Date de passage à terminé"
+
+#. module: stock_performance_improved
+#: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_assign_moves
+msgid "Assign Moves"
+msgstr "Assigner les mouvements"
+
+#. module: stock_performance_improved
+#: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_check_procurements
+msgid "Check Procurements"
+msgstr "Vérifier les achats"
+
+#. module: stock_performance_improved
+#: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_confirm_procurements
+msgid "Run Procurements"
+msgstr "Lancer les achats"
+
+#. module: stock_performance_improved
+#: model:ir.actions.server,name:stock_performance_improved.ir_actions_server_confirm_moves
+msgid "Confirm Moves"
+msgstr "Confirmer les mouvements"
+
+#. module: stock_performance_improved
+#: field:stock.prereservation,reserved:0
+msgid "Move has reserved quants"
+msgstr "Le mouvement a des quants réservés"
+
+#. module: stock_performance_improved
+#: field:stock.prereservation,location_id:0
+msgid "Location"
+msgstr "Emplacement"

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.module.category" id="category_scripts">
+            <field name="name">Scripts</field>
+        </record>
+
+        <record id="group_sripts_user" model="res.groups">
+		    <field name="name">Utilisateur</field>
+		    <field name="category_id" ref="odoo_scripts_console.category_scripts"/>
+		</record>
+
+        <record id="group_sripts_manager" model="res.groups">
+		    <field name="name">Manager</field>
+		    <field name="category_id" ref="odoo_scripts_console.category_scripts"/>
+		    <field name="implied_ids" eval="[(4, ref('odoo_scripts_console.group_sripts_user'))]"/>
+		</record>
+
+    </data>
+</openerp>

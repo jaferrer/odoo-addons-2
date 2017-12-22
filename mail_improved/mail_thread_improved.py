@@ -20,7 +20,7 @@
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 
-from openerp import models, api
+from openerp import models, api, fields
 
 
 @job
@@ -31,6 +31,8 @@ def job_launch_useless_messages_deletion(session, model_name, context):
 
 class MailThreadImprovedModels(models.Model):
     _inherit = 'mail.message'
+
+    code = fields.Char(string=u"Code", readonly=True, copy=False)
 
     @api.model
     def compute_models_to_process(self):
@@ -56,3 +58,8 @@ WHERE model = '%s' AND
       NOT exists(SELECT 1
                  FROM %s current_table
                  WHERE current_table.id = mail_message.res_id);""" % (model, table_name,))
+
+    @api.model
+    def create(self, vals):
+        vals['code'] = self.env.context.get('message_code', '')
+        return super(MailThreadImprovedModels, self).create(vals)

@@ -73,3 +73,13 @@ msgstr "Article"
 #: field:product.product,product_label_ids:0
 msgid "Product labels"
 msgstr "Etiquettes article"
+
+#. module: product_labels
+#: field:product.label,picto:0
+msgid "Image"
+msgstr "Image"
+
+#. module: product_labels
+#: field:product.label,note:0
+msgid "Note"
+msgstr "Note"

@@ -33,45 +33,48 @@ class res_partner_purchase_supplier_stat(models.Model):
     @api.multi
     def _compute_total_purchase(self):
         for rec in self:
-            in_invoices = rec.env['account.invoice.line'].search([('invoice_id.state','in',['open','paid']),
-                                                                  ('invoice_id.type','=','in_invoice'),
-                                                                  ('invoice_id.partner_id','=',rec.id)])
-            in_refunds = rec.env['account.invoice.line'].search([('invoice_id.state','in',['open','paid']),
-                                                                 ('invoice_id.type','=','in_refund'),
-                                                                 ('invoice_id.partner_id','=',rec.id)])
-            total_invoice = 0
-            total_refund = 0
-            for line in in_invoices:
-                total_invoice += line.price_subtotal
-            for line in in_refunds:
-                total_refund += line.price_subtotal
-            rec.total_purchase = total_invoice - total_refund
+            if rec.supplier:
+                in_invoices = rec.env['account.invoice.line'].search([('invoice_id.state','in',['open','paid']),
+                                                                      ('invoice_id.type','=','in_invoice'),
+                                                                      ('invoice_id.partner_id','=',rec.id)])
+                in_refunds = rec.env['account.invoice.line'].search([('invoice_id.state','in',['open','paid']),
+                                                                     ('invoice_id.type','=','in_refund'),
+                                                                     ('invoice_id.partner_id','=',rec.id)])
+                total_invoice = 0
+                total_refund = 0
+                for line in in_invoices:
+                    total_invoice += line.price_subtotal
+                for line in in_refunds:
+                    total_refund += line.price_subtotal
+                rec.total_purchase = total_invoice - total_refund
 
     @api.multi
     def _compute_total_sale_supplier(self):
         for rec in self:
-            out_invoices = rec.env['account.invoice.line'].search([('invoice_id.type','=','out_invoice'),
-                                                                   ('invoice_id.state','in',['open','paid']),
-                                                                   ('product_id.product_tmpl_id.seller_id','=',rec.id)])
-            out_refunds = rec.env['account.invoice.line'].search([('invoice_id.type','=','out_refund'),
-                                                                  ('invoice_id.state','in',['open','paid']),
-                                                                  ('product_id.product_tmpl_id.seller_id','=',rec.id)])
-            total_invoice = 0
-            total_refund = 0
-            for line in out_invoices:
-                total_invoice += line.price_subtotal
-            for line in out_refunds:
-                total_refund += line.price_subtotal
-            rec.total_sale_supplier = total_invoice - total_refund
+            if rec.supplier:
+                out_invoices = rec.env['account.invoice.line'].search([('invoice_id.type','=','out_invoice'),
+                                                                       ('invoice_id.state','in',['open','paid']),
+                                                                       ('product_id.product_tmpl_id.seller_id','=',rec.id)])
+                out_refunds = rec.env['account.invoice.line'].search([('invoice_id.type','=','out_refund'),
+                                                                      ('invoice_id.state','in',['open','paid']),
+                                                                      ('product_id.product_tmpl_id.seller_id','=',rec.id)])
+                total_invoice = 0
+                total_refund = 0
+                for line in out_invoices:
+                    total_invoice += line.price_subtotal
+                for line in out_refunds:
+                    total_refund += line.price_subtotal
+                rec.total_sale_supplier = total_invoice - total_refund
 
     @api.multi
     def _compute_total_purchase_order(self):
         for rec in self:
-            orders = rec.env['purchase.order.line'].search(
-                        [('order_id.state','in',['approved', 'picking_in_progress', 'confirmed', 'picking_done',
-                                                 'except_picking', 'except_invoice']),
-                         ('partner_id','=',rec.id)])
-            total_orders = 0
-            for line in orders:
-                total_orders += line.price_subtotal
-            rec.total_purchase_order = total_orders
+            if rec.supplier:
+                orders = rec.env['purchase.order.line'].search(
+                            [('order_id.state','in',['approved', 'picking_in_progress', 'confirmed', 'picking_done',
+                                                     'except_picking', 'except_invoice']),
+                             ('partner_id','=',rec.id)])
+                total_orders = 0
+                for line in orders:
+                    total_orders += line.price_subtotal
+                rec.total_purchase_order = total_orders

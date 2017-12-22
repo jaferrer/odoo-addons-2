@@ -88,3 +88,8 @@ msgstr "Annuler"
 #: view:live.i18n.ir.translation:live_i10n.live_i18n_ir_translation_form
 msgid "or"
 msgstr "ou"
+
+#. module: live_l10n
+#: field:live.l10n.ir.translation,line_translate_ids:0
+msgid "Lines of translate"
+msgstr "Lignes de traduction"

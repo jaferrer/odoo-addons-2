@@ -24,7 +24,7 @@
     'maintainer': 'NDP Systèmes',
     'category': 'Warehouse',
     'depends': ['stock_planning_improved', 'group_operators', 'procurement_foresight_strategy',
-                'stock_procurement_split', 'connector'],
+                'stock_procurement_split', 'connector', 'scheduler_async'],
     'description': """
 Stock Procurement Just-In-Time
 ==============================

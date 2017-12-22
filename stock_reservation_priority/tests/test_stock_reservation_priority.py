@@ -391,3 +391,68 @@ class TestStockPushPropagation(common.TransactionCase):
                                       {'state': 'confirmed', 'reserved_qty': 0},
                                       {'state': 'confirmed', 'reserved_qty': 3},
                                       {'state': 'assigned', 'reserved_qty': 4}, skip_moves_assignation=True)
+
+    def test_51_reservation_priority(self):
+        """Check with all quants unreserved, but not enough"""
+        self.move1.picking_type_id = self.ref("stock.picking_type_out")
+        self.move2.picking_type_id = self.ref("stock.picking_type_out")
+        self.move3.picking_type_id = self.ref("stock.picking_type_out")
+        self.move1.action_confirm()
+        self.move2.action_confirm()
+        self.move3.action_confirm()
+        self.assertTrue(self.move1.picking_id)
+        self.assertTrue(self.move2.picking_id)
+        self.assertTrue(self.move3.picking_id)
+        self.assertEqual(self.move1.state, 'confirmed')
+        self.assertEqual(self.move2.state, 'confirmed')
+        self.assertEqual(self.move3.state, 'confirmed')
+        group = self.env['procurement.group'].create({'name': "Proc Group"})
+        new_move = self.env['stock.move'].create({
+            'name': "New move to assign",
+            'priority': '1',
+            'product_uom': self.unit.id,
+            'product_uom_qty': 3,
+            'date': '2016-02-18 12:00:00',
+            'product_id': self.product.id,
+            'location_id': self.stock.id,
+            'location_dest_id': self.customers.id,
+            'group_id': group.id,
+            'picking_type_id': self.ref("stock.picking_type_out"),
+        })
+        new_move.action_confirm()
+        new_move2 = self.env['stock.move'].create({
+            'name': "New move to assign",
+            'priority': '1',
+            'product_uom': self.unit.id,
+            'product_uom_qty': 3,
+            'date': '2016-02-18 12:00:00',
+            'product_id': self.product.id,
+            'location_id': self.stock.id,
+            'location_dest_id': self.customers.id,
+            'group_id': group.id,
+            'picking_type_id': self.ref("stock.picking_type_out"),
+        })
+        new_move2.action_confirm()
+        self.assertTrue(new_move.picking_id)
+        self.assertTrue(new_move2.picking_id)
+        self.assertEqual(new_move.picking_id, new_move2.picking_id)
+        self.assertNotEqual(new_move.picking_id, self.move1.picking_id)
+        self.assertNotEqual(new_move.picking_id, self.move2.picking_id)
+        self.assertNotEqual(new_move.picking_id, self.move3.picking_id)
+        pick = new_move.picking_id
+        pick.rereserve_pick()
+        self.env['stock.move'].search([('product_id', '=', self.product.id),
+                                       ('location_id', 'child_of', self.stock.id),
+                                       ('state', 'not in', ['done', 'cancel'])]).action_assign()
+
+        self.assertEqual(self.move1.state, 'assigned')
+        self.assertEqual(sum([quant.qty for quant in self.move1.reserved_quant_ids]), 10)
+        self.assertEqual(self.move2.state, 'confirmed')
+        self.assertEqual(sum([quant.qty for quant in self.move2.reserved_quant_ids]), 0)
+        self.assertEqual(self.move3.state, 'confirmed')
+        self.assertTrue(self.move3.partially_available)
+        self.assertEqual(sum([quant.qty for quant in self.move3.reserved_quant_ids]), 14)
+        self.assertEqual(new_move.state, 'assigned')
+        self.assertEqual(sum([quant.qty for quant in new_move.reserved_quant_ids]), 3)
+        self.assertEqual(new_move2.state, 'assigned')
+        self.assertEqual(sum([quant.qty for quant in new_move2.reserved_quant_ids]), 3)

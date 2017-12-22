@@ -32,10 +32,10 @@ def job_compute_use_case_count(session, model_name, product_ids, context):
 class MrpBomLine(models.Model):
     _inherit = "mrp.bom.line"
 
-    product_parent_id = fields.Many2one('product.product', string="Parent Product",
+    product_parent_id = fields.Many2one('product.product', string=u"Parent Product",
                                         compute='_compute_parents')
     father_line_ids = fields.Many2many('mrp.bom.line', 'mrp_bom_lines_father_rel', 'child_id', 'father_id',
-                                       compute="_compute_parents")
+                                       compute="_compute_parents", string=u"Father lines")
 
     @api.multi
     @api.depends('bom_id.product_id', 'bom_id.product_tmpl_id', 'bom_id')
@@ -77,7 +77,7 @@ class ProductProduct(models.Model):
 
     @api.model
     def cron_compute_use_case_count(self):
-        products = self.search([])
+        products = self.search(['|', ('active', '=', False), ('active', '=', True)])
         chunk_number = 0
         while products:
             chunk_products = products[:100]

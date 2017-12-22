@@ -437,6 +437,7 @@ class PurchaseOrderLineJustInTime(models.Model):
 
     def adjust_move_no_proc_qty(self):
         """Adjusts the quantity of the move without proc, recreating it if necessary."""
+        self = self.with_context(check_product_qty=False)
         moves_no_procs = self.env['stock.move'].search(
             [('purchase_line_id', 'in', self.ids),
              ('procurement_id', '=', False),
@@ -532,7 +533,8 @@ class PurchaseOrderLineJustInTime(models.Model):
                                                         ('procurement_id', '=', False),
                                                         ('state', 'not in', ['done', 'cancel'])])
         moves_no_procs.action_cancel()
-        result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
+        result = super(PurchaseOrderLineJustInTime,
+                       self.with_context(tracking_disable=True, message_code='delete_when_proc_no_exception')).unlink()
         # We reset initially cancelled procs to state 'cancel', because the unlink function of module purchase would
         # have set them to state 'exception'
         cancelled_procs.with_context(tracking_disable=True).write({'state': 'cancel'})
