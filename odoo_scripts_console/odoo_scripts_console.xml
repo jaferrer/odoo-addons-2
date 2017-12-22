@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+        <record id="mt_watcher_result" model="mail.message.subtype">
+            <field name="name">Watcher has result</field>
+            <field name="res_model">odoo.script.watcher</field>
+            <field name="default" eval="True"/>
+            <field name="hidden" eval="False"/>
+            <field name="description">Watcher has result</field>
+        </record>
 
         <record model="ir.ui.view" id="odoo_script_tree">
             <field name="name">odoo_script_tree</field>

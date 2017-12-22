@@ -20,9 +20,7 @@
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
 
-
 from openerp import models, fields, api, exceptions
-
 
 FORBIDDEN_SQL_KEYWORDS = ["UPDATE", "INSERT", "ALTER", "DELETE", "GRANT", "DROP"]
 
@@ -80,7 +78,17 @@ class OdooScript(models.Model):
 
 class OdooScriptWatcher(models.Model):
     _name = 'odoo.script.watcher'
-    _inherit = 'mail.thread'
+    _inherit = ['mail.thread']
+    _track = {
+        'has_result': {
+            'odoo_scripts_console.mt_watcher_result': lambda self, cr, uid, obj,
+                                                             ctx=None: obj.has_result or not obj.has_result,
+        },
+        'nb_lines': {
+            'odoo_scripts_console.mt_watcher_result': lambda self, cr, uid, obj,
+                                                             ctx=None: obj.nb_lines > 0 or not obj.nb_lines == 0,
+        },
+    }
 
     name = fields.Char(string=u"Name", required=True)
     description = fields.Char(string=u"Description")
