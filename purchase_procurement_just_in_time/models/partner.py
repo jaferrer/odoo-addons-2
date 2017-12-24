@@ -73,9 +73,3 @@ class JitResPartner(models.Model):
                 'supplier_ids': [(6, 0, suppliers_to_launch.ids)]
             })
             wizard.procure_calculation()
-
-    @api.multi
-    def _is_valid_supplier_for_scheduler(self, compute_all_products, compute_supplier_ids):
-        self.ensure_one()
-        return bool(compute_all_products or not compute_supplier_ids or
-                    compute_supplier_ids and self.id in compute_supplier_ids)
