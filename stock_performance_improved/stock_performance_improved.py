@@ -1202,7 +1202,7 @@ class StockPrereservation(models.Model):
     _auto = False
 
     move_id = fields.Many2one('stock.move', readonly=True, index=True)
-    location_id = fields.Many2one('stock.location', readonly=True, index=True)
+    location_id = fields.Many2one('stock.location', readonly=True, string="Location", index=True)
     picking_id = fields.Many2one('stock.picking', readonly=True, index=True)
     reserved = fields.Boolean("Move has reserved quants", readonly=True, index=True)
 

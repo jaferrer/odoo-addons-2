@@ -73,3 +73,8 @@ msgstr "Articles à déplacer"
 #: model:ir.model,name:product_putaway_dispatch.model_product_putaway
 msgid "Put Away Strategy"
 msgstr "Stratégie de rangement"
+
+#. module: product_putaway_dispatch
+#: field:stock.transfer_details,hide_dispatch_button:0
+msgid "Hide Dispatch Button"
+msgstr "Cacher le bouton de Dispatch"

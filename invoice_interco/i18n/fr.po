@@ -16,7 +16,7 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: invoice_interco
-#: field:account.invoice,origin_invoice:0
+#: field:account.invoice,inverse_invoice_id:0
 msgid "Invoice Origin"
 msgstr "Facture d'origine"
 
@@ -25,4 +25,3 @@ msgstr "Facture d'origine"
 #: field:account.invoice,allowed_reverse_invoice:0
 msgid "Can create reverse invoice"
 msgstr "Peut créer une facture inverse"
-

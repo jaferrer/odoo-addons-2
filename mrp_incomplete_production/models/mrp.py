@@ -29,26 +29,26 @@ class IncompleteProductionProductLine(models.Model):
     _inherit = 'mrp.production.product.line'
 
     parent_production_id = fields.Many2one('mrp.production', readonly=True,
-                                           string="This Manufacturing Order has generated a child with this move "
-                                                  "as raw material")
+                                           string=u"This Manufacturing Order has generated a child with this move "
+                                                  u"as raw material")
 
 
 class IncompeteProductionMrpProduction(models.Model):
     _inherit = 'mrp.production'
 
-    backorder_id = fields.Many2one('mrp.production', string="Parent Manufacturing Order", readonly=True)
-    child_location_id = fields.Many2one('stock.location', string="Children Location",
-                                        help="If this field is empty, potential children of this Manufacturing Order "
-                                             "will have the same source and destination locations as their parent. If "
-                                             "it is filled, the children will have this location as source "
-                                             "and destination locations.")
-    child_order_id = fields.Many2one('mrp.production', string="Child Manufacturing Order",
+    backorder_id = fields.Many2one('mrp.production', string=u"Parent Manufacturing Order", readonly=True)
+    child_location_id = fields.Many2one('stock.location', string=u"Children Location",
+                                        help=u"If this field is empty, potential children of this Manufacturing Order "
+                                             u"will have the same source and destination locations as their parent. If "
+                                             u"it is filled, the children will have this location as source "
+                                             u"and destination locations.")
+    child_order_id = fields.Many2one('mrp.production', string=u"Child Manufacturing Order",
                                      compute="_get_child_order_id", readonly=True, store=False)
     child_move_ids = fields.One2many('mrp.production.product.line', 'parent_production_id',
-                                     string="Not consumed products", readonly=True)
-    left_products = fields.Boolean(string="True if child_move_ids is not empty", compute="_get_child_moves",
+                                     string=u"Not consumed products", readonly=True)
+    left_products = fields.Boolean(string=u"True if child_move_ids is not empty", compute="_get_child_moves",
                                    readonly=True, store=False)
-    warehouse_id = fields.Many2one('stock.warehouse', string="Warehouse", compute='_compute_warehouse_id', store=True)
+    warehouse_id = fields.Many2one('stock.warehouse', string=u"Warehouse", compute='_compute_warehouse_id', store=True)
 
     @api.multi
     def _get_child_order_id(self):
