@@ -18,7 +18,6 @@
 #
 
 from datetime import datetime as dt
-from dateutil.relativedelta import relativedelta
 
 from openerp import fields
 from openerp.tests import common
