@@ -39,6 +39,12 @@ def job_purchase_schedule(session, model_name, compute_all_products, compute_sup
 
 
 @job(default_channel='root.purchase_scheduler')
+def job_purchase_schedule_seller(session, model_name, seller_id, procurement_ids, jobify):
+    result = session.env[model_name].launch_purchase_schedule_seller(seller_id, procurement_ids, jobify)
+    return result
+
+
+@job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule_procurements(session, model_name, ids):
     result = session.env[model_name].search([('id', 'in', ids)]).purchase_schedule_procurements(jobify=True)
     return result
@@ -145,35 +151,14 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         if manual or not config_sellers_manually:
             compute_supplier_ids = compute_supplier_ids and compute_supplier_ids.ids or []
             compute_product_ids = compute_product_ids and compute_product_ids.ids or []
+            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             if jobify:
-                session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
                 job_purchase_schedule.delay(session, 'procurement.order', compute_all_products,
                                             compute_supplier_ids, compute_product_ids, jobify,
                                             description=_("Scheduling purchase orders"))
             else:
-                self.launch_purchase_schedule(compute_all_products, compute_supplier_ids, compute_product_ids, jobify)
-
-    @api.model
-    def determine_list_scheduler_keys(self, compute_all_products, compute_product_ids):
-        """This functions returns a list of tuple (company, location, product) for procurements to process"""
-        query = """SELECT
-          po.company_id,
-          po.location_id,
-          po.product_id
-        FROM procurement_order po
-          LEFT JOIN procurement_rule pr ON pr.id = po.rule_id
-        WHERE po.state NOT IN ('cancel', 'done', 'exception') AND pr.action = 'buy'"""
-        arguments_needed = False,
-        if not compute_all_products and compute_product_ids:
-            arguments_needed = True
-            query += """ AND po.product_id IN %s"""
-        query += """
-        GROUP BY po.company_id, po.location_id, po.product_id"""
-        if arguments_needed:
-            self.env.cr.execute(query, (tuple(compute_product_ids),))
-        else:
-            self.env.cr.execute(query)
-        return self.env.cr.fetchall()
+                job_purchase_schedule(session, 'procurement.order', compute_all_products,
+                                      compute_supplier_ids, compute_product_ids, jobify)
 
     @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify):
@@ -182,11 +167,92 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         if stock_scheduler_controller_line:
             raise RetryableJobError(u"Impossible to launch purchase scheduler when stock scheduler is running",
                                     seconds=1200)
-        domain_procurements_to_run = [('state', 'not in', ['cancel', 'done', 'exception']),
-                                      ('rule_id.action', '=', 'buy')]
-        if not compute_all_products and compute_product_ids:
-            domain_procurements_to_run += [('product_id', 'in', compute_product_ids)]
-        list_scheduler_keys = self.determine_list_scheduler_keys(compute_all_products, compute_product_ids)
+        if not compute_supplier_ids:
+            active_sellers = self.env['product.supplierinfo'].read_group([('product_tmpl_id.active', '=', True)],
+                                                                         ['name'], ['name'])
+            compute_supplier_ids = [item['name'][0] for item in active_sellers]
+        for seller_id in compute_supplier_ids:
+            query = """WITH po_to_process AS (
+    SELECT po.id
+    FROM procurement_order po
+      LEFT JOIN product_product pp ON pp.id = po.product_id
+      LEFT JOIN procurement_rule pr ON pr.id = po.rule_id
+    WHERE po.state NOT IN ('cancel', 'done', 'exception') AND pr.action = 'buy'),
+
+    min_ps_sequences AS (
+      SELECT
+        po.id            AS procurement_order_id,
+        min(ps.sequence) AS min_ps_sequence
+      FROM procurement_order po
+        LEFT JOIN product_product pp ON pp.id = po.product_id
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
+      WHERE po.id IN (SELECT po_to_process.id
+                      FROM po_to_process) AND
+            (ps.company_id = po.company_id OR ps.company_id IS NULL)
+      GROUP BY po.id),
+
+    min_ps_sequences_and_id AS (
+      SELECT
+        po.id      AS procurement_order_id,
+        mps.min_ps_sequence,
+        min(ps.id) AS min_ps_id_for_sequence
+      FROM procurement_order po
+        LEFT JOIN product_product pp ON pp.id = po.product_id
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
+        LEFT JOIN min_ps_sequences mps ON mps.procurement_order_id = po.id
+      WHERE po.id IN (SELECT po_to_process.id
+                      FROM po_to_process) AND
+            (ps.company_id = po.company_id OR ps.company_id IS NULL) AND
+            ps.sequence = mps.min_ps_sequence
+      GROUP BY po.id, mps.min_ps_sequence),
+
+    result AS (
+      SELECT
+        po.id                   AS procurement_order_id,
+        (CASE WHEN ps.name IS NOT NULL
+          THEN ps.name
+         ELSE pp.seller_id END) AS seller_id,
+        po.company_id,
+        po.location_id,
+        po.product_id
+      FROM procurement_order po
+        LEFT JOIN product_product pp ON pp.id = po.product_id
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
+        LEFT JOIN min_ps_sequences_and_id mps ON mps.procurement_order_id = po.id
+      WHERE po.id IN (SELECT po_to_process.id
+                      FROM po_to_process) AND
+            (ps.company_id = po.company_id OR ps.company_id IS NULL) AND
+            ps.sequence = mps.min_ps_sequence AND
+            ps.id = mps.min_ps_id_for_sequence)
+
+SELECT *
+FROM result
+WHERE seller_id = %s""" % seller_id
+            arguments_needed = False
+            if not compute_all_products and compute_product_ids:
+                query += """ AND product_id in %s"""
+                arguments_needed = True
+            if arguments_needed:
+                self.env.cr.execute(query, (tuple(compute_product_ids),))
+            else:
+                self.env.cr.execute(query)
+            procurement_for_seller_ids = [item[0] for item in self.env.cr.fetchall()]
+            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+            if not procurement_for_seller_ids:
+                continue
+            if jobify:
+                supplier = self.env['res.partner'].search([('id', '=', seller_id)])
+                job_purchase_schedule_seller.delay(session, 'procurement.order', seller_id, procurement_for_seller_ids,
+                                                   jobify, description=_("Scheduling purchase orders for supplier %s" %
+                                                                         supplier.display_name))
+            else:
+                job_purchase_schedule_seller(session, 'procurement.order', seller_id, procurement_for_seller_ids,
+                                             jobify)
+
+    @api.model
+    def launch_purchase_schedule_seller(self, seller_id, procurement_ids, jobify):
+        procurements_to_run = self.env['procurement.order'].search([('id', 'in', procurement_ids)])
+        seller = self.env['res.partner'].search([('id', '=', seller_id)])
         ignore_past_procurements = bool(self.env['ir.config_parameter'].
                                         get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
         config_sellers_manually = bool(self.env['ir.config_parameter'].
@@ -197,28 +263,27 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                     ('next_scheduler_date', '=', False),
                     ('supplier', '=', True)]) or []
         dict_procs = {}
-        for company_id, location_id, product_id in list_scheduler_keys:
-            company = self.env['res.company'].search([('id', '=', company_id)])
-            location = self.env['stock.location'].search([('id', '=', location_id)])
-            product = self.env['product.product'].search([('id', '=', product_id)])
-            domain = domain_procurements_to_run + [('company_id', '=', company_id),
-                                                   ('product_id', '=', product_id),
-                                                   ('location_id', '=', location_id)]
-            first_proc_to_run = self.search(domain, limit=1)
-            seller = first_proc_to_run and self.env['procurement.order']. \
-                _get_product_supplier(first_proc_to_run) or False
+        while procurements_to_run:
+            company = procurements_to_run[0].company_id
+            product = procurements_to_run[0].product_id
+            location = procurements_to_run[0].location_id
+            domain = [('id', 'in', procurements_to_run.ids),
+                      ('company_id', '=', company.id),
+                      ('product_id', '=', product.id),
+                      ('location_id', '=', location.id)]
             if not seller:
                 # If the first proc has no seller, then we drop this proc and go to the next
                 procurements_exception = self.search(domain + [('purchase_line_id', '=', False)])
                 procurements_exception.set_exception_for_procs()
+                procurements_to_run -= self.search(domain)
                 continue
             if seller in suppliers_no_scheduler:
                 procurements_exception = self.search(domain + [('purchase_line_id', '=', False)])
                 msg = _("Purchase scheduler is not configurated for this supplier")
                 procurements_exception.set_exception_for_procs(msg)
+                procurements_to_run -= self.search(domain)
                 continue
-            seller_ok = seller._is_valid_supplier_for_scheduler(compute_all_products, compute_supplier_ids)
-            if seller_ok and ignore_past_procurements:
+            if ignore_past_procurements:
                 suppliers = product.seller_ids and self.env['product.supplierinfo']. \
                     search([('id', 'in', product.seller_ids.ids),
                             ('name', '=', seller.id)]) or False
@@ -230,31 +295,30 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
                 if past_procurements:
                     past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
+                    procurements_to_run -= past_procurements
                 domain += [('date_planned', '>', min_date)]
             procurements = self.search(domain)
-            if seller_ok and procurements:
-                if not dict_procs.get(seller):
-                    dict_procs[seller] = {}
-                if not dict_procs[seller].get(company):
-                    dict_procs[seller][company] = {}
-                if not dict_procs[seller][company].get(location):
-                    dict_procs[seller][company][location] = procurements
+            if procurements:
+                if not dict_procs.get(company):
+                    dict_procs[company] = {}
+                if not dict_procs[company].get(location):
+                    dict_procs[company][location] = procurements
                 else:
-                    dict_procs[seller][company][location] += procurements
-        for supplier in sorted(dict_procs.keys(), key=lambda partner: partner.scheduler_sequence):
-            for company in dict_procs[supplier].keys():
-                for location in dict_procs[supplier][company].keys():
-                    procurements = dict_procs[supplier][company][location]
-                    if procurements:
-                        if jobify:
-                            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-                            job_purchase_schedule_procurements. \
-                                delay(session, 'procurement.order', procurements.ids,
-                                      description=_("Scheduling purchase orders for seller %s, "
-                                                    "company %s and location %s") %
-                                      (supplier.display_name, company.display_name, location.display_name))
-                        else:
-                            procurements.purchase_schedule_procurements()
+                    dict_procs[company][location] += procurements
+            procurements_to_run -= procurements
+        for company in dict_procs.keys():
+            for location in dict_procs[company].keys():
+                procurements = dict_procs[company][location]
+                if procurements:
+                    session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+                    if jobify:
+                        job_purchase_schedule_procurements. \
+                            delay(session, 'procurement.order', procurements.ids,
+                                  description=_("Scheduling purchase orders for seller %s, "
+                                                "company %s and location %s") %
+                                  (seller.display_name, company.display_name, location.display_name))
+                    else:
+                        job_purchase_schedule_procurements(session, 'procurement.order', procurements.ids)
 
     @api.multi
     def compute_procs_for_first_line_found(self, purchase_lines, dict_procs_lines):
