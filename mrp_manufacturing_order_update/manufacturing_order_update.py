@@ -183,8 +183,10 @@ class UpdateChangeStockMove(models.Model):
 
     @api.multi
     def action_cancel(self):
-        if self.env.context.get('forbid_unreserve_quants'):
-            reserved_quant = self.env['stock.quant'].search([('reservation_id', 'in', self.ids)], limit=1)
+        consume_moves = self.env['stock.move'].search([('id', 'in', self.ids),
+                                                       ('raw_material_production_id', '!=', False)])
+        if self.env.context.get('forbid_unreserve_quants') and consume_moves:
+            reserved_quant = self.env['stock.quant'].search([('reservation_id', 'in', consume_moves.ids)], limit=1)
             if reserved_quant:
                 raise exceptions.except_orm(_(u"Error!"),
                                             _(u"Product %s: forbidden to cancel a move with reserved quants") %

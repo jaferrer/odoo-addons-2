@@ -888,3 +888,13 @@ msgstr "Le planificateur achats n'est pas configuré pour ce fournisseur"
 #: field:procurement.order,date_buy_to_run:0
 msgid "Date buy to run"
 msgstr "Date de passage à 'PA à créer'"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,opmsg_delay:0
+msgid "Message Delay"
+msgstr "Message concernant le retard"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,opmsg_type:0
+msgid "Message Type"
+msgstr "Type de message"

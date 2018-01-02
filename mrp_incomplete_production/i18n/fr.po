@@ -210,3 +210,8 @@ msgstr "OF associé"
 #, python-format
 msgid "If you require a child order, you must specify a product for it."
 msgstr "Si vous demandez un OF reliquat, vous devez lui attribuer un article."
+
+#. module: mrp_incomplete_production
+#: field:mrp.production,left_products:0
+msgid "True if child_move_ids is not empty"
+msgstr "Vrai si <<Produits non consommés>> est vide"

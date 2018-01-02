@@ -45,3 +45,12 @@ msgstr "Lancer tous les planificateurs"
 msgid "Procurement"
 msgstr "Approvisionnement"
 
+#. module: scheduler_async
+#: field:procurement.order,run_or_confirm_job_uuid:0
+msgid "Run or confirm job uuid"
+msgstr "Uuid du job de lancer ou de confirmation"
+
+#. module: scheduler_async
+#: field:stock.move,confirm_job_uuid:0
+msgid "Confirm job uuid"
+msgstr "Uuid du job de confirmation"

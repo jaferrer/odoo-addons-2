@@ -510,7 +510,7 @@ WHERE seller_id = %s""" % seller_id
                 draft_order.write({'date_order': date_order,
                                    'date_order_max': date_order_max,
                                    'origin': origin})
-        if not draft_order and not seller.nb_max_draft_orders or seller.get_nb_draft_orders() < seller.nb_max_draft_orders:
+        if not draft_order:
             name = self.env['ir.sequence'].next_by_code('purchase.order') or _('PO: %s') % self.name
             po_vals = self.get_corresponding_draft_order_values(name, origin, seller, date_order, date_order_max)
             draft_order = self.env['purchase.order'].sudo().create(po_vals)
@@ -524,6 +524,7 @@ WHERE seller_id = %s""" % seller_id
         order_by = 'date_planned asc, product_qty asc, id asc'
         not_assigned_procs = self
         procurements_to_check = self.search([('id', 'in', self.ids)], order=order_by)
+        nb_draft_orders = 0
         while procurements_to_check:
             first_proc = procurements_to_check[0]
             company = first_proc.company_id
@@ -544,6 +545,7 @@ WHERE seller_id = %s""" % seller_id
             if draft_order and pol_procurements:
                 line_vals.update(order_id=draft_order.id, product_qty=0)
                 if not dict_lines_to_create.get(draft_order.id):
+                    nb_draft_orders += 1
                     dict_lines_to_create[draft_order.id] = {}
                 if not dict_lines_to_create[draft_order.id].get(product.id):
                     dict_lines_to_create[draft_order.id][product.id] = {'vals': line_vals,
@@ -551,7 +553,11 @@ WHERE seller_id = %s""" % seller_id
                 else:
                     dict_lines_to_create[draft_order.id][product.id]['procurement_ids'] += pol_procurements.ids
                 not_assigned_procs -= pol_procurements
-            procurements_to_check -= pol_procurements
+            if seller.nb_max_draft_orders and seller.get_nb_draft_orders() >= seller.nb_max_draft_orders:
+                procurements_to_check = self.search([('id', 'in', procurements_to_check.ids),
+                                                     ('product_id', '!=', product.id)], order=order_by)
+            else:
+                procurements_to_check -= pol_procurements
         return not_assigned_procs, dict_lines_to_create
 
     @api.model
@@ -637,9 +643,9 @@ WHERE seller_id = %s""" % seller_id
         assert len(locations) == 1, "purchase_schedule_procurements should be called with procs of the same location"
         assert len(sellers) == 1, "purchase_schedule_procurements should be called with procs of the same supplier"
         time_now = dt.now()
-        company = [company for company in companies][0]
-        seller = [seller for seller in sellers][0]
-        location = [location for location in sellers][0]
+        company = list(companies)[0]
+        seller = list(sellers)[0]
+        location = list(locations)[0]
         self.sanitize_draft_orders(company, seller)
         return_msg += u"Sanitizing draft orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()

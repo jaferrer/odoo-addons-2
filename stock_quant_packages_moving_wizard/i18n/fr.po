@@ -435,3 +435,18 @@ msgstr "Rempli à"
 #: field:stock.picking.type,force_is_manual_op:0
 msgid "Force manual moves"
 msgstr "Forcer les déplacements en manuel"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,package_name:0
+msgid "Package name"
+msgstr "Nom du colis"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,is_package:0
+msgid "Is a package"
+msgstr "Est un colis"
+
+#. module: stock_quant_packages_moving_wizard
+#: field:stock.product.line,product_name:0
+msgid "Product name"
+msgstr "Nom de l'article"
