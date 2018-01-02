@@ -135,6 +135,8 @@ class TestPurchaseScheduler(common.TransactionCase):
 
     def test_10_schedule_and_reschedule_from_scratch(self):
         """Test of purchase order creation from scratch when there are none at the beginning."""
+        self.company.write({'po_lead': 3})
+        self.supplier.write({'purchase_lead_time': 2})
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_supplier_ids=self.supplier,
                                                         jobify=False)
@@ -835,4 +837,3 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase1.date_order_max, '3003-09-18 23:59:59')
         self.assertEqual(purchase5.date_order, '3003-08-29 00:00:00')
         self.assertEqual(purchase5.date_order_max, '3003-09-04 23:59:59')
-

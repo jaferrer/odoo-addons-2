@@ -52,5 +52,30 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="purchase_config_working_days_form_jit">
+            <field name="name">purchase_config_working_days_form_jit</field>
+            <field name="model">purchase.config.settings</field>
+            <field name="inherit_id" ref="purchase_working_days.purchase_config_form_working_days"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <div name="default_values" position="inside">
+                        <div>
+                            <label for="order_group_period"/>
+                            <field name="order_group_period" class="oe_inline"/>
+                        </div>
+                        <div>
+                            <label for="nb_max_draft_orders"/>
+                            <field name="nb_max_draft_orders" class="oe_inline"/>
+                        </div>
+                        <div>
+                            <label for="nb_days_scheduler_frequency"/>
+                            <field name="nb_days_scheduler_frequency" class="oe_inline"/>
+                        </div>
+                    </div>
+                </data>
+            </field>
+        </record>
+
     </data>
 </openerp>

@@ -33,7 +33,7 @@ class PurchaseOrderJustInTime(models.Model):
                                           "This date is set according to the supplier order_group_period and to this "
                                           "PO order date.")
     group_id = fields.Many2one('procurement.group', string="Procurement Group", readonly=True)
-    date_order = fields.Datetime(required=False)
+    date_order = fields.Datetime(required=False, string="Start date for grouping period")
 
     @api.model
     def _create_stock_moves(self, order, order_lines, picking_id=False):
@@ -264,7 +264,7 @@ class PurchaseOrderLineJustInTime(models.Model):
     ack_ref = fields.Char("Acknowledge Reference", help="Reference of the supplier's last reply to confirm the delivery"
                                                         " at the planned date")
     date_ack = fields.Date("Last Acknowledge Date",
-                           helps="Last date at which the supplier confirmed the delivery at the planned date.")
+                           help="Last date at which the supplier confirmed the delivery at the planned date.")
     opmsg_type = fields.Selection([('no_msg', "Ok"), ('late', "LATE"), ('early', "EARLY"), ('reduce', "REDUCE"),
                                    ('to_cancel', "CANCEL")], compute="_compute_opmsg", string="Message Type")
     opmsg_delay = fields.Integer("Message Delay", compute="_compute_opmsg")
