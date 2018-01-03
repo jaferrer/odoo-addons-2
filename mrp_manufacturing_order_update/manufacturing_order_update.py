@@ -189,6 +189,7 @@ class UpdateChangeStockMove(models.Model):
             reserved_quant = self.env['stock.quant'].search([('reservation_id', 'in', consume_moves.ids)], limit=1)
             if reserved_quant:
                 raise exceptions.except_orm(_(u"Error!"),
-                                            _(u"Product %s: forbidden to cancel a move with reserved quants") %
-                                            reserved_quant.product_id.display_name)
+                                            _(u"Product %s in MO %s: forbidden to cancel a move with reserved quants") %
+                                            (reserved_quant.product_id.display_name,
+                                             reserved_quant.reservation_id.raw_material_production_id.display_name))
         return super(UpdateChangeStockMove, self).action_cancel()
