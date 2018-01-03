@@ -81,5 +81,5 @@ msgstr "Article %s sur l'OF %s : %s %s ont été consommés, impossible de baiss
 #. module: mrp_manufacturing_order_update
 #: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:190
 #, python-format
-msgid "Product %s: forbidden to cancel a move with reserved quants"
-msgstr "Article %s : interdit d'annuler un mouvement qui a des quants réservés"
+msgid "Product %s in MO %s: forbidden to cancel a move with reserved quants"
+msgstr "Article %s dans l'OF %s : interdit d'annuler un mouvement qui a des quants réservés"
