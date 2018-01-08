@@ -45,8 +45,8 @@ def job_purchase_schedule_seller(session, model_name, seller_id, procurement_ids
 
 
 @job(default_channel='root.purchase_scheduler')
-def job_purchase_schedule_procurements(session, model_name, ids):
-    result = session.env[model_name].search([('id', 'in', ids)]).purchase_schedule_procurements(jobify=True)
+def job_purchase_schedule_procurements(session, model_name, ids, jobify):
+    result = session.env[model_name].search([('id', 'in', ids)]).purchase_schedule_procurements(jobify)
     return result
 
 
@@ -251,7 +251,9 @@ WHERE seller_id = %s""" % seller_id
 
     @api.model
     def launch_purchase_schedule_seller(self, seller_id, procurement_ids, jobify):
-        procurements_to_run = self.env['procurement.order'].search([('id', 'in', procurement_ids)])
+        procurements_to_run = self.env['procurement.order'].search([('id', 'in', procurement_ids),
+                                                                    ('rule_id.active', '=', True),
+                                                                    ('rule_id.picking_type_id.active', '=', True)])
         seller = self.env['res.partner'].search([('id', '=', seller_id)])
         ignore_past_procurements = bool(self.env['ir.config_parameter'].
                                         get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
@@ -313,12 +315,12 @@ WHERE seller_id = %s""" % seller_id
                     session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
                     if jobify:
                         job_purchase_schedule_procurements. \
-                            delay(session, 'procurement.order', procurements.ids,
+                            delay(session, 'procurement.order', procurements.ids, jobify,
                                   description=_("Scheduling purchase orders for seller %s, "
                                                 "company %s and location %s") %
                                   (seller.display_name, company.display_name, location.display_name))
                     else:
-                        job_purchase_schedule_procurements(session, 'procurement.order', procurements.ids)
+                        job_purchase_schedule_procurements(session, 'procurement.order', procurements.ids, jobify)
 
     @api.multi
     def compute_procs_for_first_line_found(self, purchase_lines, dict_procs_lines):
@@ -533,9 +535,9 @@ WHERE seller_id = %s""" % seller_id
             seller = self.env['procurement.order']._get_product_supplier(first_proc)
             schedule_date = self._get_purchase_schedule_date(first_proc, company)
             purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
-            pol_procurements = self.get_purchase_line_procurements(
-                first_proc, purchase_date, company, seller, order_by,
-                force_domain=[('id', 'in', procurements_to_check.ids), ('product_id', '=', product.id)])
+            pol_procurements = self. \
+                get_purchase_line_procurements(first_proc, purchase_date, company, seller, order_by,
+                                               force_domain=[('id', 'in', procurements_to_check.ids)])
             # We consider procurements after the reference date
             # (if we ignore past procurements, past ones are already removed)
             date_ref = seller.schedule_working_days(days_delta, dt.today())
