@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_pos_order_viewer,access_pos_order_viewer,point_of_sale.model_pos_order,group_pos_viewer,1,0,0,0
+access_pos_order_line_viewer,access_pos_order_line_viewer,point_of_sale.model_pos_order_line,group_pos_viewer,1,0,0,0
+access_pos_session_viewer,access_pos_session_viewer,point_of_sale.model_pos_session,group_pos_viewer,1,0,0,0
+access_product_product_viewer,access_product_product_viewer,product.model_product_product,group_pos_viewer,1,0,0,0
+access_product_template_viewer,access_product_template_viewer,product.model_product_template,group_pos_viewer,1,0,0,0
+access_report_pos_order_viewer,access_report_pos_order_viewer,point_of_sale.model_report_pos_order,group_pos_viewer,1,0,0,0

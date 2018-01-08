@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,23 +18,28 @@
 #
 
 {
-    'name': 'Project Planning Improved',
-    'version': '0.1',
+    'name': 'Restaurant - Allergen Management',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project', 'resource_improved', 'project_timeline', 'web_timeline_ordered',
-                'web_sheet_full_width_selective', 'project_improved'],
+    'version': '1.0',
+    'category': 'Point of Sale',
+    'depends': ['point_of_sale'],
+    'license': 'AGPL-3',
     'description': """
-Project Planning Improved
-=========================
-This module implement the improved planning to the project module.
-""",
+Restaurant - Allergen Management
+================================
+
+This module adds a new menu *Allergens* in the *Sale* application. For each product present in POS application, it checks the main BOM to compute which allergens are present in the preparation.
+
+It is also possible to print a report of all the allergens present in the menu.""",
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_planning_improved.xml',
-             'conflicts_tracking.xml',
-             'cron.xml'],
-    'demo': ['tests/project_planning_improved_demo.xml'],
+    'data': [
+        'security/ir.model.access.csv',
+        'allergen_management.xml',
+        'data.xml',
+        'report/report.xml',
+    ],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

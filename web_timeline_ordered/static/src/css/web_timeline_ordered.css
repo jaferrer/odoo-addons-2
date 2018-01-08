@@ -9,3 +9,28 @@
 .vis.timeline .timeaxis .grid.minor {
     border-color: #bbbbbb;
 }
+.oe_timeline_widget {
+    padding-top: 100px;
+}
+.oe_timeline_buttons
+{
+    position: fixed;
+    width: 100%;
+    z-index: 99;
+}
+.vis.timeline .timeaxis.foreground{
+    position: fixed;
+    margin-top: -60px;
+    background: #f0eeee;
+    z-index: 99;
+    top: auto;
+    left: auto;
+    width:74%;
+}
+.vispanel.bottom .timeaxis.foreground{
+    display: none;
+}
+
+.vis.timeline .vispanel.center, .vis.timeline .vispanel.left, .vis.timeline .vispanel.right {
+    height: auto !important;
+}

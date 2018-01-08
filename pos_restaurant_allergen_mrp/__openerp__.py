@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,26 +18,26 @@
 #
 
 {
-    'name': 'Project Planning Improved',
-    'version': '0.1',
+    'name': 'Restaurant - Allergen Management (MRP)',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project', 'resource_improved', 'project_timeline', 'web_timeline_ordered',
-                'web_sheet_full_width_selective', 'project_improved'],
+    'version': '1.0',
+    'category': 'Point of Sale',
+    'depends': ['pos_restaurant_allergen', 'mrp'],
+    'license': 'AGPL-3',
     'description': """
-Project Planning Improved
-=========================
-This module implement the improved planning to the project module.
-""",
+Restaurant - Allergen Management (MRP)
+======================================
+
+This module computes automatically allergens for manufactured products, knowing allergens in raw materials and receipts.""",
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_planning_improved.xml',
-             'conflicts_tracking.xml',
-             'cron.xml'],
-    'demo': ['tests/project_planning_improved_demo.xml'],
+    'data': [
+        'allergen_management.xml',
+    ],
+    'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
 }

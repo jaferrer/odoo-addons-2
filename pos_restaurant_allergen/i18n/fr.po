@@ -1,0 +1,135 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* pos_restaurant_allergen
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 9.0c\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-03-29 07:08+0000\n"
+"PO-Revision-Date: 2016-03-29 07:08+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: pos_restaurant_allergen
+#: model:ir.actions.act_window,name:pos_restaurant_allergen.act_window_restaurant_allergen
+#: model:ir.ui.menu,name:pos_restaurant_allergen.menu_restaurant_allergen
+#: model:ir.model.fields,field_description:pos_restaurant_allergen.field_product_template_allergen_ids
+msgid "Allergens"
+msgstr "Allergènes"
+
+#. module: pos_restaurant_allergen
+#: model:ir.model.fields,field_description:pos_restaurant_allergen.field_restaurant_allergen_name
+msgid "Name"
+msgstr "Nom"
+
+#. module: pos_restaurant_allergen
+#: model:ir.model.fields,field_description:pos_restaurant_allergen.field_restaurant_allergen_active
+msgid "Active"
+msgstr "Actif"
+
+#. module: pos_restaurant_allergen
+#: model:ir.model.fields,field_description:pos_restaurant_allergen.field_launch_allergens_report_language_id
+msgid "Language"
+msgstr "Langue"
+
+#. module: pos_restaurant_allergen
+#: model:ir.actions.act_window,name:pos_restaurant_allergen.act_window_launch_allergens
+#: model:ir.ui.menu,name:pos_restaurant_allergen.menu_allergens_report
+#: view:launch.allergens.report:pos_restaurant_allergen.launch_allergens_report_form
+msgid "Print allergens report"
+msgstr "Imprimer la fiche allergènes"
+
+#. module: pos_restaurant_allergen
+#: view:launch.allergens.report:pos_restaurant_allergen.launch_allergens_report_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_gluten
+msgid "Cereals containing Gluten and products based on those cereals"
+msgstr "Céréales contenant du gluten et les produits à base de ces céréales"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_shellfish
+msgid "Shellfish and shellfish-based products"
+msgstr "Crustacés et produits à bas de crustacés"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_eggs
+msgid "Eggs and eggs-based products"
+msgstr "Oeufs et produits à base d'oeufs"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_fish
+msgid "Fishes and fishes-based products"
+msgstr "Poissons et produits à base de poissons"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_peanut
+msgid "Peanuts and peanuts-based products"
+msgstr "Arachides et produits à base d’arachides"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_soya
+msgid "Soya and soya-based products"
+msgstr "Soja et produits à base de soja"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_milk
+msgid "Milk and milk-based products"
+msgstr "Lait et produits à base de lait"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_nuts
+msgid "Nuts"
+msgstr "Fruits à coque"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_celery
+msgid "Celery and celery-based products"
+msgstr "Céleri et produits à base de céleri"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_mustard
+msgid "Mustard and mustard-based products"
+msgstr "Moutarde et produits à base de moutarde"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_sesame_seeds
+msgid "Sesame seeds and sesame seeds based products"
+msgstr "Graines de sésame et produits à base de graines de sésame"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_sulphur_dioxide_sulfites
+msgid "Sulphur dioxide and sulfites"
+msgstr "Anhydride sulfureux et sulfites"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_lupin
+msgid "Lupin and lupin-based products"
+msgstr "Lupin et produits à base de lupin"
+
+#. module: pos_restaurant_allergen
+#: model:restaurant.allergen,name:pos_restaurant_allergen.restaurant_mollusc
+msgid "Molluscs and molluscs-based products"
+msgstr "Mollusques et produits à base de mollusques"
+
+#. module: pos_restaurant_allergen
+#: report:ir.actions.report.xml:sirail_compta.ir_actions_report_xml_allergens
+msgid "List of main allergens present in our cooking"
+msgstr "Liste des principaux allergènes présents dans nos plats"
+
+#. module: pos_restaurant_allergen
+#: report:ir.actions.report.xml:sirail_compta.ir_actions_report_xml_allergens
+msgid "Allergen"
+msgstr "Allergène"
+
+#. module: pos_restaurant_allergen
+#: report:ir.actions.report.xml:sirail_compta.ir_actions_report_xml_allergens
+msgid "Dishes"
+msgstr "Plats"

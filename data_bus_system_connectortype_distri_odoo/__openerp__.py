@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Data Bus System Connector Type  Distribution local',
+    'name': 'Data Bus System Connector Type  Distribution odoo',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
