@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="transporter.content.type" id="MR_type_marchandise">
+            <field name="name">Marchandise</field>
+            <field name="code">MAR</field>
+            <field name="transporter_id" ref="base_delivery_tracking_mondial_relay.transporter_mondial_relay"/>
+            <field name="used_by_default" eval="True"/>
+        </record>
+
+        <record model="type.produit.expedition" id="mondial_24R">
+            <field name="name">Modial Relay</field>
+            <field name="transporter_id" ref="base_delivery_tracking_mondial_relay.transporter_mondial_relay"/>
+            <field name="code">24R</field>
+            <field name="used_from_customer" eval="True"/>
+            <field name="used_to_customer" eval="True"/>
+        </record>
+
+        <record model="output.printing.type" id="mondial_type_a4">
+            <field name="name">PDF A4</field>
+            <field name="transporter_id" ref="base_delivery_tracking_mondial_relay.transporter_mondial_relay"/>
+            <field name="code">A4</field>
+            <field name="print_on_a4">1</field>
+        </record>
+
+        <record model="output.printing.type" id="mondial_type_a5">
+            <field name="name">PDF A5</field>
+            <field name="transporter_id" ref="base_delivery_tracking_mondial_relay.transporter_mondial_relay"/>
+            <field name="code">A5</field>
+        </record>
+
+        <record model="output.printing.type" id="mondial_type_10x15">
+            <field name="name">PDF 10x15</field>
+            <field name="transporter_id" ref="base_delivery_tracking_mondial_relay.transporter_mondial_relay"/>
+            <field name="code">10x15</field>
+        </record>
+
+    </data>
+</openerp>
