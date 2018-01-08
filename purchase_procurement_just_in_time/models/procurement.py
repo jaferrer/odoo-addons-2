@@ -398,7 +398,7 @@ WHERE seller_id = %s""" % seller_id
         taking all procurements of the same product as first_proc between the date of first proc and date_end.
         """
         procurements_grouping_period = self.env['procurement.order']
-        frame = seller.order_group_period
+        frame = seller.get_effective_order_group_period()
         date_end = False
         if frame and frame.period_type:
             date_end = fields.Datetime.to_string(frame.get_date_end_period(purchase_date))
@@ -492,7 +492,7 @@ WHERE seller_id = %s""" % seller_id
         draft_order = False
         if available_draft_po_ids:
             return available_draft_po_ids[0]
-        frame = seller.order_group_period
+        frame = seller.get_effective_order_group_period()
         date_ref = seller.schedule_working_days(days_delta, dt.today())
         date_order, date_order_max = (False, False)
         if frame and frame.period_type:
@@ -556,6 +556,7 @@ WHERE seller_id = %s""" % seller_id
                     dict_lines_to_create[draft_order.id][product.id]['procurement_ids'] += pol_procurements.ids
                 not_assigned_procs -= pol_procurements
             if seller.nb_max_draft_orders and seller.get_nb_draft_orders() >= seller.nb_max_draft_orders:
+                # TODO: ça ne va pas marcher...
                 procurements_to_check = self.search([('id', 'in', procurements_to_check.ids),
                                                      ('product_id', '!=', product.id)], order=order_by)
             else:

@@ -121,7 +121,7 @@ class MoUpdateMrpProduction(models.Model):
         self.update_moves()
 
     @api.model
-    def run_schedule_button_update(self):
+    def run_schedule_button_update(self, jobify=True):
         self.env.cr.execute("""WITH mrp_moves_details AS (
     SELECT
       mrp.id        AS mrp_id,
@@ -153,9 +153,13 @@ HAVING sum(CASE WHEN raw_move_state = 'done' OR
         while mrp_to_update_ids:
             chunk_number += 1
             mrp_chunk_ids = mrp_to_update_ids[:100]
-            run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
-                                            dict(self.env.context), description=u"MRP Production Update (chunk %s)" %
-                                                                          chunk_number)
+            if jobify:
+                run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
+                                                dict(self.env.context),
+                                                description=u"MRP Production Update (chunk %s)" % chunk_number)
+            else:
+                run_mrp_production_update(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
+                                          dict(self.env.context))
             mrp_to_update_ids = mrp_to_update_ids[100:]
 
 
