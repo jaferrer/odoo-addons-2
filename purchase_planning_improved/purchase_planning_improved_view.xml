@@ -9,9 +9,13 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <data>
+                    <field name="origin" position="after">
+                        <field name="limit_order_date" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    </field>
                     <xpath expr="//field[@name='order_line']//field[@name='date_planned']" position="before">
                         <field name="procurement_ids" invisible="1"/>
                         <field name="date_required" attrs="{'readonly': [('procurement_ids','!=', False)]}"/>
+                        <field name="limit_order_date" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                         <field name="requested_date"/>
                     </xpath>
                 </data>
@@ -26,6 +30,7 @@
             <field name="arch" type="xml">
                 <field name="date_planned" position="after">
                     <field name="date_required"/>
+                    <field name="limit_order_date"/>
                 </field>
             </field>
         </record>

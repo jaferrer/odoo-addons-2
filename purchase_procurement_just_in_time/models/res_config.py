@@ -43,6 +43,9 @@ class purchase_jit_config(models.TransientModel):
     redistribute_procurements_in_separate_jobs = fields.Boolean(string="Redistribute procurements in separate jobs",
                                                                 help="Used for the purchase planner")
     config_sellers_manually = fields.Boolean(string="Configure purchase scheduler manually for each supplier")
+    order_group_period = fields.Many2one('procurement.time.frame', "Default order grouping period")
+    nb_max_draft_orders = fields.Integer(string="Default maximal number of draft purchase orders for each new supplier")
+    nb_days_scheduler_frequency = fields.Integer(string="Default scheduler frequency (in days)")
 
     @api.multi
     def get_default_opmsg_min_late_delay(self):
@@ -134,3 +137,43 @@ class purchase_jit_config(models.TransientModel):
         for record in self:
             config_parameters.set_param("purchase_procurement_just_in_time.config_sellers_manually",
                                         record.config_sellers_manually or '')
+
+    @api.multi
+    def get_default_order_group_period(self):
+        order_group_period_id = self.env['ir.config_parameter'].get_param(
+            "purchase_procurement_just_in_time.order_group_period", default=False)
+        order_group_period = order_group_period_id and int(order_group_period_id) or False
+        return {'order_group_period': order_group_period}
+
+    @api.multi
+    def set_order_group_period(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.order_group_period",
+                                        record.order_group_period and record.order_group_period.id or '')
+
+    @api.multi
+    def get_default_nb_max_draft_orders(self):
+        nb_max_draft_orders = self.env['ir.config_parameter'].get_param(
+            "purchase_procurement_just_in_time.nb_max_draft_orders", default=0)
+        return {'nb_max_draft_orders': int(nb_max_draft_orders)}
+
+    @api.multi
+    def set_nb_max_draft_orders(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.nb_max_draft_orders",
+                                        record.nb_max_draft_orders or '0')
+
+    @api.multi
+    def get_default_nb_days_scheduler_frequency(self):
+        nb_days_scheduler_frequency = self.env['ir.config_parameter'].get_param(
+            "purchase_procurement_just_in_time.nb_days_scheduler_frequency", default=0)
+        return {'nb_days_scheduler_frequency': int(nb_days_scheduler_frequency)}
+
+    @api.multi
+    def set_nb_days_scheduler_frequency(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.nb_days_scheduler_frequency",
+                                        record.nb_days_scheduler_frequency or '0')
