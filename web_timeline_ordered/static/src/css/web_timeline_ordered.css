@@ -17,6 +17,7 @@
     position: fixed;
     width: 100%;
     z-index: 99;
+    background: #f0eeee;
 }
 .vis.timeline .timeaxis.foreground{
     position: fixed;
