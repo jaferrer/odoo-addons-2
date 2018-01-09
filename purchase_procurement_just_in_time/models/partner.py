@@ -35,15 +35,18 @@ class JitResPartner(models.Model):
     def _get_default_order_group_period(self):
         order_group_period_id = self.env['ir.config_parameter'].\
             get_param('purchase_procurement_just_in_time.order_group_period')
-        return order_group_period_id and int(order_group_period_id) or False
+        order_group_period_id = order_group_period_id and int(order_group_period_id) or False
+        order_group_period = order_group_period_id and \
+            self.env['procurement.time.frame'].browse(order_group_period_id) or self.env['procurement.time.frame']
+        return order_group_period
 
     def _get_default_nb_max_draft_orders(self):
-        return  int(self.env['ir.config_parameter'].\
-            get_param('purchase_procurement_just_in_time.nb_max_draft_orders'))
+        return int(self.env['ir.config_parameter'].\
+            get_param('purchase_procurement_just_in_time.nb_max_draft_orders') or 0)
 
     def _get_default_nb_days_scheduler_frequency(self):
-        return  int(self.env['ir.config_parameter'].\
-            get_param('purchase_procurement_just_in_time.nb_days_scheduler_frequency'))
+        return int(self.env['ir.config_parameter'].\
+            get_param('purchase_procurement_just_in_time.nb_days_scheduler_frequency') or 0)
 
     order_group_period = fields.Many2one('procurement.time.frame', string="Order grouping period",
                                          help="Select here the time frame by which orders line placed to this supplier"
@@ -100,7 +103,7 @@ class JitResPartner(models.Model):
                 order_group_period = self.env['procurement.time.frame'].browse(int(order_group_period_id))
         return order_group_period
 
-    @api.multi
+    @api.model
     def create(self, vals):
         if vals.get('nb_days_scheduler_frequency') and not vals.get('next_scheduler_date'):
             vals['next_scheduler_date'] = fields.Datetime.to_string(dt.now().replace(hour=22, minute=0, second=0))
