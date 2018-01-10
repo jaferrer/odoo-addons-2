@@ -142,7 +142,7 @@ class PurchaseOrderPlanningImproved(models.Model):
     @api.depends('order_line', 'order_line.limit_order_date')
     def _compute_limit_order_date(self):
         for rec in self:
-            rec.limit_order_date = min([line.limit_order_date for line in rec.order_line])
+            rec.limit_order_date = min([line.limit_order_date for line in rec.order_line] or [False])
 
     @api.multi
     def write(self, vals):
