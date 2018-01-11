@@ -16,10 +16,10 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: purchase_check_qty_supplier
-#: code:addons/purchase_check_qty_supplier/purchase_order.py:106
+#: code:addons/purchase_check_qty_supplier/purchase_order.py:140
 #, python-format
-msgid "The selected supplier has a minimal quantity set to %s %s, you should not purchase less."
-msgstr "Le fournisseur sélectionné à une quantité minimale de %s %s, vous ne pouvez pas en commander moins."
+msgid "The selected supplier has a minimal quantity set to %s %s for the product %s, you should not purchase less."
+msgstr "Le fournisseur sélectionné à une quantité minimale de %s %s pour l'article %s, vous ne pouvez pas en commander moins."
 
 #. module: purchase_check_qty_supplier
 #: code:addons/purchase_check_qty_supplier/purchase_order.py:98
@@ -33,8 +33,4 @@ msgstr "Warning!"
 msgid "Error!"
 msgstr "Error!"
 
-#. module: purchase_check_qty_supplier
-#: code:addons/purchase_check_qty_supplier/purchase_order.py:58
-#, python-format
-msgid "The selected supplier has a minimal quantity set to %s %s for the product %s, you should not purchase less."
-msgstr "Le fournisseur sélectionné à une quantité minimale de %s %s pour l'article %s, vous ne pouvez pas en commander moins."
+
