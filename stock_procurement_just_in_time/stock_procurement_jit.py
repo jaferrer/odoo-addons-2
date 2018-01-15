@@ -109,65 +109,69 @@ class ProcurementOrderQuantity(models.Model):
 
         self.env.cr.execute("""INSERT INTO stock_scheduler_controller
 (orderpoint_id,
-product_id,
-location_id,
-stock_scheduler_sequence,
-run_procs,
-done,
-create_date,
-write_date,
-create_uid,
-write_uid)
- 
- WITH user_id AS (SELECT %s AS user_id),
+ product_id,
+ location_id,
+ location_sequence,
+ route_sequence,
+ run_procs,
+ done,
+ create_date,
+ write_date,
+ create_uid,
+ write_uid)
 
-    orderpoints_to_insert AS (
-      SELECT
-        op.id                                                 AS orderpoint_id,
-        op.product_id,
-        op.location_id,
-        max(COALESCE(sl.stock_scheduler_sequence, 0)) :: TEXT || '-' ||
-        max(COALESCE(slr.stock_scheduler_sequence, 0)) :: TEXT AS stock_scheduler_sequence,
-        FALSE                                                 AS run_procs,
-        FALSE                                                 AS done,
-        CURRENT_TIMESTAMP                                     AS create_date,
-        CURRENT_TIMESTAMP                                     AS write_date,
-        (SELECT user_id
-         FROM user_id)                                        AS create_uid,
-        (SELECT user_id
-         FROM user_id)                                        AS write_uid
-      FROM stock_warehouse_orderpoint op
-        LEFT JOIN stock_location sl ON sl.id = op.location_id
-        LEFT JOIN product_product pp ON pp.id = op.product_id
-        LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
-        LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
-      WHERE op.id IN %s
-      GROUP BY op.id),
+  WITH user_id AS (SELECT %s AS user_id),
 
-    list_sequences AS (
-      SELECT stock_scheduler_sequence
-      FROM orderpoints_to_insert
-      GROUP BY stock_scheduler_sequence)
+      orderpoints_to_insert AS (
+        SELECT
+          op.id                                     AS orderpoint_id,
+          op.product_id,
+          op.location_id,
+          COALESCE(sl.stock_scheduler_sequence, 0)  AS location_sequence,
+          COALESCE(slr.stock_scheduler_sequence, 0) AS route_sequence,
+          FALSE                                     AS run_procs,
+          FALSE                                     AS done,
+          CURRENT_TIMESTAMP                         AS create_date,
+          CURRENT_TIMESTAMP                         AS write_date,
+          (SELECT user_id
+           FROM user_id)                            AS create_uid,
+          (SELECT user_id
+           FROM user_id)                            AS write_uid
+        FROM stock_warehouse_orderpoint op
+          LEFT JOIN stock_location sl ON sl.id = op.location_id
+          LEFT JOIN product_product pp ON pp.id = op.product_id
+          LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
+          LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
+        WHERE op.id IN %s
+        GROUP BY op.id, sl.stock_scheduler_sequence, slr.stock_scheduler_sequence),
 
-SELECT *
-FROM orderpoints_to_insert
+      list_sequences AS (
+        SELECT
+          location_sequence,
+          route_sequence
+        FROM orderpoints_to_insert
+        GROUP BY location_sequence, route_sequence)
 
-UNION ALL
+  SELECT *
+  FROM orderpoints_to_insert
 
-SELECT
-  NULL              AS orderpoint_id,
-  NULL              AS product_id,
-  NULL              AS location_id,
-  stock_scheduler_sequence,
-  TRUE              AS run_procs,
-  FALSE             AS done,
-  CURRENT_TIMESTAMP AS create_date,
-  CURRENT_TIMESTAMP AS write_date,
-  (SELECT user_id
-   FROM user_id)    AS create_uid,
-  (SELECT user_id
-   FROM user_id)    AS write_uid
-FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
+  UNION ALL
+
+  SELECT
+    NULL              AS orderpoint_id,
+    NULL              AS product_id,
+    NULL              AS location_id,
+    location_sequence,
+    route_sequence,
+    TRUE              AS run_procs,
+    FALSE             AS done,
+    CURRENT_TIMESTAMP AS create_date,
+    CURRENT_TIMESTAMP AS write_date,
+    (SELECT user_id
+     FROM user_id)    AS create_uid,
+    (SELECT user_id
+     FROM user_id)    AS write_uid
+  FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
         return {}
 
     @api.multi
@@ -749,7 +753,8 @@ class StockSchedulerController(models.Model):
     orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Orderpoint")
     product_id = fields.Many2one('product.product', string=u"Product", readonly=True)
     location_id = fields.Many2one('stock.location', string=u"Location", readonly=True)
-    stock_scheduler_sequence = fields.Char(string=u"Stock scheduler sequence", readonly=True, group_operator='max')
+    location_sequence = fields.Integer(string=u"Location sequence", readonly=True)
+    route_sequence = fields.Integer(string=u"Route sequence", readonly=True)
     run_procs = fields.Boolean(string=u"Run procurements", readonly=True)
     job_creation_date = fields.Datetime(string=u"Job Creation Date", readonly=True)
     job_uuid = fields.Char(string=u"Job UUID", readonly=True)
@@ -762,17 +767,19 @@ class StockSchedulerController(models.Model):
 
     @api.model
     def update_scheduler_controller(self, jobify=True, run_procurements=True):
-        max_running_sequence = self.read_group([('done', '=', False)], ['stock_scheduler_sequence'],
-                                               ['stock_scheduler_sequence'], orderby='stock_scheduler_sequence desc',
-                                               limit=1)
-        if max_running_sequence:
-            max_running_sequence = max_running_sequence[0]['stock_scheduler_sequence']
+        max_sequence = self.read_group([('done', '=', False)], ['location_sequence', 'route_sequence'],
+                                       ['location_sequence', 'route_sequence'],
+                                       orderby='location_sequence desc, route_sequence desc', limit=1)
+        if max_sequence:
+            max_location_sequence = max_sequence[0]['location_sequence']
+            max_route_sequence = max_sequence[0]['route_sequence']
             is_procs_confirmation_ok = self.env['procurement.order'].is_procs_confirmation_ok()
             is_moves_confirmation_ok = self.env['procurement.order'].is_moves_confirmation_ok()
             if is_procs_confirmation_ok and is_moves_confirmation_ok:
                 controller_lines_no_run = self.search([('done', '=', False),
                                                        ('job_uuid', '=', False),
-                                                       ('stock_scheduler_sequence', '=', max_running_sequence),
+                                                       ('location_sequence', '=', max_location_sequence),
+                                                       ('route_sequence', '=', max_route_sequence),
                                                        ('run_procs', '=', False)])
                 for line in controller_lines_no_run:
                     if jobify:
@@ -791,7 +798,8 @@ class StockSchedulerController(models.Model):
                                             line.orderpoint_id.ids, dict(self.env.context))
                 if not controller_lines_no_run:
                     controller_lines_run_procs = self.search([('done', '=', False),
-                                                              ('stock_scheduler_sequence', '=', max_running_sequence),
+                                                              ('location_sequence', '=', max_location_sequence),
+                                                              ('route_sequence', '=', max_route_sequence),
                                                               ('run_procs', '=', True)])
                     if controller_lines_run_procs:
                         if run_procurements:
