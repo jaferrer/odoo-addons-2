@@ -138,7 +138,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
 class PurchaseOrderPlanningImproved(models.Model):
     _inherit = 'purchase.order'
 
-    limit_order_date = fields.Date("Limit order date", compute="_compute_limit_order_date",
+    limit_order_date = fields.Date("Limit order date", compute="_compute_limit_order_date", store=True,
                                    help="Minimum of limit order dates of all the lines")
 
     @api.multi
