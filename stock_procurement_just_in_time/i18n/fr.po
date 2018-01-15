@@ -116,6 +116,7 @@ msgstr "Entrepôt"
 
 #. module: stock_procurement_just_in_time
 #: field:stock.levels.requirements,location_id:0
+#: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
 msgid "Location"
 msgstr "Emplacement"
 
@@ -163,6 +164,7 @@ msgstr "Approvisionnement"
 #: view:stock.levels.report:0
 #: field:stock.levels.report,product_id:0
 #: field:stock.levels.requirements,product_id:0
+#: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
 msgid "Product"
 msgstr "Article"
 
@@ -345,6 +347,22 @@ msgstr "En cours"
 #: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
 msgid "Run procurements"
 msgstr "Lancer les approvisionnements"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,location_sequence:0
+msgid "Location sequence"
+msgstr "Séquence de l'emplacement"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,route_id:0
+#: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
+msgid "Route"
+msgstr "Route"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,route_sequence:0
+msgid "Route sequence"
+msgstr "Séquence de a route"
 
 #. module: stock_procurement_just_in_time
 #: model:ir.actions.act_window,name:stock_procurement_just_in_time.act_window_stock_scheduler_controller
