@@ -754,6 +754,7 @@ class StockSchedulerController(models.Model):
     product_id = fields.Many2one('product.product', string=u"Product", readonly=True)
     location_id = fields.Many2one('stock.location', string=u"Location", readonly=True)
     location_sequence = fields.Integer(string=u"Location sequence", readonly=True)
+    route_id = fields.Many2one('stock.location.route', string=u"Route", readonly=True)
     route_sequence = fields.Integer(string=u"Route sequence", readonly=True)
     run_procs = fields.Boolean(string=u"Run procurements", readonly=True)
     job_creation_date = fields.Datetime(string=u"Job Creation Date", readonly=True)

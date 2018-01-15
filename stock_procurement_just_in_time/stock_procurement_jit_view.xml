@@ -161,6 +161,7 @@
                     <field name="product_id"/>
                     <field name="location_id"/>
                     <field name="location_sequence"/>
+                    <field name="route_id"/>
                     <field name="route_sequence"/>
                     <field name="run_procs"/>
                     <field name="job_creation_date"/>
@@ -179,9 +180,15 @@
                 <search>
                     <field name="product_id"/>
                     <field name="location_id"/>
+                    <field name="route_id"/>
                     <field name="job_uuid"/>
                     <filter name="running" string="Running" domain="[('done', '=', False)]"/>
                     <filter name="run_procs" string="Run procurements" domain="[('run_procs', '=', True)]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Product" domain="[]" context="{'group_by':'product_id'}"/>
+                        <filter string="Location" domain="[]" context="{'group_by':'location_id'}"/>
+                        <filter string="Route" domain="[]" context="{'group_by':'route_id'}"/>
+                    </group>
                 </search>
             </field>
         </record>
