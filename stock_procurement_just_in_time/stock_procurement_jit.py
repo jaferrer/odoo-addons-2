@@ -768,12 +768,10 @@ class StockSchedulerController(models.Model):
 
     @api.model
     def update_scheduler_controller(self, jobify=True, run_procurements=True):
-        max_sequence = self.read_group([('done', '=', False)], ['location_sequence', 'route_sequence'],
-                                       ['location_sequence', 'route_sequence'],
-                                       orderby='location_sequence desc, route_sequence desc', limit=1)
+        max_sequence = self.search([('done', '=', False)], order='location_sequence desc, route_sequence desc', limit=1)
         if max_sequence:
-            max_location_sequence = max_sequence[0]['location_sequence']
-            max_route_sequence = max_sequence[0]['route_sequence']
+            max_location_sequence = max_sequence.location_sequence
+            max_route_sequence = max_sequence.route_sequence
             is_procs_confirmation_ok = self.env['procurement.order'].is_procs_confirmation_ok()
             is_moves_confirmation_ok = self.env['procurement.order'].is_moves_confirmation_ok()
             if is_procs_confirmation_ok and is_moves_confirmation_ok:

@@ -362,7 +362,7 @@ msgstr "Route"
 #. module: stock_procurement_just_in_time
 #: field:stock.scheduler.controller,route_sequence:0
 msgid "Route sequence"
-msgstr "Séquence de a route"
+msgstr "Séquence de la route"
 
 #. module: stock_procurement_just_in_time
 #: model:ir.actions.act_window,name:stock_procurement_just_in_time.act_window_stock_scheduler_controller
