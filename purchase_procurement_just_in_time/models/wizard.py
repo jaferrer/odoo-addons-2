@@ -76,28 +76,30 @@ class SplitLine(models.TransientModel):
 
         original_qty = self.line_id.product_qty
         new_pol_qty = original_qty - self.qty
-        done_procs = self.env['procurement.order'].search([('id', 'in', self.line_id.procurement_ids.ids),
-                                                           ('state', '=', 'done')])
-        running_procs = self.env['procurement.order'].search([('id', 'in', self.line_id.procurement_ids.ids),
-                                                              ('state', 'not in', ['done', 'cancel'])])
-        done_procs_qty = sum([self.env['product.uom']._compute_qty(proc.product_uom.id,
-                                                                   proc.product_qty,
-                                                                   self.line_id.product_uom.id)
-                              for proc in done_procs])
-        running_procs_qty = sum([self.env['product.uom']._compute_qty(proc.product_uom.id,
-                                                                      proc.product_qty,
-                                                                      self.line_id.product_uom.id)
-                                 for proc in running_procs])
-        self._check_split_possible(done_procs_qty)
-        prec = self.line_id.product_uom.rounding
-        while running_procs and float_compare(done_procs_qty + running_procs_qty, self.qty,
-                                              precision_rounding=prec) > 0:
-            procurement_to_detach = running_procs[0]
-            qty_to_detach_pol_uom = self.env['product.uom']._compute_qty(procurement_to_detach.product_uom.id,
-                                                                         procurement_to_detach.product_qty,
-                                                                         self.line_id.product_uom.id)
-            procurement_to_detach.remove_procs_from_lines(unlink_moves_to_procs=True)
-            running_procs_qty -= qty_to_detach_pol_uom
+        if self.line_id.product_id:
+            done_procs = self.env['procurement.order'].search([('id', 'in', self.line_id.procurement_ids.ids),
+                                                               ('state', '=', 'done')])
+            running_procs = self.env['procurement.order'].search([('id', 'in', self.line_id.procurement_ids.ids),
+                                                                  ('state', 'not in', ['done', 'cancel'])])
+            done_procs_qty = sum([self.env['product.uom']._compute_qty(proc.product_uom.id,
+                                                                       proc.product_qty,
+                                                                       self.line_id.product_uom.id)
+                                  for proc in done_procs])
+            running_procs_qty = sum([self.env['product.uom']._compute_qty(proc.product_uom.id,
+                                                                          proc.product_qty,
+                                                                          self.line_id.product_uom.id)
+                                     for proc in running_procs])
+            self._check_split_possible(done_procs_qty)
+            prec = self.line_id.product_uom.rounding
+            while running_procs and float_compare(done_procs_qty + running_procs_qty, self.qty,
+                                                  precision_rounding=prec) > 0:
+                procurement_to_detach = running_procs[0]
+                qty_to_detach_pol_uom = self.env['product.uom']._compute_qty(procurement_to_detach.product_uom.id,
+                                                                             procurement_to_detach.product_qty,
+                                                                             self.line_id.product_uom.id)
+                procurement_to_detach.remove_procs_from_lines(unlink_moves_to_procs=True)
+                running_procs_qty -= qty_to_detach_pol_uom
+
         self.line_id.with_context().write({'product_qty': self.qty})
 
         # Get a line_no for the new purchase.order.line

@@ -26,11 +26,16 @@ from openerp import fields, models, api
 class res_partner_with_calendar(models.Model):
     _inherit = "res.partner"
 
+    def _get_default_purchase_lead_time(self):
+        return  int(self.env['ir.config_parameter'].get_param('purchase_working_days.purchase_lead_time'))
+
     resource_id = fields.Many2one("resource.resource", "Supplier resource",
                                   help="The supplier resource is used to define the working days of the supplier when "
                                        "calculating lead times. If undefined here the system will consider working "
                                        "days of the supplier being Monday to Friday.")
     partner_leaves_count = fields.Integer(string="Partner leaves", compute='_compute_supplier_leaves_count')
+    purchase_lead_time = fields.Integer(string="Purchase Lead Time", track_visibility='onchange',
+                                        default=_get_default_purchase_lead_time)
 
     @api.multi
     def schedule_working_days(self, nb_days, day_date):
@@ -116,7 +121,7 @@ class purchase_working_days(models.Model):
         location = procurement.location_id or procurement.warehouse_id.view_location_id
         # If key 'do_not_save_result' in context of self, we transfer it to location's context.
         schedule_date = location.with_context(do_not_save_result=do_not_save_result). \
-            schedule_working_days(-company.po_lead, proc_date)
+            schedule_working_days(-company.po_lead - procurement.product_id.seller_id.purchase_lead_time, proc_date)
         return schedule_date
 
     @api.model
@@ -132,6 +137,6 @@ class purchase_working_days(models.Model):
            :return: the desired Order Date for the PO
         """
         seller_delay = int(procurement.product_id.seller_delay)
-        partner = procurement.product_id.seller_id
+        partner = self.env.context.get('force_partner', procurement.product_id.seller_id).with_context(self.env.context)
         order_date = partner.schedule_working_days(-seller_delay, schedule_date)
         return order_date
