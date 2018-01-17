@@ -676,8 +676,8 @@ msgstr "Planification des achats pour le fournisseur %s et l'emplacement %s"
 
 #. module: purchase_procurement_just_in_time
 #: field:res.partner,nb_max_draft_orders:0
-msgid "Maximal number of draft purchase orders"
-msgstr "Nombre maximal de commandes d'achat brouillon"
+msgid "Number of grouping periods to consider"
+msgstr "Nombre de périodes de regroupement à prendre en compte"
 
 #. module: purchase_procurement_just_in_time
 #: field:res.partner,nb_days_scheduler_frequency:0

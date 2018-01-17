@@ -17,10 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, osv
-from datetime import datetime, timedelta
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
-from openerp.exceptions import ValidationError
+from openerp import fields, models
 
 
 class SaleOrderLineDatePlanned(models.Model):
