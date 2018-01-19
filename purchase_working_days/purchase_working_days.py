@@ -137,6 +137,10 @@ class purchase_working_days(models.Model):
            :return: the desired Order Date for the PO
         """
         seller_delay = int(procurement.product_id.seller_delay)
-        partner = self.env.context.get('force_partner', procurement.product_id.seller_id).with_context(self.env.context)
+        partner_id = self.env.context.get('force_partner_id')
+        if partner_id:
+            partner = self.env['res.partner'].search([('id', '=', partner_id)])
+        else:
+            partner = procurement.product_id.seller_id.with_context(self.env.context)
         order_date = partner.schedule_working_days(-seller_delay, schedule_date)
         return order_date

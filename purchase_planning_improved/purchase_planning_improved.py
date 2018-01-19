@@ -21,6 +21,7 @@ from datetime import datetime
 
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp import fields, models, api
+from openerp.osv import fields as old_api_fields
 
 
 class ProcurementOrderPurchasePlanningImproved(models.Model):
@@ -60,11 +61,66 @@ class ProcurementOrderPurchasePlanningImproved(models.Model):
 class PurchaseOrderLinePlanningImproved(models.Model):
     _inherit = 'purchase.order.line'
 
-    date_required = fields.Date("Required Date", compute="_compute_dates", store=True,
-                                help="Required date for this purchase line. Computed as planned date of the first proc "
-                                     "- supplier purchase lead time - company purchase lead time")
-    limit_order_date = fields.Date("Limit Order Date", compute="_compute_dates", store=True,
-                                   help="Limit order date to be late : required date - supplier delay")
+    @api.cr_uid_ids_context
+    def _compute_dates(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            partner = line.order_id.partner_id
+            line_data = {'date_required': line.date_required, 'limit_order_date': line.limit_order_date}
+            if line.procurement_ids:
+                min_date = min([p.date_planned for p in line.procurement_ids])
+                min_proc = line.procurement_ids.filtered(lambda proc: str(proc.date_planned) == min_date)[0]
+                if min_proc.rule_id:
+                    context = dict(context, do_not_save_result=True, force_partner_id=partner.id)
+                    date_required = self.pool.get('procurement.order'). \
+                        _get_purchase_schedule_date(cr, uid, min_proc, line.company_id, context=context)
+                    limit_order_date = self.pool.get('procurement.order'). \
+                        _get_purchase_order_date(cr, uid, min_proc, line.company_id, date_required, context=context)
+                    limit_order_date = limit_order_date and fields.Datetime.to_string(limit_order_date) or False
+                    date_required = date_required and fields.Datetime.to_string(date_required) or False
+                else:
+                    date_required = min_date
+                    limit_order_date = min_date
+            else:
+                date_required = line.date_planned
+                limit_order_date = line.date_planned
+            target_data = {'date_required': date_required and date_required[:10] or False,
+                           'limit_order_date': limit_order_date and limit_order_date[:10] or False}
+            if target_data != line_data:
+                res[line.id] = target_data
+        return res
+
+    @api.cr_uid_ids_context
+    def _get_order_lines(self, cr, uid, ids, context=None):
+        res = set()
+        for line in self.browse(cr, uid, ids, context=context):
+            if line.purchase_line_id:
+                res.add(line.purchase_line_id.id)
+        return list(res)
+
+    _columns = {
+        'date_required': old_api_fields.function(_compute_dates, type='date', string=u"Required Date",
+                                                 help=u"Required date for this purchase line. "
+                                                      "Computed as planned date of the first proc - supplier purchase "
+                                                      "lead time - company purchase lead time",
+                                                 multi="compute_dates",
+                                                 store={
+                                                     'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids,
+                                                                             ['date_planned'], 20),
+                                                     'procurement.order': (_get_order_lines,
+                                                                           ['date_planned', 'purchase_line_id'], 20)
+                                                 }, readonly=True),
+        'limit_order_date': old_api_fields.function(_compute_dates, type='date', string=u"Limit Order Date",
+                                                    help=u"Limit order date to be late : required date - supplier delay",
+                                                    multi="compute_dates",
+                                                    store={
+                                                        'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids,
+                                                                                ['date_planned'], 20),
+                                                        'procurement.order': (_get_order_lines,
+                                                                              ['date_planned', 'purchase_line_id'], 20)
+                                                    }, readonly=True),
+    }
+
     confirm_date = fields.Datetime("Confirm date", help="Confirmation Date", readonly=True)
     requested_date = fields.Date("Requested date", help="The line was required to the supplier at that date",
                                  default=fields.Date.context_today, states={'sent': [('readonly', True)],
@@ -82,32 +138,6 @@ class PurchaseOrderLinePlanningImproved(models.Model):
         for rec in self:
             moves = rec.move_ids.filtered(lambda m: m.state not in ['draft', 'cancel'])
             moves.filtered(lambda move: move.date != date_required).write({'date': date_required})
-
-    @api.multi
-    @api.depends('procurement_ids', 'procurement_ids.date_planned', 'date_planned')
-    def _compute_dates(self):
-        for rec in self:
-            partner = rec.order_id.partner_id
-            if rec.procurement_ids:
-                min_date = min([p.date_planned for p in rec.procurement_ids])
-                min_proc = rec.procurement_ids.filtered(lambda proc: str(proc.date_planned) == min_date)[0]
-                if min_proc.rule_id:
-                    date_required = self.env['procurement.order']. \
-                        with_context(do_not_save_result=True, force_partner=partner). \
-                        _get_purchase_schedule_date(min_proc, rec.company_id)
-                    limit_order_date = self.env['procurement.order']. \
-                        with_context(do_not_save_result=True, force_partner=partner) \
-                        ._get_purchase_order_date(min_proc, rec.company_id, date_required)
-                    limit_order_date = limit_order_date and fields.Datetime.to_string(limit_order_date) or False
-                    date_required = date_required and fields.Datetime.to_string(date_required) or False
-                else:
-                    date_required = min_date
-                    limit_order_date = min_date
-            else:
-                date_required = rec.date_planned
-                limit_order_date = rec.date_planned
-            rec.date_required = date_required and date_required[:10] or False
-            rec.limit_order_date = limit_order_date and limit_order_date[:10] or False
 
     @api.model
     def create(self, vals):
@@ -138,16 +168,34 @@ class PurchaseOrderLinePlanningImproved(models.Model):
 class PurchaseOrderPlanningImproved(models.Model):
     _inherit = 'purchase.order'
 
-    limit_order_date = fields.Date("Limit order date", compute="_compute_limit_order_date", store=True,
-                                   help="Minimum of limit order dates of all the lines")
+    @api.cr_uid_ids_context
+    def _compute_limit_order_date(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for order in self.browse(cr, uid, ids, context=context):
+            first_line_id = self.pool.get('purchase.order.line'). \
+                search(cr, uid, [('order_id', '=', order.id)], order='limit_order_date', limit=1, context=context)
+            first_line = self.pool.get('purchase.order.line').browse(cr, uid, first_line_id, context=context)
+            limit_order_date = first_line and first_line.limit_order_date or False
+            if limit_order_date != order.limit_order_date:
+                res[order.id] = limit_order_date
+        return res
 
-    @api.multi
-    @api.depends('order_line', 'order_line.limit_order_date')
-    def _compute_limit_order_date(self):
-        for rec in self:
-            first_line = self.env['purchase.order.line'].search([('order_id', '=', rec.id)], order='limit_order_date',
-                                                                limit=1)
-            rec.limit_order_date = first_line and first_line.limit_order_date or False
+    @api.cr_uid_ids_context
+    def _get_orders(self, cr, uid, ids, context=None):
+        res = set()
+        for line in self.browse(cr, uid, ids, context=context):
+            if line.order_id:
+                res.add(line.order_id.id)
+        return list(res)
+
+    _columns = {
+        'limit_order_date': old_api_fields.function(_compute_limit_order_date, type='date', string=u"Limit Order Date",
+                                                    help=u"Minimum of limit order dates of all the lines",
+                                                    store={
+                                                        'procurement.order.line': (_get_orders,
+                                                                                   ['order_id', 'limit_order_date'], 20)
+                                                    }, readonly=True),
+    }
 
     @api.multi
     def write(self, vals):
