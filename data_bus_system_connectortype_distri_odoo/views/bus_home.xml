@@ -5,8 +5,8 @@
             <field name="name">connector.type.distri.odoo.parameter.form</field>
             <field name="model">connector.type.distri.odoo.parameter</field>
             <field name="arch" type="xml">
-                <sheet>
-                    <form>
+                <form>
+                    <sheet>
                         <group colspan="4" col="4">
                             <field name="url" colspan="2" required="1"/>
                             <field name="login" colspan="2" required="1"/>
@@ -16,8 +16,8 @@
                             <field name="model_name" colspan="2" required="1"/>
                             <field name="method_name" colspan="2" required="1"/>
                         </group>
-                    </form>
-                </sheet>
+                    </sheet>
+                </form>
             </field>
         </record>
     </data>
