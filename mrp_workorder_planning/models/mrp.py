@@ -79,6 +79,15 @@ class MrpWorkorder(models.Model):
         return res
 
     @api.multi
+    def button_done(self):
+        for rec in self:
+            rec.write({
+                'date_planned_start': rec.date_start,
+                'date_planned_finished': fields.Datetime.now(),
+            })
+        return super(MrpWorkorder, self).button_done()
+
+    @api.multi
     def write(self, vals):
         for rec in self:
             if 'date_planned_start' in vals:
