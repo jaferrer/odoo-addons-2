@@ -93,10 +93,10 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                 min_proc = rec.procurement_ids.filtered(lambda proc: str(proc.date_planned) == min_date)[0]
                 if min_proc.rule_id:
                     date_required = self.env['procurement.order']. \
-                        with_context(do_not_save_result=True, force_partner = partner). \
+                        with_context(do_not_save_result=True, force_partner=partner). \
                         _get_purchase_schedule_date(min_proc, rec.company_id)
                     limit_order_date = self.env['procurement.order']. \
-                        with_context(do_not_save_result=True, force_partner = partner) \
+                        with_context(do_not_save_result=True, force_partner=partner) \
                         ._get_purchase_order_date(min_proc, rec.company_id, date_required)
                     limit_order_date = limit_order_date and fields.Datetime.to_string(limit_order_date) or False
                     date_required = date_required and fields.Datetime.to_string(date_required) or False
