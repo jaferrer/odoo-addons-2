@@ -278,6 +278,8 @@ class TestPurchaseProcurementJIT(common.TransactionCase):
         self.assertEqual(new_proc_1.state, 'buy_to_run')
 
         self.env['procurement.order'].purchase_schedule(jobify=False)
+        purchase_order_1 = new_proc_1.purchase_id
+        self.assertTrue(purchase_order_1)
         self.assertEqual(len(purchase_order_1.order_line), 1)
         self.assertEqual(purchase_order_1.order_line[0].product_qty, 36)
         self.assertEqual(purchase_order_1.order_line[0].product_id, self.product1)

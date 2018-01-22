@@ -22,10 +22,10 @@ import logging
 import openerp.addons.decimal_precision as dp
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
-from openerp.tools import float_compare, float_round, flatten
+from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 from openerp import fields, models, api, exceptions, _
-import datetime
+from datetime import datetime as dt
 
 ORDERPOINT_CHUNK = 1
 
@@ -106,7 +106,10 @@ class ProcurementOrderQuantity(models.Model):
         if run_moves:
             domain = company_id and [('company_id', '=', company_id)] or False
             self.env['procurement.order'].run_confirm_moves(domain)
-
+        last_date_done = dt.now() - relativedelta(months=1)
+        last_date_done = fields.Datetime.to_string(last_date_done)
+        self.env.cr.execute("""DELETE FROM stock_scheduler_controller WHERE done IS TRUE AND date_done < %s""",
+                            (last_date_done,))
         self.env.cr.execute("""INSERT INTO stock_scheduler_controller
 (orderpoint_id,
  product_id,
