@@ -403,7 +403,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             self.env.cr.execute(ORDER_LINES_QUERY + """ AND po.state = 'draft'""" + ORDER_BY_CLAUSE)
             purchase_line_ids = [item[0] for item in self.env.cr.fetchall()]
             while procurements and purchase_line_ids:
-                procurements, purchase_line_ids, dict_procs_lines = procurements. \
+                procurements, purchase_line_ids, dict_procs_lines = self. \
                     compute_procs_for_first_line_found(procurements, purchase_line_ids, dict_procs_lines)
             not_assigned_proc_ids += [proc['id'] for proc in procurements]
         return dict_procs_lines, not_assigned_proc_ids
