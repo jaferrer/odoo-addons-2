@@ -496,18 +496,20 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         # look for any other draft PO for the same supplier to attach the new line.
         # If no one is found, we create a new draft one
         self.ensure_one()
-        force_creation_if_needed = self.env.context.get('force_creation_if_needed', False)
-        days_delta = int(self.env['ir.config_parameter'].
-                         get_param('purchase_procurement_just_in_time.delta_begin_grouping_period') or 0)
-        main_domain = self.get_corresponding_draft_order_main_domain(seller)
-        domain_date_defined = [('date_order', '!=', False),
-                               ('date_order', '<=', fields.Datetime.to_string(purchase_date)[:10] + ' 23:59:59'),
-                               '|', ('date_order_max', '=', False),
-                               ('date_order_max', '>', fields.Datetime.to_string(purchase_date)[:10] + ' 00:00:00')]
-        available_draft_po_ids = self.env['purchase.order'].search(main_domain + domain_date_defined)
+        force_creation = self.env.context.get('force_creation')
+        forbid_creation = self.env.context.get('forbid_creation')
+        days_delta = int(self.env['ir.config_parameter']. \
+            get_param('purchase_procurement_just_in_time.delta_begin_grouping_period') or 0)
         draft_order = False
-        if available_draft_po_ids:
-            return available_draft_po_ids[0]
+        if not force_creation:
+            main_domain = self.get_corresponding_draft_order_main_domain(seller)
+            domain_date_defined = [('date_order', '!=', False),
+                                   ('date_order', '<=', fields.Datetime.to_string(purchase_date)[:10] + ' 23:59:59'),
+                                   '|', ('date_order_max', '=', False),
+                                   ('date_order_max', '>', fields.Datetime.to_string(purchase_date)[:10] + ' 00:00:00')]
+            available_draft_po = self.env['purchase.order'].search(main_domain + domain_date_defined, limit=1)
+            if available_draft_po:
+                return available_draft_po
         frame = seller.get_effective_order_group_period()
         date_ref = seller.schedule_working_days(days_delta, dt.today())
         date_order, date_order_max = (False, False)
@@ -522,7 +524,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         origin = "%s - %s" % (date_order and date_order[:10] or '',
                               date_order_max and date_order_max[:10] or 'infinite')
         allowed_creation = not seller.nb_max_draft_orders or seller.get_nb_draft_orders() < seller.nb_max_draft_orders
-        if not draft_order and (allowed_creation or force_creation_if_needed):
+        if not draft_order and (allowed_creation or force_creation) and not forbid_creation:
             name = self.env['ir.sequence'].next_by_code('purchase.order') or _('PO: %s') % self.name
             po_vals = self.get_corresponding_draft_order_values(name, origin, seller, date_order, date_order_max)
             draft_order = self.env['purchase.order'].sudo().create(po_vals)
@@ -553,7 +555,9 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             date_ref = seller.schedule_working_days(days_delta, dt.today())
             purchase_date = max(purchase_date, date_ref)
             line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
-            draft_order = first_proc.get_corresponding_draft_order(seller, purchase_date)
+            forbid_creation = bool(seller.nb_max_draft_orders)
+            draft_order = first_proc.with_context(forbid_creation=forbid_creation). \
+                get_corresponding_draft_order(seller, purchase_date)
             if draft_order and pol_procurements:
                 line_vals.update(order_id=draft_order.id, product_qty=0)
                 if not dict_lines_to_create.get(draft_order.id):
@@ -670,7 +674,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         ref_date = first_purchase_date
         while nb_orders < seller.nb_max_draft_orders:
             nb_orders += 1
-            latest_order = self.with_context(force_creation_if_needed=True). \
+            latest_order = self.with_context(force_creation=True). \
                 get_corresponding_draft_order(seller, ref_date)
             assert latest_order, "Impossible to create draft purchase order for purchase date %s" % \
                 fields.Datetime.to_string(ref_date)
