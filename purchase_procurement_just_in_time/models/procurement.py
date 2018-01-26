@@ -601,7 +601,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         fill_orders_in_separate_jobs = bool(self.env['ir.config_parameter'].
                                             get_param('purchase_procurement_just_in_time.fill_orders_in_separate_jobs'))
 
-        if len(dict_lines_to_create.keys()) > 1 and jobify and fill_orders_in_separate_jobs:
+        if jobify and fill_orders_in_separate_jobs:
             total_number_orders = len(dict_lines_to_create.keys())
             number_order = 0
             for order_id in dict_lines_to_create.keys():
