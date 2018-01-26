@@ -105,7 +105,7 @@ class purchase_working_days(models.Model):
     _inherit = "procurement.order"
 
     @api.model
-    def _get_purchase_schedule_date(self, procurement, company):
+    def _get_purchase_schedule_date(self, procurement, company, ref_date=False, reverse=False):
         """Return the datetime value to use as Schedule Date (``date_planned``) for the
            Purchase Order Lines created to satisfy the given procurement.
            Overriden here to calculate dates taking into account the applicable working days calendar of our warehouse
@@ -113,19 +113,27 @@ class purchase_working_days(models.Model):
 
            :param browse_record procurement: the procurement for which a PO will be created.
            :param browse_report company: the company to which the new PO will belong to.
+           :param ref_date: str
            :rtype: datetime
            :return: the desired Schedule Date for the PO lines
         """
         do_not_save_result = self.env.context.get('do_not_save_result', False)
-        proc_date = datetime.strptime(procurement.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
+        if not ref_date:
+            ref_date = procurement.date_planned
+        date = datetime.strptime(ref_date, DEFAULT_SERVER_DATETIME_FORMAT)
         location = procurement.location_id or procurement.warehouse_id.view_location_id
         # If key 'do_not_save_result' in context of self, we transfer it to location's context.
-        schedule_date = location.with_context(do_not_save_result=do_not_save_result). \
-            schedule_working_days(-company.po_lead - procurement.product_id.seller_id.purchase_lead_time, proc_date)
-        return schedule_date
+        nb_days = company.po_lead + procurement.product_id.seller_id.purchase_lead_time
+        print '_get_purchase_schedule_date', reverse, nb_days, ref_date
+        if reverse:
+            return location.with_context(do_not_save_result=do_not_save_result). \
+                schedule_working_days(nb_days + 1, date)
+        else:
+            return location.with_context(do_not_save_result=do_not_save_result). \
+                schedule_working_days(-nb_days , date)
 
     @api.model
-    def _get_purchase_order_date(self, procurement, company, schedule_date):
+    def _get_purchase_order_date(self, procurement, company, schedule_date, reverse=False):
         """Return the datetime value to use as Order Date (``date_order``) for the
            Purchase Order created to satisfy the given procurement.
            Overriden here to calculate dates taking into account the applicable working days calendar.
@@ -142,5 +150,8 @@ class purchase_working_days(models.Model):
             partner = self.env['res.partner'].search([('id', '=', partner_id)])
         else:
             partner = procurement.product_id.seller_id.with_context(self.env.context)
-        order_date = partner.schedule_working_days(-seller_delay, schedule_date)
-        return order_date
+        print '_get_purchase_order_date', reverse, seller_delay, schedule_date
+        if reverse:
+            return partner.schedule_working_days(seller_delay + 1, schedule_date)
+        else:
+            return partner.schedule_working_days(-seller_delay, schedule_date)
