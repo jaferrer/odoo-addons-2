@@ -345,23 +345,33 @@ WHERE seller_id = %s""" % seller_id
                     else:
                         job_purchase_schedule_procurements(session, 'procurement.order', procurements.ids, jobify)
 
-    @api.multi
+    @api.model
     def compute_procs_for_first_line_found(self, procurements, purchase_line_ids, dict_procs_lines):
         pol = self.env['purchase.order.line'].search([('id', '=', purchase_line_ids[0])])
         procs_for_first_line_ids = self.env['procurement.order'].search([('purchase_line_id', '=', pol.id),
                                                                          ('state', 'in', ['done', 'cancel'])]).ids
         remaining_qty = pol.remaining_qty
+        self.env.cr.execute("""SELECT
+  sm.procurement_id,
+  COALESCE(sum(sm.product_qty), 0)
+FROM stock_move sm
+WHERE sm.state = 'done' AND sm.procurement_id IN %s
+GROUP BY sm.procurement_id""", (tuple([proc['id'] for proc in procurements]),))
+        done_moves_qties = {item[0]: item[1] or 0 for item in self.env.cr.fetchall()}
         for proc in procurements:
             proc_product = self.env['product.product'].search([('id', '=', proc['product_id'][0])])
-            self.env.cr.execute("""SELECT COALESCE(sum(sm.product_qty), 0)
-FROM stock_move sm
-WHERE sm.state = 'done' AND sm.procurement_id = %s""", (proc['id'],))
-            fetchall = self.env.cr.fetchall()
-            done_moves_qty = fetchall and fetchall[0][0] or 0
-            proc_qty_pol_uom = self.env['product.uom']._compute_qty(proc['product_uom'][0], proc['product_qty'],
-                                                                    proc['product_uom'][0])
-            done_moves_qty_pol_uom = self.env['product.uom']._compute_qty(proc_product.uom_id.id, done_moves_qty,
-                                                                          pol.product_uom.id)
+            proc_qty = proc['product_qty']
+            if proc['product_uom'][0] != pol.product_uom.id:
+                proc_qty_pol_uom = self.env['product.uom']._compute_qty(proc['product_uom'][0], proc_qty,
+                                                                        pol.product_uom.id)
+            else:
+                proc_qty_pol_uom = proc_qty
+            done_moves_qty = done_moves_qties.get(proc['id'], 0)
+            if proc_product.uom_id != pol.product_uom:
+                done_moves_qty_pol_uom = self.env['product.uom']._compute_qty(proc_product.uom_id.id, done_moves_qty,
+                                                                              pol.product_uom.id)
+            else:
+                done_moves_qty_pol_uom = done_moves_qty
             remaining_proc_qty_pol_uom = proc_qty_pol_uom - done_moves_qty_pol_uom
             if float_compare(remaining_qty, remaining_proc_qty_pol_uom,
                              precision_rounding=pol.product_uom.rounding) >= 0:
