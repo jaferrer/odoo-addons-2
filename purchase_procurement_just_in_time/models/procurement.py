@@ -62,6 +62,12 @@ def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines
     return result
 
 
+@job(default_channel='root.purchase_scheduler_slave')
+def job_sanitize_draft_orders(session, model_name, seller_id):
+    result = session.env[model_name].sanitize_draft_orders(seller_id)
+    return result
+
+
 class ProductSupplierinfoJIT(models.Model):
     _inherit = 'product.supplierinfo'
     _order = 'sequence, id'
@@ -238,10 +244,14 @@ WHERE seller_id = %s""" % seller_id
                 self.env.cr.execute(query)
             procurement_for_seller_ids = [item[0] for item in self.env.cr.fetchall()]
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+            supplier = self.env['res.partner'].search([('id', '=', seller_id)])
             if not procurement_for_seller_ids:
-                continue
-            if jobify:
-                supplier = self.env['res.partner'].search([('id', '=', seller_id)])
+                if jobify:
+                    job_sanitize_draft_orders.delay(session, 'procurement.order', seller_id,
+                                                    description=_("Deleting draft orders for supplier %s" % supplier.display_name))
+                else:
+                    job_sanitize_draft_orders(session, 'procurement.order', seller_id)
+            elif jobify:
                 job_purchase_schedule_seller.delay(session, 'procurement.order', seller_id, procurement_for_seller_ids,
                                                    jobify, description=_("Scheduling purchase orders for supplier %s" %
                                                                          supplier.display_name))
@@ -261,7 +271,16 @@ WHERE seller_id = %s""" % seller_id
         return min_date
 
     @api.model
+    def sanitize_draft_orders(self, seller_id):
+        orders = self.env['purchase.order'].search([('state', '=', 'draft'), ('partner_id', '=', seller_id)])
+        procurements = self.env['procurement.order'].search([('purchase_line_id.order_id', 'in', orders.ids)])
+        procurements.remove_procs_from_lines()
+        orders.unlink()
+        self.env.invalidate_all()
+
+    @api.model
     def launch_purchase_schedule_seller(self, seller_id, procurement_ids, jobify):
+        self.sanitize_draft_orders(seller_id)
         procurements_to_run = self.env['procurement.order'].search([('id', 'in', procurement_ids),
                                                                     ('rule_id.active', '=', True),
                                                                     ('rule_id.picking_type_id.active', '=', True)])
@@ -601,7 +620,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         fill_orders_in_separate_jobs = bool(self.env['ir.config_parameter'].
                                             get_param('purchase_procurement_just_in_time.fill_orders_in_separate_jobs'))
 
-        if len(dict_lines_to_create.keys()) > 1 and jobify and fill_orders_in_separate_jobs:
+        if jobify and fill_orders_in_separate_jobs:
             total_number_orders = len(dict_lines_to_create.keys())
             number_order = 0
             for order_id in dict_lines_to_create.keys():
@@ -618,16 +637,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             self.create_draft_lines(dict_lines_to_create)
             return_msg += u"\nDraft order(s) filled: %s s." % int((dt.now() - time_now).seconds)
         return return_msg
-
-    @api.multi
-    def sanitize_draft_orders(self, company, seller):
-        orders = self.env['purchase.order'].search([('state', '=', 'draft'),
-                                                    ('partner_id', '=', seller.id),
-                                                    ('company_id', '=', company.id)])
-        procurements = self.env['procurement.order'].search([('purchase_line_id.order_id', 'in', orders.ids)])
-        procurements.remove_procs_from_lines()
-        orders.unlink()
-        self.env.invalidate_all()
 
     @api.multi
     def get_first_purchase_dates_for_seller(self, procurement_ids):
@@ -746,9 +755,6 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         location = self.check_procs_same_locations()
         seller = self.check_procs_same_sellers()
         return_msg += u"Checking same company, location and seller: %s s." % int((dt.now() - time_now).seconds)
-        time_now = dt.now()
-        self.sanitize_draft_orders(company, seller)
-        return_msg += u"\nSanitizing draft orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         dict_procs_lines, not_assigned_proc_ids = self.compute_which_procs_for_lines(self.ids)
         return_msg += u"\nComputing which procs for lines: %s s." % int((dt.now() - time_now).seconds)
