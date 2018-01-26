@@ -442,25 +442,26 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         """Returns procurements that must be integrated in the same purchase order line as first_proc, by
         taking all procurements of the same product as first_proc between the date of first proc and date_end.
         """
-        procurements_grouping_period = self.env['procurement.order']
         frame = seller.get_effective_order_group_period()
         date_end = False
         if frame and frame.period_type:
-            date_end = fields.Datetime.to_string(frame.get_date_end_period(purchase_date))
+            date_end = frame.get_date_end_period(purchase_date)
+        end_date_planned = False
+        if date_end:
+            end_schedule_date = self._get_purchase_order_date(first_proc, company, date_end, reverse=True)
+            end_schedule_date = fields.Datetime.to_string(end_schedule_date)
+            end_date_planned = self._get_purchase_schedule_date(first_proc, company, ref_date=end_schedule_date,
+                                                                reverse=True)
+            end_date_planned = fields.Datetime.to_string(end_date_planned)
         domain_procurements = [('product_id', '=', first_proc.product_id.id),
                                ('location_id', '=', first_proc.location_id.id),
                                ('company_id', '=', first_proc.company_id.id),
                                ('date_planned', '>=', first_proc.date_planned)] + (force_domain or [])
+        if end_date_planned:
+            domain_procurements += [('date_planned', '<=', end_date_planned)]
         if first_proc.rule_id.picking_type_id:
             domain_procurements += [('rule_id.picking_type_id', '=', first_proc.rule_id.picking_type_id.id)]
-        possible_procurements_grouping_period = self.search(domain_procurements, order=order_by)
-        for procurement in possible_procurements_grouping_period:
-            procurement_schedule_date = self._get_purchase_schedule_date(procurement, company)
-            procurement_purchase_date = self._get_purchase_order_date(procurement, company, procurement_schedule_date)
-            if not date_end or fields.Datetime.to_string(procurement_purchase_date) <= date_end:
-                procurements_grouping_period += procurement
-            else:
-                break
+        procurements_grouping_period = self.search(domain_procurements, order=order_by)
         line_qty_product_uom = sum([self.env['product.uom'].
                                    _compute_qty(proc.product_uom.id, proc.product_qty,
                                                 proc.product_id.uom_id.id) for proc in
