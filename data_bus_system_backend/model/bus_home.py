@@ -365,15 +365,17 @@ class Distributeur(models.Model):
             param = self.env[self.type_id.model_param_name].create({
                 'distributeur_id': self.id
             })
+        ctx = self.env.context.copy()
         return {
             'name': 'Parameter',
             'type': 'ir.actions.act_window',
             'view_type': 'form',
             'view_mode': 'form',
             'res_model': self.type_id.model_param_name,
+            'flags': {'form': {'action_buttons': True}},
             'res_id': param.id,
             'target': 'new',
-            'context': False
+            'context': ctx
         }
 
 
