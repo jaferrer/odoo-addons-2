@@ -124,7 +124,6 @@ class purchase_working_days(models.Model):
         location = procurement.location_id or procurement.warehouse_id.view_location_id
         # If key 'do_not_save_result' in context of self, we transfer it to location's context.
         nb_days = company.po_lead + procurement.product_id.seller_id.purchase_lead_time
-        print '_get_purchase_schedule_date', reverse, nb_days, ref_date
         if reverse:
             return location.with_context(do_not_save_result=do_not_save_result). \
                 schedule_working_days(nb_days + 1, date)
@@ -150,7 +149,6 @@ class purchase_working_days(models.Model):
             partner = self.env['res.partner'].search([('id', '=', partner_id)])
         else:
             partner = procurement.product_id.seller_id.with_context(self.env.context)
-        print '_get_purchase_order_date', reverse, seller_delay, schedule_date
         if reverse:
             return partner.schedule_working_days(seller_delay + 1, schedule_date)
         else:
