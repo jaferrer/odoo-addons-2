@@ -232,7 +232,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             compute_supplier_ids = [item['name'][0] for item in active_sellers]
         query = QUERY_PROCS_BY_SELLER
         if not compute_all_products and compute_product_ids:
-            query += """ AND product_id in %s"""
+            query += """ AND po.product_id in %s"""
             self.env.cr.execute(query, (tuple(compute_product_ids),))
         else:
             self.env.cr.execute(query)
