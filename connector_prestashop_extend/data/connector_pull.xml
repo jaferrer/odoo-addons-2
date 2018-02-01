@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="backend.type" id="prestashop">
+            <field name="name">Prestashop</field>
+            <field name="comment">Interface Prestashop</field>
+            <field name="model_name">connector.type.prestashop.parameter</field>
+            <field name="image" type="base64" file="connector_prestashop_extend/static/img/prestashop-logo.png"/>
+        </record>
+
+        <record model="backend.connector.info" id="prestashop_pull_supplier">
+            <field name="name">Prestashop supplier Connector</field>
+            <field name="comment">Prestashop supplier Connector</field>
+            <field name="model_name">prestashopextend.backend</field>
+            <field name="image" type="base64" file="connector_prestashop_extend/static/img/prestashop-logo.png"/>
+            <field name="type">PULL</field>
+            <field name="backend_type_id" ref="prestashop"/>
+            <field name="method_name">import_customer</field>
+        </record>
+        <record model="backend.connector.info" id="prestashop_pull_customer">
+            <field name="name">Prestashop customer Connector</field>
+            <field name="comment">Prestashop customer Connector</field>
+            <field name="model_name">prestashopextend.backend</field>
+            <field name="image" type="base64" file="connector_prestashop_extend/static/img/prestashop-logo.png"/>
+            <field name="type">PULL</field>
+            <field name="backend_type_id" ref="prestashop"/>
+            <field name="method_name">import_customer</field>
+        </record>
+        <record model="backend.connector.info" id="prestashop_pull_product">
+            <field name="name">Prestashop product Connector</field>
+            <field name="comment">Prestashop product Connector</field>
+            <field name="model_name">prestashopextend.backend</field>
+            <field name="image" type="base64" file="connector_prestashop_extend/static/img/prestashop-logo.png"/>
+            <field name="type">PULL</field>
+            <field name="backend_type_id" ref="prestashop"/>
+            <field name="method_name">import_product</field>
+        </record>
+        <record model="backend.connector.info" id="prestashop_pull_shop">
+            <field name="name">Prestashop shop Connector</field>
+            <field name="comment">Prestashop shop Connector</field>
+            <field name="model_name">prestashopextend.backend</field>
+            <field name="image" type="base64" file="connector_prestashop_extend/static/img/prestashop-logo.png"/>
+            <field name="type">PULL</field>
+            <field name="backend_type_id" ref="prestashop"/>
+            <field name="method_name">import_shop</field>
+        </record>
+        <record model="backend.connector.info" id="prestashop_pull_sale_state">
+            <field name="name">Prestashop state Connector</field>
+            <field name="comment">Prestashop state Connector</field>
+            <field name="model_name">prestashopextend.backend</field>
+            <field name="image" type="base64" file="connector_prestashop_extend/static/img/prestashop-logo.png"/>
+            <field name="type">PULL</field>
+            <field name="backend_type_id" ref="prestashop"/>
+            <field name="method_name">sale_state_import</field>
+        </record>
+    </data>
+</openerp>
