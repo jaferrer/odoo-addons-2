@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+
+		<record id="stock_picking_report_aeroo" model="ir.actions.report.xml">
+			<field name="name">Delivery Slip</field>
+			<field name="type">ir.actions.report.xml</field>
+			<field name="model">stock.picking</field>
+			<field name="report_name">stock_picking_report_aeroo</field>
+			<field name="auto" eval="True"/>
+			<field name="report_type">aeroo</field>
+			<field name="report_rml">stock_picking_report_aeroo/stock_picking_report.odt</field>
+			<field name="tml_source">file</field>
+			<field name="in_format">oo-odt</field>
+			<field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+		</record>
+
+		<record id="value_report_invoice_aeroo" model="ir.values">
+			<field name="name">stock_picking_report_aeroo</field>
+			<field name="key">action</field>
+			<field name="key2">client_print_multi</field>
+			<field name="model">stock.picking</field>
+			<field name="value" eval="'ir.actions.report.xml,'+str(ref('stock_picking_report_aeroo.stock_picking_report_aeroo'))"/>
+		</record>
+
+        <function model="stock.picking.delete.report" name="delete_report"/>
+
+	</data>
+</openerp>
