@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,17 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models
-
-
-class SaleOrderLineDatePlanned(models.Model):
-    _inherit = 'sale.order.line'
-
-    date_planned = fields.Datetime(string=u"Date planned", default=fields.Datetime.now)
-
-
-class SaleOrderDatePlanned(models.Model):
-    _inherit = 'sale.order'
-
-    def _get_date_planned(self, cr, uid, order, line, start_date, context=None):
-        return line.date_planned
+import test_stock_move_consu_no_quant
