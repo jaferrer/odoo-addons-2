@@ -33,6 +33,7 @@
         'data/connector_pull.xml',
         'data/connector_push.xml',
         'views/home_backend.xml',
+        'security/ir.model.access.csv',
     ],
     'demo': [],
     'test': [],
