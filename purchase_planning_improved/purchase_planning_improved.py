@@ -115,7 +115,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                                                     multi="compute_dates",
                                                     store={
                                                         'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids,
-                                                                                ['date_planned'], 20),
+                                                                                ['order_id', 'date_planned'], 20),
                                                         'procurement.order': (_get_order_lines,
                                                                               ['date_planned', 'purchase_line_id'], 20)
                                                     }, readonly=True),
