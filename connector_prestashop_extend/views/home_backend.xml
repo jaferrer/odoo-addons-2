@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+
+        <record id="view_type_prestashop_parameter_form" model="ir.ui.view">
+            <field name="name">connector.type.prestashop.parameter.form</field>
+            <field name="model">connector.type.prestashop.parameter</field>
+            <field name="arch" type="xml">
+                <form>
+                    <notebook>
+                        <page string="API" name="api">
+                            <group colspan="4" col="4">
+                                <field name="location" placeholder="e.g. http://my.prestashop.com" colspan="4"/>
+                                <field name="webservice_key" colspan="2"/>
+                            </group>
+                        </page>
+                        <page string="Parametrage Synchro" name="sync">
+                            <group>
+                                <field name="shops" widget="many2many_tags"/>
+                                <field name="synchro_state_since" widget="many2many_tags"/>
+                                <field name="map_order_state_to_picking_state">
+                                    <tree editable="bottom">
+                                        <field name="state_picking"/>
+                                        <field name="state" />
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                    </notebook>
+                    <footer>
+                        <button name="write" string="Sauver" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Annuler" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>
