@@ -28,6 +28,59 @@ from openerp.tools.float_utils import float_compare, float_round
 from openerp.addons.connector.exception import RetryableJobError
 
 
+QUERY_PROCS_BY_SELLER = """WITH po_to_process AS (
+    SELECT po.id
+    FROM procurement_order po
+      LEFT JOIN product_product pp ON pp.id = po.product_id
+      LEFT JOIN procurement_rule pr ON pr.id = po.rule_id
+    WHERE po.state NOT IN ('cancel', 'done', 'exception') AND pr.action = 'buy'),
+
+    min_ps_sequences AS (
+      SELECT
+        po.id            AS procurement_order_id,
+        min(ps.sequence) AS min_ps_sequence
+      FROM procurement_order po
+        LEFT JOIN product_product pp ON pp.id = po.product_id
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
+      WHERE po.id IN (SELECT po_to_process.id
+                      FROM po_to_process) AND
+            (ps.company_id = po.company_id OR ps.company_id IS NULL)
+      GROUP BY po.id),
+
+    min_ps_sequences_and_id AS (
+      SELECT
+        po.id      AS procurement_order_id,
+        mps.min_ps_sequence,
+        min(ps.id) AS min_ps_id_for_sequence
+      FROM procurement_order po
+        LEFT JOIN product_product pp ON pp.id = po.product_id
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
+        LEFT JOIN min_ps_sequences mps ON mps.procurement_order_id = po.id
+      WHERE po.id IN (SELECT po_to_process.id
+                      FROM po_to_process) AND
+            (ps.company_id = po.company_id OR ps.company_id IS NULL) AND
+            ps.sequence = mps.min_ps_sequence
+      GROUP BY po.id, mps.min_ps_sequence)
+
+SELECT
+  po.id                   AS procurement_order_id,
+  (CASE WHEN ps.name IS NOT NULL
+    THEN ps.name
+   ELSE pp.seller_id END) AS seller_id,
+  po.company_id,
+  po.location_id,
+  po.product_id
+FROM procurement_order po
+  LEFT JOIN product_product pp ON pp.id = po.product_id
+  LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
+  LEFT JOIN min_ps_sequences_and_id mps ON mps.procurement_order_id = po.id
+WHERE po.id IN (SELECT po_to_process.id
+                FROM po_to_process) AND
+      (ps.company_id = po.company_id OR ps.company_id IS NULL) AND
+      ps.sequence = mps.min_ps_sequence AND
+      ps.id = mps.min_ps_id_for_sequence"""
+
+
 @job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule(session, model_name, compute_all_products, compute_supplier_ids,
                           compute_product_ids, jobify):
@@ -177,72 +230,18 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
             active_sellers = self.env['product.supplierinfo'].read_group([('product_tmpl_id.active', '=', True)],
                                                                          ['name'], ['name'])
             compute_supplier_ids = [item['name'][0] for item in active_sellers]
+        query = QUERY_PROCS_BY_SELLER
+        if not compute_all_products and compute_product_ids:
+            query += """ AND po.product_id in %s"""
+            self.env.cr.execute(query, (tuple(compute_product_ids),))
+        else:
+            self.env.cr.execute(query)
+        dict_proc_sellers = {seller_id: [] for seller_id in compute_supplier_ids}
+        for item in self.env.cr.fetchall():
+            if item[1] in compute_supplier_ids:
+                dict_proc_sellers[item[1]] += [item[0]]
         for seller_id in compute_supplier_ids:
-            query = """WITH po_to_process AS (
-    SELECT po.id
-    FROM procurement_order po
-      LEFT JOIN product_product pp ON pp.id = po.product_id
-      LEFT JOIN procurement_rule pr ON pr.id = po.rule_id
-    WHERE po.state NOT IN ('cancel', 'done', 'exception') AND pr.action = 'buy'),
-
-    min_ps_sequences AS (
-      SELECT
-        po.id            AS procurement_order_id,
-        min(ps.sequence) AS min_ps_sequence
-      FROM procurement_order po
-        LEFT JOIN product_product pp ON pp.id = po.product_id
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
-      WHERE po.id IN (SELECT po_to_process.id
-                      FROM po_to_process) AND
-            (ps.company_id = po.company_id OR ps.company_id IS NULL)
-      GROUP BY po.id),
-
-    min_ps_sequences_and_id AS (
-      SELECT
-        po.id      AS procurement_order_id,
-        mps.min_ps_sequence,
-        min(ps.id) AS min_ps_id_for_sequence
-      FROM procurement_order po
-        LEFT JOIN product_product pp ON pp.id = po.product_id
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
-        LEFT JOIN min_ps_sequences mps ON mps.procurement_order_id = po.id
-      WHERE po.id IN (SELECT po_to_process.id
-                      FROM po_to_process) AND
-            (ps.company_id = po.company_id OR ps.company_id IS NULL) AND
-            ps.sequence = mps.min_ps_sequence
-      GROUP BY po.id, mps.min_ps_sequence),
-
-    result AS (
-      SELECT
-        po.id                   AS procurement_order_id,
-        (CASE WHEN ps.name IS NOT NULL
-          THEN ps.name
-         ELSE pp.seller_id END) AS seller_id,
-        po.company_id,
-        po.location_id,
-        po.product_id
-      FROM procurement_order po
-        LEFT JOIN product_product pp ON pp.id = po.product_id
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
-        LEFT JOIN min_ps_sequences_and_id mps ON mps.procurement_order_id = po.id
-      WHERE po.id IN (SELECT po_to_process.id
-                      FROM po_to_process) AND
-            (ps.company_id = po.company_id OR ps.company_id IS NULL) AND
-            ps.sequence = mps.min_ps_sequence AND
-            ps.id = mps.min_ps_id_for_sequence)
-
-SELECT *
-FROM result
-WHERE seller_id = %s""" % seller_id
-            arguments_needed = False
-            if not compute_all_products and compute_product_ids:
-                query += """ AND product_id in %s"""
-                arguments_needed = True
-            if arguments_needed:
-                self.env.cr.execute(query, (tuple(compute_product_ids),))
-            else:
-                self.env.cr.execute(query)
-            procurement_for_seller_ids = [item[0] for item in self.env.cr.fetchall()]
+            procurement_for_seller_ids = dict_proc_sellers[seller_id]
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             supplier = self.env['res.partner'].search([('id', '=', seller_id)])
             if not procurement_for_seller_ids:
@@ -577,13 +576,13 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             seller = self.env['procurement.order']._get_product_supplier(first_proc)
             schedule_date = self._get_purchase_schedule_date(first_proc, company)
             purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
+            date_ref = seller.schedule_working_days(days_delta, dt.today())
+            purchase_date = max(purchase_date, date_ref)
             pol_procurements = self. \
                 get_purchase_line_procurements(first_proc, purchase_date, company, seller, order_by,
                                                force_domain=[('id', 'in', procurements_to_check.ids)])
             # We consider procurements after the reference date
             # (if we ignore past procurements, past ones are already removed)
-            date_ref = seller.schedule_working_days(days_delta, dt.today())
-            purchase_date = max(purchase_date, date_ref)
             line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
             forbid_creation = bool(seller.nb_max_draft_orders)
             draft_order = first_proc.with_context(forbid_creation=forbid_creation). \
@@ -599,11 +598,12 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
                 else:
                     dict_lines_to_create[draft_order.id][product.id]['procurement_ids'] += pol_procurements.ids
                 not_assigned_procs -= pol_procurements
-            if seller.nb_max_draft_orders and seller.get_nb_draft_orders() >= seller.nb_max_draft_orders:
+            if not draft_order and forbid_creation:
                 procurements_to_check = self.search([('id', 'in', procurements_to_check.ids),
                                                      ('product_id', '!=', product.id)], order=order_by)
             else:
-                procurements_to_check -= pol_procurements
+                procurements_to_check = self.search([('id', 'in', procurements_to_check.ids),
+                                                     ('id', 'not in', pol_procurements.ids)], order=order_by)
         return not_assigned_procs, dict_lines_to_create
 
     @api.model
@@ -703,22 +703,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             ref_date = fields.Datetime.from_string(latest_order.date_order_max) + timedelta(days=1)
 
     @api.multi
-    def delete_useless_draft_orders(self, seller, company, location):
-        seller.ensure_one()
-        company.ensure_one()
-        location.ensure_one()
-        orders = self.env['purchase.order'].search([('state', '=', 'draft'),
-                                                    ('partner_id', '=', seller.id),
-                                                    ('date_order', '=', False),
-                                                    ('company_id', '=', company.id),
-                                                    ('location_id', '=', location.id)])
-        orders_to_unlink = self.env['purchase.order']
-        for order in orders:
-            if not order.order_line:
-                orders_to_unlink |= order
-        orders_to_unlink.unlink()
-
-    @api.multi
     def check_procs_same_companies(self):
         self.env.cr.execute("""SELECT company_id
 FROM procurement_order
@@ -762,8 +746,8 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
     def purchase_schedule_procurements(self, jobify=False):
         return_msg = u""
         time_now = dt.now()
-        company = self.check_procs_same_companies()
-        location = self.check_procs_same_locations()
+        self.check_procs_same_companies()
+        self.check_procs_same_locations()
         seller = self.check_procs_same_sellers()
         return_msg += u"Checking same company, location and seller: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
@@ -782,9 +766,6 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         not_assigned_procs = self.browse(not_assigned_proc_ids)
         not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders()
         return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
-        time_now = dt.now()
-        self.delete_useless_draft_orders(seller, company, location)
-        return_msg += u"\nDeleting useless draft orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         if not_assigned_procs:
             not_assigned_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
