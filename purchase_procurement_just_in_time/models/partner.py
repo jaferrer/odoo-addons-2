@@ -103,6 +103,12 @@ class JitResPartner(models.Model):
                 order_group_period = self.env['procurement.time.frame'].browse(int(order_group_period_id))
         return order_group_period
 
+    @api.multi
+    def _is_valid_supplier_for_scheduler(self, compute_all_products, compute_supplier_ids):
+        self.ensure_one()
+        return bool(compute_all_products or not compute_supplier_ids or
+                    compute_supplier_ids and self.id in compute_supplier_ids)
+
     @api.model
     def create(self, vals):
         if vals.get('nb_days_scheduler_frequency') and not vals.get('next_scheduler_date'):

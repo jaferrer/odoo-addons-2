@@ -183,6 +183,7 @@ msgstr "Ouvrir uniquement les mouvements terminés"
 #. module: stock_planning_improved
 #: model:ir.actions.act_window,name:stock_planning_improved.act_window_open_grouped_moves
 #: model:ir.ui.menu,name:stock_planning_improved.menu_open_grouped_moves
+#: view:open.grouped.moves:stock_planning_improved.open_grouped_moves_form
 msgid "Moves by users"
 msgstr "Mouvements par utilisateurs"
 
@@ -193,6 +194,11 @@ msgstr "Date"
 
 #. module: stock_planning_improved
 #: view:stock.move:stock_planning_improved.planning_improved_move_search
+msgid "Month"
+msgstr "Mois"
+
+#. module: stock_planning_improved
+#: view:stock.move:stock_planning_improved.planning_improved_move_search
 msgid "User"
 msgstr "Opérateur"
 
@@ -200,11 +206,6 @@ msgstr "Opérateur"
 #: view:stock.move:stock_planning_improved.planning_improved_move_search
 msgid "Creator"
 msgstr "Créateur"
-
-#. module: stock_planning_improved
-#: view:open.grouped.moves:stock_planning_improved.open_grouped_moves_form
-msgid "Moves by users"
-msgstr "Mouvements par utilisateurs"
 
 #. module: stock_planning_improved
 #: view:open.grouped.moves:stock_planning_improved.open_grouped_moves_form
@@ -226,6 +227,11 @@ msgstr "Mouvements groupés par utilisateurs"
 #: view:stock.move:stock_planning_improved.stock_move_search
 msgid "Expected Day"
 msgstr "Jour prévu"
+
+#. module: stock_planning_improved
+#: view:stock.move:stock_planning_improved.stock_move_search
+msgid "Expected Month"
+msgstr "Mois prévu"
 
 #. module: stock_planning_improved
 #: model:ir.actions.server,name:stock_planning_improved.ir_actions_server_compute_date_due
