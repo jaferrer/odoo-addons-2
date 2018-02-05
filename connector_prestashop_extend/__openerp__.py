@@ -36,6 +36,9 @@
         'security/ir.model.access.csv',
     ],
     'demo': [],
+    'external_dependencies': {
+        'python': ['prestapyt']
+    },
     'test': [],
     'installable': True,
     'auto_install': False,
