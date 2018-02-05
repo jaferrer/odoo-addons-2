@@ -192,8 +192,8 @@ class PurchaseOrderPlanningImproved(models.Model):
         'limit_order_date': old_api_fields.function(_compute_limit_order_date, type='date', string=u"Limit Order Date",
                                                     help=u"Minimum of limit order dates of all the lines",
                                                     store={
-                                                        'procurement.order.line': (_get_orders,
-                                                                                   ['order_id', 'limit_order_date'], 20)
+                                                        'purchase.order.line': (_get_orders,
+                                                                                ['order_id', 'limit_order_date'], 20)
                                                     }, readonly=True),
     }
 
