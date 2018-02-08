@@ -183,9 +183,7 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
                 return self.fields_view.arch.attrs[key] || '';
             });
             fields = _.compact(_.uniq(fields
-                .concat(_.map(this.fields_view.fields, function (field) {
-                    return field.__attrs.name;
-                }))
+                .concat(_.keys(this.fields_view.fields))
                 .concat(_.map(this.colors, function (color) {
                     if (color[1].expressions !== undefined) {
                         return color[1].expressions[0].value
