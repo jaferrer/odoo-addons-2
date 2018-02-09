@@ -34,9 +34,7 @@ This module create a 'in_invoice' type when a 'out_invoice' type is validate and
  'depends': [
      'account',
  ],
- 'data': [
-     'views/views.xml'
- ],
+ 'data': [],
  'demo': [
      'data/data.xml'
  ],
