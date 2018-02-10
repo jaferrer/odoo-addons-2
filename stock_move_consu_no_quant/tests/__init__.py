@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,23 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Purchase check qty supplier on order',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase', 'purchase_order_quantities_improved'],
-    'description': """
-Check min qty of the supplier info on the purchase order not on the line
-========================================================================
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+import test_stock_move_consu_no_quant

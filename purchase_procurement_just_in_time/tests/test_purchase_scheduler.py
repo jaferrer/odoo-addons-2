@@ -18,7 +18,6 @@
 #
 
 from datetime import datetime as dt
-from dateutil.relativedelta import relativedelta
 
 from openerp import fields
 from openerp.tests import common
@@ -34,6 +33,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.supplier = self.browse_ref('purchase_procurement_just_in_time.supplier1')
         self.product1 = self.browse_ref('purchase_procurement_just_in_time.product1')
         self.product2 = self.browse_ref('purchase_procurement_just_in_time.product2')
+        self.supplierinfo2 = self.browse_ref('purchase_procurement_just_in_time.supplierinfo2')
         self.product_uom = self.browse_ref('product.product_uom_unit')
         self.location_a = self.browse_ref('purchase_procurement_just_in_time.stock_location_a')
         self.location_b = self.browse_ref('purchase_procurement_just_in_time.stock_location_b')
@@ -136,6 +136,8 @@ class TestPurchaseScheduler(common.TransactionCase):
 
     def test_10_schedule_and_reschedule_from_scratch(self):
         """Test of purchase order creation from scratch when there are none at the beginning."""
+        self.company.write({'po_lead': 3})
+        self.supplier.write({'purchase_lead_time': 2})
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_supplier_ids=self.supplier,
                                                         jobify=False)
@@ -201,58 +203,48 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertTrue(purchase1)
         self.assertTrue(purchase2)
         self.assertFalse(purchase3)
-        self.assertTrue(purchase5)
+        self.assertFalse(purchase5)
 
         self.assertEqual(purchase2, purchase1)
-        self.assertNotEqual(purchase1, purchase5)
-
         self.assertEqual(purchase1.date_order[:10], '3003-08-22')
-        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
 
-    def test_12_schedule_a_limited_number_of_orders_with_draft_po(self):
-        """Test of purchase order creation from scratch when nb_max_draft_orders is defined for the suplier.
-        Here, empty draft orders exist at the beginning, and should not be used by the scheduler"""
+        other_draft_order = self.env['purchase.order'].search([('state', '=', 'draft'),
+                                                               ('order_line', '=', False)])
+        self.assertEqual(len(other_draft_order), 1)
+        self.assertEqual(other_draft_order.date_order[:10], '3003-08-29')
+
+    def test_12_schedule_a_limited_number_of_orders_with_dates(self):
+        """Test of purchase order creation from scratch when nb_max_draft_orders is defined for the suplier, and
+        when procurements are really distant."""
         self.supplier.nb_max_draft_orders = 2
 
-        # Let's create
-        pricelist = self.env['product.pricelist'].search([], limit=1)
-        self.assertTrue(pricelist)
-        draft_po_1 = self.env['purchase.order'].create({'partner_id': self.supplier.id,
-                                                        'location_id': self.location_a.id,
-                                                        'pricelist_id': pricelist.id})
-        draft_po_2 = self.env['purchase.order'].create({'partner_id': self.supplier.id,
-                                                        'location_id': self.location_a.id,
-                                                        'pricelist_id': pricelist.id})
-        draft_po_3 = self.env['purchase.order'].create({'partner_id': self.supplier.id,
-                                                        'location_id': self.location_a.id,
-                                                        'pricelist_id': pricelist.id})
+        # Proc 6 will now be the latest order by date planned. But its purchase date will be between the two first
+        # orders or product 1
+        self.proc6.date_planned = '3003-09-25 15:00:00'
+        self.supplierinfo2.delay += 8
 
-        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
-                                                        compute_product_ids=self.product1,
+        self.env['procurement.order'].purchase_schedule(compute_all_products=True,
+                                                        compute_product_ids=self.product1 + self.product2,
                                                         jobify=False)
         purchase1 = self.proc1.purchase_id
         purchase2 = self.proc2.purchase_id
         purchase3 = self.proc3.purchase_id
         purchase5 = self.proc5.purchase_id
+        purchase6 = self.proc6.purchase_id
 
         self.assertTrue(purchase1)
         self.assertTrue(purchase2)
         self.assertFalse(purchase3)
-        self.assertTrue(purchase5)
+        self.assertFalse(purchase5)
+        self.assertTrue(purchase6)
 
         self.assertEqual(purchase2, purchase1)
-        self.assertNotEqual(purchase1, purchase5)
-
-        not_used_draft_po = [order for order in [draft_po_1, draft_po_2, draft_po_3] if
-                             order not in [purchase1, purchase2, purchase3, purchase5]]
-        self.assertEqual(len(not_used_draft_po), 1)
-        not_used_draft_po_id = not_used_draft_po[0].id
-        self.assertNotIn(not_used_draft_po_id, self.env['purchase.order'].search([]).ids)
+        self.assertNotEqual(purchase1, purchase6)
 
         self.assertEqual(purchase1.date_order[:10], '3003-08-22')
-        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+        self.assertEqual(purchase6.date_order[:10], '3003-08-29')
 
-    def test_13_schedule_ignore_past_procurements(self):
+    def test_20_schedule_ignore_past_procurements(self):
         """Test of scheduling past procurements with 'ignore past procurements' activated"""
 
         past_proc = self.env['procurement.order'].create({
@@ -323,7 +315,7 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         self.assertEqual(past_proc.state, 'buy_to_run')
 
-    def test_14_schedule_do_not_ignore_past_procurements(self):
+    def test_21_schedule_do_not_ignore_past_procurements(self):
         """Test of scheduling past procurements with 'ignore past procurements' not activated"""
 
         configuration_wizard = self.env['purchase.config.settings'].create({'ignore_past_procurements': False,
@@ -372,7 +364,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase1.date_order[:10], '3003-08-22')
         self.assertEqual(purchase3.date_order[:10], '3003-09-12')
 
-    def test_20_schedule_with_existing_po(self):
+    def test_22_schedule_with_existing_po(self):
         """Test of purchase order line assignation/creation when there are some PO at the beginning."""
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_product_ids=self.product1,
@@ -452,7 +444,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn((self.proc1, 'running', 17, self.uom_couple), procs_data)
         self.assertIn((self.proc2, 'running', 2, self.unit), procs_data)
 
-    def test_21_schedule_with_existing_po(self):
+    def test_23_schedule_with_existing_po(self):
         """Test of purchase order line assignation/creation when there are some PO at the beginning."""
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_product_ids=self.product1,
@@ -522,7 +514,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn(self.proc2, line1.procurement_ids)
         self.assertNotIn(self.proc3, line1.procurement_ids)
 
-    def test_22_move_change_running_procurement_of_order(self):
+    def test_24_move_change_running_procurement_of_order(self):
         """Test rescheduling to a draft order a procurement which has running moves linked"""
         self.env['procurement.order'].purchase_schedule(jobify=False)
 
@@ -616,7 +608,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(self.proc1.purchase_line_id, line5)
         self.assertEqual(len(self.proc1.move_ids), 0)
 
-    def test_23_switch_proc_from_confirmed_to_sent_order(self):
+    def test_25_switch_proc_from_confirmed_to_sent_order(self):
         self.env['procurement.order'].purchase_schedule(jobify=False)
 
         purchase1 = self.proc1.purchase_id
@@ -688,7 +680,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(self.proc5.purchase_id, purchase1)
         self.assertEqual(self.proc3.purchase_id, purchase5)
 
-    def test_24_reschedule_after_proc_removal(self):
+    def test_26_reschedule_after_proc_removal(self):
         """Test of purchase scheduler after procurement reduction."""
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_supplier_ids=self.supplier,
@@ -755,7 +747,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(self.proc2.purchase_line_id, purchase_line2)
         self.assertEqual(self.proc4.purchase_line_id, purchase_line4)
 
-    def test_25_add_grouping_period_to_supplier(self):
+    def test_27_add_grouping_period_to_supplier(self):
         """Test of purchase order creation from scratch when there are none at the beginning."""
         self.supplier.order_group_period = False
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
@@ -836,4 +828,3 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase1.date_order_max, '3003-09-18 23:59:59')
         self.assertEqual(purchase5.date_order, '3003-08-29 00:00:00')
         self.assertEqual(purchase5.date_order_max, '3003-09-04 23:59:59')
-

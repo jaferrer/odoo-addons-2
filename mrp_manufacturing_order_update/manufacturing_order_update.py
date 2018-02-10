@@ -121,7 +121,7 @@ class MoUpdateMrpProduction(models.Model):
         self.update_moves()
 
     @api.model
-    def run_schedule_button_update(self):
+    def run_schedule_button_update(self, jobify=True):
         self.env.cr.execute("""WITH mrp_moves_details AS (
     SELECT
       mrp.id        AS mrp_id,
@@ -153,9 +153,13 @@ HAVING sum(CASE WHEN raw_move_state = 'done' OR
         while mrp_to_update_ids:
             chunk_number += 1
             mrp_chunk_ids = mrp_to_update_ids[:100]
-            run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
-                                            dict(self.env.context), description=u"MRP Production Update (chunk %s)" %
-                                                                          chunk_number)
+            if jobify:
+                run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
+                                                dict(self.env.context),
+                                                description=u"MRP Production Update (chunk %s)" % chunk_number)
+            else:
+                run_mrp_production_update(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
+                                          dict(self.env.context))
             mrp_to_update_ids = mrp_to_update_ids[100:]
 
 
@@ -183,10 +187,13 @@ class UpdateChangeStockMove(models.Model):
 
     @api.multi
     def action_cancel(self):
-        if self.env.context.get('forbid_unreserve_quants'):
-            reserved_quant = self.env['stock.quant'].search([('reservation_id', 'in', self.ids)], limit=1)
+        consume_moves = self.env['stock.move'].search([('id', 'in', self.ids),
+                                                       ('raw_material_production_id', '!=', False)])
+        if self.env.context.get('forbid_unreserve_quants') and consume_moves:
+            reserved_quant = self.env['stock.quant'].search([('reservation_id', 'in', consume_moves.ids)], limit=1)
             if reserved_quant:
                 raise exceptions.except_orm(_(u"Error!"),
-                                            _(u"Product %s: forbidden to cancel a move with reserved quants") %
-                                            reserved_quant.product_id.display_name)
+                                            _(u"Product %s in MO %s: forbidden to cancel a move with reserved quants") %
+                                            (reserved_quant.product_id.display_name,
+                                             reserved_quant.reservation_id.raw_material_production_id.display_name))
         return super(UpdateChangeStockMove, self).action_cancel()
