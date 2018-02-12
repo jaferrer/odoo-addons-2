@@ -17,23 +17,19 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import logging
-from openerp import models, api, fields
-
-_logger = logging.getLogger('sirail_compta')
+from openerp import models, api
 
 
 class IntercoAccountInvoice(models.Model):
     _inherit = 'account.invoice'
 
-    inverse_invoice_id = fields.Many2one('account.invoice', u"Invoice Origin")
+    # inverse_invoice_id = fields.Many2one('account.invoice', u"Invoice Origin")
 
     @api.multi
     def invoice_validate(self):
         res = super(IntercoAccountInvoice, self).invoice_validate()
         self.make_reverse_invoice()
         return res
-
 
     @api.multi
     def make_reverse_invoice(self):
@@ -58,7 +54,6 @@ class IntercoAccountInvoice(models.Model):
             'company_id': self.env['res.company'].search([('partner_id', '=', self.partner_id.id)]).id,
             'type': self._inverse_type()[self.type],
             'origin': self.number,
-            'inverse_invoice_id': self.id,
         }
 
     @api.multi
@@ -73,7 +68,3 @@ class IntercoAccountInvoice(models.Model):
             'in_refund': 'out_refund',
             'out_refund': 'in_refund',
         }
-
-
-class IntercoAccountInvoiceLine(models.Model):
-    _inherit = 'account.invoice.line'
