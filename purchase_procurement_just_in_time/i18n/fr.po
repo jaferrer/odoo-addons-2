@@ -119,6 +119,11 @@ msgid "Maximum order date"
 msgstr "Date maximale de la commande"
 
 #. module: purchase_procurement_just_in_time
+#: field:purchase.order,date_order:0
+msgid "Start date for grouping period"
+msgstr "Date de début de la période de regroupement"
+
+#. module: purchase_procurement_just_in_time
 #: selection:procurement.time.frame,period_type:0
 msgid "Month(s)"
 msgstr "Mois"
@@ -330,6 +335,11 @@ msgstr "EN RETARD de %i jour(s)"
 #: field:purchase.order.line,date_ack:0
 msgid "Last Acknowledge Date"
 msgstr "Date de réception de l'AR"
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.order.line,date_ack:0
+msgid "Last date at which the supplier confirmed the delivery at the planned date."
+msgstr "Dernière date à laquelle le fournisseur a confirmé la livraison à la date prévue."
 
 #. module: purchase_procurement_just_in_time
 #: field:split.line,write_uid:0
@@ -666,13 +676,13 @@ msgstr "Planification des achats pour le fournisseur %s et l'emplacement %s"
 
 #. module: purchase_procurement_just_in_time
 #: field:res.partner,nb_max_draft_orders:0
-msgid "Maximal number of draft purchase orders"
-msgstr "Nombre maximal de commandes d'achat brouillon"
+msgid "Number of grouping periods to consider"
+msgstr "Nombre de périodes de regroupement à prendre en compte"
 
 #. module: purchase_procurement_just_in_time
 #: field:res.partner,nb_days_scheduler_frequency:0
 msgid "Scheduler frequency (in days)"
-msgstr "Fréquence du planificateur achats (en jour)"
+msgstr "Fréquence du planificateur achats (en jours)"
 
 #. module: purchase_procurement_just_in_time
 #: field:res.partner,last_scheduler_date:0
@@ -898,3 +908,28 @@ msgstr "Message concernant le retard"
 #: field:purchase.order.line,opmsg_type:0
 msgid "Message Type"
 msgstr "Type de message"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,opmsg_delay:0
+msgid "Message Delay"
+msgstr "Message concernant le retard"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,opmsg_type:0
+msgid "Message Type"
+msgstr "Type de message"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,order_group_period:0
+msgid "Default order grouping period"
+msgstr "Période de regroupement par défaut"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,nb_max_draft_orders:0
+msgid "Default maximal number of draft purchase orders for each new supplier"
+msgstr "Nombre maximal de commande par défaut pour chaque nouveau fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,nb_days_scheduler_frequency:0
+msgid "Default scheduler frequency (in days)"
+msgstr "Fréquence par défaut du planificateur achats (en jours)"

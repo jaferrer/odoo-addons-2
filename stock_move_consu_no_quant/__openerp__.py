@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,15 +18,16 @@
 #
 
 {
-    'name': 'Purchase check qty supplier on order',
+    'name': 'Product Type consu no quant',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase', 'purchase_order_quantities_improved'],
+    'category': 'Warehouse',
+    'depends': ['stock'],
     'description': """
-Check min qty of the supplier info on the purchase order not on the line
-========================================================================
+Product Type consu no quant
+===========================
+Automatically remove the quant for the product type 'consu' inside the internal or transit location with an inventory
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],

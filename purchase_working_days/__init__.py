@@ -18,3 +18,4 @@
 #
 
 from . import purchase_working_days
+from . import res_config

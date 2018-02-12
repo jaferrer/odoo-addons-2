@@ -13,6 +13,8 @@
                         <group name="grouping_period" attrs="{'invisible': [('supplier','=',False)]}">
                             <field name="order_group_period"/>
                             <field name="nb_max_draft_orders"/>
+                            <field name="nb_days_scheduler_frequency"/>
+                            <field name="purchase_lead_time"/>
                         </group>
                     </xpath>
                 </data>
@@ -32,6 +34,7 @@
                     <field name="last_scheduler_date"/>
                     <field name="next_scheduler_date"/>
                     <field name="scheduler_sequence"/>
+                    <field name="purchase_lead_time"/>
                 </tree>
             </field>
         </record>
