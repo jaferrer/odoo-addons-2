@@ -86,6 +86,11 @@
             <field name="order_group_period" ref="purchase_procurement_just_in_time.week"/>
         </record>
 
+        <record id="supplier2" model="res.partner">
+            <field name="name">Supplier 2 (Purchase Procurement JIT)</field>
+            <field name="order_group_period" ref="purchase_procurement_just_in_time.week"/>
+        </record>
+
         <!-- Supplierinfo -->
         <record id="supplierinfo1" model="product.supplierinfo">
             <field name="name" ref="supplier1"/>
@@ -101,6 +106,14 @@
             <field name="min_qty" eval="10"/>
             <field name="delay" eval="7"/>
             <field name="product_tmpl_id" ref="product2_product_template"/>
+        </record>
+
+        <record id="supplierinfo3" model="product.supplierinfo">
+            <field name="name" ref="supplier2"/>
+            <field name="packaging_qty" eval="2"/>
+            <field name="min_qty" eval="10"/>
+            <field name="delay" eval="7"/>
+            <field name="product_tmpl_id" ref="product1_product_template"/>
         </record>
 
         <!-- Rules -->

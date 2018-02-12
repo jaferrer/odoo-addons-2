@@ -226,21 +226,15 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
         if stock_scheduler_controller_line:
             raise RetryableJobError(u"Impossible to launch purchase scheduler when stock scheduler is running",
                                     seconds=1200)
-        if not compute_supplier_ids:
-            active_sellers = self.env['product.supplierinfo'].read_group([('product_tmpl_id.active', '=', True)],
-                                                                         ['name'], ['name'])
-            compute_supplier_ids = [item['name'][0] for item in active_sellers]
-        query = QUERY_PROCS_BY_SELLER
-        if not compute_all_products and compute_product_ids:
-            query += """ AND po.product_id in %s"""
-            self.env.cr.execute(query, (tuple(compute_product_ids),))
-        else:
-            self.env.cr.execute(query)
-        dict_proc_sellers = {seller_id: [] for seller_id in compute_supplier_ids}
+        self.env.cr.execute(QUERY_PROCS_BY_SELLER)
+        dict_proc_sellers = {}
         for item in self.env.cr.fetchall():
-            if item[1] in compute_supplier_ids:
+            if compute_all_products or compute_supplier_ids and item[1] in compute_supplier_ids or compute_product_ids \
+                    and item[4] in compute_product_ids:
+                if item[1] not in dict_proc_sellers:
+                    dict_proc_sellers[item[1]] = []
                 dict_proc_sellers[item[1]] += [item[0]]
-        for seller_id in compute_supplier_ids:
+        for seller_id in dict_proc_sellers.keys():
             procurement_for_seller_ids = dict_proc_sellers[seller_id]
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             supplier = self.env['res.partner'].search([('id', '=', seller_id)])
