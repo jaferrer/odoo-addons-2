@@ -10,13 +10,13 @@ class TestAccountInvoiceReverse(common.TransactionCase):
         """Check the reverse invoice is correct"""
         self.invoice_0.signal_workflow('invoice_open')
 
-        reverse = self.env['account.invoice'].search([('inverse_invoice_id', '=', self.invoice_0.id)])
+        reverse = self.env['account.invoice'].search([('origin', '=', self.invoice_0.number)])
 
         self.assertEqual(self.invoice_0.state, 'open')
         self.assertEqual('draft', reverse.state)
         self.assertEqual(self.invoice_0.company_id.partner_id, reverse.partner_id)
         self.assertEqual(self.invoice_0.partner_id, reverse.company_id.partner_id)
         self.assertEqual(self.invoice_0._inverse_type()[self.invoice_0.type], reverse.type)
-        self.assertEqual(self.invoice_0.id, reverse.inverse_invoice_id.id)
+        self.assertEqual(self.invoice_0.number, reverse.origin)
         self.assertFalse(reverse.move_id)
         self.assertEquals(self.invoice_0.amount_total, reverse.amount_total)
