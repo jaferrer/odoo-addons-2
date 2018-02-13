@@ -31,6 +31,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.company = self.browse_ref('base.main_company')
         self.company.write({'po_lead': 5})
         self.supplier = self.browse_ref('purchase_procurement_just_in_time.supplier1')
+        self.supplier2 = self.browse_ref('purchase_procurement_just_in_time.supplier2')
         self.product1 = self.browse_ref('purchase_procurement_just_in_time.product1')
         self.product2 = self.browse_ref('purchase_procurement_just_in_time.product2')
         self.supplierinfo2 = self.browse_ref('purchase_procurement_just_in_time.supplierinfo2')
@@ -192,6 +193,16 @@ class TestPurchaseScheduler(common.TransactionCase):
     def test_11_schedule_a_limited_number_of_orders(self):
         """Test of purchase order creation from scratch when nb_max_draft_orders is defined for the suplier."""
         self.supplier.nb_max_draft_orders = 2
+        order_other_supplier = self.env['purchase.order'].create({'partner_id': self.supplier2.id,
+                                                                  'location_id': self.location_a.id,
+                                                                  'pricelist_id': self.ref('purchase.list0')})
+        order_other_supplier_id = order_other_supplier.id
+        self.env['purchase.order.line'].create({'name': "product 1",
+                                                'product_id': self.product1.id,
+                                                'date_planned': "2016-12-01",
+                                                'order_id': order_other_supplier.id,
+                                                'price_unit': 2,
+                                                'product_qty': 10})
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_product_ids=self.product1,
                                                         jobify=False)
