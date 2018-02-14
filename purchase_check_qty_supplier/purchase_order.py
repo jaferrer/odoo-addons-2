@@ -50,14 +50,9 @@ class CheckQtySupplierPurchaseOrder(models.Model):
             supplierinfo = supplierinfo and supplierinfo[0] or False
             if supplierinfo:
                 qty = rec._get_qty_on_order_by_product(product_id.id, supplierinfo)
-                if float_compare(supplierinfo.min_qty, qty, precision_digits=precision) > 0 and \
-                        float_compare(qty, 0, precision_digits=precision) > 0:
-                    raise exceptions.except_orm(
-                        _(u"Error!"),
-                        _(u'The selected supplier has a minimal quantity set to %s %s for the product %s,'
-                          u' you should not purchase less.')
-                        % (supplierinfo.min_qty, supplierinfo.product_uom.name, product_id.name)
-                    )
+                error = supplierinfo._is_valid_purchase_qty(product_id, qty, precision)
+                if error:
+                    raise exceptions.except_orm(_(u"Error!"), error)
 
     def _get_qty_on_order_by_product(self, product_id, supplierinfo):
         self.ensure_one()
@@ -80,9 +75,9 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
     def create(self, vals):
         result = super(CheckQtySupplierPurchaseOrderLine, self).create(vals)
         if self.env.context.get('check_product_qty', True) \
-                and (self.state != 'cancel' or self.order_id.state != 'cancel')\
+                and (result.state != 'cancel' or result.order_id.state != 'cancel') \
                 and 'product_qty' in vals:
-            self.order_id._check_qty_for_product(self.product_id)
+            result.order_id._check_qty_for_product(result.product_id)
         return result
 
     @api.multi
@@ -133,3 +128,14 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
                             del result['warning']
                             result['value'].update({'product_qty': qty})
         return result
+
+
+class CheckQtySupplierInfo(models.Model):
+    _inherit = 'product.supplierinfo'
+
+    def _is_valid_purchase_qty(self, product_id, qty, precision):
+        if float_compare(self.min_qty, qty, precision_digits=precision) > 0 and \
+                float_compare(qty, 0, precision_digits=precision) > 0:
+            return _(u'The selected supplier has a minimal quantity set to %s %s for the product %s,'
+                     u' you should not purchase less.') % (self.min_qty, self.product_uom.name, product_id.name)
+        return False

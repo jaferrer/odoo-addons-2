@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase'],
+    'depends': ['purchase', 'purchase_order_quantities_improved'],
     'description': """
 Check min qty of the supplier info on the purchase order not on the line
 ========================================================================
