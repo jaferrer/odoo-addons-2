@@ -188,6 +188,27 @@ class ProductCombinationRecordImport(TranslatableRecordImporter):
                             seconds=RETRY_WHEN_CONCURRENT_DETECTED,
                             ignore_retry=True
                         )
+
+                param = self.env[self.backend_record.connector_id.line_id.type_id.model_name].search(
+                    [('line_id', '=', self.backend_record.connector_id.line_id.id)])
+                if param.manage_by_ref:
+                    product = self.env['product.product'].search([("default_code", "=",
+                                                                   self.prestashopextend_record["reference"]),
+                                                                  ("owner_id", "=",
+                                                                   self.backend_record.connector_id.home_id.partner_id.id)])
+
+                    if product:
+                        self.env['prestashopextend.product.product'].create({
+                            'prestashopextend_id': self.prestashopextend_record.get("id"),
+                            'backend_home_id': self.backend_record.connector_id.home_id.id,
+                            'backend_id': self.backend_record.id,
+                            'updated_at': self.prestashopextend_record[
+                                              'date_upd'] == '0000-00-00 00:00:00' and datetime.now() or
+                                          self.prestashopextend_record['date_upd'],
+                            'openerp_id': product[0].id
+                        })
+                        binding = self._get_binding()
+
             skip = self._has_to_skip()
             if skip:
                 return skip
@@ -256,7 +277,7 @@ class ProductProductImportMapper(ImportMapper):
     def default_code(self, record):
         code = record.get('reference')
         if not code:
-            code = "backend_%d_product_%s" % (
+            code = "FLUXTENDU_%d-%s" % (
                 self.backend_record.connector_id.home_id.id, record['id']
             )
         if self.has_combinations(record):
