@@ -232,6 +232,8 @@ class ConnectorTypePrestashopParameter(models.Model):
         comodel_name='connector.type.prestashop.parameter.line', inverse_name='param_id',
         string="Mapping Picking")
 
+    manage_by_ref = fields.Boolean(string=u"Gestion par référence")
+
 
 class ConnectorTypePrestashopParameter(models.Model):
     _name = 'connector.type.prestashop.parameter.line'

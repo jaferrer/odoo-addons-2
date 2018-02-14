@@ -17,6 +17,7 @@
                         </page>
                         <page string="Parametrage Synchro" name="sync">
                             <group>
+                                <field name="manage_by_ref"></field>
                                 <field name="shops" widget="many2many_tags"/>
                                 <field name="synchro_state_since" widget="many2many_tags"/>
                                 <field name="map_order_state_to_picking_state">
