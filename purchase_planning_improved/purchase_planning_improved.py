@@ -19,9 +19,19 @@
 
 from datetime import datetime
 
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 from openerp import fields, models, api
 from openerp.osv import fields as old_api_fields
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
+
+QUERY_MIN_PROC = """
+SELECT
+  p.id as id,
+  min(p.date_planned) as date
+FROM procurement_order p
+WHERE p.purchase_line_id = %s
+GROUP BY p.id
+LIMIT 1
+"""
 
 
 class ProcurementOrderPurchasePlanningImproved(models.Model):
@@ -64,38 +74,49 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     @api.cr_uid_ids_context
     def _compute_dates(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
-        for line in self.browse(cr, uid, ids, context=context):
-            partner = line.order_id.partner_id
-            line_data = {'date_required': line.date_required, 'limit_order_date': line.limit_order_date}
-            if line.procurement_ids:
-                min_date = min([p.date_planned for p in line.procurement_ids])
-                min_proc = line.procurement_ids.filtered(lambda proc: str(proc.date_planned) == min_date)[0]
+        for line in self.search_read(cr, uid,
+                                     domain=[('id', 'in', ids)],
+                                     fields=['date_planned', 'date_required', 'limit_order_date',
+                                             'order_id', 'company_id', 'id'],
+                                     context=context):
+            company = self.pool.get('res.company').browse(cr, uid, line['company_id'][0], context=context)
+            partner_id = self.pool.get('purchase.order').search_read(cr, uid,
+                                                                     domain=[('id', '=', line['order_id'][0])],
+                                                                     fields=['partner_id'],
+                                                                     limit=1,
+                                                                     context=context)[0]['partner_id'][0]
+            line_data = {'date_required': line['date_required'], 'limit_order_date': line['limit_order_date']}
+            cr.execute(QUERY_MIN_PROC, [line['id']])
+            vals = cr.dictfetchone()
+            if vals:
+                min_date = vals['date']
+                min_proc = self.pool.get('procurement.order').browse(cr, uid, [vals['id']], context=context)
                 if min_proc.rule_id:
-                    context = dict(context, do_not_save_result=True, force_partner_id=partner.id)
+                    context = dict(context, do_not_save_result=True, force_partner_id=partner_id)
                     date_required = self.pool.get('procurement.order'). \
-                        _get_purchase_schedule_date(cr, uid, min_proc, line.company_id, context=context)
+                        _get_purchase_schedule_date(cr, uid, min_proc, company, context=context)
                     limit_order_date = self.pool.get('procurement.order'). \
-                        _get_purchase_order_date(cr, uid, min_proc, line.company_id, date_required, context=context)
+                        _get_purchase_order_date(cr, uid, min_proc, company, date_required, context=context)
                     limit_order_date = limit_order_date and fields.Datetime.to_string(limit_order_date) or False
                     date_required = date_required and fields.Datetime.to_string(date_required) or False
                 else:
                     date_required = min_date
                     limit_order_date = min_date
             else:
-                date_required = line.date_planned
-                limit_order_date = line.date_planned
+                date_required = line['date_planned']
+                limit_order_date = line['date_planned']
             target_data = {'date_required': date_required and date_required[:10] or False,
                            'limit_order_date': limit_order_date and limit_order_date[:10] or False}
             if target_data != line_data:
-                res[line.id] = target_data
+                res[line['id']] = target_data
         return res
 
     @api.cr_uid_ids_context
     def _get_order_lines(self, cr, uid, ids, context=None):
         res = set()
-        for line in self.browse(cr, uid, ids, context=context):
-            if line.purchase_line_id:
-                res.add(line.purchase_line_id.id)
+        for proc in self.browse(cr, uid, ids, context=context):
+            if proc.purchase_line_id:
+                res.add(proc.purchase_line_id.id)
         return list(res)
 
     _columns = {
