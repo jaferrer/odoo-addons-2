@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="act_report_xml_view1" model="ir.ui.view">
+            <field name="name">ir.actions.report.xml.aeroo.form</field>
+            <field name="model">ir.actions.report.xml</field>
+            <field name="priority">16</field>
+            <field name="arch" type="xml">
+                <form string="Aeroo Report">
+                    <group>
+                        <field name="name"/>
+                        <field name="model"/>
+                        <field name="report_name"/>
+                        <field name="usage"/>
+                        <field name="report_type" invisible="1"/>
+                        <field name="type" invisible="1"/>
+                        <field name="active"/>
+                    </group>
+                    <group>
+                        <field name="in_format" required="1"/>
+                        <field name="out_format" required="1" domain="[('compatible_types','=',in_format)]"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Generic">
+                            <group string="Template">
+                                <field name="tml_source" required="1"/>
+                                <field name="report_sxw_content_data"
+                                    string="Template Content"
+                                    attrs="{'invisible': [('tml_source', '!=', 'database')],'required': [('tml_source','=','database')]}"/>
+                                <field
+                                    name="report_rml"
+                                    string="Template path"
+                                    attrs="{'invisible': [('tml_source', '!=', 'file')],'required': [('tml_source','=','file')]}"/>
+                                <field
+                                    name="report_line_ids"
+                                    attrs="{'invisible': [('tml_source', '!=', 'lang')],'required': [('tml_source','=','lang')]}"
+                                >
+                                    <tree editable="bottom">
+                                        <field name="lang_id"/>
+                                        <field name="company_id"/>
+                                        <field name="template_source"/>
+                                        <field name="template_data" filename="template_filename"/>
+                                        <field name="template_filename" invisible="1"/>
+                                        <field name="template_location"/>
+                                    </tree>
+                                </field>
+                                <field name="lang_eval"
+                                    attrs="{'invisible': [('tml_source', '!=', 'lang')],'required': [('tml_source','=','lang')]}"/>
+                                <field name="company_eval"
+                                    attrs="{'invisible': [('tml_source', '!=', 'lang')],'required': [('tml_source','=','lang')]}"/>
+                            </group>
+                            <group string="Attachments">
+                                <field name="attachment"/>
+                                <field name="attachment_use"/>
+                            </group>
+                            <group string="Miscellaneous">
+                                <field name="multi"/>
+                                <field name="process_separately"/>
+                            </group>
+                        </page>
+                        <page string="Security">
+                            <separator string="Groups"/>
+                            <field name="groups_id" nolabel="1"/>
+                        </page>
+                    </notebook>
+
+                </form>
+            </field>
+        </record>
+
+        <record id="act_aeroo_report_xml_view_tree" model="ir.ui.view">
+            <field name="name">ir.actions.report.xml.tree</field>
+            <field name="model">ir.actions.report.xml</field>
+            <field name="arch" type="xml">
+                <tree string="Report xml">
+                    <field name="name"/>
+                    <field name="model"/>
+                    <field name="report_name"/>
+                    <field name="in_format"/>
+                    <field name="out_format"/>
+                    <field name="tml_source"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="act_aeroo_report_xml_search_view" model="ir.ui.view">
+            <field name="name">ir.actions.report.xml.search</field>
+            <field name="model">ir.actions.report.xml</field>
+            <field name="arch" type="xml">
+                <search string="Report xml">
+                    <field name="name"
+                        filter_domain="['|', '|', '|', '|', ('name','ilike',self), ('model','ilike',self), ('type','ilike',self), ('report_name','ilike',self), ('report_type','ilike',self)]"
+                        string="Report"/>
+                    <filter name="active" string="Inactive" domain="[('active','=',False)]"/>
+                    <group expand="0" string="Group By" colspan="4">
+                        <filter string="Template Mime-type" icon="terp-stock_symbol-selection" domain="[]" context="{'group_by':'in_format'}"/>
+                        <filter string="Output Mime-type" icon="terp-stock_symbol-selection" domain="[]" context="{'group_by':'out_format'}"/>
+                        <separator orientation="vertical"/>
+                        <filter string="Template Source" icon="gtk-copy" domain="[]" context="{'group_by':'tml_source'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <act_window name="Translations"
+            domain="[('type', '=', 'report'),('res_id', '=', active_id)]"
+            view_type="form"
+            res_model="ir.translation"
+            src_model="ir.actions.report.xml"
+            id="act_translations"/>
+
+        <!-- For the original views -->
+        <record model="ir.actions.act_window.view" id="act_report_xml_tree_view">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="base.act_report_xml_view_tree"/>
+            <field name="act_window_id" ref="base.ir_action_report_xml"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_report_xml_form_view">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="base.act_report_xml_view"/>
+            <field name="act_window_id" ref="base.ir_action_report_xml"/>
+        </record>
+
+        <record id="action_aeroo_report_xml_tree" model="ir.actions.act_window">
+            <field name="name">Reports</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ir.actions.report.xml</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('report_type','=','aeroo')]</field>
+            <field name="context">{'default_report_type': 'aeroo'}</field>
+            <field name="view_id" ref="act_aeroo_report_xml_view_tree"/>
+            <field name="search_view_id" ref="act_aeroo_report_xml_search_view"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_aeroo_report_xml_tree_view">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="act_aeroo_report_xml_view_tree"/>
+            <field name="act_window_id" ref="action_aeroo_report_xml_tree"/>
+        </record>
+
+        <record model="ir.actions.act_window.view" id="act_aeroo_report_xml_form_view">
+            <field name="sequence" eval="1"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="act_report_xml_view1"/>
+            <field name="act_window_id" ref="action_aeroo_report_xml_tree"/>
+        </record>
+
+        <menuitem name="Aeroo Reports"
+            action="action_aeroo_report_xml_tree"
+            id="menu_ir_action_aeroo_report_admin"
+            parent="report.reporting_menuitem" sequence="5"/>
+
+        <menuitem name="Aeroo Reports"
+            action="action_aeroo_report_xml_tree"
+            id="menu_ir_action_aeroo_report_manager"
+            parent="base.menu_reporting_config" sequence="0"
+            groups="group_aeroo_manager"/>
+
+        <record id="base.menu_reporting_config" model="ir.ui.menu">
+            <field name="groups_id" eval="[(4, ref('group_aeroo_manager'))]"/>
+        </record>
+
+    </data>
+</openerp>
