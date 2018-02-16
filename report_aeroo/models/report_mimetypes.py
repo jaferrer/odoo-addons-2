@@ -12,6 +12,7 @@ logger = logging.getLogger('report_aeroo')
 
 
 class ReportMimetypes(models.Model):
+
     """
     Aeroo Report Mime-Type
     """

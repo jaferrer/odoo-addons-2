@@ -1,14 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
-###########################################################
+#
 # Developed by Kaspars Vilkens - Alistek Ltd (c) 2011
 #     pep-8, unicode and doctests by Paul Stevens, paul@nfg.nl, 2010
 #
 # Supported currencies: LVL, EUR, USD, UAH
 # Supported sum: 0 ... 999999999999.99
 # Supported languages: lv_LV, en_US, ru_RU, uk_UA
-###########################################################
+#
 import string
 
 supported_currency = ['LVL', 'EUR', 'USD', 'UAH']

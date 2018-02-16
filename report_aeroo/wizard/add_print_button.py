@@ -8,6 +8,7 @@ from odoo import api, fields, models
 
 
 class AerooAddPrintButton(models.TransientModel):
+
     """
     Add Print Button
     """

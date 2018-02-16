@@ -8,6 +8,7 @@ from odoo import api, fields, models
 
 
 class AerooRemovePrintButton(models.TransientModel):
+
     """
     Remove Print Button
     """
