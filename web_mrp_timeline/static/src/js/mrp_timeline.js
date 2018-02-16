@@ -15,6 +15,18 @@ odoo.define('web_mrp_timeline.TimelineView', function (require) {
     }
 
     TimelineView.include({
+        start: function () {
+            var res = this._super();
+            this.no_create = this.fields_view.arch.attrs.no_create;
+            return res;
+        },
+
+        on_add: function (item, callback) {
+            if (!this.no_create) {
+                return this._super(item, callback);
+            }
+            return false
+        },
 
         init_timeline: function () {
             this._super();
