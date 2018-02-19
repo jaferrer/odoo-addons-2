@@ -16,51 +16,51 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: live_i10n
-#: field:live.i18n.ir.translation,create_uid:0
-#: field:live.i18n.ir.translation.line,create_uid:0
+#: field:live.l10n.ir.translation,create_uid:0
+#: field:live.l10n.ir.translation.line,create_uid:0
 msgid "Created by"
 msgstr "Créé par"
 
 #. module: live_i10n
-#: field:live.i18n.ir.translation,create_date:0
-#: field:live.i18n.ir.translation.line,create_date:0
+#: field:live.l10n.ir.translation,create_date:0
+#: field:live.l10n.ir.translation.line,create_date:0
 msgid "Created on"
 msgstr "Créé le"
 
 #. module: live_i10n
 #: field:live.i18n,id:0
-#: field:live.i18n.ir.translation,id:0
-#: field:live.i18n.ir.translation.line,id:0
+#: field:live.l10n.ir.translation,id:0
+#: field:live.l10n.ir.translation.line,id:0
 #: field:on_change.action,id:0
 msgid "ID"
 msgstr "ID"
 
 #. module: live_i10n
-#: field:live.i18n.ir.translation.line,line_id:0
-#: field:live.i18n.ir.translation.line,live_translate_id:0
+#: field:live.l10n.ir.translation.line,line_id:0
+#: field:live.l10n.ir.translation.line,live_translate_id:0
 msgid "Id line ir_translation"
 msgstr "Id ligne ir_translation"
 
 #. module: live_i10n
-#: field:live.i18n.ir.translation.line,lang:0
+#: field:live.l10n.ir.translation.line,lang:0
 msgid "Lang"
 msgstr "Langue"
 
 #. module: live_i10n
-#: field:live.i18n.ir.translation,write_uid:0
-#: field:live.i18n.ir.translation.line,write_uid:0
+#: field:live.l10n.ir.translation,write_uid:0
+#: field:live.l10n.ir.translation.line,write_uid:0
 msgid "Last Updated by"
 msgstr "Modifié par"
 
 #. module: live_i10n
-#: field:live.i18n.ir.translation,write_date:0
-#: field:live.i18n.ir.translation.line,write_date:0
+#: field:live.l10n.ir.translation,write_date:0
+#: field:live.l10n.ir.translation.line,write_date:0
 msgid "Last Updated on"
 msgstr "Modifié le"
 
 #. module: live_i10n
-#: field:live.i18n.ir.translation,line_tranlate_ids:0
-msgid "Id live.i10n.ir.translation"
+#: field:live.l10n.ir.translation,line_tranlate_ids:0
+msgid "Id live.l10n.ir.translation"
 msgstr "Ligne de traduction"
 
 #. module: live_i10n
@@ -70,22 +70,22 @@ msgid "Translation"
 msgstr "Traduction"
 
 #. module: live_i10n
-#: field:live.i18n.ir.translation.line,lang_value:0
+#: field:live.l10n.ir.translation.line,lang_value:0
 msgid "Value"
 msgstr "Valeur"
 
 #. module: live_i10n
-#: view:live.i18n.ir.translation:live_i10n.live_i18n_ir_translation_form
+#: view:live.l10n.ir.translation:live_i10n.live_i18n_ir_translation_form
 msgid "_Apply"
 msgstr "Appliquer"
 
 #. module: live_i10n
-#: view:live.i18n.ir.translation:live_i10n.live_i18n_ir_translation_form
+#: view:live.l10n.ir.translation:live_i10n.live_i18n_ir_translation_form
 msgid "_Cancel"
 msgstr "Annuler"
 
 #. module: live_i10n
-#: view:live.i18n.ir.translation:live_i10n.live_i18n_ir_translation_form
+#: view:live.l10n.ir.translation:live_i10n.live_i18n_ir_translation_form
 msgid "or"
 msgstr "ou"
 

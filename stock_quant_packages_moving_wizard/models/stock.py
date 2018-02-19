@@ -290,6 +290,10 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
             natural_picking_type = list_picking_types[0]
         return natural_dest_loc, natural_picking_type
 
+    @api.model
+    def get_default_picking_type_for_move(self):
+        return self.env['stock.picking.type']
+
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
