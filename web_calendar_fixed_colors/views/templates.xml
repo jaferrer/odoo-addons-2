@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="assets_backend" name="web_calendar_fixed_colors assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/web_calendar_fixed_colors/static/src/less/web_calendar_fixed_colors.less"/>
+
+                <script type="text/javascript" src="/web_calendar_fixed_colors/static/src/js/web_calendar_fixed_colors.js"></script>
+            </xpath>
+        </template>
+
+    </data>
+</odoo>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="backend.connector.info" id="prestashop_push_product_stock_level">
+            <field name="name">Prestashop product stock level Connector</field>
+            <field name="comment">Prestashop product stock level Connector</field>
+            <field name="model_name">prestashopextend.backend</field>
+            <field name="image" type="base64" file="connector_prestashop_extend/static/img/prestashop-logo.png"/>
+            <field name="type">PUSH</field>
+            <field name="backend_type_id" ref="prestashop"/>
+            <field name="method_name">export_stock_level</field>
+        </record>
+    </data>
+</openerp>
