@@ -153,7 +153,7 @@ class prestashopextend_backend(models.Model):
             from_date = product.updated_at
 
         if from_date:
-            opts = {"filter[date_upd]": '=>[%s]' % (from_date),
+            opts = {"filter[date_upd]": '>[%s]' % (from_date),
                     'date': '1'}
 
         product_import_batch.delay(
