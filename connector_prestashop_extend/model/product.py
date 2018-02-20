@@ -314,7 +314,7 @@ class ProductInventoryAdapter(GenericAdapter):
         )
 
         shops = self.env['prestashopextend.shop'].search([
-            ('backend_id', '=', self.backend_record.id),
+            ('backend_home_id', '=', self.backend_record.connector_id.home_id.id),
             ('default_url', '!=', False),
         ])
         for shop in shops:
