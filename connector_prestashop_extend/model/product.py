@@ -32,6 +32,7 @@ import ftputil.session
 import sys
 
 from openerp import tools
+from prestapyt import PrestaShopWebServiceDict, PrestaShopWebServiceError
 
 try:
     from xml.etree import cElementTree as ElementTree
@@ -312,15 +313,15 @@ class ProductInventoryAdapter(GenericAdapter):
             quantity,
         )
 
-        # shops = self.env['prestashop.shop'].search([
-        #     ('backend_id', '=', self.backend_record.id),
-        #     ('default_url', '!=', False),
-        # ])
-        # for shop in shops:
-        #     url = '%s/api' % shop.default_url
-        #     key = self.backend_record.webservice_key
-        #     client = PrestaShopWebServiceDict(url, key)
-        #     self.export_quantity_url(filters, quantity, client=client)
+        shops = self.env['prestashopextend.shop'].search([
+            ('backend_id', '=', self.backend_record.id),
+            ('default_url', '!=', False),
+        ])
+        for shop in shops:
+            url = '%s/api' % shop.default_url
+            key = self.client.prestashopextend.webservice_key
+            client = PrestaShopWebServiceDict(url, key)
+            self.export_quantity_url(filters, quantity, client=client)
 
     def export_quantity_url(self, filters, quantity, client=None):
         if client is None:
