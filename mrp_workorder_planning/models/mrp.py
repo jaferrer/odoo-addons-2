@@ -19,7 +19,7 @@
 
 from datetime import datetime
 
-from odoo import models, api, exceptions, fields
+from odoo import models, api, exceptions, fields, _
 
 
 class MrpProduction(models.Model):
@@ -33,13 +33,13 @@ class MrpProduction(models.Model):
             if 'date_planned_finished' in vals:
                 wo_dates = [w.date_planned_finished for w in rec.workorder_ids if w.date_planned_finished]
                 if wo_dates and vals['date_planned_finished'] < max(wo_dates):
-                    raise exceptions.UserError(u"You cannot set the planned end date of a production order before "
-                                               u"the latest end date of its work orders.")
+                    raise exceptions.UserError(_(u"You cannot set the planned end date of a production order before "
+                                                 u"the latest end date of its work orders."))
             if 'date_planned_start' in vals:
                 wo_dates = [w.date_planned_start for w in rec.workorder_ids if w.date_planned_start]
                 if wo_dates and vals['date_planned_start'] > min(wo_dates):
-                    raise exceptions.UserError(u"You cannot set the planned start date of a production order after "
-                                               u"the earliest start date of its work orders.")
+                    raise exceptions.UserError(_(u"You cannot set the planned start date of a production order after "
+                                                 u"the earliest start date of its work orders."))
         return super(MrpProduction, self).write(vals)
 
     @api.multi
@@ -93,7 +93,7 @@ class MrpWorkorder(models.Model):
             if 'date_planned_start' in vals:
                 if rec.previous_workorder_ids:
                     if rec.previous_workorder_ids[0].date_planned_finished > vals['date_planned_start']:
-                        raise exceptions.UserError(u"You cannot plan this work order before the previous one: %s" %
+                        raise exceptions.UserError(_(u"You cannot plan this work order before the previous one: %s") %
                                                    rec.previous_workorder_ids[0].name)
                 else:
                     if rec.production_id.date_planned_start > vals['date_planned_start']:
@@ -105,7 +105,7 @@ class MrpWorkorder(models.Model):
             if 'date_planned_finished' in vals:
                 if rec.next_work_order_id:
                     if rec.next_work_order_id.date_planned_start < vals['date_planned_finished']:
-                        raise exceptions.UserError(u"You cannot plan this work order after the next one: %s" %
+                        raise exceptions.UserError(_(u"You cannot plan this work order after the next one: %s") %
                                                    rec.next_work_order_id.display_name)
                 else:
                     if rec.production_id.date_planned_finished < vals['date_planned_finished']:
@@ -122,13 +122,13 @@ class MrpWorkcenter(models.Model):
     def schedule_working_hours(self, nb_hours, date, zero_backwards=False):
         """Returns the datetime that is nb_hours working hours after date in the context of this workcenter."""
         self.ensure_one()
-        assert isinstance(date, datetime), u"date should be a datetime.datime. Received %s" % type(date)
+        assert isinstance(date, datetime), _(u"date should be a datetime.datime. Received %s") % type(date)
         calendar = self.calendar_id
         if not calendar:
             calendar = self.company_id.calendar_id
         if not calendar:
-            raise exceptions.UserError(u"You must define a calendar for this workcenter (%s) or this company to "
-                                       u"schedule production work orders." % self.name)
+            raise exceptions.UserError(_(u"You must define a calendar for this workcenter (%s) or this company to "
+                                         u"schedule production work orders.") % self.name)
 
         available_intervals = calendar.schedule_hours(nb_hours, date, compute_leaves=True)
         target_date = None
