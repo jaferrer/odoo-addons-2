@@ -321,7 +321,7 @@ class ProductInventoryAdapter(GenericAdapter):
         for shop in shops:
             print shop
             url = '%s/api' % shop.default_url
-            key = self.client.prestashopextend.webservice_key
+            key = self.prestashopextend.webservice_key
             client = PrestaShopWebServiceDict(url, key)
             self.export_quantity_url(filters, quantity, client=client)
 
