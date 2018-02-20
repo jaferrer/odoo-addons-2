@@ -48,11 +48,12 @@ class StockQuantMove(models.TransientModel):
                 }
                 items.append(item)
         res.update(pack_move_items=items)
-        global_dest_loc, picking_type = quants.get_natural_loc_picking_type()
-        if not global_dest_loc:
-            global_dest_loc, picking_type = quants[0].location_id.get_default_loc_picking_type(quants[0].product_id)
-        res.update(global_dest_loc=global_dest_loc and global_dest_loc.id or False)
-        res.update(picking_type_id=picking_type and picking_type.id or False)
+        if not res.get('picking_type_id') and not res.get('location_dest_id') and quants:
+            global_dest_loc, picking_type = quants.get_natural_loc_picking_type()
+            if not global_dest_loc:
+                global_dest_loc, picking_type = quants[0].location_id.get_default_loc_picking_type(quants[0].product_id)
+            res.update(global_dest_loc=global_dest_loc and global_dest_loc.id or False)
+            res.update(picking_type_id=picking_type and picking_type.id or False)
         return res
 
     @api.multi
