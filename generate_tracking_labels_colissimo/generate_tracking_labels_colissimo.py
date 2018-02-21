@@ -42,13 +42,21 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
         return relais
 
     @api.multi
+    def get_login_dict(self):
+        self.ensure_one()
+        login_dict = super(GenerateTrackingLabelsWizardColissimo, self).get_login_dict()
+        if self.transporter_id == self.env.ref('base_delivery_tracking_colissimo.transporter_colissimo'):
+            login_dict["contractNumber"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_colissimo.login_colissimo', default='')
+            login_dict["password"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_colissimo.password_colissimo', default='')
+        return login_dict
+
+    @api.multi
     def generate_label(self):
         result = super(GenerateTrackingLabelsWizardColissimo, self).generate_label()
         if self.transporter_id == self.env.ref('base_delivery_tracking_colissimo.transporter_colissimo'):
-            contractNumber = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_colissimo.login_colissimo', default='')
-            password = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_colissimo.password_colissimo', default='')
+            login_dict = self.get_login_dict()
             if self.code_bar_for_reference == 'true' and self.produit_expedition_id.code != 'CORE':
                 raise UserError("Impossible d'afficher le code barre retour pour un autre "
                                 "produit que Colissimo retour")
@@ -108,7 +116,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                     bool(package_data['cod_value']) and 1 or 0,
                     package_data['cod_value'] * 100,
                     self.instructions,
-                    self.is_relais(self.produit_expedition_id.code) and u"""<pickupLocationId>%s</pickupLocationId>""" % self.partner_id.id_relais or u"""""",
+                    self.is_relais(self.produit_expedition_id.code) and u"""<pickupLocationId>%s</pickupLocationId>""" % self.id_relais or u"""""",
                     self.ftd
                 )
 
@@ -155,7 +163,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                    <x>%s</x>
                    <y>%s</y>
                    <outputPrintingType>%s</outputPrintingType>
-                </outputFormat>""" % (contractNumber, password, x, y, self.output_printing_type_id.code)
+                </outputFormat>""" % (login_dict["contractNumber"], login_dict["password"], x, y, self.output_printing_type_id.code)
                 xml_post_parameter += u"""
                 <letter>
                    <service>

@@ -27,27 +27,35 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
     _inherit = 'generate.tracking.labels.wizard'
 
     @api.multi
+    def get_login_dict(self):
+        self.ensure_one()
+        login_dict = super(GenerateTrackingLabelsWizardMR, self).get_login_dict()
+        if self.transporter_id == self.env.ref('base_delivery_tracking_mondial_relay.transporter_mondial_relay'):
+            login_dict["login_mondial"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_mondial_relay.login_mondial', default='')
+            login_dict["password_mondial"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_mondial_relay.password_mondial', default='')
+            login_dict["societe_mondial"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_mondial_relay.societe_mondial', default='')
+            login_dict["marque_mondial"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_mondial_relay.marque_mondial', default='')
+            login_dict["code_marque_mondial"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_mondial_relay.code_marque_mondial', default='')
+            login_dict["origine_mondial"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_mondial_relay.origine_mondial', default='')
+        return login_dict
+
+    @api.multi
     def generate_label(self):
         result = super(GenerateTrackingLabelsWizardMR, self).generate_label()
         if self.transporter_id == self.env.ref('base_delivery_tracking_mondial_relay.transporter_mondial_relay'):
-            login_mondial = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_mondial_relay.login_mondial', default='')
-            password_mondial = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_mondial_relay.password_mondial', default='')
-            societe_mondial = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_mondial_relay.societe_mondial', default='')
-            marque_mondial = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_mondial_relay.marque_mondial', default='')
-            code_marque_mondial = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_mondial_relay.code_marque_mondial', default='')
-            origine_mondial = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_mondial_relay.origine_mondial', default='')
-            if not login_mondial or \
-                    not password_mondial or \
-                    not marque_mondial or \
-                    not societe_mondial or \
-                    not code_marque_mondial or \
-                    not origine_mondial:
+            login_dict = self.get_login_dict()
+            if not login_dict["login_mondial"] or \
+                    not login_dict["password_mondial"] or \
+                    not login_dict["marque_mondial"] or \
+                    not login_dict["societe_mondial"] or \
+                    not login_dict["code_marque_mondial"] or \
+                    not login_dict["origine_mondial"]:
                 raise UserError(u"Veuillez remplir la configuration Mondial relay")
 
             # evc_code : valeur unique
@@ -84,14 +92,14 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             customer_email = self.email
 
             # TODO: calculer
-            recipient_ref = self.partner_id.id_relais
+            recipient_ref = self.id_relais
             customer_sky_bill_number = ''
 
             number_of_parcel = len(packages_data)
 
-            connexion = MRWebService(password_mondial)
+            connexion = MRWebService(login_dict["password_mondial"])
             vals = {
-                'Enseigne': login_mondial,
+                'Enseigne': login_dict["login_mondial"],
                 'ModeCol': 'CCC',
                 'ModeLiv': self.produit_expedition_id.code,
                 'NClient': '123456789',

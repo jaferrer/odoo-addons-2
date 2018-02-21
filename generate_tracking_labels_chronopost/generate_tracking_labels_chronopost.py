@@ -70,16 +70,24 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
         return relais
 
     @api.multi
+    def get_login_dict(self):
+        self.ensure_one()
+        login_dict = super(GenerateTrackingLabelsWizardChronopost, self).get_login_dict()
+        if self.transporter_id == self.env.ref('base_delivery_tracking_chronopost.transporter_chronopost'):
+            login_dict["account_number"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_chronopost.login_chronopost', default='')
+            login_dict["password"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_chronopost.password_chronopost', default='')
+            login_dict["company_pre_alert_chronopost"] = self.env['ir.config_parameter']. \
+                get_param('generate_tracking_labels_chronopost.pre_alert_chronopost', default='')
+        return login_dict
+
+    @api.multi
     def generate_label(self):
         result = super(GenerateTrackingLabelsWizardChronopost, self).generate_label()
         if self.transporter_id == self.env.ref('base_delivery_tracking_chronopost.transporter_chronopost'):
-            account_number = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_chronopost.login_chronopost', default='')
-            password = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_chronopost.password_chronopost', default='')
-            company_pre_alert_chronopost = self.env['ir.config_parameter']. \
-                get_param('generate_tracking_labels_chronopost.pre_alert_chronopost', default='')
-            if not account_number or not password:
+            login_dict = self.get_login_dict()
+            if not login_dict["account_number"] or not login_dict["password"]:
                 raise UserError(u"Veuillez remplir la configuration Chronopost")
 
             # evc_code : valeur unique
@@ -101,7 +109,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
 
             idEmit = ''
             sub_account = ''
-            header_values = (account_number or '', idEmit or '', sub_account or '')
+            header_values = (login_dict["account_number"] or '', idEmit or '', sub_account or '')
 
             company_name_1 = self.partner_orig_id.company_id.name
             company_civility = self.convert_title_chronopost(self.partner_orig_id.company_id.partner_id.title)
@@ -120,7 +128,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
                                    shipper_name or '', company_adress_1 or '',)
             company_adress_data = (company_zip or '', company_city or '', company_country or '',
                                    company_country_name or '', company_phone or '', company_mobile_phone or '',
-                                   company_email or '', company_pre_alert_chronopost or '0')
+                                   company_email or '', login_dict["company_pre_alert_chronopost"] or '0')
 
             customer_name_1 = self.company_name
             customer_civility = self.is_relais(self.produit_expedition_id.code) and self.partner_id.name or self.convert_title_chronopost(self.partner_id.title)
@@ -146,13 +154,13 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
             print_as_sender = ''
 
             # TODO: calculer
-            recipient_ref = self.is_relais(self.produit_expedition_id.code) and self.partner_id.id_relais or ''
+            recipient_ref = self.is_relais(self.produit_expedition_id.code) and self.id_relais or ''
             customer_sky_bill_number = ''
             ref_value = (self.sender_parcel_ref or '', recipient_ref or '', customer_sky_bill_number or '')
 
             number_of_parcel = len(packages_data)
             multi_parcel = number_of_parcel == 1 and 'N' or 'Y'
-            final_data = (password or '', self.mode_retour or '', number_of_parcel, multi_parcel or '')
+            final_data = (login_dict["password"] or '', self.mode_retour or '', number_of_parcel, multi_parcel or '')
 
             eds_values = (closing_date_time or '', retrieval_date_time or '', shipper_building_floor or '',
                           shipper_carries_code or '', shipper_service_direction or '', specific_instructions or '',
