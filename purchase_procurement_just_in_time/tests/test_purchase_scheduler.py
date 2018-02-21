@@ -839,3 +839,135 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase1.date_order_max, '3003-09-18 23:59:59')
         self.assertEqual(purchase5.date_order, '3003-08-29 00:00:00')
         self.assertEqual(purchase5.date_order_max, '3003-09-04 23:59:59')
+
+    def test_28_schedule_do_not_ignore_past_procurements_force_dateref(self):
+        """Test of scheduling past procurements with 'ignore past procurements' not activated with force dateref"""
+
+        configuration_wizard = self.env['purchase.config.settings'].create({'ignore_past_procurements': False,
+                                                                            'delta_begin_grouping_period': 0})
+        configuration_wizard.execute()
+
+        past_proc = self.env['procurement.order'].create({
+            'name': 'Procurement order 1 (Purchase Procurement JIT)',
+            'product_id': self.product1.id,
+            'product_qty': 34,
+            'warehouse_id': self.warehouse.id,
+            'location_id': self.location_a.id,
+            'date_planned': '2016-09-04 15:00:00',
+            'product_uom': self.product_uom.id,
+        })
+
+        past_proc.run()
+        self.assertEqual(past_proc.state, 'buy_to_run')
+
+        date_ref = self.supplier.schedule_working_days(4, dt.today())
+
+        self.env['procurement.order'].purchase_schedule(jobify=False,
+                                                        force_date_ref=fields.Date.to_string(date_ref).split(" ")[0])
+        purchase0 = past_proc.purchase_id
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase3 = self.proc3.purchase_id
+        purchase5 = self.proc5.purchase_id
+
+        self.assertTrue(purchase0)
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+
+        self.assertEqual(purchase2, purchase1)
+        self.assertNotEqual(purchase1, purchase5)
+        self.assertNotEqual(purchase1, purchase3)
+        self.assertNotEqual(purchase3, purchase5)
+        self.assertNotEqual(purchase0, purchase1)
+        self.assertNotEqual(purchase0, purchase3)
+        self.assertNotEqual(purchase0, purchase5)
+
+        date_order, _ = self.frame_week.get_start_end_dates(date_ref, date_ref=date_ref)
+        date_order = fields.Datetime.to_string(date_order)
+
+        self.assertEqual(purchase0.date_order[:10], date_order[:10])
+        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
+
+    def test_29_schedule_ignore_past_procurements_force_dateref(self):
+        """Test of scheduling past procurements with 'ignore past procurements' activated with force dateref"""
+
+        date_ref_tomorrow = self.supplier.schedule_working_days(2, dt.today())
+        date_ref = self.supplier.schedule_working_days(1, dt.today())
+
+        past_proc = self.env['procurement.order'].create({
+            'name': 'Procurement order 1 (Purchase Procurement JIT)',
+            'product_id': self.product1.id,
+            'product_qty': 34,
+            'warehouse_id': self.warehouse.id,
+            'location_id': self.location_a.id,
+            'date_planned': fields.Datetime.to_string(date_ref_tomorrow).split(" ")[0] + " 15:00:00",
+            'product_uom': self.product_uom.id,
+        })
+
+        past_proc.run()
+        self.assertEqual(past_proc.state, 'buy_to_run')
+
+
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_product_ids=self.product1,
+                                                        compute_supplier_ids=self.supplier, jobify=False,
+                                                        force_date_ref=fields.Date.to_string(date_ref).split(" ")[0])
+        past_purchase = past_proc.purchase_id
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase3 = self.proc3.purchase_id
+        purchase5 = self.proc5.purchase_id
+
+        self.assertTrue(past_purchase)
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+
+        self.assertEqual(purchase2, purchase1)
+        self.assertNotEqual(purchase1, purchase5)
+        self.assertNotEqual(purchase1, purchase3)
+        self.assertNotEqual(purchase3, purchase5)
+
+        date_order, _ = self.frame_week.get_start_end_dates(date_ref, date_ref=date_ref)
+        date_order = fields.Datetime.to_string(date_order)
+
+        self.assertEqual(past_purchase.date_order[:10], date_order[:10])
+        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+
+        self.assertEqual(past_proc.state, 'running')
+
+        configuration_wizard = self.env['purchase.config.settings'].create({'ignore_past_procurements': True})
+        configuration_wizard.execute()
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_product_ids=self.product1,
+                                                        compute_supplier_ids=self.supplier, jobify=False,
+                                                        force_date_ref=fields.Date.to_string(date_ref).split(" ")[0])
+        past_purchase = past_proc.purchase_id
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+        purchase3 = self.proc3.purchase_id
+        purchase5 = self.proc5.purchase_id
+
+        self.assertFalse(past_purchase)
+        self.assertFalse(past_proc.move_ids)
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertTrue(purchase3)
+        self.assertTrue(purchase5)
+
+        self.assertEqual(purchase2, purchase1)
+        self.assertNotEqual(purchase1, purchase5)
+        self.assertNotEqual(purchase1, purchase3)
+        self.assertNotEqual(purchase3, purchase5)
+
+        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
+        self.assertEqual(purchase3.date_order[:10], '3003-09-12')
+        self.assertEqual(purchase5.date_order[:10], '3003-09-05')
+
+        self.assertEqual(past_proc.state, 'buy_to_run')

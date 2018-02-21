@@ -266,14 +266,14 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                                                  jobify, force_date_ref=force_date_ref)
 
     @api.model
-    def get_delivery_date_for_today_order(self, product, seller):
+    def get_delivery_date_for_dateref_order(self, product, seller, date_ref):
         suppliers = product.seller_ids and self.env['product.supplierinfo']. \
             search([('id', 'in', product.seller_ids.ids),
                     ('name', '=', seller.id)]) or False
         if suppliers:
-            min_date = fields.Datetime.to_string(seller.schedule_working_days(product.seller_delay, dt.now()))
+            min_date = fields.Datetime.to_string(seller.schedule_working_days(product.seller_delay, date_ref))
         else:
-            min_date = fields.Datetime.now()
+            min_date = date_ref
         return min_date
 
     @api.model
@@ -322,7 +322,11 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                 procurements_to_run -= self.search(domain)
                 continue
             if ignore_past_procurements:
-                min_date = self.get_delivery_date_for_today_order(product, seller)
+                days_delta = int(self.env['ir.config_parameter'].
+                                 get_param('purchase_procurement_just_in_time.delta_begin_grouping_period') or 0)
+                date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 06:00:00') or \
+                    seller.schedule_working_days(days_delta, dt.today())
+                min_date = self.get_delivery_date_for_dateref_order(product, seller, date_ref)
                 past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
                 if past_procurements:
                     past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
@@ -550,7 +554,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             if available_draft_po:
                 return available_draft_po
         frame = seller.get_effective_order_group_period()
-        date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 00:00:00') or seller.schedule_working_days(days_delta, dt.today())
+        date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 06:00:00') or seller.schedule_working_days(days_delta, dt.today())
         date_order, date_order_max = (False, False)
         if frame and frame.period_type:
             date_order, date_order_max = frame.get_start_end_dates(purchase_date, date_ref=date_ref)
@@ -587,7 +591,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             seller = self.env['procurement.order']._get_product_supplier(first_proc)
             schedule_date = self._get_purchase_schedule_date(first_proc, company)
             purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
-            date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 00:00:00') or seller.schedule_working_days(days_delta, dt.today())
+            date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 06:00:00') or seller.schedule_working_days(days_delta, dt.today())
             purchase_date = max(purchase_date, date_ref)
             pol_procurements = self. \
                 get_purchase_line_procurements(first_proc, purchase_date, company, seller, order_by,
@@ -687,13 +691,21 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             company = self.env['res.company'].search([('id', '=', company_id)])
             schedule_date = self._get_purchase_schedule_date(first_proc, company)
             purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
+
+            seller = self.env['procurement.order']._get_product_supplier(first_proc)
+            days_delta = int(self.env['ir.config_parameter'].
+                             get_param('purchase_procurement_just_in_time.delta_begin_grouping_period') or 0)
+            force_date_ref = self.env.context.get('force_date_ref')
+            date_ref = force_date_ref and fields.Datetime.from_string(
+                force_date_ref + ' 06:00:00') or seller.schedule_working_days(days_delta, dt.today())
+
             if not purchase_date:
                 continue
             if not first_purchase_date or first_purchase_date > purchase_date:
                 first_purchase_dates[company_id][location_id]['first_purchase_date'] = purchase_date
                 first_purchase_dates[company_id][location_id]['procurement'] = first_proc
-            if first_purchase_date and first_purchase_date < dt.now():
-                first_purchase_dates[company_id][location_id]['first_purchase_date'] = dt.now()
+            if first_purchase_date and first_purchase_date < date_ref:
+                first_purchase_dates[company_id][location_id]['first_purchase_date'] = date_ref
                 first_purchase_dates[company_id][location_id]['procurement'] = first_proc
                 first_purchase_dates[company_id][location_id]['definitive'] = True
         return first_purchase_dates
