@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<openerp>
+    <data>
+        <record id="invoice_dunning_form_view" model="ir.ui.view">
+            <field name="name">account.invoice.dunning.form</field>
+            <field name="model">account.invoice.dunning</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="action_print_dunning" type="object" string="Print Dunning"
+                                attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                        <button name="action_send_mail" type="object" string="Send Dunning"
+                                attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                        <button name="action_done" type="object" string="Validate Dunning"
+                                attrs="{'invisible': [('state', '!=', 'send')]}"/>
+                        <button name="action_cancel" type="object" string="Cancel Dunning"
+                                attrs="{'invisible': [('state', 'in', ('send', 'cancel'))]}"/>
+
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="name"
+                                   attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('sequence_id', '!=', False)]}"/>
+                            <field name="sequence_id" invisble="1"/>
+                            <group>
+                                <field name="partner_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="date_done" attrs="{'invisible': [('date_done', '=', False)]}"/>
+                            </group>
+                            <group>
+                                <field name="dunning_type_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="report_id"/>
+                                <field name="mail_template_id"/>
+                            </group>
+                        </group>
+                        <field name="invoice_ids"
+                               domain="[('partner_id', '=', partner_id), ('type', '=', 'out_invoice'), ('state', '=', 'open')]"
+                               attrs="{'invisible': ['|', ('partner_id', '=', False), ('dunning_type_id', '=', False)], 'readonly': [('state', '!=', 'draft')]}">
+                            <tree>
+                                <field name="number"/>
+                                <field name="state"/>
+                                <field name="date_invoice"/>
+                                <field name="date_due"/>
+                                <field name="amount_total"/>
+                                <field name="residual"/>
+                            </tree>
+                        </field>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="invoice_dunning_tree_view">
+            <field name="name">invoice.dunning.tree</field>
+            <field name="model">account.invoice.dunning</field>
+            <field name="arch" type="xml">
+                <tree string="Dunning Tree">
+                    <field name="name"/>
+                    <field name="dunning_type_id"/>
+                    <field name="partner_id"/>
+                    <field name="mail_template_id"/>
+                    <field name="date_done"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="invoice_dunning_search_view" model="ir.ui.view">
+            <field name="name">account.invoice.dunning.form</field>
+            <field name="model">account.invoice.dunning</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="partner_id"/>
+                    <field name="dunning_type_id"/>
+                    <field name="company_id"/>
+                    <field name="state"/>
+                    <group string="Group by...">
+                        <filter name="group_partner_id" string="Partner" context="{'group_by': 'partner_id'}"/>
+                        <filter name="group_dunning_type_id" string="Dunning Type"
+                                context="{'group_by': 'dunning_type_id'}"/>
+                        <filter name="group_company_id" string="Company" context="{'group_by': 'company_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="dunning_view_action">
+            <field name="name">Dunnings</field>
+            <field name="res_model">account.invoice.dunning</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem name="Dunnings"
+                  id="menu_account_invoice_dunning"
+                  parent="account.menu_finance_configuration"
+                  action="dunning_view_action"/>
+    </data>
+</openerp>

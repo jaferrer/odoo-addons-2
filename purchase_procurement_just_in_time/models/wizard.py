@@ -122,6 +122,7 @@ class SplitLine(models.TransientModel):
 class LaunchPurchasePlanner(models.TransientModel):
     _name = 'launch.purchase.planner'
 
+    date_ref = fields.Date(string="Date Reference")
     compute_all = fields.Boolean(string="Compute all the products", default=True)
     product_ids = fields.Many2many('product.product', string="Products")
     supplier_ids = fields.Many2many('res.partner', string="Suppliers", domain=[('supplier', '=', True)])
@@ -131,4 +132,5 @@ class LaunchPurchasePlanner(models.TransientModel):
         self.env['procurement.order'].purchase_schedule(compute_product_ids=self.product_ids,
                                                         compute_supplier_ids=self.supplier_ids,
                                                         compute_all_products=self.compute_all,
+                                                        force_date_ref=self.date_ref,
                                                         jobify=True, manual=True)
