@@ -4,6 +4,7 @@ class TestAccountInvoiceReverse(common.TransactionCase):
 
     def setUp(self):
         super(TestAccountInvoiceReverse, self).setUp()
+        # self._config_account()
         self.invoice_0 = self.browse_ref('invoice_interco.demo_invoice_reverse_0')
 
     def test_1_in_to_out(self):

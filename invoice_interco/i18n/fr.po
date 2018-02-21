@@ -15,11 +15,6 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: \n"
 
-#. module: invoice_interco
-#: field:account.invoice,inverse_invoice_id:0
-msgid "Invoice Origin"
-msgstr "Facture d'origine"
-
 
 #. module: invoice_interco
 #: field:account.invoice,allowed_reverse_invoice:0
