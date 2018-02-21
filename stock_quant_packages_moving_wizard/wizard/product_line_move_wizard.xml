@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <form string="Product move">
                     <group>
-                        <field name="global_dest_loc"/>
+                        <field name="global_dest_loc"  context="{'apply_onchange_global_dest_loc': True}"/>
                         <field name="picking_type_id"/>
                         <field name="is_manual_op"/>
                         <field name="filling_method" attrs="{'invisible': [('is_manual_op', '=', False)]}"/>

@@ -57,6 +57,14 @@ class ProductLineMoveWizard(models.TransientModel):
         self.is_manual_op = self.is_manual_op or lines.force_is_manual_op()
 
     @api.multi
+    @api.onchange('global_dest_loc')
+    def onchange_global_dest_loc(self):
+        if self.env.context.get('apply_onchange_global_dest_loc'):
+            for rec in self:
+                if rec.global_dest_loc:
+                    rec.picking_type_id = self.env['stock.quant'].get_default_picking_type_for_move()
+
+    @api.multi
     def move_products(self):
         self.ensure_one()
         lines = self.quant_line_ids + self.package_line_ids
