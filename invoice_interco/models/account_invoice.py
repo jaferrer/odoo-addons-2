@@ -23,8 +23,6 @@ from openerp import models, api
 class IntercoAccountInvoice(models.Model):
     _inherit = 'account.invoice'
 
-    # inverse_invoice_id = fields.Many2one('account.invoice', u"Invoice Origin")
-
     @api.multi
     def invoice_validate(self):
         res = super(IntercoAccountInvoice, self).invoice_validate()
@@ -36,7 +34,33 @@ class IntercoAccountInvoice(models.Model):
         res = self.env['account.invoice']
         for rec in self:
             if rec._is_allowed_company_auto_reverse_invoice():
-                res |= rec.sudo().copy(rec._prepare_reverse_invoice())
+                new_invoice = rec.sudo().copy(rec._prepare_reverse_invoice())
+                values_onchange = new_invoice.sudo().onchange_partner_id(new_invoice.type,
+                                                                         partner_id=new_invoice.partner_id.id,
+                                                                         company_id=new_invoice.company_id.id)['value']
+                values_onchange.update(new_invoice.sudo().onchange_company_id(new_invoice.company_id.id,
+                                                                              new_invoice.partner_id.id,
+                                                                              new_invoice.type, False, False)['value'])
+                for field, value in values_onchange.iteritems():
+                    if new_invoice._fields[field].relational and \
+                                    new_invoice._fields[field].type in ['many2many', 'one2many']:
+                        values_onchange[field] = [(6, 0, value)]
+                new_invoice.sudo().write(values_onchange)
+                for line in new_invoice.invoice_line:
+                    values_onchange = line.sudo().product_id_change(line.product_id.id, line.uos_id.id, line.quantity,
+                                                                    line.name, new_invoice.type,
+                                                                    new_invoice.partner_id.id,
+                                                                    new_invoice.fiscal_position.id, line.price_unit,
+                                                                    new_invoice.currency_id.id,
+                                                                    new_invoice.company_id.id)['value']
+                    for field, value in values_onchange.iteritems():
+                        if line._fields[field].relational and line._fields[field].type in ['many2many', 'one2many']:
+                            values_onchange[field] = [(6, 0, value)]
+                    values_onchange.pop('price_unit')
+                    line.sudo().write(values_onchange)
+
+                new_invoice.sudo().button_reset_taxes()
+                res |= new_invoice
         res = self._manage_reverse_invoice(res)
         return res
 
