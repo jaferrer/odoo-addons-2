@@ -19,7 +19,7 @@
 
 from datetime import datetime
 
-from odoo import fields, models, exceptions
+from odoo import fields, models, exceptions, _
 
 
 class ResCompany(models.Model):
@@ -48,7 +48,7 @@ class ResCompany(models.Model):
             nb_days -= 1
         calendar = self.calendar_id
         if not calendar:
-            raise exceptions.UserError(u"You must define a calendar for this company to schedule productions.")
+            raise exceptions.UserError(_(u"You must define a calendar for this company to schedule productions."))
         newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date, compute_leaves=True)
         if isinstance(newdate, (list, tuple)):
             newdate = newdate[0]
