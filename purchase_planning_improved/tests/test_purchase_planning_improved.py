@@ -21,13 +21,14 @@ from datetime import datetime
 
 from openerp.tests import common
 
-class TestPurchasePlanningImproved(common.TransactionCase):
 
+class TestPurchasePlanningImproved(common.TransactionCase):
     def setUp(self):
         super(TestPurchasePlanningImproved, self).setUp()
         self.test_product = self.browse_ref("stock_working_days.product_test_product")
         self.location_a = self.browse_ref("stock_working_days.stock_location_a")
         self.location_b = self.browse_ref("stock_working_days.stock_location_b")
+        self.test_supplier = self.browse_ref("purchase_working_days.test_supplier")
         self.location_c = self.browse_ref("stock_planning_improved.stock_location_c")
         self.location_inv = self.browse_ref("stock.location_inventory")
         self.product_uom_unit_id = self.ref("product.product_uom_unit")
@@ -125,3 +126,35 @@ class TestPurchasePlanningImproved(common.TransactionCase):
         self.assertEqual(proc2.purchase_line_id, pol_id)
         self.assertEqual(pol_id.date_required[0:10], '2015-01-30')
         self.assertEqual(pol_id.date_planned[0:10], '2015-01-30')
+
+    def test_30_limit_order_date(self):
+        order = self.env['purchase.order'].create({
+            'partner_id': self.test_supplier.id,
+            'location_id': self.location_a.id,
+            'pricelist_id': self.ref('purchase.list0')
+        })
+
+        product = self.env['product.product'].search([('type', '=', 'product')], limit=1)
+        self.assertTrue(product)
+
+        line = self.env['purchase.order.line'].create({
+            "name": "Purchase order line 1",
+            "product_id": product.id,
+            "price_unit": 1.0,
+            "order_id": order.id,
+            "product_qty": 10.0,
+            "date_planned": '2015-05-04 15:00:00',
+        })
+
+        self.env['procurement.order'].create({
+            'name': u"Test procurement",
+            'product_id': self.test_product.id,
+            'location_id': self.location_a.id,
+            'product_qty': 1,
+            'product_uom': self.test_product.uom_id.id,
+            'date_planned': '2017-12-18 12:00:00',
+            'purchase_line_id': line.id
+        })
+
+        self.assertTrue(line.limit_order_date)
+        self.assertEqual(order.limit_order_date, line.limit_order_date)
