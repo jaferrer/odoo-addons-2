@@ -138,7 +138,7 @@ class ProductCombinationRecordImport(TranslatableRecordImporter):
             'product_option_values', {}).get('product_option_value', [])
         return combinations
 
-    def run(self, prestashopextend_id, **kwargs):
+    def run(self, prestashopextend_id, id_shop=None, **kwargs):
         """ Run the synchronization
 
         :param magentoextend_id: identifier of the record on magentoextendCommerce
@@ -153,7 +153,12 @@ class ProductCombinationRecordImport(TranslatableRecordImporter):
         # Keep a lock on this import until the transaction is committed
         self.advisory_lock_or_retry(lock_name,
                                     retry_seconds=RETRY_ON_ADVISORY_LOCK)
-        self.prestashopextend_record = self._get_prestashopextend_data()
+        opts = {}
+        if id_shop:
+            opts = {
+                "id_shop": id_shop
+            }
+        self.prestashopextend_record = self._get_prestashopextend_data(attributes=opts)
         prestashop_products = []
         combinations = self.has_combinations(self.prestashopextend_record)
         if combinations:

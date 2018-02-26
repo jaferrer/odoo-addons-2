@@ -54,8 +54,8 @@ class prestashopextendImporter(Importer):
         self.prestashopextend_id = None
         self.prestashopextend_record = None
 
-    def _get_prestashopextend_data(self):
-        return self.backend_adapter.read(self.prestashopextend_id)
+    def _get_prestashopextend_data(self, attributes=None):
+        return self.backend_adapter.read(self.prestashopextend_id, attributes=attributes)
 
     def _has_to_skip(self):
         """ Return True if the import can be skipped """
@@ -66,7 +66,8 @@ class prestashopextendImporter(Importer):
         data"""
 
     def _import_dependency(self, prestashopextend_id, binding_model,
-                           importer_class=None, always=False, **kwargs):
+                           importer_class=None, always=False, id_shop=None,
+                           **kwargs):
         """ Import a dependency.
 
         The importer class is a class or subclass of
@@ -95,9 +96,9 @@ class prestashopextendImporter(Importer):
         binder = self.binder_for(binding_model)
         if always or binder.to_openerp(prestashopextend_id) is None:
             importer = self.unit_for(importer_class, model=binding_model)
-            importer.run(prestashopextend_id,**kwargs)
+            importer.run(prestashopextend_id, id_shop=id_shop, **kwargs)
 
-    def _import_dependencies(self):
+    def _import_dependencies(self, id_shop=None):
         """ Import the dependencies for the record
 
         Import of dependencies can be done manually or by calling
@@ -195,7 +196,7 @@ class prestashopextendImporter(Importer):
                     # commit (in a new cursor). Disable the warning.
                     cr.commit()  # pylint: disable=invalid-commit
 
-    def run(self, prestashopextend_id, **kwargs):
+    def run(self, prestashopextend_id, id_shop=None, **kwargs):
         """ Run the synchronization
 
         :param magentoextend_id: identifier of the record on magentoextendCommerce
@@ -210,7 +211,14 @@ class prestashopextendImporter(Importer):
         # Keep a lock on this import until the transaction is committed
         self.advisory_lock_or_retry(lock_name,
                                     retry_seconds=RETRY_ON_ADVISORY_LOCK)
-        self.prestashopextend_record = self._get_prestashopextend_data()
+
+        opts = {}
+        if id_shop:
+            opts = {
+                "id_shop": id_shop
+            }
+
+        self.prestashopextend_record = self._get_prestashopextend_data(attributes=opts)
 
         binding = self._get_binding()
         if not binding:
@@ -227,7 +235,7 @@ class prestashopextendImporter(Importer):
             return skip
 
         # import the missing linked resources
-        self._import_dependencies()
+        self._import_dependencies(id_shop=id_shop)
 
         self._import(binding, **kwargs)
 
@@ -284,10 +292,13 @@ class BatchImporter(Importer):
 
     def _run_page(self, filters, **kwargs):
         record_ids = self.backend_adapter.search(filters)
-        self._import_record(record_ids, **kwargs)
+        id_shop = False
+        if filters.get("id_shop"):
+            id_shop = filters["id_shop"]
+        self._import_record(record_ids, id_shop=id_shop, **kwargs)
         return record_ids
 
-    def _import_record(self, record):
+    def _import_record(self, record, id_shop=None):
         """ Import a record directly or delay the import of the record """
         raise NotImplementedError
 
@@ -311,12 +322,13 @@ class DirectBatchImporter(BatchImporter):
     """ Import the records directly, without delaying the jobs. """
     _model_name = None
 
-    def _import_record(self, record_ids):
+    def _import_record(self, record_ids, id_shop=None):
         """ Import the record directly """
         import_record(self.session,
                       self.model._name,
                       self.backend_record.id,
-                      record_ids)
+                      record_ids,
+                      id_shop=id_shop)
 
 
 class TranslatableRecordImporter(prestashopextendImporter):
@@ -436,12 +448,13 @@ class DelayedBatchImporter(BatchImporter):
     """ Delay import of the records """
     _model_name = None
 
-    def _import_record(self, record_ids, **kwargs):
+    def _import_record(self, record_ids, id_shop=None, **kwargs):
         """ Delay the import of the records"""
         import_record.delay(self.session,
                             self.model._name,
                             self.backend_record.id,
                             record_ids,
+                            id_shop=id_shop,
                             **kwargs)
 
 
@@ -456,7 +469,8 @@ def import_batch(session, model_name, backend_id, filters=None, **kwargs):
 
 @job(default_channel='root.prestashopextend')
 def import_record(
-        session, model_name, backend_id, prestashop_ids, **kwargs):
+        session, model_name, backend_id, prestashop_ids, id_shop=None,
+        **kwargs):
     """ Import a record from PrestaShop """
     backend = session.env['prestashopextend.backend'].browse(backend_id)
     env = get_environment(session, model_name, backend_id)
@@ -464,7 +478,7 @@ def import_record(
     log = ""
     for id in prestashop_ids:
         log = log + '\n' + str(id) + '\n' + '----------' + '\n'
-        resp = str(importer.run(id, **kwargs))
+        resp = str(importer.run(id, id_shop=id_shop, **kwargs))
         log = log + resp
 
     return log

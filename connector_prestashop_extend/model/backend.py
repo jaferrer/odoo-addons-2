@@ -154,10 +154,17 @@ class prestashopextend_backend(models.Model):
 
         if from_date:
             opts = {"filter[date_upd]": '>[%s]' % (from_date),
-                    'date': '1'}
+                    'date': '1',
+                    'id_shop': '0'}
 
-        product_import_batch.delay(
-            session, 'prestashopextend.product.product', backend_id, opts, priority=3)
+        param = self.env["connector.type.prestashop.parameter"].search(
+            [("line_id", "=", self.connector_id.line_id.id)])
+
+        for shop in param.shops:
+            opts['id_shop'] = shop.prestashopextend_id
+            product_import_batch.delay(
+                session, 'prestashopextend.product.product', backend_id, opts, priority=3)
+
         _logger.info("Date chunk %s -> now", from_date)
         return True
 
