@@ -312,7 +312,7 @@ class AddressImportMapper(ImportMapper):
 class AddressImporter(prestashopextendImporter):
     _model_name = 'prestashopextend.address'
 
-    def _import_dependencies(self):
+    def _import_dependencies(self, id_shop=None):
         record = self.prestashopextend_record
         binder = self.binder_for('prestashopextend.res.country').to_openerp(record['id_country'], unwrap=True)
         if not binder:
