@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="account_payment_term_line_tree_configurable">
+            <field name="name">account.payment.term.line.tree.configurable</field>
+            <field name="model">account.payment.term.line</field>
+            <field name="inherit_id" ref="account.view_payment_term_line_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="days" position="after">
+                    <field name="days2"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="account_payment_term_line_form_configurable">
+            <field name="name">account.payment.term.line.form.configurable</field>
+            <field name="model">account.payment.term.line</field>
+            <field name="inherit_id" ref="account.view_payment_term_line_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <div class="o_row" position="after">
+                    <div class="o_row"
+                         attrs="{'invisible': [('option', '!=', 'configurable')]}">
+                        Day of month <field name="days2"/>
+                    </div>
+                </div>
+            </field>
+        </record>
+
+    </data>
+</odoo>
