@@ -214,7 +214,7 @@ class MailComposeMessage(models.TransientModel):
     _inherit = 'mail.compose.message'
 
     @api.multi
-    def send_mail(self):
+    def send_mail(self, auto_commit=False):
         context = self.env.context or {}
         if context.get('default_model') == 'account.invoice.dunning' \
                 and context.get('default_res_id', -1) > 0 \
@@ -223,4 +223,4 @@ class MailComposeMessage(models.TransientModel):
                 'state': context.get('final_dunning_state'),
                 'date_done': fields.Date.today(),
             })
-        return super(MailComposeMessage, self).send_mail()
+        return super(MailComposeMessage, self).send_mail(auto_commit=auto_commit)
