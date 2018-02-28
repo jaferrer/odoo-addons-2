@@ -28,7 +28,8 @@ SELECT
   p.id as id,
   min(p.date_planned) as date
 FROM procurement_order p
-WHERE p.purchase_line_id = %s
+WHERE p.purchase_line_id = %s 
+AND state not in ('done', 'cancel')
 GROUP BY p.id
 LIMIT 1
 """
@@ -95,8 +96,10 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                     context = dict(context, do_not_save_result=True, force_partner_id=partner_id)
                     date_required = self.pool.get('procurement.order'). \
                         _get_purchase_schedule_date(cr, uid, min_proc, company, context=context)
+                    date_planned = fields.Datetime.from_string(line['date_planned'])
                     limit_order_date = self.pool.get('procurement.order'). \
-                        _get_purchase_order_date(cr, uid, min_proc, company, date_required, context=context)
+                        _get_purchase_order_date(cr, uid, min_proc, company,
+                                                 date_planned , context=context)
                     limit_order_date = limit_order_date and fields.Datetime.to_string(limit_order_date) or False
                     date_required = date_required and fields.Datetime.to_string(date_required) or False
                 else:
@@ -127,7 +130,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                                                  multi="compute_dates",
                                                  store={
                                                      'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids,
-                                                                             ['date_planned'], 20),
+                                                                             ['order_id', 'date_planned'], 20),
                                                      'procurement.order': (_get_order_lines,
                                                                            ['date_planned', 'purchase_line_id'], 20)
                                                  }, readonly=True),
@@ -189,34 +192,16 @@ class PurchaseOrderLinePlanningImproved(models.Model):
 class PurchaseOrderPlanningImproved(models.Model):
     _inherit = 'purchase.order'
 
-    @api.cr_uid_ids_context
-    def _compute_limit_order_date(self, cr, uid, ids, field_name, arg, context=None):
-        res = {}
-        for order in self.browse(cr, uid, ids, context=context):
-            first_line_id = self.pool.get('purchase.order.line'). \
-                search(cr, uid, [('order_id', '=', order.id)], order='limit_order_date', limit=1, context=context)
-            first_line = self.pool.get('purchase.order.line').browse(cr, uid, first_line_id, context=context)
-            limit_order_date = first_line and first_line.limit_order_date or False
-            if limit_order_date != order.limit_order_date:
-                res[order.id] = limit_order_date
-        return res
+    limit_order_date = fields.Date(compute='_compute_limit_order_date', store=True)
 
-    @api.cr_uid_ids_context
-    def _get_orders(self, cr, uid, ids, context=None):
-        res = set()
-        for line in self.browse(cr, uid, ids, context=context):
-            if line.order_id:
-                res.add(line.order_id.id)
-        return list(res)
-
-    _columns = {
-        'limit_order_date': old_api_fields.function(_compute_limit_order_date, type='date', string=u"Limit Order Date",
-                                                    help=u"Minimum of limit order dates of all the lines",
-                                                    store={
-                                                        'purchase.order.line': (_get_orders,
-                                                                                ['order_id', 'limit_order_date'], 20)
-                                                    }, readonly=True),
-    }
+    @api.multi
+    @api.depends('order_line', 'order_line.limit_order_date')
+    def _compute_limit_order_date(self):
+        for rec in self:
+            first_line = self.env['purchase.order.line']. \
+                search([('order_id', '=', rec.id), ('limit_order_date', '!=', False)],
+                       order='limit_order_date', limit=1)
+            rec.limit_order_date = first_line and first_line.limit_order_date or False
 
     @api.multi
     def write(self, vals):
