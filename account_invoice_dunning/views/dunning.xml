@@ -93,7 +93,10 @@
 
         <menuitem name="Dunnings"
                   id="menu_account_invoice_dunning"
-                  parent="account.menu_finance_configuration"
+                  parent="account.menu_finance_configuration"/>
+        <menuitem name="Dunnings"
+                  id="menu_account_invoice_dunning_action"
+                  parent="menu_account_invoice_dunning"
                   action="dunning_view_action"/>
     </data>
 </openerp>

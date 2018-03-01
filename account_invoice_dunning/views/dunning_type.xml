@@ -26,7 +26,7 @@
 
         <menuitem name="Dunning Type"
                   id="menu_relance_config"
-                  parent="account.menu_finance_configuration"
+                  parent="menu_account_invoice_dunning"
                   action="relance_config_action"/>
 
     </data>
