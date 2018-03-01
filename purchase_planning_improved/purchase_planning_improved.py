@@ -29,8 +29,9 @@ SELECT
   min(p.date_planned) as date
 FROM procurement_order p
 WHERE p.purchase_line_id = %s 
-AND state not in ('done', 'cancel')
+AND p.state not in ('done', 'cancel')
 GROUP BY p.id
+ORDER BY p.date_planned ASC 
 LIMIT 1
 """
 
