@@ -28,7 +28,8 @@ SELECT
   p.id as id,
   min(p.date_planned) as date
 FROM procurement_order p
-WHERE p.purchase_line_id = %s
+WHERE p.purchase_line_id = %s 
+AND state not in ('done', 'cancel')
 GROUP BY p.id
 LIMIT 1
 """
@@ -95,8 +96,10 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                     context = dict(context, do_not_save_result=True, force_partner_id=partner_id)
                     date_required = self.pool.get('procurement.order'). \
                         _get_purchase_schedule_date(cr, uid, min_proc, company, context=context)
+                    date_planned = fields.Datetime.from_string(line['date_planned'])
                     limit_order_date = self.pool.get('procurement.order'). \
-                        _get_purchase_order_date(cr, uid, min_proc, company, date_required, context=context)
+                        _get_purchase_order_date(cr, uid, min_proc, company,
+                                                 date_planned , context=context)
                     limit_order_date = limit_order_date and fields.Datetime.to_string(limit_order_date) or False
                     date_required = date_required and fields.Datetime.to_string(date_required) or False
                 else:
