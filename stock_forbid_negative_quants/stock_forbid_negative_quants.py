@@ -28,7 +28,8 @@ class StockQuant(models.Model):
     @api.model
     def _quant_create(self, qty, move, lot_id=False, owner_id=False, src_package_id=False, dest_package_id=False,
                       force_location_from=False, force_location_to=False):
-        if not config["test_enable"] and move.location_id.usage == 'internal' and move.product_id.type == 'product':
+        if (not config["test_enable"] or self.env.context.get('force_forbid_negative_quants')) \
+                and move.location_id.usage == 'internal' and move.product_id.type == 'product':
             raise exceptions.except_orm(
                 _("Error !"),
                 _("You are not allowed to move products quants that are not available. "
@@ -52,7 +53,8 @@ class StockQuant(models.Model):
         new_neg = False
         if result:
             new_neg = float_compare(float_round(result.qty, precision_rounding=prec), 0, precision_rounding=prec) <= 0
-        if not config["test_enable"] and (old_neg or new_neg) and quant.product_id.type == 'product':
+        if (not config["test_enable"] or self.env.context.get('stock_forbid_negative_quants')) \
+                and (old_neg or new_neg) and quant.product_id.type == 'product':
             raise ValueError(_("Quant split: you are not allowed to create a negative or null quant. "
                                "Product: %s, Quant qty: %s, Required reduction to: %s, Location: %s,"
                                " Lot: %s, Package: %s") % (quant.product_id.display_name, quant.qty, qty,

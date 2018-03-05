@@ -63,6 +63,7 @@ class OdooScript(models.Model):
 
     @api.multi
     def execute(self, autocommit=False):
+        # type: (object) -> object
         self.ensure_one()
         glob = globals()
         loc = locals()
