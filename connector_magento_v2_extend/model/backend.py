@@ -25,7 +25,8 @@ from datetime import timedelta
 from openerp.addons.connector.session import ConnectorSession
 
 from openerp import models, api
-from .product import product_import_v2_batch, product_export_stock_level_v2_batch
+from .product import product_import_v2_batch, product_export_stock_level_v2_batch, \
+    product_attribute_import_v2_batch
 
 _logger = logging.getLogger('magentoextend_backend')
 
@@ -75,3 +76,21 @@ class v2magentoextend_backend(models.Model):
         back = self.env['magentoextend.backend'].search([('id', '=', el_id)])
         if back:
             back.export_stock_level_v2()
+
+    @api.multi
+    def import_product_attribute_v2(self):
+        new_ctx = dict(self.env.context)
+        new_ctx['company_id'] = self.company_id.id
+        session = ConnectorSession(self.env.cr,
+                                   self.env.uid,
+                                   context=new_ctx)
+        backend_id = self.id
+        product_attribute_import_v2_batch.delay(
+            session, 'magentoextend2.product.attribute', backend_id, priority=3)
+        return True
+
+    @api.model
+    def cron_import_product_attribute_v2(self, id):
+        back = self.env['magentoextend.backend'].search([('id', '=', id)])
+        if back:
+            back.import_product_attribute_v2()

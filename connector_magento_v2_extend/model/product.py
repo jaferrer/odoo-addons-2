@@ -106,6 +106,62 @@ class magentoextendProductProductv2(models.Model):
                                  readonly=True)
 
 
+class ProductAttributev2(models.Model):
+    _name = 'product.attribute.extend'
+
+    name = fields.Char(string='Nom')
+
+
+class magentoextendProductAttributev2(models.Model):
+    _name = 'magentoextend2.product.attribute'
+    _inherit = 'magentoextend.binding'
+    _inherits = {'product.attribute.extend': 'openerp_id'}
+    _description = 'product attribute'
+
+    _rec_name = 'name'
+
+    openerp_id = fields.Many2one(comodel_name='product.attribute.extend',
+                                 string='Attribut',
+                                 required=True,
+                                 ondelete='cascade')
+
+    backend_id = fields.Many2one(
+        comodel_name='magentoextend.backend',
+        string='magentoextend Backend',
+        store=True,
+        readonly=False,
+    )
+
+    backend_home_id = fields.Many2one(
+        related='backend_id.connector_id.home_id',
+        comodel_name='backend.home',
+        string='Backend Home',
+        store=True,
+        required=False,
+        ondelete='restrict',
+    )
+
+    options = fields.Char(string='Options string')
+
+
+@magentoextend
+class ProductAttributeImportMapper(ImportMapper):
+    _model_name = 'magentoextend2.product.attribute'
+
+    direct = [('attribute_code', 'name'),
+              ('attribute_code', 'magentoextend_id'),
+              ('options', 'options'),
+              ]
+
+    @mapping
+    def backend_id(self, record):
+        return {'backend_id': self.backend_record.id}
+
+    @mapping
+    def owner_id(self, record):
+        return {'owner_id': self.backend_record.connector_id.home_id.partner_id.id}
+
+
 @magentoextend
 class ProductProductAdapter(GenericAdapter):
     _model_name = 'magentoextend2.product.product'
@@ -151,7 +207,6 @@ class ProductProductAdapter(GenericAdapter):
         if products_resp:
             return [int(row['id']) for row in products_resp]
         return products_resp
-
 
     def read(self, filters=None, from_date=None, to_date=None):
         """ Search records according to some criteria and return a
@@ -264,6 +319,42 @@ ProductBatchImporterV2 = ProductBatchImporterV2
 
 
 @magentoextend
+class ProductAttributeImporterV2(magentoextendImporterV2):
+    _model_name = ['magentoextend2.product.attribute']
+
+    def run(self, magentoextend_id, force=False):
+        self.magentoextend_id = magentoextend_id["attribute_code"]
+        try:
+            self.magentoextend_record = magentoextend_id
+        except IDMissingInBackend:
+            return _('Record does no longer exist in magentoextendCommerce')
+
+        skip = self._must_skip()
+        if skip:
+            return skip
+
+        binding = self._get_binding()
+
+        if not force and self._is_uptodate(binding):
+            return _('Already up-to-date.')
+
+        map_record = self._map_data()
+
+        if binding:
+            record = self._update_data(map_record)
+            self._update(binding, record)
+        else:
+
+            record = self._create_data(map_record)
+            record["backend_id"] = self.backend_record.id
+            binding = self._create(record)
+        self.binder.bind(self.magentoextend_id, binding)
+
+
+ProductAttributeImporterV2 = ProductAttributeImporterV2
+
+
+@magentoextend
 class ProductProductImporterV2(magentoextendImporterV2):
     _model_name = ['magentoextend2.product.product']
 
@@ -356,7 +447,8 @@ class ProductImageImporterV2(Importer):
     Usually called from importers, in ``_after_import``.
     For instance from the products importer.
     """
-    _model_name = ['magentoextend2.product.product',
+    _model_name = [
+        'magentoextend2.product.product',
                    ]
 
     def _get_images(self, sku, storeview_id=None):
@@ -426,7 +518,6 @@ class ProductImageImporterV2(Importer):
         try:
             binding.write({'image': base64.b64encode(binary)})
         except IOError:
-            #fichier corrompu
             pass
 
 
@@ -434,8 +525,7 @@ class ProductImageImporterV2(Importer):
 class ProductProductImportMapper(ImportMapper):
     _model_name = 'magentoextend2.product.product'
 
-    direct = [('name', 'name'),
-              ('sku', 'default_code'),
+    direct = [('sku', 'default_code'),
               ('weight', 'weight'),
               ('type_id', 'product_type'),
               ('created_at', 'created_at'),
@@ -449,6 +539,19 @@ class ProductProductImportMapper(ImportMapper):
                 if item["attribute_code"] == "description":
                     return {'description': item["value"]}
         return {'description': False}
+
+    @mapping
+    def name(self, record):
+        if record.get("custom_attributes"):
+            name = ''
+            for item in record.get("custom_attributes"):
+                attribute = self.env["magentoextend2.product.attribute"].search([('magentoextend_id',
+                                                                                  '=',
+                                                                                  item["attribute_code"])])
+                if attribute:
+                    opts = [opt["label"] for opt in eval(attribute[0].options) if opt["value"] == item["value"]]
+                    name += ' %s' % opts[0]
+        return {'name': "%s %s" % (record.get("name"), name)}
 
     @mapping
     def short_description(self, record):
@@ -468,14 +571,10 @@ class ProductProductImportMapper(ImportMapper):
 
     @mapping
     def is_active(self, record):
-        # return {'active': (record.get('status') == '1')}
         return {'active': True}
 
     @mapping
     def price(self, record):
-        """ The price is imported at the creation of
-        the product, then it is only modified and exported
-        from OpenERP """
         return {'list_price': record.get('price', 0.0)}
 
     @mapping
@@ -585,6 +684,60 @@ class StockLevelExporter(Exporter):
         return log
 
 
+@magentoextend
+class ProductProductAdapter(GenericAdapter):
+    _model_name = 'magentoextend2.product.attribute'
+    _magentoextend_model = 'products/attributes'
+
+    def update(self, el_id, arguments):
+        return self._call('%s.update' % "cataloginventory_stock_item",
+                          [el_id,arguments])
+
+    def search(self, filters=None, from_date=None, to_date=None):
+        if filters is None:
+            filters = {}
+        filters['searchCriteria[pageSize]'] = 100
+        filters['searchCriteria[currentPage]'] = 1
+        filters['searchCriteria[filter_groups][0][filters][0][field]'] = 'frontend_input'
+        filters['searchCriteria[filter_groups][0][filters][0][condition_type]'] = 'eq'
+        filters['searchCriteria[filter_groups][0][filters][0][value]'] = 'select'
+        products_resp = []
+        current_size = 0
+        while 1:
+            items = self._call('%s' % self._magentoextend_model, filters)
+            list_size = items.get("total_count")
+            if items.get("items"):
+                current_size += len(items.get("items"))
+                products_resp.extend(items.get("items"))
+                filters['searchCriteria[currentPage]'] = filters['searchCriteria[currentPage]'] + 1
+            if current_size >= list_size:
+                break
+
+        if products_resp:
+            return [{"attribute_code": row["attribute_code"], "options": str(row["options"])} for row in products_resp if row['scope'] == 'global' and row['options']]
+        return products_resp
+
+
+@magentoextend
+class ProductAttributeBatchImporterV2(DelayedBatchImporterV2):
+    _model_name = ['magentoextend2.product.attribute']
+
+    def _import_record(self, magentoextend_id, priority=None):
+        import_attribute_record_product_v2.delay(self.session,
+                                                 self.model._name,
+                                                 self.backend_record.id,
+                                                 magentoextend_id,
+                                                 priority=priority)
+
+    def run(self, filters=None):
+        record_ids = self.backend_adapter.search()
+        if record_ids:
+            self._import_record(record_ids, 30)
+
+
+ProductAttributeBatchImporterV2 = ProductAttributeBatchImporterV2
+
+
 @job(default_channel='root.magentoextend_pull_product_product')
 def product_import_v2_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of product modified on magentoextend """
@@ -616,3 +769,22 @@ def import_record_product_v2(session, model_name, backend_id, magentoextend_ids,
 
     return log
 
+
+@job(default_channel='root.magentoextend_pull_product_product')
+def product_attribute_import_v2_batch(session, model_name, backend_id):
+    env = get_environment(session, model_name, backend_id)
+    importer = env.get_connector_unit(ProductAttributeBatchImporterV2)
+    importer.run()
+
+
+@job(default_channel='root.magentoextend_pull_product_product')
+@related_action(action=link)
+def import_attribute_record_product_v2(session, model_name, backend_id, magentoextend_ids, force=False):
+    env = get_environment(session, model_name, backend_id)
+    importer = env.get_connector_unit(ProductAttributeImporterV2)
+    log = ""
+    for id in magentoextend_ids:
+        log = log + '\n' + str(id) + '\n' + '----------' + '\n'
+        resp = str(importer.run(id, force=force))
+        log = log + resp
+    return log
