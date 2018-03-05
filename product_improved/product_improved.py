@@ -80,3 +80,26 @@ class ProductLabelProductProduct(models.Model):
                        ('location_dest_id.company_id', 'child_of', self.env.user.company_id.id)],
             'context': ctx,
         }
+
+
+class ProductUomImproved(models.Model):
+    _inherit = 'product.uom'
+
+    def _compute_qty(self, cr, uid, from_uom_id, qty, to_uom_id=False, round=True, rounding_method='UP'):
+        if from_uom_id == to_uom_id:
+            return qty
+        return super(ProductUomImproved, self). \
+            _compute_qty(cr, uid, from_uom_id, qty, to_uom_id, round, rounding_method)
+
+    def _compute_qty_obj(self, cr, uid, from_unit, qty, to_unit, round=True, rounding_method='UP', context=None):
+        if from_unit == to_unit:
+            return qty
+        return super(ProductUomImproved, self). \
+            _compute_qty_obj(cr, uid, to_unit, qty, to_unit, round, rounding_method, context)
+
+    def _compute_price(self, cr, uid, from_uom_id, price, to_uom_id=False):
+        if from_uom_id == to_uom_id:
+            return price
+        return super(ProductUomImproved, self). \
+            _compute_price(cr, uid, from_uom_id, price, to_uom_id)
+
