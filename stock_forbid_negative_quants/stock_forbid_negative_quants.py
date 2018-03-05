@@ -28,7 +28,6 @@ class StockQuant(models.Model):
     @api.model
     def _quant_create(self, qty, move, lot_id=False, owner_id=False, src_package_id=False, dest_package_id=False,
                       force_location_from=False, force_location_to=False):
-        print self.env.context.get('force_forbid_negative_quants')
         if (not config["test_enable"] or self.env.context.get('force_forbid_negative_quants')) \
                 and move.location_id.usage == 'internal' and move.product_id.type == 'product':
             raise exceptions.except_orm(
