@@ -143,12 +143,10 @@ class TestOrderUpdate(common.TransactionCase):
         """- Changer l'unité d'une bom line
         - appler button update de la bom
         - Verfier que les move de service est conso sont correct et que les qty sont identique"""
-        print "before", self.line3.product_qty, self.line3.product_uom.name
         self.line3.write({
             'product_uom': self.uom_couple.id,
             'product_qty': 7
         })
-        print "after", self.line3.product_qty, self.line3.product_uom.name
         self.mrp_production1.button_update()
         uom_obj = self.env['product.uom']
         bom_dict = {}
