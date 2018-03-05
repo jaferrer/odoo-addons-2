@@ -971,3 +971,22 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase5.date_order[:10], '3003-09-05')
 
         self.assertEqual(past_proc.state, 'buy_to_run')
+
+    def test_30_group_procs_from_different_grouping_periods(self):
+        self.company.write({'po_lead': 3})
+        self.supplier.write({'purchase_lead_time': 2})
+        self.proc3.cancel()
+        self.proc5.cancel()
+        self.proc6.cancel()
+        self.proc2.date_planned = '3005-09-12 15:00:00'
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertEqual(purchase2, purchase1)
+
+        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
