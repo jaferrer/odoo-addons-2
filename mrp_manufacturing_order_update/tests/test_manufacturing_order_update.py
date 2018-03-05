@@ -46,7 +46,7 @@ class TestOrderUpdate(common.TransactionCase):
         self.location_suppliers = self.browse_ref("stock.stock_location_suppliers")
         self.picking_type_id = self.ref("stock.picking_type_internal")
         self.uom_unit = self.browse_ref('product.product_uom_unit')
-        self.uom_couple = self.browse_ref('stock_quant_packages_moving_wizard.uom_couple')
+        self.uom_couple = self.browse_ref('mrp_manufacturing_order_update.uom_double')
 
         self.mrp_production1 = self.env['mrp.production'].create({
             'name': 'mrp_production1',
