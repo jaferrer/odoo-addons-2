@@ -52,6 +52,7 @@
                             <field name="door_code1"/>
                             <field name="door_code2"/>
                             <field name="intercom"/>
+                            <field name="id_relais"/>
                         </group>
                         <group>
                             <field name="line0"/>

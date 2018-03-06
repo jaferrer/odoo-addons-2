@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,27 +18,20 @@
 #
 
 {
-    'name': 'Connector Prestashop extend',
+    'name': 'Manage groups_id for all ir.actions.X type',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['connector_backend_home', 'stock'],
+    'category': 'Dependency',
+    'depends': ['web'],
     'description': """
-"Connector Magento extends
-==========================
+Manage groups_id for all ir.actions.X type
+============================
+Add a field groups_id  inside the model ir.actions.server
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'data/connector_pull.xml',
-        'data/connector_push.xml',
-        'views/home_backend.xml',
-        'security/ir.model.access.csv',
-    ],
+    'data': [],
     'demo': [],
-    'external_dependencies': {
-        'python': ['prestapyt']
-    },
     'test': [],
     'installable': True,
     'auto_install': False,

@@ -44,6 +44,7 @@ class MagentoextendBindingModelBinder(MagentoextendBinding):
         'magentoextend2.res.partner',
         'magentoextend2.product.product',
         'magentoextend2.address',
+        'magentoextend2.product.attribute'
     ]
 
     def to_openerp(self, external_id, unwrap=False, browse=False):

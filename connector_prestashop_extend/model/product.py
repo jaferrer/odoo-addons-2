@@ -32,6 +32,7 @@ import ftputil.session
 import sys
 
 from openerp import tools
+from prestapyt import PrestaShopWebServiceDict, PrestaShopWebServiceError
 
 try:
     from xml.etree import cElementTree as ElementTree
@@ -137,7 +138,7 @@ class ProductCombinationRecordImport(TranslatableRecordImporter):
             'product_option_values', {}).get('product_option_value', [])
         return combinations
 
-    def run(self, prestashopextend_id, **kwargs):
+    def run(self, prestashopextend_id, id_shop=None, **kwargs):
         """ Run the synchronization
 
         :param magentoextend_id: identifier of the record on magentoextendCommerce
@@ -152,7 +153,12 @@ class ProductCombinationRecordImport(TranslatableRecordImporter):
         # Keep a lock on this import until the transaction is committed
         self.advisory_lock_or_retry(lock_name,
                                     retry_seconds=RETRY_ON_ADVISORY_LOCK)
-        self.prestashopextend_record = self._get_prestashopextend_data()
+        opts = {}
+        if id_shop:
+            opts = {
+                "id_shop": id_shop
+            }
+        self.prestashopextend_record = self._get_prestashopextend_data(attributes=opts)
         prestashop_products = []
         combinations = self.has_combinations(self.prestashopextend_record)
         if combinations:
@@ -188,6 +194,27 @@ class ProductCombinationRecordImport(TranslatableRecordImporter):
                             seconds=RETRY_WHEN_CONCURRENT_DETECTED,
                             ignore_retry=True
                         )
+
+                param = self.env[self.backend_record.connector_id.line_id.type_id.model_name].search(
+                    [('line_id', '=', self.backend_record.connector_id.line_id.id)])
+                if param.manage_by_ref:
+                    product = self.env['product.product'].search([("default_code", "=",
+                                                                   self.prestashopextend_record["reference"]),
+                                                                  ("owner_id", "=",
+                                                                   self.backend_record.connector_id.home_id.partner_id.id)])
+
+                    if product:
+                        self.env['prestashopextend.product.product'].create({
+                            'prestashopextend_id': self.prestashopextend_record.get("id"),
+                            'backend_home_id': self.backend_record.connector_id.home_id.id,
+                            'backend_id': self.backend_record.id,
+                            'updated_at': self.prestashopextend_record[
+                                              'date_upd'] == '0000-00-00 00:00:00' and datetime.now() or
+                                          self.prestashopextend_record['date_upd'],
+                            'openerp_id': product[0].id
+                        })
+                        binding = self._get_binding()
+
             skip = self._has_to_skip()
             if skip:
                 return skip
@@ -256,7 +283,7 @@ class ProductProductImportMapper(ImportMapper):
     def default_code(self, record):
         code = record.get('reference')
         if not code:
-            code = "backend_%d_product_%s" % (
+            code = "FLUXTENDU_%d-%s" % (
                 self.backend_record.connector_id.home_id.id, record['id']
             )
         if self.has_combinations(record):
@@ -285,21 +312,23 @@ class ProductInventoryAdapter(GenericAdapter):
     def get(self, options=None):
         return self.client.get(self._prestashopextend_model, options=options)
 
-    def export_quantity(self, filters, quantity):
+    def export_quantity(self, filters, quantity, home_id):
         self.export_quantity_url(
             filters,
             quantity,
         )
 
-        # shops = self.env['prestashop.shop'].search([
-        #     ('backend_id', '=', self.backend_record.id),
-        #     ('default_url', '!=', False),
-        # ])
-        # for shop in shops:
-        #     url = '%s/api' % shop.default_url
-        #     key = self.backend_record.webservice_key
-        #     client = PrestaShopWebServiceDict(url, key)
-        #     self.export_quantity_url(filters, quantity, client=client)
+        shops = self.env['prestashopextend.shop'].search([
+            ('backend_home_id', '=', home_id),
+            ('default_url', '!=', False),
+        ])
+        print shops
+        for shop in shops:
+            print shop
+            url = '%s/api' % shop.default_url
+            key = self.prestashopextend.webservice_key
+            client = PrestaShopWebServiceDict(url, key)
+            self.export_quantity_url(filters, quantity, client=client)
 
     def export_quantity_url(self, filters, quantity, client=None):
         if client is None:
@@ -404,7 +433,7 @@ class StockLevelExporter(Exporter):
                     'filter[id_product]': product['prestashopextend_id'].split('_')[0],
                     'filter[id_product_attribute]': len(product['prestashopextend_id'].split('_')) > 1 and product['prestashopextend_id'].split('_')[1] or 0
                 }
-                adapter.export_quantity(filter, qty)
+                adapter.export_quantity(filter, qty, self.backend_record.connector_id.home_id.id)
 
         return log
 

@@ -80,6 +80,8 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
                                 u"cas de taxation des colis")
     insurance = fields.Boolean(u"Assurance", help=u"Cochez la case pour assurer l'envoi à sa valeur.")
 
+    id_relais = fields.Char(string="Id point relais")
+
     @api.model
     def default_get(self, fields_list):
         res = super(GenerateTrackingLabelsWizard, self).default_get(fields_list)
@@ -198,6 +200,11 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     def get_order_number(self):
         self.ensure_one()
         return self.sale_order_id.name or ''
+
+    @api.multi
+    def get_login_dict(self):
+        self.ensure_one()
+        return {}
 
     @api.multi
     def generate_label(self):
