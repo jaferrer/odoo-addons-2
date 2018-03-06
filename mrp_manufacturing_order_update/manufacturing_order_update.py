@@ -104,7 +104,7 @@ class MoUpdateMrpProduction(models.Model):
 
             for item in needed_new_moves:
                 product = item.product_id
-                move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, item.product_qty, False, 0)
+                move = mrp._make_consume_line_from_data(mrp, product, item.product_uom.id, item.product_qty, False, 0)
                 self.env['stock.move'].browse(move).action_confirm()
             if post:
                 mrp.message_post(post)
