@@ -550,7 +550,7 @@ class ProductProductImportMapper(ImportMapper):
                                                                                   item["attribute_code"])])
                 if attribute:
                     opts = [opt["label"] for opt in eval(attribute[0].options) if opt["value"] == item["value"]]
-                    name += ' %s' % opts[0]
+                    name += opts and ' %s' % opts[0] or ''
         return {'name': "%s %s" % (record.get("name"), name)}
 
     @mapping
