@@ -49,7 +49,7 @@
             <field name="name">Reflation Type 2 Number</field>
             <field name="code">account.invoice.dunning</field>
             <field name="padding">1</field>
-            <field name="number_next_actual">2</field>
+            <field name="number_next_actual">1</field>
             <field name="implementation">standard</field>
         </record>
 
