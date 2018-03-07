@@ -63,6 +63,19 @@ class AccountInvoiceRelance(models.Model):
     mail_template_id = fields.Many2one('mail.template', u"Mail Template",
                                        related='dunning_type_id.mail_template_id', readonly=True)
     invoice_ids = fields.Many2many('account.invoice', string=u"Invoices")
+    amount_total_signed = fields.Float(u"Total", compute='_compute_amounts')
+    residual_signed = fields.Float(u"Residual", compute='_compute_amounts')
+
+    @api.multi
+    def _compute_amounts(self):
+        for rec in self:
+            amount = 0
+            residual = 0
+            for invoice in rec.invoice_ids:
+                amount += invoice.amount_total_signed
+                residual += invoice.residual_signed
+            rec.amount_total_signed = amount
+            rec.residual_signed = residual
 
     @api.model
     def _get_existing_dunning(self, invoice_id, dunning_config_id):
@@ -122,7 +135,6 @@ class AccountInvoiceRelance(models.Model):
 
     @api.multi
     def _get_action_view(self):
-        res = {}
         if len(self.ids) > 1:
             ctx = dict(self.env.context,
                        search_default_group_partner_id=True,
