@@ -43,6 +43,7 @@ class TestOrderUpdate(common.TransactionCase):
         self.product1 = self.browse_ref('mrp_manufacturing_order_update.product1')
         self.product2 = self.browse_ref('mrp_manufacturing_order_update.product2')
         self.product3 = self.browse_ref('mrp_manufacturing_order_update.product3')
+        self.product4 = self.browse_ref('mrp_manufacturing_order_update.product4')
         self.location_suppliers = self.browse_ref("stock.stock_location_suppliers")
         self.picking_type_id = self.ref("stock.picking_type_internal")
         self.uom_unit = self.browse_ref('product.product_uom_unit')
@@ -163,6 +164,32 @@ class TestOrderUpdate(common.TransactionCase):
                 if move.product_uom != self.uom_unit:
                     qty = uom_obj._compute_qty_obj(move.product_uom, move.product_uom_qty, self.uom_unit)
                 start_prod_to_qty[move.product_id] = start_prod_to_qty.get(move.product_id, 0) + qty
+
+        self.assertDictEqual(bom_dict, start_prod_to_qty)
+
+    def test_add_bom_line_double(self):
+        """- Ajouter un bom.line avec une uom different que celle du product
+        - appler button update de la bom
+        - Verfier que les move de service est conso sont correct et que les qty sont identique"""
+        self.env['mrp.bom.line'].create({
+            'type': 'normal',
+            'product_id': self.product4.id,
+            'product_qty': 4,
+            'product_uom': self.uom_couple.id,
+            'product_efficiency': 1.0,
+            'bom_id': self.mrp_production1.bom_id.id,
+        })
+        self.mrp_production1.button_update()
+        uom_obj = self.env['product.uom']
+        bom_dict = {}
+        for line in self.mrp_production1.bom_id.bom_line_ids:
+            qty = uom_obj._compute_qty_obj(line.product_uom, line.product_qty, self.uom_unit)
+            bom_dict[line.product_id] = bom_dict.get(line.product_id, 0) + qty
+
+        start_prod_to_qty = {}
+        for move in self.mrp_production1.move_lines:
+            if move.state != 'cancel':
+                start_prod_to_qty[move.product_id] = start_prod_to_qty.get(move.product_id, 0) + move.product_qty
 
         self.assertDictEqual(bom_dict, start_prod_to_qty)
 
