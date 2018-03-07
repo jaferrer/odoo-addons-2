@@ -48,10 +48,16 @@ msgid "Manufacturing Order"
 msgstr "Ordre de fabrication"
 
 #. module: mrp_manufacturing_order_update
-#: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:38
+#: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:58
 #, python-format
 msgid "Product %s: not needed anymore<br>"
 msgstr "Article %s : n'est plus une matière première<br>"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:62
+#, python-format
+msgid "Product %s: raw material move had wrong source location, it was cancelled<br>"
+msgstr "Article %s : le mouvement de consommation avait le mauvais emplacement de départ, il a été annulé<br>"
 
 #. module: mrp_manufacturing_order_update
 #: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:64
