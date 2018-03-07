@@ -44,11 +44,24 @@ class MoUpdateMrpProduction(models.Model):
             changes_to_do = []
             done_products = []
             needed_new_moves = []
-            useless_moves = mrp.move_lines.filtered(lambda m: m.product_id not in
-                                                    [x.product_id for x in mrp.product_lines])
-            for product in list(set([x.product_id for x in useless_moves])):
-                post += _("Product %s: not needed anymore<br>") % (product.display_name)
-            useless_moves.with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
+            useless_moves = self.env['stock.move']
+            wrong_location_moves = self.env['stock.move']
+            needed_products = [x.product_id for x in mrp.product_lines]
+            source_location = mrp.get_actual_location_src_and_routing()[0]
+            for move in mrp.move_lines:
+                if move.product_id not in needed_products:
+                    useless_moves |= move
+                if move.location_id != source_location:
+                    wrong_location_moves |= move
+            if useless_moves:
+                for product in list(set([x.product_id for x in useless_moves])):
+                    post += _("Product %s: not needed anymore<br>") % (product.display_name)
+                useless_moves.with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
+            if wrong_location_moves:
+                for product in list(set([x.product_id for x in wrong_location_moves])):
+                    post += _("Product %s: raw material move had wrong source location, it was cancelled<br>") % \
+                        (product.display_name)
+                wrong_location_moves.with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
             for item in mrp.move_lines:
                 if not item.product_id in done_products:
                     total_done_moves = sum([x.product_qty for x in mrp.move_lines2 if x.product_id == item.product_id
@@ -104,8 +117,9 @@ class MoUpdateMrpProduction(models.Model):
 
             for item in needed_new_moves:
                 product = item.product_id
-                move = mrp._make_consume_line_from_data(mrp, product, item.product_uom.id, item.product_qty, False, 0)
-                self.env['stock.move'].browse(move).action_confirm()
+                move_id = mrp._make_consume_line_from_data(mrp, product, item.product_uom.id,
+                                                           item.product_qty, False, 0)
+                self.env['stock.move'].browse(move_id).action_confirm()
             if post:
                 mrp.message_post(post)
 
