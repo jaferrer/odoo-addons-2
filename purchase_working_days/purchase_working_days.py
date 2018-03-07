@@ -127,9 +127,8 @@ class purchase_working_days(models.Model):
         if reverse:
             return location.with_context(do_not_save_result=do_not_save_result). \
                 schedule_working_days(nb_days + 1, date)
-        else:
-            return location.with_context(do_not_save_result=do_not_save_result). \
-                schedule_working_days(-nb_days , date)
+        return location.with_context(do_not_save_result=do_not_save_result). \
+            schedule_working_days(-nb_days , date)
 
     @api.model
     def _get_purchase_order_date(self, procurement, company, schedule_date, reverse=False):
@@ -151,5 +150,4 @@ class purchase_working_days(models.Model):
             partner = procurement.product_id.seller_id.with_context(self.env.context)
         if reverse:
             return partner.schedule_working_days(seller_delay + 1, schedule_date)
-        else:
-            return partner.schedule_working_days(-seller_delay, schedule_date)
+        return partner.schedule_working_days(-seller_delay, schedule_date)

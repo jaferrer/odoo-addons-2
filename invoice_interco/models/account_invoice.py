@@ -56,7 +56,8 @@ class IntercoAccountInvoice(models.Model):
                     for field, value in values_onchange.iteritems():
                         if line._fields[field].relational and line._fields[field].type in ['many2many', 'one2many']:
                             values_onchange[field] = [(6, 0, value)]
-                    values_onchange.pop('price_unit')
+                    if 'price_unit' in values_onchange:
+                        values_onchange.pop('price_unit')
                     line.sudo().write(values_onchange)
 
                 new_invoice.sudo().button_reset_taxes()
