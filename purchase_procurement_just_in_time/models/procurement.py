@@ -664,10 +664,12 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         return return_msg
 
     @api.multi
-    def get_first_purchase_dates_for_seller(self, procurement_ids):
+    def get_first_purchase_dates_for_seller(self):
         possible_domains = self. \
-            read_group(domain=[('id', 'in', procurement_ids)], fields=['company_id', 'location_id', 'product_id'],
-                       groupby=['company_id', 'location_id', 'product_id'], lazy=False)
+            read_group(domain=[('id', 'in', self.ids)],
+                       fields=['company_id', 'location_id', 'product_id'],
+                       groupby=['company_id', 'location_id', 'product_id'],
+                       lazy=False)
         first_purchase_dates = {}
         for possible_domain in possible_domains:
             company_id = possible_domain['company_id'][0]
@@ -695,14 +697,14 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             days_delta = int(self.env['ir.config_parameter'].
                              get_param('purchase_procurement_just_in_time.delta_begin_grouping_period') or 0)
             force_date_ref = self.env.context.get('force_date_ref')
-            date_ref = force_date_ref and fields.Datetime.from_string(
-                force_date_ref + ' 06:00:00') or seller.schedule_working_days(days_delta, dt.today())
-
+            date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 06:00:00') or \
+                seller.schedule_working_days(days_delta, dt.today())
             if not purchase_date:
                 continue
-            if not first_purchase_date or first_purchase_date > purchase_date:
+            if not first_purchase_date or purchase_date < first_purchase_date:
                 first_purchase_dates[company_id][location_id]['first_purchase_date'] = purchase_date
                 first_purchase_dates[company_id][location_id]['procurement'] = first_proc
+                first_purchase_date = purchase_date
             if first_purchase_date and first_purchase_date < date_ref:
                 first_purchase_dates[company_id][location_id]['first_purchase_date'] = date_ref
                 first_purchase_dates[company_id][location_id]['procurement'] = first_proc
@@ -776,8 +778,9 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         dict_procs_lines, not_assigned_proc_ids = self.compute_which_procs_for_lines(self.ids)
         return_msg += u"\nComputing which procs for lines: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
-        if seller.nb_max_draft_orders and seller.get_effective_order_group_period():
-            first_purchase_dates = self.get_first_purchase_dates_for_seller(not_assigned_proc_ids)
+        if seller.nb_max_draft_orders and seller.get_effective_order_group_period() and not_assigned_proc_ids:
+            not_assigned_procs = self.env['procurement.order'].search([('id', 'in', not_assigned_proc_ids)])
+            first_purchase_dates = not_assigned_procs.get_first_purchase_dates_for_seller()
             for company_id in first_purchase_dates:
                 for location_id in first_purchase_dates[company_id]:
                     first_purchase_date = first_purchase_dates[company_id][location_id]['first_purchase_date']

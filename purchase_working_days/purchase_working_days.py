@@ -120,7 +120,7 @@ class purchase_working_days(models.Model):
         do_not_save_result = self.env.context.get('do_not_save_result', False)
         if not ref_date:
             ref_date = procurement.date_planned
-        date = datetime.strptime(ref_date, DEFAULT_SERVER_DATETIME_FORMAT)
+        date = fields.Datetime.from_string(ref_date)
         location = procurement.location_id or procurement.warehouse_id.view_location_id
         # If key 'do_not_save_result' in context of self, we transfer it to location's context.
         nb_days = company.po_lead + procurement.product_id.seller_id.purchase_lead_time
