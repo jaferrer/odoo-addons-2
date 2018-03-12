@@ -43,8 +43,11 @@ class TestOrderUpdate(common.TransactionCase):
         self.product1 = self.browse_ref('mrp_manufacturing_order_update.product1')
         self.product2 = self.browse_ref('mrp_manufacturing_order_update.product2')
         self.product3 = self.browse_ref('mrp_manufacturing_order_update.product3')
+        self.product4 = self.browse_ref('mrp_manufacturing_order_update.product4')
         self.location_suppliers = self.browse_ref("stock.stock_location_suppliers")
         self.picking_type_id = self.ref("stock.picking_type_internal")
+        self.uom_unit = self.browse_ref('product.product_uom_unit')
+        self.uom_couple = self.browse_ref('mrp_manufacturing_order_update.uom_double')
 
         self.mrp_production1 = self.env['mrp.production'].create({
             'name': 'mrp_production1',
@@ -443,3 +446,66 @@ class TestOrderUpdate(common.TransactionCase):
         self.assertIn([self.product1, 20, 'cancel'], moves_data2)
         self.assertIn([self.product2, 25, 'cancel'], moves_data2)
         self.assertIn([self.product3, 30, 'cancel'], moves_data2)
+
+    def test_80_bom_line_change_uom(self):
+        """Change unit of a bom.line,
+        - appler button update de la bom, call button_update or mrp.production and check that raw material moves where
+        correctly updated"""
+        self.line3.write({
+            'product_uom': self.uom_couple.id,
+            'product_qty': 7
+        })
+        self.mrp_production1.button_update()
+        uom_obj = self.env['product.uom']
+        bom_dict = {}
+        for line in self.mrp_production1.bom_id.bom_line_ids:
+            qty = line.product_qty
+            if line.product_uom != self.uom_unit:
+                qty = uom_obj._compute_qty_obj(line.product_uom, line.product_qty, self.uom_unit)
+            bom_dict[line.product_id] = bom_dict.get(line.product_id, 0) + qty
+
+        start_prod_to_qty = {}
+        for move in self.mrp_production1.move_lines:
+            if move.state != 'cancel':
+                qty = move.product_uom_qty
+                if move.product_uom != self.uom_unit:
+                    qty = uom_obj._compute_qty_obj(move.product_uom, move.product_uom_qty, self.uom_unit)
+                start_prod_to_qty[move.product_id] = start_prod_to_qty.get(move.product_id, 0) + qty
+
+        self.assertDictEqual(bom_dict, start_prod_to_qty)
+
+    def test_81_add_bom_line_double(self):
+        """ Add a bom.line with a UoM different from product's one, call button_update or mrp.production and check that
+        raw material moves where correctly updated"""
+        self.env['mrp.bom.line'].create({
+            'type': 'normal',
+            'product_id': self.product4.id,
+            'product_qty': 4,
+            'product_uom': self.uom_couple.id,
+            'product_efficiency': 1.0,
+            'bom_id': self.mrp_production1.bom_id.id,
+        })
+        self.mrp_production1.button_update()
+        uom_obj = self.env['product.uom']
+        bom_dict = {}
+        for line in self.mrp_production1.bom_id.bom_line_ids:
+            qty = uom_obj._compute_qty_obj(line.product_uom, line.product_qty, self.uom_unit)
+            bom_dict[line.product_id] = bom_dict.get(line.product_id, 0) + qty
+
+        start_prod_to_qty = {}
+        for move in self.mrp_production1.move_lines:
+            if move.state != 'cancel':
+                start_prod_to_qty[move.product_id] = start_prod_to_qty.get(move.product_id, 0) + move.product_qty
+
+        self.assertDictEqual(bom_dict, start_prod_to_qty)
+
+    def test_90_change_source_location(self):
+
+        new_location = self.location1.copy()
+        moves_conso = self.mrp_production1.move_lines
+        self.assertEqual(len(moves_conso), 6)
+        self.mrp_production1.location_src_id = new_location
+        self.mrp_production1.button_update()
+        new_moves_conso = self.mrp_production1.move_lines
+        self.assertTrue(all([move.state == 'cancel' for move in moves_conso]))
+        self.assertEqual(len(new_moves_conso), 6)

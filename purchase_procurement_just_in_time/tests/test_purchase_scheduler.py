@@ -971,3 +971,52 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase5.date_order[:10], '3003-09-05')
 
         self.assertEqual(past_proc.state, 'buy_to_run')
+
+    def test_30_group_procs_from_different_grouping_periods(self):
+        self.company.write({'po_lead': 3})
+        self.supplier.write({'purchase_lead_time': 2})
+        self.proc3.cancel()
+        self.proc5.cancel()
+        self.proc6.cancel()
+        self.proc2.date_planned = '3005-09-12 15:00:00'
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+        purchase1 = self.proc1.purchase_id
+        purchase2 = self.proc2.purchase_id
+
+        self.assertTrue(purchase1)
+        self.assertTrue(purchase2)
+        self.assertEqual(purchase2, purchase1)
+
+        self.assertEqual(purchase1.date_order[:10], '3003-08-22')
+
+    def test_31_compute_first_purchase_date(self):
+
+        # We need a mono-product case
+        self.proc6.cancel()
+
+        # We need to fill field "supplier_id" for concerned products
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                        compute_supplier_ids=self.supplier,
+                                                        jobify=False)
+
+        procs = self.env['procurement.order'].browse([self.proc1.id, self.proc2.id, self.proc3.id, self.proc5.id])
+
+        first_purchase_dates = procs.get_first_purchase_dates_for_seller()
+        self.assertIn(self.company.id, first_purchase_dates.keys())
+        self.assertIn(self.location_a.id, first_purchase_dates[self.company.id].keys())
+        self.assertIn('first_purchase_date', first_purchase_dates[self.company.id][self.location_a.id].keys())
+        date =first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
+        self.assertTrue(date)
+        self.assertEqual(fields.Date.to_string(date), '3003-08-25')
+
+        # Now, let's try with a past procurement
+        self.proc1.date_planned = '2018-03-09 12:00:00'
+        first_purchase_dates = procs.get_first_purchase_dates_for_seller()
+        self.assertIn(self.company.id, first_purchase_dates.keys())
+        self.assertIn(self.location_a.id, first_purchase_dates[self.company.id].keys())
+        self.assertIn('first_purchase_date', first_purchase_dates[self.company.id][self.location_a.id].keys())
+        date =first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
+        self.assertTrue(date)
+        self.assertEqual(fields.Date.to_string(date), '2018-03-09')

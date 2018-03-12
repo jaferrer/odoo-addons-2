@@ -120,16 +120,15 @@ class purchase_working_days(models.Model):
         do_not_save_result = self.env.context.get('do_not_save_result', False)
         if not ref_date:
             ref_date = procurement.date_planned
-        date = datetime.strptime(ref_date, DEFAULT_SERVER_DATETIME_FORMAT)
+        date = fields.Datetime.from_string(ref_date)
         location = procurement.location_id or procurement.warehouse_id.view_location_id
         # If key 'do_not_save_result' in context of self, we transfer it to location's context.
         nb_days = company.po_lead + procurement.product_id.seller_id.purchase_lead_time
         if reverse:
             return location.with_context(do_not_save_result=do_not_save_result). \
                 schedule_working_days(nb_days + 1, date)
-        else:
-            return location.with_context(do_not_save_result=do_not_save_result). \
-                schedule_working_days(-nb_days , date)
+        return location.with_context(do_not_save_result=do_not_save_result). \
+            schedule_working_days(-nb_days , date)
 
     @api.model
     def _get_purchase_order_date(self, procurement, company, schedule_date, reverse=False):
@@ -151,5 +150,4 @@ class purchase_working_days(models.Model):
             partner = procurement.product_id.seller_id.with_context(self.env.context)
         if reverse:
             return partner.schedule_working_days(seller_delay + 1, schedule_date)
-        else:
-            return partner.schedule_working_days(-seller_delay, schedule_date)
+        return partner.schedule_working_days(-seller_delay, schedule_date)

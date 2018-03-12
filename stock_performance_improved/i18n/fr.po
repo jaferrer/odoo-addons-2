@@ -199,6 +199,11 @@ msgid "Not Cancelled"
 msgstr "Non annulé"
 
 #. module: stock_performance_improved
+#: view:stock.move:stock_performance_improved.stock_move_search_view
+msgid "Not Done"
+msgstr "Non terminé"
+
+#. module: stock_performance_improved
 #: field:procurement.order,date_running:0
 msgid "Running date"
 msgstr "Date de passage à confirmé"

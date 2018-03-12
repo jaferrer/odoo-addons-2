@@ -12,6 +12,7 @@ variables:
   GIT_STRATEGY: "clone"
   ODOO_DEPENDS: "odoo-addons/community-addons"
   ODOO_MODULE: "ALL"
+  ODOO_IMG: "8.0-sirail"
 
 lint_flake8:
   stage: test

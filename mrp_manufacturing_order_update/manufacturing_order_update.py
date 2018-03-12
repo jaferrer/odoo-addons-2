@@ -17,9 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, exceptions, _
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
+
+from openerp import fields, models, api, exceptions, _
 from openerp.tools import float_compare
 
 
@@ -43,17 +44,36 @@ class MoUpdateMrpProduction(models.Model):
             changes_to_do = []
             done_products = []
             needed_new_moves = []
-            useless_moves = mrp.move_lines.filtered(lambda m: m.product_id not in
-                                                              [x.product_id for x in mrp.product_lines])
-            for product in list(set([x.product_id for x in useless_moves])):
-                post += _("Product %s: not needed anymore<br>") % (product.display_name)
-            useless_moves.with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
+            useless_moves = self.env['stock.move']
+            wrong_location_moves = self.env['stock.move']
+            needed_products = [x.product_id for x in mrp.product_lines]
+            source_location = mrp.get_actual_location_src_and_routing()[0]
+            for move in mrp.move_lines:
+                if move.product_id not in needed_products:
+                    useless_moves |= move
+                if move.location_id != source_location:
+                    wrong_location_moves |= move
+            if useless_moves:
+                for product in list(set([x.product_id for x in useless_moves])):
+                    post += _("Product %s: not needed anymore<br>") % (product.display_name)
+                useless_moves.with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
+            if wrong_location_moves:
+                for product in list(set([x.product_id for x in wrong_location_moves])):
+                    post += _("Product %s: raw material move had wrong source location, it was cancelled<br>") % \
+                        (product.display_name)
+                wrong_location_moves.with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
             for item in mrp.move_lines:
                 if not item.product_id in done_products:
                     total_done_moves = sum([x.product_qty for x in mrp.move_lines2 if x.product_id == item.product_id
                                             and x.state == 'done' and x.location_dest_id.usage == 'production'])
                     total_old_need = sum([x.product_qty for x in mrp.move_lines if x.product_id == item.product_id])
-                    total_new_need = sum([x.product_qty for x in mrp.product_lines if x.product_id == item.product_id])
+                    total_new_need = 0
+                    for product_line in mrp.product_lines:
+                        if product_line.product_id == item.product_id:
+                            total_new_need += self.env['product.uom']._compute_qty_obj(
+                                from_unit=product_line.product_uom,
+                                qty=product_line.product_qty,
+                                to_unit=product_line.product_id.uom_id)
                     prec = item.product_id.uom_id.rounding
                     if float_compare(total_new_need, total_done_moves, precision_rounding=prec) < 0:
                         raise exceptions.except_orm(_(u"Error!"),
@@ -87,18 +107,19 @@ class MoUpdateMrpProduction(models.Model):
                                                                  final_running_qty - qty_ordered, False, 0)
                         self.env['stock.move'].browse(move).action_confirm()
                 post += _("Product %s: quantity changed from %s to %s<br>") % \
-                        (product.display_name, total_old_need, total_new_need)
+                    (product.display_name, total_old_need, total_new_need)
 
             for item in mrp.product_lines:
                 if item.product_id not in [y.product_id for y in mrp.move_lines if y.state != 'cancel']:
                     needed_new_moves += [item]
                     post += _("Raw material move created of quantity %s for product %s<br>") % \
-                            (item.product_qty, item.product_id.display_name)
+                        (item.product_qty, item.product_id.display_name)
 
             for item in needed_new_moves:
                 product = item.product_id
-                move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, item.product_qty, False, 0)
-                self.env['stock.move'].browse(move).action_confirm()
+                move_id = mrp._make_consume_line_from_data(mrp, product, item.product_uom.id,
+                                                           item.product_qty, False, 0)
+                self.env['stock.move'].browse(move_id).action_confirm()
             if post:
                 mrp.message_post(post)
 

@@ -7,6 +7,14 @@
             <field name="type">product</field>
         </record>
 
+        <record id="uom_double" model="product.uom">
+            <field name="name">Set of 2 (MRP bom update)</field>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="2"/>
+            <field name="rounding" eval="0.01"/>
+            <field name="category_id" ref="product.product_uom_categ_unit"/>
+        </record>
+
 
         <record id="product1" model="product.product">
             <field name="name">Test Product 1 (Order Update)</field>
@@ -20,6 +28,11 @@
 
         <record id="product3" model="product.product">
             <field name="name">Test Product 3 (Order Update)</field>
+            <field name="type">product</field>
+        </record>
+
+        <record id="product4" model="product.product">
+            <field name="name">Test Product 4 (Order Update)</field>
             <field name="type">product</field>
         </record>
 

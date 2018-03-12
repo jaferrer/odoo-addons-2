@@ -205,7 +205,6 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
                                                           ('state', '=', 'draft')])
         if moves_to_confirm:
             moves_to_confirm.action_confirm()
-        new_picking.move_lines.delete_packops()
         products_filled = self.env['product.to.be.filled'].search([('picking_id', '=', new_picking_id),
                                                                    ('product_id', '=', product_id)])
         if products_filled:
@@ -365,8 +364,9 @@ class StockMove(models.Model):
 
     def delete_packops(self):
         for move in self:
-            if move.linked_move_operation_ids:
-                move.linked_move_operation_ids.unlink()
+            linked_move_operation_ids = move.linked_move_operation_ids
+            if linked_move_operation_ids:
+                linked_move_operation_ids.unlink()
 
     @api.model
     def split_not_totally_consumed_moves(self, dict_reservation_target):
