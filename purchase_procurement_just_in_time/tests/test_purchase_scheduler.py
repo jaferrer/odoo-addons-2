@@ -1019,4 +1019,4 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn('first_purchase_date', first_purchase_dates[self.company.id][self.location_a.id].keys())
         date =first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
         self.assertTrue(date)
-        self.assertEqual(fields.Date.to_string(date), '2018-03-09')
+        self.assertEqual(fields.Date.to_string(date), fields.Date.to_string(dt.today()))
