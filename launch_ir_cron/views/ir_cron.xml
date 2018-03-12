@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="ir_cron_form_launch_cron">
+            <field name="name">ir.cron.form.launch.cron</field>
+            <field name="inherit_id" ref="base.ir_cron_view"/>
+            <field name="model">ir.cron</field>
+            <field name="arch" type="xml">
+                <sheet position="before">
+                    <button type="object" name="method_direct_trigger" string="Launch Cron" class="oe_highlight"/>
+                </sheet>
+            </field>
+        </record>
+    </data>
+</openerp>
