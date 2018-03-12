@@ -210,7 +210,7 @@ class AccountInvoice(models.Model):
         }
 
 
-class MailComposeMessage(models.Model):
+class MailComposeMessage(models.TransientModel):
     _inherit = 'mail.compose.message'
 
     @api.multi
