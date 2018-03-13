@@ -125,7 +125,7 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
                 'LIV_Rel': recipient_ref,
                 'Poids': str(int(self.weight*1000)),
                 'NbColis': str(number_of_parcel),
-                'CRT_Valeur': str(int(sum([package_data['amount_total'] for package_data in packages_data])*100))
+                'CRT_Valeur': str(0)
             }
             reqst = connexion.make_shipping_label(vals, labelformat=self.output_printing_type_id.code)
             if reqst and reqst.get("ExpeditionNum") and reqst.get("URL_Etiquette"):
