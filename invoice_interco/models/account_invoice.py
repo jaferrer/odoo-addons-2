@@ -17,11 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from openerp import models, api, fields
 
 
 class IntercoAccountInvoice(models.Model):
     _inherit = 'account.invoice'
+
+    is_reverse_invoice = fields.Boolean(u"Is a reverse Invoice")
 
     @api.multi
     def invoice_validate(self):
@@ -33,7 +35,7 @@ class IntercoAccountInvoice(models.Model):
     def make_reverse_invoice(self):
         res = self.env['account.invoice']
         for rec in self:
-            if rec._is_allowed_company_auto_reverse_invoice():
+            if not rec.is_reverse_invoice and rec._is_allowed_company_auto_reverse_invoice():
                 new_invoice = rec.sudo().copy(rec._prepare_reverse_invoice())
                 values_onchange = new_invoice.sudo().onchange_partner_id(new_invoice.type,
                                                                          partner_id=new_invoice.partner_id.id,
@@ -79,6 +81,7 @@ class IntercoAccountInvoice(models.Model):
             'company_id': self.env['res.company'].search([('partner_id', '=', self.partner_id.id)]).id,
             'type': self._inverse_type()[self.type],
             'origin': self.number,
+            'is_reverse_invoice': True,
         }
 
     @api.multi
