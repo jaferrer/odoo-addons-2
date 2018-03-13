@@ -30,7 +30,7 @@ Account Invoice Dunning
 =======================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'demo': ['demo/dunning_demo.xml'],
+    'demo': [],
     'test': [],
     'data': ['security/ir.model.access.csv',
              'views/dunning.xml',
