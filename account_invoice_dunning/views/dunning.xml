@@ -20,9 +20,11 @@
                     </header>
                     <sheet>
                         <group>
-                            <field name="name"
-                                   attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('sequence_id', '!=', False)]}"/>
-                            <field name="sequence_id" invisble="1"/>
+                            <group>
+                                <field name="name"
+                                       attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('sequence_id', '!=', False)]}"/>
+                                <field name="sequence_id" invisible="1"/>
+                            </group>
                             <group>
                                 <field name="partner_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                 <field name="date_done" attrs="{'invisible': [('date_done', '=', False)]}"/>
@@ -93,7 +95,10 @@
 
         <menuitem name="Dunnings"
                   id="menu_account_invoice_dunning"
-                  parent="account.menu_finance_configuration"
+                  parent="account.menu_finance_configuration"/>
+        <menuitem name="Dunnings"
+                  id="menu_account_invoice_dunning_action"
+                  parent="menu_account_invoice_dunning"
                   action="dunning_view_action"/>
     </data>
 </openerp>
