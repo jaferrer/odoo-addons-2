@@ -1066,3 +1066,19 @@ class StockInventoryLine(models.Model):
                 if moves_to_unreserve:
                     moves_to_unreserve.do_unreserve()
         return super(StockInventoryLine, self)._resolve_inventory_line(inventory_line)
+
+
+class StockMoveOperationLinkImporved(models.Model):
+    _inherit = 'stock.move.operation.link'
+
+    @api.model
+    def sweep_move_operation_links(self):
+        self.env.cr.execute("""WITH link_ids_to_delete AS (
+    SELECT link.id
+    FROM stock_move_operation_link link
+      LEFT JOIN stock_move sm ON sm.id = link.move_id
+    WHERE link.move_id IS NOT NULL AND sm.state IN ('done', 'cancel'))
+
+DELETE FROM stock_move_operation_link
+WHERE id IN (SELECT id
+             FROM link_ids_to_delete);""")
