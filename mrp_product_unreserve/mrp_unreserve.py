@@ -25,5 +25,6 @@ class MrpProductionDoUnreserve(models.Model):
 
     @api.multi
     def do_unreserve(self):
-        for rec in self:
-            rec.move_lines.do_unreserve()
+        moves = self.env['stock.move'].search([('raw_material_production_id', 'in', self.ids),
+                                               ('state', 'not in', ['draft', 'done', 'cancel'])])
+        moves.do_unreserve()
