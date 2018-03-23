@@ -120,6 +120,7 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
                 'Dest_CP': customer_zip,
                 'Dest_Pays': customer_country,
                 'Dest_Tel1': customer_phone or '',
+                'Dest_Mail': customer_email or '',
                 "LIV_Rel_Pays": customer_country,
                 'LIV_Rel': recipient_ref,
                 'Poids': str(int(self.weight*1000)),
