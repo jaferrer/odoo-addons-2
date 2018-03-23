@@ -17,8 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 from openerp import osv, models, api, _
-from openerp.tools import SUPERUSER_ID, float_compare
+from openerp.tools import float_compare
+
+
+_logger = logging.getLogger(__name__)
 
 
 class StockQuant(models.Model):
@@ -54,6 +59,8 @@ class StockQuant(models.Model):
 
     @api.model
     def quants_unreserve(self, move):
+        _logger.warning("Method 'quants_unreserve' of stock.quant is deprecated. "
+                        "Please use do_unreserve of model stock.move instead.")
         related_quants = move.reserved_quant_ids
         if related_quants:
             if move.partially_available:
@@ -74,3 +81,12 @@ class StockPicking(models.Model):
             moves = pick.move_lines.filtered(lambda m: m.state in ['confirmed', 'waiting'])
             moves.force_assign()
         return True
+
+
+class StockMove(models.Model):
+
+    _inherit = "stock.move"
+
+    @api.multi
+    def do_unreserve(self):
+        return super(StockMove, self.with_context(no_recompute_pack_op=True)).do_unreserve()
