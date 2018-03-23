@@ -111,7 +111,6 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
                 'Expe_CP': company_zip,
                 'Expe_Pays': company_country,
                 'Expe_Tel1': company_phone or '',
-                'Expe_Mail': company_email or '',
                 'Dest_Langage': 'FR',
                 'Dest_Ad1': 'M.%s' % customer_name_2,
                 'Dest_Ad2': customer_name_1,
