@@ -92,7 +92,7 @@
             <field name="args"/>
         </record>
 
-        <record id="cron_delete_empty_pickings" model="ir.cron">
+        <record id="cron_sweep_move_operation_links" model="ir.cron">
             <field name="name">Delete move operation links corresponding to done or cancelled moves</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="active" eval="True"/>
