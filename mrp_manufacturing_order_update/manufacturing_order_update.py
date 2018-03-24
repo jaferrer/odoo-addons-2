@@ -99,7 +99,8 @@ class MoUpdateMrpProduction(models.Model):
                                                           order='product_qty desc, id asc')
                     qty_ordered = sum([x.product_qty for x in moves])
                     while float_compare(qty_ordered, final_running_qty, precision_rounding=product.uom_id.rounding) > 0:
-                        moves[0].with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
+                        moves[0].with_context(cancel_procurement=True, forbid_unreserve_quants=True,
+                                              new_target_qty=final_running_qty).action_cancel()
                         qty_ordered -= moves[0].product_qty
                         moves -= moves[0]
                     if float_compare(qty_ordered, final_running_qty, precision_rounding=product.uom_id.rounding) < 0:
@@ -211,10 +212,19 @@ class UpdateChangeStockMove(models.Model):
         consume_moves = self.env['stock.move'].search([('id', 'in', self.ids),
                                                        ('raw_material_production_id', '!=', False)])
         if self.env.context.get('forbid_unreserve_quants') and consume_moves:
+            new_target_qty = self.env.context.get('new_target_qty', False)
             reserved_quant = self.env['stock.quant'].search([('reservation_id', 'in', consume_moves.ids)], limit=1)
+            reserved_qty = sum([sum([quant.qty for quant in move.reserved_quant_ids]) for
+                                    move in reserved_quant.reservation_id.raw_material_production_id.move_lines if
+                                    move.product_id == reserved_quant.product_id])
+            if new_target_qty:
+                reserved_qty = reserved_qty - new_target_qty
             if reserved_quant:
                 raise exceptions.except_orm(_(u"Error!"),
-                                            _(u"Product %s in MO %s: forbidden to cancel a move with reserved quants") %
+                                            _(u"Product %s in MO %s: forbidden to cancel a move with reserved quants "
+                                              u"(quantity to unreserve: %s %s)") %
                                             (reserved_quant.product_id.display_name,
-                                             reserved_quant.reservation_id.raw_material_production_id.display_name))
+                                             reserved_quant.reservation_id.raw_material_production_id.display_name,
+                                             reserved_qty,
+                                             reserved_quant.product_id.uom_id.display_name))
         return super(UpdateChangeStockMove, self).action_cancel()
