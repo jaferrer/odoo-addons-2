@@ -143,26 +143,29 @@ class MoUpdateMrpProduction(models.Model):
         self.update_moves()
 
     @api.model
-    def run_schedule_button_update(self, jobify=True):
+    def get_mrp_ids_to_check(self):
         self.env.cr.execute("""WITH mrp_moves_details AS (
-    SELECT
-      mrp.id        AS mrp_id,
-      sm.state      AS raw_move_state,
-      sm_orig.state AS service_move_state
-    FROM mrp_production mrp
-      LEFT JOIN stock_move sm ON sm.raw_material_production_id = mrp.id
-      LEFT JOIN stock_move sm_orig ON sm_orig.move_dest_id = sm.id
-    WHERE mrp.state IN ('ready', 'confirmed'))
+            SELECT
+              mrp.id        AS mrp_id,
+              sm.state      AS raw_move_state,
+              sm_orig.state AS service_move_state
+            FROM mrp_production mrp
+              LEFT JOIN stock_move sm ON sm.raw_material_production_id = mrp.id
+              LEFT JOIN stock_move sm_orig ON sm_orig.move_dest_id = sm.id
+            WHERE mrp.state IN ('ready', 'confirmed'))
 
-SELECT mrp_id
-FROM mrp_moves_details
-GROUP BY mrp_id
-HAVING sum(CASE WHEN raw_move_state = 'done' OR
-                     service_move_state = 'done'
-  THEN 1
-           ELSE 0 END) <= 0""")
-        fetchall = self.env.cr.fetchall()
-        mrp_to_check_ids = [item[0] for item in fetchall]
+        SELECT mrp_id
+        FROM mrp_moves_details
+        GROUP BY mrp_id
+        HAVING sum(CASE WHEN raw_move_state = 'done' OR
+                             service_move_state = 'done'
+          THEN 1
+                   ELSE 0 END) <= 0""")
+        return [item[0] for item in self.env.cr.fetchall()]
+
+    @api.model
+    def run_schedule_button_update(self, jobify=True):
+        mrp_to_check_ids = self.get_mrp_ids_to_check()
         mrp_to_update_ids = []
         for mrp_id in mrp_to_check_ids:
             mrp = self.env['mrp.production'].search([('id', '=', mrp_id)])
