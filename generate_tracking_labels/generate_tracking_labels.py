@@ -37,6 +37,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
                                     help=u"Numéro de commande tel que renseigné dans votre SI. Peut être utile pour "
                                          u"rechercher des colis selon ce champ sur le suivi ColiView (apparaît dans le "
                                          u"champ 'Réf. client')")
+    customer_parcel_ref = fields.Char(string=u"Ref bill number")
     sale_order_id = fields.Many2one('sale.order', string=u"Commande client")
     partner_orig_id = fields.Many2one('res.partner', string=u"Expéditeur", required=True)
     partner_id = fields.Many2one('res.partner', string=u"Adresse")

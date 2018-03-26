@@ -155,7 +155,7 @@ class GenerateTrackingLabelsWizardChronopost(models.TransientModel):
 
             # TODO: calculer
             recipient_ref = self.is_relais(self.produit_expedition_id.code) and self.id_relais or ''
-            customer_sky_bill_number = ''
+            customer_sky_bill_number = self.customer_parcel_ref or ''
             ref_value = (self.sender_parcel_ref or '', recipient_ref or '', customer_sky_bill_number or '')
 
             number_of_parcel = len(packages_data)
