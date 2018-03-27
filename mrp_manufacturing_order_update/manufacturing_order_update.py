@@ -64,8 +64,11 @@ class MoUpdateMrpProduction(models.Model):
                 wrong_location_moves.with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
             for item in mrp.move_lines:
                 if not item.product_id in done_products:
-                    total_done_moves = sum([x.product_qty for x in mrp.move_lines2 if x.product_id == item.product_id
-                                            and x.state == 'done' and x.location_dest_id.usage == 'production'])
+                    if not self.env.context.get('ignore_done_moves'):
+                        total_done_moves = sum([x.product_qty for x in mrp.move_lines2 if x.product_id == item.product_id
+                                                and x.state == 'done' and x.location_dest_id.usage == 'production'])
+                    else:
+                        total_done_moves = 0
                     total_old_need = sum([x.product_qty for x in mrp.move_lines if x.product_id == item.product_id])
                     total_new_need = 0
                     for product_line in mrp.product_lines:
