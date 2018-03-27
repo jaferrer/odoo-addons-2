@@ -102,7 +102,6 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
                 'Enseigne': login_dict["login_mondial"],
                 'ModeCol': 'CCC',
                 'ModeLiv': self.produit_expedition_id.code,
-                'NClient': '123456789',
                 'Expe_Langage': 'FR',
                 'Expe_Ad1': company_name_1,
                 'Expe_Ad2': '',
@@ -121,6 +120,7 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
                 'Dest_CP': customer_zip,
                 'Dest_Pays': customer_country,
                 'Dest_Tel1': customer_phone or '',
+                'Dest_Mail': customer_email or '',
                 "LIV_Rel_Pays": customer_country,
                 'LIV_Rel': recipient_ref,
                 'Poids': str(int(self.weight*1000)),
@@ -129,7 +129,9 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             }
             reqst = connexion.make_shipping_label(vals, labelformat=self.output_printing_type_id.code)
             if reqst and reqst.get("ExpeditionNum") and reqst.get("URL_Etiquette"):
-                reservation_number = reqst.get("ExpeditionNum")
+#                reservation_number = '%s%s' % (login_dict["code_marque_mondial"],
+#                                               str(reqst.get("ExpeditionNum")).zfill(8))
+                reservation_number = '%s' % str(reqst.get("ExpeditionNum")).zfill(8)
                 tracking_numbers = [reservation_number]
                 label = requests.get(reqst.get("URL_Etiquette"))
                 if len(label.content.split('%PDF')) == 2 and label.content.split('%PDF')[1].split('%EOF'):
