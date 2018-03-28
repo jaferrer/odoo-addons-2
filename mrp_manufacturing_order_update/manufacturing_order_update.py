@@ -64,8 +64,11 @@ class MoUpdateMrpProduction(models.Model):
                 wrong_location_moves.with_context(cancel_procurement=True, forbid_unreserve_quants=True).action_cancel()
             for item in mrp.move_lines:
                 if not item.product_id in done_products:
-                    total_done_moves = sum([x.product_qty for x in mrp.move_lines2 if x.product_id == item.product_id
-                                            and x.state == 'done' and x.location_dest_id.usage == 'production'])
+                    if not self.env.context.get('ignore_done_moves'):
+                        total_done_moves = sum([x.product_qty for x in mrp.move_lines2 if x.product_id == item.product_id
+                                                and x.state == 'done' and x.location_dest_id.usage == 'production'])
+                    else:
+                        total_done_moves = 0
                     total_old_need = sum([x.product_qty for x in mrp.move_lines if x.product_id == item.product_id])
                     total_new_need = 0
                     for product_line in mrp.product_lines:
@@ -218,16 +221,16 @@ class UpdateChangeStockMove(models.Model):
             new_target_qty = self.env.context.get('new_target_qty', False)
             reserved_quant = self.env['stock.quant'].search([('reservation_id', 'in', consume_moves.ids)], limit=1)
             reserved_qty = sum([sum([quant.qty for quant in move.reserved_quant_ids]) for
-                                    move in reserved_quant.reservation_id.raw_material_production_id.move_lines if
-                                    move.product_id == reserved_quant.product_id])
-            if new_target_qty:
-                reserved_qty = reserved_qty - new_target_qty
-            if reserved_quant:
+                                move in reserved_quant.reservation_id.raw_material_production_id.move_lines if
+                                move.product_id == reserved_quant.product_id])
+            qty_to_unreserve = new_target_qty and reserved_qty - new_target_qty or reserved_qty
+            if reserved_quant and float_compare(reserved_qty, 0,
+                                                precision_rounding=reserved_quant.product_id.uom_id.rounding) > 0:
                 raise exceptions.except_orm(_(u"Error!"),
                                             _(u"Product %s in MO %s: forbidden to cancel a move with reserved quants "
                                               u"(quantity to unreserve: %s %s)") %
                                             (reserved_quant.product_id.display_name,
                                              reserved_quant.reservation_id.raw_material_production_id.display_name,
-                                             reserved_qty,
+                                             qty_to_unreserve,
                                              reserved_quant.product_id.uom_id.display_name))
         return super(UpdateChangeStockMove, self).action_cancel()
