@@ -182,7 +182,7 @@ class MoUpdateMrpProduction(models.Model):
             if jobify:
                 run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', [mrp_id],
                                                 dict(self.env.context),
-                                                description=u"MRP Production Update (MO %s)" % mrp.name)
+                                                description=u"Update %s" % mrp.name)
             else:
                 run_mrp_production_update(ConnectorSession.from_env(self.env), 'mrp.production', [mrp_id],
                                           dict(self.env.context))
