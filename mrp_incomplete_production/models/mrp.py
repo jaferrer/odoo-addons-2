@@ -191,6 +191,7 @@ class IncompeteProductionMrpProduction(models.Model):
 
     @api.model
     def action_produce(self, production_id, production_qty, production_mode, wiz=False):
+
         production = self.browse(production_id)
         list_cancelled_moves_1 = production.move_lines2
         moves_to_detach = production.sanitize_not_available_raw_moves()
