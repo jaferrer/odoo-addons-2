@@ -177,18 +177,15 @@ class MoUpdateMrpProduction(models.Model):
                 bom = bom._bom_find(product_id=mrp.product_id.id)
             if bom:
                 mrp_to_update_ids += [mrp_id]
-        chunk_number = 0
-        while mrp_to_update_ids:
-            chunk_number += 1
-            mrp_chunk_ids = mrp_to_update_ids[:100]
+        for mrp_id in mrp_to_update_ids:
+            mrp = self.browse(mrp_id)
             if jobify:
-                run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
+                run_mrp_production_update.delay(ConnectorSession.from_env(self.env), 'mrp.production', [mrp_id],
                                                 dict(self.env.context),
-                                                description=u"MRP Production Update (chunk %s)" % chunk_number)
+                                                description=u"Update %s" % mrp.name)
             else:
-                run_mrp_production_update(ConnectorSession.from_env(self.env), 'mrp.production', mrp_chunk_ids,
+                run_mrp_production_update(ConnectorSession.from_env(self.env), 'mrp.production', [mrp_id],
                                           dict(self.env.context))
-            mrp_to_update_ids = mrp_to_update_ids[100:]
 
 
 class UpdateChangeProductionQty(models.TransientModel):
