@@ -1,0 +1,45 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* account_merge_bank_statements
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-09 17:09+0000\n"
+"PO-Revision-Date: 2015-12-09 17:09+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.account_merge_bank_statements
+msgid "Account - Merge Bank Statements"
+msgstr "Facturation - Fusion des relevés bancaires"
+
+#. module: base
+#: model:ir.module.module,description:base.account_merge_bank_statements
+msgid ""
+"\n"
+"Account - Merge Bank Statements\n"
+"===============================\n"
+"This modules allows to merge bank statements.\n"
+msgstr ""
+"\n"
+"Facturation - Fusion des relevés bancaires\n"
+"==========================================\n"
+"Ce module permet de fusionner les relevés bancaires.\n"
+
+#. module: account_merge_bank_statements
+#: model:ir.actions.server,name:account_merge_bank_statements.ir_actions_server_merge_statements
+msgid "Merge bank statements"
+msgstr "Fusionner les relevés bancaires"
+
+#. module: account_merge_bank_statements
+#: code:addons/account_merge_bank_statements/account_merge_bank_statements.py:31
+#, python-format
+msgid "It is forbidden to merge confirmed bank statements."
+msgstr "Il est interdit de fusionner des relevés bancaires validés."
