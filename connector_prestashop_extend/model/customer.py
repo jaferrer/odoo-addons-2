@@ -128,6 +128,7 @@ class MagentoAddress(models.Model):
                                             string='prestashop Partner',
                                             required=True,
                                             ondelete='cascade')
+
     backend_id = fields.Many2one(
         related='prestashop_partner_id.backend_id',
         comodel_name='prestashopextend.backend',
@@ -146,7 +147,6 @@ class MagentoAddress(models.Model):
         required=False,
         ondelete='restrict',
     )
-
 
     _sql_constraints = [
         ('openerp_uniq', 'unique(backend_id, openerp_id)',
@@ -285,10 +285,6 @@ class AddressImportMapper(ImportMapper):
             if name:
                 name += " "
             name += record['lastname']
-        if record['alias']:
-            if name:
-                name += " "
-            name += '('+record['alias']+')'
         return {'name': name}
 
     @mapping
@@ -316,7 +312,7 @@ class AddressImportMapper(ImportMapper):
 class AddressImporter(prestashopextendImporter):
     _model_name = 'prestashopextend.address'
 
-    def _import_dependencies(self):
+    def _import_dependencies(self, id_shop=None):
         record = self.prestashopextend_record
         binder = self.binder_for('prestashopextend.res.country').to_openerp(record['id_country'], unwrap=True)
         if not binder:

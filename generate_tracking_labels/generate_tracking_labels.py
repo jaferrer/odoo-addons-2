@@ -37,6 +37,7 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
                                     help=u"Numéro de commande tel que renseigné dans votre SI. Peut être utile pour "
                                          u"rechercher des colis selon ce champ sur le suivi ColiView (apparaît dans le "
                                          u"champ 'Réf. client')")
+    customer_parcel_ref = fields.Char(string=u"Ref bill number")
     sale_order_id = fields.Many2one('sale.order', string=u"Commande client")
     partner_orig_id = fields.Many2one('res.partner', string=u"Expéditeur", required=True)
     partner_id = fields.Many2one('res.partner', string=u"Adresse")
@@ -79,6 +80,8 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
                            help=u"Sélectionnez manuel vous souhaitez prendre à votre charge les droits de douanes en "
                                 u"cas de taxation des colis")
     insurance = fields.Boolean(u"Assurance", help=u"Cochez la case pour assurer l'envoi à sa valeur.")
+
+    id_relais = fields.Char(string="Id point relais")
 
     @api.model
     def default_get(self, fields_list):
@@ -198,6 +201,11 @@ class GenerateTrackingLabelsWizard(models.TransientModel):
     def get_order_number(self):
         self.ensure_one()
         return self.sale_order_id.name or ''
+
+    @api.multi
+    def get_login_dict(self):
+        self.ensure_one()
+        return {}
 
     @api.multi
     def generate_label(self):
