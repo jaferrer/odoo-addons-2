@@ -54,3 +54,8 @@ msgstr "Uuid du job de lancer ou de confirmation"
 #: field:stock.move,confirm_job_uuid:0
 msgid "Confirm job uuid"
 msgstr "Uuid du job de confirmation"
+
+#. module: scheduler_async
+#: model:ir.actions.server,name:scheduler_async.ir_actions_launch_job_cancel_procurement
+msgid "Cancel procurements (asynchronous)"
+msgstr "Anuler les approvisionnements (asynchrone)"

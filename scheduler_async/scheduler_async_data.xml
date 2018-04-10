@@ -32,5 +32,21 @@
             <field name="parent_id" ref="connector.channel_root"/>
         </record>
 
+        <record model="ir.actions.server" id="ir_actions_launch_job_cancel_procurement">
+            <field name="name">Cancel procurements (asynchronous)</field>
+            <field name="model_id" ref="procurement.model_procurement_order"/>
+            <field name="code">
+self.launch_job_cancel_procurement(cr, uid, context.get('active_ids'), False, context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_launch_job_cancel_procurement">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">procurement.order</field>
+            <field name="name">Cancel procurements (asynchronous)</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_launch_job_cancel_procurement)"/>
+        </record>
+
     </data>
 </openerp>
