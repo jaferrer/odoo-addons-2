@@ -117,6 +117,13 @@ def assign_moves(session, model_name, ids, context):
     moves.action_assign()
 
 
+@job
+def job_cancel_procurement(session, model_name, ids, context):
+    """Cancel procurements"""
+    procs = session.env[model_name].with_context(context).browse(ids)
+    procs.cancel()
+
+
 class ProcurementComputeAllAsync(models.TransientModel):
     _inherit = 'procurement.order.compute.all'
 
@@ -316,13 +323,18 @@ FROM procurement_order po
                      'openerp.addons.scheduler_async.scheduler_async.run_or_check_procurements'),
                     ('state', 'not in', ('done', 'failed'))], limit=1)
 
-
     @api.model
     def is_moves_confirmation_ok(self):
         return not self.env['queue.job']. \
             search([('job_function_id.name', '=',
                      'openerp.addons.scheduler_async.scheduler_async.confirm_moves'),
                     ('state', 'not in', ('done', 'failed'))], limit=1)
+
+    @api.multi
+    def launch_job_cancel_procurement(self):
+        context = dict(self.env.context)
+        for rec in self:
+            job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', rec.ids, context)
 
 
 class StockMoveAsync(models.Model):
