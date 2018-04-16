@@ -136,7 +136,7 @@ class MoUpdateMrpProduction(models.Model):
             for rec in self:
                 state = vals.get('state', rec.state)
 
-                if state not in ['done', 'cancel']:
+                if state not in ['draft', 'done', 'cancel']:
                     self.update_moves()
         return result
 

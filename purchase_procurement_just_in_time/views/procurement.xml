@@ -2,6 +2,18 @@
 <openerp>
     <data>
 
+        <record model="ir.ui.view" id="procurement_order_jit_tree">
+            <field name="name">procurement_order_jit_tree</field>
+            <field name="model">procurement.order</field>
+            <field name="inherit_id" ref="procurement.procurement_tree_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="state" position="before">
+                    <field name="purchase_id" widget="many2one_clickable"/>
+                </field>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="procurement_order_jit_search">
             <field name="name">procurement_order_jit_search</field>
             <field name="model">procurement.order</field>
@@ -12,6 +24,7 @@
                     <attribute name="name">group_procs_by_state</attribute>
                 </filter>
                 <search position="inside">
+                    <field name="purchase_id"/>
                     <separator/>
                     <filter name="buy_to_run" string="Buy rule to run" domain="[('state', '=', 'buy_to_run')]"/>
                 </search>
