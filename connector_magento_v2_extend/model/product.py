@@ -110,6 +110,8 @@ class ProductAttributev2(models.Model):
     _name = 'product.attribute.extend'
 
     name = fields.Char(string='Nom')
+    owner_id = fields.Many2one('res.partner', string=u'Propriétaire')
+    fluxtendu_active = fields.Boolean(u'Active', default=False)
 
 
 class magentoextendProductAttributev2(models.Model):
@@ -311,8 +313,10 @@ class ProductBatchImporterV2(DelayedBatchImporterV2):
         )
         _logger.info('search for magentoextend Products %s returned %s',
                      filters, record_ids)
-        if record_ids:
-            self._import_record(record_ids, 30)
+        while record_ids:
+            records = record_ids[:1000]
+            record_ids = record_ids[1000:]
+            self._import_record(records, 30)
 
 
 ProductBatchImporterV2 = ProductBatchImporterV2
@@ -547,8 +551,10 @@ class ProductProductImportMapper(ImportMapper):
             for item in record.get("custom_attributes"):
                 attribute = self.env["magentoextend2.product.attribute"].search([('magentoextend_id',
                                                                                   '=',
-                                                                                  item["attribute_code"])])
-                if attribute:
+                                                                                  item["attribute_code"]),
+                                                                                 ('backend_home_id', '=',
+                                                                                  self.backend_record.connector_id.home_id.id)])
+                if attribute.openerp_id.fluxtendu_active:
                     opts = [opt["label"] for opt in eval(attribute[0].options) if opt["value"] == item["value"]]
                     name += opts and ' %s' % opts[0] or ''
         return {'name': "%s %s" % (record.get("name"), name)}
