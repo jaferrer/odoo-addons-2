@@ -144,8 +144,5 @@ class TestSchedulerAsyncRunProcs(common.TransactionCase):
         self.assertEqual(len(init_job), 1)
         self.assertEqual(init_job.state, 'pending')
         session = ConnectorSession.from_env(self.env)
-        with session.change_context(job_uuid='wrong_job_uuid'):
-            with self.assertRaises(RetryableJobError):
-                run_or_check_procurements(session, 'procurement.order', [('id', '=', self.proc.id)],
-                                          'run', dict(self.env.context))
+
         self.assertEqual(self.proc.state, 'confirmed')

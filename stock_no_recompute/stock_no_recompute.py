@@ -59,8 +59,6 @@ class StockQuant(models.Model):
 
     @api.model
     def quants_unreserve(self, move):
-        _logger.warning("Method 'quants_unreserve' of stock.quant is deprecated. "
-                        "Please use do_unreserve of model stock.move instead.")
         related_quants = move.reserved_quant_ids
         if related_quants:
             if move.partially_available:
