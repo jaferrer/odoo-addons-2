@@ -116,6 +116,23 @@ class PurchaseOrderLinePlanningImproved(models.Model):
         return res
 
     @api.cr_uid_ids_context
+    def _compute_has_procurements(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        if ids:
+            cr.execute("""SELECT pol.id
+FROM purchase_order_line pol
+  INNER JOIN procurement_order po ON po.purchase_line_id = pol.id
+WHERE pol.id IN %s
+GROUP BY pol.id""", (tuple(ids),))
+            line_with_proc_ids = [item[0] for item in cr.fetchall()]
+            for line in self.browse(cr, uid, ids, context=context):
+                if line.id in line_with_proc_ids and not line.has_procurements:
+                    res[line.id] = True
+                elif line.id not in line_with_proc_ids and line.has_procurements:
+                    res[line.id] = False
+        return res
+
+    @api.cr_uid_ids_context
     def _get_order_lines(self, cr, uid, ids, context=None):
         res = set()
         for proc in self.browse(cr, uid, ids, context=context):
@@ -144,6 +161,10 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                                                         'procurement.order': (_get_order_lines,
                                                                               ['date_planned', 'purchase_line_id'], 20)
                                                     }, readonly=True),
+        'has_procurements': old_api_fields.function(_compute_has_procurements, type='boolean',
+                                                    string=u"Has procurements", readonly=True,
+                                                    store={'procurement.order': (_get_order_lines,
+                                                                                 ['purchase_line_id'], 20)}),
     }
 
     confirm_date = fields.Datetime("Confirm date", help="Confirmation Date", readonly=True)
