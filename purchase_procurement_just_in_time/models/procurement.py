@@ -805,6 +805,8 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
 
     @api.multi
     def remove_procs_from_lines(self, unlink_moves_to_procs=False):
+        if not self:
+            return
         self.remove_done_moves()
         pickings_with_pol = self.search([('id', 'in', self.ids), ('purchase_line_id', '!=', False)])
         pickings_with_pol.with_context(tracking_disable=True).write({'purchase_line_id': False})
@@ -840,7 +842,6 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
             rec.remove_procs_from_lines()
             if orig_pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
                 orig_pol.adjust_move_no_proc_qty()
-
             rec.with_context(tracking_disable=True).write({'purchase_line_id': pol.id})
             if not rec.move_ids:
                 continue
