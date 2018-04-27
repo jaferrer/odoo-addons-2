@@ -212,7 +212,7 @@ self.run_assign_moves(cr, uid, context=context)
                     <field name="location_id"/>
                     <filter name="move" string="Move" domain="[('action', '=', 'move')]"/>
                     <filter name="manufacture" string="Manufacture" domain="[('action', '=', 'manufacture')]"/>
-                    <filter name="buy" string="Buy" domain="[('action', '=', 'manufacture')]"/>
+                    <filter name="buy" string="Buy" domain="[('action', '=', 'buy')]"/>
                     <filter name="make_to_stock" string="Make to stock" domain="[('procure_method', '=', 'make_to_stock')]"/>
                     <filter name="make_to_order" string="Make to order" domain="[('procure_method', '=', 'make_to_order')]"/>
                     <group expand="0" string="Group By">
