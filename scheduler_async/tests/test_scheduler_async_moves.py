@@ -139,4 +139,7 @@ class TestSchedulerAsyncMoves(common.TransactionCase):
         self.assertEqual(len(init_job), 1)
         self.assertEqual(init_job.state, 'pending')
         session = ConnectorSession.from_env(self.env)
+        with session.change_context(job_uuid='wrong_job_uuid'):
+            with self.assertRaises(RetryableJobError):
+                confirm_moves(session, 'stock.move', self.move.ids, dict(self.env.context))
         self.assertEqual(self.move.state, 'draft')
