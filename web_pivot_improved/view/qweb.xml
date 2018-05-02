@@ -1,0 +1,9 @@
+<openerp>
+    <data>
+       <template id="assets_backend" name="web_pivot_improved assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_pivot_improved/static/src/js/web_pivot_improved.js"></script>
+            </xpath>
+       </template>
+    </data>
+</openerp>

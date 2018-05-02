@@ -313,8 +313,10 @@ class ProductBatchImporterV2(DelayedBatchImporterV2):
         )
         _logger.info('search for magentoextend Products %s returned %s',
                      filters, record_ids)
-        if record_ids:
-            self._import_record(record_ids, 30)
+        while record_ids:
+            records = record_ids[:1000]
+            record_ids = record_ids[1000:]
+            self._import_record(records, 30)
 
 
 ProductBatchImporterV2 = ProductBatchImporterV2
