@@ -21,6 +21,7 @@ import re
 
 from openerp import models, api, _
 from openerp.osv import expression
+from openerp.tools import float_round
 
 
 class ProductLabelProductProduct(models.Model):
@@ -80,3 +81,22 @@ class ProductLabelProductProduct(models.Model):
                        ('location_dest_id.company_id', 'child_of', self.env.user.company_id.id)],
             'context': ctx,
         }
+
+
+class ProductUomImproved(models.Model):
+    _inherit = 'product.uom'
+
+    def _compute_qty_obj(self, cr, uid, from_unit, qty, to_unit, round=True, rounding_method='UP', context=None):
+        if from_unit == to_unit:
+            res_qty = qty
+            if round:
+                res_qty = float_round(res_qty, precision_rounding=to_unit.rounding, rounding_method=rounding_method)
+            return res_qty
+        return super(ProductUomImproved, self).\
+            _compute_qty_obj(cr, uid, from_unit, qty, to_unit, round, rounding_method, context)
+
+    def _compute_price(self, cr, uid, from_uom_id, price, to_uom_id=False):
+        if from_uom_id == to_uom_id:
+            return price
+        return super(ProductUomImproved, self). \
+            _compute_price(cr, uid, from_uom_id, price, to_uom_id)

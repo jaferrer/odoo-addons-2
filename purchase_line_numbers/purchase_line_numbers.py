@@ -29,7 +29,7 @@ class ReceptionByOrderPurchaseOrder(models.Model):
         max_number = 0
         for rec in self:
             number = 10
-            for line in rec.order_line:
+            for line in rec.order_line.sort_lines_to_renumerate():
                 dict_line_no[line] = number
                 max_number = max(max_number, number)
                 number += 10
@@ -52,6 +52,10 @@ class ReceptionByOrderPurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
     line_no = fields.Char("Line no.")
+
+    @api.multi
+    def sort_lines_to_renumerate(self):
+        return self
 
     @api.multi
     def name_get(self):

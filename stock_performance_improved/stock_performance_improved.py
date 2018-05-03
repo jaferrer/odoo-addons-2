@@ -17,12 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp.tools import drop_view_if_exists, flatten, float_compare, float_round
-from openerp import fields, models, api, osv, _
-from openerp.osv import fields as old_api_fields
+from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.procurement import procurement
 from openerp.addons.scheduler_async import scheduler_async
-from openerp.addons.connector.session import ConnectorSession
+
+from openerp import fields, models, api, osv, _
+from openerp.osv import fields as old_api_fields
+from openerp.tools import drop_view_if_exists, flatten, float_compare, float_round
 
 assign_moves = scheduler_async.assign_moves
 
@@ -762,6 +763,24 @@ class StockMove(models.Model):
 
         return res
 
+    def _compute_quants_ids(self, cr, uid, ids, name, args, context=None):
+        res = {}
+        query = """SELECT
+              sq.id AS quant_id,
+              sqmr.move_id
+            FROM stock_quant_move_rel sqmr
+            INNER JOIN stock_quant sq ON sqmr.quant_id = sq.id
+            WHERE sqmr.move_id IN %s"""
+        cr.execute(query, (tuple(ids),))
+        query_result = cr.fetchall()
+        for quant_id in ids:
+            quant_ids = [item[0] for item in query_result if item[1] == quant_id]
+            res[quant_id] = quant_ids
+        return res
+
+    def _set_quants_ids(self, cr, uid, move_id, field_name, field_value, arg, context=None):
+        self.write(cr, uid, [move_id], {'quant_ids_many2many': field_value})
+
     _columns = {
         'reserved_availability': old_api_fields.function(_get_reserved_availability, type='float',
                                                          string='Quantity Reserved', readonly=True,
@@ -770,6 +789,11 @@ class StockMove(models.Model):
                                                  digits=0,
                                                  states={'done': [('readonly', True)]},
                                                  help="Remaining Quantity in default UoM according to operations matched with this move"),
+        'quant_ids_many2many': old_api_fields.many2many('stock.quant', 'stock_quant_move_rel', 'move_id', 'quant_id',
+                                                        string="Moved Quants", copy=False),
+        'quant_ids': old_api_fields.function(_compute_quants_ids, type='many2many', relation='stock.quant',
+                                             string="Moved Quants", copy=False, fnct_inv=_set_quants_ids,
+                                             help="Computed field, faster than Many2many one"),
     }
 
     defer_picking_assign = fields.Boolean("Defer Picking Assignement", default=False,
@@ -1066,3 +1090,19 @@ class StockInventoryLine(models.Model):
                 if moves_to_unreserve:
                     moves_to_unreserve.do_unreserve()
         return super(StockInventoryLine, self)._resolve_inventory_line(inventory_line)
+
+
+class StockMoveOperationLinkImporved(models.Model):
+    _inherit = 'stock.move.operation.link'
+
+    @api.model
+    def sweep_move_operation_links(self):
+        self.env.cr.execute("""WITH link_ids_to_delete AS (
+    SELECT link.id
+    FROM stock_move_operation_link link
+      LEFT JOIN stock_move sm ON sm.id = link.move_id
+    WHERE link.move_id IS NOT NULL AND sm.state IN ('done', 'cancel'))
+
+DELETE FROM stock_move_operation_link
+WHERE id IN (SELECT id
+             FROM link_ids_to_delete);""")

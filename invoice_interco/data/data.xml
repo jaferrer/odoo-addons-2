@@ -29,7 +29,7 @@
             <field name="date_invoice" eval="time.strftime('%Y')+'-01-01'"/>
             <field eval="14.0" name="amount_untaxed"/>
             <field eval="14.0" name="amount_total"/>
-            <field name="partner_id" ref="main_partner_2"/>
+            <field name="partner_id" ref="base.main_partner"/>
         </record>
         <record id="demo_invoice_reverse_0_line_rpanrearpanelshe0" model="account.invoice.line">
             <field name="invoice_id" ref="demo_invoice_reverse_0"/>
