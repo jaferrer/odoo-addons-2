@@ -28,12 +28,11 @@ class AccountInvoiceRelanceConfig(models.Model):
     name = fields.Char(required=True, string=u"Name")
     number = fields.Integer(u"Dunning number", default=1, required=True)
     sequence_id = fields.Many2one('ir.sequence', string=u"Sequence")
-    report_id = fields.Many2one('ir.actions.report.xml', u"Report", domain=[('model', '=', 'account.invoice.dunning')],
-                                required=True)
-    mail_template_id = fields.Many2one('mail.template', u"Mail Template", domain=_get_domain_mail_template,
+    report_id = fields.Many2one('ir.actions.report.xml', string=u"Report",
+                                domain=[('model', '=', 'account.invoice.dunning')], required=True)
+    mail_template_id = fields.Many2one('mail.template', string=u"Mail Template", domain=_get_domain_mail_template,
                                        required=True)
-    company_id = fields.Many2one('res.company', u"Company", groups='base.group_multi_company',
-                                 default=lambda self: self.env.user.company_id)
+    company_id = fields.Many2one('res.company', string=u"Company", default=lambda self: self.env.user.company_id)
 
     @api.multi
     def _get_dunning_name(self):
@@ -46,6 +45,7 @@ class AccountInvoiceRelanceConfig(models.Model):
 
 class AccountInvoiceRelance(models.Model):
     _name = 'account.invoice.dunning'
+    _inherit = ['mail.thread']
 
     name = fields.Char(u"Name")
     date_done = fields.Date(u"Dunning date done", readonly=True)
@@ -53,14 +53,14 @@ class AccountInvoiceRelance(models.Model):
         ('draft', u"Draft"),
         ('send', u"Send"),
         ('cancel', u"Cancel"),
-        ('done', u"Done")], string=u"State", readonly=True, default='draft')
-    partner_id = fields.Many2one('res.partner', u"Partner")
-    company_id = fields.Many2one('res.company', u"Company", groups='base.group_multi_company',
-                                 default=lambda self: self.env.user.company_id)
+        ('done', u"Done")], string=u"State", readonly=True, default='draft', track_visibility='onchange')
+    partner_id = fields.Many2one('res.partner', string=u"Partner")
+    company_id = fields.Many2one('res.company', string=u"Company", default=lambda self: self.env.user.company_id)
     dunning_type_id = fields.Many2one('account.invoice.dunning.type', string=u"Dunning Type")
-    report_id = fields.Many2one('ir.actions.report.xml', u"Report", related='dunning_type_id.report_id', readonly=True)
+    report_id = fields.Many2one('ir.actions.report.xml', string=u"Report", related='dunning_type_id.report_id',
+                                readonly=True)
     sequence_id = fields.Many2one('ir.sequence', related='dunning_type_id.sequence_id', readonly=True)
-    mail_template_id = fields.Many2one('mail.template', u"Mail Template",
+    mail_template_id = fields.Many2one('mail.template', string=u"Mail Template",
                                        related='dunning_type_id.mail_template_id', readonly=True)
     invoice_ids = fields.Many2many('account.invoice', string=u"Invoices")
     amount_total_signed = fields.Float(u"Total", compute='_compute_amounts')
@@ -199,7 +199,7 @@ class AccountInvoice(models.Model):
     @api.multi
     def _validate_to_create_dunning(self):
         if self.state != 'open':
-            raise osv.osv.except_orm(_(u"Error !"), _(u"You can't create a Dunning on an invoice with the state draft"))
+            raise osv.osv.except_orm(_(u"Error !"), _(u"You can't create a Dunning on an invoice which is not open"))
         if self.type != 'out_invoice':
             raise osv.osv.except_orm(_(u"Error !"), _(u"You can only create a Dunning on an Sale Invoice"))
 
@@ -220,6 +220,15 @@ class AccountInvoice(models.Model):
             'company_id': self.company_id.id,
             'name': dunning_type_id._get_dunning_name()
         }
+
+    @api.multi
+    def action_invoice_paid(self):
+        to_pay_invoices = self.filtered(lambda inv: inv.state != 'paid')
+        for rec in to_pay_invoices:
+            for dunning in rec.invoice_dunning_ids:
+                if dunning.state == 'draft':
+                    rec.invoice_dunning_ids = [(3, dunning.id)]
+        return super(AccountInvoice, self).action_invoice_paid()
 
 
 class MailComposeMessage(models.TransientModel):
