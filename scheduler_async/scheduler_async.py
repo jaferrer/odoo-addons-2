@@ -124,6 +124,13 @@ def job_cancel_procurement(session, model_name, ids, context):
     procs.cancel()
 
 
+@job
+def job_unlink_orderpoints(session, model_name, ids, context):
+    """Unlink orderpoints"""
+    orderpoints = session.env[model_name].with_context(context).browse(ids)
+    orderpoints.unlink()
+
+
 class ProcurementComputeAllAsync(models.TransientModel):
     _inherit = 'procurement.order.compute.all'
 
@@ -341,3 +348,15 @@ class StockMoveAsync(models.Model):
     _inherit = 'stock.move'
 
     confirm_job_uuid = fields.Char(tring=u"Job UUID to confirm this move")
+
+
+
+class OrderpointAsync(models.Model):
+    _inherit = 'stock.warehouse.orderpoint'
+
+    @api.multi
+    def launch_job_unlink_orderpoints(self):
+        context = dict(self.env.context)
+        for rec in self:
+            job_unlink_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                         rec.ids, context)
