@@ -58,4 +58,4 @@ msgstr "Uuid du job de confirmation"
 #. module: scheduler_async
 #: model:ir.actions.server,name:scheduler_async.ir_actions_launch_job_cancel_procurement
 msgid "Cancel procurements (asynchronous)"
-msgstr "Anuler les approvisionnements (asynchrone)"
+msgstr "Annuler les approvisionnements (asynchrone)"
