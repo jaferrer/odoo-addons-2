@@ -293,9 +293,9 @@ class IHM(object):
             log_print(u"Etape 1/3")
             log_print(u"Découverte des Scanners Disponnible...")
             log_print(u"Nombre de scanners découvert %s" % len(scanners))
-            for i in range(0, len(scanners)):
-                log_print(u"%s --> %s" % (i, scanners[i]))
             if scanners:
+                for i in range(0, len(scanners)):
+                    log_print(u"%s --> %s" % (i, scanners[i]))
                 log_print(u"Choisir le scanner voulu")
                 choice = input(u"--> ")
                 current_scanner = scanners[choice]
@@ -322,48 +322,54 @@ class IHM(object):
 
     def _loop(self):
         while True:
+            try:
+                self._loop_code()
+            except ValueError as e:
+                log_print(e, False)
+
+    def _loop_code(self):
+        results = self._req.long_pollng()
+        logging.debug(results)
+        scanne_done = False
+        while not results.ok():
+            logging.error(results.error)
+            log_print(u"Reconnexion dans 30sec suite à une erreur")
+            time.sleep(30)
+            self._init()
             results = self._req.long_pollng()
-            logging.debug(results)
-            scanne_done = False
-            while not results.ok():
-                logging.error(results.error)
-                log_print(u"Reconnexion dans 30sec suite à une erreur")
-                time.sleep(30)
-                self._init()
-                results = self._req.long_pollng()
 
-            self._req.increment_last_poll(results)
+        self._req.increment_last_poll(results)
 
-            for message in [item['message']
-                            for item in results.json()
-                            if item.get('channel', ())
-                            and 'request.scanner' == item['channel'][1]
-                            and item['channel'][0] == self._req.db
-                            and item['message'].get('scan_name') == self._config.get_normalize_name()
-                            ]:
-                logging.debug(message)
-                log_print(u"Scan en cours ...")
-                filenames = self._scanner.scan(
-                    dpi=message.get('scan_dpi_info', 300),
-                    pixeltype=message.get('scan_color_info', 'color'),
-                    duplex=message.get('scan_duplex', False)
-                )
-                log_print(u"Fusion des pages")
-                file = self._scanner.merge_file(filenames)
-                if file:
-                    with open(file, 'rb') as pdf:
-                        log_print(u"Envoi à Odoo en cours ...")
-                        res = self._req.upload(pdf, message)
-                        if not res.ok():
-                            log_print(u"Une erreur est apparut lors de l'upload du fichier")
-                        else:
-                            log_print(u"Upload Fini")
-                            scanne_done = True
+        for message in [item['message']
+                        for item in results.json()
+                        if item.get('channel', ())
+                           and 'request.scanner' == item['channel'][1]
+                           and item['channel'][0] == self._req.db
+                           and item['message'].get('scan_name') == self._config.get_normalize_name()
+                        ]:
+            logging.debug(message)
+            log_print(u"Scan en cours ...")
+            filenames = self._scanner.scan(
+                dpi=message.get('scan_dpi_info', 300),
+                pixeltype=message.get('scan_color_info', 'color'),
+                duplex=message.get('scan_duplex', False)
+            )
+            log_print(u"Fusion des pages")
+            file = self._scanner.merge_file(filenames)
+            if file:
+                with open(file, 'rb') as pdf:
+                    log_print(u"Envoi à Odoo en cours ...")
+                    res = self._req.upload(pdf, message)
+                    if not res.ok():
+                        log_print(u"Une erreur est apparut lors de l'upload du fichier")
+                    else:
+                        log_print(u"Upload Fini")
+                        scanne_done = True
 
-                else:
-                    log_print(u"Aucun document a uploader")
-            if scanne_done:
-                log_print(u"En attente de demande de scan")
+            else:
+                log_print(u"Aucun document a uploader")
+        if scanne_done:
+            log_print(u"En attente de demande de scan")
 
     def _choose_name(self):
         log_print(u"Nom du Scanner")
