@@ -73,7 +73,7 @@ msgstr "Quantité"
 #. module: sale_order_report_aeroo
 #: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Unit Price"
-msgstr "Prix Unitaire"
+msgstr "P.U. HT"
 
 #. module: sale_order_report_aeroo
 #: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
