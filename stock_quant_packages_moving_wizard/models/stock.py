@@ -205,7 +205,6 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
                                                           ('state', '=', 'draft')])
         if moves_to_confirm:
             moves_to_confirm.action_confirm()
-        new_picking.move_lines.delete_packops()
         products_filled = self.env['product.to.be.filled'].search([('picking_id', '=', new_picking_id),
                                                                    ('product_id', '=', product_id)])
         if products_filled:
@@ -278,7 +277,7 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
         for rec in self:
             for move in rec.history_ids:
                 if move.location_dest_id == rec.location_id and move.move_dest_id and \
-                        move.move_dest_id. state not in ['draft', 'done', 'cancel']:
+                        move.move_dest_id.state not in ['draft', 'done', 'cancel']:
                     service_moves |= move
         for service_move in service_moves:
             list_next_moves |= service_move.move_dest_id
@@ -365,8 +364,9 @@ class StockMove(models.Model):
 
     def delete_packops(self):
         for move in self:
-            if move.linked_move_operation_ids:
-                move.linked_move_operation_ids.unlink()
+            linked_move_operation_ids = move.linked_move_operation_ids
+            if linked_move_operation_ids:
+                linked_move_operation_ids.unlink()
 
     @api.model
     def split_not_totally_consumed_moves(self, dict_reservation_target):
@@ -552,6 +552,28 @@ FROM
             'target': 'new',
             'context': ctx,
         }
+
+    @api.multi
+    def get_quants_from_package(self):
+        packages = self.env['stock.quant.package']
+        for rec in self:
+            packages |= rec.package_id
+        quants_to_move = packages.get_content()
+        return self.env['stock.quant'].browse(quants_to_move)
+
+    @api.multi
+    def get_quants(self):
+        quants_packaged = self.get_quants_from_package()
+        lot_ids = self.mapped("lot_id").ids
+        uom_ids = self.mapped("uom_id").ids
+        domain = [('product_id', 'in', self.mapped("product_id").ids),
+                  ('location_id', 'in', self.mapped("location_id").ids),
+                  ('id', 'not in', quants_packaged.ids)]
+        if lot_ids:
+            domain.append(('lot_id', 'in', lot_ids))
+        if uom_ids:
+            domain.append(('product_id.uom_id', 'in', uom_ids))
+        return self.env['stock.quant'].search(domain, order='in_date, qty'), quants_packaged
 
 
 class ProductToBeFilled(models.Model):

@@ -13,8 +13,8 @@
                         <field name="limit_order_date" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                     </field>
                     <xpath expr="//field[@name='order_line']//field[@name='date_planned']" position="before">
-                        <field name="procurement_ids" invisible="1"/>
-                        <field name="date_required" attrs="{'readonly': [('procurement_ids','!=', False)]}"/>
+                        <field name="has_procurements" invisible="1"/>
+                        <field name="date_required" attrs="{'readonly': [('has_procurements','=', True)]}"/>
                         <field name="limit_order_date" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                         <field name="requested_date"/>
                     </xpath>

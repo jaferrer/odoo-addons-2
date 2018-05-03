@@ -206,9 +206,10 @@ class ProcurementOrderQuantity(models.Model):
         """
         Improves the original propagate_cancel, in order to cancel it even if one of its moves is done.
         """
-        ignore_move_ids = procurement.rule_id.action == 'move' and procurement.move_ids and \
-            procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
+        ignore_move_ids = []
         if procurement.rule_id.action == 'move':
+            ignore_move_ids += self.env['stock.move'].search([('procurement_id', '=', procurement.id),
+                                                              ('state', 'in', ['done', 'cancel'])]).ids
             # Keep proc with new qty if some moves are already done
             procurement.remove_done_moves()
         return super(ProcurementOrderQuantity,

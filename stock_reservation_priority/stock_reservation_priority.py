@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api, fields
+from openerp import models, api, fields, exceptions
 from openerp.tools import float_compare
 
 
@@ -29,6 +29,8 @@ class StockReservationPriorityStockMove(models.Model):
     @api.model
     def get_reserved_quants_query(self, product_id, location_id, picking_id):
         location = self.env['stock.location'].search([('id', '=', location_id)])
+        if not location:
+            raise exceptions.MissingError(u"Can't find the location with id:%s maybe active = False" % location_id)
         res = """
             SELECT sq.reservation_id
             FROM stock_quant sq

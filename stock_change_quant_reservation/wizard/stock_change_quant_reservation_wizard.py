@@ -82,7 +82,7 @@ class StockChangeQuantPicking(models.TransientModel):
         self.ensure_one()
         quants_ids = self.env.context.get('active_ids', [])
         quants = self.env['stock.quant'].browse(quants_ids)
-        self.env['stock.quant'].quants_unreserve(self.move_id)
+        self.move_id.do_unreserve()
         available_qty_on_move = self.move_id.product_qty
         recalculate_state_for_moves = self.env['stock.move']
         list_reservations = []
