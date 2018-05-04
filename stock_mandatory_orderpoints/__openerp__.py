@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Stock Location OrderPoint',
+    'name': 'Stock Mandatory Orderpoints',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
