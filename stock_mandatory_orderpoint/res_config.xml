@@ -10,7 +10,7 @@
             <field name="arch" type="xml">
                 <data>
                     <form position="inside">
-                        <separator string="Required OrderPoint"/>
+                        <separator string="Required OrderPoints"/>
                         <button name="update_orderpoint" type="object" string="Update Orderpoint"/>
                         <field name="required_orderpoint_location_ids" widget="many2many_tags"/>
                     </form>
@@ -26,7 +26,7 @@
             <field name="arch" type="xml">
                 <data>
                     <sheet position="inside">
-                        <separator string="Required OrderPoint For Location"/>
+                        <separator string="OrderPoints Required For Location"/>
                         <field name="required_orderpoint_location_ids" widget="many2many_tags"/>
                     </sheet>
                 </data>

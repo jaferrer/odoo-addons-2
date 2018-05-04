@@ -18,13 +18,14 @@
 #
 
 from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
 
 from openerp import fields, models, api
 
 
 @job
-def create_needed_orderpoint_for_product(session, context):
-    session.env['product.product'].with_context(context).search([])._create_needed_orderpoint()
+def create_needed_orderpoint_for_product(session, model, ids, context):
+    session.env['product.product'].with_context(context).search([('id', 'in', ids)])._create_needed_orderpoints()
 
 
 class ProductProduct(models.Model):
@@ -33,18 +34,31 @@ class ProductProduct(models.Model):
     @api.model
     def create(self, vals):
         product = super(ProductProduct, self).create(vals)
-        product._create_needed_orderpoint()
+        product.create_needed_orderpoints()
         return product
 
     @api.multi
     def write(self, vals):
         product = super(ProductProduct, self).write(vals)
         if 'route_ids' in vals:
-            self._create_needed_orderpoint()
+            self.create_needed_orderpoints()
         return product
 
     @api.multi
-    def _create_needed_orderpoint(self):
+    def create_needed_orderpoints(self, jobify=True):
+        if jobify:
+            products = self
+            while products:
+                chunk_products = products[:100]
+                products = products[100:]
+                create_needed_orderpoint_for_product.delay(ConnectorSession.from_env(self.env), 'product.product',
+                                                           chunk_products.ids, dict(self.env.context), )
+        else:
+            create_needed_orderpoint_for_product(ConnectorSession.from_env(self.env), 'product.product',
+                                                 self.ids, dict(self.env.context))
+
+    @api.multi
+    def _create_needed_orderpoints(self):
         location_config_ids = self.env['ir.config_parameter'].get_param(
             "stock_location_orderpoint.required_orderpoint_location_ids", default="[]")
         orderpoint_required_location = self.env['stock.location'].browse(eval(location_config_ids))
@@ -81,4 +95,4 @@ class SirailLogistiqueStockLocationRoute(models.Model):
     @api.multi
     def update_orderpoint(self):
         for rec in self:
-            rec.product_ids._create_needed_orderpoint()
+            rec.product_ids.create_needed_orderpoints()

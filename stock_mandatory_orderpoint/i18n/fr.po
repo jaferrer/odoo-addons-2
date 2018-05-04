@@ -37,13 +37,13 @@ msgstr "Produits"
 
 #. module: stock_location_orderpoint
 #: view:stock.config.settings:stock_location_orderpoint.stock_location_orderpoint_config
-msgid "Required OrderPoint"
-msgstr "Règles de réassort obligatoire"
+msgid "Required OrderPoints"
+msgstr "Règles de réassort obligatoires"
 
 #. module: stock_location_orderpoint
 #: view:stock.location.route:stock_location_orderpoint.stock_location_orderpoint_rule
-msgid "Required OrderPoint For Location"
-msgstr "Règles de réassort obligatoire pour les emplacements"
+msgid "OrderPoints Required For Location"
+msgstr "Règles de réassort obligatoires pour les emplacements"
 
 #. module: stock_location_orderpoint
 #: view:stock.config.settings:stock_location_orderpoint.stock_location_orderpoint_config

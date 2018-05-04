@@ -18,8 +18,7 @@
 #
 
 from openerp import models, fields, api
-from openerp.addons.connector.session import ConnectorSession
-from .product import create_needed_orderpoint_for_product
+
 
 class StockProcurementJitConfig(models.TransientModel):
     _inherit = 'stock.config.settings'
@@ -27,11 +26,8 @@ class StockProcurementJitConfig(models.TransientModel):
     required_orderpoint_location_ids = fields.Many2many('stock.location', string=u"Required Orderpoint Location")
 
     @api.multi
-    def update_orderpoint(self):
-        if self.env.context.get('jobify', True):
-            create_needed_orderpoint_for_product.delay(ConnectorSession.from_env(self.env), self.env.context)
-        else:
-            create_needed_orderpoint_for_product(ConnectorSession.from_env(self.env), self.env.context)
+    def update_orderpoint(self, jobify=True):
+        self.env['product.product'].search([]).create_needed_orderpoints(jobify=jobify)
 
     @api.multi
     def get_default_required_orderpoint_location_ids(self):
