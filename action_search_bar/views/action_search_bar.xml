@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <template id="assets_backend" name="action_search_bar assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/action_search_bar/static/src/js/action-search-bar.js"></script>
+                <link rel="stylesheet" href="/action_search_bar/static/src/css/action_search_bar.css"/>
+            </xpath>
+        </template>
+    </data>
+</openerp>
