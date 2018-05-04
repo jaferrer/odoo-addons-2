@@ -48,7 +48,6 @@ class ProductProduct(models.Model):
         location_config_ids = self.env['ir.config_parameter'].get_param(
             "stock_location_orderpoint.required_orderpoint_location_ids", default="[]")
         orderpoint_required_location = self.env['stock.location'].browse(eval(location_config_ids))
-        # TODO get location in config
         for rec in self:
             orderpoint_required_location |= rec.route_ids.mapped('required_orderpoint_location_ids')
             for location in orderpoint_required_location:
