@@ -19,15 +19,12 @@
 
 import logging
 import jsonrpclib
-import datetime as dt
-from openerp import tools
 
 from openerp import models, fields, api
-
-_logger = logging.getLogger(__name__)
-
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
+
+_logger = logging.getLogger(__name__)
 
 
 @job(default_channel='root.distribution')
