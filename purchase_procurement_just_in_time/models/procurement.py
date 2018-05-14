@@ -685,7 +685,8 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             if first_purchase_dates[company_id][location_id]['definitive']:
                 continue
             first_purchase_date = first_purchase_dates[company_id][location_id]['first_purchase_date']
-            first_proc = self.search([('company_id', '=', company_id),
+            first_proc = self.search([('id', 'in', self.ids),
+                                      ('company_id', '=', company_id),
                                       ('location_id', '=', location_id),
                                       ('product_id', '=', product_id)], order='date_planned', limit=1)
             if not first_proc:
