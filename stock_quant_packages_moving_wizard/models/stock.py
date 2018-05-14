@@ -576,6 +576,8 @@ FROM
         return self.env['stock.quant'].search(domain, order='in_date, qty'), quants_packaged
 
 
+
+
 class ProductToBeFilled(models.Model):
     _name = 'product.to.be.filled'
 
