@@ -65,17 +65,40 @@ class ProductLineMoveWizard(models.TransientModel):
                     rec.picking_type_id = self.env['stock.quant'].get_default_picking_type_for_move()
 
     @api.multi
-    def move_products(self):
-        self.ensure_one()
-        lines = self.quant_line_ids + self.package_line_ids
-        lines.check_quantities()
-        lines.check_data_active()
-        is_manual_op = self.is_manual_op or lines.force_is_manual_op()
+    def _get_quants_from_package(self):
         packages = self.env['stock.quant.package']
         for package_line in self.package_line_ids:
             packages |= package_line.package_id
         quants_to_move = packages.get_content()
-        quants_to_move = self.env['stock.quant'].browse(quants_to_move)
+        return self.env['stock.quant'].browse(quants_to_move)
+
+    @api.multi
+    def _get_quants(self):
+        quants_packaged = self._get_quants_from_package()
+        quants_no_packaged = self.env['stock.quant']
+        for quant_line in self.quant_line_ids:
+            domain = [('product_id', '=', quant_line.product_id.id),
+                      ('location_id', '=', quant_line.location_id.id),
+                      ('package_id', '=', quant_line.package_id and quant_line.package_id.id or False),
+                      ('lot_id', '=', quant_line.lot_id and quant_line.lot_id.id or False),
+                      ('product_id.uom_id', '=', quant_line.uom_id and quant_line.uom_id.id or False),
+                      ('id', 'not in', quants_packaged.ids)]
+            quants_no_packaged |= self.env['stock.quant'].search(domain, order='in_date, qty')
+        return quants_no_packaged, quants_packaged
+
+    @api.multi
+    def _check_before_move_products(self):
+        lines = self.quant_line_ids + self.package_line_ids
+        lines.check_quantities()
+        lines.check_data_active()
+        return lines
+
+    @api.multi
+    def move_products(self):
+        self.ensure_one()
+        lines = self._check_before_move_products()
+        is_manual_op = self.is_manual_op or lines.force_is_manual_op()
+        quants_to_move = self._get_quants_from_package()
         move_items = {}
         # Let's add package quants
         for quant in quants_to_move:
