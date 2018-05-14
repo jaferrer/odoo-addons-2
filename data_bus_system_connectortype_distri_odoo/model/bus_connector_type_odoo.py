@@ -101,3 +101,26 @@ class ConnectorTypeOdooParameter(models.Model):
     method_name = fields.Char(string=u'Méthode destinataire')
 
     distributeur_id = fields.Many2one('distributeur', string=u"Distributeur", required=True)
+
+    @api.multi
+    def test_connexion(self):
+        self.ensure_one()
+        url = "http://%s:%s/jsonrpc" % (self.url, self.port)
+        server = jsonrpclib.Server(url)
+        # log in the given database
+        try:
+            connexion_state = server.call(service="common", method="login", args=[self.db, self.login, self.pwd])
+        except Exception:
+            connexion_state = False
+
+        return {
+            'name': 'Parameter',
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': self._name,
+            'flags': {'form': {'action_buttons': True}},
+            'res_id': self.id,
+            'target': 'new',
+            'context': {'connexion_state': connexion_state}
+        }
