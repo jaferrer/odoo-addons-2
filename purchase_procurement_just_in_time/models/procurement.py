@@ -140,6 +140,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
                               ('buy_to_run', "Buy rule to run"),
                               ('running', "Running"),
                               ('done', "Done")])
+    purchase_line_id = fields.Many2one('purchase.order.line', index=True)
     date_buy_to_run = fields.Datetime(string=u"Date buy to run", copy=False, readonly=True)
 
     @api.multi
