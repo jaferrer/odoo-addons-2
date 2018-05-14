@@ -1007,9 +1007,9 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn(self.company.id, first_purchase_dates.keys())
         self.assertIn(self.location_a.id, first_purchase_dates[self.company.id].keys())
         self.assertIn('first_purchase_date', first_purchase_dates[self.company.id][self.location_a.id].keys())
-        date =first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
+        date = first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
         self.assertTrue(date)
-        self.assertEqual(fields.Date.to_string(date), '3003-08-25')
+        self.assertEqual(date[:10], '3003-08-25')
 
         # Now, let's try with a past procurement
         self.proc1.date_planned = '2018-03-09 12:00:00'
@@ -1017,6 +1017,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn(self.company.id, first_purchase_dates.keys())
         self.assertIn(self.location_a.id, first_purchase_dates[self.company.id].keys())
         self.assertIn('first_purchase_date', first_purchase_dates[self.company.id][self.location_a.id].keys())
-        date =first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
+        date = first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
         self.assertTrue(date)
-        self.assertEqual(fields.Date.to_string(date), fields.Date.to_string(dt.today()))
+        self.assertEqual(date[:10], fields.Date.today())

@@ -665,17 +665,105 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         return return_msg
 
     @api.multi
+    def get_first_date_planned_by_delay(self):
+        if self:
+            seller = self.env['procurement.order']._get_product_supplier(self[0])
+            self.env.cr.execute("""WITH procurement_order_restricted AS (
+    SELECT *
+    FROM procurement_order
+    WHERE id IN %s),
+
+    product_product_restricted AS (
+      SELECT *
+      FROM product_product
+      WHERE id IN (SELECT product_id
+                   FROM procurement_order_restricted)),
+
+    product_template_restricted AS (
+      SELECT *
+      FROM product_template
+      WHERE id IN (SELECT product_tmpl_id
+                   FROM product_product_restricted)),
+
+    product_supplierinfo_restricted AS (
+      SELECT *
+      FROM product_supplierinfo
+      WHERE product_tmpl_id IN (SELECT id
+                                FROM product_template_restricted) AND
+            name = %s),
+
+    main_supplier_table_intermediate AS (
+      SELECT
+        pt.id            AS product_tmpl_id,
+        min(ps.sequence) AS sequence
+      FROM product_template_restricted pt
+        LEFT JOIN product_supplierinfo_restricted ps ON ps.product_tmpl_id = pt.id
+      GROUP BY pt.id),
+
+    main_supplier_s AS (
+      SELECT
+        ps.product_tmpl_id,
+        ps.min_qty             AS moq,
+        ps.delay,
+        ROW_NUMBER()
+        OVER (
+          PARTITION BY ps.product_tmpl_id
+          ORDER BY ps.id ASC ) AS constr
+      FROM
+        product_supplierinfo_restricted ps
+        INNER JOIN
+        main_supplier_table_intermediate ms ON ps.product_tmpl_id = ms.product_tmpl_id AND ps.sequence = ms.sequence),
+
+    fournisseur AS (
+      SELECT
+        product_tmpl_id,
+        moq,
+        delay
+      FROM main_supplier_s
+      WHERE main_supplier_s.constr = 1),
+
+    procurement_order_with_delays AS (
+      SELECT
+        po.*,
+        f.delay
+      FROM procurement_order_restricted po
+        LEFT JOIN product_product pp ON pp.id = po.product_id
+        LEFT JOIN fournisseur f ON f.product_tmpl_id = pp.product_tmpl_id),
+
+    first_dates_by_delays AS (
+      SELECT
+        po.company_id,
+        po.location_id,
+        po.delay,
+        min(po.date_planned) AS first_date_planned_for_delay
+      FROM procurement_order_with_delays po
+      GROUP BY po.company_id, po.location_id, po.delay)
+
+SELECT
+  fd.*,
+  min(po.id) AS first_proc_id
+FROM first_dates_by_delays fd
+  LEFT JOIN procurement_order_with_delays po ON po.company_id = fd.company_id AND
+                                                po.location_id = fd.location_id AND
+                                                po.delay = fd.delay AND
+                                                po.date_planned = fd.first_date_planned_for_delay
+GROUP BY fd.company_id, fd.location_id, fd.delay, fd.first_date_planned_for_delay
+ORDER BY fd.delay DESC""", (tuple(self.ids), seller.id,))
+            return self.env.cr.dictfetchall()
+        return {}
+
+    @api.multi
     def get_first_purchase_dates_for_seller(self):
-        possible_domains = self. \
-            read_group(domain=[('id', 'in', self.ids)],
-                       fields=['company_id', 'location_id', 'product_id'],
-                       groupby=['company_id', 'location_id', 'product_id'],
-                       lazy=False)
+        # Let's process procurements by delivery lead time, and compute the first purchase date for each
+        # company/location.
+        first_date_planned_by_delay = self.get_first_date_planned_by_delay()
         first_purchase_dates = {}
-        for possible_domain in possible_domains:
-            company_id = possible_domain['company_id'][0]
-            location_id = possible_domain['location_id'][0]
-            product_id = possible_domain['product_id'][0]
+        while first_date_planned_by_delay:
+            item = first_date_planned_by_delay[0]
+            company_id = item['company_id']
+            location_id = item['location_id']
+            first_date_planned_for_delay = item['first_date_planned_for_delay']
+            first_proc_id = item['first_proc_id']
             if company_id not in first_purchase_dates:
                 first_purchase_dates[company_id] = {}
             if location_id not in first_purchase_dates[company_id]:
@@ -685,28 +773,25 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             if first_purchase_dates[company_id][location_id]['definitive']:
                 continue
             first_purchase_date = first_purchase_dates[company_id][location_id]['first_purchase_date']
-            first_proc = self.search([('id', 'in', self.ids),
-                                      ('company_id', '=', company_id),
-                                      ('location_id', '=', location_id),
-                                      ('product_id', '=', product_id)], order='date_planned', limit=1)
-            if not first_proc:
-                continue
+            first_proc = self.search([('id', '=', first_proc_id)])
             company = self.env['res.company'].search([('id', '=', company_id)])
             schedule_date = self._get_purchase_schedule_date(first_proc, company)
             purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
-
             seller = self.env['procurement.order']._get_product_supplier(first_proc)
             days_delta = int(self.env['ir.config_parameter'].
                              get_param('purchase_procurement_just_in_time.delta_begin_grouping_period') or 0)
             force_date_ref = self.env.context.get('force_date_ref')
-            date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 06:00:00') or \
-                seller.schedule_working_days(days_delta, dt.today())
+            date_ref = force_date_ref or fields.Datetime.to_string(seller.schedule_working_days(days_delta, dt.today()))
             if not purchase_date:
                 continue
+            purchase_date = fields.Datetime.to_string(purchase_date)
             if not first_purchase_date or purchase_date < first_purchase_date:
                 first_purchase_dates[company_id][location_id]['first_purchase_date'] = purchase_date
                 first_purchase_dates[company_id][location_id]['procurement'] = first_proc
                 first_purchase_date = purchase_date
+                if first_purchase_date:
+                    first_date_planned_by_delay = [item for item in first_date_planned_by_delay if
+                                                   item['first_date_planned_for_delay'] < first_date_planned_for_delay]
             if first_purchase_date and first_purchase_date < date_ref:
                 first_purchase_dates[company_id][location_id]['first_purchase_date'] = date_ref
                 first_purchase_dates[company_id][location_id]['procurement'] = first_proc
@@ -717,11 +802,10 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
     def create_nb_max_draft_orders(self, seller, first_purchase_date):
         self.ensure_one()
         nb_orders = 0
-        ref_date = first_purchase_date
+        ref_date = fields.Datetime.from_string(first_purchase_date)
         while nb_orders < seller.nb_max_draft_orders:
             nb_orders += 1
-            latest_order = self.with_context(force_creation=True). \
-                get_corresponding_draft_order(seller, ref_date)
+            latest_order = self.with_context(force_creation=True).get_corresponding_draft_order(seller, ref_date)
             assert latest_order, "Impossible to create draft purchase order for purchase date %s" % \
                 fields.Datetime.to_string(ref_date)
             assert latest_order.date_order_max, "Impossible to determine end grouping period for start date %s" % \
