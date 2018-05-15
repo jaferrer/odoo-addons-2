@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.actions.report.xml" id="ir_actions_report_vat_credit_refund">
+            <field name="name">VAT credit refund report</field>
+            <field name="type">ir.actions.report.xml</field>
+            <field name="model">account.invoice</field>
+            <field name="report_name">ir_model_fields</field>
+            <field name="report_type">aeroo</field>
+            <field name="in_format">oo-ods</field>
+            <field name="out_format" ref="report_aeroo.report_mimetypes_xls_odt"/>
+            <field name="report_rml">l10n_fr_vat_credit_refund/reports/vat_credit_refund_report.ods</field>
+            <field name="parser_state">default</field>
+            <field name="tml_source">file</field>
+        </record>
+
+        <record model="ir.values" id="ir_value_vat_credit_refund">
+            <field name="key">action</field>
+            <field name="key2">client_print_multi</field>
+            <field name="model">account.invoice</field>
+            <field name="name">ir_model_fields</field>
+            <field name="value" eval="'ir.actions.report.xml,'+str(ir_actions_report_vat_credit_refund)"/>
+        </record>
+
+    </data>
+</openerp>
