@@ -67,5 +67,11 @@ setup(
     Ce bot a besoin d'un Odoo avec le module <docuemnt_scanner> d'installé""",
     executables=[exe],
     options={
-        'bdist_msi': bdist_msi_options}
+        'bdist_msi': bdist_msi_options,
+        "build_exe": {
+            'includes': ["idna.idnadata"],
+            'include_files': [('/home/chmuche/.PlayOnLinux/wineprefix/Python27/drive_c/windows/syswow64/python27.dll',
+                               'python27.dll')]
+        }
+    }
 )
