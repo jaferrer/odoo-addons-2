@@ -25,7 +25,10 @@
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
     'depends': ['purchase'],
-    'description': """""",
+    'description': """
+    purchase_procurement_lock
+    =========================
+    """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
     'demo': [],
