@@ -1,0 +1,17 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* web_pivot_improved
+#
+#. module: web_pivot_improved
+#. openerp-web
+#: code:addons/web_pivot_improved/static/src/js/web_pivot_improved.js:21
+#, python-format
+msgid ": no"
+msgstr " : non"
+
+#. module: web_pivot_improved
+#. openerp-web
+#: code:addons/web_pivot_improved/static/src/js/web_pivot_improved.js:24
+#, python-format
+msgid ": yes"
+msgstr " : oui"
