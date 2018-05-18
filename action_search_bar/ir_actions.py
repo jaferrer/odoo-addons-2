@@ -17,4 +17,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import ir_actions
+from openerp import models, api
+
+
+class ir_actions_act_window(models.Model):
+    _inherit = 'ir.actions.act_window'
+
+    @api.multi
+    def open_act_window_tree_view(self):
+        self.ensure_one()
+        return {
+            'name': self.name,
+            'view_type': self.view_type,
+            'view_mode': self.view_mode,
+            'res_model': self.res_model,
+            'view_id': self.view_id.id,
+            'views': self.views,
+            'res_id': self.res_id,
+            'search_view_id': self.search_view_id.id,
+            'domain': self.domain,
+            'type': 'ir.actions.act_window',
+            'context': self.context,
+            'target': 'new'
+        }

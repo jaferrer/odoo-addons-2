@@ -15,26 +15,19 @@
             "submit": "searchAction",
         },
         init: function (parent, options) {
-            var self = this;
             this._super(parent);
             this.options = _.clone(options) || {};
         },
-        searchAction: function (params) {
-        var self = this;
-            console.log("search : ", params)
-            alert("Search")
-            // actions_windows = new instance.web.Model('ir.action.window')
-            //                 .filter([['production_id', 'in', productions_ids]])
-            //                 .all()
-            self.rpc("/web/action/load", { action_id: "base.action_res_users_my" }).done(function(result) {
+        searchAction: function () {
+            var self = this;
+            self.action_manager = new instance.web.ActionManager(self);
+            var search_value = $('input.action_search_bar_searchbox').val();
+            $('input.action_search_bar_searchbox').val("");
+            self.rpc("/web/action/load", { action_id: "action_search_bar.action_search_bar_results" }).done(function(result) {
                 result.res_id =  instance.session.uid;
-                console.log('result : ',result)
-                console.log('self.getParent() ; ', self.getParent())
-                console.log('action manager ', self.getParent().action_manager)
-                return self.getParent().do_action(result);
-
+                result.domain = "[('name', 'ilike', '%"+search_value+"%')]";
+                return self.action_manager.do_action(result);
             });
-
         }
     });
     if (openerp.web && openerp.web.UserMenu) {

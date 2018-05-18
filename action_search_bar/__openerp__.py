@@ -27,7 +27,7 @@
     'description': """
 Action search bar
 =================
-THis module add a search bar in the header (top menu bar) and allow you to search in all odoo action window recorded in 
+THis module add a search bar in the header (top menu bar) and allow you to search in all odoo action window recorded in
 database
 """,
     'website': 'http://www.ndp-systemes.fr',

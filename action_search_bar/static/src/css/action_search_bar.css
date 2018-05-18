@@ -4,3 +4,6 @@
 .trigger_search{
     margin-left: -25px;
 }
+.action_search_bar_searchbox {
+    padding:  0 10px;
+}
