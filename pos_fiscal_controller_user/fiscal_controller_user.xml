@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="res.users" id="account_fiscal_controller_user.user_fiscal_controller">
+            <field name="groups_id" eval="[(4, ref('pos_viewer.group_pos_viewer'))]"/>
+        </record>
+
+    </data>
+</openerp>
