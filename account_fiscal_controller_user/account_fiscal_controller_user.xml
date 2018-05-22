@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="res.partner" id="partner_fiscal_controller">
+            <field name="name">Fiscal Controller</field>
+            <field name="title" ref="base.res_partner_title_mister"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="supplier"/>
+            <field name="customer"/>
+        </record>
+
+        <record model="res.users" id="user_fiscal_controller">
+            <field name="partner_id" ref="partner_fiscal_controller"/>
+            <field name="login">fiscal_controller</field>
+            <field name="groups_id" eval="[(4, ref('account_viewer.group_account_invoice_viewer'))]"/>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+    </data>
+</openerp>
