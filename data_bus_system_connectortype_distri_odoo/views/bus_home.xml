@@ -17,13 +17,8 @@
                             <field name="method_name" colspan="2" required="1"/>
                         </group>
                         <group col="4">
-                            <button name="test_connexion" type="object" string="Test Connexion"/>
-                            <div class="text-left" invisible="context.get('connexion_state',False) != True">
-                                Connexion réussie
-                            </div>
-                            <div class="text-left" invisible="context.get('connexion_state',True) == True">
-                                Connexion échouée
-                            </div>
+                            <button name="recompute_connexion_state" type="object" string="Test Connexion"/>
+                            <field name="connexion_state" nolabel="1"/>
                         </group>
                     </sheet>
                 </form>

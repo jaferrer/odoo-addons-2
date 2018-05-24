@@ -19,10 +19,13 @@
 
 import logging
 import jsonrpclib
+import socket
+import json
 
 from openerp import models, fields, api
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
+from openerp.addons.connector.exception import FailedJobError
 
 _logger = logging.getLogger(__name__)
 
@@ -44,15 +47,9 @@ def traitement_distri_odoo(session, model_name, distri_id, archive, archive_id):
             })
             return "OK"
 
-        url = "http://%s:%s/jsonrpc" % (param.url, param.port)
-
-        server = jsonrpclib.Server(url)
-
-        # log in the given database
-        uid = server.call(service="common", method="login", args=[param.db, param.login, param.pwd])
-
-        args = [param.db, uid, param.pwd, param.model_name, param.method_name, archive]
-        server.call(service="object", method="execute", args=args)
+        tuple_result = param.test_connexion(raise_error=True)
+        args = [param.db, tuple_result[1], param.pwd, param.model_name, param.method_name, archive]
+        _call_object_execute(tuple_result[0], args)
 
         archive_msg.create_log({
             'archive_id': archive_msg.id,
@@ -99,17 +96,32 @@ class ConnectorTypeOdooParameter(models.Model):
 
     distributeur_id = fields.Many2one('distributeur', string=u"Distributeur", required=True)
 
+    connexion_state = fields.Char(string="Etat de la connexion", compute='test_connexion', store=False)
+
     @api.multi
-    def test_connexion(self):
+    def test_connexion(self, context=None, raise_error=False):
         self.ensure_one()
         url = "http://%s:%s/jsonrpc" % (self.url, self.port)
         server = jsonrpclib.Server(url)
         # log in the given database
-        try:
-            connexion_state = server.call(service="common", method="login", args=[self.db, self.login, self.pwd])
-        except Exception:
-            connexion_state = False
 
+        result = 0
+
+        try:
+            result = server.call(service="common", method="login", args=[self.db, self.login, self.pwd])
+            self.connexion_state = "Erreur Login/MdP" if result == 0 else "OK"
+        except socket.error as e:
+            self.connexion_state = e.strerror
+        except jsonrpclib.ProtocolError:
+            self.connexion_state = _return_last_jsonrpclib_error()
+
+        if raise_error and self.connexion_state != "OK":
+            raise FailedJobError(self.connexion_state)
+
+        return (server, result)
+
+    @api.multi
+    def recompute_connexion_state(self):
         return {
             'name': 'Parameter',
             'type': 'ir.actions.act_window',
@@ -118,6 +130,16 @@ class ConnectorTypeOdooParameter(models.Model):
             'res_model': self._name,
             'flags': {'form': {'action_buttons': True}},
             'res_id': self.id,
-            'target': 'new',
-            'context': {'connexion_state': connexion_state}
+            'target': 'new'
         }
+
+
+def _return_last_jsonrpclib_error():
+    return json.loads(jsonrpclib.history.response).get('error').get('data').get('message')
+
+
+def _call_object_execute(server, args):
+    try:
+        server.call(service="object", method="execute", args=args)
+    except jsonrpclib.ProtocolError:
+        raise FailedJobError(_return_last_jsonrpclib_error())
