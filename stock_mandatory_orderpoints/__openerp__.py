@@ -30,7 +30,8 @@ Stock Location OrderPoint
 
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['res_config.xml'],
+    'data': ['res_config.xml',
+             'cron.xml'],
     'demo': [],
     'test': [],
     'installable': True,

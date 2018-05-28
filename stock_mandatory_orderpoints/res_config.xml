@@ -11,7 +11,6 @@
                 <data>
                     <form position="inside">
                         <separator string="Required OrderPoints"/>
-                        <button name="update_orderpoint" type="object" string="Update Orderpoint"/>
                         <field name="required_orderpoint_location_ids" widget="many2many_tags"/>
                     </form>
                 </data>
