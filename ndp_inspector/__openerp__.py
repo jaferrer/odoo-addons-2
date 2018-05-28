@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,20 +18,21 @@
 #
 
 {
-    'name': 'Stock Mandatory Orderpoints',
+    'name': 'Ndp inspector',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Warehouse',
-    'depends': ['stock', 'connector'],
+    'category': 'Technical',
+    'depends': ['web'],
     'description': """
-Stock Location OrderPoint
-===========================
-
+Ndp inspector
+========================
+Module faire des controle de performance sur les actions
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['res_config.xml',
-             'cron.xml'],
+    'data': ['security/groups.xml',
+             'security/ir.model.access.csv',
+             'ndp_inspector_time.xml'],
     'demo': [],
     'test': [],
     'installable': True,

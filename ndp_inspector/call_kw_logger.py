@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,26 +16,18 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from datetime import datetime
 
-{
-    'name': 'Stock Mandatory Orderpoints',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Warehouse',
-    'depends': ['stock', 'connector'],
-    'description': """
-Stock Location OrderPoint
-===========================
+from openerp import addons
+from openerp.http import request
 
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['res_config.xml',
-             'cron.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+
+class ControllerLoggerContext(addons.web.controllers.main.DataSet):
+
+    def _call_kw(self, model, method, args, kwargs):
+        ts = datetime.now()
+        res = super(ControllerLoggerContext, self)._call_kw(model, method, args, kwargs)
+        uid = request.context.get("uid", 1)
+        getattr(request.registry.get('ndp.logging.time'), 'create_record') \
+            (request.cr, request.uid, model, method, ts, datetime.now(), uid, "call_button")
+        return res
