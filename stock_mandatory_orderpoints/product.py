@@ -32,22 +32,9 @@ class ProductProduct(models.Model):
     _inherit = 'product.product'
 
     @api.model
-    def create(self, vals):
-        product = super(ProductProduct, self).create(vals)
-        product.create_needed_orderpoints()
-        return product
-
-    @api.multi
-    def write(self, vals):
-        product = super(ProductProduct, self).write(vals)
-        if 'route_ids' in vals:
-            self.create_needed_orderpoints()
-        return product
-
-    @api.multi
     def create_needed_orderpoints(self, jobify=True):
+        products = self.search([])
         if jobify:
-            products = self
             while products:
                 chunk_products = products[:100]
                 products = products[100:]
@@ -55,19 +42,24 @@ class ProductProduct(models.Model):
                                                            chunk_products.ids, dict(self.env.context), )
         else:
             create_needed_orderpoint_for_product(ConnectorSession.from_env(self.env), 'product.product',
-                                                 self.ids, dict(self.env.context))
+                                                 products.ids, dict(self.env.context))
+
+    @api.multi
+    def create_orderpoints_for_locations(self, orderpoint_required_locations):
+        self.ensure_one()
+        for location in orderpoint_required_locations:
+            if not self.env['stock.warehouse.orderpoint'].search([('product_id', '=', self.id),
+                                                                  ('location_id', '=', location.id)]):
+                self.env['stock.warehouse.orderpoint'].create(self._prepare_order_point_data(location))
 
     @api.multi
     def _create_needed_orderpoints(self):
         location_config_ids = self.env['ir.config_parameter'].get_param(
             "stock_location_orderpoint.required_orderpoint_location_ids", default="[]")
-        orderpoint_required_location = self.env['stock.location'].browse(eval(location_config_ids))
+        orderpoint_required_locations = self.env['stock.location'].browse(eval(location_config_ids))
         for rec in self:
-            orderpoint_required_location |= rec.route_ids.mapped('required_orderpoint_location_ids')
-            for location in orderpoint_required_location:
-                if not self.env['stock.warehouse.orderpoint'].search([('product_id', '=', rec.id),
-                                                                      ('location_id', '=', location.id)]):
-                    self.env['stock.warehouse.orderpoint'].create(rec._prepare_order_point_data(location))
+            orderpoint_required_locations |= rec.route_ids.mapped('required_orderpoint_location_ids')
+            rec.create_orderpoints_for_locations(orderpoint_required_locations)
 
     @api.multi
     def _prepare_order_point_data(self, location):
@@ -91,8 +83,3 @@ class SirailLogistiqueStockLocationRoute(models.Model):
                                                         string=u"Required Orderpoint Location")
     product_ids = fields.Many2many('product.product', 'stock_route_product', 'route_id', 'product_id',
                                    string=u"Products")
-
-    @api.multi
-    def update_orderpoint(self):
-        for rec in self:
-            rec.product_ids.create_needed_orderpoints()
