@@ -1003,7 +1003,7 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         procs = self.env['procurement.order'].browse([self.proc1.id, self.proc2.id, self.proc3.id, self.proc5.id])
 
-        first_purchase_dates = procs.get_first_purchase_dates_for_seller()
+        first_purchase_dates = procs.get_first_purchase_dates_for_seller(self.supplier)
         self.assertIn(self.company.id, first_purchase_dates.keys())
         self.assertIn(self.location_a.id, first_purchase_dates[self.company.id].keys())
         self.assertIn('first_purchase_date', first_purchase_dates[self.company.id][self.location_a.id].keys())
@@ -1013,7 +1013,7 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # Now, let's try with a past procurement
         self.proc1.date_planned = '2018-03-09 12:00:00'
-        first_purchase_dates = procs.get_first_purchase_dates_for_seller()
+        first_purchase_dates = procs.get_first_purchase_dates_for_seller(self.supplier)
         self.assertIn(self.company.id, first_purchase_dates.keys())
         self.assertIn(self.location_a.id, first_purchase_dates[self.company.id].keys())
         self.assertIn('first_purchase_date', first_purchase_dates[self.company.id][self.location_a.id].keys())
