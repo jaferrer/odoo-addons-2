@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'General',
-    'depends': ['base'],
+    'depends': ['web'],
     'description': """
 Action search bar
 =================

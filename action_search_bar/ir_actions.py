@@ -38,5 +38,5 @@ class ir_actions_act_window(models.Model):
             'domain': self.domain,
             'type': 'ir.actions.act_window',
             'context': self.context,
-            'target': 'new'
+            'target': 'current'
         }
