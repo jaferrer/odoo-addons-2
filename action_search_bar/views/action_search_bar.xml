@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-        <template id="assets_backend" name="action_search_bar assets" inherit_id="web.assets_backend"
-                  groups="group_action_search_bar_users">
-            <xpath expr="." position="inside">
-                <script type="text/javascript" src="/action_search_bar/static/src/js/action-search-bar.js"></script>
-                <link rel="stylesheet" href="/action_search_bar/static/src/css/action_search_bar.css"/>
-            </xpath>
-        </template>
         <record id="search_action_window_tree_view" model="ir.ui.view">
             <field name="name">search.action.window.tree.view</field>
             <field name="model">ir.actions.act_window</field>
@@ -34,7 +27,14 @@
 
         <record id="group_action_search_bar_users" model="res.groups">
             <field name="name">Group action search bar</field>
-            <field name="category_id" ref="base.module_category_purchase_management"/>
         </record>
+
+         <template id="assets_backend_action_search_bar" name="action_search_bar_assets" inherit_id="web.assets_backend"
+                  groups="group_action_search_bar_users">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/action_search_bar/static/src/js/action-search-bar.js"></script>
+                <link rel="stylesheet" href="/action_search_bar/static/src/css/action_search_bar.css"/>
+            </xpath>
+        </template>
     </data>
 </openerp>
