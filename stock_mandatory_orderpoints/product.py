@@ -92,7 +92,7 @@ SELECT
   product_id,
   location_id
 FROM existing_orderpoints
-WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_locations.ids),))
+WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_locations.ids or [0]),))
         for product_id, location_id in self.env.cr.fetchall():
             product = self.env['product.product'].search([('id', '=', product_id)])
             location = self.env['stock.location'].search([('id', '=', location_id)])
