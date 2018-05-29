@@ -33,7 +33,8 @@ class ReceptionByOrderTransferDetails(models.TransientModel):
         return result
 
     picking_group_name = fields.Char(string="Procurement group name", related='picking_id.group_id.name', readonly=True)
-    item_reception_ids = fields.One2many('stock.transfer_details_items', 'transfer_id', 'Items', related='item_ids')
+    item_reception_ids = fields.One2many('stock.transfer_details_items', 'transfer_id', 'Items',
+                                         domain=[('product_id', '!=', False)])
 
     @api.one
     def do_detailed_transfer(self):
