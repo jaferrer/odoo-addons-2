@@ -239,8 +239,13 @@ WHERE key = 'purchase_procurement_just_in_time.delta_begin_grouping_period'""")
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify,
                                  force_date_ref=False):
         self.env['product.template'].update_seller_ids()
-        stock_scheduler_controller_line = self.env['stock.scheduler.controller'].search([('done', '=', False)], limit=1)
-        if stock_scheduler_controller_line:
+        self.env.cr.execute("""SELECT sc.id
+FROM stock_scheduler_controller sc
+  LEFT JOIN queue_job qj ON qj.uuid = sc.job_uuid
+WHERE coalesce(sc.done, FALSE) IS FALSE AND
+      (coalesce(sc.job_uuid, '') = '' OR
+       qj.state NOT IN ('done', 'failed'))""")
+        if self.env.cr.fetchall():
             raise RetryableJobError(u"Impossible to launch purchase scheduler when stock scheduler is running",
                                     seconds=1200)
         self.env.cr.execute(QUERY_PROCS_BY_SELLER)

@@ -240,6 +240,12 @@ class ProcurementOrderQuantity(models.Model):
                         'product_uos_qty': qty_done_proc_uos,
                     })
 
+    @api.multi
+    def cancel_procs_just_in_time(self, stock_qty, qty):
+        self.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
+        self.unlink()
+        return stock_qty - qty
+
 
 class StockMoveJustInTime(models.Model):
     _inherit = 'stock.move'
@@ -388,10 +394,8 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                             ('state', '!=', 'done')])
                     qty_same_proc = sum(item['move_qty'] for item in events if item['proc_id'] == event['proc_id'])
                     if proc_oversupply:
-                        stock_after_event -= qty_same_proc
                         _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
-                    proc_oversupply.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
-                    proc_oversupply.unlink()
+                        stock_after_event = proc_oversupply.cancel_procs_just_in_time(stock_after_event, qty_same_proc)
                     if op.is_under_stock_min(stock_after_event) and \
                             any([item['move_type'] == 'out' for item in events_at_date]):
                         new_proc = op.create_from_need(event, stock_after_event)
