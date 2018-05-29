@@ -50,7 +50,8 @@ class ProductProduct(models.Model):
             return
         location_config_ids = self.env['ir.config_parameter'].get_param(
             "stock_location_orderpoint.required_orderpoint_location_ids", default="[]")
-        orderpoint_required_locations = self.env['stock.location'].browse(eval(location_config_ids)) or [0]
+        orderpoint_required_locations = location_config_ids and self.env['stock.location']. \
+            browse(eval(location_config_ids))
         self.env.cr.execute("""WITH product_product_restricted AS (
     SELECT *
     FROM product_product
@@ -91,7 +92,7 @@ SELECT
   product_id,
   location_id
 FROM existing_orderpoints
-WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_locations),))
+WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_locations.ids),))
         for product_id, location_id in self.env.cr.fetchall():
             product = self.env['product.product'].search([('id', '=', product_id)])
             location = self.env['stock.location'].search([('id', '=', location_id)])
