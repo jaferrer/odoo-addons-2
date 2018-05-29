@@ -2,7 +2,7 @@
 <openerp>
     <data>
         <template id="assets_backend" name="action_search_bar assets" inherit_id="web.assets_backend"
-                  groups="action_search_bar.group_action_search_bar_users">
+                  groups="group_action_search_bar_users">
             <xpath expr="." position="inside">
                 <script type="text/javascript" src="/action_search_bar/static/src/js/action-search-bar.js"></script>
                 <link rel="stylesheet" href="/action_search_bar/static/src/css/action_search_bar.css"/>
