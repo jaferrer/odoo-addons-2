@@ -31,5 +31,4 @@ class FixNullQuantsStockQuant(models.Model):
         self.ensure_one()
         if float_compare(qty, 0, precision_rounding=self.product_id.uom_id.rounding) == 0:
             return self.env['stock.quant']
-        else:
-            return super(FixNullQuantsStockQuant, self)._quant_split(qty)
+        return super(FixNullQuantsStockQuant, self)._quant_split(qty)
