@@ -495,9 +495,9 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         self.assertEqual(len(line1.procurement_ids), 1)
         self.assertEqual(line1.procurement_ids[0], self.proc1)
-        self.assertEqual(len(line1.move_ids), 2)
+        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 2)
         m1, m2 = [self.env['stock.move']] * 2
-        for move in line1.move_ids:
+        for move in line1.move_ids.filtered(lambda move: move.state != 'cancel'):
             if move.product_qty == 34:
                 m1 = move
             elif move.product_qty == 6:
@@ -509,7 +509,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         picking.pack_operation_ids[0].product_qty = 35
         picking.do_transfer()
 
-        self.assertEqual(len(line1.move_ids), 3)
+        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 3)
         self.assertEqual(m1.state, 'done')
         self.assertEqual(m1.product_qty, 34)
         self.assertEqual(m2.state, 'done')
@@ -597,13 +597,11 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # line1 should still exist
         self.assertIn(line1_id, [line.id for line in self.env['purchase.order.line'].search([])])
-        # extra_move1 should have been deleted
-        self.assertNotIn(extra_move1_id, [move.id for move in self.env['stock.move'].search([])])
 
         # Let's check purchase1 moves
-        self.assertEqual(len(line1.move_ids), 3)
+        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 3)
         moves_data = [(move.procurement_id, move.state, move.product_uom_qty, move.group_id, move.picking_id) for
-                      move in line1.move_ids]
+                      move in line1.move_ids.filtered(lambda move: move.state != 'cancel')]
         self.assertIn((new_proc1, 'assigned', 34, group1, picking1), moves_data)
         self.assertIn((self.proc2, 'assigned', 2, group1, picking1), moves_data)
         self.assertIn((self.env['procurement.order'], 'assigned', 4, group1, picking1), moves_data)
@@ -617,7 +615,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(line5.state, "draft")
         self.assertEqual(self.proc1.purchase_id, purchase5)
         self.assertEqual(self.proc1.purchase_line_id, line5)
-        self.assertEqual(len(self.proc1.move_ids), 0)
+        self.assertEqual(len(self.proc1.move_ids.filtered(lambda move: move.state != 'cancel')), 0)
 
     def test_25_switch_proc_from_confirmed_to_sent_order(self):
         self.env['procurement.order'].purchase_schedule(jobify=False)
@@ -673,13 +671,11 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # line1 should still exist
         self.assertIn(line1_id, [line.id for line in self.env['purchase.order.line'].search([])])
-        # extra_move1 should have been deleted
-        self.assertNotIn(extra_move1_id, [move.id for move in self.env['stock.move'].search([])])
 
         # Let's check purchase1 moves
-        self.assertEqual(len(line1.move_ids), 3)
+        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 3)
         moves_data = [(move.procurement_id, move.state, move.product_uom_qty, move.group_id, move.picking_id) for
-                      move in line1.move_ids]
+                      move in line1.move_ids.filtered(lambda move: move.state != 'cancel')]
         self.assertIn((self.proc1, 'assigned', 34, group1, picking1), moves_data)
         self.assertIn((self.proc2, 'assigned', 2, group1, picking1), moves_data)
         self.assertIn((self.proc5, 'assigned', 4, group1, picking1), moves_data)
