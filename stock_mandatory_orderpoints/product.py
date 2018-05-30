@@ -39,7 +39,7 @@ class ProductProduct(models.Model):
                 chunk_products = products[:100]
                 products = products[100:]
                 create_needed_orderpoint_for_product.delay(ConnectorSession.from_env(self.env), 'product.product',
-                                                           chunk_products.ids, dict(self.env.context), )
+                                                           chunk_products.ids, dict(self.env.context))
         else:
             create_needed_orderpoint_for_product(ConnectorSession.from_env(self.env), 'product.product',
                                                  products.ids, dict(self.env.context))
