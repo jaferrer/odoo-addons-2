@@ -492,7 +492,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
                                    _compute_qty(proc.product_uom.id, proc.product_qty,
                                                 proc.product_id.uom_id.id) for proc in
                                     procurements_grouping_period]) or 0
-        seller = self.env['procurement.order']._get_product_supplier(first_proc)
         supplierinfo = self.env['product.supplierinfo'].search([('id', 'in', first_proc.product_id.seller_ids.ids),
                                                                 ('name', '=', seller and seller.id or False)],
                                                                order='sequence, id', limit=1)
@@ -587,7 +586,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         return draft_order
 
     @api.multi
-    def group_procurements_by_orders(self):
+    def group_procurements_by_orders(self, seller):
         if not self:
             return self, {}
         dict_lines_to_create = {}
@@ -597,7 +596,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         procurements_to_check = self.search([('id', 'in', self.ids)], order=order_by)
         nb_draft_orders = 0
         force_date_ref = self.env.context.get('force_date_ref')
-        seller = self.env['procurement.order']._get_product_supplier(self[0])
         company = self[0].company_id or False
         date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 06:00:00') or \
             seller.schedule_working_days(days_delta, dt.today())
@@ -659,7 +657,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
 
     @api.model
-    def launch_draft_lines_creation(self, dict_lines_to_create, return_msg, jobify=False):
+    def launch_draft_lines_creation(self, seller, dict_lines_to_create, return_msg, jobify=False):
         time_now = dt.now()
         fill_orders_in_separate_jobs = bool(self.env['ir.config_parameter'].
                                             get_param('purchase_procurement_just_in_time.fill_orders_in_separate_jobs'))
@@ -671,7 +669,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
                 order = self.env['purchase.order'].search([('id', '=', order_id)])
                 number_order += 1
                 session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-                seller = self.env['procurement.order']._get_product_supplier(self[0])
                 job_create_draft_lines. \
                     delay(session, 'procurement.order', {order_id: dict_lines_to_create[order_id]},
                           description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
@@ -683,10 +680,9 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         return return_msg
 
     @api.multi
-    def get_first_date_planned_by_delay(self):
+    def get_first_date_planned_by_delay(self, seller):
         if not self:
             return {}
-        seller = self.env['procurement.order']._get_product_supplier(self[0])
         self.env.cr.execute("""WITH procurement_order_restricted AS (
     SELECT *
     FROM procurement_order
@@ -771,14 +767,13 @@ ORDER BY fd.delay DESC""", (tuple(self.ids), seller.id,))
         return self.env.cr.dictfetchall()
 
     @api.multi
-    def get_first_purchase_dates_for_seller(self):
+    def get_first_purchase_dates_for_seller(self, seller):
         # Let's process procurements by delivery lead time, and compute the first purchase date for each
         # company/location.
-        first_date_planned_by_delay = self.get_first_date_planned_by_delay()
         first_purchase_dates = {}
         days_delta = self.get_delta_begin_grouping_period()
         force_date_ref = self.env.context.get('force_date_ref')
-        seller = self and self.env['procurement.order']._get_product_supplier(self[0]) or False
+        first_date_planned_by_delay = self.get_first_date_planned_by_delay(seller)
         date_ref = force_date_ref or fields.Datetime.to_string(seller.schedule_working_days(days_delta, dt.today()))
         while first_date_planned_by_delay:
             item = first_date_planned_by_delay[0]
@@ -884,7 +879,7 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         time_now = dt.now()
         if seller.nb_max_draft_orders and seller.get_effective_order_group_period() and not_assigned_proc_ids:
             not_assigned_procs = self.env['procurement.order'].search([('id', 'in', not_assigned_proc_ids)])
-            first_purchase_dates = not_assigned_procs.get_first_purchase_dates_for_seller()
+            first_purchase_dates = not_assigned_procs.get_first_purchase_dates_for_seller(seller)
             for company_id in first_purchase_dates:
                 for location_id in first_purchase_dates[company_id]:
                     first_purchase_date = first_purchase_dates[company_id][location_id]['first_purchase_date']
@@ -893,7 +888,7 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         return_msg += u"\nCreating draft orders if needed: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         not_assigned_procs = self.browse(not_assigned_proc_ids)
-        not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders()
+        not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders(seller)
         return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         if not_assigned_procs:
@@ -904,7 +899,7 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         return_msg = self.env['procurement.order'].prepare_procurements_redistribution(dict_procs_lines, return_msg)
         return_msg = self.env['procurement.order']. \
             launch_procurement_redistribution(dict_procs_lines, return_msg, jobify=jobify)
-        return_msg = self.launch_draft_lines_creation(dict_lines_to_create, return_msg, jobify=jobify)
+        return_msg = self.launch_draft_lines_creation(seller, dict_lines_to_create, return_msg, jobify=jobify)
         return return_msg
 
     @api.multi
