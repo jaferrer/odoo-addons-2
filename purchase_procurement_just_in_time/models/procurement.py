@@ -108,19 +108,19 @@ def job_purchase_schedule_procurements(session, model_name, ids, jobify,
     return result
 
 
-@job(default_channel='root.purchase_scheduler_slave')
+@job(default_channel='root.purchase_scheduler')
 def job_create_draft_lines(session, model_name, dict_lines_to_create):
     result = session.env[model_name].create_draft_lines(dict_lines_to_create)
     return result
 
 
-@job(default_channel='root.purchase_scheduler_slave')
+@job(default_channel='root.purchase_scheduler')
 def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines):
     result = session.env[model_name].redistribute_procurements_in_lines(dict_procs_lines)
     return result
 
 
-@job(default_channel='root.purchase_scheduler_slave')
+@job(default_channel='root.purchase_scheduler')
 def job_sanitize_draft_orders(session, model_name, seller_id):
     result = session.env[model_name].sanitize_draft_orders(seller_id)
     return result
@@ -239,8 +239,13 @@ WHERE key = 'purchase_procurement_just_in_time.delta_begin_grouping_period'""")
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify,
                                  force_date_ref=False):
         self.env['product.template'].update_seller_ids()
-        stock_scheduler_controller_line = self.env['stock.scheduler.controller'].search([('done', '=', False)], limit=1)
-        if stock_scheduler_controller_line:
+        self.env.cr.execute("""SELECT sc.id
+FROM stock_scheduler_controller sc
+  LEFT JOIN queue_job qj ON qj.uuid = sc.job_uuid
+WHERE coalesce(sc.done, FALSE) IS FALSE AND
+      (coalesce(sc.job_uuid, '') = '' OR
+       qj.state NOT IN ('done', 'failed'))""")
+        if self.env.cr.fetchall():
             raise RetryableJobError(u"Impossible to launch purchase scheduler when stock scheduler is running",
                                     seconds=1200)
         self.env.cr.execute(QUERY_PROCS_BY_SELLER)
@@ -337,7 +342,7 @@ WHERE key = 'purchase_procurement_just_in_time.delta_begin_grouping_period'""")
                 min_date = self.get_delivery_date_for_dateref_order(product, seller, date_ref)
                 past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
                 if past_procurements:
-                    past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
+                    past_procurements.remove_procs_from_lines(cancel_moves_to_procs=True)
                     procurements_to_run -= past_procurements
                 domain += [('date_planned', '>', min_date)]
             procurements = self.search(domain)
@@ -487,7 +492,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
                                    _compute_qty(proc.product_uom.id, proc.product_qty,
                                                 proc.product_id.uom_id.id) for proc in
                                     procurements_grouping_period]) or 0
-        seller = self.env['procurement.order']._get_product_supplier(first_proc)
         supplierinfo = self.env['product.supplierinfo'].search([('id', 'in', first_proc.product_id.seller_ids.ids),
                                                                 ('name', '=', seller and seller.id or False)],
                                                                order='sequence, id', limit=1)
@@ -582,7 +586,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         return draft_order
 
     @api.multi
-    def group_procurements_by_orders(self):
+    def group_procurements_by_orders(self, seller):
         if not self:
             return self, {}
         dict_lines_to_create = {}
@@ -592,7 +596,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         procurements_to_check = self.search([('id', 'in', self.ids)], order=order_by)
         nb_draft_orders = 0
         force_date_ref = self.env.context.get('force_date_ref')
-        seller = self.env['procurement.order']._get_product_supplier(self[0])
         company = self[0].company_id or False
         date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 06:00:00') or \
             seller.schedule_working_days(days_delta, dt.today())
@@ -654,7 +657,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
 
     @api.model
-    def launch_draft_lines_creation(self, dict_lines_to_create, return_msg, jobify=False):
+    def launch_draft_lines_creation(self, seller, dict_lines_to_create, return_msg, jobify=False):
         time_now = dt.now()
         fill_orders_in_separate_jobs = bool(self.env['ir.config_parameter'].
                                             get_param('purchase_procurement_just_in_time.fill_orders_in_separate_jobs'))
@@ -666,7 +669,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
                 order = self.env['purchase.order'].search([('id', '=', order_id)])
                 number_order += 1
                 session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
-                seller = self.env['procurement.order']._get_product_supplier(self[0])
                 job_create_draft_lines. \
                     delay(session, 'procurement.order', {order_id: dict_lines_to_create[order_id]},
                           description=_("Filling purchase order %s for supplier %s (order %s/%s)") %
@@ -678,10 +680,9 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         return return_msg
 
     @api.multi
-    def get_first_date_planned_by_delay(self):
+    def get_first_date_planned_by_delay(self, seller):
         if not self:
             return {}
-        seller = self.env['procurement.order']._get_product_supplier(self[0])
         self.env.cr.execute("""WITH procurement_order_restricted AS (
     SELECT *
     FROM procurement_order
@@ -766,14 +767,13 @@ ORDER BY fd.delay DESC""", (tuple(self.ids), seller.id,))
         return self.env.cr.dictfetchall()
 
     @api.multi
-    def get_first_purchase_dates_for_seller(self):
+    def get_first_purchase_dates_for_seller(self, seller):
         # Let's process procurements by delivery lead time, and compute the first purchase date for each
         # company/location.
-        first_date_planned_by_delay = self.get_first_date_planned_by_delay()
         first_purchase_dates = {}
         days_delta = self.get_delta_begin_grouping_period()
         force_date_ref = self.env.context.get('force_date_ref')
-        seller = self and self.env['procurement.order']._get_product_supplier(self[0]) or False
+        first_date_planned_by_delay = self.get_first_date_planned_by_delay(seller)
         date_ref = force_date_ref or fields.Datetime.to_string(seller.schedule_working_days(days_delta, dt.today()))
         while first_date_planned_by_delay:
             item = first_date_planned_by_delay[0]
@@ -879,7 +879,7 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         time_now = dt.now()
         if seller.nb_max_draft_orders and seller.get_effective_order_group_period() and not_assigned_proc_ids:
             not_assigned_procs = self.env['procurement.order'].search([('id', 'in', not_assigned_proc_ids)])
-            first_purchase_dates = not_assigned_procs.get_first_purchase_dates_for_seller()
+            first_purchase_dates = not_assigned_procs.get_first_purchase_dates_for_seller(seller)
             for company_id in first_purchase_dates:
                 for location_id in first_purchase_dates[company_id]:
                     first_purchase_date = first_purchase_dates[company_id][location_id]['first_purchase_date']
@@ -888,22 +888,22 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         return_msg += u"\nCreating draft orders if needed: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         not_assigned_procs = self.browse(not_assigned_proc_ids)
-        not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders()
+        not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders(seller)
         return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         if not_assigned_procs:
-            not_assigned_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+            not_assigned_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
         return_msg += u"\nRemoving unsassigned procurements from purchase order lines: %s s." % \
                       int((dt.now() - time_now).seconds)
         # TODO: mettre à jour les message ops
         return_msg = self.env['procurement.order'].prepare_procurements_redistribution(dict_procs_lines, return_msg)
         return_msg = self.env['procurement.order']. \
             launch_procurement_redistribution(dict_procs_lines, return_msg, jobify=jobify)
-        return_msg = self.launch_draft_lines_creation(dict_lines_to_create, return_msg, jobify=jobify)
+        return_msg = self.launch_draft_lines_creation(seller, dict_lines_to_create, return_msg, jobify=jobify)
         return return_msg
 
     @api.multi
-    def remove_procs_from_lines(self, unlink_moves_to_procs=False):
+    def remove_procs_from_lines(self, cancel_moves_to_procs=False):
         if not self:
             return
         self.remove_done_moves()
@@ -919,10 +919,9 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
             proc_moves = self.env['stock.move'].search([('procurement_id', '=', proc.id),
                                                         ('state', 'not in', ['cancel', 'done'])]
                                                        ).with_context(mail_notrack=True)
-            if unlink_moves_to_procs:
+            if cancel_moves_to_procs:
                 # We cancel procurement to cancel previous moves, and keep next ones
                 proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
-                proc_moves.unlink()
             else:
                 procs_moves_to_detach += proc_moves
         procs_moves_to_detach = self.env['stock.move'].search([('id', 'in', procs_moves_to_detach.ids),
@@ -966,7 +965,6 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
             else:
                 # We attach the proc to a draft line, so we cancel all moves if any
                 running_moves.with_context(cancel_procurement=True, tracking_disable=True).action_cancel()
-                running_moves.unlink()
         self.with_context(tracking_disable=True).write({'state': 'running'})
 
     @api.model

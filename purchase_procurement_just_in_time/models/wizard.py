@@ -97,7 +97,7 @@ class SplitLine(models.TransientModel):
                 qty_to_detach_pol_uom = self.env['product.uom']._compute_qty(procurement_to_detach.product_uom.id,
                                                                              procurement_to_detach.product_qty,
                                                                              self.line_id.product_uom.id)
-                procurement_to_detach.remove_procs_from_lines(unlink_moves_to_procs=True)
+                procurement_to_detach.remove_procs_from_lines(cancel_moves_to_procs=True)
                 running_procs_qty -= qty_to_detach_pol_uom
 
         self.line_id.with_context().write({'product_qty': self.qty})
