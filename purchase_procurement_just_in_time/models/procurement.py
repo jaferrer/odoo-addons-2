@@ -108,19 +108,19 @@ def job_purchase_schedule_procurements(session, model_name, ids, jobify,
     return result
 
 
-@job(default_channel='root.purchase_scheduler_slave')
+@job(default_channel='root.purchase_scheduler')
 def job_create_draft_lines(session, model_name, dict_lines_to_create):
     result = session.env[model_name].create_draft_lines(dict_lines_to_create)
     return result
 
 
-@job(default_channel='root.purchase_scheduler_slave')
+@job(default_channel='root.purchase_scheduler')
 def job_redistribute_procurements_in_lines(session, model_name, dict_procs_lines):
     result = session.env[model_name].redistribute_procurements_in_lines(dict_procs_lines)
     return result
 
 
-@job(default_channel='root.purchase_scheduler_slave')
+@job(default_channel='root.purchase_scheduler')
 def job_sanitize_draft_orders(session, model_name, seller_id):
     result = session.env[model_name].sanitize_draft_orders(seller_id)
     return result
@@ -342,7 +342,7 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
                 min_date = self.get_delivery_date_for_dateref_order(product, seller, date_ref)
                 past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
                 if past_procurements:
-                    past_procurements.remove_procs_from_lines(unlink_moves_to_procs=True)
+                    past_procurements.remove_procs_from_lines(cancel_moves_to_procs=True)
                     procurements_to_run -= past_procurements
                 domain += [('date_planned', '>', min_date)]
             procurements = self.search(domain)
@@ -892,7 +892,7 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         if not_assigned_procs:
-            not_assigned_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+            not_assigned_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
         return_msg += u"\nRemoving unsassigned procurements from purchase order lines: %s s." % \
                       int((dt.now() - time_now).seconds)
         # TODO: mettre à jour les message ops
@@ -903,7 +903,7 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         return return_msg
 
     @api.multi
-    def remove_procs_from_lines(self, unlink_moves_to_procs=False):
+    def remove_procs_from_lines(self, cancel_moves_to_procs=False):
         if not self:
             return
         self.remove_done_moves()
@@ -919,10 +919,9 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
             proc_moves = self.env['stock.move'].search([('procurement_id', '=', proc.id),
                                                         ('state', 'not in', ['cancel', 'done'])]
                                                        ).with_context(mail_notrack=True)
-            if unlink_moves_to_procs:
+            if cancel_moves_to_procs:
                 # We cancel procurement to cancel previous moves, and keep next ones
                 proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
-                proc_moves.unlink()
             else:
                 procs_moves_to_detach += proc_moves
         procs_moves_to_detach = self.env['stock.move'].search([('id', 'in', procs_moves_to_detach.ids),
@@ -966,7 +965,6 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
             else:
                 # We attach the proc to a draft line, so we cancel all moves if any
                 running_moves.with_context(cancel_procurement=True, tracking_disable=True).action_cancel()
-                running_moves.unlink()
         self.with_context(tracking_disable=True).write({'state': 'running'})
 
     @api.model
