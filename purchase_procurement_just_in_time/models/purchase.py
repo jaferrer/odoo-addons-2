@@ -177,7 +177,7 @@ class PurchaseOrderJustInTime(models.Model):
         moves_no_procs.action_cancel()
         # For the other moves, we don't want the move_dest_id to be cancelled, so we pass cancel_procurement
         res = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).action_cancel()
-        running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        running_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
         return res
 
     @api.multi
@@ -211,7 +211,7 @@ class PurchaseOrderJustInTime(models.Model):
         moves_no_procs.action_cancel()
         # For the other moves, we don't want the move_dest_id to be cancelled, so we pass cancel_procurement
         res = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).unlink()
-        running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        running_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
         return res
 
     @api.multi
@@ -432,7 +432,7 @@ class PurchaseOrderLineJustInTime(models.Model):
                                                                   move.product_qty,
                                                                   self.product_uom.id)
 
-        to_detach_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        to_detach_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
         self.adjust_move_no_proc_qty()
 
     def adjust_move_no_proc_qty(self):
@@ -451,7 +451,6 @@ class PurchaseOrderLineJustInTime(models.Model):
         # We don't want cancel_procurement context here,
         # because we want to cancel next move too (no procs).
         moves_no_procs.action_cancel()
-        moves_no_procs.unlink()
 
     @api.multi
     def update_moves(self, vals):
@@ -538,5 +537,5 @@ class PurchaseOrderLineJustInTime(models.Model):
         # We reset initially cancelled procs to state 'cancel', because the unlink function of module purchase would
         # have set them to state 'exception'
         cancelled_procs.with_context(tracking_disable=True).write({'state': 'cancel'})
-        procurements_to_detach.remove_procs_from_lines(unlink_moves_to_procs=True)
+        procurements_to_detach.remove_procs_from_lines(cancel_moves_to_procs=True)
         return result
