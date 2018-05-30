@@ -1,0 +1,41 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* stock_forbid_negative_quants
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-11-04 10:44+0000\n"
+"PO-Revision-Date: 2016-11-04 11:54+0100\n"
+"Last-Translator: Nicolas Piganeau <nicolas.piganeau@ndp-systemes.fr>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 1.8.7.1\n"
+
+#. module: stock_forbid_negative_quants
+#: code:addons/stock_forbid_negative_quants/stock_forbid_negative_quants.py:30
+#, python-format
+msgid "Error !"
+msgstr "Erreur !"
+
+#. module: stock_forbid_negative_quants
+#: model:ir.model,name:stock_forbid_negative_quants.model_stock_quant
+msgid "Quants"
+msgstr "Quants"
+
+#. module: stock_forbid_negative_quants
+#: code:addons/stock_forbid_negative_quants/stock_forbid_negative_quants.py:31
+#, python-format
+msgid "You are not allowed to move products quants that are not available. If the quants are available, check that package, owner and lot no. match. Product: %s, Missing qty: %s, Location: %s, Lot: %s, Package: %s"
+msgstr "Vous n'avez pas le droit de déplacer des quants d'articles non disponibles. Si les quants sont disponibles, vérifiez que le colis, le propriétaire et le numéro de lot correspondent. Article : %s, qté manquante : %s, emplacement : %s, n° de lot : %s, colis : %s"
+
+#. module: stock_forbid_negative_quants
+#: code:addons/stock_forbid_negative_quants/stock_forbid_negative_quants.py:53
+#, python-format
+msgid "Quant split: you are not allowed to create a negative or null quant. Product: %s, Quant qty: %s, Required reduction to: %s, Location: %s, Lot: %s, Package: %s"
+msgstr "Division de quant : vous n'êtes pas autorisé à créer un quant négatif ou nul. Article : %s, quantité du quant : %s, réduction demandée à %s, emplacement : %s, lot : %s, colis : %s"
