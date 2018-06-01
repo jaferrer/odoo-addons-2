@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="product.category" id="category_boissons">
+            <field name="name">Boissons</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_bieres">
+            <field name="name">Bières</field>
+            <field name="parent_id" ref="category_boissons"/>
+        </record>
+
+        <record model="product.category" id="category_vins">
+            <field name="name">Vins</field>
+            <field name="parent_id" ref="category_boissons"/>
+        </record>
+
+        <record model="product.category" id="category_softs">
+            <field name="name">Softs</field>
+            <field name="parent_id" ref="category_boissons"/>
+        </record>
+
+        <record model="product.category" id="category_alcools_spiritueux">
+            <field name="name">Alcools et spiritueux</field>
+            <field name="parent_id" ref="category_boissons"/>
+        </record>
+
+    </data>
+</openerp>
