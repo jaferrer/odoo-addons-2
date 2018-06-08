@@ -45,7 +45,8 @@ class FoodReceptionProductProduct(models.Model):
         maximal_core_temperature = refusal_temperature = 'no_object'
         category = self.categ_id
         while category and (maximal_core_temperature == 'no_object' or
-                            refusal_temperature == 'no_object'):
+                            refusal_temperature == 'no_object') and (category.maximal_core_temperature or
+                                                                     category.refusal_temperature):
             if maximal_core_temperature == 'no_object':
                 maximal_core_temperature = category.maximal_core_temperature
             if refusal_temperature == 'no_object':
@@ -57,15 +58,15 @@ class FoodReceptionProductProduct(models.Model):
 class FoodReceptionPackop(models.Model):
     _inherit = 'stock.pack.operation'
 
-    maximal_core_temperature = fields.Selection(POSSIBLE_TEMPERATURES, default='no_object', required=True,
+    maximal_core_temperature = fields.Selection(POSSIBLE_TEMPERATURES,
                                                 string=u"Maximal core temperature",
                                                 compute='_compute_reception_temperatures')
-    refusal_temperature = fields.Selection(POSSIBLE_TEMPERATURES, default='no_object', required=True,
+    refusal_temperature = fields.Selection(POSSIBLE_TEMPERATURES,
                                            string=u"Refusal temperature",
                                            compute='_compute_reception_temperatures')
     reception_temperature = fields.Float(string=u"Reception temperature")
 
-    @api.depends('product_id')
+    @api.depends('product_id', 'product_id.categ_id')
     @api.multi
     def _compute_reception_temperatures(self):
         for rec in self:
