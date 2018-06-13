@@ -13,6 +13,7 @@
                                 <field name="name"/>
                                 <field name="dunning_type_id"/>
                                 <field name="date_done"/>
+                                <field name="note"/>
                                 <field name="state"/>
                             </tree>
                         </field>

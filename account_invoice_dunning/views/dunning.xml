@@ -39,6 +39,7 @@
                                 <field name="mail_template_id"/>
                             </group>
                         </group>
+                        <field name="note" nolabel="1"/>
                         <field name="invoice_ids"
                                domain="[('partner_id', '=', partner_id), ('type', '=', 'out_invoice'), ('state', '=', 'open')]"
                                attrs="{'invisible': ['|', ('partner_id', '=', False), ('dunning_type_id', '=', False)], 'readonly': [('state', '!=', 'draft')]}">
