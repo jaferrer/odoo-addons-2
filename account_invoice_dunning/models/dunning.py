@@ -65,6 +65,7 @@ class AccountInvoiceRelance(models.Model):
     invoice_ids = fields.Many2many('account.invoice', string=u"Invoices")
     amount_total_signed = fields.Float(u"Total", compute='_compute_amounts')
     residual_signed = fields.Float(u"Residual", compute='_compute_amounts')
+    note = fields.Text(u"Notes")
 
     @api.multi
     def _compute_amounts(self):
@@ -172,7 +173,7 @@ class AccountInvoice(models.Model):
     @api.multi
     def _compute_dunning_number(self):
         for rec in self:
-            rec.dunning_number = len(rec.invoice_dunning_ids.filtered(lambda it: it.state == 'send'))
+            rec.dunning_number = len(rec.invoice_dunning_ids.filtered(lambda it: it.state in ['send', 'done']))
 
     @api.multi
     def action_create_dunning(self):
