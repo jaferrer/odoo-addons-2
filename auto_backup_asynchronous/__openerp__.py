@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,19 +18,19 @@
 #
 
 {
-    'name': 'Database Auto Save (France)',
+    'name': 'Auto Backup - Asynchronous Mode',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
-    'depends': ['auto_backup_asynchronous', 'attachments_hash'],
+    'depends': ['auto_backup', 'connector'],
     'description': """
-Database Auto Save (France)
-===========================
-This module saves automatically the database every day (the frequency can be defined manually), and makes backups inalterable as requested by the french legislation.
+Auto Backup - Asynchronous Mode
+===============================
+This module makes auto backups asynchronous.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['l10n_fr_database_autosave.xml'],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,
