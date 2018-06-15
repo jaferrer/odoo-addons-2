@@ -37,4 +37,5 @@ This module creates a field "proteced attachment", and makes those attachments i
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    'post_init_hook': '_setup_inalterability',
 }
