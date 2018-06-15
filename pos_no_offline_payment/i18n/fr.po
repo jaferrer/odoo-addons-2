@@ -1,0 +1,45 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* pos_no_offline_payment
+#
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 9.0-20161129\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-06-15 11:00+0000\n"
+"PO-Revision-Date: 2018-06-15 12:00+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: pos_no_offline_payment
+#. openerp-web
+#: code:addons/pos_no_offline_payment/static/src/js/screens.js:12
+#, python-format
+msgid "Error: You are offline"
+msgstr "Erreur: Vous êtes hors connexion"
+
+#. module: pos_no_offline_payment
+#. openerp-web
+#: code:addons/pos_no_offline_payment/static/src/js/screens.js:12
+#, python-format
+msgid "Can not save payment, please try again when you are connected to the internet"
+msgstr "Impossible d'enregistrer le paiement, veuillez recommencer lorsque vous serez connecté à internet"
+
+#. module: pos_no_offline_payment
+#. openerp-web
+#: code:addons/pos_no_offline_payment/static/src/js/screens.js:12
+#, python-format
+msgid "Error: Unable to access the server"
+msgstr "Erreur: Impossible d'accèder au serveur"
+
+#. module: pos_no_offline_payment
+#. openerp-web
+#: code:addons/pos_no_offline_payment/static/src/js/screens.js:12
+#, python-format
+msgid "Can not save payment, Please try again later or contact the administrator."
+msgstr "Impossible d'enregistrer le paiement. Veuillez réessayer plus tard ou contacter l'administrateur."
