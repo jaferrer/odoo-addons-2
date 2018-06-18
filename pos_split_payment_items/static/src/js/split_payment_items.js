@@ -29,7 +29,7 @@ odoo.define('pos_split_payment_items.split_payment_items', function (require) {
                         ids.push(parseInt($(this).data('id')));
                     }
                 })
-                if((splitby > 2 && splitby != 'NaN')|| ids.length == 0){
+                if((splitby < 2 && isNaN(splitby)) || ids.length == 0){
                     self.gui.show_popup('error', {
                         'title': _t('Error'),
                         'body': _t('Please enter the number of lines to divide or select lines'),
