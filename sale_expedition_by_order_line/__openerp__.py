@@ -24,7 +24,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase_line_numbers', 'stock_performance_improved'],
+    'depends': ['purchase_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type'],
     'description': """
 Purchase Reception By Order Line
 ================================
