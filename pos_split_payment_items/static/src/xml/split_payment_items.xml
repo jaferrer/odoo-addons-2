@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+     <t t-extend="SplitbillScreenWidget">
+         <t t-jquery=".left-content" t-operation="append">
+                 <div class="control-buttons">
+                    <input type="number" name="line_split_number" id="line_split_number" min="2" placeholder="3"/>
+                    <button name="split_line" class="control-button split_line">Split Payment lines</button>
+                     <p class="txt-warning">
+                         <i>Warning, all selected items will be split. And you will return on the previous screen.</i>
+                     </p>
+                 </div>
+         </t>
+     </t>
+</templates>
