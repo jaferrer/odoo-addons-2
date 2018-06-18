@@ -18,21 +18,26 @@
 #
 
 {
-    'name': 'Database Auto Save (France)',
+    'name': 'Product - POS Split payment items',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical',
-    'depends': ['auto_backup_asynchronous', 'attachments_hash'],
+    'category': 'POS',
+    'depends': ['point_of_sale'],
     'description': """
-Database Auto Save (France)
-===========================
-This module saves automatically the database every day (the frequency can be defined manually), and makes backups inalterable as requested by the french legislation.
+POS Split payment items
+=======================
+This module allow to split items for the payment.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['l10n_fr_database_autosave.xml'],
+    'data': [
+        'web_assets.xml'
+    ],
     'demo': [],
     'test': [],
+    'qweb': [
+        'static/src/xml/split_payment_items.xml',
+    ],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',

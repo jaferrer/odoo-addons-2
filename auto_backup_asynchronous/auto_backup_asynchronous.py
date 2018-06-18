@@ -17,18 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import attachments_hash
-from . import company
-from openerp import api, SUPERUSER_ID
-from openerp.addons.l10n_fr_certification.models.res_company import UNALTERABLE_COUNTRIES
+from openerp import models, api
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSessionHandler, ConnectorSession
 
 
-def _setup_inalterability(cr, registry):
-    env = api.Environment(cr, SUPERUSER_ID, {})
-    # enable ping for this module
-    env['publisher_warranty.contract'].update_notification(cron_mode=True)
+@job
+def job_action_backup(session, model_name, ids):
+    model_instance = session.pool[model_name]
+    model_instance.action_backup(session.cr, session.uid, ids, context=session.context)
+    return u"Database saved"
 
-    fr_companies = env['res.company'].search([('partner_id.country_id.code', 'in', UNALTERABLE_COUNTRIES)])
-    if fr_companies:
-        # create the securisation sequence per company
-        fr_companies._create_secure_sequence(['l10n_fr_attachments_cert_sequence_id'])
+
+class DbBackupAsynchronous(models.Model):
+    _inherit = 'db.backup'
+
+    @api.model
+    def action_backup_all(self):
+        for backup in self.search([]):
+            session = ConnectorSession.from_env(self.env)
+            description = u"Database Backup with ID=%s" % backup.id
+            job_action_backup.delay(session, 'db.backup', backup.ids, description=description)

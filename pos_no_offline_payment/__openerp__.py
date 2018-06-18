@@ -18,19 +18,21 @@
 #
 
 {
-    'name': 'Database Auto Save (France)',
+    'name': 'Point Of Sale - No offline Payment',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical',
-    'depends': ['auto_backup_asynchronous', 'attachments_hash'],
+    'category': 'Point of Sale',
+    'depends': ['point_of_sale'],
     'description': """
-Database Auto Save (France)
-===========================
-This module saves automatically the database every day (the frequency can be defined manually), and makes backups inalterable as requested by the french legislation.
+Point Of Sale - No offline Payment
+==================================
+This module prohibits the payment of orders when the user is offline
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['l10n_fr_database_autosave.xml'],
+    'data': [
+        'views/pos_no_offline_payment.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,

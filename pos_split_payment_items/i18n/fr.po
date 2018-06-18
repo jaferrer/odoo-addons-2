@@ -1,0 +1,45 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* pos_payment_split_payment_items
+#
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 9.0-20161129\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-06-15 11:00+0000\n"
+"PO-Revision-Date: 2018-06-15 12:00+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: pos_payment_split_payment_items
+#. openerp-web
+#: code:pos_payment_split_payment_items/static/src/xml/split_payment_items.xml:7
+#, python-format
+msgid "Split Payment lines"
+msgstr "Diviser les lignes de paiements"
+
+#. module: pos_payment_split_payment_items
+#. openerp-web
+#: code:pos_payment_split_payment_items/static/src/xml/split_payment_items.xml:9
+#, python-format
+msgid "Warning, all selected items will be split. And you will return on the previous screen."
+msgstr "Attention, tous les éléments sélectionnés seront divisés. Et vous reviendrez sur l'écran précédent"
+
+#. module: pos_payment_split_payment_items
+#. openerp-web
+#: code:pos_payment_split_payment_items/static/src/xml/split_payment_items.js:35
+#, python-format
+msgid "Please enter the number of lines to divide or select lines"
+msgstr "Veuillez entrer le nombre de lignes à diviser ou sélectionner des lignes"
+
+#. module: pos_payment_split_payment_items
+#. openerp-web
+#: code:pos_payment_split_payment_items/static/src/xml/split_payment_items.js:35
+#, python-format
+msgid "Error"
+msgstr "Erreur"

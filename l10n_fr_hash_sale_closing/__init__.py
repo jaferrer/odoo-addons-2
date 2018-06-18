@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import attachments_hash
+from . import l10n_fr_hash_sale_closing
 from . import company
 from openerp import api, SUPERUSER_ID
 from openerp.addons.l10n_fr_certification.models.res_company import UNALTERABLE_COUNTRIES
@@ -31,4 +31,4 @@ def _setup_inalterability(cr, registry):
     fr_companies = env['res.company'].search([('partner_id.country_id.code', 'in', UNALTERABLE_COUNTRIES)])
     if fr_companies:
         # create the securisation sequence per company
-        fr_companies._create_secure_sequence(['l10n_fr_attachments_cert_sequence_id'])
+        fr_companies._create_secure_sequence(['l10n_fr_sale_closing_sequence_id'])
