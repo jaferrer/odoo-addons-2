@@ -305,8 +305,8 @@ class PurchaseOrderLineJustInTime(models.Model):
         'remaining_qty': osv.fields.function(
             _get_remaining_qty, type="float", copy=False,
             store={
-                'sale.order.line': (lambda self, cr, uid, ids, ctx: ids, ['product_qty'], 20),
-                'stock.move': (_get_purchase_order_lines, ['purchase_order_line', 'product_uom_qty',
+                'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids, ['product_qty'], 20),
+                'stock.move': (_get_purchase_order_lines, ['purchase_line_id', 'product_uom_qty',
                                                            'product_uom', 'state'], 20)},
             string="Remaining quantity", help="Quantity not yet delivered by the supplier")}
 
