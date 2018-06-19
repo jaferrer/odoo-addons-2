@@ -1,15 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
-     <t t-extend="LoadOrderLine">
-         <t t-jquery=".order-line" t-operation="prepend">
-             <td><t t-esc="order.table_name"/></td>
-         </t>
-     </t>
-    <t t-extend="OrderListScreenWidget">
-         <t t-jquery=".order-list tr" t-operation="prepend">
-            <th>Table</th>
-         </t>
-     </t>
      <t t-extend="SplitbillScreenWidget">
          <t t-jquery=".left-content" t-operation="append">
              <div class="control-buttons">
