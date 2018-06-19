@@ -37,6 +37,7 @@ odoo.define('web_calendar_fixed_colors.CalendarView', function (require) {
         event_data_transform: function (evt) {
             var r = this._super(evt);
             r.color = undefined;
+            r.textColor = "#0d0d0d";
             if (this.colors !== undefined) {
                 for (var i = 0, len = this.colors.length; i < len; ++i) {
                     var context = _.extend({}, evt, {
