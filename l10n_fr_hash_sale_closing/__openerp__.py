@@ -30,7 +30,7 @@ Sales Closing Inalterability (France)
 This modules makes sale closing lines inalterable.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': ['l10n_fr_hash_sale_closing.xml'],
     'demo': [],
     'test': [],
     'installable': True,

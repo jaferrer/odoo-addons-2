@@ -82,9 +82,10 @@ class SaleClosingHash(models.Model):
         if sale_closing.company_id._is_accounting_unalterable() and not \
                 (sale_closing.l10n_fr_secure_sequence_number or sale_closing.l10n_fr_hash):
             new_number = sale_closing.company_id.l10n_fr_sale_closing_sequence_id.next_by_id()
-            vals_hashing = {'l10n_fr_secure_sequence_number': new_number,
-                            'l10n_fr_hash': sale_closing._get_new_hash(new_number)}
-            sale_closing.write(vals_hashing)
+            self.env.cr.execute("""UPDATE account_sale_closing
+SET l10n_fr_secure_sequence_number = %s, l10n_fr_hash = %s
+WHERE id = %s""", (new_number, sale_closing._get_new_hash(new_number), sale_closing.id))
+            self.env.invalidate_all()
         return sale_closing
 
     @api.multi
@@ -109,11 +110,9 @@ class SaleClosingHash(models.Model):
         """Checks that all protected sale closing lines have still the same data as when they were created
         and raises an error with the result.
         """
-
         sale_closings = self.search([('company_id', '=', company_id),
-                                   ('l10n_fr_secure_sequence_number', '!=', 0)],
-                                  order="l10n_fr_secure_sequence_number ASC")
-
+                                     ('l10n_fr_secure_sequence_number', '!=', 0)],
+                                    order="l10n_fr_secure_sequence_number ASC")
         if not sale_closings:
             raise UserError(_(u"There is no sale closing line flagged for data inalterability yet for the company %s. "
                               u"This mechanism only runs for ale closing lines generated after the installation of "
@@ -140,13 +139,3 @@ class SaleClosingHash(models.Model):
                              From: %(start_sale_closing_date)s recorded on %(start_sale_closing_date)s
                              To: %(end_sale_closing_name)s recorded on %(end_sale_closing_date)s.'''
                           ) % report_dict)
-
-
-class AccountMoveHashSaleClosing(models.Model):
-    _inherit = 'account.move'
-
-    @api.model
-    def _check_hash_integrity(self, company_id):
-        result = super(AccountMoveHashSaleClosing, self)._check_hash_integrity(company_id)
-        self.env['account.sale.closing']._check_hash_integrity(company_id)
-        return result
