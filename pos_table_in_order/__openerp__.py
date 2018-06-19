@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,4 +17,27 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import pos_order
+{
+    'name': 'Product - POS table in order',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'POS',
+    'depends': ['point_of_sale', 'pos_restaurant'],
+    'description': """
+POS table in order
+==================
+This module load table in orders.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [],
+    'demo': [],
+    'test': [],
+    'qweb': [
+        'static/src/xml/pos_table_in_order.xml'
+    ],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

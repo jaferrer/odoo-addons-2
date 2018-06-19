@@ -17,4 +17,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import pos_order
+from openerp import models, fields, api
+
+
+class PosOrder(models.Model):
+    _inherit = 'pos.order'
+
+    table_name = fields.Char(string=u"Table", related="table_id.name", readonly=True)
+
+    # Custom Section
+    @api.model
+    def search_read_orders(self, query, fields = []):
+        condition = [
+            ('state', '=', 'draft'),
+            ('statement_ids', '=', False),
+            '|',
+            ('name', 'ilike', query),
+            ('partner_id', 'ilike', query)
+        ]
+        fields = ['name', 'partner_id', 'amount_total', 'table_name'] + fields
+        return self.search_read(condition, fields, limit=10)
