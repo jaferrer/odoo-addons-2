@@ -33,7 +33,7 @@ Usage
 -----
 ```
 <calendar string="Events" date_start="date_start" date_stop="date_stop"
-          colors="{red:alert==True;green:date_start<current_date}">
+          colors="red:alert==True;green:date_start<current_date">
     <field name="name"/>
     <field name="alert" invisible="1"/>
 </calendar>
