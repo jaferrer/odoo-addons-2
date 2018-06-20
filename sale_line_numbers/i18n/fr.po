@@ -36,7 +36,7 @@ msgstr ""
 #. module: purchase_line_numbers
 #: field:purchase.order.line,line_no:0
 msgid "Line no."
-msgstr "N° Ligne"
+msgstr "N° de poste"
 
 #. module: purchase_line_numbers
 #: code:addons\purchase_line_numbers\purchase_line_numbers.py:59
