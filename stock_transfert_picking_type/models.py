@@ -46,8 +46,46 @@ class StockTransfertPickingTypeTransferDetails(models.TransientModel):
                     item['sale_line_id'] = packop.sale_line_id and packop.sale_line_id.id or False
         return result
 
+class ReceptionByOrderTransferDetailsItems(models.TransientModel):
+    _inherit = 'stock.transfer_details_items'
+
+    purchase_line_id = fields.Many2one('purchase.order.line', string="Purchase order line")
+    sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")
+    group_name = fields.Char(string="Picking group name", related='transfer_id.picking_id.group_id.name',
+                             readonly=True)
+
+
+class StockTransfertPickingTypeProcOrder(models.Model):
+    _inherit = 'procurement.order'
+
+    @api.model
+    def _run_move_create(self, procurement):
+        res = super(StockTransfertPickingTypeProcOrder, self)._run_move_create(procurement)
+        res.update({'sale_line_id': procurement.sale_line_id and procurement.sale_line_id.id or False})
+        return res
+
+
+class StockTransfertPickingTypeStockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    pack_operation_expedition_ids = fields.One2many('stock.pack.operation', 'picking_id',
+                                                    states={'done': [('readonly', True)],
+                                                            'cancel': [('readonly', True)]},
+                                                    string=u'Related Packing Operations')
+    pack_operation_reception_ids = fields.One2many('stock.pack.operation', 'picking_id',
+                                                   states={'done': [('readonly', True)],
+                                                           'cancel': [('readonly', True)]},
+                                                   string=u'Related Packing Operations')
+
 class StockTransfertPickingTypePackOp(models.Model):
     _inherit = 'stock.pack.operation'
 
     sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")
     purchase_line_id = fields.Many2one('purchase.order.line', string="Purchase order line")
+    picking_type_code = fields.Char(u"Picking Type Code", related="picking_id.picking_type_code", readonly=True)
+
+
+class StockTransfertPickingTypeStokMove(models.Model):
+    _inherit = 'stock.move'
+
+    sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")

@@ -20,6 +20,7 @@
                             <field name="package_id" groups="stock.group_tracking_lot"/>
                             <field name="product_id" required="True"  context="{'uom':product_uom_id}" on_change="product_id_change(product_id,product_uom_id,context)"/>
                             <field name="quantity"/>
+                            <field name="purchase_line_id"/>
                             <button name="split_quantities" string="Split" type="object" icon="STOCK_PREFERENCES" attrs="{'invisible': [('quantity', '=', 1)]}"/>
                             <field name="product_uom_id" options="{&quot;no_open&quot;: True}" groups="product.group_uom"/>
                             <field name="sourceloc_id" domain="[('id', 'child_of', parent.picking_source_location_id)]"/>
@@ -37,6 +38,7 @@
                             <field name="package_id" groups="stock.group_tracking_lot"/>
                             <field name="product_id" required="True"  context="{'uom':product_uom_id}" on_change="product_id_change(product_id,product_uom_id,context)"/>
                             <field name="quantity"/>
+                            <field name="sale_line_id"/>
                             <button name="split_quantities" string="Split" type="object" icon="STOCK_PREFERENCES" attrs="{'invisible': [('quantity', '=', 1)]}"/>
                             <field name="product_uom_id" options="{&quot;no_open&quot;: True}" groups="product.group_uom"/>
                             <field name="sourceloc_id" domain="[('id', 'child_of', parent.picking_source_location_id)]"/>

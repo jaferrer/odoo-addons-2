@@ -18,3 +18,4 @@
 #
 
 from . import sale_expedition_by_order_line
+from . import wizard

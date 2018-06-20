@@ -24,7 +24,6 @@ from openerp.tools import float_compare
 class ReceptionByOrderStockPackOperation(models.Model):
     _inherit = 'stock.pack.operation'
 
-    sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")
 
     @api.multi
     def get_list_operations_to_process(self):
