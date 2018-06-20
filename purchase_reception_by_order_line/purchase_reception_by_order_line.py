@@ -24,8 +24,8 @@ from openerp.tools import float_compare
 class ReceptionByOrderStockPackOperation(models.Model):
     _inherit = 'stock.pack.operation'
 
-    purchase_line_id = fields.Many2one('purchase.order.line', string="Purchase order line")
     group_name = fields.Char(string="Picking group name", related='picking_id.group_id.name')
+
 
     @api.multi
     def get_list_operations_to_process(self):
@@ -39,15 +39,18 @@ class ReceptionByOrderStockPackOperation(models.Model):
                                                        "operations and retry."))
         # First operation should be the ones which are linked to a purchase_order_line
         operations_with_purchase_lines = self.search([('id', 'in', self.ids), ('purchase_line_id', '!=', False)])
-        operations_without_purchase_lines = self.search([('id', 'in', self.ids),
+        if operations_with_purchase_lines:
+
+            operations_without_purchase_lines = self.search([('id', 'in', self.ids),
                                                          ('id', 'not in', operations_with_purchase_lines.ids)])
-        return [operations_with_purchase_lines, operations_without_purchase_lines]
+            return [operations_with_purchase_lines, operations_without_purchase_lines]
+        else:
+            return super(ReceptionByOrderStockPackOperation, self).get_list_operations_to_process()
 
     @api.multi
-    def sort_operations_for_transfer(self):
-        return sorted(self, key=lambda x: ((x.purchase_line_id and -8 or 0) +
-                                           (x.package_id and not x.product_id and -4 or 0) +
-                                           (x.package_id and -2 or 0) + (x.lot_id and -1 or 0)))
+    def _sort_operations_for_transfer_value(self):
+        return (self.purchase_line_id and -8 or 0) + super(ReceptionByOrderStockPackOperation,self).\
+            _sort_operations_for_transfer_value()
 
 
 class ReceptionByOrderStockPicking(models.Model):
@@ -57,12 +60,15 @@ class ReceptionByOrderStockPicking(models.Model):
     def _create_link_for_product(self, prod2move_ids, operation_id, product_id, qty):
         '''method that creates the link between a given operation and move(s) of given product, for the given quantity.
         Returns True if it was possible to create links for the requested quantity (False if there was not enough quantity on stock moves)'''
+        op_pol_id = self.env['stock.pack.operation'].search([('id', '=', operation_id)]) \
+            .read(['purchase_line_id'], load=False)[0]['purchase_line_id']
+        if not op_pol_id:
+            return super(ReceptionByOrderStockPicking, self)._create_link_for_product(prod2move_ids, operation_id, product_id, qty)
+
         qty_to_assign = qty
         product = self.env['product.product'].browse([product_id])
         rounding = product.uom_id.rounding
         qtyassign_cmp = float_compare(qty_to_assign, 0.0, precision_rounding=rounding)
-        op_pol_id = self.env['stock.pack.operation'].search([('id', '=', operation_id)], limit=1) \
-            .read(['purchase_line_id'], load=False)[0]['purchase_line_id']
         if prod2move_ids.get(product_id):
             while prod2move_ids[product_id] and qtyassign_cmp > 0:
                 i = 0
@@ -80,6 +86,7 @@ class ReceptionByOrderStockPicking(models.Model):
         result_comp = qtyassign_cmp == 0
         return result_comp, prod2move_ids
 
+
     @api.model
     def _create_prod2move_ids(self, picking_id):
         prod2move_ids = {}
@@ -96,11 +103,13 @@ SELECT
     THEN -1
                   ELSE 0 END) AS poids
 FROM stock_move sm
-WHERE sm.picking_id = %s AND sm.state NOT IN ('done', 'cancel')
+WHERE sm.picking_id = %s AND sm.state NOT IN ('done', 'cancel') AND sm.purchase_line_id IS NOT NULL
 ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                     """, (picking_id,)
         )
         res = self.env.cr.fetchall()
+        if not res:
+            return super(ReceptionByOrderStockPicking, self)._create_prod2move_ids(picking_id)
         for move in res:
             if not prod2move_ids.get(move[2]):
                 prod2move_ids[move[2]] = [
@@ -116,9 +125,12 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
 
     @api.model
     def add_packop_values(self, vals, prevals):
-        processed_purchase_lines = set()
         move_with_purchase_lines = [x for x in self.move_lines if
                                     x.state not in ('done', 'cancel') and x.purchase_line_id]
+        if not move_with_purchase_lines:
+            return super(ReceptionByOrderStockPicking, self).add_packop_values(vals, prevals)
+
+        processed_purchase_lines = set()
         for move in move_with_purchase_lines:
             if move.product_id and move.purchase_line_id.id not in processed_purchase_lines:
                 uom = move.purchase_line_id.product_uom

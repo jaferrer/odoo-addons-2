@@ -16,7 +16,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
     'name': 'Purchase Reception By Order Line',
     'sequence': 1,
@@ -24,15 +23,14 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase_line_numbers', 'stock_performance_improved'],
+    'depends': ['purchase_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type'],
     'description': """
 Purchase Reception By Order Line
 ================================
 This module improves the initial reception process. It allows to make it purchase order line by purchase order line.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['purchase_reception_by_order_line.xml',
-             'wizard.xml'],
+    'data': ['wizard.xml', 'purchase_reception_by_order_line.xml'],
     'demo': ['tests/test_purchase_reception_by_order_line.xml'],
     'test': [],
     'installable': True,

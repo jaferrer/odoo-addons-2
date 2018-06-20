@@ -179,8 +179,11 @@ class stock_pack_operation(models.Model):
 
     @api.multi
     def sort_operations_for_transfer(self):
-        return sorted(self, key=lambda x: ((x.package_id and not x.product_id) and -4 or 0) +
-                                          (x.package_id and -2 or 0) + (x.lot_id and -1 or 0))
+        return sorted(self, key=lambda x: x._sort_operations_for_transfer_value())
+
+    @api.multi
+    def _sort_operations_for_transfer_value(self):
+        return ((self.package_id and not self.product_id) and -4 or 0) + (self.package_id and -2 or 0) + (self.lot_id and -1 or 0)
 
 
 class StockPicking(models.Model):
