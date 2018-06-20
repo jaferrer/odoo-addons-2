@@ -30,7 +30,7 @@ Stock transfert picking type
 ================================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['./wizard.xml'],
+    'data': ['wizard.xml', 'views.xml'],
     'demo': [],
     'test': [],
     'installable': True,

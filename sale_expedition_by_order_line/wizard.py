@@ -23,9 +23,6 @@ from openerp import models, fields, api, exceptions, _
 class ExpeditionByOrderTransferDetails(models.TransientModel):
     _inherit = 'stock.transfer_details'
 
-    item_expedition_ids = fields.One2many('stock.transfer_details_items', 'transfer_id', 'Items',
-                                          domain=[('product_id', '!=', False)])
-
     @api.model
     def default_get(self, fields_list):
         result = super(ExpeditionByOrderTransferDetails, self).default_get(fields_list)
@@ -47,7 +44,7 @@ class ExpeditionByOrderTransferDetails(models.TransientModel):
                                                        "linked to another product. Please check your packing "
                                                        "operations and retry."))
         # Create new pack operations if needed
-        for item in self.item_ids:
+        for item in self.item_expedition_ids:
             if not item.packop_id:
                 new_packop = self.env['stock.pack.operation'].create({
                     'picking_id': self.picking_id and self.picking_id.id or False,
@@ -70,6 +67,6 @@ class ExpeditionByOrderTransferDetails(models.TransientModel):
 class ReceptionByOrderTransferDetailsItems(models.TransientModel):
     _inherit = 'stock.transfer_details_items'
 
-    sale_line_id = fields.Many2one('purchase.order.line', string="Purchase order line")
+    sale_line_id = fields.Many2one('sale.order.line', string="Purchase order line")
     group_name = fields.Char(string="Picking group name", related='transfer_id.picking_id.group_id.name',
                              readonly=True)

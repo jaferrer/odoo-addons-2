@@ -33,8 +33,6 @@ class ReceptionByOrderTransferDetails(models.TransientModel):
         return result
 
     picking_group_name = fields.Char(string="Procurement group name", related='picking_id.group_id.name', readonly=True)
-    item_reception_ids = fields.One2many('stock.transfer_details_items', 'transfer_id', 'Items',
-                                         domain=[('product_id', '!=', False)])
 
     @api.one
     def do_detailed_transfer(self):
@@ -49,7 +47,7 @@ class ReceptionByOrderTransferDetails(models.TransientModel):
                                                        "linked to another product. Please check your packing "
                                                        "operations and retry."))
         # Create new pack operations if needed
-        for item in self.item_ids:
+        for item in self.item_reception_ids:
             if not item.packop_id:
                 new_packop = self.env['stock.pack.operation'].create({
                     'picking_id': self.picking_id and self.picking_id.id or False,

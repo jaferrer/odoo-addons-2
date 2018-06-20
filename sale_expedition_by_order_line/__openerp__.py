@@ -24,14 +24,14 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type'],
+    'depends': ['sale_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type'],
     'description': """
 Purchase Reception By Order Line
 ================================
 This module improves the initial expedition process. It allows to make it sale order line by sale order line.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': ['wizard.xml', 'sale_expedition_by_order_line.xml'],
     'demo': [],
     'test': [],
     'installable': True,
