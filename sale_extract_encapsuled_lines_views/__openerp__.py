@@ -18,25 +18,23 @@
 #
 
 {
-    'name': 'Sale Line Numbers',
-    'sequence': 1,
+    'name': 'Sale - extract encapsuled lines views',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['sale_extract_encapsuled_lines_views'],
+    'category': 'Sale',
+    'depends': ['sale'],
     'description': """
-Sale Line Numbers
-=================
-This module adds a number for each sale order line.
+Sale - extract encapsuled lines views
+=====================================
+This modules extracts encapsuled lines views, so that they will be able to be overwritten.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['sale_line_numbers.xml'],
+    'data': ['sale_extract_encapsuled_lines_views.xml'],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
-    'sequence': 50,
 }

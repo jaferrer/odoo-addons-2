@@ -26,8 +26,8 @@
     'category': 'Purchase',
     'depends': ['sale_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type'],
     'description': """
-Purchase Reception By Order Line
-================================
+Sale Expedition By Order Line
+=============================
 This module improves the initial expedition process. It allows to make it sale order line by sale order line.
 """,
     'website': 'http://www.ndp-systemes.fr',

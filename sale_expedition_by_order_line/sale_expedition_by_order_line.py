@@ -230,3 +230,42 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     procurement_ids = fields.One2many('procurement.order', 'sale_line_id', readonly=True)
+    move_ids = fields.One2many('stock.move', 'sale_line_id', readonly=True)
+    remaining_qty = fields.Float(u"Qty Still To Be Sent", compute="_get_remaining_qty", store=True)
+    sent_qty = fields.Float(u"Quantity Already Sent", compute="_get_remaining_qty", store=True)
+
+    @api.depends('product_uom_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
+    def _get_remaining_qty(self):
+        """
+        Calculates remaining_qty
+        """
+        for rec in self:
+            remaining_qty = 0
+            if rec.product_id and rec.product_id.type != 'service':
+                delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
+                                                                          rec.product_uom.id)
+                                     for move in rec.move_ids if move.state == 'done'])
+                remaining_qty = float_round(rec.product_uom_qty - delivered_qty,
+                                            precision_rounding=rec.product_uom.rounding)
+            rec.remaining_qty = remaining_qty
+            rec.sent_qty = rec.product_uom_qty - remaining_qty
+
+
+class ExpeditionByOrderLineSaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    lines_display = fields.Selection([('not_null_remaining_quantity', u"Not delivered lines"), ('all', u"All lines")],
+                                     string=u"Display", default='not_null_remaining_quantity', required=True,
+                                     help=u"Choose whether you want to display all lines or only running ones")
+    line_not_null_remaining_qty_ids = fields.One2many('sale.order.line', 'order_id', string=u"Not delivered lines",
+                                                      domain=[('remaining_qty', '>', 0)],
+                                                      states={'done': [('readonly', True)],
+                                                              'cancel': [('readonly', True)]})
+
+    @api.multi
+    def toggle_lines_display(self):
+        for rec in self:
+            if rec.lines_display == 'rae_non_nul':
+                rec.lines_display = 'all'
+            else:
+                rec.lines_display = 'rae_non_nul'
