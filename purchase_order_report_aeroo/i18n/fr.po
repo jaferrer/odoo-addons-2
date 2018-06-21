@@ -85,3 +85,8 @@ msgstr "au capital de"
 #: report:ir.actions.report.xml:purchase_order_report_aeroo.purchase_order_report_aeroo
 msgid "N° VAT"
 msgstr "N° TVA"
+
+#. module: purchase_order_report_aeroo
+#: report:ir.actions.report.xml:purchase_order_report_aeroo.purchase_order_report_aeroo
+msgid "Req. Date"
+msgstr "Date\ndemandée"
