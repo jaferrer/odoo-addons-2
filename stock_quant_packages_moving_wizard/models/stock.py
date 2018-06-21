@@ -198,6 +198,10 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
             get_reservation_target(list_reservations, product, location_from, dest_location, picking_type_id)
         self.env['stock.move'].split_not_totally_consumed_moves(dict_reservation_target)
         self.reserve_quants_on_moves_ok(dict_reservation_target)
+        moves_to_unresrerve = self.env['stock.move']
+        for quant in [item[0] for item in moves_to_create]:
+            moves_to_unresrerve |= quant.reservation_id
+        moves_to_unresrerve.do_unreserve()
         new_moves = self.move_remaining_quants(product, location_from, dest_location, picking_type_id,
                                                new_picking_id, moves_to_create)
         new_moves.assign_moves_to_new_picking(dict_reservation_target, new_picking_id)
