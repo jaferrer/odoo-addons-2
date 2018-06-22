@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="product.category" id="category_charcuterie_terrine">
+            <field name="name">Charcuterie cuite et terrines</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_charcuterie_seche">
+            <field name="name">Charcuterie sèche</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_viandes_conditionnees">
+            <field name="name">Viandes conditionnées</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_poisson_frais">
+            <field name="name">Poisson frais</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_fruits_legumes">
+            <field name="name">Fruits et légumes</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_salade_4eme_gamme">
+            <field name="name">Salades 4ème gamme</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_fromage_frais">
+            <field name="name">Fromage frais</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_produits_laitiers_frais">
+            <field name="name">Produits laitiers frais</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_denrees_surgelees">
+            <field name="name">Denrées surgelées</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_glaces">
+            <field name="name">Glaces</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_boissons">
+            <field name="name">Boissons</field>
+            <field name="parent_id" ref="product.product_category_all"/>
+        </record>
+
+        <record model="product.category" id="category_bieres">
+            <field name="name">Bières</field>
+            <field name="parent_id" ref="category_boissons"/>
+        </record>
+
+        <record model="product.category" id="category_vins">
+            <field name="name">Vins</field>
+            <field name="parent_id" ref="category_boissons"/>
+        </record>
+
+        <record model="product.category" id="category_softs">
+            <field name="name">Softs</field>
+            <field name="parent_id" ref="category_boissons"/>
+        </record>
+
+        <record model="product.category" id="category_alcools_spiritueux">
+            <field name="name">Alcools et spiritueux</field>
+            <field name="parent_id" ref="category_boissons"/>
+        </record>
+
+    </data>
+</openerp>

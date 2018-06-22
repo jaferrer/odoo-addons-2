@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="db.backup" id="daily_backup">
+            <field name="folder">/tmp</field>
+            <field name="days_to_keep">0</field>
+            <field name="method">local</field>
+        </record>
+
+        <record model="ir.actions.act_window" id="base.action_attachment">
+            <field name="domain">[('database_backup', '=', False)]</field>
+        </record>
+
+        <record id="action_attachment_backups" model="ir.actions.act_window">
+            <field name="name">Backup Files</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">ir.attachment</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_id" eval="False"/>
+            <field name="search_view_id" ref="base.view_attachment_search"/>
+            <field name="domain">[('database_backup', '=', True)]</field>
+        </record>
+
+        <menuitem id="menu_action_attachment_backups" action="action_attachment_backups"
+                  name="Backup Files" parent="base.next_id_9" sequence="100"/>
+
+    </data>
+</openerp>
