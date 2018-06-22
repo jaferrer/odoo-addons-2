@@ -139,7 +139,9 @@ class RessourceCalendar(models.Model):
         list_intervals = self.get_working_intervals_of_day(end_dt=date_end_day, leaves=leaves,
                                                            compute_leaves=compute_leaves, resource_id=resource_id,
                                                            default_interval=default_interval)
-        return min([interval[0] for interval in list_intervals[0]])
+        if list_intervals and list_intervals[0]:
+            return min([interval[0] for interval in list_intervals[0]])
+        return date.replace(hour=0, minute=0, second=0)
 
     @api.multi
     def get_end_day_date(self, date, leaves=None, compute_leaves=False, resource_id=None, default_interval=None):
@@ -148,4 +150,6 @@ class RessourceCalendar(models.Model):
         list_intervals = self.get_working_intervals_of_day(end_dt=date_end_day, leaves=leaves,
                                                            compute_leaves=compute_leaves, resource_id=resource_id,
                                                            default_interval=default_interval)
-        return max([interval[1] for interval in list_intervals[0]])
+        if list_intervals and list_intervals[0]:
+            return max([interval[1] for interval in list_intervals[0]])
+        return date_end_day

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="food_reception_stock_config_form">
+            <field name="name">food_reception_stock_config_form</field>
+            <field name="model">stock.config.settings</field>
+            <field name="inherit_id" ref="stock.view_stock_config_settings"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form position="inside">
+                    <group string="Food Reception">
+                        <field name="force_fill_reception_temperatures"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>

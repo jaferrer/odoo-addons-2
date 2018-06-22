@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="product.category" id="product_restaurant_categories.category_charcuterie_terrine">
+            <field name="maximal_core_temperature">4</field>
+            <field name="refusal_temperature">7</field>
+            <field name="health_approval">yes</field>
+            <field name="dlc_dluo">dlc</field>
+            <field name="packaging_type">Sous vide</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_charcuterie_seche">
+            <field name="maximal_core_temperature">8</field>
+            <field name="refusal_temperature">15</field>
+            <field name="health_approval">yes</field>
+            <field name="dlc_dluo">dluo</field>
+            <field name="packaging_type">Sous vide ou correctement protégé</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_viandes_conditionnees">
+            <field name="maximal_core_temperature">4</field>
+            <field name="refusal_temperature">7</field>
+            <field name="health_approval">yes</field>
+            <field name="dlc_dluo">dlc</field>
+            <field name="packaging_type">Sous vide ou correctement protégé</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_poisson_frais">
+            <field name="maximal_core_temperature">2</field>
+            <field name="refusal_temperature">5</field>
+            <field name="health_approval">yes</field>
+            <field name="dlc_dluo">no</field>
+            <field name="packaging_type">Bac polystyrène (poissons couverts de glace)</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_fruits_legumes">
+            <field name="maximal_core_temperature">8</field>
+            <field name="refusal_temperature">8</field>
+            <field name="health_approval">no</field>
+            <field name="dlc_dluo">no</field>
+            <field name="packaging_type">Caisse ou sac</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_salade_4eme_gamme">
+            <field name="maximal_core_temperature">4</field>
+            <field name="refusal_temperature">7</field>
+            <field name="health_approval">no</field>
+            <field name="dlc_dluo">dlc</field>
+            <field name="packaging_type">Sachet sous atmosphère modifiée</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_fromage_frais">
+            <field name="maximal_core_temperature">4</field>
+            <field name="refusal_temperature">7</field>
+            <field name="health_approval">yes</field>
+            <field name="dlc_dluo">dluo</field>
+            <field name="packaging_type">Boite</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_produits_laitiers_frais">
+            <field name="maximal_core_temperature">7</field>
+            <field name="refusal_temperature">10</field>
+            <field name="health_approval">yes</field>
+            <field name="dlc_dluo">dlc</field>
+            <field name="packaging_type">Pot, seau, sous film, ...</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_denrees_surgelees">
+            <field name="maximal_core_temperature">-18</field>
+            <field name="refusal_temperature">-15</field>
+            <field name="health_approval">yes</field>
+            <field name="dlc_dluo">dlc_dluo</field>
+            <field name="packaging_type">Sac, carton, sous vide</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_glaces">
+            <field name="maximal_core_temperature">-18</field>
+            <field name="refusal_temperature">-18</field>
+            <field name="health_approval">yes</field>
+            <field name="dlc_dluo">dlc_dluo</field>
+            <field name="packaging_type">Carton</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_glaces">
+            <field name="maximal_core_temperature">-18</field>
+            <field name="refusal_temperature">-18</field>
+            <field name="health_approval">yes</field>
+            <field name="dlc_dluo">dlc_dluo</field>
+            <field name="packaging_type">Carton</field>
+        </record>
+
+        <record model="product.category" id="product_restaurant_categories.category_boissons">
+            <field name="maximal_core_temperature">no_object</field>
+            <field name="refusal_temperature">no_object</field>
+            <field name="health_approval">no</field>
+            <field name="dlc_dluo">dluo</field>
+            <field name="packaging_type">Bouteille, boîte, cubitainer</field>
+        </record>
+
+    </data>
+</openerp>
