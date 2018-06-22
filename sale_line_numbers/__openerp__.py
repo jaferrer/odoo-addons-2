@@ -24,7 +24,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['sale_extract_encapsuled_lines_views'],
+    'depends': ['sale'],
     'description': """
 Sale Line Numbers
 =================
