@@ -81,6 +81,12 @@
             <field name="image" type="base64" file="pos_restaurant_categories/static/img/vins_petillants.jpg"/>
         </record>
 
+        <record id="pos_category_vins_verre" model="pos.category">
+            <field name="name">Vins au verre/kirs</field>
+            <field name="parent_id" ref="pos_category_vins"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/vins.jpg"/>
+        </record>
+
         <record id="pos_category_alcools_spiritueux" model="pos.category">
             <field name="name">Alcools et spiritueux</field>
             <field name="parent_id" ref="pos_category_boissons"/>
