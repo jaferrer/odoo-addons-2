@@ -222,6 +222,12 @@ msgid "Task %s must totally include task %s"
 msgstr "La tâche %s doit contenir totalement la tâche %s"
 
 #. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:624
+#, python-format
+msgid "Impossible to schedule a task on a not working day."
+msgstr "Impossible de planifier une tâche dans une période non ouvrée"
+
+#. module: project_planning_improved
 #: code:addons\project_planning_improved\project_planning_improved.py:641
 #, python-format
 msgid "Impossible to schedule entirely a task in a not working period"
