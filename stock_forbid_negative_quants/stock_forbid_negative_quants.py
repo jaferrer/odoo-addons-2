@@ -26,6 +26,42 @@ class StockQuant(models.Model):
     _inherit = "stock.quant"
 
     @api.model
+    def create(self, values):
+        if values.get('qty', 0) and values.get('qty') <= 0:
+            dest_location = values.get('location_dest_id', False) and self.env['stock.location'].browse(
+                values.get('location_dest_id')) or False
+            product = values.get('product_id', False) and self.env['product.product'].browse(
+                values.get('product_id')) or False
+            if dest_location and dest_location.usage == 'internal' and product and product.type == 'product':
+                prec = product.uom_id.rounding
+                qty = float_compare(float_round(values.get('qty', 0), precision_rounding=prec), 0,
+                                    precision_rounding=prec) <= 0
+                if qty:
+                    raise exceptions.except_orm(_("Error !"),
+                                                _("Impossible to create quant product in internal location with non "
+                                                  "positiv quantity."))
+        return super(StockQuant, self).create(values)
+
+    @api.multi
+    def write(self, values):
+        val_location_dest_id = values.get('location_dest_id', False)
+        val_qty = values.get('qty', 0)
+        val_product_id = values.get('product_id', False)
+        for rec in self:
+            location_dest_id = val_location_dest_id and self.env['stock.location'].browse(val_location_dest_id) or \
+                               rec.location_dest_id
+            qty = val_qty or rec.qty
+            product_id = val_product_id = self.env['product.product'].browse(val_product_id) or rec.product_id
+            prec = product_id.uom_id.rounding
+            if location_dest_id.usage == 'internal' and product_id.type == 'product':
+                neg = float_compare(float_round(qty, precision_rounding=prec), 0, precision_rounding=prec) <= 0
+                if neg:
+                    raise exceptions.except_orm(_("Error !"),
+                                                _("Impossible to edit quant product in internal location with non "
+                                                  "positiv quantity."))
+        return super(StockQuant, self).write(values)
+
+    @api.model
     def _quant_create(self, qty, move, lot_id=False, owner_id=False, src_package_id=False, dest_package_id=False,
                       force_location_from=False, force_location_to=False):
         if (not config["test_enable"] or self.env.context.get('force_forbid_negative_quants')) \
@@ -61,3 +97,23 @@ class StockQuant(models.Model):
                                                            quant.location_id.complete_name, quant.lot_id.name or '-',
                                                            quant.package_id.name or '-'))
         return result
+
+    @api.model
+    def move_quants_write(self, quants, move, location_dest_id, dest_package_id):
+        if location_dest_id.usage == 'internal' and move.product_id.type == 'product':
+            for quant in quants:
+                prec = quant.product_id.uom_id.rounding
+                qty = float_compare(float_round(quant.qty, precision_rounding=prec), 0, precision_rounding=prec) <= 0
+                if qty:
+                    raise exceptions.except_orm(
+                        _("Error !"),
+                        _("You are not allowed to move products quants that are negative."
+                          "Product: %s, qty: %s, Location: %s, Lot: %s, Package: %s") % (
+                            move.product_id.display_name,
+                            qty,
+                            move.location_id.complete_name,
+                            quant.lot_id and quant.lot_id.name or "-",
+                            move.src_package_id and move.src_package_id.name or "-",
+                        )
+                    )
+        return super(StockQuant, self).move_quants_write(quants, move, location_dest_id, dest_package_id)
