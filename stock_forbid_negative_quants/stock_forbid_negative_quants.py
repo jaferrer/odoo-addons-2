@@ -27,19 +27,18 @@ class StockQuant(models.Model):
 
     @api.model
     def create(self, values):
-        if values.get('qty', 0) and values.get('qty') <= 0:
-            dest_location = values.get('location_id', False) and self.env['stock.location'].browse(
-                values.get('location_id')) or False
-            product = values.get('product_id', False) and self.env['product.product'].browse(
-                values.get('product_id')) or False
-            if dest_location and dest_location.usage == 'internal' and product and product.type == 'product':
-                prec = product.uom_id.rounding
-                qty = float_compare(float_round(values.get('qty', 0), precision_rounding=prec), 0,
-                                    precision_rounding=prec) <= 0
-                if (not config["test_enable"] or self.env.context.get('force_forbid_negative_quants')) and qty:
-                    raise exceptions.except_orm(_("Error !"),
-                                                _("Impossible to create quant product in internal location with non "
-                                                  "positiv quantity."))
+        dest_location = values.get('location_id', False) and self.env['stock.location'].browse(
+            values.get('location_id')) or False
+        product = values.get('product_id', False) and self.env['product.product'].browse(
+            values.get('product_id')) or False
+        if dest_location and dest_location.usage == 'internal' and product and product.type == 'product':
+            prec = product.uom_id.rounding
+            qty = float_compare(float_round(values.get('qty', 0), precision_rounding=prec), 0,
+                                precision_rounding=prec) <= 0
+            if (not config["test_enable"] or self.env.context.get('force_forbid_negative_quants')) and qty:
+                raise exceptions.except_orm(_("Error !"),
+                                            _("Impossible to create quant product in internal location with non "
+                                              "positiv quantity."))
         return super(StockQuant, self).create(values)
 
     @api.multi
@@ -49,9 +48,10 @@ class StockQuant(models.Model):
         val_product_id = values.get('product_id', False)
         for rec in self:
             location_id = val_location_id and self.env['stock.location'].browse(val_location_id) or \
-                               rec.location_id or False
+                          rec.location_id or False
             qty = val_qty or rec.qty
-            product_id = val_product_id = self.env['product.product'].browse(val_product_id) or rec.product_id or False
+            product_id = val_product_id and self.env['product.product'].browse(val_product_id) or \
+                         rec.product_id or False
             prec = product_id.uom_id.rounding
             if location_id and location_id.usage == 'internal' and product_id and \
                     product_id.type == 'product':
