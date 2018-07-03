@@ -59,11 +59,9 @@ class ReceptionByOrderPurchaseOrderLine(models.Model):
 
     @api.multi
     def name_get(self):
-        result = []
-        for rec in self:
-            result.append((rec.id, "%s - %s - %s" %
-                           (rec.order_id.display_name, rec.line_no, rec.product_id.display_name)))
-        return result
+        if self.env.context.get('display_line_no'):
+            return [(rec.id, u"%s - %s" % (rec.order_id.name, rec.line_no)) for rec in self]
+        return super(ReceptionByOrderPurchaseOrderLine, self).name_get()
 
     @api.model
     def create(self, vals):

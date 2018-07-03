@@ -17,13 +17,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, exceptions, api
-from openerp.tools import float_compare
+from openerp import models, fields, exceptions, api, _
+from openerp.tools import float_compare, float_round
+from datetime import datetime, timedelta
+from dateutil import relativedelta
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 
 class ReceptionByOrderStockPackOperation(models.Model):
     _inherit = 'stock.pack.operation'
-
 
     @api.multi
     def get_list_operations_to_process(self):
@@ -46,8 +48,9 @@ class ReceptionByOrderStockPackOperation(models.Model):
 
     @api.multi
     def _sort_operations_for_transfer_value(self):
-        return (self.sale_line_id and -16 or 0) + super(ReceptionByOrderStockPackOperation,self). \
+        return (self.sale_line_id and -16 or 0) + super(ReceptionByOrderStockPackOperation, self). \
             _sort_operations_for_transfer_value()
+
 
 class ExpeditionByOrderLinePicking(models.Model):
     _inherit = 'stock.picking'
@@ -59,7 +62,8 @@ class ExpeditionByOrderLinePicking(models.Model):
         op_sol_id = self.env['stock.pack.operation'].search([('id', '=', operation_id)]) \
             .read(['sale_line_id'], load=False)[0]['sale_line_id']
         if not op_sol_id:
-            return super(ExpeditionByOrderLinePicking, self)._create_link_for_product(prod2move_ids, operation_id, product_id, qty)
+            return super(ExpeditionByOrderLinePicking, self)._create_link_for_product(prod2move_ids, operation_id,
+                                                                                      product_id, qty)
 
         qty_to_assign = qty
         product = self.env['product.product'].browse([product_id])
@@ -81,7 +85,6 @@ class ExpeditionByOrderLinePicking(models.Model):
                     break
         result_comp = qtyassign_cmp == 0
         return result_comp, prod2move_ids
-
 
     @api.model
     def _create_prod2move_ids(self, picking_id):
@@ -122,7 +125,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
     @api.model
     def add_packop_values(self, vals, prevals):
         move_with_sale_lines = [x for x in self.move_lines if
-                                    x.state not in ('done', 'cancel') and x.sale_line_id]
+                                x.state not in ('done', 'cancel') and x.sale_line_id]
         if not move_with_sale_lines:
             return super(ExpeditionByOrderLinePicking, self).add_packop_values(vals, prevals)
 
@@ -169,7 +172,9 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
     @api.model
     def _prepare_values_extra_move(self, op, product, remaining_qty):
         result = super(ExpeditionByOrderLinePicking, self)._prepare_values_extra_move(op, product, remaining_qty)
+
         sale_line = False
+
         if op.sale_line_id:
             sale_line = op.sale_line_id
         else:
@@ -180,12 +185,14 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                                                                         limit=1)
             if corresponding_line:
                 result['sale_line_id'] = corresponding_line.id
+
             sale_line = corresponding_line or sale_line
+
         if sale_line:
             price_unit = sale_line.price_unit
-            if sale_line.taxes_id:
-                taxes = sale_line.taxes_id.compute_all(price_unit, 1.0, sale_line.product_id,
-                                                           sale_line.order_id.partner_id)
+            if sale_line.tax_id:
+                taxes = sale_line.tax_id.compute_all(price_unit, 1.0, sale_line.product_id,
+                                                     sale_line.order_id.partner_id)
                 price_unit = taxes['total']
             if sale_line.product_uom.id != sale_line.product_id.uom_id.id:
                 price_unit *= sale_line.product_uom.factor / sale_line.product_id.uom_id.factor
@@ -197,26 +204,29 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                                                               price_unit, round=False)
             new_vals = {
                 'date': sale_line.order_id.date_order,
-                'date_expected': sale_line.date_planned + ' 12:00:00',
-                'partner_id': sale_line.order_id.dest_address_id.id,
+                'date_expected': (datetime.strptime(sale_line.date_planned, DEFAULT_SERVER_DATETIME_FORMAT)
+                                  + relativedelta.relativedelta(hours=12)).strftime(DEFAULT_SERVER_DATETIME_FORMAT),
+                'partner_id': sale_line.order_id.partner_id.id,
                 'sale_line_id': sale_line.id,
                 'price_unit': price_unit,
                 'company_id': sale_line.order_id.company_id.id,
-                'picking_type_id': sale_line.order_id.picking_type_id.id,
+                'picking_type_id': op.picking_id.picking_type_id.id,
                 'origin': sale_line.order_id.name,
-                'route_ids': sale_line.order_id.picking_type_id.warehouse_id and [
-                    (6, 0, [x.id for x in sale_line.order_id.picking_type_id.warehouse_id.route_ids])] or [],
-                'warehouse_id': sale_line.order_id.picking_type_id.warehouse_id.id,
-                'invoice_state': sale_line.order_id.invoice_method == 'picking' and '2binvoiced' or 'none',
+                'route_ids': op.picking_id.picking_type_id.warehouse_id and [
+                    (6, 0, [x.id for x in op.picking_id.picking_type_id.warehouse_id.route_ids])] or [],
+                'warehouse_id': op.picking_id.picking_type_id.warehouse_id.id,
+                'invoice_state': (sale_line.order_id.order_policy == 'picking') and '2binvoiced' or 'none',
             }
             result.update(new_vals)
         return result
+
 
 class ExpeditionByOrderLineProcurementOrder(models.Model):
     _inherit = 'procurement.order'
 
     sale_id = fields.Many2one('sale.order', string=u"Sale Order", related='sale_line_id.order_id', store=True,
                               readonly=True)
+
 
 class ExpeditionByOrderLineStockMove(models.Model):
     _inherit = 'stock.move'
@@ -265,7 +275,7 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
     @api.multi
     def toggle_lines_display(self):
         for rec in self:
-            if rec.lines_display == 'rae_non_nul':
+            if rec.lines_display == 'not_null_remaining_quantity':
                 rec.lines_display = 'all'
             else:
-                rec.lines_display = 'rae_non_nul'
+                rec.lines_display = 'not_null_remaining_quantity'

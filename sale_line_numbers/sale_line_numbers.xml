@@ -4,11 +4,11 @@
 
         <record model="ir.ui.view" id="sale_order_line_encapsuled_tree_view">
             <field name="name">sale_order_line_encapsuled_tree_view</field>
-            <field name="model">sale.order.line</field>
+            <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <xpath expr="//notebook/field[@name='field']/tree//field[@name='product_id']" position="before">
+                <xpath expr="//notebook//field[@name='order_line']/tree//field[@name='product_id']" position="before">
                     <field name="line_no"/>
                 </xpath>
             </field>
@@ -16,11 +16,11 @@
 
         <record model="ir.ui.view" id="sale_order_line_encapsuled_form_view">
             <field name="name">sale_order_line_encapsuled_form_view</field>
-            <field name="model">sale.order.line</field>
+            <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <xpath expr="//notebook/field[@name='field']/form//field[@name='product_id']" position="before">
+                <xpath expr="//notebook//field[@name='order_line']/form//field[@name='product_id']" position="before">
                     <field name="line_no"/>
                 </xpath>
             </field>

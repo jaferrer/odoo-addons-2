@@ -67,6 +67,6 @@ class ExpeditionByOrderTransferDetails(models.TransientModel):
 class ReceptionByOrderTransferDetailsItems(models.TransientModel):
     _inherit = 'stock.transfer_details_items'
 
-    sale_line_id = fields.Many2one('sale.order.line', string="Purchase order line")
+    sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")
     group_name = fields.Char(string="Picking group name", related='transfer_id.picking_id.group_id.name',
                              readonly=True)

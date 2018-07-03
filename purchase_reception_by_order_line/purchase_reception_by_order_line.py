@@ -206,11 +206,11 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                 'purchase_line_id': purchase_line.id,
                 'price_unit': price_unit,
                 'company_id': purchase_line.order_id.company_id.id,
-                'picking_type_id': purchase_line.order_id.picking_type_id.id,
+                'picking_type_id': op.picking_id.picking_type_id.id,
                 'origin': purchase_line.order_id.name,
-                'route_ids': purchase_line.order_id.picking_type_id.warehouse_id and [
-                    (6, 0, [x.id for x in purchase_line.order_id.picking_type_id.warehouse_id.route_ids])] or [],
-                'warehouse_id': purchase_line.order_id.picking_type_id.warehouse_id.id,
+                'route_ids': op.picking_id.picking_type_id.warehouse_id and [
+                    (6, 0, [x.id for x in op.picking_id.picking_type_id.warehouse_id.route_ids])] or [],
+                'warehouse_id': op.picking_id.picking_type_id.warehouse_id.id,
                 'invoice_state': purchase_line.order_id.invoice_method == 'picking' and '2binvoiced' or 'none',
             }
             result.update(new_vals)
