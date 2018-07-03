@@ -36,7 +36,7 @@ class StockQuant(models.Model):
                 prec = product.uom_id.rounding
                 qty = float_compare(float_round(values.get('qty', 0), precision_rounding=prec), 0,
                                     precision_rounding=prec) <= 0
-                if qty:
+                if (not config["test_enable"] or self.env.context.get('force_forbid_negative_quants')) and qty:
                     raise exceptions.except_orm(_("Error !"),
                                                 _("Impossible to create quant product in internal location with non "
                                                   "positiv quantity."))
@@ -56,7 +56,7 @@ class StockQuant(models.Model):
             if location_id and location_id.usage == 'internal' and product_id and \
                     product_id.type == 'product':
                 neg = float_compare(float_round(qty, precision_rounding=prec), 0, precision_rounding=prec) <= 0
-                if neg:
+                if (not config["test_enable"] or self.env.context.get('force_forbid_negative_quants')) and neg:
                     raise exceptions.except_orm(_("Error !"),
                                                 _("Impossible to edit quant product in internal location with non "
                                                   "positiv quantity."))
