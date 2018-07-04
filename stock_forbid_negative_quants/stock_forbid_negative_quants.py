@@ -48,10 +48,10 @@ class StockQuant(models.Model):
         val_product_id = values.get('product_id', False)
         for rec in self:
             location_id = val_location_id and self.env['stock.location'].browse(val_location_id) or \
-                          rec.location_id or False
+                rec.location_id or False
             qty = val_qty or rec.qty
             product_id = val_product_id and self.env['product.product'].browse(val_product_id) or \
-                         rec.product_id or False
+                rec.product_id or False
             prec = product_id.uom_id.rounding
             if location_id and location_id.usage == 'internal' and product_id and \
                     product_id.type == 'product':
@@ -98,23 +98,3 @@ class StockQuant(models.Model):
                                                            quant.location_id.complete_name, quant.lot_id.name or '-',
                                                            quant.package_id.name or '-'))
         return result
-
-    @api.model
-    def move_quants_write(self, quants, move, location_dest_id, dest_package_id):
-        if location_dest_id.usage == 'internal' and move.product_id.type == 'product':
-            for quant in quants:
-                prec = quant.product_id.uom_id.rounding
-                qty = float_compare(float_round(quant.qty, precision_rounding=prec), 0, precision_rounding=prec) <= 0
-                if qty:
-                    raise exceptions.except_orm(
-                        _("Error !"),
-                        _("You are not allowed to move products quants that are negative."
-                          "Product: %s, qty: %s, Location: %s, Lot: %s, Package: %s") % (
-                            move.product_id.display_name,
-                            qty,
-                            move.location_id.complete_name,
-                            quant.lot_id and quant.lot_id.name or "-",
-                            move.src_package_id and move.src_package_id.name or "-",
-                        )
-                    )
-        return super(StockQuant, self).move_quants_write(quants, move, location_dest_id, dest_package_id)
