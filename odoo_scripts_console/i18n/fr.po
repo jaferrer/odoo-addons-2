@@ -82,7 +82,7 @@ msgstr "Dernière date d'exécution (fin)"
 #. module: odoo_scripts_console
 #: field:odoo.script.watcher,script_id:0
 msgid "Linked script"
-msgstr "Script liée"
+msgstr "Script lié"
 
 #. module: odoo_scripts_console
 #: model:res.groups,name:odoo_scripts_console.group_sripts_manager
