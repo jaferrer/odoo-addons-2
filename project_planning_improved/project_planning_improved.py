@@ -290,7 +290,7 @@ class ProjectImprovedTask(models.Model):
     objective_start_date = fields.Datetime(string=u"Objective start date", compute='_compute_objective_start_date',
                                            store=True)
     expected_start_date = fields.Datetime(string=u"Expected start date")
-    allocated_duration = fields.Float(string=u"Allocated duration", help=u"In project time unit of the comany")
+    allocated_duration = fields.Float(string=u"Allocated duration", help=u"In project time unit of the company")
     allocated_duration_unit_tasks = fields.Float(string=u"Allocated duration for unit tasks",
                                                  help=u"In project time unit of the comany",
                                                  compute='_get_allocated_duration', store=True)
@@ -659,6 +659,8 @@ class ProjectImprovedTask(models.Model):
     @api.multi
     def get_dates_start_end_day(self, vals):
         if self and vals.get('expected_start_date') and vals.get('expected_end_date'):
+            if vals['expected_start_date'] == vals['expected_end_date']:
+                return vals
             start_date_working_day = self[0].is_working_day(fields.Datetime.from_string(vals['expected_start_date']))
             end_date_working_day = self[0].is_working_day(fields.Datetime.from_string(vals['expected_end_date']))
             if self and not start_date_working_day and not end_date_working_day:

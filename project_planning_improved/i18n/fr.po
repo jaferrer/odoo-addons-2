@@ -133,7 +133,7 @@ msgstr "Tempas alloué pour les tâches unitaires"
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration_unit_tasks
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_total_allocated_duration
-msgid "In project time unit of the comany"
+msgid "In project time unit of the company"
 msgstr "Exprimé en unité de temps de la société"
 
 #. module: project_planning_improved
