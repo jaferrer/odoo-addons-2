@@ -26,7 +26,7 @@
     'depends': ['sale', 'decimal_precision'],
     'description': """
 Sale Performance Improved
-=============================
+=========================
 This module redefine compute fields amount_untaxed, amount_tax and amount_total of initial sale module to
 improve update speed.
 """,
