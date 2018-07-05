@@ -48,6 +48,15 @@ class ProductProduct(models.Model):
     def _create_needed_orderpoints(self):
         if not self:
             return
+        self.env.cr.execute("""SELECT
+  op.id,
+  sl.company_id
+FROM stock_warehouse_orderpoint op
+  INNER JOIN stock_location sl ON sl.id = op.location_id AND sl.company_id IS NOT NULL
+WHERE op.company_id != sl.company_id""")
+        for orderpoint_id, company_id in self.env.cr.fetchall():
+            orderpoint = self.env['stock.warehouse.orderpoint'].browse(orderpoint_id)
+            orderpoint.write({'company_id': company_id})
         location_config_ids = self.env['ir.config_parameter'].get_param(
             "stock_location_orderpoint.required_orderpoint_location_ids", default="[]")
         orderpoint_required_locations = location_config_ids and self.env['stock.location']. \
@@ -102,12 +111,14 @@ WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_loca
     def _prepare_order_point_data(self, location):
         self.ensure_one()
         values = self.env['stock.warehouse.orderpoint'].default_get(self.env['stock.warehouse.orderpoint']._fields)
+        if location.company_id:
+            values['company_id'] = location.company_id.id
         values.update({
             'warehouse_id': location.warehouse_id.id or values.get("warehouse_id"),
             'location_id': location.id,
             'product_id': self.id,
-            "product_min_qty": 0,
-            "product_max_qty": 0,
+            'product_min_qty': 0,
+            'product_max_qty': 0,
         })
         return values
 
