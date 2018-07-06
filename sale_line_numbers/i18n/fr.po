@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* purchase_line_numbers
+# 	* order_line_numbers
 #
 msgid ""
 msgstr ""
@@ -18,28 +18,28 @@ msgstr ""
 "X-Generator: Poedit 1.7.5\n"
 
 #. module: base
-#: model:ir.module.module,shortdesc:base.module_purchase_line_numbers
-msgid "Purchase Line Numbers"
-msgstr "Réception des livraisons par commande d'achat"
+#: model:ir.module.module,shortdesc:base.module_order_line_numbers
+msgid "Order Line Numbers"
+msgstr "Expédition par commande de vente"
 
 #. module: base
-#: model:ir.module.module,description:base.module_purchase_line_numbers
+#: model:ir.module.module,description:base.module_order_line_numbers
 msgid ""
-"Purchase Line Numbers\n"
+"Order Line Numbers\n"
 "=====================\n"
-"This module adds a number for each purchase order line."
+"This module adds a number for each sale order line."
 msgstr ""
-"Extension Juste-à-temps pour les achats\n"
+"Extension Juste-à-temps pour les ventes\n"
 "=======================================\n"
-"Ce module ajoute un numéro de poste pour chaque ligne de commande d'achat"
+"Ce module ajoute un numéro de poste pour chaque ligne de commande de vente"
 
-#. module: purchase_line_numbers
-#: field:purchase.order.line,line_no:0
-msgid "Line no."
+#. module: sale_line_numbers
+#: field:sale.order.line,line_no:0
+msgid "Line No."
 msgstr "N° de poste"
 
-#. module: purchase_line_numbers
-#: code:addons\purchase_line_numbers\purchase_line_numbers.py:59
+#. module: sale_line_numbers
+#: code:addons\sale_line_numbers\sale_line_numbers.py:59
 #, python-format
-msgid "Purchase Order Line: %s"
-msgstr "Ligne de commande d'achat: %s"
+msgid "Sale Order Line: %s"
+msgstr "Ligne de commande de vente: %s"

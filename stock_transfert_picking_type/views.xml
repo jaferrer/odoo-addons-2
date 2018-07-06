@@ -31,7 +31,7 @@
                                    domain="[('product_id', '=', product_id)]"
                                    options="{'no_create': True, 'no_edit': True}"
                                    context="{'display_line_no': True}"
-                                   string="Line no."/>
+                                   string="Line No."/>
                             <field name="lot_id" domain="[('product_id','=?', product_id)]"
                                    context="{'product_id': product_id}" groups="stock.group_production_lot"/>
                             <field name="picking_id" invisible="1"/>
@@ -58,7 +58,7 @@
                                    domain="[('product_id', '=', product_id)]"
                                    options="{'no_create': True, 'no_edit': True}"
                                    context="{'display_line_no': True}"
-                                   string="Line no."/>
+                                   string="Line No."/>
                             <field name="lot_id" domain="[('product_id','=?', product_id)]"
                                    context="{'product_id': product_id}" groups="stock.group_production_lot"/>
                             <field name="picking_id" invisible="1"/>
@@ -83,18 +83,6 @@
                 <field name="product_id" position="after">
                     <field name="purchase_line_id" attr="{'invisible':[('picking_type_code', '!=', 'incoming')]}"/>
                     <field name="sale_line_id" attr="{'invisible':[('picking_type_code', '!=', 'outgoing')]}"/>
-                </field>
-            </field>
-        </record>
-
-        <record model="ir.ui.view" id="reception_by_order_picking_moves_form">
-            <field name="name">reception_by_order_picking_moves_form</field>
-            <field name="model">stock.move</field>
-            <field name="inherit_id" ref="purchase.stock_move_purchase"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <field name="purchase_line_id" position="after">
-                    <field name="sale_line_id" attr="{'invisible':[('sale_line_id', '=', False)]}"/>
                 </field>
             </field>
         </record>

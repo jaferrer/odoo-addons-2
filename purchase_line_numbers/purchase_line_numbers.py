@@ -51,7 +51,7 @@ class ReceptionByOrderPurchaseOrder(models.Model):
 class ReceptionByOrderPurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
-    line_no = fields.Char("Line no.")
+    line_no = fields.Char("Line No.")
 
     @api.multi
     def sort_lines_to_renumerate(self):

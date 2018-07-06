@@ -40,3 +40,8 @@ msgstr "Quantité RAE"
 #: field:sale.order.line,sent_qty:0
 msgid "Quantity Already Sent"
 msgstr "Quantité déjà expédiée"
+
+#. module: sale_expedition_by_order_line
+#: field:stock.move,sale_line_id:0
+msgid "Sale Order Line"
+msgstr "Poste de vente"

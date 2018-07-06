@@ -23,7 +23,7 @@ from openerp import models, fields, api, _
 class SaleOrderLineWithNumber(models.Model):
     _inherit = 'sale.order.line'
 
-    line_no = fields.Char("Line no.", required=True)
+    line_no = fields.Char("Line No.", required=True)
 
     _sql_constraints = [('line_no_unique_by_order', 'unique (order_id, line_no)',
                          _(u"You can not have two lines with same line number in the same sale order."))]
