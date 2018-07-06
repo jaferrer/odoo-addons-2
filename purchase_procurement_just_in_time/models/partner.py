@@ -122,5 +122,9 @@ class JitResPartner(models.Model):
     @api.model
     def create(self, vals):
         if vals.get('nb_days_scheduler_frequency') and not vals.get('next_scheduler_date'):
-            vals['next_scheduler_date'] = fields.Datetime.to_string(dt.now().replace(hour=22, minute=0, second=0))
+            latest_partner = self.search([('supplier', '=', True),
+                                          ('next_scheduler_date', '!=', False)],
+                                         order='next_scheduler_date desc')
+            vals['next_scheduler_date'] = latest_partner and latest_partner.next_scheduler_date or \
+                fields.Datetime.to_string(dt.now().replace(hour=22, minute=0, second=0))
         return super(JitResPartner, self).create(vals)
