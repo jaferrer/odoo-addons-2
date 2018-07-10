@@ -1,0 +1,133 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* products_moving_wizard_auto_report
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-07-12 13:51+0000\n"
+"PO-Revision-Date: 2018-07-12 15:51+0100\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"X-Generator: Poedit 1.7.5\n"
+
+
+#. module: project_milestone
+#: field:project.milestone,name:0
+msgid "Title of the milestone"
+msgstr "Titre de la Milestone"
+
+#. module: project_milestone
+#: field:project.milestone,active:0
+msgid "Archive"
+msgstr "Archivé"
+
+#. module: project_milestone
+#: field:project.milestone,start_date:0
+msgid "Date start"
+msgstr "Date de début"
+
+#. module: project_milestone
+#: field:project.milestone,project_id:0
+msgid "Project"
+msgstr "Projet"
+
+#. module: project_milestone
+#: field:project.milestone,task_ids:0
+msgid "Tasks"
+msgstr "Tâches"
+
+#. module: project_milestone
+#: field:project.milestone,nb_tasks:0
+msgid "Tasks count"
+msgstr "Nb tâches"
+
+#. module: project_milestone
+#: field:project.milestone,state:0
+msgid "State"
+msgstr "Etat"
+
+#. module: project_milestone
+#: selection:project.milestone,state:0
+msgid "Open"
+msgstr "Ouverte"
+
+#. module: project_milestone
+#: selection:project.milestone,state:0
+msgid "In qualif"
+msgstr "En Qualif"
+
+#. module: project_milestone
+#: selection:project.milestone,state:0
+msgid "In Prod"
+msgstr "En Prod"
+
+#. module: project_milestone
+#: selection:project.milestone,state:0
+msgid "Closed"
+msgstr "Fermée"
+
+#. module: project_milestone
+#: field:project.milestone,qualif_should_be_livred_at:0
+msgid "Must be delivered in Qualif on"
+msgstr "Doit être livée en Qualif le"
+
+#. module: project_milestone
+#: field:project.milestone,should_be_closed_at:0
+msgid "Must be delivered in Prod on"
+msgstr "Doit être livée en Prod le"
+
+#. module: project_milestone
+#: field:project.milestone,livred_in_qualif_at:0
+msgid "Delivered in qualif on"
+msgstr "Livrée en qualif le"
+
+#. module: project_milestone
+#: field:project.milestone,livred_in_qualif_by:0
+msgid "Delivered in qualif by"
+msgstr "Livrée en qualif par"
+
+#. module: project_milestone
+#: field:project.milestone,livred_in_prod_at:0
+msgid "Delivered in Prod on"
+msgstr "Livrée en Prod le"
+
+#. module: project_milestone
+#: field:project.milestone,livred_in_prod_by:0
+msgid "Delivered in Prod by"
+msgstr "Livrée en Prod par"
+
+#. module: project_milestone
+#: field:project.milestone,closed_by:0
+msgid "Closed by"
+msgstr "Fermée par"
+
+#. module: project_milestone
+#: field:project.milestone,closed_at:0
+msgid "Closed on"
+msgstr "Fermée le"
+
+#. module: project_milestone
+#: code:addons/project_milestone/project_extend.py:88
+msgid "Tasks of the milestone %s"
+msgstr "Tâches de la Milestone %s"
+
+#. module: project_milestone
+#: field:project.project,milestone_ids:0
+msgid "Milestones"
+msgstr "Milestones"
+
+#. module: project_milestone
+#: field:project.task,milestone_id:0
+msgid "Milestone"
+msgstr "Milestone"
+
+#. module: project_milestone
+#: model:ir.ui.menu,name:project_milestone.menu_project_milestone
+msgid "Milestone"
+msgstr "Milestone"

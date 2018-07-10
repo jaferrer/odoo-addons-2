@@ -14,9 +14,9 @@
         </record>
 
 
-        <record model="ir.ui.view" id="project_milestone_tree">
-            <field name="name">project.milestone.tree</field>
-            <field name="model">project.milestone</field>
+        <record model="ir.ui.view" id="project_task_category_tree">
+            <field name="name">project.task.category.tree</field>
+            <field name="model">project.task.category</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <tree>
@@ -26,9 +26,9 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="project_milestone_search">
-            <field name="name">project.milestone.search</field>
-            <field name="model">project.milestone</field>
+        <record model="ir.ui.view" id="project_task_category_search">
+            <field name="name">project.task.category.search</field>
+            <field name="model">project.task.category</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <search string="Search">
@@ -42,9 +42,9 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="project_milestone_form">
-            <field name="name">project.milestone.form</field>
-            <field name="model">project.milestone</field>
+        <record model="ir.ui.view" id="project_task_category_form">
+            <field name="name">project.task.category.form</field>
+            <field name="model">project.task.category</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form string="Category">
@@ -79,6 +79,6 @@
             </field>
         </record>
         <menuitem action="project_category_action" id="menu_project_task_category" parent="base.menu_definitions"
-                  groups="base.group_no_one"/>
+                  groups="base.group_no_one" string="Task category"/>
     </data>
 </openerp>

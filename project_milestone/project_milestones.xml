@@ -65,6 +65,7 @@
                         <div class="oe_button_box" name="button_box">
                             <button name="see_tasks" type="object" groups="base.group_user" class="oe_stat_button"
                                     icon="fa-tasks">
+                                <label for="nb_tasks"/>
                                 <field name="nb_tasks"/>
                             </button>
                         </div>
