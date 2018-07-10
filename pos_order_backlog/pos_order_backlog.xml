@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="pos_order_line_tree">
+            <field name="name">pos_order_line_tree</field>
+            <field name="model">pos.order.line</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_order_tree_all_sales_lines"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="create_date" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <field name="create_date" position="after">
+                    <field name="date_order"/>
+                </field>
+                <field name="price_unit" position="after">
+                    <field name="tax_ids"/>
+                    <field name="discount"/>
+                    <field name="price_subtotal"/>
+                    <field name="price_subtotal_incl"/>
+                </field>
+                <tree position="inside">
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="pos_order_line_search">
+            <field name="name">pos_order_line_search</field>
+            <field name="model">pos.order.line</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="product_id"/>
+                    <field name="categ_id"/>
+                    <field name="pos_categ_id"/>
+                    <group expand="0" string="Group By">
+                        <filter name="order_state" string="Order Status" domain="[]" context="{'group_by':'state'}"/>
+                        <filter name="categ_id" string="Internal Category" domain="[]" context="{'group_by':'categ_id'}"/>
+                        <filter name="pos_categ_id" string="Point of Sale Category" domain="[]" context="{'group_by':'pos_categ_id'}"/>
+                        <filter name="order_day" string="Order Day" domain="[]" context="{'group_by':'date_order:day'}"/>
+                        <filter name="order_week" string="Order Week" domain="[]" context="{'group_by':'date_order:week'}"/>
+                        <filter name="order_month" string="Order Month" domain="[]" context="{'group_by':'date_order:month'}"/>
+                        <filter name="order_year" string="Order Year" domain="[]" context="{'group_by':'date_order:year'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_pos_order_backlog">
+            <field name="name">Order Lines</field>
+            <field name="res_model">pos.order.line</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,pivot,graph</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_pos_order_backlog" name="Order Lines" action="act_window_pos_order_backlog"
+                  parent="point_of_sale.menu_point_of_sale" sequence="10"/>
+
+    </data>
+</openerp>
