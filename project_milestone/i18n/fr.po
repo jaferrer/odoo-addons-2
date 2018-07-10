@@ -34,6 +34,7 @@ msgstr "Date de début"
 
 #. module: project_milestone
 #: field:project.milestone,project_id:0
+#: view:project.milestone:project_milestone.project_milestone_search
 msgid "Project"
 msgstr "Projet"
 
@@ -49,6 +50,7 @@ msgstr "Nb tâches"
 
 #. module: project_milestone
 #: field:project.milestone,state:0
+#: view:project.milestone:project_milestone.project_milestone_search
 msgid "State"
 msgstr "Etat"
 
@@ -59,16 +61,19 @@ msgstr "Ouverte"
 
 #. module: project_milestone
 #: selection:project.milestone,state:0
+#: view:project.milestone:project_milestone.project_milestone_search
 msgid "In qualif"
 msgstr "En Qualif"
 
 #. module: project_milestone
 #: selection:project.milestone,state:0
+#: view:project.milestone:project_milestone.project_milestone_search
 msgid "In Prod"
 msgstr "En Prod"
 
 #. module: project_milestone
 #: selection:project.milestone,state:0
+#: view:project.milestone:project_milestone.project_milestone_search
 msgid "Closed"
 msgstr "Fermée"
 
@@ -124,10 +129,34 @@ msgstr "Milestones"
 
 #. module: project_milestone
 #: field:project.task,milestone_id:0
+#: model:ir.ui.menu,name:project_milestone.menu_project_milestone
 msgid "Milestone"
 msgstr "Milestone"
 
 #. module: project_milestone
-#: model:ir.ui.menu,name:project_milestone.menu_project_milestone
-msgid "Milestone"
-msgstr "Milestone"
+#: field:project.task,milestone_state:0
+#: view:project.task:project_milestone.project_task_kanban_ext
+#: view:project.task:project_milestone.project_task_tree_ext
+#: view:project.task:project_milestone.project_task_form_ext
+msgid "Milestone state"
+msgstr "Etat de la milestone"
+
+#. module: project_milestone
+#: view:project.milestone:project_milestone.project_milestone_search
+msgid "In late"
+msgstr "En retard"
+
+#. module: project_milestone
+#: view:project.milestone:project_milestone.project_milestone_form
+msgid "Marked as Delivered in Qualif"
+msgstr "Marquer comme livrée en Qualif"
+
+#. module: project_milestone
+#: view:project.milestone:project_milestone.project_milestone_form
+msgid "Marked as delivered in prod"
+msgstr "Marquer comme livrée en prod"
+
+#. module: project_milestone
+#: view:project.milestone:project_milestone.project_milestone_form
+msgid "Close"
+msgstr "Fermer"
