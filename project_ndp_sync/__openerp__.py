@@ -30,6 +30,7 @@ Synchronisation des projets par NDP
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'project_ndp_sync.xml'
     ],
     'demo': [],
     'test': [],

@@ -23,38 +23,35 @@ from openerp import models, fields, api
 class ProjectProjectSync(models.Model):
     _inherit = 'project.project'
 
-    ndp_sync = fields.Boolean(string="Need to be syncrhonize in NDP odoo", default=False)
-
-    @api.multi
-    def write(self, values):
-        values.update({'ndp_sync': True})
-        return super(ProjectProjectSync, self).write(values)
-
-    @api.model
-    def create(self, values):
-        values.update({'ndp_sync': True})
-        return super(ProjectProjectSync, self).create(values)
+    ndp_project_sync = fields.Boolean(string=u"Synchronize with odoo NDP", default=False)
 
 
 class ProjectTaskSync(models.Model):
     _inherit = 'project.task'
 
-    ndp_sync = fields.Boolean(string="Need to be syncrhonize in NDP odoo", default=False)
+    ndp_sync = fields.Boolean(string=u"Need to be synchronize in odoo NDP", default=False)
+    ndp_project_sync = fields.Boolean(string=u"Synchronize with odoo NDP", default=False,
+                                      related="project_id.ndp_project_sync", store=True)
 
     @api.multi
     def write(self, values):
-        values.update({'ndp_sync': True})
+        for rec in self:
+            if rec.ndp_project_sync or values.get('ndp_project_sync', False):
+                values.update({'ndp_sync': True})
         return super(ProjectTaskSync, self).write(values)
 
     @api.model
     def create(self, values):
-        values.update({'ndp_sync': True})
+        if values.get('ndp_project_sync', False):
+            values.update({'ndp_sync': True})
         return super(ProjectTaskSync, self).create(values)
 
     @api.multi
     def message_post(self, body='', subject=None, type='notification', subtype=None, parent_id=False,
                      attachments=None, **kwargs):
         res = super(ProjectTaskSync, self).message_post(body=body, subject=subject, type=type, subtype=subtype,
-                                                           parent_id=parent_id, attachments=attachments, **kwargs)
-        self.write({'ndp_sync': True})
+                                                        parent_id=parent_id, attachments=attachments, **kwargs)
+        for rec in self:
+            if rec.ndp_project_sync:
+                rec.write({'ndp_sync': True})
         return res
