@@ -87,19 +87,5 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="sale_order_view_form">
-            <field name="name">sale_order_view_form</field>
-            <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
-            <field name="priority" eval="10"/>
-            <field name="arch" type="xml">
-                <!--<xpath expr="//notebook//field[@name='order_line']/form" position="replace"/>-->
-                <!--<xpath expr="//notebook//field[@name='order_line']/tree" position="replace"/>-->
-                <!--<field name="order_line" position="attributes">-->
-                    <!--<attribute name="context">{'tree_view_ref': 'sale_extract_encapsuled_lines_views.sale_order_line_encapsuled_tree_view', 'form_view_ref': 'sale_extract_encapsuled_lines_views.sale_order_line_encapsuled_form_view'}</attribute>-->
-                <!--</field>-->
-            </field>
-        </record>
-
     </data>
 </openerp>
