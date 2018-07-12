@@ -48,6 +48,7 @@
                 </field>
             </field>
         </record>
+
         <record model="ir.ui.view" id="project_milestone_tree">
             <field name="name">project.milestone.tree</field>
             <field name="model">project.milestone</field>

@@ -44,14 +44,14 @@ class ProjectMilestone(models.Model):
 
     livred_in_qualif_at = fields.Date(u"Livrée en qualif le", readonly=True)
     livred_in_qualif_by = fields.Many2one('res.users', u"Livrée en qualif par", readonly=True,
-                                          groups="group_project_milestone_manager")
+                                          groups="project_milestone.group_project_milestone_manager")
 
     livred_in_prod_at = fields.Date(u"Livrée en Prod le", readonly=True)
     livred_in_prod_by = fields.Many2one('res.users', u"Livrée en Prod par", readonly=True,
-                                        groups="group_project_milestone_manager")
+                                        groups="project_milestone.group_project_milestone_manager")
 
     closed_by = fields.Many2one('res.users', u"Livrée en prod par", readonly=True,
-                                groups="group_project_milestone_manager")
+                                groups="project_milestone.group_project_milestone_manager")
     closed_at = fields.Date(u"Fermée le", readonly=True)
 
     @api.multi
