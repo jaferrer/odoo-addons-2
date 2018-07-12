@@ -77,7 +77,9 @@ class StockQuant(models.Model):
                   ('state', 'not in', ['draft', 'done', 'cancel']),
                   ('location_id', '=', location_from.id),
                   ('location_dest_id', '=', dest_location.id),
-                  ('picking_type_id', '=', picking_type_id)]
+                  '|',
+                  ('picking_type_id', '=', picking_type_id),
+                  ('picking_type_id', '=', False)]
         if force_domain:
             domain += force_domain
         moves = self.env['stock.move'].search(domain)
