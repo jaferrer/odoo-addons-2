@@ -33,7 +33,7 @@ msgstr "Nom"
 msgid "Path"
 msgstr "Emplacement"
 
-#. module: odoo_scripts_console
-#: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
+#. module: odoo_online_documentation_tree
+#: view:odoo.online.documentation:odoo_online_documentation_tree.odoo_online_documentation_tree
 msgid "Open Documentation"
 msgstr "Ouvrir la documentation"

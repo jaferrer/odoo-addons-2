@@ -19,7 +19,7 @@
 
 from openerp import models, fields, exceptions, api, _
 from openerp.tools import float_compare, float_round
-from datetime import datetime, timedelta
+from datetime import datetime
 from dateutil import relativedelta
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 

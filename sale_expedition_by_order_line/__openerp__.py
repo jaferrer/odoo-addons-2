@@ -31,8 +31,7 @@ Sale Expedition By Order Line
 This module improves the initial expedition process. It allows to make it sale order line by sale order line.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['wizard.xml',
-             'sale_expedition_by_order_line.xml'],
+    'data': ['wizard.xml', 'sale_expedition_by_order_line.xml'],
     'demo': [],
     'test': [],
     'installable': True,
