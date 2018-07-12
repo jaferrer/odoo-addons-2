@@ -39,3 +39,15 @@ msgstr "Vous n'avez pas le droit de déplacer des quants d'articles non disponib
 #, python-format
 msgid "Quant split: you are not allowed to create a negative or null quant. Product: %s, Quant qty: %s, Required reduction to: %s, Location: %s, Lot: %s, Package: %s"
 msgstr "Division de quant : vous n'êtes pas autorisé à créer un quant négatif ou nul. Article : %s, quantité du quant : %s, réduction demandée à %s, emplacement : %s, lot : %s, colis : %s"
+
+#. module: stock_forbid_negative_quants
+#: code:addons/stock_forbid_negative_quants/stock_forbid_negative_quants.py:41
+#, python-format
+msgid "Impossible to create quant product in internal location with non positiv quantity."
+msgstr "Impossible de créer des quants dans un emplacement interne avec des quantités négatives."
+
+#. module: stock_forbid_negative_quants
+#: code:addons/stock_forbid_negative_quants/stock_forbid_negative_quants.py:60
+#, python-format
+msgid "Impossible to edit quant product in internal location with non positiv quantity."
+msgstr "Impossible de modifier des quants dans un emplacement interne avec des quantités négatives."
