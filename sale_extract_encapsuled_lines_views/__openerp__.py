@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Sale',
-    'depends': ['sale'],
+    'depends': ['sale', 'sale_date_planned'],
     'description': """
 Sale - extract encapsuled lines views
 =====================================
