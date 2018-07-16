@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,4 +17,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import models
+from openerp import models, api
+
+
+class ProcurementOrderPurchaseLock(models.Model):
+    _inherit = 'procurement.order'
+
+    @api.multi
+    def run(self, autocommit=False):
+        proc_ids = [proc.id for proc in self]
+
+        self.env.cr.execute("""SELECT po.id FROM procurement_order po WHERE po.id IN %s FOR UPDATE""",
+                            (tuple(proc_ids),))
+
+        return super(ProcurementOrderPurchaseLock, self).run(autocommit)
