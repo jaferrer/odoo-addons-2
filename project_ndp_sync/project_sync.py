@@ -30,8 +30,8 @@ class ProjectTaskSync(models.Model):
     _inherit = 'project.task'
 
     ndp_sync = fields.Boolean(string=u"Need to be synchronize in odoo NDP", default=False)
-    ndp_project_sync = fields.Boolean(string=u"Synchronize with odoo NDP", default=False,
-                                      related="project_id.ndp_project_sync", store=True)
+    ndp_project_sync = fields.Boolean(string=u"Synchronize with odoo NDP", default=False, readonly=True, store=True,
+                                      related="project_id.ndp_project_sync")
 
     @api.multi
     def write(self, values):
@@ -44,6 +44,7 @@ class ProjectTaskSync(models.Model):
     def create(self, values):
         if values.get('ndp_project_sync', False):
             values.update({'ndp_sync': True})
+        print "values : ", values
         return super(ProjectTaskSync, self).create(values)
 
     @api.multi
