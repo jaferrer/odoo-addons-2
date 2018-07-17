@@ -21,7 +21,7 @@ from openerp import fields, models, api
 
 
 class EmailTemplate(models.Model):
-    _inherit = "email.template"
+    _inherit = "mail.template"
 
     send_object_attachments = fields.Boolean(u"Attach Object Attachements")
 
