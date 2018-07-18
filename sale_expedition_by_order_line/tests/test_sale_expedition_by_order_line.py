@@ -188,7 +188,7 @@ class TestSaleExpeditionByOrder(common.TransactionCase):
             })
 
     def test_30_affect_extra_move_to_correct_line(self):
-        picking1, move1, move2, move3 = self.get_picking_moves()
+        picking1, _, _, move3 = self.get_picking_moves()
 
         existing_move_ids = self.env['stock.move'].search([]).ids
         move3.action_cancel()
@@ -205,7 +205,7 @@ class TestSaleExpeditionByOrder(common.TransactionCase):
             'destinationloc_id': self.stock.id,
         })
         wizard.do_detailed_transfer()
-        packop1, packop2, packop3 = self.check_packops(picking1)
+        _, _, packop3 = self.check_packops(picking1)
         # Check that packop3 was attached to order_line_3
         self.assertTrue(packop3.sale_line_id)
         extra_move = picking1.move_lines.filtered(lambda move: move.id not in existing_move_ids)
@@ -214,7 +214,7 @@ class TestSaleExpeditionByOrder(common.TransactionCase):
         self.assertEqual(extra_move.sale_line_id, self.order_line_3)
 
     def test_40_create_extra_move_on_requested_line(self):
-        picking1, move1, move2, move3 = self.get_picking_moves()
+        picking1, _, move2, _ = self.get_picking_moves()
 
         move2.action_cancel()
         picking1.do_prepare_partial()
