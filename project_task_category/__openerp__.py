@@ -30,6 +30,7 @@ Categorie de tâche, en remplacement des project_issue
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'security/ir.model.access.csv',
         'project_task_category.xml',
     ],
     'demo': [],
