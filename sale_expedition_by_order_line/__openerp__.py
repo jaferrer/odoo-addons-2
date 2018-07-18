@@ -23,7 +23,7 @@
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
+    'category': 'Sale',
     'depends': ['sale_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type', 'sale_date_planned'],
     'description': """
 Sale Expedition By Order Line
