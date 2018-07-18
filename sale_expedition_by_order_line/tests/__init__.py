@@ -17,4 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import test_purchase_reception_by_order_line
+from . import test_sale_expedition_by_order_line

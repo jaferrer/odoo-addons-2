@@ -24,7 +24,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['sale_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type'],
+    'depends': ['sale_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type', 'sale_date_planned'],
     'description': """
 Sale Expedition By Order Line
 =============================
@@ -32,7 +32,7 @@ This module improves the initial expedition process. It allows to make it sale o
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': ['wizard.xml', 'sale_expedition_by_order_line.xml'],
-    'demo': [],
+    'demo': ['tests/test_sale_expedition_by_order_line.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,
