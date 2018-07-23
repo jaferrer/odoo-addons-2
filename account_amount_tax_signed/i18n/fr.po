@@ -1,0 +1,26 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* account_amount_tax_signed
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-09 17:09+0000\n"
+"PO-Revision-Date: 2015-12-09 17:09+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: account_amount_tax_signed
+#: model:ir.model.fields,field_description:account_amount_tax_signed.field_account_invoice_amount_tax_signed
+msgid "Taxes amount"
+msgstr "Montant taxes"
+
+#. module: account_amount_tax_signed
+#: model:ir.model.fields,help:account_amount_tax_signed.field_account_invoice_amount_tax_signed
+msgid "This amount can be negative"
+msgstr "Ce montant peut être négatif"

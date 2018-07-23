@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="pos_category_menu_du_jour" model="pos.category">
+            <field name="name">Menu du jour</field>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/menu_du_jour.jpg"/>
+            <field name="sequence" eval="1"/>
+        </record>
+
+        <record id="pos_category_repas" model="pos.category">
+            <field name="name">Repas</field>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/repas.jpg"/>
+            <field name="sequence" eval="2"/>
+        </record>
+
+        <record id="pos_category_entrees" model="pos.category">
+            <field name="name">Entrées</field>
+            <field name="parent_id" ref="pos_category_repas"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/entree.jpg"/>
+        </record>
+
+        <record id="pos_category_plats" model="pos.category">
+            <field name="name">Plats</field>
+            <field name="parent_id" ref="pos_category_repas"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/plat.jpg"/>
+        </record>
+
+        <record id="pos_category_accompagnements" model="pos.category">
+            <field name="name">Accompagnements</field>
+            <field name="parent_id" ref="pos_category_repas"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/accompagnement.jpg"/>
+        </record>
+
+        <record id="pos_category_desserts" model="pos.category">
+            <field name="name">Desserts</field>
+            <field name="parent_id" ref="pos_category_repas"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/dessert.jpg"/>
+        </record>
+
+        <!-- Boissons -->
+        <record id="pos_category_boissons" model="pos.category">
+            <field name="name">Boissons</field>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/boissons.jpg"/>
+            <field name="sequence" eval="3"/>
+        </record>
+
+        <record id="pos_category_bieres" model="pos.category">
+            <field name="name">Bières</field>
+            <field name="parent_id" ref="pos_category_boissons"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/bieres.jpg"/>
+        </record>
+
+        <record id="pos_category_vins" model="pos.category">
+            <field name="name">Vins</field>
+            <field name="parent_id" ref="pos_category_boissons"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/vins.jpg"/>
+        </record>
+
+        <record id="pos_category_vins_blancs" model="pos.category">
+            <field name="name">Vins blancs</field>
+            <field name="parent_id" ref="pos_category_vins"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/vin_blanc.jpg"/>
+        </record>
+
+        <record id="pos_category_vins_rouges" model="pos.category">
+            <field name="name">Vins rouges</field>
+            <field name="parent_id" ref="pos_category_vins"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/vin_rouge.jpg"/>
+        </record>
+
+        <record id="pos_category_vins_roses" model="pos.category">
+            <field name="name">Vins rosés</field>
+            <field name="parent_id" ref="pos_category_vins"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/vin_rose.jpg"/>
+        </record>
+
+        <record id="pos_category_vins_petillants" model="pos.category">
+            <field name="name">Vins pétillants</field>
+            <field name="parent_id" ref="pos_category_vins"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/vins_petillants.jpg"/>
+        </record>
+
+        <record id="pos_category_vins_verre" model="pos.category">
+            <field name="name">Vins au verre/kirs</field>
+            <field name="parent_id" ref="pos_category_vins"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/vins.jpg"/>
+        </record>
+
+        <record id="pos_category_alcools_spiritueux" model="pos.category">
+            <field name="name">Alcools et spiritueux</field>
+            <field name="parent_id" ref="pos_category_boissons"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/alcools_spiritueux.jpg"/>
+        </record>
+
+        <record id="pos_category_apetitifs_divers" model="pos.category">
+            <field name="name">Apéritifs divers</field>
+            <field name="parent_id" ref="pos_category_alcools_spiritueux"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/menthe_pastille.png"/>
+        </record>
+
+        <record id="pos_category_apetitifs_anises_gentiane" model="pos.category">
+            <field name="name">Apéritifs anisés/gentiane</field>
+            <field name="parent_id" ref="pos_category_alcools_spiritueux"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/apetitifs_anises.jpg"/>
+        </record>
+
+        <record id="pos_category_apetitifs_base_vin" model="pos.category">
+            <field name="name">Apéritifs à base de vins</field>
+            <field name="parent_id" ref="pos_category_alcools_spiritueux"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/apetitifs_base_vin.png"/>
+        </record>
+
+        <record id="pos_category_cocktails" model="pos.category">
+            <field name="name">Cocktails</field>
+            <field name="parent_id" ref="pos_category_alcools_spiritueux"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/cocktails.jpg"/>
+        </record>
+
+        <record id="pos_category_cremes_fruits_liqueurs" model="pos.category">
+            <field name="name">Crèmes de fruits et liqueur</field>
+            <field name="parent_id" ref="pos_category_alcools_spiritueux"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/cremes_fruits.jpg"/>
+        </record>
+
+        <record id="pos_category_digestifs" model="pos.category">
+            <field name="name">Digestifs, rhums et whiskies</field>
+            <field name="parent_id" ref="pos_category_alcools_spiritueux"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/digestifs.jpg"/>
+        </record>
+
+        <record id="pos_category_jus_fruit" model="pos.category">
+            <field name="name">Jus de fruit</field>
+            <field name="parent_id" ref="pos_category_boissons"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/jus_fruit.jpeg"/>
+        </record>
+
+        <record id="pos_category_cidres" model="pos.category">
+            <field name="name">Cidres</field>
+            <field name="parent_id" ref="pos_category_boissons"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/cidres.jpg"/>
+        </record>
+
+        <record id="pos_category_boissons_chaudes" model="pos.category">
+            <field name="name">Boissons chaudes</field>
+            <field name="parent_id" ref="pos_category_boissons"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/java.jpg"/>
+        </record>
+
+        <record id="pos_category_eaux" model="pos.category">
+            <field name="name">Eaux</field>
+            <field name="parent_id" ref="pos_category_boissons"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/eaux.jpeg"/>
+        </record>
+
+        <record id="pos_category_sodas" model="pos.category">
+            <field name="name">Sodas</field>
+            <field name="parent_id" ref="pos_category_boissons"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/sodas.jpeg"/>
+        </record>
+
+        <record id="pos_category_sirops" model="pos.category">
+            <field name="name">Sirops</field>
+            <field name="parent_id" ref="pos_category_boissons"/>
+            <field name="image" type="base64" file="pos_restaurant_categories/static/img/sirops.jpg"/>
+        </record>
+
+    </data>
+</openerp>

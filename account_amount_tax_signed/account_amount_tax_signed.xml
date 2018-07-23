@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="account_invoice_customer_tree">
+            <field name="name">account_invoice_customer_tree</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="amount_total_signed" position="before">
+                    <field name="amount_untaxed_signed" sum="Montant HT"/>
+                    <field name="amount_tax_signed" sum="Montant taxes"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="account_invoice_supplier_tree">
+            <field name="name">account_invoice_supplier_tree</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_supplier_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="amount_total_signed" position="before">
+                    <field name="amount_untaxed_signed" sum="Montant HT"/>
+                    <field name="amount_tax_signed" sum="Montant taxes"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
