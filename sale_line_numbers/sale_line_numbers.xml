@@ -14,8 +14,8 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="sale_order_line_encapsuled_form_view">
-            <field name="name">sale_order_line_encapsuled_form_view</field>
+        <record model="ir.ui.view" id="sale_line_number_sale_order_form_view">
+            <field name="name">sale_line_number_sale_order_form_view</field>
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="priority" eval="16"/>
