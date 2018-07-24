@@ -59,33 +59,35 @@ class StockChangeQuantValoStockQuant(models.Model):
             'context': ctx,
         }
 
-    @api.multi
-    def write(self, vals):
-        cost = vals.get('cost')
-        if vals.get('cost'):
-            user_valorisation_id = self.env.context.get('user_valorisation', self.env.uid)
-            for rec in self:
-                if rec.cost != cost:
-                    self.env['quant.cost.history'].create({
-                        'quant_id': rec.id,
-                        'date': fields.Datetime.now(),
-                        'previous_cost': rec.cost,
-                        'new_cost': cost,
-                        'user_id': user_valorisation_id,
-                    })
-        return super(StockChangeQuantValoStockQuant, self).write(vals)
-
 
 class StockChangeQuantValorisation(models.TransientModel):
     _name = 'stock.change.quant.valorisation'
 
     quant_ids = fields.Many2many('stock.quant', string=u"Quants", readonly=True, required=True)
     new_cost = fields.Float(string=u"New unit cost", required=True)
+    description = fields.Char(string=u"Description", required=True)
 
     @api.multi
     def change_quants_valorisation(self):
         self.ensure_one()
-        self.quant_ids.with_context(user_valorisation=self.env.uid).sudo().write({'cost': self.new_cost})
+        for quant in self.quant_ids:
+            print 'create', {
+                'quant_id': quant.id,
+                'date': fields.Datetime.now(),
+                'previous_cost': quant.cost,
+                'new_cost': self.new_cost,
+                'user_id': self.env.uid,
+                'description': self.description,
+            }
+            self.env['quant.cost.history'].create({
+                'quant_id': quant.id,
+                'date': fields.Datetime.now(),
+                'previous_cost': quant.cost,
+                'new_cost': self.new_cost,
+                'user_id': self.env.uid,
+                'description': self.description,
+            })
+        self.quant_ids.sudo().write({'cost': self.new_cost})
 
 
 class QuantCostHistory(models.Model):
@@ -96,3 +98,4 @@ class QuantCostHistory(models.Model):
     previous_cost = fields.Float(string=u"Previous unit cost")
     new_cost = fields.Float(string=u"New unit cost")
     user_id = fields.Many2one('res.users', string=u"User", required=True)
+    description = fields.Char(string=u"Description", required=True)

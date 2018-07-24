@@ -77,8 +77,15 @@ msgstr "Quants"
 
 #. module: stock_change_quant_valorisation
 #: field:stock.change.quant.valorisation,new_cost:0
+#: field:quant.cost.history,new_cost:0
 msgid "New unit cost"
 msgstr "Nouveau coût unitaire"
+
+#. module: stock_change_quant_valorisation
+#: field:stock.change.quant.valorisation,description:0
+#: field:quant.cost.history,description:0
+msgid "Description"
+msgstr "Motif"
 
 #. module: stock_change_quant_valorisation
 #: field:quant.cost.history,quant_id:0
@@ -94,11 +101,6 @@ msgstr "Date"
 #: field:quant.cost.history,previous_cost:0
 msgid "Previous unit cost"
 msgstr "Précédent coût unitaire"
-
-#. module: stock_change_quant_valorisation
-#: field:quant.cost.history,new_cost:0
-msgid "New unit cost"
-msgstr "Nouveau coût unitaire"
 
 #. module: stock_change_quant_valorisation
 #: field:quant.cost.history,user_id:0
