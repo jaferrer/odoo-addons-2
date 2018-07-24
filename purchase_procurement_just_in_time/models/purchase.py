@@ -68,15 +68,7 @@ class PurchaseOrderJustInTime(models.Model):
         ''' prepare the stock move data from the PO line. This function returns a list of dictionary ready to be
         used in stock.move's create()'''
         product_uom = self.env['product.uom']
-        price_unit = order_line.price_unit
-        if order_line.taxes_id:
-            taxes = order_line.taxes_id.compute_all(price_unit, 1.0, order_line.product_id, order.partner_id)
-            price_unit = taxes['total']
-        if order_line.product_uom.id != order_line.product_id.uom_id.id:
-            price_unit *= order_line.product_uom.factor / order_line.product_id.uom_id.factor
-        if order.currency_id.id != order.company_id.currency_id.id:
-            # we don't round the price_unit, as we may want to store the standard price with more digits than allowed by the currency
-            price_unit = order.currency_id.compute(price_unit, order.company_id.currency_id, round=False)
+        price_unit = order_line.get_move_unit_price_from_line(order)
         res = []
         if order.location_id.usage == 'customer':
             name = order_line.product_id.with_context(lang=order.dest_address_id.lang).display_name
