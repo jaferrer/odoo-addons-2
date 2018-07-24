@@ -26,6 +26,7 @@ action = self.change_quants_valorisation(cr, uid, context.get('active_ids'), con
                 <form>
                     <group>
                         <field name="new_cost"/>
+                        <field name="description"/>
                     </group>
                     <footer>
                         <button name="change_quants_valorisation" string="Change quants valorisation" type="object" class="oe_highlight"/>
@@ -46,6 +47,7 @@ action = self.change_quants_valorisation(cr, uid, context.get('active_ids'), con
                     <field name="previous_cost"/>
                     <field name="new_cost"/>
                     <field name="user_id"/>
+                    <field name="description"/>
                 </tree>
             </field>
         </record>
