@@ -4,7 +4,7 @@
 
         <record model="account.tax" id="test_vat_sale">
             <field name="name">SALE - VAT - 20%</field>
-            <field name="description">20.0</field>
+            <field name="description">20.0 SALE</field>
             <field name="amount" eval="20.0"/>
             <field name="type_tax_use">sale</field>
         </record>
