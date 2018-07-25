@@ -16,7 +16,7 @@
 
         <record model="ir.actions.server" id="act_server_sanitize_purchase_order_lines">
             <field name="name">Sanitize purchase order lines</field>
-            <field name="model_id" ref="purchase.model_purchase_order_line"/>
+            <field name="model_id" ref="product.model_product_product"/>
             <field name="code">
 action = self.sanitize_purchase_order_lines(cr, uid, context.get('active_ids'), context=context)
             </field>
@@ -25,7 +25,7 @@ action = self.sanitize_purchase_order_lines(cr, uid, context.get('active_ids'), 
         <record model="ir.values" id="ir_value_sanitize_purchase_order_lines">
             <field name="key">action</field>
             <field name="key2">client_action_multi</field>
-            <field name="model">purchase.order.line</field>
+            <field name="model">product.product</field>
             <field name="name">Sanitize purchase order lines</field>
             <field name="value" eval="'ir.actions.server,'+str(act_server_sanitize_purchase_order_lines)"/>
         </record>

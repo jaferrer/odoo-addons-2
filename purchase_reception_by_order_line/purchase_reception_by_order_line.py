@@ -186,19 +186,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                 result['purchase_line_id'] = corresponding_line.id
             purchase_line = corresponding_line or purchase_line
         if purchase_line:
-            price_unit = purchase_line.price_unit
-            if purchase_line.taxes_id:
-                taxes = purchase_line.taxes_id.compute_all(price_unit, 1.0, purchase_line.product_id,
-                                                           purchase_line.order_id.partner_id)
-                price_unit = taxes['total']
-            if purchase_line.product_uom.id != purchase_line.product_id.uom_id.id:
-                price_unit *= purchase_line.product_uom.factor / purchase_line.product_id.uom_id.factor
-            if purchase_line.order_id.currency_id.id != purchase_line.order_id.company_id.currency_id.id:
-                # we don't round the price_unit, as we may want to store the standard price with more digits than
-                # allowed by the currency
-                price_unit = self.env['res.currency'].compute(purchase_line.order_id.currency_id.id,
-                                                              purchase_line.order_id.company_id.currency_id.id,
-                                                              price_unit, round=False)
+            price_unit = purchase_line.get_move_unit_price_from_line()
             new_vals = {
                 'date': purchase_line.order_id.date_order,
                 'date_expected': purchase_line.date_planned + ' 12:00:00',

@@ -184,7 +184,9 @@ class ProcurementOrderAsync(models.Model):
 
         all_draft_moves = self.env['stock.move'].search(domain + [('state', '=', 'draft')], limit=None,
                                                         order='priority desc, date_expected asc')
-
+        if all_draft_moves:
+            self.env.cr.execute("""SELECT id FROM stock_move WHERE id IN %s FOR UPDATE""",
+                                (tuple(all_draft_moves.ids),))
         all_draft_moves_ids = all_draft_moves.read(['id', 'group_id', 'location_id', 'location_dest_id'], load=False)
 
         for move in all_draft_moves_ids:
