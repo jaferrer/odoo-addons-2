@@ -71,14 +71,6 @@ class StockChangeQuantValorisation(models.TransientModel):
     def change_quants_valorisation(self):
         self.ensure_one()
         for quant in self.quant_ids:
-            print 'create', {
-                'quant_id': quant.id,
-                'date': fields.Datetime.now(),
-                'previous_cost': quant.cost,
-                'new_cost': self.new_cost,
-                'user_id': self.env.uid,
-                'description': self.description,
-            }
             self.env['quant.cost.history'].create({
                 'quant_id': quant.id,
                 'date': fields.Datetime.now(),
