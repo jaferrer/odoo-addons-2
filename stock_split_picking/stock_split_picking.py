@@ -106,9 +106,9 @@ class StockSplitPicking(models.Model):
         return result
 
     @api.multi
-    def delete_packops_if_needed(self, vals, context=None):
+    def delete_packops_if_needed(self, vals):
         subrecs = self.filtered(lambda p: not p.packing_details_saved)
-        return super(StockSplitPicking, subrecs).delete_packops_if_needed(vals, context=context)
+        return super(StockSplitPicking, subrecs).delete_packops_if_needed(vals)
 
 
 class SplitPickingStockQuantPackage(models.Model):
