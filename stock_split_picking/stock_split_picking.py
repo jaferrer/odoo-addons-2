@@ -106,16 +106,9 @@ class StockSplitPicking(models.Model):
         return result
 
     @api.multi
-    def write(self, vals, context=None):
-        if not self.packing_details_saved:
-            if vals.get('move_lines') and not vals.get('pack_operation_ids'):
-                # pack operations are directly dependant of move lines, it needs to be recomputed
-                pack_operation_obj = self.pool['stock.pack.operation']
-                existing_package_ids = pack_operation_obj.search([('picking_id', 'in', self.ids)], context=context)
-                if existing_package_ids:
-                    pack_operation_obj.unlink(existing_package_ids, context)
-
-        return super(StockSplitPicking, self).write(vals, context=context)
+    def delete_packops_if_needed(self, vals, context=None):
+        subrecs = self.filtered(lambda p: not p.packing_details_saved)
+        return super(StockSplitPicking, subrecs).delete_packops_if_needed(vals, context=context)
 
 
 class SplitPickingStockQuantPackage(models.Model):
