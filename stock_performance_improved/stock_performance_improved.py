@@ -800,6 +800,7 @@ class StockMove(models.Model):
                                           help="If checked, the stock move will be assigned to a picking only if there "
                                                "is available quants in the source location. Otherwise, it will be "
                                                "assigned a picking as soon as the move is confirmed.")
+    origin_returned_move_id = fields.Many2one('stock.move', index=True)
     split_from = fields.Many2one('stock.move', index=True)
 
     @api.multi
