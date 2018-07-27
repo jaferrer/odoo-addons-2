@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="project_delivery_task_form_ext">
+            <field name="name">project_delivery_task_form_ext</field>
+            <field name="model">project.task</field>
+            <field name="priority" eval="16"/>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="Delivery">
+                        <field name="delivery_ids" readonly="1">
+                            <tree>
+                                <field name="name"/>
+                                <field name="type_id"/>
+                                <field name="effective_date"/>
+                                <field name="assignee_id"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+
+        <record model="ir.ui.view" id="project_delivery_tree">
+            <field name="name">project.delivery.tree</field>
+            <field name="model">project.delivery</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="type_id"/>
+                    <field name="effective_date"/>
+                    <field name="assignee_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_milestone_search">
+            <field name="name">project.milestone.search</field>
+            <field name="model">project.delivery</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search string="Search Production">
+                    <field name="name"/>
+                    <field name="type_id"/>
+                    <field name="effective_date"/>
+                    <field name="assignee_id"/>
+                    <group expand="0" string="Group By...">
+                        <filter string="Type" icon="terp-stock_align_left_24" domain="[]"
+                                context="{'group_by':'type_id'}"/>
+                        <filter string="Projet" icon="terp-stock_align_left_24" domain="[]"
+                                context="{'group_by':'project_id'}"/>
+                        <filter string="Assigned to" icon="terp-stock_align_left_24" domain="[]"
+                                context="{'group_by':'assignee_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+
+        <record model="ir.ui.view" id="project_delivery_form">
+            <field name="name">project.delivery.form</field>
+            <field name="model">project.delivery</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Delivery">
+                    <header>
+                        <button name="action_delivery" type="object" string="Deliver" attrs="{'invisible':[('state', '=', 'done')]}"/>
+                        <field name="state" widget="statusbar" readonly="1"/>
+                    </header>
+                    <sheet string="Delivery" attrs="{'readonly':[('state', '=', 'done')]}">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" class="oe_inline"/>
+                        </h1>
+                        <group>
+                            <field name="project_id"/>
+                            <field name="assignee_id"/>
+                        </group>
+                        <group  attrs="{'invisible':[('project_id', '=', False)]}" >
+                            <field name="type_id" context="{'default_project_id':project_id}"/>
+                            <field name="effective_date"/>
+                        </group>
+                        <group  attrs="{'invisible':[('state', '!=', 'done')]}" >
+                            <field name="done_by_id"/>
+                            <field name="done_effective_date"/>
+                        </group>
+                        <group string="Tâches" name="task_group">
+                            <field name="task_ids" nolabel="1" attrs="{'invisible':[('project_id', '=', False)]}"
+                                   domain="[('project_id', '=', project_id)]">
+                                <tree nolabel="1">
+                                    <field name="name"/>
+                                    <field name="user_id"/>
+                                    <field name="priority" widget="priority"/>
+                                    <field name="stage_id"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="project_delivery_action" model="ir.actions.act_window">
+            <field name="name">Delivery</field>
+            <field name="res_model">project.delivery</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to add a new Delivery.
+                </p>
+            </field>
+        </record>
+        <menuitem action="project_delivery_action" id="menu_project_delivery" parent="project.menu_project_config"
+                  groups="project.group_project_user"/>
+    </data>
+</openerp>
