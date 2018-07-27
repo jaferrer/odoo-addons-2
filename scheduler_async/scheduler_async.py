@@ -47,6 +47,7 @@ def run_procure_orderpoint_async(session, model_name, company_id, context):
 def run_or_check_procurements(session, model_name, domain, action, context):
     """Confirm or check procurements"""
     job_uuid = session.context.get('job_uuid')
+    job = job_uuid and session.env['queue.job'].search([('uuid', '=', job_uuid)]) or session.env['queue.job']
     proc_obj = session.env[model_name].with_context(context)
     prev_procs = proc_obj
     not_runned_yet = True
@@ -63,7 +64,10 @@ def run_or_check_procurements(session, model_name, domain, action, context):
             proc_ids = [item[0] for item in res]
             if not_runned_yet and procs and not proc_ids:
                 # In case the job runs before the procs have been assigned their job uuid
-                raise RetryableJobError("No procurements found for this job's UUID")
+                msg = "No procurements found for this job's UUID"
+                if job and job.max_retries and job.retry >= job.max_retries:
+                    return msg
+                raise RetryableJobError(msg)
             procs = proc_obj.sudo().search([('id', 'in', proc_ids)])
         if not procs or prev_procs == procs:
             break
@@ -73,14 +77,37 @@ def run_or_check_procurements(session, model_name, domain, action, context):
             procs.sudo().run(autocommit=True)
         elif action == 'check':
             procs.sudo().check(autocommit=True)
+        moves_to_run = session.env['stock.move'].search([('procurement_id', 'in', procs.ids),
+                                                         ('state', '=', 'draft')])
+        if moves_to_run:
+            session.env['procurement.order'].run_confirm_moves(domain=[('id', 'in', moves_to_run.ids)])
         session.commit()
 
 
 @job
 def confirm_moves(session, model_name, ids, context):
     """Confirm draft moves"""
-    moves = session.env[model_name].with_context(context).browse(ids)
-    moves.action_confirm()
+    job_uuid = session.context.get('job_uuid')
+    job = job_uuid and session.env['queue.job'].search([('uuid', '=', job_uuid)]) or session.env['queue.job']
+    move_obj = session.env[model_name].with_context(context)
+    not_runned_yet = True
+    if ids:
+        session.env.cr.execute("""SELECT
+            sm.id
+            FROM stock_move sm
+            WHERE sm.id IN %s AND (
+                sm.confirm_job_uuid IS NULL or sm.confirm_job_uuid = %s
+            )""", (tuple(ids), job_uuid))
+        res = session.env.cr.fetchall()
+        move_ids = [item[0] for item in res]
+        if not_runned_yet and not move_ids:
+            # In case the job runs before the moves have been assigned their job uuid
+            msg = "No moves found for this job's UUID"
+            if job and job.max_retries and job.retry >= job.max_retries:
+                return msg
+            raise RetryableJobError(msg)
+        moves = move_obj.search([('id', 'in', move_ids)])
+        moves.action_confirm()
 
 
 @job(default_channel='root.asgnmoves')
@@ -88,6 +115,20 @@ def assign_moves(session, model_name, ids, context):
     """Assign confirmed moves"""
     moves = session.env[model_name].with_context(context).browse(ids)
     moves.action_assign()
+
+
+@job
+def job_cancel_procurement(session, model_name, ids, context):
+    """Cancel procurements"""
+    procs = session.env[model_name].with_context(context).browse(ids)
+    procs.cancel()
+
+
+@job
+def job_unlink_orderpoints(session, model_name, ids, context):
+    """Unlink orderpoints"""
+    orderpoints = session.env[model_name].with_context(context).browse(ids)
+    orderpoints.unlink()
 
 
 class ProcurementComputeAllAsync(models.TransientModel):
@@ -136,12 +177,16 @@ class ProcurementOrderAsync(models.Model):
     run_or_confirm_job_uuid = fields.Char(tring=u"Job UUID to confirm or check this procurement")
 
     @api.model
-    def run_confirm_moves(self):
+    def run_confirm_moves(self, domain=False):
         group_draft_moves = {}
+        if not domain:
+            domain = []
 
-        all_draft_moves = self.env['stock.move'].search([('state', '=', 'draft')], limit=None,
+        all_draft_moves = self.env['stock.move'].search(domain + [('state', '=', 'draft')], limit=None,
                                                         order='priority desc, date_expected asc')
-
+        if all_draft_moves:
+            self.env.cr.execute("""SELECT id FROM stock_move WHERE id IN %s FOR UPDATE""",
+                                (tuple(all_draft_moves.ids),))
         all_draft_moves_ids = all_draft_moves.read(['id', 'group_id', 'location_id', 'location_dest_id'], load=False)
 
         for move in all_draft_moves_ids:
@@ -152,9 +197,19 @@ class ProcurementOrderAsync(models.Model):
 
         for draft_move_ids in group_draft_moves:
             if self.env.context.get('jobify'):
-                confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move',
-                                    group_draft_moves[draft_move_ids],
-                                    dict(self.env.context))
+                query = """SELECT sm.id
+FROM stock_move sm
+  LEFT JOIN queue_job qj ON qj.uuid = sm.confirm_job_uuid
+WHERE (sm.confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND sm.id IN %s"""
+                job_uuid = confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move',
+                                               group_draft_moves[draft_move_ids],
+                                               dict(self.env.context))
+                # We want to write confirm_job_uuid only if the move has none
+                # or if the uuid points to a done or cancelled job
+                self.env.cr.execute(query, (tuple(group_draft_moves[draft_move_ids]),))
+                moves_for_job_ids = [item[0] for item in self.env.cr.fetchall()]
+                moves_for_job = self.env['stock.move'].search([('id', 'in', moves_for_job_ids)])
+                moves_for_job.write({'confirm_job_uuid': job_uuid})
             else:
                 confirm_moves(ConnectorSession.from_env(self.env), 'stock.move', group_draft_moves[draft_move_ids],
                               dict(self.env.context))
@@ -184,19 +239,23 @@ class ProcurementOrderAsync(models.Model):
         while products:
             dom = base_dom + [('product_id', 'in', products.ids)]
             if self.env.context.get('jobify', False):
+                params = company_id and (tuple(products.ids), company_id,) or (tuple(products.ids),)
+                query = """SELECT po.id
+FROM procurement_order po
+  LEFT JOIN queue_job qj ON qj.uuid = po.run_or_confirm_job_uuid
+  WHERE (po.run_or_confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND
+                      po.state = 'confirmed' AND
+                      po.product_id IN %s"""
+                if company_id:
+                    query += """ AND po.company_id = %s"""
                 job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env),
                                                            'procurement.order', dom,
                                                            'run', dict(self.env.context))
                 # We want to write run_or_confirm_job_uuid only if the proc has none
                 # or if the uuid points to a done or cancelled job
-                dom_with_uuid = dom + [('run_or_confirm_job_uuid', '!=', False)]
-                running_jobs = self.read_group(dom_with_uuid, ['run_or_confirm_job_uuid'],
-                                               ['run_or_confirm_job_uuid'])
-                running_uuids = [l['run_or_confirm_job_uuid'] for l in running_jobs]
-                done_or_failed_jobs = self.env['queue.job'].search([('uuid', 'in', running_uuids),
-                                                                    ('state', 'in', ('done', 'failed'))])
-                procs_for_job = self.search(dom + ['|', ('run_or_confirm_job_uuid', '=', False),
-                                                   ('id', 'in', done_or_failed_jobs.ids)])
+                self.env.cr.execute(query, params)
+                proc_for_job_ids = [item[0] for item in self.env.cr.fetchall()]
+                procs_for_job = self.search([('id', 'in', proc_for_job_ids)])
                 procs_for_job.write({'run_or_confirm_job_uuid': job_uuid})
             else:
                 run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
@@ -214,19 +273,23 @@ class ProcurementOrderAsync(models.Model):
         offset = 0
         while products:
             dom = base_dom + [('product_id', 'in', products.ids)]
-            if self.env.context.get("jobify", False):
+            if self.env.context.get('jobify', False):
+                params = company_id and (tuple(products.ids), company_id,) or (tuple(products.ids),)
+                query = """SELECT po.id
+                FROM procurement_order po
+                  LEFT JOIN queue_job qj ON qj.uuid = po.run_or_confirm_job_uuid
+                  WHERE (po.run_or_confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND
+                                      po.state = 'confirmed' AND
+                                      po.product_id IN %s"""
+                if company_id:
+                    query += """ AND po.company_id = %s"""
                 job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order',
                                                            dom, 'check', dict(self.env.context))
                 # We want to write run_or_confirm_job_uuid only if the proc has none
                 # or if the uuid points to a done or cancelled job
-                dom_with_uuid = dom + [('run_or_confirm_job_uuid', '!=', False)]
-                running_jobs = self.read_group(dom_with_uuid, ['run_or_confirm_job_uuid'],
-                                               ['run_or_confirm_job_uuid'])
-                running_uuids = [l['run_or_confirm_job_uuid'] for l in running_jobs]
-                done_or_failed_jobs = self.env['queue.job'].search([('uuid', 'in', running_uuids),
-                                                                    ('state', 'in', ('done', 'failed'))])
-                procs_for_job = self.search(dom + ['|', ('run_or_confirm_job_uuid', '=', False),
-                                                   ('id', 'in', done_or_failed_jobs.ids)])
+                self.env.cr.execute(query, params)
+                proc_for_job_ids = [item[0] for item in self.env.cr.fetchall()]
+                procs_for_job = self.search([('id', 'in', proc_for_job_ids)])
                 procs_for_job.write({'run_or_confirm_job_uuid': job_uuid})
             else:
                 run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
@@ -254,12 +317,48 @@ class ProcurementOrderAsync(models.Model):
         self.run_confirm_procurements(company_id)
 
         # Run minimum stock rules
-        without_job = not self.env.context.get("jobify", False)
-        self.with_context(without_job=without_job).sudo()._procure_orderpoint_confirm(use_new_cursor=True,
-                                                                                      company_id=company_id)
+        self.sudo()._procure_orderpoint_confirm(use_new_cursor=True, company_id=company_id)
 
         # Check if running procurements are done
         self.run_check_procurements(company_id)
 
         # Try to assign moves
         self.run_assign_moves()
+
+    @api.model
+    def is_procs_confirmation_ok(self):
+        return not self.env['queue.job']. \
+            search([('job_function_id.name', '=',
+                     'openerp.addons.scheduler_async.scheduler_async.run_or_check_procurements'),
+                    ('state', 'not in', ('done', 'failed'))], limit=1)
+
+    @api.model
+    def is_moves_confirmation_ok(self):
+        return not self.env['queue.job']. \
+            search([('job_function_id.name', '=',
+                     'openerp.addons.scheduler_async.scheduler_async.confirm_moves'),
+                    ('state', 'not in', ('done', 'failed'))], limit=1)
+
+    @api.multi
+    def launch_job_cancel_procurement(self):
+        context = dict(self.env.context)
+        for rec in self:
+            job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', rec.ids, context)
+
+
+class StockMoveAsync(models.Model):
+    _inherit = 'stock.move'
+
+    confirm_job_uuid = fields.Char(tring=u"Job UUID to confirm this move")
+
+
+
+class OrderpointAsync(models.Model):
+    _inherit = 'stock.warehouse.orderpoint'
+
+    @api.multi
+    def launch_job_unlink_orderpoints(self):
+        context = dict(self.env.context)
+        for rec in self:
+            job_unlink_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                         rec.ids, context)

@@ -22,10 +22,10 @@ import logging
 import openerp.addons.decimal_precision as dp
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
-from openerp.tools import float_compare, float_round, flatten
+from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 from openerp import fields, models, api, exceptions, _
-import datetime
+from datetime import datetime as dt
 
 ORDERPOINT_CHUNK = 1
 
@@ -36,8 +36,28 @@ _logger = logging.getLogger(__name__)
 def process_orderpoints(session, model_name, ids, context):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    for op in session.env[model_name].with_context(context).browse(ids):
-        op.process()
+    orderpoints = session.env[model_name].with_context(context).search([('id', 'in', ids)],
+                                                                       order='stock_scheduler_sequence desc')
+    orderpoints.process()
+    job_uuid = session.context.get('job_uuid')
+    if job_uuid:
+        line = session.env['stock.scheduler.controller'].search([('job_uuid', '=', job_uuid),
+                                                                 ('done', '=', False)])
+        line.set_to_done()
+
+
+class StockLocation(models.Model):
+    _inherit = 'stock.location'
+
+    stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence",
+                                              help=u"Same order as the logistic flow")
+
+
+class StockLocationRoute(models.Model):
+    _inherit = 'stock.location.route'
+
+    stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence",
+                                              help=u"Highest sequences will be processed first")
 
 
 class StockMove(models.Model):
@@ -63,9 +83,10 @@ class ProcurementOrderQuantity(models.Model):
             m.qty = qty
 
     @api.model
-    def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False):
+    def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
+                                    run_moves=True):
         """
-        Create procurement based on Orderpoint
+        Create procurement based on orderpoint
 
         :param bool use_new_cursor: if set, use a dedicated cursor and auto-commit after processing each procurement.
             This is appropriate for batch jobs only.
@@ -79,27 +100,81 @@ class ProcurementOrderQuantity(models.Model):
                 search([('name', 'in', self.env.context['compute_supplier_ids'])])
             read_supplierinfos = supplierinfo_ids.read(['id', 'product_tmpl_id'], load=False)
             dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
-        orderpoint_ids = orderpoint_env.search(dom)
-        op_ids = orderpoint_ids.read(['id', 'product_id'], load=False)
+        orderpoints = orderpoint_env.search(dom)
+        if run_procurements:
+            self.env['procurement.order'].run_confirm_procurements(company_id=company_id)
+        if run_moves:
+            domain = company_id and [('company_id', '=', company_id)] or False
+            self.env['procurement.order'].run_confirm_moves(domain)
+        last_date_done = dt.now() - relativedelta(months=1)
+        last_date_done = fields.Datetime.to_string(last_date_done)
+        self.env.cr.execute("""DELETE FROM stock_scheduler_controller WHERE done IS TRUE AND date_done < %s""",
+                            (last_date_done,))
+        self.env.cr.execute("""INSERT INTO stock_scheduler_controller
+(orderpoint_id,
+ product_id,
+ location_id,
+ location_sequence,
+ route_sequence,
+ run_procs,
+ done,
+ create_date,
+ write_date,
+ create_uid,
+ write_uid)
 
-        result = dict()
-        for row in op_ids:
-            if row['product_id'] not in result:
-                result[row['product_id']] = list()
-            result[row['product_id']].append(row['id'])
-        product_ids = result.values()
+  WITH user_id AS (SELECT %s AS user_id),
 
-        while product_ids:
-            products = product_ids[:ORDERPOINT_CHUNK]
-            product_ids = product_ids[ORDERPOINT_CHUNK:]
-            orderpoints = flatten(products)
-            if self.env.context.get('without_job'):
-                for op in self.env['stock.warehouse.orderpoint'].browse(orderpoints):
-                    op.process()
-            else:
-                process_orderpoints.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                          orderpoints, dict(self.env.context),
-                                          description="Computing orderpoints %s" % orderpoints)
+      orderpoints_to_insert AS (
+        SELECT
+          op.id                                     AS orderpoint_id,
+          op.product_id,
+          op.location_id,
+          COALESCE(sl.stock_scheduler_sequence, 0)  AS location_sequence,
+          COALESCE(slr.stock_scheduler_sequence, 0) AS route_sequence,
+          FALSE                                     AS run_procs,
+          FALSE                                     AS done,
+          CURRENT_TIMESTAMP                         AS create_date,
+          CURRENT_TIMESTAMP                         AS write_date,
+          (SELECT user_id
+           FROM user_id)                            AS create_uid,
+          (SELECT user_id
+           FROM user_id)                            AS write_uid
+        FROM stock_warehouse_orderpoint op
+          LEFT JOIN stock_location sl ON sl.id = op.location_id
+          LEFT JOIN product_product pp ON pp.id = op.product_id
+          LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
+          LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
+        WHERE op.id IN %s
+        GROUP BY op.id, sl.stock_scheduler_sequence, slr.stock_scheduler_sequence),
+
+      list_sequences AS (
+        SELECT
+          location_sequence,
+          route_sequence
+        FROM orderpoints_to_insert
+        GROUP BY location_sequence, route_sequence)
+
+  SELECT *
+  FROM orderpoints_to_insert
+
+  UNION ALL
+
+  SELECT
+    NULL              AS orderpoint_id,
+    NULL              AS product_id,
+    NULL              AS location_id,
+    location_sequence,
+    route_sequence,
+    TRUE              AS run_procs,
+    FALSE             AS done,
+    CURRENT_TIMESTAMP AS create_date,
+    CURRENT_TIMESTAMP AS write_date,
+    (SELECT user_id
+     FROM user_id)    AS create_uid,
+    (SELECT user_id
+     FROM user_id)    AS write_uid
+  FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
         return {}
 
     @api.multi
@@ -117,7 +192,7 @@ class ProcurementOrderQuantity(models.Model):
                         if move.state == 'cancel':
                             moves_to_unlink += move
                             if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
-                                            move.procurement_id.state == 'cancel' and \
+                                move.procurement_id.state == 'cancel' and \
                                     not any([move.state == 'done' for move in move.procurement_id.move_ids]):
                                 procurements_to_unlink += move.procurement_id
                 if moves_to_unlink:
@@ -131,9 +206,10 @@ class ProcurementOrderQuantity(models.Model):
         """
         Improves the original propagate_cancel, in order to cancel it even if one of its moves is done.
         """
-        ignore_move_ids = procurement.rule_id.action == 'move' and procurement.move_ids and \
-            procurement.move_ids.filtered(lambda move: move.state == 'done').ids or []
+        ignore_move_ids = []
         if procurement.rule_id.action == 'move':
+            ignore_move_ids += self.env['stock.move'].search([('procurement_id', '=', procurement.id),
+                                                              ('state', 'in', ['done', 'cancel'])]).ids
             # Keep proc with new qty if some moves are already done
             procurement.remove_done_moves()
         return super(ProcurementOrderQuantity,
@@ -148,11 +224,27 @@ class ProcurementOrderQuantity(models.Model):
                 qty_done = sum([move.product_qty for move in procurement.move_ids if move.state == 'done'])
                 qty_done_proc_uom = self.env['product.uom']. \
                     _compute_qty_obj(procurement.product_id.uom_id, qty_done, procurement.product_uom)
+                if procurement.product_uos:
+                    qty_done_proc_uos = float_round(
+                        self.env['product.uom']._compute_qty_obj(procurement.product_id.uom_id, qty_done,
+                                                                 procurement.product_uos),
+                        precision_rounding=procurement.product_uos.rounding
+                    )
+                else:
+                    qty_done_proc_uos = float_round(qty_done_proc_uom,
+                                                    precision_rounding=procurement.product_uom.rounding)
                 if float_compare(qty_done, 0.0, precision_rounding=procurement.product_id.uom_id.rounding) > 0:
                     procurement.write({
                         'product_qty': float_round(qty_done_proc_uom,
                                                    precision_rounding=procurement.product_uom.rounding),
+                        'product_uos_qty': qty_done_proc_uos,
                     })
+
+    @api.multi
+    def cancel_procs_just_in_time(self, stock_qty, qty):
+        self.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
+        self.unlink()
+        return stock_qty - qty
 
 
 class StockMoveJustInTime(models.Model):
@@ -160,13 +252,19 @@ class StockMoveJustInTime(models.Model):
 
     @api.multi
     def action_cancel(self):
-        return super(StockMoveJustInTime,
-                     self.filtered(lambda move: move.id not in (self.env.context.get('ignore_move_ids') or []))). \
-            action_cancel()
+        domain = [('id', 'in', self.ids),
+                  ('id', 'not in', (self.env.context.get('ignore_move_ids') or []))]
+        if self.env.context.get('do_not_try_to_cancel_done_moves'):
+            domain += [('state', '!=', 'done')]
+        moves_to_cancel = self.search(domain)
+        return super(StockMoveJustInTime, moves_to_cancel).action_cancel()
 
 
 class StockWarehouseOrderPointJit(models.Model):
     _inherit = 'stock.warehouse.orderpoint'
+
+    stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence", default=1000,
+                                              related='location_id.stock_scheduler_sequence', store=True, readonly=True)
 
     @api.multi
     def get_list_events(self):
@@ -222,7 +320,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-              fields.Datetime.from_string(last_schedule[0].get('date')) or False
+            fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -296,10 +394,8 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                             ('state', '!=', 'done')])
                     qty_same_proc = sum(item['move_qty'] for item in events if item['proc_id'] == event['proc_id'])
                     if proc_oversupply:
-                        stock_after_event -= qty_same_proc
                         _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
-                    proc_oversupply.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
-                    proc_oversupply.unlink()
+                        stock_after_event = proc_oversupply.cancel_procs_just_in_time(stock_after_event, qty_same_proc)
                     if op.is_under_stock_min(stock_after_event) and \
                             any([item['move_type'] == 'out' for item in events_at_date]):
                         new_proc = op.create_from_need(event, stock_after_event)
@@ -645,3 +741,83 @@ class ProductProduct(models.Model):
             }
         else:
             raise exceptions.except_orm(_("Error"), _("Your company does not have a warehouse"))
+
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    state = fields.Selection(track_visibility=False)
+
+    @api.model
+    def create(self, vals):
+        # The creation messages are useless
+        return super(StockPicking, self.with_context(mail_notrack=True, mail_create_nolog=True)).create(vals)
+
+
+class StockSchedulerController(models.Model):
+    _name = 'stock.scheduler.controller'
+    _order = 'orderpoint_id'
+
+    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Orderpoint")
+    product_id = fields.Many2one('product.product', string=u"Product", readonly=True)
+    location_id = fields.Many2one('stock.location', string=u"Location", readonly=True)
+    location_sequence = fields.Integer(string=u"Location sequence", readonly=True)
+    route_id = fields.Many2one('stock.location.route', string=u"Route", readonly=True)
+    route_sequence = fields.Integer(string=u"Route sequence", readonly=True)
+    run_procs = fields.Boolean(string=u"Run procurements", readonly=True)
+    job_creation_date = fields.Datetime(string=u"Job Creation Date", readonly=True)
+    job_uuid = fields.Char(string=u"Job UUID", readonly=True)
+    date_done = fields.Datetime(string=u"Date done")
+    done = fields.Boolean(string=u"Done")
+
+    @api.multi
+    def set_to_done(self):
+        self.write({'done': True, 'date_done': fields.Datetime.now()})
+
+    @api.model
+    def update_scheduler_controller(self, jobify=True, run_procurements=True):
+        max_sequence = self.search([('done', '=', False)], order='location_sequence desc, route_sequence desc', limit=1)
+        if max_sequence:
+            max_location_sequence = max_sequence.location_sequence
+            max_route_sequence = max_sequence.route_sequence
+            is_procs_confirmation_ok = self.env['procurement.order'].is_procs_confirmation_ok()
+            is_moves_confirmation_ok = self.env['procurement.order'].is_moves_confirmation_ok()
+            if is_procs_confirmation_ok and is_moves_confirmation_ok:
+                controller_lines_no_run = self.search([('done', '=', False),
+                                                       ('job_uuid', '=', False),
+                                                       ('location_sequence', '=', max_location_sequence),
+                                                       ('route_sequence', '=', max_route_sequence),
+                                                       ('run_procs', '=', False)])
+
+                if not controller_lines_no_run:
+                    controller_lines_run_procs = self.search([('done', '=', False),
+                                                              ('location_sequence', '=', max_location_sequence),
+                                                              ('route_sequence', '=', max_route_sequence),
+                                                              ('run_procs', '=', True)])
+                    if controller_lines_run_procs:
+                        if run_procurements:
+                            self.env['procurement.order'].with_context(jobify=jobify).run_confirm_procurements()
+                        else:
+                            _logger.info(u"No procurement confirmation required")
+                        controller_lines_run_procs.set_to_done()
+                else:
+                    if jobify:
+                        while controller_lines_no_run:
+                            chunk_line = controller_lines_no_run[:50]
+                            orderpoints = chunk_line.mapped('orderpoint_id')
+                            first_location = chunk_line[0].location_id.display_name
+                            job_uuid = process_orderpoints. \
+                                delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                      orderpoints.ids, dict(self.env.context),
+                                      description="Computing orderpoints")
+                            chunk_line.job_uuid = job_uuid
+                            chunk_line.write({'job_uuid': job_uuid,
+                                        'job_creation_date': fields.Datetime.now()})
+                    else:
+                        for line in controller_lines_no_run:
+                            line.job_uuid = str(line.orderpoint_id.id)
+                            self.env.context = dict(self.env.context, job_uuid=line.job_uuid)
+                            process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                                line.orderpoint_id.ids, dict(self.env.context))
+
+

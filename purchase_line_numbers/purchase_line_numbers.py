@@ -25,11 +25,19 @@ class ReceptionByOrderPurchaseOrder(models.Model):
 
     @api.multi
     def renumerate_lines(self):
+        dict_line_no = {}
+        max_number = 0
         for rec in self:
             number = 10
-            for line in rec.order_line:
-                line.line_no = "%03d" % number
+            for line in rec.order_line.sort_lines_to_renumerate():
+                dict_line_no[line] = number
+                max_number = max(max_number, number)
                 number += 10
+        nb_letters = str(len(str(max_number)))
+        no_format = "%0" + nb_letters + "d"
+        for rec in self:
+            for line in rec.order_line:
+                line.line_no = no_format % dict_line_no[line]
 
     @api.multi
     def do_merge(self):
@@ -44,6 +52,10 @@ class ReceptionByOrderPurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
     line_no = fields.Char("Line no.")
+
+    @api.multi
+    def sort_lines_to_renumerate(self):
+        return self
 
     @api.multi
     def name_get(self):

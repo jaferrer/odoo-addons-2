@@ -32,7 +32,7 @@ See README.md
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'static/src/qweb.xml'
+        'qweb.xml'
     ],
     'test': [],
     'installable': True,

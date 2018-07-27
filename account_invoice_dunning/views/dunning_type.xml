@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data>
+        <record id="sequence_type_account_dunning" model="ir.sequence.type">
+            <field name="name">Account Dunning</field>
+            <field name="code">account.invoice.dunning</field>
+        </record>
+        <record model="ir.ui.view" id="invoice_dunning_type_tree_view">
+            <field name="name">invoice.dunning.type.tree</field>
+            <field name="model">account.invoice.dunning.type</field>
+            <field name="arch" type="xml">
+                <tree string="Dunning Type Tree" editable="top">
+                    <field name="name"/>
+                    <field name="number"/>
+                    <field name="company_id"/>
+                    <field name="report_id"/>
+                    <field name="mail_template_id"/>
+                    <field name="sequence_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="relance_config_action">
+            <field name="name">Dunning Type</field>
+            <field name="res_model">account.invoice.dunning.type</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <menuitem name="Dunning Type"
+                  id="menu_relance_config"
+                  parent="account.menu_finance_configuration"
+                  action="relance_config_action"/>
+
+    </data>
+</openerp>
+

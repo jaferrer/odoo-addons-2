@@ -34,6 +34,7 @@ Implements various fixes for multi-company
     'data': [
         'security/security.xml',
         'stock_multi_company_data.xml',
+        'stock_multi_company.xml',
     ],
     'demo': [],
     'test': [],

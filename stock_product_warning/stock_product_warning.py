@@ -22,26 +22,26 @@ from openerp import fields, models, api
 class stock_product_warning_product(models.Model):
     _inherit = 'product.template'
 
-    procurement_warning = fields.Boolean("Procurement Warning", help="Check this box to display a warning signal in "
-                                                                     "the transfer pop-up of stock operations linked "
-                                                                     "to this product")
+    procurement_warning = fields.Boolean(u"Procurement Warning", help=u"Check this box to display a warning signal in "
+                                                                     u"the transfer pop-up of stock operations linked "
+                                                                     u"to this product")
     
-    procurement_warning_msg = fields.Text(string="Procurement Warning Message", readonly=False)
+    procurement_warning_msg = fields.Text(string=u"Procurement Warning Message", readonly=False)
 
 
 class stock_product_packop_line(models.Model):
     _inherit = 'stock.pack.operation'
 
-    procurement_warning = fields.Boolean("Procurement Warning", related="product_id.procurement_warning")
+    procurement_warning = fields.Boolean(u"Procurement Warning", related="product_id.procurement_warning")
     
-    procurement_warning_msg = fields.Text(string="Procurement Warning Message",
+    procurement_warning_msg = fields.Text(string=u"Procurement Warning Message",
                                           related="product_id.procurement_warning_msg")
 
 
 class stock_product_transfer_detail_items(models.TransientModel):
     _inherit = 'stock.transfer_details_items'
 
-    procurement_warning = fields.Boolean("Procurement Warning", related="product_id.procurement_warning")
+    procurement_warning = fields.Boolean(u"Procurement Warning", related="product_id.procurement_warning")
     
     @api.multi
     def button_warning(self):

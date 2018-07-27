@@ -10,7 +10,7 @@
 #    This program is distributed in the hope that it will be useful,
 #
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See theEUCHNER FRANCE
 #    GNU Affero General Public License for more details.
 #
 #    You should have received a copy of the GNU Affero General Public License
@@ -23,20 +23,44 @@ from dateutil.relativedelta import relativedelta
 
 from openerp import models, fields, api
 
+DOMAIN_PARTNER_ACTIVE_SCHEDULER = [('supplier', '=', True),
+                                   ('nb_days_scheduler_frequency', '!=', False),
+                                   ('nb_days_scheduler_frequency', '!=', 0),
+                                   ('next_scheduler_date', '!=', False)]
+
 
 class JitResPartner(models.Model):
     _inherit = 'res.partner'
 
+    def _get_default_order_group_period(self):
+        order_group_period_id = self.env['ir.config_parameter'].\
+            get_param('purchase_procurement_just_in_time.order_group_period')
+        order_group_period_id = order_group_period_id and int(order_group_period_id) or False
+        order_group_period = order_group_period_id and \
+            self.env['procurement.time.frame'].browse(order_group_period_id) or self.env['procurement.time.frame']
+        return order_group_period
+
+    def _get_default_nb_max_draft_orders(self):
+        return int(self.env['ir.config_parameter'].\
+            get_param('purchase_procurement_just_in_time.nb_max_draft_orders') or 0)
+
+    def _get_default_nb_days_scheduler_frequency(self):
+        return int(self.env['ir.config_parameter'].\
+            get_param('purchase_procurement_just_in_time.nb_days_scheduler_frequency') or 0)
+
     order_group_period = fields.Many2one('procurement.time.frame', string="Order grouping period",
                                          help="Select here the time frame by which orders line placed to this supplier"
                                               " should be grouped by PO. This is value should be set to the typical "
-                                              "delay between two orders to this supplier.")
-    nb_max_draft_orders = fields.Integer(string="Maximal number of draft purchase orders",
-                                         help="Used by the purchase planner to generate draft orders")
-    nb_days_scheduler_frequency = fields.Integer(string="Scheduler frequency (in days)")
+                                              "delay between two orders to this supplier.", track_visibility='onchange',
+                                         default=_get_default_order_group_period)
+    nb_max_draft_orders = fields.Integer(string="Maximal number of draft purchase orders",  track_visibility='onchange',
+                                         help="Used by the purchase planner to generate draft orders",
+                                         default=_get_default_nb_max_draft_orders)
+    nb_days_scheduler_frequency = fields.Integer(string="Scheduler frequency (in days)", track_visibility='onchange',
+                                                 default=_get_default_nb_days_scheduler_frequency)
     last_scheduler_date = fields.Datetime(string="Last scheduler date", readonly=True)
     next_scheduler_date = fields.Datetime(string="Next scheduler date")
-    scheduler_sequence = fields.Integer(string="Sequence for purchase scheduler")
+    scheduler_sequence = fields.Integer(string="Sequence for purchase scheduler", track_visibility='onchange')
 
     @api.multi
     def get_nb_draft_orders(self):
@@ -47,13 +71,25 @@ class JitResPartner(models.Model):
                                                       ('date_order_max', '!=', False)]))
 
     @api.model
+    def get_suppliers_to_update(self):
+        domain_partner = [('nb_days_scheduler_frequency', '!=', False),
+                          ('nb_days_scheduler_frequency', '!=', 0),
+                          ('next_scheduler_date', '!=', False),
+                          ('next_scheduler_date', '<=', fields.Datetime.now())]
+        suppliers_to_update = self.search(domain_partner)
+        return suppliers_to_update
+
+    @api.model
+    def get_suppliers_to_launch(self):
+        domain_partner = DOMAIN_PARTNER_ACTIVE_SCHEDULER + [('next_scheduler_date', '<=', fields.Datetime.now())]
+        suppliers_to_launch = self.search(domain_partner)
+        return suppliers_to_launch
+
+    @api.model
     def launch_purchase_scheduler_by_supplier(self):
-        suppliers_to_launch = self.search([('supplier', '=', True),
-                                          ('nb_days_scheduler_frequency', '!=', False),
-                                          ('nb_days_scheduler_frequency', '!=', 0),
-                                          ('next_scheduler_date', '!=', False),
-                                          ('next_scheduler_date', '<=', fields.Datetime.now())])
-        for supplier in suppliers_to_launch:
+        suppliers_to_update = self.get_suppliers_to_update()
+        suppliers_to_launch = self.get_suppliers_to_launch()
+        for supplier in suppliers_to_update:
             next_scheduler_date = fields.Datetime.from_string(supplier.next_scheduler_date)
             while next_scheduler_date <= dt.now():
                 next_scheduler_date += relativedelta(days=supplier.nb_days_scheduler_frequency)
@@ -65,3 +101,30 @@ class JitResPartner(models.Model):
                 'supplier_ids': [(6, 0, suppliers_to_launch.ids)]
             })
             wizard.procure_calculation()
+
+    @api.multi
+    def get_effective_order_group_period(self):
+        self.ensure_one()
+        order_group_period = self.order_group_period
+        if not order_group_period:
+            order_group_period_id = self.env['ir.config_parameter']. \
+                get_param('purchase_procurement_just_in_time.order_group_period')
+            if order_group_period_id:
+                order_group_period = self.env['procurement.time.frame'].browse(int(order_group_period_id))
+        return order_group_period
+
+    @api.multi
+    def _is_valid_supplier_for_scheduler(self, compute_all_products, compute_supplier_ids):
+        self.ensure_one()
+        return bool(compute_all_products or not compute_supplier_ids or
+                    compute_supplier_ids and self.id in compute_supplier_ids)
+
+    @api.model
+    def create(self, vals):
+        if vals.get('nb_days_scheduler_frequency') and not vals.get('next_scheduler_date'):
+            latest_partner = self.search([('supplier', '=', True),
+                                          ('next_scheduler_date', '!=', False)],
+                                         order='next_scheduler_date desc', limit=1)
+            vals['next_scheduler_date'] = latest_partner and latest_partner.next_scheduler_date or \
+                fields.Datetime.to_string(dt.now().replace(hour=22, minute=0, second=0))
+        return super(JitResPartner, self).create(vals)

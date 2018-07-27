@@ -20,7 +20,6 @@
 from openerp import models, fields, api, exceptions, _
 from openerp.exceptions import ValidationError
 from openerp.tools import float_compare
-from datetime import datetime as dt
 
 
 class ProductLineMoveWizard(models.TransientModel):
@@ -42,51 +41,64 @@ class ProductLineMoveWizard(models.TransientModel):
         result = super(ProductLineMoveWizard, self).default_get(fields)
         line_ids = self.env.context.get('active_ids', [])
         lines = self.env['stock.product.line'].browse(line_ids)
-        quant_lines = []
-        package_lines = []
-        for line in lines:
-            line_dict = {
-                'product_id': line.product_id.id,
-                'product_name': line.product_id.display_name,
-                'package_id': line.package_id and line.package_id.id or False,
-                'package_name': line.package_id and line.package_id.display_name or False,
-                'parent_id': line.parent_id and line.parent_id.id or False,
-                'lot_id': line.lot_id and line.lot_id.id or False,
-                'lot_name': line.lot_id and line.lot_id.display_name or False,
-                'available_qty': line.qty,
-                'qty': line.qty,
-                'uom_id': line.uom_id and line.uom_id.id or False,
-                'uom_name': line.uom_id and line.uom_id.display_name or False,
-                'location_id': line.location_id.id,
-                'location_name': line.location_id.display_name,
-                'created_from_id': line.id,
-            }
-            if line.product_id or not line.package_id:
-                quant_lines.append(line_dict)
-            else:
-                package_lines.append(line_dict)
+        quant_lines, package_lines = lines.get_default_lines_data_for_wizard()
         result.update(quant_line_ids=quant_lines)
         result.update(package_line_ids=package_lines)
+        if lines:
+            global_dest_loc, picking_type = lines[0].location_id.get_default_loc_picking_type(lines[0].product_id)
+            result.update(global_dest_loc=global_dest_loc and global_dest_loc.id or False)
+            result.update(picking_type_id=picking_type and picking_type.id or False)
         return result
 
-    @api.onchange('quant_line_ids', 'package_line_ids')
+    @api.onchange('quant_line_ids', 'package_line_ids', 'picking_type_id')
     def onchange_is_manual_op(self):
         self.ensure_one()
         lines = self.quant_line_ids + self.package_line_ids
         self.is_manual_op = self.is_manual_op or lines.force_is_manual_op()
 
     @api.multi
-    def move_products(self):
-        self.ensure_one()
-        lines = self.quant_line_ids + self.package_line_ids
-        lines.check_quantities()
-        lines.check_data_active()
-        is_manual_op = self.is_manual_op or lines.force_is_manual_op()
+    @api.onchange('global_dest_loc')
+    def onchange_global_dest_loc(self):
+        if self.env.context.get('apply_onchange_global_dest_loc'):
+            for rec in self:
+                if rec.global_dest_loc:
+                    rec.picking_type_id = self.env['stock.quant'].get_default_picking_type_for_move()
+
+    @api.multi
+    def _get_quants_from_package(self):
         packages = self.env['stock.quant.package']
         for package_line in self.package_line_ids:
             packages |= package_line.package_id
         quants_to_move = packages.get_content()
-        quants_to_move = self.env['stock.quant'].browse(quants_to_move)
+        return self.env['stock.quant'].browse(quants_to_move)
+
+    @api.multi
+    def _get_quants(self):
+        quants_packaged = self._get_quants_from_package()
+        quants_no_packaged = self.env['stock.quant']
+        for quant_line in self.quant_line_ids:
+            domain = [('product_id', '=', quant_line.product_id.id),
+                      ('location_id', '=', quant_line.location_id.id),
+                      ('package_id', '=', quant_line.package_id and quant_line.package_id.id or False),
+                      ('lot_id', '=', quant_line.lot_id and quant_line.lot_id.id or False),
+                      ('product_id.uom_id', '=', quant_line.uom_id and quant_line.uom_id.id or False),
+                      ('id', 'not in', quants_packaged.ids)]
+            quants_no_packaged |= self.env['stock.quant'].search(domain, order='in_date, qty')
+        return quants_no_packaged, quants_packaged
+
+    @api.multi
+    def _check_before_move_products(self):
+        lines = self.quant_line_ids + self.package_line_ids
+        lines.check_quantities()
+        lines.check_data_active()
+        return lines
+
+    @api.multi
+    def move_products(self):
+        self.ensure_one()
+        lines = self._check_before_move_products()
+        is_manual_op = self.is_manual_op or lines.force_is_manual_op()
+        quants_to_move = self._get_quants_from_package()
         move_items = {}
         # Let's add package quants
         for quant in quants_to_move:
@@ -106,10 +118,10 @@ class ProductLineMoveWizard(models.TransientModel):
         if any([float_compare(quant.qty, 0, precision_rounding=quant.product_id.uom_id.rounding) < 0
                 for quant in quants_to_move]):
             raise exceptions.except_orm(_("error"), _("Impossible to move a negative quant"))
-        result = quants_to_move.with_context(mail_notrack=True). \
+        new_picking = quants_to_move.with_context(mail_notrack=True). \
             move_to(self.global_dest_loc, self.picking_type_id, move_items=move_items, is_manual_op=is_manual_op,
                     filling_method=self.filling_method)
-        return result.display_picking_for_moves(is_manual_op)
+        return new_picking.open_picking_form(is_manual_op)
 
 
 class ProductLineMoveWizardLine(models.TransientModel):
@@ -134,7 +146,7 @@ class ProductLineMoveWizardLine(models.TransientModel):
     @api.multi
     def check_quantities(self):
         for rec in self:
-            if rec.product_id :
+            if rec.product_id:
                 if float_compare(rec.qty, rec.available_qty, precision_rounding=rec.uom_id.rounding) > 0:
                     raise ValidationError(_("The quantity to move must be lower or equal to the available "
                                             "quantity"))
@@ -156,6 +168,8 @@ class ProductLineMoveWizardLine(models.TransientModel):
         # If the requested quantity is different from the available one, we force the user to validate
         # the picking manually.
         for rec in self:
+            if rec.move_wizard_id.picking_type_id.force_is_manual_op:
+                return True
             # Quant line with package
             if rec.product_id and rec.package_id:
                 precision_rounding = rec.uom_id.rounding

@@ -1,4 +1,4 @@
-[![Build Status](http://runbot.ndp-systemes.fr/runbot/badge/flat/9/8.0.svg)](http://runbot.ndp-systemes.fr/runbot/repo/ssh-git-gitlab-ndp-systemes-fr-10022-odoo-addons-common-modules-git-9)
+[![build status](https://gitlab.ndp-systemes.fr/odoo-addons/common-modules/badges/8.0/build.svg)](https://gitlab.ndp-systemes.fr/odoo-addons/common-modules/commits/8.0)
 
 # odoo-addons
 Public Odoo addons from NDP Systèmes

@@ -20,3 +20,6 @@ from OdooWrapper import IHM
 
 IHM().launch()
 
+
+
+

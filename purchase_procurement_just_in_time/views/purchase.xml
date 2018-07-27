@@ -117,7 +117,7 @@
                     <filter name="waiting_ack" string="Awaiting Supplier Ack" domain="['|', ('ack_ref', '=', False), ('date_ack', '=', False)]"/>
                 </filter>
                  <group string="Group By" position="inside">
-                    <filter string="Mois de réception"  domain="[]" context="{'group_by': 'date_planned:month'}"/>
+                    <filter string="Reception Month"  domain="[]" context="{'group_by': 'date_planned:month'}"/>
                 </group>
             </field>
         </record>
@@ -132,19 +132,22 @@
                     <button name="picking_ok" position="before">
                         <button name="reset_to_confirmed" states="except_picking" string="Reset to confirmed" type="object" class="oe_highlight"/>
                     </button>
-                    <field name="date_order" position="attributes">
-                        <attribute name="required">1</attribute>
-                    </field>
+                    <field name="date_order" position="replace"/>
                     <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="before">
                         <field name="line_no"/>
                     </xpath>
                     <xpath expr="//notebook/page[@string='Deliveries &amp; Invoices']/group" position="inside">
                         <group>
-                            <field name="date_order_max"/>
+                            <field name="date_order" required="1"/>
+                            <field name="date_order_max" widget="date"/>
                         </group>
                     </xpath>
                 </data>
             </field>
+        </record>
+
+        <record id="purchase.purchase_rfq" model="ir.actions.act_window">
+            <field name="domain">['|', ('state','in',('sent','bid','cancel', 'confirmed')), '&amp;', ('state', '=', 'draft'), ('order_line', '!=', False)]</field>
         </record>
 
         <record model="ir.actions.act_window" id="jit_act_window_purchase_order_lines">

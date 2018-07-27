@@ -119,6 +119,11 @@ msgid "Maximum order date"
 msgstr "Date maximale de la commande"
 
 #. module: purchase_procurement_just_in_time
+#: field:purchase.order,date_order:0
+msgid "Start date for grouping period"
+msgstr "Date de début de la période de regroupement"
+
+#. module: purchase_procurement_just_in_time
 #: selection:procurement.time.frame,period_type:0
 msgid "Month(s)"
 msgstr "Mois"
@@ -233,6 +238,11 @@ msgid "Awaiting Supplier Ack"
 msgstr "En attente d'AR fournisseur"
 
 #. module: purchase_procurement_just_in_time
+#: view:purchase.order.line:0
+msgid "Reception Month"
+msgstr "Mois de réception"
+
+#. module: purchase_procurement_just_in_time
 #: field:split.line,create_uid:0
 msgid "Created by"
 msgstr "Créé par"
@@ -325,6 +335,11 @@ msgstr "EN RETARD de %i jour(s)"
 #: field:purchase.order.line,date_ack:0
 msgid "Last Acknowledge Date"
 msgstr "Date de réception de l'AR"
+
+#. module: purchase_procurement_just_in_time
+#: help:purchase.order.line,date_ack:0
+msgid "Last date at which the supplier confirmed the delivery at the planned date."
+msgstr "Dernière date à laquelle le fournisseur a confirmé la livraison à la date prévue."
 
 #. module: purchase_procurement_just_in_time
 #: field:split.line,write_uid:0
@@ -661,13 +676,13 @@ msgstr "Planification des achats pour le fournisseur %s et l'emplacement %s"
 
 #. module: purchase_procurement_just_in_time
 #: field:res.partner,nb_max_draft_orders:0
-msgid "Maximal number of draft purchase orders"
-msgstr "Nombre maximal de commandes d'achat brouillon"
+msgid "Number of grouping periods to consider"
+msgstr "Nombre de périodes de regroupement à prendre en compte"
 
 #. module: purchase_procurement_just_in_time
 #: field:res.partner,nb_days_scheduler_frequency:0
 msgid "Scheduler frequency (in days)"
-msgstr "Fréquence du planificateur achats (en jour)"
+msgstr "Fréquence du planificateur achats (en jours)"
 
 #. module: purchase_procurement_just_in_time
 #: field:res.partner,last_scheduler_date:0
@@ -733,6 +748,11 @@ msgid "Used for the purchase planner"
 msgstr "Utilisé par le planificateur achats"
 
 #. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,config_sellers_manually:0
+msgid "Configure purchase scheduler manually for each supplier"
+msgstr "Configurer manuellement le planificateur achats pour chaque fournisseur"
+
+#. module: purchase_procurement_just_in_time
 #: model:ir.actions.act_window,name:purchase_procurement_just_in_time.act_window_supply_chain_control
 #: model:ir.ui.menu,name:purchase_procurement_just_in_time.menu_supply_chain_control
 msgid "Supply Chain Control"
@@ -779,9 +799,44 @@ msgid "Not Covered Needs"
 msgstr "Besoins non couverts"
 
 #. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Seller defined"
+msgstr "Fournisseur défini"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Seller not defined"
+msgstr "Fournisseur non défini"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Scheduler active for seller"
+msgstr "Planificateur actif pour le fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: view:supply.chain.control:purchase_procurement_just_in_time.supply_chain_control_search
+msgid "Scheduler not active for seller"
+msgstr "Planificateur non actif pour le fournisseur"
+
+#. module: purchase_procurement_just_in_time
 #: field:supply.chain.control,product_id:0
 msgid "Product"
 msgstr "Article"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,seller_defined:0
+msgid "Seller defined"
+msgstr "Fournisseur défini"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,main_seller_id:0
+msgid "Main seller"
+msgstr "Fournisseur principal"
+
+#. module: purchase_procurement_just_in_time
+#: field:supply.chain.control,scheduler_active_for_seller:0
+msgid "Scheduler active for seller"
+msgstr "Planificateur actif pour le fournisseur"
 
 #. module: purchase_procurement_just_in_time
 #: field:supply.chain.control,virtual_available:0
@@ -826,3 +881,55 @@ msgstr "Demandes d'approvisionnement pour l'article %s"
 #: model:ir.values,name:purchase_procurement_just_in_time.ir_value_sanitize_purchase_order_lines
 msgid "Sanitize purchase order lines"
 msgstr "Nettoyer les lignes de commande d'achat"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\procurement.py:665
+#, python-format
+msgid "There is no supplier associated to product"
+msgstr "Aucun fournisseur n'est associé à l'article"
+
+#. module: purchase_procurement_just_in_time
+#: code:addons\purchase_procurement_just_in_time\models\procurement.py:682
+#, python-format
+msgid "Purchase scheduler is not configurated for this supplier"
+msgstr "Le planificateur achats n'est pas configuré pour ce fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: field:procurement.order,date_buy_to_run:0
+msgid "Date buy to run"
+msgstr "Date de passage à 'PA à créer'"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,opmsg_delay:0
+msgid "Message Delay"
+msgstr "Message concernant le retard"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,opmsg_type:0
+msgid "Message Type"
+msgstr "Type de message"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,opmsg_delay:0
+msgid "Message Delay"
+msgstr "Message concernant le retard"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.order.line,opmsg_type:0
+msgid "Message Type"
+msgstr "Type de message"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,order_group_period:0
+msgid "Default order grouping period"
+msgstr "Période de regroupement par défaut"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,nb_max_draft_orders:0
+msgid "Default maximal number of draft purchase orders for each new supplier"
+msgstr "Nombre maximal de commande par défaut pour chaque nouveau fournisseur"
+
+#. module: purchase_procurement_just_in_time
+#: field:purchase.config.settings,nb_days_scheduler_frequency:0
+msgid "Default scheduler frequency (in days)"
+msgstr "Fréquence par défaut du planificateur achats (en jours)"

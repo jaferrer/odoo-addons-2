@@ -68,3 +68,11 @@ class PurchaseDeliveryTrackingPurchaseOrder(models.Model):
             if rec.state not in ['draft', 'cancel', 'done']:
                 rec.last_status_update = fields.Datetime.now()
                 rec.tracking_ids.update_delivery_status()
+
+    @api.depends('tracking_ids', 'tracking_ids.transporter_id')
+    def _compute_transporter_id(self):
+        for rec in self:
+            if rec.tracking_ids:
+                rec.transporter_id = rec.tracking_ids[0].transporter_id
+            else:
+                rec.transporter_id = False

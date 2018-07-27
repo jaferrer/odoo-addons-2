@@ -46,6 +46,8 @@ Notes:
         'security/ir.model.access.csv',
         'security/security.xml',
         'purchase_working_days_view.xml',
+        'purchase_working_days_view.xml',
+        'res_config.xml',
     ],
     'demo': [
         'purchase_working_days_demo.xml',

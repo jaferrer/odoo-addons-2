@@ -82,7 +82,7 @@ class StockChangeQuantPicking(models.TransientModel):
         self.ensure_one()
         quants_ids = self.env.context.get('active_ids', [])
         quants = self.env['stock.quant'].browse(quants_ids)
-        self.env['stock.quant'].quants_unreserve(self.move_id)
+        self.move_id.do_unreserve()
         available_qty_on_move = self.move_id.product_qty
         recalculate_state_for_moves = self.env['stock.move']
         list_reservations = []
@@ -106,6 +106,10 @@ class StockChangeQuantPicking(models.TransientModel):
             recalculate_state_for_moves.recalculate_move_state()
         if self.picking_id.pack_operation_ids:
             self.move_id.picking_id.do_prepare_partial()
+        if not self.move_id.picking_id and self.move_id.picking_type_id:
+            self.move_id.assign_to_picking()
+        if not self.move_id.picking_id:
+            return {'type': 'ir.actions.act_window_close'}
         return {
             'name': 'Stock Operation',
             'type': 'ir.actions.act_window',

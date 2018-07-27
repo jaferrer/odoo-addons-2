@@ -72,9 +72,9 @@ class StockQuantPackageMove(models.TransientModel):
         quantsglob |= self._determine_package_child_quants(packs)
 
         if quantsglob:
-            result = quantsglob.with_context(mail_notrack=True). \
+            new_picking = quantsglob.with_context(mail_notrack=True). \
                 move_to(self.global_dest_loc, self.picking_type_id, is_manual_op=self.is_manual_op)
-            return result.display_picking_for_moves(self.is_manual_op)
+            return new_picking.open_picking_form(self.is_manual_op)
         return True
 
     def _determine_package_child_quants(self, packs):

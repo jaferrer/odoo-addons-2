@@ -22,6 +22,7 @@ from urllib2 import urlopen
 from urllib import urlencode
 from lxml import etree
 from dateutil.parser import parse
+import ssl
 
 
 class TntTrackingTransporter(models.Model):
@@ -44,6 +45,7 @@ class TntTrackingNumber(models.Model):
         for rec in self:
             if rec.transporter_id.name == 'TNT':
                 rec.status_ids.unlink()
+                unverified_context = ssl._create_unverified_context()
                 file = urlopen('http://www.tnt.com/webtracker/tracking.do',
                                           urlencode({"cons": str(rec.name),
                                                      "genericSiteIdent": "",
@@ -57,7 +59,7 @@ class TntTrackingNumber(models.Model):
                                                      "searchType": "con",
                                                      "sourceCountry": "ww",
                                                      "sourceID": "1",
-                                                     "trackType": "CON"}))
+                                                     "trackType": "CON"}), context=unverified_context)
                 html_file = etree.parse(file, etree.HTMLParser())
                 list_status = html_file.xpath(".//table[@class='appTable']")
                 if len(list_status) == 3:

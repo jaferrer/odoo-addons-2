@@ -59,3 +59,9 @@ msgstr "Ré-ouvrir la commande"
 #: view:sale.order:sale_order_workflow_improved.workflow_improved_sale_order_form
 msgid "Set to done"
 msgstr "Mettre en terminé"
+
+#. module: sale_order_workflow_improved
+#: code:addons\sale_order_workflow_improved\sale_order_workflow_improved.py:36
+#, python-format
+msgid "Sale order reopened by %s"
+msgstr "Commande de vente réouverte par %s"

@@ -1,0 +1,41 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_multi_company
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-28 10:07+0000\n"
+"PO-Revision-Date: 2015-05-28 10:07+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: base
+#: model:ir.module.module,shortdesc:base.module_stock_multi_company
+msgid "Stock Multi-Company Fixes"
+msgstr "Améliorations pour la gestion du stock en multi-société"
+
+#. module: base
+#: model:ir.module.module,description:base.module_stock_multi_company
+msgid ""
+"\n"
+"Stock Multi-Company Fixes\n"
+"=========================\n"
+"Implements various fixes for multi-company\n"
+"- Quants can be reserved whatever their company in a multi-company environment\n"
+msgstr ""
+"\n"
+"Améliorations pour la gestion du stock en multi-société\n"
+"=======================================================\n"
+"Implémente différentes améliorations pour la gestion du stock en multi-société\n"
+"- Les quants peuvent être réservés quelle que soit leur société, dans un environnement multi-société\n"
+
+#. module: stock_multi_company
+#: field:stock.picking.type,visible_for_all_companies:0
+msgid "Visible for all companies"
+msgstr "Visible pour toutes les sociétés"

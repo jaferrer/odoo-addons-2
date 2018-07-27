@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from openerp.tests import common
 from datetime import datetime
+from openerp.tools.misc import frozendict
 
 
 class TestPurchaseGroupByPeriod(common.TransactionCase):
@@ -8,6 +9,10 @@ class TestPurchaseGroupByPeriod(common.TransactionCase):
     YEARS = 'years'
     DAYS = 'days'
     WEEKS = 'weeks'
+
+    def setUp(self):
+        super(TestPurchaseGroupByPeriod, self).setUp()
+        self.env.context = frozendict(dict(self.env.context, check_product_qty=False))
 
     def test_3_month(self):
         date = datetime(2015, 8, 12)

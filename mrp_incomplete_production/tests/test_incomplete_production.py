@@ -420,12 +420,14 @@ class TestIncompleteProduction(common.TransactionCase):
 
         # Checking child order data
         self.assertTrue(mrp_production1.child_order_id)
-        self.assertEqual(len(mrp_production1.child_order_id.move_lines), 3)
+        self.assertEqual(len(mrp_production1.child_order_id.move_lines), 4)
         self.assertIn((self.product1, 4),
                       [(move.product_id, move.product_uom_qty) for move in mrp_production1.child_order_id.move_lines])
         self.assertIn((self.product2, 10),
                       [(move.product_id, move.product_uom_qty) for move in mrp_production1.child_order_id.move_lines])
-        self.assertIn((self.product3, 7),
+        self.assertIn((self.product3, 2),
+                      [(move.product_id, move.product_uom_qty) for move in mrp_production1.child_order_id.move_lines])
+        self.assertIn((self.product3, 5),
                       [(move.product_id, move.product_uom_qty) for move in mrp_production1.child_order_id.move_lines])
 
         # Checking return picking data

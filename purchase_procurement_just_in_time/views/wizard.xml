@@ -40,6 +40,7 @@
                         Launch the purchase planner in the background.
                     </p>
                     <group>
+                        <field name="date_ref"/>
                         <field name="compute_all"/>
                         <field name="product_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>
                         <field name="supplier_ids" widget="many2many_tags" attrs="{'invisible': [('compute_all', '=', True)]}"/>

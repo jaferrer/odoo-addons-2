@@ -238,6 +238,57 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertEqual(move_a_2.state, 'waiting')
         self.assertFalse(move_a_2.quant_ids)
 
+    def test_22_move_quant_lines_with_move_assigned(self):
+        """
+        We assign a move, remove manually its quant, and check the move has been reset to confirmed
+        """
+
+        move_a_1 = self.env['stock.move'].create({
+            'name': "First move for product A",
+            'product_id': self.product_a.id,
+            'product_uom_qty': 10,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.location_source.id,
+            'location_dest_id': self.location_dest.id,
+            'product_uom': self.unit.id,
+            'priority': '0',
+        })
+
+        supply_move_a_1 = self.env['stock.move'].create({
+            'name': "First supply move for product A",
+            'product_id': self.product_a.id,
+            'product_uom_qty': 10,
+            'picking_type_id': self.picking_type.id,
+            'location_id': self.supplier.id,
+            'location_dest_id': self.location_source.id,
+            'product_uom': self.unit.id,
+            'move_dest_id': move_a_1.id,
+        })
+
+
+        move_a_1.action_confirm()
+        supply_move_a_1.action_confirm()
+        supply_move_a_1.action_assign()
+        self.assertEqual(supply_move_a_1.state, 'assigned')
+        supply_move_a_1.action_done()
+        supply_quant_1 = supply_move_a_1.quant_ids
+        self.assertEqual(len(supply_quant_1), 1)
+        self.assertEqual(move_a_1.state, 'assigned')
+        self.assertEqual(move_a_1.reserved_quant_ids, supply_quant_1)
+
+        do_move_w = self.env['stock.quant.move']. \
+            with_context(active_ids=[supply_quant_1.id]).create(
+            {
+                'global_dest_loc': self.supplier.id,
+                'picking_type_id': self.picking_type.id,
+                'is_manual_op': False
+            })
+
+        do_move_w.do_transfer()
+
+        self.assertFalse(move_a_1.reserved_quant_ids)
+        self.assertEqual(move_a_1.state, 'waiting')
+
     def test_30_move_quants_different_locations(self):
         [line_1, line_2, line_3, line_4, line_5, line_6, line_7, line_8, line_9, line_10, line_11] = \
             self.prepare_test_move_quant_package()
@@ -286,11 +337,11 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         # Let's force onchange to check field 'is_manual_op'
         wizard.onchange_is_manual_op()
         self.assertFalse(wizard.is_manual_op)
-        result = wizard.move_products()
-        self.assertTrue(result)
-        picking = result[0].picking_id
-        self.assertEqual(len(picking.message_ids), 1)
+        picking = wizard.move_products()
         self.assertTrue(picking)
+        self.assertFalse(picking.message_ids)
+        moves = picking.move_lines
+        self.assertTrue(moves)
         self.assertEqual(picking.state, 'done')
         self.assertFalse(picking.backorder_id)
         self.assertEqual(self.quant_no_pack_a.location_id, self.location_dest)
@@ -560,10 +611,10 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         # Let's force onchange to check field 'is_manual_op'
         wizard.onchange_is_manual_op()
         self.assertFalse(wizard.is_manual_op)
-        moves = wizard.move_products()
-        self.assertTrue(moves)
-        picking = moves[0].picking_id
+        picking = wizard.move_products()
         self.assertTrue(picking)
+        moves = picking.move_lines
+        self.assertTrue(moves)
         self.assertEqual(picking.state, 'done')
         self.assertFalse(picking.backorder_id)
         self.assertEqual(len(moves), 2)
@@ -1145,10 +1196,8 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         self.assertEqual(move_to_set_auto.state, 'waiting')
 
         # print 'move_to_set_auto', move_to_set_auto, move_to_set_auto.state
-        moves2 = pos_quant.move_to(self.location_2, self.picking_type,
+        picking2 = pos_quant.move_to(self.location_2, self.picking_type,
                                    move_items={self.product1_auto_move.id: [{'quant_ids': pos_quant.ids, 'qty': 30}]})
-        # print 'moves2', moves2
-        picking2 = moves2[0].picking_id
         # print 'picking2', picking2.state, picking2.move_lines
         self.assertTrue(picking2)
 
@@ -1449,11 +1498,11 @@ class TestStockQuantPackagesMovingWizard(common.TransactionCase):
         # Let's force onchange to check field 'is_manual_op'
         wizard.onchange_is_manual_op()
         self.assertFalse(wizard.is_manual_op)
-        result = wizard.move_products()
-        self.assertTrue(result)
-        picking = result[0].picking_id
-        self.assertEqual(len(picking.message_ids), 1)
+        picking = wizard.move_products()
         self.assertTrue(picking)
+        self.assertFalse(picking.message_ids)
+        moves = picking.move_lines
+        self.assertTrue(moves)
         self.assertEqual(picking.state, 'done')
         self.assertFalse(picking.backorder_id)
         self.assertEqual(self.quant_no_pack_a.location_id, self.location_source)

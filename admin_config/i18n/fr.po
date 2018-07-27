@@ -1,0 +1,41 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* admin_config
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0-20161129\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-11-29 16:51+0000\n"
+"PO-Revision-Date: 2017-11-29 16:51+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: admin_config
+#: model:ir.actions.server,name:admin_config.ir_actions_server_delete_field_translations
+msgid "Delete all translations of this item"
+msgstr "Supprimer toutes les traductions pour cet élément"
+
+#. module: admin_config
+#: model:ir.actions.server,name:admin_config.ir_actions_server_mass_install
+msgid "Immediate upgrade of the module"
+msgstr "Mise à jour directe du module"
+
+#. module: admin_config
+#: model:ir.model,name:admin_config.model_base_language_install
+msgid "Install Language"
+msgstr "Installation de langue"
+
+#. module: admin_config
+#: view:ir.module.module:admin_config.admin_config_modules_view_kanban
+msgid "NDP Systèmes"
+msgstr "NDP Systèmes"
+
+#. module: admin_config
+#: field:ir.translation,module_sequence:0
+msgid "Sequence"
+msgstr "Séquence"

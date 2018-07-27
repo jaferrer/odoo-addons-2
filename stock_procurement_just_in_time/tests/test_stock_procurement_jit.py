@@ -19,11 +19,13 @@
 
 from openerp import fields
 from openerp.tests import common
+from openerp.tools.misc import frozendict
 
 
 class TestStockProcurementJIT(common.TransactionCase):
     def setUp(self):
         super(TestStockProcurementJIT, self).setUp()
+        self.env.context = frozendict(dict(self.env.context, check_product_qty=False))
         self.test_product = self.browse_ref("stock_procurement_just_in_time.product_test_product")
         self.test_product2 = self.browse_ref("stock_procurement_just_in_time.product_test_product2")
         self.test_product3 = self.browse_ref("stock_procurement_just_in_time.product_test_product3")
@@ -47,16 +49,39 @@ class TestStockProcurementJIT(common.TransactionCase):
                                                            'absolute_stock_delta': 1,
                                                            'consider_end_contract_effect': True})
         wizard.execute()
+        self.env['queue.job'].search([]).write({'state': 'done'})
 
     def process_orderpoints(self):
         """Function to call the scheduler without needing connector to work."""
-        compute_wizard = self.env['procurement.order.compute.all'].create({
-            'compute_all': False,
-            'product_ids': [(4, self.test_product.id), (4, self.test_product3.id), (4, self.test_product4.id)],
-        })
-        self.env['procurement.order'].with_context(compute_product_ids=compute_wizard.product_ids.ids,
-                                                   compute_all_products=compute_wizard.compute_all,
-                                                   without_job=True)._procure_orderpoint_confirm()
+        existing_controller_lines = self.env['stock.scheduler.controller'].search([])
+        product_ids = [self.test_product.id, self.test_product3.id, self.test_product4.id]
+        self.env['procurement.order'].with_context(compute_product_ids=product_ids,
+                                                   compute_all_products=False,
+                                                   jobify=False)._procure_orderpoint_confirm(run_procurements=False,
+                                                                                             run_moves=False)
+        orderpoints = self.env['stock.warehouse.orderpoint'].search([('product_id', 'in', product_ids)])
+        controller_lines = self.env['stock.scheduler.controller']. \
+            search([('id', 'not in', existing_controller_lines.ids)])
+        self.assertEqual(len(orderpoints), len(controller_lines) - 1)
+        controller_lines_data = [(line.orderpoint_id, line.product_id, line.location_id,
+                                  line.location_sequence, line.route_sequence, line.run_procs, line.done)
+                                 for line in controller_lines]
+        for op in orderpoints:
+            self.assertIn((op, op.product_id, op.location_id, 0, op.location_id.stock_scheduler_sequence,
+                           False, False), controller_lines_data)
+        self.env['stock.scheduler.controller'].update_scheduler_controller(jobify=False, run_procurements=False)
+        self.env['stock.scheduler.controller'].update_scheduler_controller(jobify=False, run_procurements=False)
+        orderpoints = self.env['stock.warehouse.orderpoint'].search([('product_id', 'in', product_ids)])
+        controller_lines = self.env['stock.scheduler.controller']. \
+            search([('id', 'not in', existing_controller_lines.ids)])
+        self.assertEqual(len(orderpoints), len(controller_lines) - 1)
+        controller_lines_data = [(line.orderpoint_id, line.product_id, line.location_id, line.location_sequence,
+                                  line.route_sequence, line.run_procs, line.job_uuid, line.done)
+                                 for line in controller_lines]
+        for op in orderpoints:
+            self.assertIn((op, op.product_id, op.location_id, 0, op.location_id.stock_scheduler_sequence,
+                           False, str(op.id), True), controller_lines_data)
+
 
     def test_01_procurement_jit_basic(self):
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
@@ -64,7 +89,8 @@ class TestStockProcurementJIT(common.TransactionCase):
                                                                             self.test_product2.id,
                                                                             self.test_product3.id,
                                                                             self.test_product4.id,
-                                                                            ])])
+                                                                            ]),
+                                                      ('state', '!=', 'cancel')])
         self.assertFalse(procs)
         self.process_orderpoints()
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
@@ -72,7 +98,8 @@ class TestStockProcurementJIT(common.TransactionCase):
                                                                             self.test_product2.id,
                                                                             self.test_product3.id,
                                                                             self.test_product4.id,
-                                                                            ])], order='date_planned, product_id')
+                                                                            ]),
+                                                      ('state', '!=', 'cancel')], order='date_planned, product_id')
 
         self.assertEqual(len(procs), 8)
 
@@ -154,7 +181,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         procs = proc_env.search([('location_id', '=', self.location_b.id),
                                  ('product_id', 'in', [self.test_product.id,
                                                        self.test_product2.id,
-                                                       self.test_product3.id])], order='date_planned, product_id')
+                                                       self.test_product3.id]),
+                                 ('state', '!=', 'cancel')], order='date_planned, product_id')
 
         self.assertEqual(len(procs), 7)
         self.assertEqual(procs[0].product_id, self.test_product)
@@ -241,7 +269,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(proc3.state, 'exception')
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
-                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])],
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id]),
+                                 ('state', '!=', 'cancel')],
                                 order='date_planned, product_id')
 
         # They should all be running
@@ -329,7 +358,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         move3.action_confirm()
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
-                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])],
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id]),
+                                 ('state', '!=', 'cancel')],
                                 order='date_planned, product_id')
 
         self.assertEqual(len(procs), 6)
@@ -387,7 +417,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         new_move2.action_confirm()
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
-                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])],
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id]),
+                                 ('state', '!=', 'cancel')],
                                 order='date_planned, product_id')
 
         self.assertEqual(len(procs), 8)
@@ -453,7 +484,8 @@ class TestStockProcurementJIT(common.TransactionCase):
 
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
-                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])],
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id]),
+                                 ('state', '!=', 'cancel')],
                                 order='date_planned, product_id')
 
         self.assertEqual(len(procs), 6)
@@ -499,11 +531,13 @@ class TestStockProcurementJIT(common.TransactionCase):
                                                                             self.test_product2.id,
                                                                             self.test_product3.id,
                                                                             self.test_product4.id,
-                                                                            ])])
+                                                                            ]),
+                                                      ('state', '!=', 'cancel')])
         self.assertFalse(procs)
         self.process_orderpoints()
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
-                                                      ('product_id', 'in', [self.test_product.id])],
+                                                      ('product_id', 'in', [self.test_product.id]),
+                                                      ('state', '!=', 'cancel')],
                                                      order='date_planned, product_id')
 
         self.assertEqual(len(procs), 2)
@@ -530,11 +564,13 @@ class TestStockProcurementJIT(common.TransactionCase):
                                                                             self.test_product2.id,
                                                                             self.test_product3.id,
                                                                             self.test_product4.id,
-                                                                            ])])
+                                                                            ]),
+                                                      ('state', '!=', 'cancel')])
         self.assertFalse(procs)
         self.process_orderpoints()
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
-                                                      ('product_id', 'in', [self.test_product.id])],
+                                                      ('product_id', 'in', [self.test_product.id]),
+                                                      ('state', '!=', 'cancel')],
                                                      order='date_planned, product_id')
 
         self.assertEqual(len(procs), 1)
@@ -555,7 +591,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         move_need7.action_cancel()
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
-                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id])],
+                                 ('product_id', 'in', [self.test_product.id, self.test_product3.id]),
+                                 ('state', '!=', 'cancel')],
                                 order='date_planned, product_id')
 
         self.assertEqual(len(procs), 4)
@@ -601,11 +638,13 @@ class TestStockProcurementJIT(common.TransactionCase):
 
         # First let's start with the basic procurement scenario
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
-                                                      ('product_id', 'in', [self.test_product.id])])
+                                                      ('product_id', 'in', [self.test_product.id]),
+                                                      ('state', '!=', 'cancel')])
         self.assertFalse(procs)
         self.process_orderpoints()
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
-                                                      ('product_id', 'in', [self.test_product.id])],
+                                                      ('product_id', 'in', [self.test_product.id]),
+                                                      ('state', '!=', 'cancel')],
                                                      order='date_planned, product_id')
 
         self.assertEqual(len(procs), 3)
@@ -684,7 +723,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.process_orderpoints()
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
                                                       ('product_id', 'in', [self.test_product.id,
-                                                                            self.test_product3.id])],
+                                                                            self.test_product3.id]),
+                                                      ('state', '!=', 'cancel')],
                                                      order='date_planned, product_id')
         self.assertEqual(len(procs), 4)
 
@@ -770,7 +810,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         proc1 = self.env['procurement.order'].create({
             'name': "Test procurement",
             'product_id': self.test_product.id,
-            'product_qty': 1,
+            'product_qty': 5,
+            'product_uos_qty': 5,
             'product_uom': self.unit.id,
             'location_id': self.customer.id,
             'rule_id': self.rule_move.id,
@@ -780,7 +821,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         move1 = self.env['stock.move'].create({
             'name': "Move dest",
             'product_id': self.test_product.id,
-            'product_uom_qty': 1,
+            'product_uom_qty': 2,
             'product_uom': self.unit.id,
             'location_id': self.stock.id,
             'location_dest_id': self.customer.id,
@@ -792,7 +833,7 @@ class TestStockProcurementJIT(common.TransactionCase):
         move2 = self.env['stock.move'].create({
             'name': "Move parent",
             'product_id': self.test_product.id,
-            'product_uom_qty': 1,
+            'product_uom_qty': 3,
             'product_uom': self.unit.id,
             'location_id': self.stock.id,
             'location_dest_id': self.customer.id,
@@ -807,8 +848,11 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(move1.state, 'confirmed')
         proc1.cancel()
         self.assertEqual(proc1.state, 'cancel')
+        self.assertEqual(proc1.product_qty, 3)
+        self.assertEqual(proc1.product_uos_qty, 3)
+        self.assertEqual(move2.state, 'done')
         self.assertEqual(move1.state, 'cancel')
-    
+
     def test_14_procurement_jit_duration_end_contract(self):
         """Check jit with deletion of confirmed procurement."""
         # Check that procurement_jit is not installed, otherwise this test is useless
@@ -851,7 +895,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         procs = proc_env.search([('location_id', '=', self.location_b.id),
                                  ('product_id', 'in', [self.test_product.id,
                                                        self.test_product2.id,
-                                                       self.test_product3.id])], order='date_planned, product_id')
+                                                       self.test_product3.id]),
+                                 ('state', '!=', 'cancel')], order='date_planned, product_id')
 
         self.assertEqual(len(procs), 7)
         self.assertEqual(procs[0].product_id, self.test_product)
@@ -888,7 +933,6 @@ class TestStockProcurementJIT(common.TransactionCase):
         self.assertEqual(procs[6].date_planned, "2015-03-26 18:00:00")
         self.assertEqual(procs[6].product_qty, 5)
         self.assertEqual(procs[6].state, 'confirmed')
-
 
     def test_15_procurement_jit_duration_no_end_contract(self):
         """Check jit with deletion of confirmed procurement."""
@@ -937,7 +981,8 @@ class TestStockProcurementJIT(common.TransactionCase):
         procs = proc_env.search([('location_id', '=', self.location_b.id),
                                  ('product_id', 'in', [self.test_product.id,
                                                        self.test_product2.id,
-                                                       self.test_product3.id])], order='date_planned, product_id')
+                                                       self.test_product3.id]),
+                                 ('state', '!=', 'cancel')], order='date_planned, product_id')
 
         self.assertEqual(len(procs), 6)
         self.assertEqual(procs[0].product_id, self.test_product)

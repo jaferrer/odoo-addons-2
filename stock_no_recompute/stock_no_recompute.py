@@ -17,8 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 from openerp import osv, models, api, _
-from openerp.tools import SUPERUSER_ID, float_compare
+from openerp.tools import float_compare
+
+
+_logger = logging.getLogger(__name__)
 
 
 class StockQuant(models.Model):
@@ -43,11 +48,14 @@ class StockQuant(models.Model):
         toreserve.sudo().write({'reservation_id': move.id})
         # check if move'state needs to be set as 'assigned'
         rounding = move.product_id.uom_id.rounding
+        dict_move = {}
         if float_compare(reserved_availability, move.product_qty, precision_rounding=rounding) == 0 and \
                 move.state in ('confirmed', 'waiting'):
-            move.state = 'assigned'
+            dict_move['state'] = 'assigned'
         elif float_compare(reserved_availability, 0, precision_rounding=rounding) > 0 and not move.partially_available:
-            move.partially_available = True
+            dict_move['partially_available'] = True
+        if dict_move:
+            move.write(dict_move)
 
     @api.model
     def quants_unreserve(self, move):
@@ -71,3 +79,12 @@ class StockPicking(models.Model):
             moves = pick.move_lines.filtered(lambda m: m.state in ['confirmed', 'waiting'])
             moves.force_assign()
         return True
+
+
+class StockMove(models.Model):
+
+    _inherit = "stock.move"
+
+    @api.multi
+    def do_unreserve(self):
+        return super(StockMove, self.with_context(no_recompute_pack_op=True)).do_unreserve()

@@ -69,3 +69,20 @@ msgstr "Modèle d'article"
 #: view:stock.transfer_details:0
 msgid "This product has a procurement warning set"
 msgstr "Cet article fait l'objet d'un avertissement"
+
+#. module: stock_product_warning
+#: field:popup.warning,text:0
+msgid "Text"
+msgstr "Texte"
+
+#. module: stock_product_warning
+#: field:product.template,procurement_warning_msg:0
+#: field:stock.pack.operation,procurement_warning_msg:0
+msgid "Procurement Warning Message"
+msgstr "Message d'alerte sur les approvisionements"
+
+#. module: stock_product_warning
+#: field:stock.pack.operation,procurement_warning:0
+#: field:stock.transfer_details_items,procurement_warning:0
+msgid "Procurement Warning"
+msgstr "Alerte sur l'approvisionement"

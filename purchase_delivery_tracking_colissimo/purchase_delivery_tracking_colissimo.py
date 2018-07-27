@@ -21,6 +21,7 @@ from openerp import models, api, _
 from urllib2 import urlopen
 from lxml import etree
 from urllib import urlencode
+import ssl
 
 
 class ColissimoTrackingTransporter(models.Model):
@@ -43,8 +44,10 @@ class ColissimoTrackingNumber(models.Model):
         for rec in self:
             if rec.transporter_id.name == 'Colissimo':
                 rec.status_ids.unlink()
+                unverified_context = ssl._create_unverified_context()
                 post_response = urlopen('http://www.colissimo.fr/portail_colissimo/suivreResultatStubs.do',
-                                        urlencode({"language": _("en_GB"), "parcelnumber": rec.name}))
+                                        urlencode({"language": _("en_GB"), "parcelnumber": rec.name}),
+                                        context=unverified_context)
                 if post_response:
                     response_etree = etree.parse(post_response, etree.HTMLParser())
                     body = response_etree.xpath(".//tbody")

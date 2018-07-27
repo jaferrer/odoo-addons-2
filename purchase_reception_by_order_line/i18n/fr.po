@@ -98,3 +98,14 @@ msgstr "L'emplacement de destination doit être le même pour tous les mouvement
 #, python-format
 msgid "The source location must be the same for all the moves of the picking."
 msgstr "L'emplacement source doit être le même pour tous les mouvements du transfert."
+
+#. module: purchase_reception_by_order_line
+#: field:stock.pack.operation,group_name:0
+#: field:stock.transfer_details_items,group_name:0
+msgid "Picking group name"
+msgstr "Nom du groupe de transfert"
+
+#. module: purchase_reception_by_order_line
+#: field:stock.transfer_details,picking_group_name:0
+msgid "Procurement group name"
+msgstr "Nom du groupe d'approvisionnement"

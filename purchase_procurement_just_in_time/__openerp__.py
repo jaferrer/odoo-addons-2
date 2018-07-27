@@ -19,14 +19,14 @@
 
 {
     'name': 'Purchase Just-In-Time Extension',
-    'sequence': 50,
+    'sequence': 200,
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
     'depends': ['purchase', 'purchase_order_quantities_improved', 'purchase_planning_improved',
                 'stock_procurement_just_in_time', 'purchase_line_numbers', 'purchase_working_days',
-                'stock_moves_to_assigned_pickings',
+                'stock_moves_to_assigned_pickings', 'mail_improved', 'web_tree_many2one_clickable',
                 ],
     'description': """
 Purchase Just-In-Time Extension

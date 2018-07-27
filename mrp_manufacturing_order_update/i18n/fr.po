@@ -48,10 +48,16 @@ msgid "Manufacturing Order"
 msgstr "Ordre de fabrication"
 
 #. module: mrp_manufacturing_order_update
-#: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:38
+#: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:58
 #, python-format
 msgid "Product %s: not needed anymore<br>"
 msgstr "Article %s : n'est plus une matière première<br>"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:62
+#, python-format
+msgid "Product %s: raw material move had wrong source location, it was cancelled<br>"
+msgstr "Article %s : le mouvement de consommation avait le mauvais emplacement de départ, il a été annulé<br>"
 
 #. module: mrp_manufacturing_order_update
 #: code:addons\mrp_manufacturing_order_update\manufacturing_order_update.py:64
@@ -64,3 +70,22 @@ msgstr "Article %s : quantité modifiée de %s à %s<br>"
 #, python-format
 msgid "Raw material move created of quantity %s for product %s<br>"
 msgstr "Mouvement de %s créé pour l'article %s<br>"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:60
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:190
+#, python-format
+msgid "Error!"
+msgstr "Erreur !"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:60
+#, python-format
+msgid "Product %s on MO %s : %s %s where consumed, impossible to decrease this quantity to %s"
+msgstr "Article %s sur l'OF %s : %s %s ont été consommés, impossible de baisser cette quantité à %s"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:190
+#, python-format
+msgid "Product %s in MO %s: forbidden to cancel a move with reserved quants (quantity to unreserve: %s %s)"
+msgstr "Article %s dans l'OF %s : interdit d'annuler un mouvement qui a des quants réservés (quantité à déréserver : %s %s)"

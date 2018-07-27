@@ -59,7 +59,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
         self.existing_quants = self.env['stock.quant'].search([])
         self.env['stock.location']._parent_store_compute()
         # Call process_prereservations here to test it in all tests
-        self.env['stock.picking'].process_prereservations()
+        # self.env['stock.picking'].process_prereservations()
 
     def test_10_simple_moves(self):
         """Basic checks of picking assignment."""
@@ -74,7 +74,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
             'defer_picking_assign': True,
         })
         move.action_confirm()
-        self.assertTrue(move.picking_id, "Move should have been assigned a picking.")
+        self.assertFalse(move.picking_id, "Move should not have been assigned to a picking.")
 
         move2 = self.env['stock.move'].create({
             'name': "Test Performance Improved",
@@ -101,12 +101,12 @@ class TestStockPerformanceImproved(common.TransactionCase):
             'defer_picking_assign': True,
         })
         move3.action_confirm()
-        self.assertTrue(move3.picking_id, "Move should have been assigned a picking.")
+        self.assertFalse(move3.picking_id, "Move should not have been assigned a picking.")
 
         move.action_assign()
         move.action_done()
         move2.action_confirm()
-        self.assertTrue(move2.picking_id, "Move should have been assigned a picking after transfer.")
+        self.assertFalse(move2.picking_id, "Move should not have been assigned a picking after transfer.")
 
     def test_15_not_deferred_moves(self):
         """Check that not deferred moves are correctly assigned a picking at confirmation."""
@@ -147,11 +147,11 @@ class TestStockPerformanceImproved(common.TransactionCase):
         })
         move2.action_confirm()
         move.action_confirm()
-        self.assertTrue(move.picking_id, "Move should have been assigned a picking")
+        self.assertFalse(move.picking_id, "Move should not have been assigned a picking")
         self.assertFalse(move2.picking_id, "Move should not have been assigned a picking")
         move.action_assign()
         move.action_done()
-        self.assertTrue(move2.picking_id, "Move should have been assigned a picking when previous is done")
+        self.assertFalse(move2.picking_id, "Move should not have been assigned a picking when previous is not done")
 
     def test_30_check_picking(self):
         """Check if the moves are assigned to the correct picking."""
@@ -163,7 +163,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
             'location_id': self.location_shelf.id,
             'location_dest_id': self.location_shelf2.id,
             'picking_type_id': self.picking_type_id,
-            'defer_picking_assign': True,
+            'defer_picking_assign': False,
         })
         move.action_confirm()
         picking = move.picking_id
@@ -177,7 +177,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
             'location_id': self.location_shelf.id,
             'location_dest_id': self.location_shelf2.id,
             'picking_type_id': self.picking_type_id,
-            'defer_picking_assign': True,
+            'defer_picking_assign': False,
         })
         move2.action_confirm()
         self.assertEqual(move2.picking_id, picking, "Move should have been assigned the existing confirmed picking")
@@ -192,7 +192,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
             'location_id': self.location_shelf.id,
             'location_dest_id': self.location_shelf2.id,
             'picking_type_id': self.picking_type_id,
-            'defer_picking_assign': True,
+            'defer_picking_assign': False,
         })
         move3.action_confirm()
         self.assertEqual(move3.picking_id, picking, "Move should have been assigned the existing assigned picking")
@@ -208,7 +208,7 @@ class TestStockPerformanceImproved(common.TransactionCase):
             'location_id': self.location_shelf.id,
             'location_dest_id': self.location_shelf2.id,
             'picking_type_id': self.picking_type_id,
-            'defer_picking_assign': True,
+            'defer_picking_assign': False,
         })
         move4.action_confirm()
         self.assertTrue(move4.picking_id)
@@ -275,17 +275,17 @@ class TestStockPerformanceImproved(common.TransactionCase):
         self.assertEqual(len(self.inventory.line_ids), 3)
 
         line2 = self.inventory.line_ids.filtered(lambda line: line.product_id == self.product_fix_reserved_moves and
-                                                              line.location_id == self.stock and
-                                                              line.prod_lot_id == self.lot1 and
-                                                              line.package_id == self.package1 and
-                                                              line.theoretical_qty == 10.0 and
-                                                              line.product_qty == 10.0)
+                                                 line.location_id == self.stock and
+                                                 line.prod_lot_id == self.lot1 and
+                                                 line.package_id == self.package1 and
+                                                 line.theoretical_qty == 10.0 and
+                                                 line.product_qty == 10.0)
         line3 = self.inventory.line_ids.filtered(lambda line: line.product_id == self.product_fix_reserved_moves and
-                                                              line.location_id == self.stock and
-                                                              line.prod_lot_id == self.lot1 and
-                                                              line.package_id == self.package2 and
-                                                              line.theoretical_qty == 20.0 and
-                                                              line.product_qty == 20.0)
+                                                 line.location_id == self.stock and
+                                                 line.prod_lot_id == self.lot1 and
+                                                 line.package_id == self.package2 and
+                                                 line.theoretical_qty == 20.0 and
+                                                 line.product_qty == 20.0)
         self.assertEqual(len(line2), 1)
         self.assertEqual(len(line3), 1)
         line1 = self.inventory.line_ids.filtered(lambda line: line not in [line2, line3])

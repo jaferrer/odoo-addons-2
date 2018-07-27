@@ -96,3 +96,18 @@ msgstr "Congés du partenaire"
 #: model:ir.ui.menu,name:purchase_working_days.working_days_menu_resource_purchase
 msgid "Resource"
 msgstr "Calendriers fournisseurs"
+
+#. module: purchase_working_days
+#: field:res.partner,purchase_lead_time:0
+msgid "Purchase Lead Time"
+msgstr "Délai de sécurité pour les approvisionnements"
+
+#. module: purchase_working_days
+#: view:purchase.config.settings:0
+msgid "Default Values"
+msgstr "Valeurs par défaut"
+
+#. module: purchase_working_days
+#: field:purchase.config.settings,purchase_lead_time:0
+msgid "Default purchase lead time for each new supplier"
+msgstr "Marge d'approvisionnement par défaut pour chaque nouveau fournisseur"

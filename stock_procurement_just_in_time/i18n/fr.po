@@ -116,6 +116,7 @@ msgstr "Entrepôt"
 
 #. module: stock_procurement_just_in_time
 #: field:stock.levels.requirements,location_id:0
+#: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
 msgid "Location"
 msgstr "Emplacement"
 
@@ -163,6 +164,7 @@ msgstr "Approvisionnement"
 #: view:stock.levels.report:0
 #: field:stock.levels.report,product_id:0
 #: field:stock.levels.requirements,product_id:0
+#: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
 msgid "Product"
 msgstr "Article"
 
@@ -250,6 +252,11 @@ msgid "Delete moves and procurements cancelled by planner"
 msgstr "Supprimer les mouvements et les appovisionnements annulés par le planificateur"
 
 #. module: stock_procurement_just_in_time
+#: field:stock.config.settings,consider_end_contract_effect:0
+msgid "Consider end contract effects"
+msgstr "Prendre en compte les effets de fin de contrat"
+
+#. module: stock_procurement_just_in_time
 #: field:stock.config.settings,relative_stock_delta:0
 msgid "Relative stock delta allowed (%)"
 msgstr "Ecart de stock relatif autorisé (en %)"
@@ -268,3 +275,97 @@ msgstr "Juste-à-temps"
 #: view:stock.config.settings:stock_procurement_just_in_time.stock_procurement_jit_config
 msgid "Stock Planner"
 msgstr "Planificateur stock"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.location,stock_scheduler_sequence:0
+msgid "Stock scheduler sequence"
+msgstr "Séquence pour le planificateur stock"
+
+#. module: stock_procurement_just_in_time
+#: help:stock.location,stock_scheduler_sequence:0
+msgid "Same order as the logistic flow"
+msgstr "Même ordre que le flux logistique"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.location.route,stock_scheduler_sequence:0
+#: field:stock.warehouse.orderpoint,stock_scheduler_sequence:0
+msgid "Stock scheduler sequence"
+msgstr "Séquence pour le planificateur stock"
+
+#. module: stock_procurement_just_in_time
+#: help:stock.location.route,stock_scheduler_sequence:0
+msgid "Highest sequences will be processed first"
+msgstr "Les séquences les plus élevées seront traitées en premier"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,orderpoint_id:0
+msgid "Orderpoint"
+msgstr "Règle de réassort"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,product_id:0
+msgid "Product"
+msgstr "Article"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,location_id:0
+msgid "Location"
+msgstr "Emplacement"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,stock_scheduler_sequence:0
+msgid "Stock scheduler sequence"
+msgstr "Séquence pour le planificateur stock"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,job_creation_date:0
+msgid "Job Creation Date"
+msgstr "Date de création du job"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,job_uuid:0
+msgid "Job UUID"
+msgstr "UUID du job"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,date_done:0
+msgid "Date done"
+msgstr "Terminé à"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,done:0
+msgid "Done"
+msgstr "Terminé"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
+msgid "Running"
+msgstr "En cours"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,run_procs:0
+#: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
+msgid "Run procurements"
+msgstr "Lancer les approvisionnements"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,location_sequence:0
+msgid "Location sequence"
+msgstr "Séquence de l'emplacement"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,route_id:0
+#: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
+msgid "Route"
+msgstr "Route"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,route_sequence:0
+msgid "Route sequence"
+msgstr "Séquence de la route"
+
+#. module: stock_procurement_just_in_time
+#: model:ir.actions.act_window,name:stock_procurement_just_in_time.act_window_stock_scheduler_controller
+#: model:ir.ui.menu,name:stock_procurement_just_in_time.menu_stock_scheduler_controller
+msgid "Stock Scheduler Controller"
+msgstr "Contrôle du planificateur stock"

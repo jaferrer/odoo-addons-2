@@ -15,9 +15,8 @@
             <field name="company_id" ref="base.main_company"/>
             <field name="company_ids" eval="[(6,0,[ref('base.main_company')])]"/>
             <field name="groups_id"
-                   eval="[(6,0,[ref('base.group_user'), ref('document_scanner.group_scanner_bot'), ref('document_scanner.bot_ir_attachment'), ref('base.group_document_user')])]"/>
+                   eval="[(6,0,[ref('base.group_user'), ref('document_scanner.group_scanner_bot'), ref('document_scanner.bot_ir_attachment'), ref('base.group_document_user'), ref('document_scanner.group_scanner_manager')])]"/>
         </record>
-
         <record id="scanner_info_resolution_100_dpi" model="scanner.info.dpi">
             <field name="name">100</field>
         </record>
@@ -45,19 +44,6 @@
         </record>
         <record id="scanner_info_color_color" model="scanner.info.color">
             <field name="name">color</field>
-        </record>
-        <record id="scanner_info_color_grey" model="scanner.info.color">
-            <field name="name">grey</field>
-        </record>
-
-        <record id="scanner_info_quality_1" model="scanner.info.quality">
-            <field name="name">1</field>
-        </record>
-        <record id="scanner_info_quality_8" model="scanner.info.quality">
-            <field name="name">8</field>
-        </record>
-        <record id="scanner_info_quality_24" model="scanner.info.quality">
-            <field name="name">24</field>
         </record>
     </data>
 </openerp>

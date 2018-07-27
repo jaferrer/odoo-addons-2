@@ -32,6 +32,9 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
         self.stock = self.browse_ref('stock.stock_location_stock')
         self.buy_rule = self.browse_ref('purchase_merge_order_lines.buy_rule')
         self.supplierinfo = self.browse_ref('purchase_merge_order_lines.supplierinfo')
+        self.cron_stock_scheduler = self.browse_ref('stock_procurement_just_in_time.job_update_scheduler_controller')
+        self.cron_stock_scheduler.active = False
+        self.env['stock.scheduler.controller'].search([]).write({'done': True})
 
     def create_procurement_order_1(self):
         return self.env['procurement.order'].create({

@@ -27,7 +27,7 @@ _logger = logging.getLogger("odoo_utils")
 class OnChangeActionModel(models.AbstractModel):
     _name = 'on_change.action'
 
-    @api.model
+    @api.multi
     def _action_on_change(self, field_name, field_value):
         return {}
 
@@ -35,6 +35,8 @@ class OnChangeActionModel(models.AbstractModel):
     def onchange(self, values, field_name, field_onchange):
         res = super(OnChangeActionModel, self).onchange(values, field_name, field_onchange)
         env = self.env
+        if isinstance(field_name, list):
+            return res
 
         with env.do_in_onchange():
             def is_onchange_action_id(func):

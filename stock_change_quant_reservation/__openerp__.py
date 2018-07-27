@@ -24,9 +24,7 @@
     'maintainer': 'NDP Systèmes',
     "summary": "",
     "category": "Warehouse",
-    "depends": [
-        "stock"
-    ],
+    "depends": ['stock', 'stock_performance_improved'],
     'description': """
 Change Quants Reservation
 =========================

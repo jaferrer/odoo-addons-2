@@ -18,7 +18,7 @@
 #
 
 from datetime import datetime
-from openerp import fields, models, api, _, exceptions
+from openerp import fields, models, api, _, exceptions, osv
 from openerp.tools.float_utils import float_compare
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, float_round
 
@@ -33,7 +33,7 @@ class PurchaseOrderJustInTime(models.Model):
                                           "This date is set according to the supplier order_group_period and to this "
                                           "PO order date.")
     group_id = fields.Many2one('procurement.group', string="Procurement Group", readonly=True)
-    date_order = fields.Datetime(required=False)
+    date_order = fields.Datetime(required=False, string="Start date for grouping period")
 
     @api.model
     def _create_stock_moves(self, order, order_lines, picking_id=False):
@@ -58,7 +58,7 @@ class PurchaseOrderJustInTime(models.Model):
 
             if order_line.product_id.type in ('product', 'consu'):
                 for vals in self._prepare_order_line_move(order, order_line, picking_id, group_id):
-                    move = self.env['stock.move'].create(vals)
+                    move = self.env['stock.move'].with_context(mail_notrack=True).create(vals)
                     todo_moves |= move
         todo_moves.with_context(mail_notrack=True).action_confirm()
         todo_moves.with_context(mail_notrack=True).force_assign()
@@ -68,15 +68,7 @@ class PurchaseOrderJustInTime(models.Model):
         ''' prepare the stock move data from the PO line. This function returns a list of dictionary ready to be
         used in stock.move's create()'''
         product_uom = self.env['product.uom']
-        price_unit = order_line.price_unit
-        if order_line.taxes_id:
-            taxes = order_line.taxes_id.compute_all(price_unit, 1.0, order_line.product_id, order.partner_id)
-            price_unit = taxes['total']
-        if order_line.product_uom.id != order_line.product_id.uom_id.id:
-            price_unit *= order_line.product_uom.factor / order_line.product_id.uom_id.factor
-        if order.currency_id.id != order.company_id.currency_id.id:
-            # we don't round the price_unit, as we may want to store the standard price with more digits than allowed by the currency
-            price_unit = order.currency_id.compute(price_unit, order.company_id.currency_id, round=False)
+        price_unit = order_line.get_move_unit_price_from_line(order)
         res = []
         if order.location_id.usage == 'customer':
             name = order_line.product_id.with_context(lang=order.dest_address_id.lang).display_name
@@ -177,7 +169,7 @@ class PurchaseOrderJustInTime(models.Model):
         moves_no_procs.action_cancel()
         # For the other moves, we don't want the move_dest_id to be cancelled, so we pass cancel_procurement
         res = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).action_cancel()
-        running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        running_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
         return res
 
     @api.multi
@@ -211,7 +203,7 @@ class PurchaseOrderJustInTime(models.Model):
         moves_no_procs.action_cancel()
         # For the other moves, we don't want the move_dest_id to be cancelled, so we pass cancel_procurement
         res = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).unlink()
-        running_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        running_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
         return res
 
     @api.multi
@@ -222,28 +214,93 @@ class PurchaseOrderJustInTime(models.Model):
                 for line in rec.order_line:
                     line.adjust_moves_qties(line.product_qty)
 
+    @api.multi
+    def all_pickings_done_or_cancel(self):
+        for purchase in self:
+            for picking in purchase.picking_ids:
+                if picking.state not in ['done', 'cancel']:
+                    return False
+        return True
+
+    @api.multi
+    def order_totally_received(self):
+        for purchase in self:
+            for order_line in purchase.order_line:
+                if float_compare(order_line.remaining_qty, 0, precision_rounding=order_line.product_uom.rounding) > 0:
+                    return False
+        return True
+
+    @api.multi
+    def test_moves_done(self):
+        """PO is done at the delivery side if all the pickings are done or cancel, and order not totally received."""
+        if self.all_pickings_done_or_cancel():
+            if self.order_totally_received():
+                return True
+        return False
+
+    @api.multi
+    def test_moves_except(self):
+        """PO is in exception at the delivery side if all the pickings are done or cancel, and order is not totally
+        received."""
+        if self.all_pickings_done_or_cancel():
+            if not self.order_totally_received():
+                return True
+        return False
+
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
     _order = 'order_id, line_no, id'
 
+    @api.cr_uid_ids_context
+    def _get_remaining_qty(self, cr, uid, ids, field_name, arg, context=None):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            remaining_qty = 0
+            if line.product_id and line.product_id.type != 'service':
+                delivered_qty = sum([self.pool.get('product.uom').
+                                    _compute_qty(cr, uid, move.product_uom.id,
+                                                 move.product_uom_qty, line.product_uom.id)
+                                     for move in line.move_ids if move.state == 'done'])
+                remaining_qty = float_round(line.product_qty - delivered_qty,
+                                            precision_rounding=line.product_uom.rounding)
+            res[line.id] = remaining_qty
+            if res[line.id] == line.remaining_qty:
+                del res[line.id]
+        return res
+
+    @api.cr_uid_ids_context
+    def _get_purchase_order_lines(self, cr, uid, ids, context=None):
+        res = set()
+        for move in self.browse(cr, uid, ids, context=context):
+            if move.purchase_line_id:
+                res.add(move.purchase_line_id.id)
+        return list(res)
+
     supplier_code = fields.Char(string="Supplier Code", compute='_compute_supplier_code')
     ack_ref = fields.Char("Acknowledge Reference", help="Reference of the supplier's last reply to confirm the delivery"
                                                         " at the planned date")
     date_ack = fields.Date("Last Acknowledge Date",
-                           helps="Last date at which the supplier confirmed the delivery at the planned date.")
+                           help="Last date at which the supplier confirmed the delivery at the planned date.")
     opmsg_type = fields.Selection([('no_msg', "Ok"), ('late', "LATE"), ('early', "EARLY"), ('reduce', "REDUCE"),
                                    ('to_cancel', "CANCEL")], compute="_compute_opmsg", string="Message Type")
     opmsg_delay = fields.Integer("Message Delay", compute="_compute_opmsg")
     opmsg_reduce_qty = fields.Float("New target quantity after procurement cancellation", readonly=True, default=False)
     opmsg_text = fields.Char("Operational message", compute="_compute_opmsg_text",
                              help="This field holds the operational messages generated by the system to the operator")
-    remaining_qty = fields.Float("Remaining quantity", help="Quantity not yet delivered by the supplier",
-                                 compute="_get_remaining_qty", store=True)
     to_delete = fields.Boolean('True if all the procurements of the purchase order line are canceled')
     father_line_id = fields.Many2one('purchase.order.line', string="Very first line splited", readonly=True)
     children_line_ids = fields.One2many('purchase.order.line', 'father_line_id', string="Children lines")
     children_number = fields.Integer(string="Number of children", readonly=True, compute='_compute_children_number')
+
+    _columns = {
+        'remaining_qty': osv.fields.function(
+            _get_remaining_qty, type="float", copy=False,
+            store={
+                'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids, ['product_qty'], 20),
+                'stock.move': (_get_purchase_order_lines, ['purchase_line_id', 'product_uom_qty',
+                                                           'product_uom', 'state'], 20)},
+            string="Remaining quantity", help="Quantity not yet delivered by the supplier")}
 
     @api.depends('date_planned', 'date_required', 'to_delete', 'product_qty', 'opmsg_reduce_qty')
     def _compute_opmsg(self):
@@ -296,26 +353,11 @@ class PurchaseOrderLineJustInTime(models.Model):
     @api.depends('partner_id', 'product_id')
     def _compute_supplier_code(self):
         for rec in self:
-            list_supinfos = self.env['product.supplierinfo'].search(
-                [('product_tmpl_id', '=', rec.product_id.product_tmpl_id.id), ('name', '=', rec.partner_id.id)]
-            )
-            if list_supinfos:
-                rec.supplier_code = list_supinfos[0].product_code
-
-    @api.depends('product_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
-    def _get_remaining_qty(self):
-        """
-        Calculates remaining_qty
-        """
-        for rec in self:
-            remaining_qty = 0
-            if rec.product_id and rec.product_id.type != 'service':
-                delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
-                                                                          rec.product_uom.id)
-                                     for move in rec.move_ids if move.state == 'done'])
-                remaining_qty = float_round(rec.product_qty - delivered_qty,
-                                            precision_rounding=rec.product_uom.rounding)
-            rec.remaining_qty = remaining_qty
+            supplierinfo = self.env['product.supplierinfo']. \
+                search([('product_tmpl_id', '=', rec.product_id.product_tmpl_id.id),
+                        ('name', '=', rec.partner_id.id)], order='sequence, id', limit=1)
+            if supplierinfo:
+                rec.supplier_code = supplierinfo.product_code
 
     @api.depends('children_line_ids')
     def _compute_children_number(self):
@@ -391,7 +433,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         qty_to_remove = qty_not_cancelled_moves_pol_uom - qty_moves_no_proc_pol_uom - target_qty
         to_detach_procs = self.env['procurement.order']
 
-        while qty_to_remove > 0 and moves_with_proc_id:
+        while float_compare(qty_to_remove, 0, precision_rounding=self.product_uom.rounding) > 0 and moves_with_proc_id:
             move = moves_with_proc_id[0]
             moves_with_proc_id -= move
             to_detach_procs |= move.procurement_id
@@ -399,11 +441,12 @@ class PurchaseOrderLineJustInTime(models.Model):
                                                                   move.product_qty,
                                                                   self.product_uom.id)
 
-        to_detach_procs.remove_procs_from_lines(unlink_moves_to_procs=True)
+        to_detach_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
         self.adjust_move_no_proc_qty()
 
     def adjust_move_no_proc_qty(self):
         """Adjusts the quantity of the move without proc, recreating it if necessary."""
+        self = self.with_context(check_product_qty=False)
         moves_no_procs = self.env['stock.move'].search(
             [('purchase_line_id', 'in', self.ids),
              ('procurement_id', '=', False),
@@ -417,7 +460,6 @@ class PurchaseOrderLineJustInTime(models.Model):
         # We don't want cancel_procurement context here,
         # because we want to cancel next move too (no procs).
         moves_no_procs.action_cancel()
-        moves_no_procs.unlink()
 
     @api.multi
     def update_moves(self, vals):
@@ -499,9 +541,10 @@ class PurchaseOrderLineJustInTime(models.Model):
                                                         ('procurement_id', '=', False),
                                                         ('state', 'not in', ['done', 'cancel'])])
         moves_no_procs.action_cancel()
-        result = super(PurchaseOrderLineJustInTime, self.with_context(tracking_disable=True)).unlink()
+        result = super(PurchaseOrderLineJustInTime,
+                       self.with_context(tracking_disable=True, message_code='delete_when_proc_no_exception')).unlink()
         # We reset initially cancelled procs to state 'cancel', because the unlink function of module purchase would
         # have set them to state 'exception'
         cancelled_procs.with_context(tracking_disable=True).write({'state': 'cancel'})
-        procurements_to_detach.remove_procs_from_lines(unlink_moves_to_procs=True)
+        procurements_to_detach.remove_procs_from_lines(cancel_moves_to_procs=True)
         return result

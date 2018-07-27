@@ -21,6 +21,7 @@ from openerp import models, api, _
 from urllib2 import urlopen
 import json
 from dateutil.parser import parse
+import ssl
 
 
 class DpdTrackingTransporter(models.Model):
@@ -43,8 +44,9 @@ class DpdTrackingNumber(models.Model):
         for rec in self:
             if rec.transporter_id.name == 'DPD':
                 rec.status_ids.unlink()
+                unverified_context = ssl._create_unverified_context()
                 file = urlopen('https://tracking.dpd.de/cgi-bin/simpleTracking.cgi?parcelNr=' +
-                               rec.name + '&locale=en_D2&type=1')
+                               rec.name + '&locale=en_D2&type=1', context=unverified_context)
                 file_string = file.read()
                 data = json.loads(file_string[-len(file_string) + 1:-1])
                 if data.get('TrackingStatusJSON') and data['TrackingStatusJSON'].get('statusInfos'):

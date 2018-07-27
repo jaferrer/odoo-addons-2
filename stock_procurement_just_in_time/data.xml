@@ -8,4 +8,24 @@
         </record>
 
     </data>
+
+    <data noupdate="1">
+
+        <record model="ir.cron" id="job_update_scheduler_controller">
+            <field name="name">Update scheduler controller (stock)</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="nextcall">2016-10-31 05:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">stock.scheduler.controller</field>
+            <field name="function">update_scheduler_controller</field>
+            <field name="args"/>
+
+        </record>
+    </data>
+
 </openerp>

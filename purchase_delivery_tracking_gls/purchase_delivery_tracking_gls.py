@@ -20,6 +20,7 @@
 from openerp import models, api, _
 from urllib2 import urlopen
 import json
+import ssl
 
 
 class GlsTrackingTransporter(models.Model):
@@ -44,8 +45,9 @@ class GlsTrackingNumber(models.Model):
                 file = False
                 rec.status_ids.unlink()
                 try:
+                    unverified_context = ssl._create_unverified_context()
                     file = urlopen(_('https://gls-group.eu/app/service/open/rest/EN/en/rstt001?match=') +
-                                   rec.name + '&caller=witt002&milis=1444824770093')
+                                   rec.name + '&caller=witt002&milis=1444824770093', context=unverified_context)
                 except:
                     pass
                 if file:

@@ -147,17 +147,17 @@ class TestOrderQuantities(common.TransactionCase):
             "product_id": self.product1.id,
             "price_unit": 10.0,
             "order_id": purchase_order_1.id,
-            "product_qty": 3.5,
+            "product_qty": 36.5,
             "date_planned": '2015-05-04 15:00:00',
         })
 
         # po_qty should be still 3.5 (testing function create which should not be modified at that time
-        self.assertEqual(purchase_order_line_1.product_qty, 3.5)
+        self.assertEqual(purchase_order_line_1.product_qty, 36.5)
 
-        purchase_order_line_1.product_qty = 5.5
+        purchase_order_line_1.product_qty = 39.5
 
         # po_qty should be still 5.5 (testing function write, which should not be modified at that time
-        self.assertEqual(purchase_order_line_1.product_qty, 5.5)
+        self.assertEqual(purchase_order_line_1.product_qty, 39.5)
 
     def test_50_order_quantity_calculation(self):
         """

@@ -76,6 +76,7 @@ msgstr "Quand le stock virtuel descend en dessous de la quantité minimale, Odoo
 
 #. module: procurement_foresight_strategy
 #: field:stock.warehouse.orderpoint,product_max_qty:0
+#: field:stock.warehouse.orderpoint,product_max_qty_operator:0
 msgid "Maximum Quantity"
 msgstr "Quantité Maximale"
 
