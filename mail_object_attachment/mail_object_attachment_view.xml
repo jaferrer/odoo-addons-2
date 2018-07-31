@@ -4,8 +4,8 @@
 
         <record model="ir.ui.view" id="email_template_form_send_attachments">
             <field name="name">email.template.form.send.attachments</field>
-            <field name="model">email.template</field>
-            <field name="inherit_id" ref="email_template.email_template_form"/>
+            <field name="model">mail.template</field>
+            <field name="inherit_id" ref="mail.email_template_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <field name="report_name" position="after">
