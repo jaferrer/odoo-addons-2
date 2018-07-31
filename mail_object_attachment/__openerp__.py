@@ -24,7 +24,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Usability',
-    'depends': ['email_template'],
+    'depends': ['mail'],
     'description': """
 Send Object Attachments by Email
 ================================
@@ -37,7 +37,7 @@ attachments of the object will be added to the email attachments.
     ],
     'demo': [],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
