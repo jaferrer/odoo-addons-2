@@ -16,22 +16,23 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 {
-    'name': 'Purchase Reception By Order Line',
+    'name': 'Sale Expedition By Order Line',
     'sequence': 1,
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type'],
+    'category': 'Sale',
+    'depends': ['sale_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type', 'sale_date_planned'],
     'description': """
-Purchase Reception By Order Line
-================================
-This module improves the initial reception process. It allows to make it purchase order line by purchase order line.
+Sale Expedition By Order Line
+=============================
+This module improves the initial expedition process. It allows to make it sale order line by sale order line.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['wizard.xml', 'purchase_reception_by_order_line.xml'],
-    'demo': ['tests/test_purchase_reception_by_order_line.xml'],
+    'data': ['wizard.xml', 'sale_expedition_by_order_line.xml'],
+    'demo': ['tests/test_sale_expedition_by_order_line.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,
