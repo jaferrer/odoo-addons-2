@@ -16,22 +16,25 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 {
-    'name': 'Purchase Reception By Order Line',
+    'name': 'Sale/Stock Manual Link',
     'sequence': 1,
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type'],
+    'depends': ['sale_expedition_by_order_line', 'sale_date_planned', 'sale_line_numbers'],
     'description': """
-Purchase Reception By Order Line
-================================
-This module improves the initial reception process. It allows to make it purchase order line by purchase order line.
+Sale/Stock Manual Link
+======================
+This module allows to create manually a link between a procurement order and a sale order line.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['wizard.xml', 'purchase_reception_by_order_line.xml'],
-    'demo': ['tests/test_purchase_reception_by_order_line.xml'],
+    'data': ['security/ir.model.access.csv',
+             'sale_stock_manual_link.xml',
+             'cron.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

@@ -16,25 +16,27 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 {
-    'name': 'Purchase Reception By Order Line',
+    'name': 'Sale Line Numbers',
     'sequence': 1,
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type'],
+    'depends': ['sale'],
     'description': """
-Purchase Reception By Order Line
-================================
-This module improves the initial reception process. It allows to make it purchase order line by purchase order line.
+Sale Line Numbers
+=================
+This module adds a number for each sale order line.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['wizard.xml', 'purchase_reception_by_order_line.xml'],
-    'demo': ['tests/test_purchase_reception_by_order_line.xml'],
+    'data': ['sale_line_numbers.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    'sequence': 50,
 }
