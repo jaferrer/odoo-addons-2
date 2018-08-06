@@ -221,19 +221,10 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         return result
 
 
-class ExpeditionByOrderLineProcurementOrder(models.Model):
-    _inherit = 'procurement.order'
-
-    sale_id = fields.Many2one('sale.order', string=u"Sale Order", related='sale_line_id.order_id', store=True,
-                              readonly=True)
-
-
 class ExpeditionByOrderLineStockMove(models.Model):
     _inherit = 'stock.move'
 
     sale_line_id = fields.Many2one('sale.order.line', string=u"Sale Order Line", index=True)
-    sale_id = fields.Many2one('sale.order', string=u"Sale Order", related='sale_line_id.order_id', store=True,
-                              readonly=True)
 
 
 class ExpeditionByOrderLineSaleOrderLine(models.Model):
