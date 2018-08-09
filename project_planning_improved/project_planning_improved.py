@@ -117,12 +117,19 @@ class ProjectImprovedProject(models.Model):
         }
 
     @api.multi
+    def get_reference_task(self):
+        self.ensure_one()
+        return self.reference_task_id
+
+    @api.multi
     def start_auto_planning(self):
         for rec in self:
             rec.update_critical_tasks()
-            if rec.reference_task_id and rec.reference_task_end_date:
+            reference_task = rec.get_reference_task()
+            if reference_task and rec.reference_task_end_date:
+                reference_task.raise_if_not_working_day(fields.Datetime.from_string(rec.reference_task_end_date))
                 rec.reset_dates()
-                rec.update_objective_dates()
+                rec.update_objective_dates(reference_task)
                 rec.update_objective_dates_parent_tasks()
                 not_planned_tasks = self.env['project.task'].search([('project_id', '=', rec.id),
                                                                      '|', ('objective_start_date', '=', False),
@@ -144,20 +151,21 @@ class ProjectImprovedProject(models.Model):
         tasks.with_context(do_not_propagate_dates=True).write(values)
 
     @api.multi
-    def update_objective_dates(self):
+    def update_objective_dates(self, reference_task=False):
         for rec in self:
-            if not rec.reference_task_id or not rec.reference_task_end_date:
+            reference_task = reference_task or rec.reference_task_id
+            if not reference_task or not rec.reference_task_end_date:
                 raise UserError(_(u"Impossible to update objective dates for project %s if reference task or its date "
                                   u"is not defined.") % rec.display_name)
             end_date_dt = fields.Datetime.from_string(rec.reference_task_end_date)
-            end_date_reference_task = fields.Datetime.to_string(rec.reference_task_id.get_end_day_date(end_date_dt))
-            rec.reference_task_id.write({
+            end_date_reference_task = fields.Datetime.to_string(reference_task.get_end_day_date(end_date_dt))
+            reference_task.write({
                 'objective_end_date': end_date_reference_task,
                 'taken_into_account': True,
             })
-            previous_tasks = rec.reference_task_id.previous_task_ids
-            next_tasks = rec.reference_task_id.next_task_ids
-            planned_tasks = rec.reference_task_id
+            previous_tasks = reference_task.previous_task_ids
+            next_tasks = reference_task.next_task_ids
+            planned_tasks = reference_task
             while previous_tasks or next_tasks:
                 new_previous_tasks = self.env['project.task']
                 new_next_tasks = self.env['project.task']
@@ -282,7 +290,7 @@ class ProjectImprovedTask(models.Model):
     objective_start_date = fields.Datetime(string=u"Objective start date", compute='_compute_objective_start_date',
                                            store=True)
     expected_start_date = fields.Datetime(string=u"Expected start date")
-    allocated_duration = fields.Float(string=u"Allocated duration", help=u"In project time unit of the comany")
+    allocated_duration = fields.Float(string=u"Allocated duration", help=u"In project time unit of the company")
     allocated_duration_unit_tasks = fields.Float(string=u"Allocated duration for unit tasks",
                                                  help=u"In project time unit of the comany",
                                                  compute='_get_allocated_duration', store=True)
@@ -596,6 +604,18 @@ class ProjectImprovedTask(models.Model):
         return date.replace(hour=23, minute=59, second=59)
 
     @api.multi
+    def raise_if_not_working_day(self, date):
+        self.ensure_one()
+        resource, calendar = self.get_default_calendar_and_resource()
+        date_start = self.get_start_day_date(date)
+        date_end = self.get_end_day_date(date)
+        list_intervals = calendar.get_working_intervals_of_day(start_dt=date_start, end_dt=date_end,
+                                                               compute_leaves=True,
+                                                               resource_id=resource and resource.id or False)
+        if not list_intervals or not list_intervals[0]:
+            raise UserError(_(u"Impossible to schedule a task on a not working day."))
+
+    @api.multi
     def get_effective_start_date(self, date):
         self.ensure_one()
         resource, calendar = self.get_default_calendar_and_resource()
@@ -639,6 +659,8 @@ class ProjectImprovedTask(models.Model):
     @api.multi
     def get_dates_start_end_day(self, vals):
         if self and vals.get('expected_start_date') and vals.get('expected_end_date'):
+            if vals['expected_start_date'] == vals['expected_end_date']:
+                return vals
             start_date_working_day = self[0].is_working_day(fields.Datetime.from_string(vals['expected_start_date']))
             end_date_working_day = self[0].is_working_day(fields.Datetime.from_string(vals['expected_end_date']))
             if self and not start_date_working_day and not end_date_working_day:

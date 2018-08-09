@@ -1,0 +1,27 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* l10n_fr_database_autosave
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-09 17:09+0000\n"
+"PO-Revision-Date: 2015-12-09 17:09+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_fr_database_autosave
+#: model:ir.model.fields,field_description:l10n_fr_database_autosave.field_ir_attachment_database_backup
+msgid "Database Backup"
+msgstr "Sauvegarde de la base de données"
+
+#. module: l10n_fr_database_autosave
+#: model:ir.actions.act_window,name:l10n_fr_database_autosave.action_attachment_backups
+#: model:ir.ui.menu,name:l10n_fr_database_autosave.menu_action_attachment_backups
+msgid "Backup Files"
+msgstr "Fichiers de sauvegarde"

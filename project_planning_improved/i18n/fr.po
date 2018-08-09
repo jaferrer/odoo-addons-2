@@ -133,7 +133,7 @@ msgstr "Tempas alloué pour les tâches unitaires"
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration_unit_tasks
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_total_allocated_duration
-msgid "In project time unit of the comany"
+msgid "In project time unit of the company"
 msgstr "Exprimé en unité de temps de la société"
 
 #. module: project_planning_improved
@@ -220,6 +220,12 @@ msgstr "La tâche %s doit être entièrement incluse dans sa tâche parente %s"
 #, python-format
 msgid "Task %s must totally include task %s"
 msgstr "La tâche %s doit contenir totalement la tâche %s"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:624
+#, python-format
+msgid "Impossible to schedule a task on a not working day."
+msgstr "Impossible de planifier une tâche dans une période non ouvrée"
 
 #. module: project_planning_improved
 #: code:addons\project_planning_improved\project_planning_improved.py:641
