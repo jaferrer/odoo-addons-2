@@ -141,6 +141,11 @@ msgid "Due Date"
 msgstr "Date de besoin"
 
 #. module: stock_planning_improved
+#: field:stock.move,transferred_by_id:0
+msgid "Transferred by"
+msgstr "Transféré par"
+
+#. module: stock_planning_improved
 #: model:ir.model,name:stock_planning_improved.model_stock_picking
 msgid "Picking List"
 msgstr "Opération de manutention"
