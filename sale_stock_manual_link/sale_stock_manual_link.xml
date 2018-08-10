@@ -2,6 +2,46 @@
 <openerp>
     <data>
 
+        <record model="ir.ui.view" id="procurement_order_form">
+            <field name="name">procurement_order_form</field>
+            <field name="model">procurement.order</field>
+            <field name="inherit_id" ref="procurement.procurement_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="origin" position="after">
+                    <field name="scheduled_for_sale_line_id"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="sale_order_line_view">
+            <field name="name">sale_order_line_view</field>
+            <field name="model">sale.order.line</field>
+            <field name="inherit_id" ref="sale_backlog.sale_order_line_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="remaining_qty" position="before">
+                    <field name="procurements_not_scheduled_qty"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.actions.server" id="ir_actions_server_generate_procurements">
+            <field name="name">Generate procurements</field>
+            <field name="model_id" ref="sale_stock_manual_link.model_procurement_sale_link"/>
+            <field name="code">
+self.generate_procurements(cr, uid, context.get('active_ids'), context=context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_generate_procurements">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">procurement.sale.link</field>
+            <field name="name">Generate procurements</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_generate_procurements)"/>
+        </record>
+
         <record model="ir.ui.view" id="procurement_sale_link_tree">
             <field name="name">procurement_sale_link_tree</field>
             <field name="model">procurement.sale.link</field>
@@ -9,19 +49,21 @@
             <field name="arch" type="xml">
                 <tree editable="top" delete="false" unlink="false">
                     <field name="procurement_id"/>
+                    <field name="proc_location_id"/>
                     <field name="proc_date_planned"/>
                     <field name="partner_id"/>
                     <field name="product_id"/>
                     <field name="product_qty"/>
                     <field name="product_uom"/>
                     <field name="origin"/>
-                    <field name="sale_line_id" context="{'display_line_no': True}"
+                    <field name="scheduled_for_sale_line_id" context="{'display_line_no': True}"
                            attrs="{'readonly': [('procurement_id', '=', False)]}"
-                           domain="[('order_id.state', 'not in', ['draft', 'done', 'cancel']), ('product_id', '=', product_id)]"
+                           domain="[('order_id.state', 'not in', ['draft', 'done', 'cancel']), ('product_id', '=', product_id), ('remaining_qty', '&gt;', 0.0001)]"
                            options="{'no_create': True}"/>
                     <field name="sale_id"/>
                     <field name="sale_date_planned"/>
-                    <field name="expedition_move_id"/>
+                    <!--<button name="split_procurement" string="Split procurement" type="object" icon="STOCK_CUT"-->
+                            <!--attrs="{'invisible': [('procurement_id', '=', False)]}"/>-->
                 </tree>
             </field>
         </record>
@@ -32,13 +74,14 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <search>
+                    <field name="proc_location_id"/>
                     <field name="partner_id"/>
                     <field name="product_id"/>
                     <field name="origin"/>
                     <filter name="procs_missing_on_lines" string="Procurements missing on lines"
                             domain="[('procurement_id', '=', False)]"/>
                     <filter name="procs_no_lines" string="Procurements not linked to a line"
-                            domain="[('sale_line_id', '=', False)]"/>
+                            domain="[('scheduled_for_sale_line_id', '=', False)]"/>
                 </search>
             </field>
         </record>

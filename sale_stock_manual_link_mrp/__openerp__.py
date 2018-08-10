@@ -18,30 +18,24 @@
 #
 
 {
-    'name': 'Sale Expedition By Order Line',
+    'name': 'Sale/Stock Manual Link (MRP)',
     'sequence': 1,
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Sale',
-    'depends': [
-        'sale_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type', 'sale_date_planned',
-        'connector', 'sale_backlog',
-    ],
+    'category': 'Purchase',
+    'depends': ['sale_stock_manual_link', 'mrp'],
     'description': """
-Sale Expedition By Order Line
-=============================
-This module improves the initial expedition process. It allows to make it sale order line by sale order line.
+Sale/Stock Manual Link (MRP)
+============================
+This module allows to create manually a link between a procurement order and a sale order line. It displays MOs information related to the procurement.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['wizard.xml',
-             'sale_expedition_by_order_line.xml',
-             'cron.xml',
-             ],
-    'demo': ['tests/test_sale_expedition_by_order_line.xml'],
+    'data': ['sale_stock_manual_link.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
 }
