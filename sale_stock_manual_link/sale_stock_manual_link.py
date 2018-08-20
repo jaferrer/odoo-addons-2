@@ -201,7 +201,7 @@ class ProcurementSaleLink(models.Model):
             if not rec.scheduled_for_sale_line_id:
                 raise exceptions. \
                     except_orm(_(u"Error!"),
-                               _(u"Impossible to generate a procurement on a line which has no sale order line"))
+                               _(u"Impossible to generate a procurement on a line which has no sale order line."))
             if rec.procurement_id:
                 continue
             first_move = self.env['stock.move'].search([('sale_line_id', '=', rec.id),
@@ -209,7 +209,7 @@ class ProcurementSaleLink(models.Model):
             if not first_move:
                 raise exceptions. \
                     except_orm(_(u"Error!"), _(u"Sale order %s: impossible to determine source location for delivery "
-                                               u"slip. Please generate it first."))
+                                               u"slip. Please generate it first.") % rec.sale_id.display_name)
             rec.finalize_procurement_creation(first_move)
 
     @api.multi

@@ -53,3 +53,9 @@ msgstr "Poste de vente"
 #: model:ir.values,name:sale_expedition_by_order_line.ir_value_update_remaining_qty_lines
 msgid "Update quantities to deliver"
 msgstr "Calculer les quantités R.A.E"
+
+#. module: sale_expedition_by_order_line
+#: view:sale.order:sale_expedition_by_order_line.sale_order_line_form
+#: view:sale.order.line:sale_expedition_by_order_line.sale_order_form_view
+msgid "Expedition moves"
+msgstr "Mouvements d'expédition"

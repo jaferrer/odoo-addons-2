@@ -34,6 +34,37 @@ self.update_remaining_qty(cr,uid,context.get('active_ids'),context)
             <field name="value" eval="'ir.actions.server,'+str(ir_actions_update_remaining_qty_lines)"/>
         </record>
 
+        <record model="ir.ui.view" id="sale_order_form_view">
+            <field name="name">sale_order_form_view</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="order_line" position="before">
+                    <field name="lines_display" invisible="1"/>
+                    <button name="toggle_lines_display" type="object" string="Show All Lines"
+                            attrs="{'invisible': [('lines_display', '=', 'all')]}" class="oe_right"/>
+                    <button name="toggle_lines_display" type="object" string="Hide Delivered Lines"
+                            attrs="{'invisible': [('lines_display', '!=', 'all')]}" class="oe_right"/>
+                </field>
+                <field name="order_line" position="attributes">
+                    <attribute name="attrs">{'invisible': [('lines_display', '!=', 'all')]}</attribute>
+                </field>
+                <xpath expr="//field[@name='order_line']/tree//field[@name='product_uom_qty']" position="after">
+                    <field name="sent_qty"/>
+                    <field name="remaining_qty"/>
+                </xpath>
+                <xpath expr="//notebook//field[@name='order_line']/form//field[@name='product_uom_qty']" position="after">
+                    <field name="sent_qty"/>
+                    <field name="remaining_qty"/>
+                </xpath>
+                <xpath expr="//notebook//field[@name='order_line']/form" position="inside">
+                    <group string="Expedition moves"/>
+                    <field name="move_ids"/>
+                </xpath>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="sale_order_line_tree">
             <field name="name">sale_order_line_tree</field>
             <field name="model">sale.order.line</field>
@@ -47,48 +78,16 @@ self.update_remaining_qty(cr,uid,context.get('active_ids'),context)
             </field>
         </record>
 
-        <record model="ir.ui.view" id="sale_order_line_encapsuled_tree_view">
-            <field name="name">sale_order_line_encapsuled_tree_view</field>
-            <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
+        <record model="ir.ui.view" id="sale_order_line_form">
+            <field name="name">sale_order_line_form</field>
+            <field name="model">sale.order.line</field>
+            <field name="inherit_id" ref="sale.view_order_line_form2"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='order_line']/tree//field[@name='product_uom_qty']" position="after">
-                    <field name="sent_qty"/>
-                    <field name="remaining_qty"/>
-                </xpath>
-            </field>
-        </record>
-
-        <record model="ir.ui.view" id="sale_order_sale_expedition_by_order_line_form_view">
-            <field name="name">sale_order_sale_expedition_by_order_line_form_view</field>
-            <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <xpath expr="//notebook//field[@name='order_line']/form//field[@name='product_uom_qty']" position="after">
-                    <field name="sent_qty"/>
-                    <field name="remaining_qty"/>
-                </xpath>
-            </field>
-        </record>
-
-        <record model="ir.ui.view" id="sale_order_view_form">
-            <field name="name">sale_order_view_form</field>
-            <field name="model">sale.order</field>
-            <field name="inherit_id" ref="sale.view_order_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <field name="order_line" position="before">
-                    <field name="lines_display" invisible="1"/>
-                    <button name="toggle_lines_display" type="object" string="Show All Lines"
-                            attrs="{'invisible': [('lines_display', '=', 'all')]}" class="oe_right"/>
-                    <button name="toggle_lines_display" type="object" string="Hide Delivered Lines"
-                            attrs="{'invisible': [('lines_display', '=', 'not_null_remaining_quantity')]}" class="oe_right"/>
-                </field>
-                <field name="order_line" position="attributes">
-                    <attribute name="attrs">{'invisible': [('lines_display', '!=', 'all')]}</attribute>
-                </field>
+                <form position="inside">
+                    <group string="Expedition moves"/>
+                    <field name="move_ids"/>
+                </form>
             </field>
         </record>
 

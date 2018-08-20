@@ -19,6 +19,8 @@ msgstr ""
 #: code:addons\sale_stock_manual_link\sale_stock_manual_link.py:148
 #: code:addons\sale_stock_manual_link\sale_stock_manual_link.py:153
 #: code:addons\sale_stock_manual_link\sale_stock_manual_link.py:164
+#: code:addons\sale_stock_manual_link\sale_stock_manual_link.py:203
+#: code:addons\sale_stock_manual_link\sale_stock_manual_link.py:211
 #, python-format
 msgid "Error!"
 msgstr "Erreur !"
@@ -40,6 +42,18 @@ msgstr "Impossible de rattacher un approvisionnement à une commande dans cet é
 #, python-format
 msgid "Impossible to rattach more than %s %s to this sale order line"
 msgstr "Impossible de rattacher plus de %s %s à cette ligne de commande"
+
+#. module: sale_stock_manual_link
+#: code:addons\sale_stock_manual_link\sale_stock_manual_link.py:204
+#, python-format
+msgid "Impossible to generate a procurement on a line which has no sale order line."
+msgstr "Impossible de générer un approvisionnement pour une ligne non liée à un poste de vente."
+
+#. module: sale_stock_manual_link
+#: code:addons\sale_stock_manual_link\sale_stock_manual_link.py:211
+#, python-format
+msgid "Sale order %s: impossible to determine source location for delivery slip. Please generate it first."
+msgstr "Commande %s : impossible de déterminer l'emplacement source pour le bon d'expédition. Veuillez d'abord générer ce dernier."
 
 #. module: sale_stock_manual_link
 #: field:procurement.sale.link,procurement_id:0
@@ -106,3 +120,15 @@ msgstr "Demandee d'approvisionnement manquantes"
 #: view:procurement.sale.link:sale_stock_manual_link.procurement_sale_link_search
 msgid "Procurements not linked to a line"
 msgstr "Demandee d'approvisionnemente non liées à des ventes"
+
+#. module: sale_stock_manual_link
+#: model:ir.actions.server,name:sale_stock_manual_link.ir_actions_server_generate_procurements
+#: model:ir.values,name:sale_stock_manual_link.ir_value_generate_procurements
+msgid "Generate procurements"
+msgstr "Générer les approvisionnements"
+
+#. module: sale_stock_manual_link
+#: model:ir.ui.menu,name:sale_stock_manual_link.menu_procurement_sale_link
+#: model:ir.actions.act_window,name:sale_stock_manual_link.act_procurement_sale_link
+msgid "Procurements/Sales Links"
+msgstr "Lettrage approvisionnements/ventes"
