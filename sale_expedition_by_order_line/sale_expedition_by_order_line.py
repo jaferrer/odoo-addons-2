@@ -18,10 +18,27 @@
 #
 
 from openerp import models, fields, exceptions, api, _
-from openerp.tools import float_compare, float_round
+from openerp.tools import float_compare
 from datetime import datetime
 from dateutil import relativedelta
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+
+@job
+def job_synchronize_lines(session, model_name, chunk_list_lines_to_synchronize, context):
+    for line_tuple in chunk_list_lines_to_synchronize:
+        line = session.env[model_name].with_context(context).browse(line_tuple[0])
+        line.with_context(allow_to_deliver_more_than_ordered=True). \
+            update_procurements_for_new_qty_or_uom({'product_uom_qty': line.product_uom_qty + line_tuple[1]})
+
+
+@job
+def job_update_remaining_qty(session, model_name, order_id):
+    order = session.env[model_name].browse(order_id)
+    order.update_remaining_qties()
+    order.remove_old_delivery_moves()
 
 
 class ReceptionByOrderStockPackOperation(models.Model):
@@ -237,19 +254,135 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
 
     @api.depends('product_uom_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
     def _get_remaining_qty(self):
-        """
-        Calculates remaining_qty
-        """
         for rec in self:
+            delivered_qty = 0
             remaining_qty = 0
             if rec.product_id and rec.product_id.type != 'service':
-                delivered_qty = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
-                                                                          rec.product_uom.id)
-                                     for move in rec.move_ids if move.state == 'done'])
-                remaining_qty = float_round(rec.product_uom_qty - delivered_qty,
-                                            precision_rounding=rec.product_uom.rounding)
+                delivered_qty, remaining_qty = rec.compute_remaining_qty()[:2]
             rec.remaining_qty = remaining_qty
-            rec.sent_qty = rec.product_uom_qty - remaining_qty
+            rec.sent_qty = delivered_qty
+
+    @api.multi
+    def get_running_moves_to_customer_for_line(self):
+        self.ensure_one()
+        return self.env['stock.move'].search([('sale_line_id', '=', self.id),
+                                              ('state', 'not in', ['done', 'cancel'])], order='product_qty')
+
+    @api.multi
+    def compute_remaining_qty(self, line_uom_id=False):
+        self.ensure_one()
+        delivered_qty = 0
+        remaining_qty = 0
+        returned_qty = 0
+        qty_running_pol_uom = 0
+        line_uom = line_uom_id and self.env['product.uom'].search([('id', '=', line_uom_id)]) or self.product_uom
+        if self.product_id and self.product_id.type != 'service':
+            delivered_qty = sum(x.product_qty for x in self.env['stock.move'].
+                                search([('product_id', '=', self.product_id.id),
+                                        ('sale_line_id', '=', self.id),
+                                        ('location_id.usage', '=', 'internal'),
+                                        ('location_dest_id.usage', '=', 'customer'),
+                                        ('state', '=', 'done'),
+                                        ('group_id', '=', self.order_id.procurement_group_id.id)]))
+            returned_qty = sum(x.product_qty for x in self.env['stock.move'].
+                               search([('product_id', '=', self.product_id.id),
+                                       ('sale_line_id', '=', self.id),
+                                       ('location_id.usage', '=', 'customer'),
+                                       ('location_dest_id.usage', '=', 'internal'),
+                                       ('state', '=', 'done'),
+                                       ('group_id', '=', self.order_id.procurement_group_id.id)]))
+            qty_running_product_uom = sum(x.product_qty for x in self.get_running_moves_to_customer_for_line())
+            qty_running_pol_uom = qty_running_product_uom
+            if self.product_id.uom_id != self.product_uom:
+                qty_running_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
+                                                                           qty_running_product_uom, line_uom.id,
+                                                                           rounding_method='HALF-UP')
+                delivered_qty = delivered_qty - returned_qty
+            if self.product_id.uom_id != self.product_uom:
+                delivered_qty = self.env['product.uom']._compute_qty(self.product_id.uom_id.id, delivered_qty,
+                                                                     line_uom.id, rounding_method='HALF-UP')
+            remaining_qty = self.product_uom_qty - delivered_qty
+        return delivered_qty, remaining_qty, returned_qty, qty_running_pol_uom
+
+    @api.multi
+    def update_procurements_for_new_qty_or_uom(self, new_vals=None):
+        for rec in self:
+            procs_to_remove_from_lines = self.env['procurement.order']
+            if not new_vals:
+                new_vals = {}
+            line_uom_id = new_vals.get('product_uom', rec.product_uom.id)
+            line_uom = self.env['product.uom'].search([('id', '=', line_uom_id)])
+            prec = line_uom.rounding
+            product_uom_qty = new_vals.get('product_uom_qty', rec.product_uom_qty)
+            remaining_qty_values = rec.compute_remaining_qty(line_uom_id)
+            delivered_qty, remaining_qty, qty_running_pol_uom = (remaining_qty_values[0],
+                                                                 remaining_qty_values[1],
+                                                                 remaining_qty_values[3])
+            if float_compare(remaining_qty, 0, precision_rounding=prec) < 0 and \
+                    self.env.context.get('allow_to_deliver_more_than_ordered'):
+                continue
+            if float_compare(product_uom_qty, delivered_qty, precision_rounding=prec) < 0:
+                raise exceptions.except_orm(_("Error!"), _("Impossible to set the line quantity lower "
+                                                           "than the delivered quantity."))
+            if not rec.procurement_ids.filtered(lambda proc: proc.state != 'cancel'):
+                rec.order_id.with_context(process_only_line_ids=rec.ids).action_ship_create()
+            if rec.procurement_ids:
+                qty_neededed = remaining_qty - qty_running_pol_uom
+                running_moves = rec.get_running_moves_to_customer_for_line()
+                while running_moves and float_compare(qty_neededed, 0, precision_rounding=prec) < 0:
+                    move = running_moves[0]
+                    qty_move = move.product_uom_qty
+                    if move.product_uom != rec.product_uom:
+                        qty_move = self.env['product.uom']. \
+                            _compute_qty(move.product_uom.id, qty_move, line_uom.id, rounding_method='HALF-UP')
+                    move.action_cancel()
+                    if move.procurement_id and move.procurement_id.state == 'cancel':
+                        procs_to_remove_from_lines |= move.procurement_id
+                    running_moves -= move
+                    qty_neededed += qty_move
+                if float_compare(qty_neededed, 0, precision_rounding=prec) > 0:
+                    # Let's create a new procurement if needed
+                    rec._copy_procurement(rec.procurement_ids[0], qty_neededed, line_uom_id)
+            elif float_compare(product_uom_qty, 0, precision_rounding=prec) == 0:
+                # If the quantity of a line is zero, we delete the linked procurements and the line itself.
+                if any([proc.state == 'done' for proc in rec.procurement_ids]):
+                    raise exceptions.except_orm(_("Error!"),
+                                                _("Impossible to cancel a procurement in state done."))
+                elif rec.procurement_ids:
+                    for proc in rec.procurement_ids:
+                        if proc.state == 'done':
+                            proc.write({'sale_line_id': False,
+                                        'group_id': False})
+                        else:
+                            proc.cancel()
+                            proc.unlink()
+                running_moves = rec.get_running_moves_to_customer_for_line()
+                if running_moves:
+                    running_moves.action_cancel()
+                rec.unlink()
+            if procs_to_remove_from_lines:
+                procs_to_remove_from_lines.write({'sale_line_id': False})
+
+    @api.multi
+    def update_remaining_qty(self):
+        list_lines_to_synchronize = []
+        for rec in self:
+            prec = rec.product_uom.rounding
+            delivered_qty, remaining_qty, returned_qty, qty_running_pol_uom = rec.compute_remaining_qty()
+            if float_compare(rec.sent_qty, delivered_qty, precision_rounding=prec) != 0 or \
+                    float_compare(rec.sent_qty, remaining_qty, precision_rounding=prec) != 0:
+                rec.write({
+                    'sent_qty': delivered_qty,
+                    'remaining_qty': remaining_qty,
+                })
+            if rec.order_id.state in ['progress', 'manual'] and \
+                    float_compare(qty_running_pol_uom, remaining_qty, precision_rounding=prec) != 0:
+                list_lines_to_synchronize += [(rec.id, returned_qty)]
+        while list_lines_to_synchronize:
+            chunk_list_lines_to_synchronize = list_lines_to_synchronize[:100]
+            job_synchronize_lines.delay(ConnectorSession.from_env(self.env), 'sale.order.line',
+                                        chunk_list_lines_to_synchronize, dict(self.env.context))
+            list_lines_to_synchronize = list_lines_to_synchronize[100:]
 
 
 class ExpeditionByOrderLineSaleOrder(models.Model):
@@ -270,3 +403,36 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
                 rec.lines_display = 'all'
             else:
                 rec.lines_display = 'not_null_remaining_quantity'
+
+    @api.multi
+    def update_remaining_qties(self):
+        for rec in self:
+            rec.order_line.update_remaining_qty()
+
+    @api.multi
+    def remove_old_delivery_moves(self):
+        for rec in self:
+            list_allowed_keys = []
+            for line in rec.order_line:
+                if line.product_id and line.product_id.type != 'service':
+                    list_allowed_keys += [(line.product_id.id, line.id, line.order_id.procurement_group_id.id)]
+            delivery_moves = self.env['stock.move'].search([('group_id', '=', rec.procurement_group_id.id),
+                                                            ('location_id.usage', '=', 'internal'),
+                                                            ('location_dest_id.usage', '=', 'customer'),
+                                                            ('state', 'not in', ['done', 'cancel']),
+                                                            ('sale_line_id', '!=', False)])
+            for move in delivery_moves:
+                if (move.product_id.id, move.sale_line_id.id, move.group_id.id) not in list_allowed_keys:
+                    if move.procurement_id:
+                        move.procurement_id.cancel()
+                    if move.state != 'cancel':
+                        move.action_cancel()
+
+    @api.model
+    def cron_compute_remaining_qties(self):
+        orders = self.env['sale.order'].search([('state', 'not in', ('done', 'cancel'))])
+        for order_id in orders.ids:
+            if self.env.context.get('jobify'):
+                job_update_remaining_qty.delay(ConnectorSession.from_env(self.env), 'sale.order', order_id)
+            else:
+                job_update_remaining_qty(ConnectorSession.from_env(self.env), 'sale.order', order_id)

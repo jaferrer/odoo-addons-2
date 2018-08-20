@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,23 +18,24 @@
 #
 
 {
-    'name': 'purchase_procurement_lock',
-    'sequence': 200,
+    'name': 'Sale/Stock Manual Link (Purchase)',
+    'sequence': 1,
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase'],
+    'depends': ['sale_stock_manual_link', 'purchase'],
     'description': """
-    purchase_procurement_lock
-    =========================
-    """,
+Sale/Stock Manual Link (Purchase)
+=================================
+This module allows to create manually a link between a procurement order and a sale order line. It displays purchase orders information related to the procurement.
+""",
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': ['sale_stock_manual_link.xml'],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
 }

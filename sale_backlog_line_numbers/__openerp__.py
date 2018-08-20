@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,30 +18,24 @@
 #
 
 {
-    'name': 'Sale Expedition By Order Line',
-    'sequence': 1,
+    'name': 'Sale Backlog - Line Numbers',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Sale',
-    'depends': [
-        'sale_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type', 'sale_date_planned',
-        'connector', 'sale_backlog',
-    ],
+    'category': 'Generic Modules',
+    'depends': ['sale_backlog', 'sale_line_numbers'],
     'description': """
-Sale Expedition By Order Line
-=============================
-This module improves the initial expedition process. It allows to make it sale order line by sale order line.
-""",
+Sale Backlog - Line Numbers
+===========================
+This module adds the field line number in the sale backlog.""",
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['wizard.xml',
-             'sale_expedition_by_order_line.xml',
-             'cron.xml',
-             ],
-    'demo': ['tests/test_sale_expedition_by_order_line.xml'],
+    'data': [
+        'sale_backlog_line_numbers.xml',
+    ],
+    'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
 }

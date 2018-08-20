@@ -17,17 +17,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from openerp import models, fields, api, _
 
 
-class ProcurementOrderPurchaseLock(models.Model):
-    _inherit = 'procurement.order'
+class SaleBacklogOrderLine(models.Model):
+    _inherit = 'sale.order.line'
+
+    client_order_ref = fields.Char(string=u"Customer Order No.", related='order_id.client_order_ref', store=True)
 
     @api.multi
-    def run(self, autocommit=False):
-        proc_ids = [proc.id for proc in self]
-
-        self.env.cr.execute("""SELECT po.id FROM procurement_order po WHERE po.id IN %s FOR UPDATE""",
-                            (tuple(proc_ids),))
-
-        return super(ProcurementOrderPurchaseLock, self).run(autocommit)
+    def open_form_view(self):
+        self.ensure_one()
+        return {
+            'name': _(u"Sale order line %s") % self.name,
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'sale.order.line',
+            'res_id': self.id,
+            'context': self.env.context,
+        }

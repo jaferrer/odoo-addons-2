@@ -45,3 +45,11 @@ msgstr "Quantité déjà expédiée"
 #: field:stock.move,sale_line_id:0
 msgid "Sale Order Line"
 msgstr "Poste de vente"
+
+#. module: sale_expedition_by_order_line
+#: model:ir.actions.server,name:sale_expedition_by_order_line.ir_actions_compute_remaining_qties
+#: model:ir.actions.server,name:sale_expedition_by_order_line.ir_actions_update_remaining_qty_lines
+#: model:ir.values,name:sale_expedition_by_order_line.ir_value_compute_remaining_qties
+#: model:ir.values,name:sale_expedition_by_order_line.ir_value_update_remaining_qty_lines
+msgid "Update quantities to deliver"
+msgstr "Calculer les quantités R.A.E"

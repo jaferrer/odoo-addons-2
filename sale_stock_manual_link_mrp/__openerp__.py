@@ -17,4 +17,25 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import models
+{
+    'name': 'Sale/Stock Manual Link (MRP)',
+    'sequence': 1,
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Purchase',
+    'depends': ['sale_stock_manual_link', 'mrp'],
+    'description': """
+Sale/Stock Manual Link (MRP)
+============================
+This module allows to create manually a link between a procurement order and a sale order line. It displays MOs information related to the procurement.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': ['sale_stock_manual_link.xml'],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': True,
+    'license': 'AGPL-3',
+    'application': False,
+}
