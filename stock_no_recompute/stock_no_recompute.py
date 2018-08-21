@@ -20,6 +20,7 @@
 import logging
 
 from openerp import osv, models, api, _
+from openerp.exceptions import except_orm
 from openerp.tools import float_compare
 
 
@@ -38,7 +39,7 @@ class StockQuant(models.Model):
         # split quants if needed
         for quant, qty in quants:
             if qty <= 0.0 or (quant and quant.qty <= 0.0):
-                raise osv.except_osv(_('Error!'), _('You can not reserve a negative quantity or a negative quant.'))
+                raise except_orm(_('Error!'), _('You can not reserve a negative quantity or a negative quant.'))
             if not quant:
                 continue
             self._quant_split(quant, qty)
