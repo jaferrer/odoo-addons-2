@@ -104,4 +104,4 @@ class ProjectProjectMilestone(models.Model):
 class ProjectTaskMilestone(models.Model):
     _inherit = 'project.task'
 
-    milestone_id = fields.Many2one('project.milestone', u"Milestone")
+    milestone_id = fields.Many2one('project.milestone', u"Milestone", track_visibility='onchange')
