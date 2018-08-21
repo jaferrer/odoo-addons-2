@@ -44,6 +44,8 @@ def job_update_remaining_qty(session, model_name, order_id):
 class ReceptionByOrderStockPackOperation(models.Model):
     _inherit = 'stock.pack.operation'
 
+    sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")
+
     @api.multi
     def get_list_operations_to_process(self):
         linked_purchase_orders = set([ops.sale_line_id.order_id for ops in self if ops.sale_line_id])
@@ -242,6 +244,16 @@ class ExpeditionByOrderLineStockMove(models.Model):
     _inherit = 'stock.move'
 
     sale_line_id = fields.Many2one('sale.order.line', string=u"Sale Order Line", index=True)
+
+
+class ExpeditionByOrderLineProcOrder(models.Model):
+    _inherit = 'procurement.order'
+
+    @api.model
+    def _run_move_create(self, procurement):
+        res = super(ExpeditionByOrderLineProcOrder, self)._run_move_create(procurement)
+        res.update({'sale_line_id': procurement.sale_line_id and procurement.sale_line_id.id or False})
+        return res
 
 
 class ExpeditionByOrderLineSaleOrderLine(models.Model):

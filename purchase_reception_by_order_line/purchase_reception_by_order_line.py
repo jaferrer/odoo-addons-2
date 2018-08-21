@@ -24,8 +24,7 @@ from openerp.tools import float_compare
 class ReceptionByOrderStockPackOperation(models.Model):
     _inherit = 'stock.pack.operation'
 
-    group_name = fields.Char(string="Picking group name", related='picking_id.group_id.name')
-
+    purchase_line_id = fields.Many2one('purchase.order.line', string="Purchase order line")
 
     @api.multi
     def get_list_operations_to_process(self):
@@ -203,3 +202,13 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
             }
             result.update(new_vals)
         return result
+
+
+class PurchaseOrderLine(models.Model):
+    _inherit = 'purchase.order.line'
+
+    @api.multi
+    def name_get(self):
+        if self.env.context.get('display_line_no'):
+            return [(line.id, line.line_no) for line in self]
+        return super(PurchaseOrderLine, self).name_get()

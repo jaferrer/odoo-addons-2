@@ -32,8 +32,6 @@ class ExpeditionByOrderTransferDetails(models.TransientModel):
                 item['sale_line_id'] = packop.sale_line_id and packop.sale_line_id.id or False
         return result
 
-
-
     @api.one
     def do_detailed_transfer(self):
         if len(set([item.sale_line_id.order_id for item in self.item_ids if item.sale_line_id])) > 1:
@@ -68,5 +66,3 @@ class ReceptionByOrderTransferDetailsItems(models.TransientModel):
     _inherit = 'stock.transfer_details_items'
 
     sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")
-    group_name = fields.Char(string="Picking group name", related='transfer_id.picking_id.group_id.name',
-                             readonly=True)
