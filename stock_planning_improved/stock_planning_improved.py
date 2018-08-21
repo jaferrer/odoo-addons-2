@@ -61,7 +61,8 @@ class stock_move_planning_improved(models.Model):
 
     @api.multi
     def write(self, vals):
-        """Write function overridden to propagate date to previous procurement orders."""
+        """Write function overridden to propagate date to previous procurement orders
+        and assign user who has transferred the move"""
         if vals.get('date') and vals.get('state') == 'done':
             # If the call is made from action_done, set the date_expected to the done date
             vals['date_expected'] = vals['date']
@@ -75,13 +76,6 @@ class stock_move_planning_improved(models.Model):
                 if proc and not self.env.context.get('do_not_propagate_rescheduling'):
                     proc.date_planned = vals.get('date')
                     proc.action_reschedule()
-        return super(stock_move_planning_improved, self).write(vals)
-
-    @api.multi
-    def write(self, vals):
-        """
-        Surcharge du write pour renseigner l'utilisateur qui a transféré le move
-        """
 
         if vals.get('state') and vals['state'] == 'done':
             vals['transferred_by_id'] = self.env.user.id
