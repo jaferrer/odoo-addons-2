@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <openerp>
     <data>
-        <record id="sequence_type_account_dunning" model="ir.sequence.type">
-            <field name="name">Account Dunning</field>
-            <field name="code">account.invoice.dunning</field>
-        </record>
+
         <record model="ir.ui.view" id="invoice_dunning_type_tree_view">
             <field name="name">invoice.dunning.type.tree</field>
             <field name="model">account.invoice.dunning.type</field>
@@ -29,7 +26,7 @@
 
         <menuitem name="Dunning Type"
                   id="menu_relance_config"
-                  parent="account.menu_finance_configuration"
+                  parent="menu_account_invoice_dunning"
                   action="relance_config_action"/>
 
     </data>
