@@ -34,7 +34,18 @@ class StockTransfertPickingTypeTransferDetails(models.TransientModel):
 class ReceptionByOrderTransferDetailsItems(models.TransientModel):
     _inherit = 'stock.transfer_details_items'
 
-    group_name = fields.Char(string="Picking group name", related='transfer_id.picking_id.group_id.name', readonly=True)
+    group_name = fields.Char(string="Picking group name", related='transfer_id.picking_id.group_id.name',
+                             readonly=True)
+
+
+class StockTransfertPickingTypeProcOrder(models.Model):
+    _inherit = 'procurement.order'
+
+    @api.model
+    def _run_move_create(self, procurement):
+        res = super(StockTransfertPickingTypeProcOrder, self)._run_move_create(procurement)
+        res.update({'sale_line_id': procurement.sale_line_id and procurement.sale_line_id.id or False})
+        return res
 
 
 class StockTransfertPickingTypeStockPicking(models.Model):
