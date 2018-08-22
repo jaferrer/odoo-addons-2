@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, exceptions, _
+from openerp import models, fields
 
 
 class StockTransfertPickingTypeTransferDetails(models.TransientModel):
@@ -27,42 +27,14 @@ class StockTransfertPickingTypeTransferDetails(models.TransientModel):
                                           domain=[('product_id', '!=', False)])
     item_reception_ids = fields.One2many('stock.transfer_details_items', 'transfer_id', 'Items',
                                          domain=[('product_id', '!=', False)])
-    picking_type_code = fields.Char(u"Picking Type Code", related="picking_id.picking_type_code", readonly=True)
+    picking_type_code = fields.Char(string=u"Picking Type Code", related='picking_id.picking_type_code', readonly=True)
+    picking_group_name = fields.Char(string="Procurement group name", related='picking_id.group_id.name', readonly=True)
 
-    @api.model
-    def default_get(self, fields_list):
-        result = super(StockTransfertPickingTypeTransferDetails, self).default_get(fields_list)
-        picking = self.env['stock.picking'].browse(self.env.context['active_id'])
-        items = result.get('item_ids', []) + result.get('packop_ids', [])
-        if picking.picking_type_code == 'incoming':
-            for item in items:
-                if item.get('packop_id'):
-                    packop = self.env['stock.pack.operation'].browse([item['packop_id']])
-                    item['purchase_line_id'] = packop.purchase_line_id and packop.purchase_line_id.id or False
-        if picking.picking_type_code == 'outgoing':
-            for item in items:
-                if item.get('packop_id'):
-                    packop = self.env['stock.pack.operation'].browse([item['packop_id']])
-                    item['sale_line_id'] = packop.sale_line_id and packop.sale_line_id.id or False
-        return result
 
 class ReceptionByOrderTransferDetailsItems(models.TransientModel):
     _inherit = 'stock.transfer_details_items'
 
-    purchase_line_id = fields.Many2one('purchase.order.line', string="Purchase order line")
-    sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")
-    group_name = fields.Char(string="Picking group name", related='transfer_id.picking_id.group_id.name',
-                             readonly=True)
-
-
-class StockTransfertPickingTypeProcOrder(models.Model):
-    _inherit = 'procurement.order'
-
-    @api.model
-    def _run_move_create(self, procurement):
-        res = super(StockTransfertPickingTypeProcOrder, self)._run_move_create(procurement)
-        res.update({'sale_line_id': procurement.sale_line_id and procurement.sale_line_id.id or False})
-        return res
+    group_name = fields.Char(string="Picking group name", related='transfer_id.picking_id.group_id.name', readonly=True)
 
 
 class StockTransfertPickingTypeStockPicking(models.Model):
@@ -80,12 +52,5 @@ class StockTransfertPickingTypeStockPicking(models.Model):
 class StockTransfertPickingTypePackOp(models.Model):
     _inherit = 'stock.pack.operation'
 
-    sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")
-    purchase_line_id = fields.Many2one('purchase.order.line', string="Purchase order line")
     picking_type_code = fields.Char(u"Picking Type Code", related="picking_id.picking_type_code", readonly=True)
-
-
-class StockTransfertPickingTypeStokMove(models.Model):
-    _inherit = 'stock.move'
-
-    sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")
+    group_name = fields.Char(string="Picking group name", related='picking_id.group_id.name', readonly=True)

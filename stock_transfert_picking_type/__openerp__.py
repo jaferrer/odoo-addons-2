@@ -23,14 +23,17 @@
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['stock', 'sale', 'purchase'],
+    'category': 'Stock',
+    'depends': ['stock'],
     'description': """
 Stock transfert picking type
 ================================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['wizard.xml', 'views.xml'],
+    'data': [
+        'wizard.xml',
+        'views.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,
