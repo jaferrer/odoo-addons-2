@@ -496,21 +496,23 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
                                                                 ('name', '=', seller and seller.id or False)],
                                                                order='sequence, id', limit=1)
         moq = supplierinfo and supplierinfo.min_qty or False
+        procurements_after_period = self.search(domain_procurements +
+                                                [('id', 'not in', procurements_grouping_period.ids)],
+                                                order=order_by)
+        next_proc_group_planned_date = procurements_after_period and procurements_after_period[0].date_planned or None
         if moq and float_compare(line_qty_product_uom, moq,
                                  precision_rounding=first_proc.product_id.uom_id.rounding) < 0:
-            procurements_after_period = self.search(domain_procurements +
-                                                    [('id', 'not in', procurements_grouping_period.ids)],
-                                                    order=order_by)
             for proc in procurements_after_period:
                 proc_qty_product_uom = self.env['product.uom']. \
                     _compute_qty(proc.product_uom.id, proc.product_qty,
                                  proc.product_id.uom_id.id)
                 if float_compare(line_qty_product_uom + proc_qty_product_uom, moq,
                                  precision_rounding=proc.product_id.uom_id.rounding) > 0:
+                    next_proc_group_planned_date = proc.date_planned
                     break
                 procurements_grouping_period |= proc
                 line_qty_product_uom += proc_qty_product_uom
-        return self.search([('id', 'in', procurements_grouping_period.ids)], order=order_by)
+        return self.search([('id', 'in', procurements_grouping_period.ids)], order=order_by), next_proc_group_planned_date
 
     @api.multi
     def get_corresponding_draft_order_main_domain(self, seller):
@@ -609,12 +611,14 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             else:
                 purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
                 purchase_date = max(purchase_date, date_ref)
-            pol_procurements = self. \
+            pol_procurements, next_proc_group_planned_date = self. \
                 get_purchase_line_procurements(first_proc, purchase_date, company, seller,
                                                order_by, force_domain=[('id', 'in', procurements_to_check.ids)])
             # We consider procurements after the reference date
             # (if we ignore past procurements, past ones are already removed)
             line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
+            line_vals['covering_date'] = next_proc_group_planned_date
+            line_vals['covering_state'] = next_proc_group_planned_date and 'all_covered' or 'coverage_computed'
             forbid_creation = bool(seller.nb_max_draft_orders)
             draft_order = first_proc.with_context(forbid_creation=forbid_creation). \
                 get_corresponding_draft_order(seller, purchase_date)
