@@ -98,6 +98,7 @@
                                     <field name="user_id"/>
                                     <field name="priority" widget="priority"/>
                                     <field name="stage_id"/>
+                                    <field name="tag_ids"/>
                                 </tree>
                             </field>
                         </group>
