@@ -766,9 +766,9 @@ class StockSchedulerController(models.Model):
     route_sequence = fields.Integer(string=u"Route sequence", readonly=True)
     run_procs = fields.Boolean(string=u"Run procurements", readonly=True)
     job_creation_date = fields.Datetime(string=u"Job Creation Date", readonly=True)
-    job_uuid = fields.Char(string=u"Job UUID", readonly=True)
+    job_uuid = fields.Char(string=u"Job UUID", readonly=True, index=True)
     date_done = fields.Datetime(string=u"Date done")
-    done = fields.Boolean(string=u"Done")
+    done = fields.Boolean(string=u"Done", index=True)
 
     @api.multi
     def set_to_done(self):
@@ -820,4 +820,8 @@ class StockSchedulerController(models.Model):
                             process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
                                                 line.orderpoint_id.ids, dict(self.env.context))
 
-
+    @api.model
+    def clean_scheduler_controller_lines(self):
+        limit_date = fields.Datetime.to_string(dt.now() - relativedelta(days=10))
+        items_to_unlink = self.search([('done', '=', True), ('date_done', '<', limit_date)])
+        items_to_unlink.unlink()
