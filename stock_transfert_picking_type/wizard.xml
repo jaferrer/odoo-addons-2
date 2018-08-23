@@ -10,6 +10,7 @@
             <field name="arch" type="xml">
                 <field name="item_ids" position="before">
                     <field name="picking_type_code" invisible="1"/>
+                    <field name="picking_group_name" invisible="1"/>
                 </field>
                 <field name="item_ids" position="attributes">
                     <attribute name="attrs">{'invisible': [('picking_type_code','!=','internal')]}</attribute>
