@@ -165,14 +165,18 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase5.date_order[:10], '3003-09-05')
 
         # TODO: tests à réactiver (voir pourquoi le runbot plante)
-        # self.assertEqual('3003-09-14 17:00:00', purchase1.order_line[0].covering_date)
-        # self.assertEqual('all_covered', purchase1.order_line[0].covering_state)
-        # self.assertFalse(purchase1.order_line[1].covering_date)
-        # self.assertEqual('coverage_computed', purchase1.order_line[1].covering_state)
-        # self.assertFalse(purchase3.order_line.covering_date)
-        # self.assertEqual('coverage_computed', purchase3.order_line.covering_state)
-        # self.assertEqual('3003-09-22 15:00:00', purchase5.order_line.covering_date)
-        # self.assertEqual('all_covered', purchase5.order_line.covering_state)
+        self.assertEqual(2, len(purchase1.order_line))
+        for line in purchase1.order_line:
+            if line.product_id == self.product1:
+                self.assertEqual('3003-09-14 17:00:00', line.covering_date)
+                self.assertEqual('all_covered', line.covering_state)
+            if line.product_id == self.product2:
+                self.assertFalse(line.covering_date)
+                self.assertEqual('coverage_computed', line.covering_state)
+        self.assertFalse(purchase3.order_line.covering_date)
+        self.assertEqual('coverage_computed', purchase3.order_line.covering_state)
+        self.assertEqual('3003-09-22 15:00:00', purchase5.order_line.covering_date)
+        self.assertEqual('all_covered', purchase5.order_line.covering_state)
 
         # Let's change a date and reschedule
         self.proc1.date_planned = '3003-09-23 12:00:00'
@@ -212,7 +216,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         order_other_supplier = self.env['purchase.order'].create({'partner_id': self.supplier2.id,
                                                                   'location_id': self.location_a.id,
                                                                   'pricelist_id': self.ref('purchase.list0')})
-        order_other_supplier_id = order_other_supplier.id
         self.env['purchase.order.line'].create({'name': "product 1",
                                                 'product_id': self.product1.id,
                                                 'date_planned': "2016-12-01",
@@ -581,7 +584,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn(move1, line1.move_ids)
         extra_move1 = line1.move_ids.filtered(lambda move: move not in [move1, move2])
         self.assertTrue(extra_move1)
-        extra_move1_id = extra_move1.id
         group1 = move1.group_id
         picking1 = move1.picking_id
         self.assertEqual(picking1.partner_id, self.supplier)
@@ -670,7 +672,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn(move1, line1.move_ids)
         extra_move1 = line1.move_ids.filtered(lambda move: move not in [move1, move2])
         self.assertTrue(extra_move1)
-        extra_move1_id = extra_move1.id
         group1 = move1.group_id
         picking1 = move1.picking_id
         self.assertTrue(group1)
@@ -921,7 +922,6 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         past_proc.run()
         self.assertEqual(past_proc.state, 'buy_to_run')
-
 
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_product_ids=self.product1,
