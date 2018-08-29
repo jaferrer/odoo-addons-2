@@ -515,7 +515,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         for rec in self:
             if 'product_qty' in vals.keys() and not self.env.context.get('no_update_moves'):
                 rec.update_moves(vals)
-        if vals.get('price_unit'):
+        if 'price_unit' in vals:
             for rec in self:
                 active_moves = self.env['stock.move'].search([('product_id', '=', rec.product_id.id),
                                                               ('purchase_line_id', '=', rec.id),
