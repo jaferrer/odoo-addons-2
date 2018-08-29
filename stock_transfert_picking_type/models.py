@@ -38,16 +38,6 @@ class ReceptionByOrderTransferDetailsItems(models.TransientModel):
                              readonly=True)
 
 
-class StockTransfertPickingTypeProcOrder(models.Model):
-    _inherit = 'procurement.order'
-
-    @api.model
-    def _run_move_create(self, procurement):
-        res = super(StockTransfertPickingTypeProcOrder, self)._run_move_create(procurement)
-        res.update({'sale_line_id': procurement.sale_line_id and procurement.sale_line_id.id or False})
-        return res
-
-
 class StockTransfertPickingTypeStockPicking(models.Model):
     _inherit = 'stock.picking'
 
