@@ -23,33 +23,33 @@ from odoo import fields, models, api
 class ProjectMilestone(models.Model):
     _name = 'project.milestone'
 
-    name = fields.Char(u"Titre de la Milestone")
-    active = fields.Boolean(u"Archivé", default=True, readonly=True)
-    start_date = fields.Date(u"Date de début")
-    project_id = fields.Many2one('project.project', u"Projet")
+    name = fields.Char(u"Title", required=True)
+    active = fields.Boolean(u"Active", default=True, readonly=True)
+    project_id = fields.Many2one('project.project', u"Project", required=True)
 
-    task_ids = fields.One2many('project.task', 'milestone_id', u"Tâches", readonly=True)
+    task_ids = fields.One2many('project.task', 'milestone_id', u"Task", readonly=True)
 
-    nb_tasks = fields.Integer(u"Nb tâches", compute='_compute_nb_related')
+    nb_tasks = fields.Integer(u"Nb Task", compute='_compute_nb_related')
 
     state = fields.Selection([
-        ('open', u"Ouverte"),
-        ('in_qualif', u"En Qualif"),
-        ('in_prod', u"En Prod"),
-        ('closed', u"Fermée")
+        ('open', u"Open"),
+        ('in_qualif', u"In Test"),
+        ('in_prod', u"In Production"),
+        ('closed', u"Closed")
     ], default='open', readonly=True)
 
-    qualif_should_be_livred_at = fields.Date(u"Doit être livée en Qualif le")
-    should_be_closed_at = fields.Date(u"Doit être livée en Prod le")
+    qualif_should_be_livred_at = fields.Date(u"Should be in Test at")
+    should_be_closed_at = fields.Date(u"Should be in Prod at")
+    should_be_test_before = fields.Date(u"Should be tested before")
 
-    livred_in_qualif_at = fields.Date(u"Livrée en qualif le", readonly=True)
-    livred_in_qualif_by = fields.Many2one('res.users', u"Livrée en qualif par", readonly=True)
+    livred_in_qualif_at = fields.Date(u"Delivery in Test at", readonly=True)
+    livred_in_qualif_by = fields.Many2one('res.users', u"Delivery in Test by", readonly=True)
 
-    livred_in_prod_at = fields.Date(u"Livrée en Prod le", readonly=True)
-    livred_in_prod_by = fields.Many2one('res.users', u"Livrée en Prod par", readonly=True)
+    livred_in_prod_at = fields.Date(u"Delivery in Prod at", readonly=True)
+    livred_in_prod_by = fields.Many2one('res.users', u"Delivery in Prod by", readonly=True)
 
-    closed_by = fields.Many2one('res.users', u"Livrée en prod par", readonly=True)
-    closed_at = fields.Date(u"Fermée le", readonly=True)
+    closed_by = fields.Many2one('res.users', u"Closed by", readonly=True)
+    closed_at = fields.Date(u"Closed at", readonly=True)
 
     @api.multi
     def _compute_nb_related(self):

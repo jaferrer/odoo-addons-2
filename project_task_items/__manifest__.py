@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,16 +17,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models
-
-
-class ReportFixAged(models.AbstractModel):
-    _inherit = 'report.account.report_agedpartnerbalance'
-
-    def _get_partner_move_lines(self, account_type, date_from, target_move, period_length):
-        return1, return2, return3 = super(ReportFixAged, self)._get_partner_move_lines(account_type, date_from,
-                                                                                       target_move, period_length)
-        if not isinstance(return3, dict) and not return3:
-            return return1, return2, {}
-
-        return return1, return2, return3
+{
+    'name': 'Mini sous tâche',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Project',
+    'depends': ['project'],
+    'description': """
+Mini sous tâche
+===============
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'security/ir.model.access.csv',
+        'project_task_items.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}
