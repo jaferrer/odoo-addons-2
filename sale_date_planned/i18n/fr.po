@@ -21,11 +21,6 @@ msgid "Sales Order Line"
 msgstr "Ligne de commande de vente"
 
 #. module: sale_date_planned
-#: view:sale.order:sale_date_planned.sale_order_view_form_line_date_planned
-msgid "{'default_date_planned':date_order}"
-msgstr "{'default_date_planned':date_order}"
-
-#. module: sale_date_planned
 #: field:sale.order.line,date_planned:0
 msgid "Date planned"
 msgstr "Date planifiée"

@@ -26,16 +26,18 @@ class StockMove(models.Model):
     @api.model
     def split(self, move, qty, restrict_lot_id=False, restrict_partner_id=False):
         split_move_id = super(StockMove, self).split(move, qty, restrict_lot_id, restrict_partner_id)
-        move = self.search([('id', '=', split_move_id)])
-        proc = move.procurement_id
+        self.split_proc(new_move=self.search([('id', '=', split_move_id)]), current_move=move)
+        return split_move_id
+
+    def split_proc(self, new_move, current_move=False):
+        proc = new_move.procurement_id
         if proc:
             new_proc = proc.copy({
                 'state': 'running',
-                'product_qty': move.product_uom_qty,
-                'move_dest_id': move.move_dest_id.id,
+                'product_qty': new_move.product_uom_qty,
+                'move_dest_id': new_move.move_dest_id.id,
             })
-            proc.product_qty -= move.product_uom_qty
-            move.procurement_id = new_proc
+            proc.product_qty -= new_move.product_uom_qty
+            new_move.procurement_id = new_proc
             new_proc.check()
             proc.check()
-        return split_move_id

@@ -766,9 +766,9 @@ class StockSchedulerController(models.Model):
     route_sequence = fields.Integer(string=u"Route sequence", readonly=True)
     run_procs = fields.Boolean(string=u"Run procurements", readonly=True)
     job_creation_date = fields.Datetime(string=u"Job Creation Date", readonly=True)
-    job_uuid = fields.Char(string=u"Job UUID", readonly=True)
+    job_uuid = fields.Char(string=u"Job UUID", readonly=True, index=True)
     date_done = fields.Datetime(string=u"Date done")
-    done = fields.Boolean(string=u"Done")
+    done = fields.Boolean(string=u"Done", index=True)
 
     @api.multi
     def set_to_done(self):
@@ -788,21 +788,7 @@ class StockSchedulerController(models.Model):
                                                        ('location_sequence', '=', max_location_sequence),
                                                        ('route_sequence', '=', max_route_sequence),
                                                        ('run_procs', '=', False)])
-                for line in controller_lines_no_run:
-                    if jobify:
-                        job_uuid = process_orderpoints. \
-                            delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                  line.orderpoint_id.ids, dict(self.env.context),
-                                  description="Computing orderpoints for product %s and location %s" %
-                                              (line.product_id.display_name, line.location_id.display_name))
-                        line.job_uuid = job_uuid
-                        line.write({'job_uuid': job_uuid,
-                                    'job_creation_date': fields.Datetime.now()})
-                    else:
-                        line.job_uuid = str(line.orderpoint_id.id)
-                        self.env.context = dict(self.env.context, job_uuid=line.job_uuid)
-                        process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                            line.orderpoint_id.ids, dict(self.env.context))
+
                 if not controller_lines_no_run:
                     controller_lines_run_procs = self.search([('done', '=', False),
                                                               ('location_sequence', '=', max_location_sequence),
@@ -814,3 +800,26 @@ class StockSchedulerController(models.Model):
                         else:
                             _logger.info(u"No procurement confirmation required")
                         controller_lines_run_procs.set_to_done()
+                else:
+                    if jobify:
+                        while controller_lines_no_run:
+                            chunk_line = controller_lines_no_run[:50]
+                            orderpoints = chunk_line.mapped('orderpoint_id')
+                            job_uuid = process_orderpoints. \
+                                delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                      orderpoints.ids, dict(self.env.context),
+                                      description="Computing orderpoints")
+                            chunk_line.write({'job_uuid': job_uuid,
+                                              'job_creation_date': fields.Datetime.now()})
+                    else:
+                        for line in controller_lines_no_run:
+                            line.job_uuid = str(line.orderpoint_id.id)
+                            self.env.context = dict(self.env.context, job_uuid=line.job_uuid)
+                            process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                                line.orderpoint_id.ids, dict(self.env.context))
+
+    @api.model
+    def clean_scheduler_controller_lines(self):
+        limit_date = fields.Datetime.to_string(dt.now() - relativedelta(days=10))
+        items_to_unlink = self.search([('done', '=', True), ('date_done', '<', limit_date)])
+        items_to_unlink.unlink()

@@ -245,7 +245,8 @@ class IncompeteProductionMrpProduction(models.Model):
     @api.multi
     def button_update(self):
         orders_no_backorder = self.search([('id', 'in', self.ids),
-                                           ('backorder_id', '=', False)])
+                                           ('backorder_id', '=', False),
+                                           ('state', 'not in', ['draft', 'done', 'cancel'])])
         orders_no_backorder._action_compute_lines()
         orders_no_backorder.update_moves()
 

@@ -18,9 +18,10 @@
 #
 
 from datetime import datetime
+
 from openerp import fields, models, api, _, exceptions, osv
-from openerp.tools.float_utils import float_compare
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, float_round
+from openerp.tools.float_utils import float_compare
 
 
 class PurchaseOrderJustInTime(models.Model):
@@ -247,6 +248,10 @@ class PurchaseOrderJustInTime(models.Model):
                 return True
         return False
 
+    @api.multi
+    def quick_compute_coverage_state(self):
+        self.mapped('order_line').quick_compute_coverage_state()
+
 
 class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
@@ -292,6 +297,13 @@ class PurchaseOrderLineJustInTime(models.Model):
     father_line_id = fields.Many2one('purchase.order.line', string="Very first line splited", readonly=True)
     children_line_ids = fields.One2many('purchase.order.line', 'father_line_id', string="Children lines")
     children_number = fields.Integer(string="Number of children", readonly=True, compute='_compute_children_number')
+    covering_date = fields.Datetime(string=u"Covered Date")
+    covering_state = fields.Selection([
+        ('all_covered', u"All Need Covered"),
+        ('coverage_computed', u"Computed Coverage"),
+        ('unknow_coverage', u"Not Calculated State")
+
+    ], string=u"Covered State", default='unknow_coverage', required=True)
 
     _columns = {
         'remaining_qty': osv.fields.function(
@@ -503,7 +515,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         for rec in self:
             if 'product_qty' in vals.keys() and not self.env.context.get('no_update_moves'):
                 rec.update_moves(vals)
-        if vals.get('price_unit'):
+        if 'price_unit' in vals:
             for rec in self:
                 active_moves = self.env['stock.move'].search([('product_id', '=', rec.product_id.id),
                                                               ('purchase_line_id', '=', rec.id),
@@ -548,3 +560,19 @@ class PurchaseOrderLineJustInTime(models.Model):
         cancelled_procs.with_context(tracking_disable=True).write({'state': 'cancel'})
         procurements_to_detach.remove_procs_from_lines(cancel_moves_to_procs=True)
         return result
+
+    @api.multi
+    def quick_compute_coverage_state(self):
+        for rec in self:
+            if rec.covering_state == 'unknow_coverage':
+                last_proc = self.env['procurement.order'].search([('id', 'in', rec.procurement_ids.ids)],
+                                                                 order='date_planned desc', limit=1)
+                if last_proc:
+                    next_proc = self.env['procurement.order'].search([
+                        ('state', 'not in', ['confirmed', 'done', 'cancel', 'exception']),
+                        ('product_id', '=', last_proc.product_id.id),
+                        ('location_id', '=', last_proc.location_id.id)
+                    ], order='date_planned asc', limit=1)
+                    rec.write({'covering_date': next_proc.date_planned,
+                               'covering_state': next_proc.date_planned and 'all_covered' or 'coverage_computed'
+                               })

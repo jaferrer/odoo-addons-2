@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="stock_transfer_details_form">
+            <field name="name">stock_transfer_details_form</field>
+            <field name="model">stock.transfer_details</field>
+            <field name="inherit_id" ref="stock_transfert_picking_type.stock_transfer_details_form_picking_type"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="item_expedition_ids" position="attributes">
+                    <attribute name="context">{'default_sourceloc_id':picking_source_location_id, 'default_destinationloc_id':picking_destination_location_id, 'default_group_name':picking_group_name, 'display_line_no': True}</attribute>
+                </field>
+                <xpath expr="//field[@name='item_expedition_ids']//field[@name='quantity']" position="after">
+                    <field name="sale_line_id"
+                           domain="[('product_id', '=', product_id), ('order_id.name', '=', group_name)]"
+                           options="{'no_create': True, 'no_edit': True}"
+                           context="{'display_line_no': True}"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</openerp>
