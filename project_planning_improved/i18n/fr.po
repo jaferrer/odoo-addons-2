@@ -222,16 +222,22 @@ msgid "Task %s must totally include task %s"
 msgstr "La tâche %s doit contenir totalement la tâche %s"
 
 #. module: project_planning_improved
-#: code:addons\project_planning_improved\project_planning_improved.py:624
+#: code:addons\project_planning_improved\project_planning_improved.py:475
 #, python-format
-msgid "Impossible to schedule a task on a not working day."
-msgstr "Impossible de planifier une tâche dans une période non ouvrée"
+msgid "Task %s: impossible to set start date in a not working period (%s)"
+msgstr "Tâche %s : impossible de définir la date de début dans une période non ouvrée (%s)"
 
 #. module: project_planning_improved
-#: code:addons\project_planning_improved\project_planning_improved.py:641
+#: code:addons\project_planning_improved\project_planning_improved.py:477
 #, python-format
-msgid "Impossible to schedule entirely a task in a not working period"
-msgstr "Impossible de planifier une tâche entièrement dans une période non ouvrée"
+msgid "Task %s: impossible to set end date in a not working period (%s)"
+msgstr "Tâche %s : impossible de définir la date de fin dans une période non ouvrée (%s)"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:718
+#, python-format
+msgid "Impossible to schedule task %s, because it is already taken into account"
+msgstr "Impossible de planifier la tâche %s, car elle est déjà prise en compte"
 
 #. module: project_planning_improved
 #: code:addons\project_planning_improved\conflicts_tracking.py:77
