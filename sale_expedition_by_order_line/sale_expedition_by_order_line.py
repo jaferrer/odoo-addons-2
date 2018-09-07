@@ -261,18 +261,8 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
 
     procurement_ids = fields.One2many('procurement.order', 'sale_line_id', readonly=True)
     move_ids = fields.One2many('stock.move', 'sale_line_id', readonly=True)
-    remaining_qty = fields.Float(u"Qty Still To Be Sent", compute="_get_remaining_qty", store=True)
-    sent_qty = fields.Float(u"Quantity Already Sent", compute="_get_remaining_qty", store=True)
-
-    @api.depends('product_uom_qty', 'move_ids', 'move_ids.product_uom_qty', 'move_ids.product_uom', 'move_ids.state')
-    def _get_remaining_qty(self):
-        for rec in self:
-            delivered_qty = 0
-            remaining_qty = 0
-            if rec.product_id and rec.product_id.type != 'service':
-                delivered_qty, remaining_qty = rec.compute_remaining_qty()[:2]
-            rec.remaining_qty = remaining_qty
-            rec.sent_qty = delivered_qty
+    remaining_qty = fields.Float(u"Qty Still To Be Sent")
+    sent_qty = fields.Float(u"Quantity Already Sent")
 
     @api.multi
     def get_running_moves_to_customer_for_line(self):
