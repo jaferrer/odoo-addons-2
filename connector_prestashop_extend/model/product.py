@@ -175,6 +175,8 @@ class ProductCombinationRecordImport(TranslatableRecordImporter):
                         rec_opt = self.get_reccord_presta(opt_value.get("id"), "product_option_values")
                         list_name = rec_opt.get("name", {}).get('language', [])
                         if list_name:
+                            if not isinstance(list_name, list):
+                                list_name = [list_name]
                             name_att = "%s - ATTR : %s" % (name_att, list_name[0].get("value"))
                     prestashop_product["name_comb"] = name_att
                 prestashop_products.append(prestashop_product)

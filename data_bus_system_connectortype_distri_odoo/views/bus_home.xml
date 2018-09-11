@@ -7,7 +7,7 @@
             <field name="arch" type="xml">
                 <form>
                     <sheet>
-                        <group colspan="4" col="4">
+                        <group col="4">
                             <field name="url" colspan="2" required="1"/>
                             <field name="login" colspan="2" required="1"/>
                             <field name="pwd" colspan="2" required="1"/>
@@ -15,6 +15,10 @@
                             <field name="db" colspan="2" required="1"/>
                             <field name="model_name" colspan="2" required="1"/>
                             <field name="method_name" colspan="2" required="1"/>
+                        </group>
+                        <group col="4">
+                            <button name="recompute_connexion_state" type="object" string="Test Connexion"/>
+                            <field name="connexion_state" nolabel="1"/>
                         </group>
                     </sheet>
                 </form>

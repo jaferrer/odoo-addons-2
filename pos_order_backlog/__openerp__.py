@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,23 +17,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 {
-    'name': 'Send Object Attachments by Email',
-    'version': '0.1',
+    'name': 'Point Of Sale - Backlog',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Usability',
-    'depends': ['mail'],
+    'version': '1.0',
+    'category': 'Point of Sale',
+    'depends': ['point_of_sale'],
+    'license': 'AGPL-3',
     'description': """
-Send Object Attachments by Email
+Restaurant - Allergen Management
 ================================
-This module adds an option "Attach object attachments" to email templates. When this option is selected, all the
-attachments of the object will be added to the email attachments.
-""",
+
+This module adds a new menu *POS Order Lines* in the *Point Of Sale* application.""",
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'mail_object_attachment_view.xml',
+        'pos_order_backlog.xml',
     ],
     'demo': [],
     'test': [],

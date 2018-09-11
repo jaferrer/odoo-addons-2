@@ -157,6 +157,7 @@
             <field name="project_id" ref="project_planning_improved_test_project"/>
             <field name="name">Task 9</field>
             <field name="stage_id" ref="project.project_stage_0"/>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_4'), ref('project_task_5'), ref('project_task_7')])]"/>
             <field name="parent_task_id" ref="parent_task_2"/>
             <field name="objective_duration" eval="13"/>
             <field name="allocated_duration" eval="13"/>
