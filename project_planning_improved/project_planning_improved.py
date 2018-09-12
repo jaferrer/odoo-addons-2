@@ -540,7 +540,6 @@ class ProjectImprovedTask(models.Model):
             result['expected_start_date'] = new_expected_start_date
         if self.expected_end_date != new_expected_end_date:
             result['expected_end_date'] = new_expected_end_date
-        print 'get_dict_to_reschedule_start_date', self.display_name, new_date, nb_days, nb_hours, result
         return result
 
     @api.multi
@@ -603,7 +602,6 @@ class ProjectImprovedTask(models.Model):
             '|', ('previous_task_ids', '=', False),
             ('previous_task_ids.parent_task_id', '!=', self.id),
         ], order='expected_start_date asc').reschedule_start_date(self.expected_start_date)
-        print 'propagate_dates', self.display_name, self.parent_task_id.display_name, self.parent_task_id.expected_end_date, self.expected_end_date
         self.reschedule_parent_dates()
 
     @api.multi
@@ -749,13 +747,11 @@ class ProjectImprovedTask(models.Model):
                 self.check_not_tia()
             vals_copy = vals.copy()
             if slide_tasks[rec] and not propagating_tasks:
-                print 'slide', rec.display_name
                 new_end_date_dict = rec.get_dict_to_reschedule_start_date(vals_copy['expected_start_date'])
                 new_end_date = new_end_date_dict.get('expected_end_date', vals_copy['expected_end_date'])
                 new_end_date = rec.get_end_day_date(fields.Datetime.from_string(new_end_date))
                 new_end_date = fields.Datetime.to_string(new_end_date)
                 vals_copy['expected_end_date'] = new_end_date
-            print 'super', rec.id, rec.display_name, vals, propagate_dates, dates_changed
             super(ProjectImprovedTask, rec).write(vals_copy)
             if rec.expected_start_date and rec.expected_end_date and propagate_dates and dates_changed:
                 rec.with_context(propagating_tasks=True).propagate_dates()
