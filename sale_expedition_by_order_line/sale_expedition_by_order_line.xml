@@ -84,10 +84,10 @@ self.update_remaining_qty(cr,uid,context.get('active_ids'),context)
             <field name="inherit_id" ref="sale.view_order_line_form2"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <form position="inside">
+                <sheet position="inside">
                     <group string="Expedition moves"/>
                     <field name="move_ids"/>
-                </form>
+                </sheet>
             </field>
         </record>
 
