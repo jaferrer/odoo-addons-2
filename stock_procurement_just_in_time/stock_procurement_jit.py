@@ -804,6 +804,7 @@ class StockSchedulerController(models.Model):
                     if jobify:
                         while controller_lines_no_run:
                             chunk_line = controller_lines_no_run[:50]
+                            controller_lines_no_run = controller_lines_no_run[50:]
                             orderpoints = chunk_line.mapped('orderpoint_id')
                             job_uuid = process_orderpoints. \
                                 delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
