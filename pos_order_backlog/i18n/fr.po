@@ -1,0 +1,95 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* pos_order_backlog
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-09 17:09+0000\n"
+"PO-Revision-Date: 2015-12-09 17:09+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: pos_order_backlog
+#: model:ir.actions.act_window,name:pos_order_backlog.act_window_pos_order_backlog
+#: model:ir.ui.menu,name:pos_order_backlog.menu_pos_order_backlog
+msgid "Order Lines"
+msgstr "Lignes de commande"
+
+#. module: pos_order_backlog
+#: model:ir.model.fields,field_description:pos_order_backlog.field_pos_order_line_categ_id
+#: model:ir.ui.view,arch_db:pos_order_backlog.pos_order_line_search
+msgid "Internal Category"
+msgstr "Catégorie interne"
+
+#. module: pos_order_backlog
+#: model:ir.model.fields,field_description:pos_order_backlog.field_pos_order_line_pos_categ_id
+#: model:ir.ui.view,arch_db:pos_order_backlog.pos_order_line_search
+msgid "Point of Sale Category"
+msgstr "Catégorie du point de vente"
+
+#. module: pos_order_backlog
+#: model:ir.ui.view,arch_db:pos_order_backlog.pos_order_line_search
+msgid "State"
+msgstr "État"
+
+#. module: pos_order_backlog
+#: model:ir.ui.view,arch_db:pos_order_backlog.pos_order_line_search
+msgid "Order Day"
+msgstr "Jour de commande"
+
+#. module: pos_order_backlog
+#: model:ir.ui.view,arch_db:pos_order_backlog.pos_order_line_search
+msgid "Order Week"
+msgstr "Semaine de commande"
+
+#. module: pos_order_backlog
+#: model:ir.ui.view,arch_db:pos_order_backlog.pos_order_line_search
+msgid "Order Month"
+msgstr "Mois de commande"
+
+#. module: pos_order_backlog
+#: model:ir.ui.view,arch_db:pos_order_backlog.pos_order_line_search
+msgid "Order Year"
+msgstr "Année de commande"
+
+#. module: pos_order_backlog
+#: model:ir.model.fields,field_description:pos_order_backlog.field_pos_order_line_date_order
+msgid "Order Date"
+msgstr "Date de commande"
+
+#. module: pos_order_backlog
+#: model:ir.model.fields,field_description:pos_order_backlog.field_pos_order_line_state
+#: model:ir.ui.view,arch_db:pos_order_backlog.pos_order_line_search
+msgid "Order Status"
+msgstr "État de la commande"
+
+#. module: pos_order_backlog
+#: selection:pos.order.line,state:0
+msgid "New"
+msgstr "Nouveau"
+
+#. module: pos_order_backlog
+#: selection:pos.order.line,state:0
+msgid "Cancelled"
+msgstr "Annulé"
+
+#. module: pos_order_backlog
+#: selection:pos.order.line,state:0
+msgid "Paid"
+msgstr "Réglé"
+
+#. module: pos_order_backlog
+#: selection:pos.order.line,state:0
+msgid "Posted"
+msgstr "Comptabilisé"
+
+#. module: pos_order_backlog
+#: selection:pos.order.line,state:0
+msgid "Invoiced"
+msgstr "Facturée"
