@@ -48,15 +48,15 @@ class ReceptionByOrderStockPackOperation(models.Model):
 
     @api.multi
     def get_list_operations_to_process(self):
-        linked_purchase_orders = set([ops.sale_line_id.order_id for ops in self if ops.sale_line_id])
-        if len(linked_purchase_orders) > 1:
-            raise exceptions.except_orm(_("Error!"), _("Impossible to receive two different purchase orders at the "
+        linked_sale_orders = set([ops.sale_line_id.order_id for ops in self if ops.sale_line_id])
+        if len(linked_sale_orders) > 1:
+            raise exceptions.except_orm(_("Error!"), _("Impossible to receive two different sale orders at the "
                                                        "same time. Please check your packing operationd and retry."))
         if any([ops.sale_line_id and ops.product_id != ops.sale_line_id.product_id for ops in self]):
-            raise exceptions.except_orm(_("Error!"), _("Impossible to receive a product on a purchase order line "
+            raise exceptions.except_orm(_("Error!"), _("Impossible to receive a product on a sale order line "
                                                        "linked to another product. Please check your packing "
                                                        "operations and retry."))
-        # First operation should be the ones which are linked to a purchase_order_line
+        # First operation should be the ones which are linked to a sale order line
         operations_with_sale_lines = self.search([('id', 'in', self.ids), ('sale_line_id', '!=', False)])
         if operations_with_sale_lines:
             operations_without_sale_lines = self.search([('id', 'in', self.ids),
@@ -199,9 +199,9 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         else:
             picking = self.browse([result['picking_id']])
             order_ids = [move.sale_line_id.order_id.id for move in picking.move_lines if move.sale_line_id]
-            corresponding_line = self.env['purchase.order.line'].search([('order_id', 'in', order_ids),
-                                                                         ('product_id', '=', result['product_id'])],
-                                                                        limit=1)
+            corresponding_line = self.env['sale.order.line'].search([('order_id', 'in', order_ids),
+                                                                     ('product_id', '=', result['product_id'])],
+                                                                    limit=1)
             if corresponding_line:
                 result['sale_line_id'] = corresponding_line.id
 
