@@ -84,6 +84,9 @@ self.update_remaining_qty(cr,uid,context.get('active_ids'),context)
             <field name="inherit_id" ref="sale.view_order_line_form2"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
+                <field name="name" position="after">
+                    <field name="remaining_qty"/>
+                </field>
                 <sheet position="inside">
                     <group string="Expedition moves"/>
                     <field name="move_ids"/>
@@ -116,6 +119,18 @@ self.update_remaining_qty(cr,uid,context.get('active_ids'),context)
                            options="{'no_create': True, 'no_edit': True}"
                            context="{'display_line_no': True}"/>
                 </xpath>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="procurement_order_form">
+            <field name="name">procurement_order_form</field>
+            <field name="model">procurement.order</field>
+            <field name="inherit_id" ref="procurement.procurement_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="group_id" position="before">
+                    <field name="sale_line_id"/>
+                </field>
             </field>
         </record>
 
