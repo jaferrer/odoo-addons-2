@@ -65,5 +65,7 @@ msgstr "Articles à déplacer"
 
 #. module: stock_transfer_select
 #: view:stock.transfer_details:0
+#: code:addons/stock_transfer_select/stock_transfer_select.py:28
+#, python-format
 msgid "Select Operations"
 msgstr "Sélectionner les opérations"

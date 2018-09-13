@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, _
+from openerp import models, api, _
 
 class stock_transfer_details_select(models.TransientModel):
     _inherit = "stock.transfer_details"
@@ -35,7 +35,6 @@ class stock_transfer_details_select(models.TransientModel):
             'domain': [('transfer_id','=',self[0].id)],
             'flags': {
                 'search_view': True,
-                # 'action_buttons': True,
                 'sidebar': True,
             },
             'context': self.env.context,
