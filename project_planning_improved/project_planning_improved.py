@@ -543,12 +543,11 @@ class ProjectImprovedTask(models.Model):
         return result
 
     @api.multi
-    def reschedule_start_date(self, new_date, even_if_tia=False):
+    def reschedule_start_date(self, new_date):
         for rec in self:
-            if even_if_tia or not rec.taken_into_account:
-                dict_to_reschedule_start_date = rec.get_dict_to_reschedule_start_date(new_date)
-                if dict_to_reschedule_start_date:
-                    rec.write(dict_to_reschedule_start_date)
+            dict_to_reschedule_start_date = rec.get_dict_to_reschedule_start_date(new_date)
+            if dict_to_reschedule_start_date:
+                rec.write(dict_to_reschedule_start_date)
 
     @api.multi
     def get_dict_to_reschedule_end_date(self, new_date):
@@ -564,12 +563,11 @@ class ProjectImprovedTask(models.Model):
         return result
 
     @api.multi
-    def reschedule_end_date(self, new_date, even_if_tia=False):
+    def reschedule_end_date(self, new_date):
         for rec in self:
-            if even_if_tia or not rec.taken_into_account:
-                dict_to_reschedule_end_date = rec.get_dict_to_reschedule_end_date(new_date)
-                if dict_to_reschedule_end_date:
-                    rec.write(dict_to_reschedule_end_date)
+            dict_to_reschedule_end_date = rec.get_dict_to_reschedule_end_date(new_date)
+            if dict_to_reschedule_end_date:
+                rec.write(dict_to_reschedule_end_date)
 
     @api.multi
     def check_dates(self):
