@@ -314,7 +314,7 @@ class ProductInventoryAdapter(GenericAdapter):
     def get(self, options=None):
         return self.client.get(self._prestashopextend_model, options=options)
 
-    def export_quantity(self, filters, quantity, home_id):
+    def export_quantity(self, filters, quantity, home_id, url_default):
         self.export_quantity_url(
             filters,
             quantity,
@@ -327,7 +327,8 @@ class ProductInventoryAdapter(GenericAdapter):
         print shops
         for shop in shops:
             print shop
-            url = '%s/api' % shop.default_url
+            default = shop.default_url or url_default
+            url = '%s/api' % default
             key = self.prestashopextend.webservice_key
             client = PrestaShopWebServiceDict(url, key)
             self.export_quantity_url(filters, quantity, client=client)
@@ -423,6 +424,9 @@ class StockLevelExporter(Exporter):
 
         export = False
 
+        url_default = self.env["connector.type.prestashop.parameter"].search(
+            [("line_id", "=", self.backend_record.connector_id.line_id.id)])[0].location
+
         for product in self.env.cr.dictfetchall():
             export = True
             qty = int(product['qty'])
@@ -435,7 +439,7 @@ class StockLevelExporter(Exporter):
                     'filter[id_product]': product['prestashopextend_id'].split('_')[0],
                     'filter[id_product_attribute]': len(product['prestashopextend_id'].split('_')) > 1 and product['prestashopextend_id'].split('_')[1] or 0
                 }
-                adapter.export_quantity(filter, qty, self.backend_record.connector_id.home_id.id)
+                adapter.export_quantity(filter, qty, self.backend_record.connector_id.home_id.id, url_default)
 
         return log
 
