@@ -62,7 +62,8 @@ class QueueJob(models.Model):
     @api.model
     def enqueue_old_enqued_jobs(self):
         limit_date = fields.Datetime.to_string(dt.now() - timedelta(minutes=5))
-        old_enqueud_jobs = self.env['queue.job'].search([], limit=1)
+        old_enqueud_jobs = self.env['queue.job'].search([('state', '=', 'enqueued'),
+                                                         ('date_enqueued', '<', limit_date)])
         if old_enqueud_jobs:
             old_enqueud_jobs.requeue()
 
