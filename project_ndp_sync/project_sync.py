@@ -44,7 +44,6 @@ class ProjectTaskSync(models.Model):
     def create(self, values):
         if values.get('ndp_project_sync', False):
             values.update({'ndp_sync': True})
-        print "values : ", values
         return super(ProjectTaskSync, self).create(values)
 
     @api.multi
