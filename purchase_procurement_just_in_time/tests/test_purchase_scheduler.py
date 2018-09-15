@@ -164,7 +164,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase3.date_order[:10], '3003-09-12')
         self.assertEqual(purchase5.date_order[:10], '3003-09-05')
 
-        # TODO: tests à réactiver (voir pourquoi le runbot plante)
         self.assertEqual(2, len(purchase1.order_line))
         for line in purchase1.order_line:
             if line.product_id == self.product1:
@@ -204,11 +203,10 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase5.date_order, '3003-08-29 00:00:00')
         self.assertEqual(purchase5.date_order_max, '3003-09-04 23:59:59')
 
-        # TODO: tests à réactiver (voir pourquoi le runbot plante)
-        # self.assertFalse(purchase1.order_line.covering_date)
-        # self.assertEqual('coverage_computed', purchase1.order_line.covering_state)
-        # self.assertEqual('3003-09-22 15:00:00', purchase2.order_line.covering_date)
-        # self.assertEqual('all_covered', purchase2.order_line.covering_state)
+        self.assertFalse(purchase1.order_line.covering_date)
+        self.assertEqual('coverage_computed', purchase1.order_line.covering_state)
+        self.assertEqual('3003-09-22 15:00:00', purchase2.order_line.covering_date)
+        self.assertEqual('all_covered', purchase2.order_line.covering_state)
 
     def test_11_schedule_a_limited_number_of_orders(self):
         """Test of purchase order creation from scratch when nb_max_draft_orders is defined for the suplier."""

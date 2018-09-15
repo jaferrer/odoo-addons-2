@@ -156,5 +156,6 @@ class TestPurchasePlanningImproved(common.TransactionCase):
             'purchase_line_id': line.id
         })
 
+        self.env['purchase.order'].cron_compute_limit_order_date()
         self.assertTrue(line.limit_order_date)
         self.assertEqual(order.limit_order_date, line.limit_order_date)

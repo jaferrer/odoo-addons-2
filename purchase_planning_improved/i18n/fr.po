@@ -140,6 +140,11 @@ msgid "Confirmation Date"
 msgstr "Date de confirmation"
 
 #. module: purchase_planning_improved
+#: help:purchase.order.line,limit_order_date:0
+msgid "Limit order date to be late: required date - supplier delay"
+msgstr "Date limite de commande avant d'être en retard : date demandée moins délai fournisseur"
+
+#. module: purchase_planning_improved
 #: field:purchase.order,limit_order_date:0
 #: field:purchase.order.line,limit_order_date:0
 msgid "Limit Order Date"

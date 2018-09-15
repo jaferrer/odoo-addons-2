@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase_working_days', 'stock_planning_improved'],
+    'depends': ['purchase_working_days', 'stock_planning_improved', 'connector'],
     'description': """
 Purchase Planning Improved
 ==========================
@@ -73,6 +73,7 @@ Notes
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'purchase_planning_improved_view.xml',
+        'cron.xml',
     ],
     'demo': [
         'purchase_planning_improved_demo.xml',
