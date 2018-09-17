@@ -153,7 +153,7 @@ GROUP BY pol.id""", (tuple(ids),))
                                                                            ['date_planned', 'purchase_line_id'], 20)
                                                  }, readonly=True),
         'limit_order_date': old_api_fields.function(_compute_dates, type='date', string=u"Limit Order Date",
-                                                    help=u"Limit order date to be late : required date - supplier delay",
+                                                    help=u"Limit order date to be late :required date - supplier delay",
                                                     multi="compute_dates",
                                                     store={
                                                         'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids,
@@ -214,16 +214,25 @@ GROUP BY pol.id""", (tuple(ids),))
 class PurchaseOrderPlanningImproved(models.Model):
     _inherit = 'purchase.order'
 
-    limit_order_date = fields.Date(compute='_compute_limit_order_date', store=True)
+    limit_order_date = fields.Date(string=u"Limit order date to be late", readonly=True)
 
-    @api.multi
-    @api.depends('order_line', 'order_line.limit_order_date')
-    def _compute_limit_order_date(self):
-        for rec in self:
-            first_line = self.env['purchase.order.line']. \
-                search([('order_id', '=', rec.id), ('limit_order_date', '!=', False)],
-                       order='limit_order_date', limit=1)
-            rec.limit_order_date = first_line and first_line.limit_order_date or False
+    @api.model
+    def cron_compute_limit_order_date(self):
+        self.env.cr.execute("""SELECT
+  po.id                     AS order_id,
+  min(pol.limit_order_date) AS new_limit_order_date
+FROM purchase_order po
+  INNER JOIN purchase_order_line pol ON pol.order_id = po.id AND pol.limit_order_date IS NOT NULL
+GROUP BY po.id
+ORDER BY po.id""")
+        result = self.env.cr.dictfetchall()
+        order_with_limit_dates_ids = []
+        for item in result:
+            order = self.search([('id', '=', item['order_id'])])
+            if order.limit_order_date != item['new_limit_order_date']:
+                order.limit_order_date = item['new_limit_order_date']
+            order_with_limit_dates_ids += [item['order_id']]
+        self.search([('id', 'not in', order_with_limit_dates_ids)]).write({'limit_order_date': False})
 
     @api.multi
     def write(self, vals):
