@@ -29,35 +29,44 @@ def job_compute_use_case_count(session, model_name, product_ids, context):
     return "End update"
 
 
+@job
+def job_compute_father_line_ids(session, model_name, bom_line_ids, context):
+    products = session.env[model_name].with_context(context).browse(bom_line_ids)
+    products.compute_father_line_ids()
+    return "End update"
+
+
 class MrpBomLine(models.Model):
     _inherit = "mrp.bom.line"
 
     product_parent_id = fields.Many2one('product.product', string=u"Parent Product",
-                                        compute='_compute_parents')
+                                        related='bom_id.product_id')
     father_line_ids = fields.Many2many('mrp.bom.line', 'mrp_bom_lines_father_rel', 'child_id', 'father_id',
-                                       compute="_compute_parents", string=u"Father lines")
+                                       string=u"Father lines")
+
+    @api.model
+    def cron_compute_father_line_ids(self):
+        lines = self.search([])
+        chunk_number = 0
+        while lines:
+            chunk_lines = lines[:100]
+            chunk_number += 1
+            job_compute_father_line_ids.delay(ConnectorSession.from_env(self.env), 'mrp.bom.line', chunk_lines.ids,
+                                              dict(self.env.context),
+                                              description=u"Update father lines for bom lines (chunk %s)" %
+                                                          chunk_number)
+            lines = lines[100:]
 
     @api.multi
-    @api.depends('bom_id.product_id', 'bom_id.product_tmpl_id', 'bom_id')
-    def _compute_parents(self):
-        """Computes the fields necessary to get use cases."""
+    def compute_father_line_ids(self):
+        date_today = fields.Date.today()
+        active_boms = self.env['mrp.bom'].search(['|', ('date_start', '<=', date_today), ('date_start', '=', False),
+                                                  '|', ('date_stop', '>=', date_today), ('date_start', '=', False)])
         for rec in self:
-            parent_product = rec.bom_id.product_id
-            parent_product_tmpl = rec.bom_id.product_tmpl_id
-            rec.product_parent_id = parent_product
-
-            if parent_product:
-                products = parent_product
-            else:
-                products = self.env['product.product'].search([('product_tmpl_id', '=', parent_product_tmpl.id)])
-            date_report = self.env.context.get('date_report_use_cases') or fields.Date.today()
-            parent_lines = self.search(
-                [('product_id', 'in', products.ids),
-                 '|', ('bom_id.date_start', '<=', date_report), ('bom_id.date_start', '=', False),
-                 '|', ('bom_id.date_stop', '>=', date_report), ('bom_id.date_start', '=', False)]
-            )
-
-            rec.father_line_ids = [(6, 0, [p.id for p in parent_lines])]
+            products = rec.product_parent_id or self.env['product.product']. \
+                search([('product_tmpl_id', '=', rec.bom_id.product_tmpl_id.id)])
+            parent_lines = self.search([('product_id', 'in', products.ids), ('bom_id', 'in', active_boms.ids)])
+            rec.father_line_ids = [(6, 0, parent_lines.ids)]
 
 
 class ProductProduct(models.Model):
