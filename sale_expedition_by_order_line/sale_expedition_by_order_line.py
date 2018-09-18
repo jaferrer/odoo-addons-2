@@ -299,7 +299,7 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
                 qty_running_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
                                                                            qty_running_product_uom, line_uom.id,
                                                                            rounding_method='HALF-UP')
-                delivered_qty = delivered_qty - returned_qty
+            delivered_qty = delivered_qty - returned_qty
             if self.product_id.uom_id != self.product_uom:
                 delivered_qty = self.env['product.uom']._compute_qty(self.product_id.uom_id.id, delivered_qty,
                                                                      line_uom.id, rounding_method='HALF-UP')
