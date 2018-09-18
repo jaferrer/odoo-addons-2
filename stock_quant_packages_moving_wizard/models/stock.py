@@ -612,20 +612,20 @@ class StockLocation(models.Model):
             pull_rule = self.env['procurement.rule'].search([('location_src_id', 'in', parent_locations.ids),
                                                              ('route_id.product_selectable', '=', True),
                                                              ('route_id', 'in', product.route_ids.ids)],
-                                                            limit=1)
+                                                            order='sequence, id', limit=1)
             push_rule = self.env['stock.location.path'].search([('location_from_id', '=', self.id),
                                                                 ('route_id.product_selectable', '=', True),
                                                                 ('route_id', 'in', product.route_ids.ids)],
-                                                               limit=1)
+                                                               order='sequence, id', limit=1)
             if not pull_rule and not push_rule and product.categ_id:
                 pull_rule = self.env['procurement.rule'].search([('location_src_id', 'in', parent_locations.ids),
                                                                  ('route_id.product_categ_selectable', '=', True),
                                                                  ('route_id', 'in', product.categ_id.route_ids.ids)],
-                                                                limit=1)
+                                                                order='sequence, id', limit=1)
                 push_rule = self.env['stock.location.path'].search([('location_from_id', '=', self.id),
                                                                     ('route_id.product_categ_selectable', '=', True),
                                                                     ('route_id', 'in', product.categ_id.route_ids.ids)],
-                                                                   limit=1)
+                                                                   order='sequence, id', limit=1)
         if not pull_rule and not push_rule and self:
             warehouse_id = self.get_warehouse(location=self)
             if warehouse_id:
@@ -633,11 +633,11 @@ class StockLocation(models.Model):
                 pull_rule = self.env['procurement.rule'].search([('location_src_id', 'in', parent_locations.ids),
                                                                  ('route_id.warehouse_selectable', '=', True),
                                                                  ('route_id', 'in', warehouse.route_ids.ids)],
-                                                                limit=1)
+                                                                order='sequence, id', limit=1)
                 push_rule = self.env['stock.location.path'].search([('location_from_id', '=', self.id),
                                                                     ('route_id.warehouse_selectable', '=', True),
                                                                     ('route_id', 'in', warehouse.route_ids.ids)],
-                                                                   limit=1)
+                                                                   order='sequence, id', limit=1)
         if pull_rule:
             return pull_rule.location_id, pull_rule.picking_type_id
         elif push_rule:
