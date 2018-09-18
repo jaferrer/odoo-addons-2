@@ -129,6 +129,7 @@ msgstr "Milestones"
 
 #. module: project_milestone
 #: field:project.task,milestone_id:0
+#: model:ir.actions.act_window,name:project_milestone.project_milestone_action
 #: model:ir.ui.menu,name:project_milestone.menu_project_milestone
 msgid "Milestone"
 msgstr "Milestone"
