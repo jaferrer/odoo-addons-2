@@ -117,6 +117,7 @@ msgstr "Factures"
 #. module: account_invoice_dunning
 #: model:ir.actions.act_window,name:account_invoice_dunning.dunning_view_action
 #: model:ir.ui.menu,name:account_invoice_dunning.menu_account_invoice_dunning
+#: model:ir.ui.menu,name:account_invoice_dunning.menu_account_invoice_dunning_action
 msgid "Dunnings"
 msgstr "Relances"
 
