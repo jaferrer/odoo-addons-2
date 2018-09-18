@@ -365,6 +365,8 @@ class Distributeur(models.Model):
             param = self.env[self.type_id.model_param_name].create({
                 'distributeur_id': self.id
             })
+        if len(param) > 1:
+            param[1:].unlink()
         ctx = self.env.context.copy()
         return {
             'name': 'Parameter',
@@ -373,7 +375,7 @@ class Distributeur(models.Model):
             'view_mode': 'form',
             'res_model': self.type_id.model_param_name,
             'flags': {'form': {'action_buttons': True}},
-            'res_id': param.id,
+            'res_id': param[0].id,
             'target': 'new',
             'context': ctx
         }
