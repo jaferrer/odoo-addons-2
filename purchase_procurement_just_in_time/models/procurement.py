@@ -557,7 +557,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         forbid_creation = self.env.context.get('forbid_creation')
         force_date_ref = self.env.context.get('force_date_ref')
         days_delta = self.get_delta_begin_grouping_period()
-        draft_order = False
+        draft_order = self.env['purchase.order']
         if not force_creation:
             main_domain = self.get_corresponding_draft_order_main_domain(seller)
             domain_date_defined = [('date_order', '!=', False),
