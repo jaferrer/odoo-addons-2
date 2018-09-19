@@ -24,7 +24,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['sale_expedition_by_order_line', 'sale_date_planned', 'sale_line_numbers'],
+    'depends': ['sale_expedition_by_order_line', 'sale_date_planned', 'sale_line_numbers', 'connector'],
     'description': """
 Sale/Stock Manual Link
 ======================

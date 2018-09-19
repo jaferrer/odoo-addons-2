@@ -23,5 +23,5 @@ from openerp import models, fields
 class ProcurementSaleLinkMrp(models.Model):
     _inherit = 'procurement.sale.link'
 
-    purchase_id = fields.Many2one('mrp.production', string=u"Procurement Purchase Order",
+    purchase_id = fields.Many2one('purchase.order', string=u"Procurement Purchase Order",
                                   related='procurement_id.purchase_id', store=True)
