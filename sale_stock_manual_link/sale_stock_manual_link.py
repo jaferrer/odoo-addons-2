@@ -19,6 +19,15 @@
 
 from openerp import models, fields, api, exceptions, _
 from openerp.tools import float_compare
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+
+@job
+def job_update_sale_procurement_links(session, model_name, context):
+    model = session.env[model_name].with_context(context)
+    model.update_table_model()
+    return "Procurements/Sale links updated."
 
 
 class ExpeditionByOrderLineProcurementOrder(models.Model):
@@ -73,6 +82,11 @@ class ProcurementSaleLink(models.Model):
 
     @api.model
     def update_table(self):
+        context = dict(self.env.context)
+        job_update_sale_procurement_links.delay(ConnectorSession.from_env(self.env), 'procurement.sale.link', context)
+
+    @api.model
+    def update_table_model(self):
         self.search([]).unlink()
         query = """WITH procurements_no_sol AS (
       SELECT
