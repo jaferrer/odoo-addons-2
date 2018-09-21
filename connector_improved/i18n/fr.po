@@ -58,3 +58,8 @@ msgstr "Utilisateurs connecteurs"
 #: model:res.groups,name:connector_improved.group_connector_real_manager
 msgid "Connector Administrator"
 msgstr "Administrateur connecteurs"
+
+#. module: connector_improved
+#: field:queue.job,date_requeued:0
+msgid "Requeued at"
+msgstr "Remis en queue à"

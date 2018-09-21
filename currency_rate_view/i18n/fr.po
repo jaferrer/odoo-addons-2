@@ -1,0 +1,22 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* currency_rate_view
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-05-26 15:23+0000\n"
+"PO-Revision-Date: 2017-05-26 15:23+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: currency_rate_view
+#: model:ir.actions.act_window,name:currency_rate_view.act_view_currency_rates
+#: model:ir.ui.menu,name:currency_rate_view.meny_currency_rates
+msgid "Currency Rates"
+msgstr "Taux de conversion"

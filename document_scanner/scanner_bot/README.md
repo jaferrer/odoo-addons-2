@@ -1,11 +1,15 @@
 ## COMPILATION DU BOT
 # Requirement
 
-PyScanLib du repo ndp-systeme
+PyScanLib du repo ndp-systemes
 
 Pillow
 
 PyPDF2
+
+fpdf
+
+twain (telecharger EXE)
 
 # PyScanLib
 Exécuter ces commandes pour pouvoir compiler le bot

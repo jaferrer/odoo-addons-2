@@ -179,7 +179,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
 
             encoded_request = xml_post_parameter.encode('utf-8')
             headers = {"Content-Type": "text/xml; charset=UTF-8",
-                       "Content-Length": len(encoded_request)}
+                       "Content-Length": str(len(encoded_request))}
             response = requests.post(url="https://ws.colissimo.fr/sls-ws/SlsServiceWS?wsdl",
                                      headers = headers,
                                      data = encoded_request,

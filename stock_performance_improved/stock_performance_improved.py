@@ -179,8 +179,11 @@ class stock_pack_operation(models.Model):
 
     @api.multi
     def sort_operations_for_transfer(self):
-        return sorted(self, key=lambda x: ((x.package_id and not x.product_id) and -4 or 0) +
-                                          (x.package_id and -2 or 0) + (x.lot_id and -1 or 0))
+        return sorted(self, key=lambda x: x._sort_operations_for_transfer_value())
+
+    @api.multi
+    def _sort_operations_for_transfer_value(self):
+        return ((self.package_id and not self.product_id) and -4 or 0) + (self.package_id and -2 or 0) + (self.lot_id and -1 or 0)
 
 
 class StockPicking(models.Model):
@@ -800,6 +803,8 @@ class StockMove(models.Model):
                                           help="If checked, the stock move will be assigned to a picking only if there "
                                                "is available quants in the source location. Otherwise, it will be "
                                                "assigned a picking as soon as the move is confirmed.")
+    origin_returned_move_id = fields.Many2one('stock.move', index=True)
+    split_from = fields.Many2one('stock.move', index=True)
 
     @api.multi
     def _picking_assign(self, procurement_group, location_from, location_to):

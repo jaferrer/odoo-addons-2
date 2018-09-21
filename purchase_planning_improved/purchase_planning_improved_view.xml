@@ -10,7 +10,7 @@
             <field name="arch" type="xml">
                 <data>
                     <field name="origin" position="after">
-                        <field name="limit_order_date" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                        <field name="limit_order_date" attrs="{'invisible': [('state', 'not in', ['draft','send','bid','confirmed'])]}"/>
                     </field>
                     <xpath expr="//field[@name='order_line']//field[@name='date_planned']" position="before">
                         <field name="has_procurements" invisible="1"/>

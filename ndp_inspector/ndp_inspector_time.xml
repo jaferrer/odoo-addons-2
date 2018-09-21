@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="ndp_logging_time_tree">
+            <field name="name">ndp_logging_time_tree</field>
+            <field name="model">ndp.logging.time</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" delete="false">
+                    <field name="model_name"/>
+                    <field name="model_id"/>
+                    <field name="method"/>
+                    <field name="time_take"/>
+                    <field name="user_id"/>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                    <field name="type_call"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="ndp_logging_time_tree_search" model="ir.ui.view">
+            <field name="name">ndp_logging_time_tree_search</field>
+            <field name="model">ndp.logging.time</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="model_name"/>
+                    <field name="model_id"/>
+                    <field name="method"/>
+                    <field name="time_take"/>
+                    <field name="user_id"/>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                    <field name="type_call"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Par model" name="group_model_id" domain="[]" context="{'group_by': 'model_id'}"/>
+                        <filter string="Par method" name="group_method" domain="[]" context="{'group_by': 'method'}"/>
+                        <filter string="Par Utilisateur" name="group_user_id" domain="[]" context="{'group_by': 'user_id'}"/>
+                        <filter string="Par Mois" name="group_user_id" domain="[]" context="{'group_by': 'date_start:month'}"/>
+                        <filter string="Par Type" name="group_type_call" domain="[]" context="{'group_by': 'type_call'}"/>
+                    </group>
+                    <filter string="- 1min" domain="[('time_take', '&lt;', 60)]"/>
+                    <filter string="+ 1min" domain="[('time_take', '&gt;=', 60)]"/>
+                    <filter string="+ 2min" domain="[('time_take', '&gt;=', 120)]"/>
+                    <filter string="+ 5min" domain="[('time_take', '&gt;=', 300)]"/>
+                    <filter string="+ 10min" domain="[('time_take', '&gt;=', 600)]"/>
+                    <filter name="last_month" string="Mois dernier"
+                            domain="[('date_start', '=', ((context_today()+relativedelta(months=-1)).strftime('%%Y-%%m-%%d 00:00:00')))]"/>
+                    <filter name="current_month" string="Mois en cours"
+                            domain="[('date_start', '=', (context_today().strftime('%%Y-%%m-%%d 00:00:00')))]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_odoo_script_watcher">
+            <field name="name">Ndp Logging</field>
+            <field name="res_model">ndp.logging.time</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"></field>
+        </record>
+
+        <menuitem id="menu_odoo_script_watcher" name="Ndp Logging" action="act_window_odoo_script_watcher"
+                  parent="base.menu_custom" sequence="6"/>
+
+    </data>
+</openerp>

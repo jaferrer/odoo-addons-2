@@ -24,8 +24,23 @@
             <field name="model">stock.scheduler.controller</field>
             <field name="function">update_scheduler_controller</field>
             <field name="args"/>
-
         </record>
+
+        <record model="ir.cron" id="job_clean_scheduler_controller_lines">
+            <field name="name">Delete old scheduler controller lines</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall">2016-10-31 05:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">stock.scheduler.controller</field>
+            <field name="function">clean_scheduler_controller_lines</field>
+            <field name="args"/>
+        </record>
+
     </data>
 
 </openerp>
