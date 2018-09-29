@@ -38,3 +38,16 @@ class ActServer(models.Model):
     _inherit = 'ir.actions.server'
 
     groups_id = fields.Many2many('res.groups', string=u"Groups")
+
+
+class ActWindow(models.Model):
+    _inherit = 'ir.actions.act_window'
+
+    groups_id = fields.Many2many('res.groups', string=u"Groups")
+
+
+
+class ActReport(models.Model):
+    _inherit = 'ir.actions.report.xml'
+
+    groups_id = fields.Many2many('res.groups', string=u"Groups")
