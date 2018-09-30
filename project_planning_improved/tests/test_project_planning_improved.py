@@ -281,14 +281,39 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.project_task_1.expected_start_date, '2017-09-05 08:00:00')
         self.assertEqual(self.project_task_1.expected_end_date, '2017-09-05 18:00:00')
         self.assertFalse(self.parent_task_0.taken_into_account)
+
+    def test_61_reschedule_and_raise_because_tia_parent(self):
+        """Testing the automatic rescheduling of next and previous tasks during manual moves of parent tasks"""
+
+        self.schedule_from_task_3()
+
+        self.parent_task_0.expected_start_date = '2017-08-15 18:00:00'
+        self.env.invalidate_all()
+        self.assertEqual(self.parent_task_0.expected_start_date, '2017-08-16 08:00:00')
+        self.assertEqual(self.parent_task_0.expected_end_date, '2017-09-05 18:00:00')
+        self.assertEqual(self.project_task_1.expected_start_date, '2017-09-05 08:00:00')
+        self.assertEqual(self.project_task_1.expected_end_date, '2017-09-05 18:00:00')
+        self.assertFalse(self.parent_task_0.taken_into_account)
         self.parent_task_0.taken_into_account = True
         with self.assertRaises(UserError):
             self.parent_task_3.expected_end_date = '2017-07-11 14:00:00'
-        self.parent_task_3.taken_into_account = True
-        self.env.invalidate_all()
 
+    def test_62_reschedule_and_raise_because_tia_parent(self):
+        """Testing the automatic rescheduling of next and previous tasks during manual moves of parent tasks"""
+
+        self.schedule_from_task_3()
+
+        self.parent_task_0.expected_start_date = '2017-08-15 18:00:00'
+        self.env.invalidate_all()
+        self.assertEqual(self.parent_task_0.expected_start_date, '2017-08-16 08:00:00')
+        self.assertEqual(self.parent_task_0.expected_end_date, '2017-09-05 18:00:00')
+        self.assertEqual(self.project_task_1.expected_start_date, '2017-09-05 08:00:00')
+        self.assertEqual(self.project_task_1.expected_end_date, '2017-09-05 18:00:00')
+        self.assertFalse(self.parent_task_0.taken_into_account)
+        self.parent_task_0.taken_into_account = True
+        self.parent_task_3.taken_into_account = True
         with self.assertRaises(UserError):
-            self.project_task_11.expected_end_date = '2017-09-28 18:00:00'
+            self.project_task_11.expected_end_date = '2017-10-20 18:00:00'
 
     def test_70_reschedule_children_tasks(self):
         """Testing the automatic rescheduling of children tasks during manual moves"""
@@ -332,7 +357,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.parent_task_1.expected_start_date, '2017-08-30 08:00:00')
         self.assertEqual(self.parent_task_1.expected_end_date, '2017-09-08 18:00:00')
 
-    def test_80_reschedule_task_not_working_hour(self):
+    def test_80_early_start_date(self):
         """Testing the manual scheduling of tasks out of working periods"""
 
         self.schedule_from_task_3()
@@ -341,6 +366,14 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertTrue(self.project_task_3.taken_into_account)
         with self.assertRaises(UserError):
             self.project_task_3.expected_start_date = '2017-09-04 02:00:00'
+
+    def test_81_reschedule_start_date_in_weekend(self):
+        """Testing the manual scheduling of tasks out of working periods"""
+
+        self.schedule_from_task_3()
+
+        # We try to set a start date early in the morning
+        self.assertTrue(self.project_task_3.taken_into_account)
         self.project_task_3.taken_into_account = False
         self.project_task_3.expected_start_date = '2017-09-04 02:00:00'
         self.project_task_3.taken_into_account = True
@@ -350,9 +383,37 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         # We try to set a start date during a weekend
         with self.assertRaises(UserError):
             self.project_task_3.expected_start_date = '2017-09-03 15:00:00'
+
+    def test_82_reschedule_start_date_in_weekend(self):
+        """Testing the manual scheduling of tasks out of working periods"""
+
+        self.schedule_from_task_3()
+
+        # We try to set a start date early in the morning
+        self.assertTrue(self.project_task_3.taken_into_account)
+        self.project_task_3.taken_into_account = False
+        self.project_task_3.expected_start_date = '2017-09-04 02:00:00'
+        self.project_task_3.taken_into_account = True
+        self.env.invalidate_all()
+        self.assertEqual(self.project_task_3.expected_start_date, '2017-09-04 08:00:00')
+
+        # We try to set a start date during a weekend
         with self.assertRaises(ValidationError):
             self.project_task_3.taken_into_account = False
             self.project_task_3.expected_start_date = '2017-09-03 15:00:00'
+
+    def test_83_reschedule_start_date_in_weekend(self):
+        """Testing the manual scheduling of tasks out of working periods"""
+
+        self.schedule_from_task_3()
+
+        # We try to set a start date early in the morning
+        self.assertTrue(self.project_task_3.taken_into_account)
+        self.project_task_3.taken_into_account = False
+        self.project_task_3.expected_start_date = '2017-09-04 02:00:00'
+        self.project_task_3.taken_into_account = True
+        self.env.invalidate_all()
+        self.assertEqual(self.project_task_3.expected_start_date, '2017-09-04 08:00:00')
 
         # We try to set a end date late in the evening
         self.project_task_10.expected_end_date = '2017-09-15 22:00:00'
@@ -424,6 +485,12 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.project_task_10.expected_end_date, '2017-10-23 18:00:00')
         self.assertEqual(self.project_task_11.expected_start_date, '2017-10-16 08:00:00')
         self.assertEqual(self.project_task_11.expected_end_date, '2017-10-24 18:00:00')
+
+    def test_92_reschedule_and_raise_because_tia(self):
+        self.schedule_from_task_3()
+        self.assertTrue(self.project_task_3.taken_into_account)
+        with self.assertRaises(UserError):
+            self.project_task_1.expected_end_date = '2017-09-06 18:00:00'
 
     def test_95_reference_task_modification(self):
         self.test_project.reference_task_id = self.project_task_3
