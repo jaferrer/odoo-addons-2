@@ -32,7 +32,6 @@ openerp.web_action_top_button = function(instance){
 
         add_toolbar: function(toolbar) {
             var self = this;
-            console.log(self.view.ViewManager.flags.hide_default_sidebar_buttons);
             if(self.view.ViewManager.flags.hide_default_sidebar_buttons){
                 self.items.other = [];
                 self.items.print = [];
