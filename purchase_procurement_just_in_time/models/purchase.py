@@ -571,7 +571,8 @@ class PurchaseOrderLineJustInTime(models.Model):
                     next_proc = self.env['procurement.order'].search([
                         ('state', 'not in', ['confirmed', 'done', 'cancel', 'exception']),
                         ('product_id', '=', last_proc.product_id.id),
-                        ('location_id', '=', last_proc.location_id.id)
+                        ('location_id', '=', last_proc.location_id.id),
+                        ('date_planned', '>=', fields.Datetime.now())
                     ], order='date_planned asc', limit=1)
                     rec.write({'covering_date': next_proc.date_planned,
                                'covering_state': next_proc.date_planned and 'all_covered' or 'coverage_computed'

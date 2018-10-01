@@ -248,8 +248,11 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
         if self.env.cr.fetchall():
             raise RetryableJobError(u"Impossible to launch purchase scheduler when stock scheduler is running",
                                     seconds=1200)
+        sellers_to_compute_ids = compute_all_products and \
+                                 self.env['res.partner'].search([('supplier', '=', True)]).ids or \
+                                 compute_supplier_ids or []
+        dict_proc_sellers = {seller_id: [] for seller_id in sellers_to_compute_ids}
         self.env.cr.execute(QUERY_PROCS_BY_SELLER)
-        dict_proc_sellers = {}
         for item in self.env.cr.fetchall():
             if compute_all_products or compute_supplier_ids and item[1] in compute_supplier_ids or compute_product_ids \
                     and item[4] in compute_product_ids:
