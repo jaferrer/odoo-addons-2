@@ -32,6 +32,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.company.write({'po_lead': 5})
         self.supplier = self.browse_ref('purchase_procurement_just_in_time.supplier1')
         self.supplier2 = self.browse_ref('purchase_procurement_just_in_time.supplier2')
+        self.supplier_no_order = self.browse_ref('purchase_procurement_just_in_time.supplier_no_order')
         self.product1 = self.browse_ref('purchase_procurement_just_in_time.product1')
         self.product2 = self.browse_ref('purchase_procurement_just_in_time.product2')
         self.supplierinfo2 = self.browse_ref('purchase_procurement_just_in_time.supplierinfo2')
@@ -1030,3 +1031,14 @@ class TestPurchaseScheduler(common.TransactionCase):
         date = first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
         self.assertTrue(date)
         self.assertEqual(date[:10], fields.Date.today())
+
+    def test_40_delete_order_no_proc(self):
+        order_id = self.env['purchase.order'].create({
+            'partner_id': self.supplier_no_order.id,
+            'location_id': self.location_a.id,
+            'pricelist_id': self.ref('purchase.list0')
+        }).id
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                            compute_supplier_ids=self.supplier_no_order,
+                                                            jobify=False)
+        self.assertNotIn(order_id, self.env['purchase.order'].search([]).ids)
