@@ -70,6 +70,19 @@ class ReceptionByOrderStockPackOperation(models.Model):
         return (self.sale_line_id and -16 or 0) + super(ReceptionByOrderStockPackOperation, self). \
             _sort_operations_for_transfer_value()
 
+    @api.multi
+    def _get_move_data_from_prod2move_ids(self, prod2move_ids):
+        result = super(ReceptionByOrderStockPackOperation, self)._get_move_data_from_prod2move_ids(prod2move_ids)
+        filtred_result = result
+        op_sale_line = self.ensure_one().sale_line_id
+        if op_sale_line:
+            filtred_result = []
+            for res in result:
+                if res.get('sale_line_id') == op_sale_line.id:
+                    filtred_result.append(res)
+        return filtred_result
+
+
 
 class ExpeditionByOrderLinePicking(models.Model):
     _inherit = 'stock.picking'
@@ -152,9 +165,11 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         for move in move_with_sale_lines:
             if move.product_id and move.sale_line_id.id not in processed_sale_lines:
                 uom = move.sale_line_id.product_uom
-                sum_quantities_moves_on_line = sum([sm.product_qty for sm in move_with_sale_lines if
+                sum_quantities_moves_on_line = sum([sum([sq.qty for sq in sm.reserved_quant_ids])
+                                                    for sm in move_with_sale_lines if
                                                     sm.sale_line_id == move.sale_line_id and
-                                                    sm.product_id == move.product_id])
+                                                    sm.product_id == move.product_id and
+                                                    sm.state not in ['done', 'cancel']])
                 sum_quantities_moves_on_line = self.env['product.uom']. \
                     _compute_qty(move.product_id.uom_id.id, sum_quantities_moves_on_line, uom.id)
                 global_qty_to_remove = sum_quantities_moves_on_line
