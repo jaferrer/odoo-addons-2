@@ -141,6 +141,10 @@
                     <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="before">
                         <field name="line_no"/>
                     </xpath>
+                    <xpath expr="//field[@name='order_line']//field[@name='state']" position="before">
+                        <field name="covering_date"/>
+                        <field name="covering_state"/>
+                    </xpath>
                     <xpath expr="//notebook/page[@string='Deliveries &amp; Invoices']/group" position="inside">
                         <group>
                             <field name="date_order" required="1"/>
