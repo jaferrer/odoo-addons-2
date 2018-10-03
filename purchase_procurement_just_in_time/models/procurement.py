@@ -621,7 +621,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             # (if we ignore past procurements, past ones are already removed)
             line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
             line_vals['covering_date'] = next_proc_group_planned_date
-            line_vals['covering_state'] = next_proc_group_planned_date and 'all_covered' or 'coverage_computed'
+            line_vals['covering_state'] = next_proc_group_planned_date and 'coverage_computed' or 'all_covered'
             forbid_creation = bool(seller.nb_max_draft_orders)
             draft_order = first_proc.with_context(forbid_creation=forbid_creation). \
                 get_corresponding_draft_order(seller, purchase_date)

@@ -169,14 +169,14 @@ class TestPurchaseScheduler(common.TransactionCase):
         for line in purchase1.order_line:
             if line.product_id == self.product1:
                 self.assertEqual('3003-09-14 17:00:00', line.covering_date)
-                self.assertEqual('all_covered', line.covering_state)
+                self.assertEqual('coverage_computed', line.covering_state)
             if line.product_id == self.product2:
                 self.assertFalse(line.covering_date)
-                self.assertEqual('coverage_computed', line.covering_state)
+                self.assertEqual('all_covered', line.covering_state)
         self.assertFalse(purchase3.order_line.covering_date)
-        self.assertEqual('coverage_computed', purchase3.order_line.covering_state)
+        self.assertEqual('all_covered', purchase3.order_line.covering_state)
         self.assertEqual('3003-09-22 15:00:00', purchase5.order_line.covering_date)
-        self.assertEqual('all_covered', purchase5.order_line.covering_state)
+        self.assertEqual('coverage_computed', purchase5.order_line.covering_state)
 
         # Let's change a date and reschedule
         self.proc1.date_planned = '3003-09-23 12:00:00'
@@ -205,9 +205,9 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase5.date_order_max, '3003-09-04 23:59:59')
 
         self.assertFalse(purchase1.order_line.covering_date)
-        self.assertEqual('coverage_computed', purchase1.order_line.covering_state)
+        self.assertEqual('all_covered', purchase1.order_line.covering_state)
         self.assertEqual('3003-09-22 15:00:00', purchase2.order_line.covering_date)
-        self.assertEqual('all_covered', purchase2.order_line.covering_state)
+        self.assertEqual('coverage_computed', purchase2.order_line.covering_state)
 
     def test_11_schedule_a_limited_number_of_orders(self):
         """Test of purchase order creation from scratch when nb_max_draft_orders is defined for the suplier."""
