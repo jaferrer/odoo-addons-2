@@ -292,9 +292,9 @@ class ProjectImprovedTask(models.Model):
     allocated_duration = fields.Float(string=u"Allocated duration", help=u"In project time unit of the company")
     allocated_duration_unit_tasks = fields.Float(string=u"Allocated duration for unit tasks",
                                                  help=u"In project time unit of the comany",
-                                                 compute='_get_allocated_duration', store=True)
+                                                 compute='_get_allocated_duration')
     total_allocated_duration = fields.Integer(string=u"Total allocated duration", compute='_get_allocated_duration',
-                                              help=u"In project time unit of the comany", store=True)
+                                              help=u"In project time unit of the comany")
     taken_into_account = fields.Boolean(string=u"Taken into account")
     conflict = fields.Boolean(string=u"Conflict")
     is_milestone = fields.Boolean(string="Is milestone", compute="_get_is_milestone", store=True, default=False)
