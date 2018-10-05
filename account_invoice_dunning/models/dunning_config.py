@@ -16,30 +16,12 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-{
-    'name': 'Account Invoice Dunning',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Init',
-    'depends': ['report_aeroo',
-                'account'
-                ],
-    'description': """
-Account Invoice Dunning
-=======================
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'demo': [],
-    'test': [],
-    'data': ['security/ir.model.access.csv',
-             'data/cron.xml',
-             'views/dunning.xml',
-             'views/dunning_type.xml',
-             'views/dunning_invoice_link.xml',
-             'views/dunning_config_settings_views.xml',
-             ],
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+
+from odoo import fields, models
+
+
+class AccountInvoiceDunningConfigSettings(models.TransientModel):
+    _inherit = 'account.config.settings'
+
+    sending_validity_duration = fields.Integer(
+        related='company_id.sending_validity_duration', string=u"Duration of validity of the sendings")
