@@ -570,13 +570,12 @@ class PurchaseOrderLineJustInTime(models.Model):
         for rec in self:
             last_proc = self.env['procurement.order'].search([('id', 'in', rec.procurement_ids.ids)],
                                                              order='date_planned desc', limit=1)
-            print 1/0
             if last_proc:
                 next_proc = self.env['procurement.order'].search([
                     ('state', 'not in', ['confirmed', 'done', 'cancel', 'exception']),
                     ('product_id', '=', last_proc.product_id.id),
                     ('location_id', '=', last_proc.location_id.id),
-                    ('date_planned', '>=', last_proc.date_planned)
+                    ('date_planned', '>', last_proc.date_planned)
                 ], order='date_planned asc', limit=1)
                 rec.write({
                     'covering_date': next_proc.date_planned,
