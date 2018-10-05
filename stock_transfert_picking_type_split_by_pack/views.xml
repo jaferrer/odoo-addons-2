@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="stock_transfert_picking_recep_split_pack_form">
+            <field name="name">reception_by_order_picking_split_by_pack_form</field>
+            <field name="model">stock.transfer_details</field>
+            <field name="inherit_id" ref="stock_transfert_picking_type.stock_transfer_details_form_picking_type"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='item_reception_ids']//tree//field[@name='quantity']" position="after">
+                    <button name="open_split_dialog" type="object" string="Split By Pack" icon="STOCK_CUT"/>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</openerp>

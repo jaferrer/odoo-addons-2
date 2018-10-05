@@ -26,10 +26,10 @@
                     <field name="date_required" readonly="1"/>
                     <field name="requested_date"/>
                     <field name="date_planned"/>
-                    <field name="ack_ref"/>
-                    <field name="date_ack"/>
                     <field name="covering_date"/>
                     <field name="covering_state"/>
+                    <field name="ack_ref"/>
+                    <field name="date_ack"/>
                     <field name="opmsg_text" readonly="1"/>
                     <field name="price_unit" readonly="1"/>
                     <field name="opmsg_reduce_qty" invisible="1"/>
@@ -140,6 +140,10 @@
                     <field name="date_order" position="replace"/>
                     <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="before">
                         <field name="line_no"/>
+                    </xpath>
+                    <xpath expr="//field[@name='order_line']//field[@name='state']" position="before">
+                        <field name="covering_date"/>
+                        <field name="covering_state"/>
                     </xpath>
                     <xpath expr="//notebook/page[@string='Deliveries &amp; Invoices']/group" position="inside">
                         <group>

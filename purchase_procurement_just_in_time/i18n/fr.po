@@ -947,7 +947,7 @@ msgstr "État de couverture"
 #. module: sirail_logistique
 #: selection:purchase.order.line,covering_state:0
 msgid "All Need Covered"
-msgstr "Tous besoin couvert"
+msgstr "Tous besoins couverts"
 
 #. module: sirail_logistique
 #: selection:purchase.order.line,covering_state:0
