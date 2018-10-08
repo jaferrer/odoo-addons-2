@@ -19,6 +19,15 @@
 
 from openerp import models, fields, api, exceptions, _
 from openerp.tools import float_compare
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+
+@job
+def job_update_sale_procurement_links(session, model_name, context):
+    model = session.env[model_name].with_context(context)
+    model.update_table_model()
+    return "Procurements/Sale links updated."
 
 
 class ExpeditionByOrderLineProcurementOrder(models.Model):
@@ -73,6 +82,11 @@ class ProcurementSaleLink(models.Model):
 
     @api.model
     def update_table(self):
+        context = dict(self.env.context)
+        job_update_sale_procurement_links.delay(ConnectorSession.from_env(self.env), 'procurement.sale.link', context)
+
+    @api.model
+    def update_table_model(self):
         self.search([]).unlink()
         query = """WITH procurements_no_sol AS (
       SELECT
@@ -81,8 +95,7 @@ class ProcurementSaleLink(models.Model):
         po.product_id,
         po.product_qty,
         po.product_uom,
-        po.scheduled_for_sale_line_id,
-        po.sale_id
+        po.scheduled_for_sale_line_id
       FROM procurement_order po
         LEFT JOIN stock_move sm ON sm.state NOT IN ('draft', 'done', 'cancel') AND sm.id = po.move_dest_id
         LEFT JOIN stock_picking_type spt ON spt.id = sm.picking_type_id
@@ -103,8 +116,7 @@ class ProcurementSaleLink(models.Model):
           sol.product_id,
           COALESCE(sol.procurements_not_scheduled_qty, 0) AS product_qty,
           sol.product_uom,
-          sol.id                             AS scheduled_for_sale_line_id,
-          sol.order_id                       AS sale_id
+          sol.id                             AS scheduled_for_sale_line_id
         FROM sale_order_line sol
           LEFT JOIN sale_order so ON so.id = sol.order_id
           LEFT JOIN product_product pp ON pp.id = sol.product_id

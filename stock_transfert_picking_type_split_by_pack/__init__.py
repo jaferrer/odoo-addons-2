@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,12 +16,3 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-from openerp import models, fields
-
-
-class ProcurementSaleLinkMrp(models.Model):
-    _inherit = 'procurement.sale.link'
-
-    purchase_id = fields.Many2one('purchase.order', string=u"Procurement Purchase Order",
-                                  related='procurement_id.purchase_id', store=True)

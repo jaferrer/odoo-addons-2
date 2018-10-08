@@ -18,33 +18,18 @@
 #
 
 {
-    'name': 'Action Top Buttons For Views',
+    'name': 'Quants Forbid Change revervation',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Dependency',
-    'depends': ['web'],
+    'category': 'Stock',
+    'depends': ['stock'],
     'description': """
-Action Top Buttons For Views
-============================
-This module enables action buttons to be put directly next to "Print" and "More" instead of having them necessarily
-inside those menus.
-
-Usage: set the usage to 'top_button' in an action that you have added to "Print" or "More" menus to have its button
-directly displayed.
-
-You can hide "Print" and "More" buttons. 
-You have to add key 'hide_default_sidebar_buttons' in flags of the act_window
-'flags': {
-    'search_view': True,
-    'sidebar': True,
-    'hide_default_sidebar_buttons': True,
-}
+Quants Forbid Change revervation
+================================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'web_action_top_button.xml',
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,

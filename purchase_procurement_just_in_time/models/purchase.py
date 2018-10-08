@@ -130,10 +130,14 @@ class PurchaseOrderJustInTime(models.Model):
                 tmp.update({
                     'product_uom_qty': rounded_min_qty,
                     'product_uos_qty': rounded_min_qty,
-                    'move_dest_id': procurement.move_dest_id.id,  #move destination is same as procurement destination
-                    'group_id': procurement.group_id.id or group_id,  #move group is same as group of procurements if it exists, otherwise take another group
+                    'move_dest_id': procurement.move_dest_id.id,  # move destination is same as procurement destination
+                    'group_id': procurement.group_id.id or group_id,
+                    # move group is same as group of procurements if it exists, otherwise take another group
                     'procurement_id': procurement.id,
-                    'invoice_state': procurement.rule_id.invoice_state or (procurement.location_id and procurement.location_id.usage == 'customer' and procurement.invoice_state=='2binvoiced' and '2binvoiced') or (order.invoice_method == 'picking' and '2binvoiced') or 'none', #dropship case takes from sale
+                    'invoice_state': procurement.rule_id.invoice_state or (
+                        procurement.location_id and procurement.location_id.usage == 'customer' and procurement.invoice_state == '2binvoiced' and '2binvoiced') or (
+                                         order.invoice_method == 'picking' and '2binvoiced') or 'none',
+                    # dropship case takes from sale
                     'propagate': procurement.rule_id.propagate,
                 })
                 res.append(tmp)
@@ -403,8 +407,8 @@ class PurchaseOrderLineJustInTime(models.Model):
         if result.order_id.state in states_confirmed:
             result.order_id.set_order_line_status('confirmed')
             if float_compare(result.product_qty, 0.0, precision_rounding=result.product_uom.rounding) != 0 and \
-                    not result.move_ids and not self.env.context.get('no_update_moves') and \
-                            result.order_id.state in states_with_moves:
+                not result.move_ids and not self.env.context.get('no_update_moves') and \
+                result.order_id.state in states_with_moves:
                 # We create associated moves
                 self.env['purchase.order']._create_stock_moves(result.order_id, result)
         return result
@@ -497,8 +501,8 @@ class PurchaseOrderLineJustInTime(models.Model):
                              p in self.procurement_ids])
             # We remove procs if there qty is above the line
             for proc in self.procurement_ids. \
-                    sorted(key=lambda m: self.env['product.uom'].
-                    _compute_qty(product.uom_id.id, m.product_qty, uom.id), reverse=True):
+                sorted(key=lambda m: self.env['product.uom'].
+                _compute_qty(product.uom_id.id, m.product_qty, uom.id), reverse=True):
                 if float_compare(vals['product_qty'], sum_procs, precision_rounding=uom.rounding) >= 0:
                     break
                 proc.remove_procs_from_lines()
@@ -564,15 +568,18 @@ class PurchaseOrderLineJustInTime(models.Model):
     @api.multi
     def quick_compute_coverage_state(self):
         for rec in self:
-            if rec.covering_state == 'unknow_coverage':
-                last_proc = self.env['procurement.order'].search([('id', 'in', rec.procurement_ids.ids)],
-                                                                 order='date_planned desc', limit=1)
-                if last_proc:
-                    next_proc = self.env['procurement.order'].search([
-                        ('state', 'not in', ['confirmed', 'done', 'cancel', 'exception']),
-                        ('product_id', '=', last_proc.product_id.id),
-                        ('location_id', '=', last_proc.location_id.id)
-                    ], order='date_planned asc', limit=1)
-                    rec.write({'covering_date': next_proc.date_planned,
-                               'covering_state': next_proc.date_planned and 'all_covered' or 'coverage_computed'
-                               })
+            last_proc = self.env['procurement.order'].search([('id', 'in', rec.procurement_ids.ids)],
+                                                             order='date_planned desc', limit=1)
+            if last_proc:
+                next_proc = self.env['procurement.order'].search([
+                    ('state', 'not in', ['confirmed', 'done', 'cancel', 'exception']),
+                    ('product_id', '=', last_proc.product_id.id),
+                    ('location_id', '=', last_proc.location_id.id),
+                    ('date_planned', '>', last_proc.date_planned)
+                ], order='date_planned asc', limit=1)
+                rec.write({
+                    'covering_date': next_proc.date_planned,
+                    'covering_state': next_proc.date_planned and 'coverage_computed' or 'all_covered'
+                })
+            else:
+                rec.write({'covering_date': False, 'covering_state': 'unknow_coverage'})

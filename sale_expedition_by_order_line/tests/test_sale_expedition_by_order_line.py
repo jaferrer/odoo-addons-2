@@ -41,11 +41,11 @@ class TestSaleExpeditionByOrder(common.TransactionCase):
         self.picking_type_id = self.ref("stock.picking_type_internal")
 
     def get_picking_moves(self):
-        [move1, move2, move3] = [False] * 3
         self.order_1.signal_workflow('order_confirm')
         self.assertEqual(len(self.order_1.picking_ids), 1)
         picking1 = self.order_1.picking_ids
         self.assertEqual(len(picking1.move_lines), 3)
+        move1, move2, move3 = (False, False, False)
         for move in picking1.move_lines:
             if move.sale_line_id == self.order_line_1:
                 move1 = move
@@ -53,15 +53,18 @@ class TestSaleExpeditionByOrder(common.TransactionCase):
                 move2 = move
             elif move.sale_line_id == self.order_line_3:
                 move3 = move
+        self.assertTrue(move1 and move2 and move3)
 
+        for move in picking1.move_lines:
             move.reserved_quant_ids = [(6, 0, [self.env['stock.quant'].create({
                 'product_id': move.product_id.id,
                 'location_id': move.location_id.id,
                 'qty': move.product_qty,
             }).id])]
-            move.state = 'assigned'
-
-        self.assertTrue(move1 and move2 and move3)
+        picking1.action_assign()
+        self.assertEqual(move1.state, 'assigned')
+        self.assertEqual(move2.state, 'assigned')
+        self.assertEqual(move3.state, 'assigned')
 
         return picking1, move1, move2, move3
 
@@ -73,12 +76,13 @@ class TestSaleExpeditionByOrder(common.TransactionCase):
                 packop1 = packop
             elif packop.product_id == self.test_product_1 and packop.sale_line_id == self.order_line_2:
                 packop2 = packop
-            elif packop.product_id == self.test_product_2:
+            elif packop.product_id == self.test_product_2 and packop.sale_line_id == self.order_line_3:
                 packop3 = packop
         self.assertTrue(packop1 and packop2 and packop3)
         return packop1, packop2, packop3
 
     def check_items(self, wizard):
+
         self.assertEqual(len(wizard.item_ids), 3)
         item1 = item2 = item3 = False
         for item in wizard.item_ids:
@@ -127,31 +131,51 @@ class TestSaleExpeditionByOrder(common.TransactionCase):
             })
 
     def test_15_transfer_one_product_on_two_order_lines(self):
-        picking1, move1, move2, _ = self.get_picking_moves()
-
-        move1.product_uom_qty = 10
-        move2.product_uom_qty = 20
-
-        picking1.do_prepare_partial()
-
-        self.assertEqual(len(picking1.pack_operation_ids), 3)
+        picking1, move1, move2, move3 = self.get_picking_moves()
 
         wizard_id = picking1.do_enter_transfer_details()['res_id']
         wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        self.assertEqual(len(picking1.pack_operation_ids), 3)
         self.assertEqual(len(wizard.item_ids), 3)
+        item1 = item2 = item3 = False
+        for item in wizard.item_ids:
+            if item.sale_line_id == self.order_line_1:
+                item1 = item
+            if item.sale_line_id == self.order_line_2:
+                item2 = item
+            if item.sale_line_id == self.order_line_3:
+                item3 = item
+        self.assertTrue(item1 and item2 and item3)
+        self.assertEqual(item1.quantity, 100)
+        self.assertEqual(item2.quantity, 60)
+        self.assertEqual(item3.quantity, 30)
+        item1.quantity = 10
+        item2.quantity = 20
 
         wizard.do_detailed_transfer()
 
-        packop1, packop2, _ = self.check_packops(picking1)
+        packop1, packop2, packop3 = self.check_packops(picking1)
 
         self.assertEqual(packop1.product_qty, 10)
         self.assertEqual(packop2.product_qty, 20)
+        self.assertEqual(packop3.product_qty, 30)
         self.assertEqual(packop1.sale_line_id, self.order_line_1)
         self.assertEqual(packop2.sale_line_id, self.order_line_2)
-        self.assertEqual(move1.state, 'done')
-        self.assertEqual(move2.state, 'done')
-        self.assertEqual(move1.product_qty, 10)
-        self.assertEqual(move2.product_qty, 20)
+        self.assertEqual(packop3.sale_line_id, self.order_line_3)
+
+        old_picking = self.env['stock.picking'].search([('backorder_id', '=', picking1.id)])
+
+        list_to_assert_1 = [[move.product_id, move.product_qty, move.state] for move in self.order_line_1.move_ids]
+        list_to_assert_2 = [[move.product_id, move.product_qty, move.state] for move in self.order_line_2.move_ids]
+        list_to_assert_3 = [[move.product_id, move.product_qty, move.state] for move in self.order_line_3.move_ids]
+        self.assertIn([self.test_product_1, 10, 'done'], list_to_assert_1)
+        self.assertIn([self.test_product_1, 90, 'assigned'], list_to_assert_1)
+        self.assertIn([self.test_product_1, 20, 'done'], list_to_assert_2)
+        self.assertIn([self.test_product_1, 40, 'assigned'], list_to_assert_2)
+        self.assertIn([self.test_product_2, 30, 'done'], list_to_assert_3)
+
+        all_move = self.order_line_1.move_ids + self.order_line_2.move_ids + self.order_line_3.move_ids
+        self.assertEqual(sorted(picking1.move_lines.ids + old_picking.move_lines.ids), sorted(all_move.ids))
 
     def test_20_forbidden_actions_on_products(self):
         picking1, _, _, _ = self.get_picking_moves()
@@ -238,6 +262,82 @@ class TestSaleExpeditionByOrder(common.TransactionCase):
         self.assertEqual(len(new_move), 1)
         self.assertEqual(new_move.product_uom_qty, 40)
         self.assertEqual(new_move.sale_line_id, self.order_line_2)
+
+    def test_50_receive_more_than_forseen_on_line(self):
+        picking1, move1, move2, move3 = self.get_picking_moves()
+        wizard_id = picking1.do_enter_transfer_details()['res_id']
+        wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        item1, item2, item3 = self.check_items(wizard)
+        self.assertEqual(item2.quantity, 60)
+        item2.quantity = 80
+        self.env['stock.transfer_details_items'].create({
+            'transfer_id': wizard.id,
+            'product_id': self.test_product_1.id,
+            'quantity': 40,
+            'product_uom_id': self.unit.id,
+            'sale_line_id': self.order_line_2.id,
+            'sourceloc_id': self.supplier.id,
+            'destinationloc_id': self.stock.id,
+        })
+        wizard.do_detailed_transfer()
+        self.assertEqual(len(self.order_line_1.move_ids), 1)
+        self.assertEqual(self.order_line_1.move_ids.product_uom_qty, 100)
+        self.assertEqual(self.order_line_1.move_ids.state, 'done')
+        self.assertEqual(len(self.order_line_3.move_ids), 1)
+        self.assertEqual(self.order_line_3.move_ids.product_uom_qty, 30)
+        self.assertEqual(self.order_line_3.move_ids.state, 'done')
+        self.assertEqual(len(self.order_line_2.move_ids), 3)
+        self.assertIn((self.test_product_1, 60, 'done'),
+                      [(move.product_id, move.product_uom_qty, move.state) for move in self.order_line_2.move_ids])
+        self.assertIn((self.test_product_1, 20, 'done'),
+                      [(move.product_id, move.product_uom_qty, move.state) for move in self.order_line_2.move_ids])
+        self.assertIn((self.test_product_1, 40, 'done'),
+                      [(move.product_id, move.product_uom_qty, move.state) for move in self.order_line_2.move_ids])
+
+    def test_60_receive_less_than_forseen_on_line(self):
+        picking1, move1, move2, move3 = self.get_picking_moves()
+        wizard_id = picking1.do_enter_transfer_details()['res_id']
+        wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        item1, item2, item3 = self.check_items(wizard)
+        self.assertEqual(item2.quantity, 60)
+        item2.quantity = 10
+        self.env['stock.transfer_details_items'].create({
+            'transfer_id': wizard.id,
+            'product_id': self.test_product_1.id,
+            'quantity': 40,
+            'product_uom_id': self.unit.id,
+            'sale_line_id': self.order_line_2.id,
+            'sourceloc_id': self.supplier.id,
+            'destinationloc_id': self.stock.id,
+        })
+        wizard.do_detailed_transfer()
+
+        # Let's check pack operations
+        self.assertEqual(len(picking1.pack_operation_ids), 4)
+        data_packop_to_test = [(op.product_id, op.sale_line_id, op.product_qty) for op in picking1.pack_operation_ids]
+        self.assertIn((self.test_product_1, self.order_line_1, 100), data_packop_to_test)
+        self.assertIn((self.test_product_1, self.order_line_2, 10), data_packop_to_test)
+        self.assertIn((self.test_product_1, self.order_line_2, 40), data_packop_to_test)
+        self.assertIn((self.test_product_2, self.order_line_3, 30), data_packop_to_test)
+
+        # Let's check backorder
+        backorder = self.env['stock.picking'].search([('backorder_id', '=', picking1.id)])
+        self.assertEqual(len(backorder), 1)
+        self.assertEqual(len(backorder.move_lines), 1)
+        self.assertEqual(backorder.move_lines.product_uom_qty, 10)
+        self.assertEqual(backorder.move_lines.product_id, self.test_product_1)
+        self.assertEqual(backorder.move_lines.sale_line_id, self.order_line_2)
+
+        self.assertEqual(len(self.order_line_1.move_ids), 1)
+        self.assertEqual(self.order_line_1.move_ids.product_uom_qty, 100)
+        self.assertEqual(self.order_line_1.move_ids.state, 'done')
+        self.assertEqual(len(self.order_line_2.move_ids), 2)
+        self.assertIn((50, picking1, 'done'), [(move.product_uom_qty, move.picking_id, move.state) for
+                                               move in self.order_line_2.move_ids])
+        self.assertIn((10, backorder), [(move.product_uom_qty, move.picking_id) for move in self.order_line_2.move_ids])
+        self.assertEqual(len(self.order_line_3.move_ids), 1)
+        self.assertEqual(self.order_line_3.move_ids.product_uom_qty, 30)
+        self.assertEqual(self.order_line_3.move_ids.state, 'done')
 
     def test_70_check_operation_links(self):
 
