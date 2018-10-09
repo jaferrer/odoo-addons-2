@@ -17,13 +17,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, exceptions, api, _
-from openerp.tools import float_compare
 from datetime import datetime
+
+import openerp.addons.decimal_precision as dp
 from dateutil import relativedelta
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
+
+from openerp import models, fields, exceptions, api, _
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp.tools import float_compare
 
 
 @job
@@ -276,8 +279,8 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
 
     procurement_ids = fields.One2many('procurement.order', 'sale_line_id', readonly=True)
     move_ids = fields.One2many('stock.move', 'sale_line_id', readonly=True)
-    remaining_qty = fields.Float(u"Qty Still To Be Sent")
-    sent_qty = fields.Float(u"Quantity Already Sent")
+    remaining_qty = fields.Float(u"Qty Still To Be Sent", digits_compute=dp.get_precision('Product UoS'))
+    sent_qty = fields.Float(u"Quantity Already Sent", digits_compute=dp.get_precision('Product UoS'))
 
     @api.multi
     def get_running_moves_to_customer_for_line(self):
