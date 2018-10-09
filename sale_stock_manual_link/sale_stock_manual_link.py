@@ -21,6 +21,7 @@ from openerp import models, fields, api, exceptions, _
 from openerp.tools import float_compare
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
+import openerp.addons.decimal_precision as dp
 
 
 @job
@@ -40,7 +41,8 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
     procurements_not_scheduled_qty = fields.Float(string=u"Procurement orders missing quantity",
-                                                  compute='_compute_procurements_not_scheduled_qty', store=True)
+                                                  compute='_compute_procurements_not_scheduled_qty', store=True,
+                                                  digits_compute=dp.get_precision('Product UoS'))
     scheduled_procurement_ids = fields.One2many('procurement.order', 'scheduled_for_sale_line_id',
                                                 string=u"Procurement orders scheduled for this line")
 
