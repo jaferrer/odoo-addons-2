@@ -196,7 +196,7 @@ GROUP BY pol.id""", (tuple(ids),))
         """write method overridden here to propagate date_planned to the stock_moves of the receipt."""
         if vals.get('date_planned'):
             for line in self:
-                if line.state == "draft" and vals.get('status', 'draft') == 'draft':
+                if vals.get('stats', line.state) == 'draft':
                     vals['requested_date'] = vals['date_planned']
         result = super(PurchaseOrderLinePlanningImproved, self).write(vals)
         if vals.get('date_planned'):
