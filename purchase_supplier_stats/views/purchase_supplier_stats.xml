@@ -2,8 +2,8 @@
 <openerp>
     <data>
 
-        <record model="ir.ui.view" id="purchase_supplier_stats_vue_form">
-            <field name="name">Commande</field>
+        <record model="ir.ui.view" id="purchase_supplier_stats_form_view">
+            <field name="name">purchase_supplier_stats_vue_form</field>
             <field name="model">res.partner</field>
             <field name="inherit_id" ref="base.view_partner_form"/>
             <field name="priority" eval="16"/>
