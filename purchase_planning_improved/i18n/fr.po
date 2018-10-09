@@ -136,6 +136,7 @@ msgstr "Date de besoin"
 
 #. module: purchase_planning_improved
 #: field:purchase.order.line,confirm_date:0
+#: field:purchase.order,confirm_date:0
 msgid "Confirmation Date"
 msgstr "Date de confirmation"
 
