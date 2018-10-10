@@ -74,7 +74,7 @@ class MrpWorkorder(models.Model):
             res.append((rec.id, "%s - %s" % (rec.production_id.name, rec.name)))
         return res
 
-    def _compute_duration(self):
+    def _get_expected_duration(self, date_start=None, date_end=None):
         res = max(self.duration_expected / 60.0, self.workcenter_id.min_wo_duration)
         return res
 
@@ -99,7 +99,8 @@ class MrpWorkorder(models.Model):
                     if rec.production_id.date_planned_start > vals['date_planned_start']:
                         rec.production_id.date_planned_start = vals['date_planned_start']
                 dps = fields.Datetime.from_string(vals['date_planned_start'])
-                dpf = rec.workcenter_id.schedule_working_hours(rec._compute_duration(), dps)
+                dpf = rec.workcenter_id.schedule_working_hours(
+                    rec._get_expected_duration(vals['date_planned_start'], vals.get('date_planned_finished')), dps)
                 vals['date_planned_finished'] = fields.Datetime.to_string(dpf)
 
             if 'date_planned_finished' in vals:
@@ -131,7 +132,6 @@ class MrpWorkcenter(models.Model):
                                          u"schedule production work orders.") % self.name)
 
         available_intervals = calendar.schedule_hours(nb_hours, date, compute_leaves=True)
-        target_date = None
         if nb_hours == 0:
             if zero_backwards:
                 prev_date = self.schedule_working_hours(-1, date)
