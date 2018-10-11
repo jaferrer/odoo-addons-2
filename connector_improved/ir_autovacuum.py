@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,5 +17,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import connector_improved
-from . import ir_autovacuum
+from openerp import models, api
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+
+@job
+def job_power_on(session, model_name, context=None):
+    model = session.env[model_name].with_context(context)
+    model.power_on()
+    return u"Auto-vacuum done"
+
+
+class ConnectorImprovedIrAutovacuum(models.TransientModel):
+    _inherit = 'ir.autovacuum'
+
+    @api.model
+    def launch_job_power_on(self):
+        job_power_on.delay(ConnectorSession.from_env(self.env), 'ir.autovacuum', context=self.env.context.copy(),
+                  description=u"Auto-vacuum internal data")
