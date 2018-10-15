@@ -46,15 +46,12 @@ class MrpBomLine(models.Model):
 
     @api.model
     def cron_compute_father_line_ids(self):
-        print 'cron_compute_father_line_ids'
         job_compute_father_line_ids.delay(ConnectorSession.from_env(self.env), 'mrp.bom.line',
                                               dict(self.env.context), description=u"Update father lines for bom lines")
 
     @api.model
     def compute_father_line_ids(self):
-        print 'compute_father_line_ids'
         self.env.cr.execute("""TRUNCATE mrp_bom_lines_father_rel;""")
-        print 'truncated'
         self.env.cr.execute("""INSERT INTO mrp_bom_lines_father_rel
 (child_id,
 father_id)
@@ -82,7 +79,6 @@ FROM mrp_bom_line line
                                               parent_line.product_tmpl_id = bom.product_tmpl_id)
   INNER JOIN mrp_bom_restricted bom_restricted ON bom_restricted.id = parent_line.bom_id
 GROUP BY line.id, parent_line.id;""")
-        print 'populated'
 
 
 class ProductProduct(models.Model):
