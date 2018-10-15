@@ -65,7 +65,9 @@ class IrValues(models.Model):
             if view_ref:
                 if '.' in view_ref:
                     module, view_ref = view_ref.split('.', 1)
-                    self.env.execute("SELECT res_id FROM ir_model_data WHERE model='ir.ui.view' AND module=%s AND name=%s", (module, view_ref))
+                    self.env.cr.execute("""SELECT res_id
+FROM ir_model_data
+WHERE model = 'ir.ui.view' AND module = %s AND name = %s""", (module, view_ref))
                     view_ref_res = self.env.cr.fetchone()
                     if view_ref_res:
                         view_id = view_ref_res[0]
