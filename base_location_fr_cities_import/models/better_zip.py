@@ -18,15 +18,20 @@
 #
 
 import urllib
-from odoo import models, api
+from odoo import models, fields, api
 
 
 class BetterZipWithUpdate(models.Model):
     _inherit = 'res.better.zip'
 
+    country_id = fields.Many2one('res.country', 'Country', required=True)
+
     @api.multi
     def update_french_zipcodes(self):
-        france_id = list(self.env['res.country'].search([('name', '=', 'France')])).pop()
+        france_id = self.env['res.country'].search([('name', '=', 'France')])[0]
+
+        already_known = set(self.env['res.better.zip'].search(
+            [('country_id', '=', france_id.id)]).mapped(lambda x: (x.name, x.city)))
 
         ans = urllib.urlopen('https://www.data.gouv.fr/fr/datasets/r/554590ab-ae62-40ac-8353-ee75162c05ee')
         ans.readline()
@@ -37,8 +42,7 @@ class BetterZipWithUpdate(models.Model):
                 code, _, name, city, city_complement, _ = line.split(';')
                 if city_complement:
                     city += " - %s" % city_complement
-                same_cities = self.env['res.better.zip'].search([('city', '=', city), ('code', '=', code)])
-                if not same_cities:
+                if (name, city) not in already_known:
                     self.env['res.better.zip'].create({
                         'name': name,
                         'code': code,
