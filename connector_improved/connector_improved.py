@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime as dt
+from datetime import timedelta, datetime as dt
 
 from openerp import models, api, fields
 from openerp.tools import config
@@ -25,6 +25,8 @@ from openerp.tools import config
 
 class QueueJob(models.Model):
     _inherit = 'queue.job'
+
+    date_requeued = fields.Datetime(string=u"Requeued at", track_visibility='onchange')
 
     @api.multi
     def set_to_done(self):
@@ -56,6 +58,20 @@ class QueueJob(models.Model):
             domain.append(('company_id', 'child_of', companies.ids))
         users = self.env['res.users'].search(domain)
         self.message_subscribe_users(user_ids=users.ids)
+
+    @api.model
+    def enqueue_old_enqued_jobs(self):
+        limit_date = fields.Datetime.to_string(dt.now() - timedelta(minutes=5))
+        old_enqueud_jobs = self.env['queue.job'].search([('state', '=', 'enqueued'),
+                                                         ('date_enqueued', '<', limit_date)])
+        if old_enqueud_jobs:
+            old_enqueud_jobs.requeue()
+
+    @api.multi
+    def requeue(self):
+        result = super(QueueJob, self).requeue()
+        self.write({'date_requeued': fields.Datetime.now()})
+        return result
 
     @api.model
     def create(self, vals):

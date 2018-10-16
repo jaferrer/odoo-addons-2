@@ -142,8 +142,10 @@ class MoUpdateMrpProduction(models.Model):
 
     @api.multi
     def button_update(self):
-        self._action_compute_lines()
-        self.update_moves()
+        running_orders = self.search([('id', 'in', self.ids),
+                                      ('state', 'not in', ['draft', 'done', 'cancel'])])
+        running_orders._action_compute_lines()
+        running_orders.update_moves()
 
     @api.model
     def get_mrp_ids_to_check(self):

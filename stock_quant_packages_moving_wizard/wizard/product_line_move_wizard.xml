@@ -7,7 +7,7 @@
             <field name="model">product.move.wizard</field>
             <field name="arch" type="xml">
                 <form string="Product move">
-                    <group>
+                    <group id="global_info">
                         <field name="global_dest_loc"  context="{'apply_onchange_global_dest_loc': True}"/>
                         <field name="picking_type_id"/>
                         <field name="is_manual_op"/>

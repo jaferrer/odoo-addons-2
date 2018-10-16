@@ -46,6 +46,7 @@ class stock_move_planning_improved(models.Model):
     _inherit = 'stock.move'
 
     date = fields.Datetime(string="Due Date", help="Due date for this stock move to be on schedule.")
+    transferred_by_id = fields.Many2one('res.users', string=u'Transferred by', readonly=True)
 
     @api.multi
     def onchange_date(self, date, date_expected):
@@ -60,7 +61,8 @@ class stock_move_planning_improved(models.Model):
 
     @api.multi
     def write(self, vals):
-        """Write function overridden to propagate date to previous procurement orders."""
+        """Write function overridden to propagate date to previous procurement orders
+        and assign user who has transferred the move"""
         if vals.get('date') and vals.get('state') == 'done':
             # If the call is made from action_done, set the date_expected to the done date
             vals['date_expected'] = vals['date']
@@ -74,6 +76,10 @@ class stock_move_planning_improved(models.Model):
                 if proc and not self.env.context.get('do_not_propagate_rescheduling'):
                     proc.date_planned = vals.get('date')
                     proc.action_reschedule()
+
+        if vals.get('state') and vals['state'] == 'done':
+            vals['transferred_by_id'] = self.env.user.id
+
         return super(stock_move_planning_improved, self).write(vals)
 
 
@@ -128,7 +134,7 @@ class OpenGroupedMoves(models.TransientModel):
         if self.date_end:
             moves_domain += [('date', '<=', self.date_end)]
         if self.user_ids:
-            moves_domain += [('write_uid', 'in', self.user_ids.ids)]
+            moves_domain += [('transferred_by_id', 'in', self.user_ids.ids)]
         if self.only_done_moves:
             ctx['search_default_done'] = True
         ctx['search_default_groupby_date_real'] = True

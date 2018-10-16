@@ -32,6 +32,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.company.write({'po_lead': 5})
         self.supplier = self.browse_ref('purchase_procurement_just_in_time.supplier1')
         self.supplier2 = self.browse_ref('purchase_procurement_just_in_time.supplier2')
+        self.supplier_no_order = self.browse_ref('purchase_procurement_just_in_time.supplier_no_order')
         self.product1 = self.browse_ref('purchase_procurement_just_in_time.product1')
         self.product2 = self.browse_ref('purchase_procurement_just_in_time.product2')
         self.supplierinfo2 = self.browse_ref('purchase_procurement_just_in_time.supplierinfo2')
@@ -164,6 +165,19 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase3.date_order[:10], '3003-09-12')
         self.assertEqual(purchase5.date_order[:10], '3003-09-05')
 
+        self.assertEqual(2, len(purchase1.order_line))
+        for line in purchase1.order_line:
+            if line.product_id == self.product1:
+                self.assertEqual('3003-09-14 17:00:00', line.covering_date)
+                self.assertEqual('coverage_computed', line.covering_state)
+            if line.product_id == self.product2:
+                self.assertFalse(line.covering_date)
+                self.assertEqual('all_covered', line.covering_state)
+        self.assertFalse(purchase3.order_line.covering_date)
+        self.assertEqual('all_covered', purchase3.order_line.covering_state)
+        self.assertEqual('3003-09-22 15:00:00', purchase5.order_line.covering_date)
+        self.assertEqual('coverage_computed', purchase5.order_line.covering_state)
+
         # Let's change a date and reschedule
         self.proc1.date_planned = '3003-09-23 12:00:00'
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
@@ -190,13 +204,17 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(purchase5.date_order, '3003-08-29 00:00:00')
         self.assertEqual(purchase5.date_order_max, '3003-09-04 23:59:59')
 
+        self.assertFalse(purchase1.order_line.covering_date)
+        self.assertEqual('all_covered', purchase1.order_line.covering_state)
+        self.assertEqual('3003-09-22 15:00:00', purchase2.order_line.covering_date)
+        self.assertEqual('coverage_computed', purchase2.order_line.covering_state)
+
     def test_11_schedule_a_limited_number_of_orders(self):
         """Test of purchase order creation from scratch when nb_max_draft_orders is defined for the suplier."""
         self.supplier.nb_max_draft_orders = 2
         order_other_supplier = self.env['purchase.order'].create({'partner_id': self.supplier2.id,
                                                                   'location_id': self.location_a.id,
                                                                   'pricelist_id': self.ref('purchase.list0')})
-        order_other_supplier_id = order_other_supplier.id
         self.env['purchase.order.line'].create({'name': "product 1",
                                                 'product_id': self.product1.id,
                                                 'date_planned': "2016-12-01",
@@ -495,9 +513,9 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         self.assertEqual(len(line1.procurement_ids), 1)
         self.assertEqual(line1.procurement_ids[0], self.proc1)
-        self.assertEqual(len(line1.move_ids), 2)
+        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 2)
         m1, m2 = [self.env['stock.move']] * 2
-        for move in line1.move_ids:
+        for move in line1.move_ids.filtered(lambda move: move.state != 'cancel'):
             if move.product_qty == 34:
                 m1 = move
             elif move.product_qty == 6:
@@ -509,7 +527,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         picking.pack_operation_ids[0].product_qty = 35
         picking.do_transfer()
 
-        self.assertEqual(len(line1.move_ids), 3)
+        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 3)
         self.assertEqual(m1.state, 'done')
         self.assertEqual(m1.product_qty, 34)
         self.assertEqual(m2.state, 'done')
@@ -565,7 +583,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn(move1, line1.move_ids)
         extra_move1 = line1.move_ids.filtered(lambda move: move not in [move1, move2])
         self.assertTrue(extra_move1)
-        extra_move1_id = extra_move1.id
         group1 = move1.group_id
         picking1 = move1.picking_id
         self.assertEqual(picking1.partner_id, self.supplier)
@@ -597,13 +614,11 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # line1 should still exist
         self.assertIn(line1_id, [line.id for line in self.env['purchase.order.line'].search([])])
-        # extra_move1 should have been deleted
-        self.assertNotIn(extra_move1_id, [move.id for move in self.env['stock.move'].search([])])
 
         # Let's check purchase1 moves
-        self.assertEqual(len(line1.move_ids), 3)
+        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 3)
         moves_data = [(move.procurement_id, move.state, move.product_uom_qty, move.group_id, move.picking_id) for
-                      move in line1.move_ids]
+                      move in line1.move_ids.filtered(lambda move: move.state != 'cancel')]
         self.assertIn((new_proc1, 'assigned', 34, group1, picking1), moves_data)
         self.assertIn((self.proc2, 'assigned', 2, group1, picking1), moves_data)
         self.assertIn((self.env['procurement.order'], 'assigned', 4, group1, picking1), moves_data)
@@ -617,7 +632,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(line5.state, "draft")
         self.assertEqual(self.proc1.purchase_id, purchase5)
         self.assertEqual(self.proc1.purchase_line_id, line5)
-        self.assertEqual(len(self.proc1.move_ids), 0)
+        self.assertEqual(len(self.proc1.move_ids.filtered(lambda move: move.state != 'cancel')), 0)
 
     def test_25_switch_proc_from_confirmed_to_sent_order(self):
         self.env['procurement.order'].purchase_schedule(jobify=False)
@@ -656,7 +671,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn(move1, line1.move_ids)
         extra_move1 = line1.move_ids.filtered(lambda move: move not in [move1, move2])
         self.assertTrue(extra_move1)
-        extra_move1_id = extra_move1.id
         group1 = move1.group_id
         picking1 = move1.picking_id
         self.assertTrue(group1)
@@ -673,13 +687,11 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # line1 should still exist
         self.assertIn(line1_id, [line.id for line in self.env['purchase.order.line'].search([])])
-        # extra_move1 should have been deleted
-        self.assertNotIn(extra_move1_id, [move.id for move in self.env['stock.move'].search([])])
 
         # Let's check purchase1 moves
-        self.assertEqual(len(line1.move_ids), 3)
+        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 3)
         moves_data = [(move.procurement_id, move.state, move.product_uom_qty, move.group_id, move.picking_id) for
-                      move in line1.move_ids]
+                      move in line1.move_ids.filtered(lambda move: move.state != 'cancel')]
         self.assertIn((self.proc1, 'assigned', 34, group1, picking1), moves_data)
         self.assertIn((self.proc2, 'assigned', 2, group1, picking1), moves_data)
         self.assertIn((self.proc5, 'assigned', 4, group1, picking1), moves_data)
@@ -910,7 +922,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         past_proc.run()
         self.assertEqual(past_proc.state, 'buy_to_run')
 
-
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_product_ids=self.product1,
                                                         compute_supplier_ids=self.supplier, jobify=False,
@@ -1003,20 +1014,31 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         procs = self.env['procurement.order'].browse([self.proc1.id, self.proc2.id, self.proc3.id, self.proc5.id])
 
-        first_purchase_dates = procs.get_first_purchase_dates_for_seller()
+        first_purchase_dates = procs.get_first_purchase_dates_for_seller(self.supplier)
         self.assertIn(self.company.id, first_purchase_dates.keys())
         self.assertIn(self.location_a.id, first_purchase_dates[self.company.id].keys())
         self.assertIn('first_purchase_date', first_purchase_dates[self.company.id][self.location_a.id].keys())
-        date =first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
+        date = first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
         self.assertTrue(date)
-        self.assertEqual(fields.Date.to_string(date), '3003-08-25')
+        self.assertEqual(date[:10], '3003-08-25')
 
         # Now, let's try with a past procurement
         self.proc1.date_planned = '2018-03-09 12:00:00'
-        first_purchase_dates = procs.get_first_purchase_dates_for_seller()
+        first_purchase_dates = procs.get_first_purchase_dates_for_seller(self.supplier)
         self.assertIn(self.company.id, first_purchase_dates.keys())
         self.assertIn(self.location_a.id, first_purchase_dates[self.company.id].keys())
         self.assertIn('first_purchase_date', first_purchase_dates[self.company.id][self.location_a.id].keys())
-        date =first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
+        date = first_purchase_dates[self.company.id][self.location_a.id]['first_purchase_date']
         self.assertTrue(date)
-        self.assertEqual(fields.Date.to_string(date), fields.Date.to_string(dt.today()))
+        self.assertEqual(date[:10], fields.Date.today())
+
+    def test_40_delete_order_no_proc(self):
+        order_id = self.env['purchase.order'].create({
+            'partner_id': self.supplier_no_order.id,
+            'location_id': self.location_a.id,
+            'pricelist_id': self.ref('purchase.list0')
+        }).id
+        self.env['procurement.order'].purchase_schedule(compute_all_products=False,
+                                                            compute_supplier_ids=self.supplier_no_order,
+                                                            jobify=False)
+        self.assertNotIn(order_id, self.env['purchase.order'].search([]).ids)

@@ -84,11 +84,19 @@
         <record id="supplier1" model="res.partner">
             <field name="name">Supplier 1 (Purchase Procurement JIT)</field>
             <field name="order_group_period" ref="purchase_procurement_just_in_time.week"/>
+            <field name="supplier" eval="True"/>
         </record>
 
         <record id="supplier2" model="res.partner">
             <field name="name">Supplier 2 (Purchase Procurement JIT)</field>
             <field name="order_group_period" ref="purchase_procurement_just_in_time.week"/>
+            <field name="supplier" eval="True"/>
+        </record>
+
+        <record id="supplier_no_order" model="res.partner">
+            <field name="name">Supplier with no order (Purchase Procurement JIT)</field>
+            <field name="order_group_period" ref="purchase_procurement_just_in_time.week"/>
+            <field name="supplier" eval="True"/>
         </record>
 
         <!-- Supplierinfo -->

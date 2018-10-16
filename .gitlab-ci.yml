@@ -12,7 +12,7 @@ variables:
   GIT_STRATEGY: "clone"
   ODOO_DEPENDS: "odoo-addons/community-addons"
   ODOO_MODULE: "ALL"
-  ODOO_IMG: "8.0-ndp"
+  ODOO_IMG: "8.0-production"
 
 lint_flake8:
   stage: test
@@ -28,26 +28,3 @@ runbot:
     - /run.sh
   tags:
     - runbot
-
-preview_odoo:
-  stage: preview
-  script:
-    - /run.sh
-  environment:
-    name: preview/$CI_BUILD_REF_NAME
-    url: https://$CI_ENVIRONMENT_SLUG.ndp-systemes.fr
-    on_stop: stop_preview_odoo
-  when: manual
-  tags:
-    - preview
-
-stop_preview_odoo:
-  stage: preview
-  script:
-    - /run.sh
-  when: manual
-  tags:
-    - preview
-  environment:
-    name: preview/$CI_BUILD_REF_NAME
-    action: stop

@@ -32,6 +32,14 @@ inside those menus.
 
 Usage: set the usage to 'top_button' in an action that you have added to "Print" or "More" menus to have its button
 directly displayed.
+
+You can hide "Print" and "More" buttons. 
+You have to add key 'hide_default_sidebar_buttons' in flags of the act_window
+'flags': {
+    'search_view': True,
+    'sidebar': True,
+    'hide_default_sidebar_buttons': True,
+}
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [

@@ -933,3 +933,36 @@ msgstr "Nombre maximal de commande par défaut pour chaque nouveau fournisseur"
 #: field:purchase.config.settings,nb_days_scheduler_frequency:0
 msgid "Default scheduler frequency (in days)"
 msgstr "Fréquence par défaut du planificateur achats (en jours)"
+
+#. module: sirail_achats
+#: field:purchase.order.line,covering_date:0
+msgid "Covered Date"
+msgstr "Date de couverture"
+
+#. module: sirail_achats
+#: field:purchase.order.line,covering_state:0
+msgid "Covered State"
+msgstr "État de couverture"
+
+#. module: sirail_logistique
+#: selection:purchase.order.line,covering_state:0
+msgid "All Need Covered"
+msgstr "Tous besoins couverts"
+
+#. module: sirail_logistique
+#: selection:purchase.order.line,covering_state:0
+msgid "Computed Coverage"
+msgstr "Besoin calculé"
+
+#. module: sirail_logistique
+#: selection:purchase.order.line,covering_state:0
+msgid "Not Calculated State"
+msgstr "État non calculé"
+
+#. module: purchase_procurement_just_in_time
+#: model:ir.actions.server,name:purchase_procurement_just_in_time.ir_actions_server_quick_compute_coverage_state
+#: model:ir.actions.server,name:purchase_procurement_just_in_time.ir_actions_server_quick_compute_coverage_state_po
+#: model:ir.values,name:purchase_procurement_just_in_time.ir_value_quick_compute_coverage_state
+#: model:ir.values,name:purchase_procurement_just_in_time.ir_value_quick_compute_coverage_state_po
+msgid "Compute Unknown Coverage State"
+msgstr "Calculer les états de courverture inconnue"

@@ -35,7 +35,7 @@ msgstr ""
 
 #. module: purchase_line_numbers
 #: field:purchase.order.line,line_no:0
-msgid "Line no."
+msgid "Line No."
 msgstr "N° Ligne"
 
 #. module: purchase_line_numbers

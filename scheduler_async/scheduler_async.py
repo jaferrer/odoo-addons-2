@@ -176,6 +176,12 @@ class ProcurementOrderAsync(models.Model):
 
     run_or_confirm_job_uuid = fields.Char(tring=u"Job UUID to confirm or check this procurement")
 
+    @api.multi
+    def run(self, autocommit=False):
+        self.env.cr.execute("""SELECT po.id FROM procurement_order po WHERE po.id IN %s FOR UPDATE""",
+                            (tuple(self.ids or [0]),))
+        return super(ProcurementOrderAsync, self).run(autocommit=autocommit)
+
     @api.model
     def run_confirm_moves(self, domain=False):
         group_draft_moves = {}
@@ -184,7 +190,9 @@ class ProcurementOrderAsync(models.Model):
 
         all_draft_moves = self.env['stock.move'].search(domain + [('state', '=', 'draft')], limit=None,
                                                         order='priority desc, date_expected asc')
-
+        if all_draft_moves:
+            self.env.cr.execute("""SELECT id FROM stock_move WHERE id IN %s FOR UPDATE""",
+                                (tuple(all_draft_moves.ids),))
         all_draft_moves_ids = all_draft_moves.read(['id', 'group_id', 'location_id', 'location_dest_id'], load=False)
 
         for move in all_draft_moves_ids:
@@ -349,6 +357,11 @@ class StockMoveAsync(models.Model):
 
     confirm_job_uuid = fields.Char(tring=u"Job UUID to confirm this move")
 
+    @api.multi
+    def action_confirm(self):
+        self.env.cr.execute("""SELECT sm.id FROM stock_move sm WHERE sm.id IN %s FOR UPDATE""",
+                            (tuple(self.ids or [0]),))
+        return super(StockMoveAsync, self).action_confirm()
 
 
 class OrderpointAsync(models.Model):

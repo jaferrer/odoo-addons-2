@@ -29,35 +29,60 @@ def job_compute_use_case_count(session, model_name, product_ids, context):
     return "End update"
 
 
+@job
+def job_compute_father_line_ids(session, model_name, context):
+    bom_line_model = session.env[model_name].with_context(context)
+    bom_line_model.compute_father_line_ids()
+    return "End update"
+
+
 class MrpBomLine(models.Model):
     _inherit = "mrp.bom.line"
 
     product_parent_id = fields.Many2one('product.product', string=u"Parent Product",
-                                        compute='_compute_parents')
+                                        related='bom_id.product_id')
     father_line_ids = fields.Many2many('mrp.bom.line', 'mrp_bom_lines_father_rel', 'child_id', 'father_id',
-                                       compute="_compute_parents", string=u"Father lines")
+                                       string=u"Father lines")
 
-    @api.multi
-    @api.depends('bom_id.product_id', 'bom_id.product_tmpl_id', 'bom_id')
-    def _compute_parents(self):
-        """Computes the fields necessary to get use cases."""
-        for rec in self:
-            parent_product = rec.bom_id.product_id
-            parent_product_tmpl = rec.bom_id.product_tmpl_id
-            rec.product_parent_id = parent_product
+    @api.model
+    def cron_compute_father_line_ids(self):
+        print 'cron_compute_father_line_ids'
+        job_compute_father_line_ids.delay(ConnectorSession.from_env(self.env), 'mrp.bom.line',
+                                              dict(self.env.context), description=u"Update father lines for bom lines")
 
-            if parent_product:
-                products = parent_product
-            else:
-                products = self.env['product.product'].search([('product_tmpl_id', '=', parent_product_tmpl.id)])
-            date_report = self.env.context.get('date_report_use_cases') or fields.Date.today()
-            parent_lines = self.search(
-                [('product_id', 'in', products.ids),
-                 '|', ('bom_id.date_start', '<=', date_report), ('bom_id.date_start', '=', False),
-                 '|', ('bom_id.date_stop', '>=', date_report), ('bom_id.date_start', '=', False)]
-            )
+    @api.model
+    def compute_father_line_ids(self):
+        print 'compute_father_line_ids'
+        self.env.cr.execute("""TRUNCATE mrp_bom_lines_father_rel;""")
+        print 'truncated'
+        self.env.cr.execute("""INSERT INTO mrp_bom_lines_father_rel
+(child_id,
+father_id)
 
-            rec.father_line_ids = [(6, 0, [p.id for p in parent_lines])]
+  WITH bom_line_modified AS (
+    SELECT
+      line.*,
+      pp.product_tmpl_id
+    FROM mrp_bom_line line
+      LEFT JOIN product_product pp ON pp.id = line.product_id),
+
+    mrp_bom_restricted AS (
+      SELECT *
+      FROM mrp_bom
+      WHERE (date_start IS NULL OR date_start <= current_timestamp) AND
+            (date_stop IS NULL OR date_stop >= current_timestamp))
+
+SELECT
+  line.id        AS child_id,
+  parent_line.id AS father_id
+FROM mrp_bom_line line
+  LEFT JOIN mrp_bom bom ON bom.id = line.bom_id
+  LEFT JOIN bom_line_modified parent_line ON (bom.product_id IS NOT NULL AND parent_line.product_id = bom.product_id) OR
+                                             (bom.product_id IS NULL AND
+                                              parent_line.product_tmpl_id = bom.product_tmpl_id)
+  INNER JOIN mrp_bom_restricted bom_restricted ON bom_restricted.id = parent_line.bom_id
+GROUP BY line.id, parent_line.id;""")
+        print 'populated'
 
 
 class ProductProduct(models.Model):
