@@ -17,13 +17,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, exceptions, api, _
-from openerp.tools import float_compare
 from datetime import datetime
+
+import openerp.addons.decimal_precision as dp
 from dateutil import relativedelta
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
+
+from openerp import models, fields, exceptions, api, _
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from openerp.tools import float_compare
 
 
 @job
@@ -38,6 +41,7 @@ def job_synchronize_lines(session, model_name, chunk_list_lines_to_synchronize, 
 def job_update_remaining_qty(session, model_name, order_id):
     order = session.env[model_name].browse(order_id)
     order.update_remaining_qties()
+    order.compute_workflow_state()
     order.remove_old_delivery_moves()
 
 
@@ -81,7 +85,6 @@ class ReceptionByOrderStockPackOperation(models.Model):
                 if res.get('sale_line_id') == op_sale_line.id:
                     filtred_result.append(res)
         return filtred_result
-
 
 
 class ExpeditionByOrderLinePicking(models.Model):
@@ -276,8 +279,8 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
 
     procurement_ids = fields.One2many('procurement.order', 'sale_line_id', readonly=True)
     move_ids = fields.One2many('stock.move', 'sale_line_id', readonly=True)
-    remaining_qty = fields.Float(u"Qty Still To Be Sent")
-    sent_qty = fields.Float(u"Quantity Already Sent")
+    remaining_qty = fields.Float(u"Qty Still To Be Sent", digits_compute=dp.get_precision('Product UoS'))
+    sent_qty = fields.Float(u"Quantity Already Sent", digits_compute=dp.get_precision('Product UoS'))
 
     @api.multi
     def get_running_moves_to_customer_for_line(self):
@@ -444,6 +447,22 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
                         move.procurement_id.cancel()
                     if move.state != 'cancel':
                         move.action_cancel()
+
+    @api.multi
+    def compute_workflow_state(self):
+        for rec in self:
+            if rec.order_policy == 'picking' and all([
+                float_compare(line.remaining_qty, 0, line.product_uom.rounding) <= 0 for line in rec.order_line
+            ]):
+                if rec.workflow_done:
+                    rec.action_done()
+                else:
+                    rec.with_context(enable_trigger_sale_order_workflow=True).trigger_sale_order_workflow()
+
+    @api.multi
+    def trigger_sale_order_workflow(self):
+        if self.env.context.get('enable_trigger_sale_order_workflow'):
+            super(ExpeditionByOrderLineSaleOrder, self).trigger_sale_order_workflow()
 
     @api.model
     def cron_compute_remaining_qties(self):

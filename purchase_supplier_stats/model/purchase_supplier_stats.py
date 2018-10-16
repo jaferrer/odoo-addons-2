@@ -32,49 +32,66 @@ class res_partner_purchase_supplier_stat(models.Model):
 
     @api.multi
     def _compute_total_purchase(self):
+        self.env.cr.execute("""SELECT
+  ai.partner_id,
+  sum(CASE WHEN ai.type = 'in_invoice'
+    THEN ail.price_subtotal
+      ELSE -1 * ail.price_subtotal END) AS total_purchase
+FROM account_invoice ai
+  LEFT JOIN account_invoice_line ail ON ail.invoice_id = ai.id
+WHERE ai.partner_id IN %s AND
+      ai.type IN ('in_invoice', 'in_refund') AND
+      ai.state IN ('open', 'paid')
+GROUP BY ai.partner_id""", (tuple(self.ids or [0]),))
+        result = self.env.cr.fetchall()
         for rec in self:
-            if rec.supplier:
-                in_invoices = rec.env['account.invoice.line'].search([('invoice_id.state','in',['open','paid']),
-                                                                      ('invoice_id.type','=','in_invoice'),
-                                                                      ('invoice_id.partner_id','=',rec.id)])
-                in_refunds = rec.env['account.invoice.line'].search([('invoice_id.state','in',['open','paid']),
-                                                                     ('invoice_id.type','=','in_refund'),
-                                                                     ('invoice_id.partner_id','=',rec.id)])
-                total_invoice = 0
-                total_refund = 0
-                for line in in_invoices:
-                    total_invoice += line.price_subtotal
-                for line in in_refunds:
-                    total_refund += line.price_subtotal
-                rec.total_purchase = total_invoice - total_refund
+            total_purchase = 0
+            for item in result:
+                if item[0] == rec.id:
+                    total_purchase = float(item[1])
+                    break
+            rec.total_purchase = total_purchase
 
     @api.multi
     def _compute_total_sale_supplier(self):
+        self.env.cr.execute("""SELECT
+  pt.seller_id,
+  sum(CASE WHEN ai.type = 'out_invoice'
+    THEN ail.price_subtotal
+      ELSE -1 * ail.price_subtotal END) AS total_sale_supplier
+FROM account_invoice ai
+  LEFT JOIN account_invoice_line ail ON ail.invoice_id = ai.id
+  LEFT JOIN product_product pp ON pp.id = ail.product_id
+  LEFT JOIN product_template pt ON pt.id = pp.product_tmpl_id
+WHERE pt.seller_id IN %s AND
+      ai.type IN ('out_invoice', 'out_refund') AND
+      ai.state IN ('open', 'paid')
+GROUP BY pt.seller_id;""", (tuple(self.ids or [0]),))
+        result = self.env.cr.fetchall()
         for rec in self:
-            if rec.supplier:
-                out_invoices = rec.env['account.invoice.line'].search([('invoice_id.type','=','out_invoice'),
-                                                                       ('invoice_id.state','in',['open','paid']),
-                                                                       ('product_id.product_tmpl_id.seller_id','=',rec.id)])
-                out_refunds = rec.env['account.invoice.line'].search([('invoice_id.type','=','out_refund'),
-                                                                      ('invoice_id.state','in',['open','paid']),
-                                                                      ('product_id.product_tmpl_id.seller_id','=',rec.id)])
-                total_invoice = 0
-                total_refund = 0
-                for line in out_invoices:
-                    total_invoice += line.price_subtotal
-                for line in out_refunds:
-                    total_refund += line.price_subtotal
-                rec.total_sale_supplier = total_invoice - total_refund
+            total_sale_supplier = 0
+            for item in result:
+                if item[0] == rec.id:
+                    total_sale_supplier = float(item[1])
+                    break
+            rec.total_sale_supplier = total_sale_supplier
 
     @api.multi
     def _compute_total_purchase_order(self):
+        self.env.cr.execute("""SELECT
+  po.partner_id,
+  sum(pol.product_qty * pol.price_unit) AS total_purchase_order
+FROM purchase_order po
+  LEFT JOIN purchase_order_line pol ON pol.order_id = po.id
+WHERE po.partner_id IN %s AND
+      po.state IN ('approved', 'picking_in_progress', 'confirmed', 'picking_done',
+                   'except_picking', 'except_invoice')
+GROUP BY po.partner_id""", (tuple(self.ids or [0]),))
+        result = self.env.cr.fetchall()
         for rec in self:
-            if rec.supplier:
-                orders = rec.env['purchase.order.line'].search(
-                            [('order_id.state','in',['approved', 'picking_in_progress', 'confirmed', 'picking_done',
-                                                     'except_picking', 'except_invoice']),
-                             ('partner_id','=',rec.id)])
-                total_orders = 0
-                for line in orders:
-                    total_orders += line.price_subtotal
-                rec.total_purchase_order = total_orders
+            total_purchase_order = 0
+            for item in result:
+                if item[0] == rec.id:
+                    total_purchase_order = float(item[1])
+                    break
+            rec.total_purchase_order = total_purchase_order

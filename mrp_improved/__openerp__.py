@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,21 +18,23 @@
 #
 
 {
-    'name': 'Specific View Id for all ir.action.X model',
+    'name': 'Production Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Dependency',
-    'depends': ['web'],
+    'category': 'Production',
+    'depends': ['mrp'],
     'description': """
-Specific View Id for all ir.action.X model
-==========================================
-Add a field view_ids  inside the model ir.actions.server and ir.actions.act_window
-To filter only for the specific view if the action is visible 
+Production Improved
+===================
+This module adds a few features for production improvement.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
-    'demo': ['tests/test_data_view_act2.xml'],
+    'data': [
+        'mrp_improved.xml',
+        'data/cron.xml',
+    ],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

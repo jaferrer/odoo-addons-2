@@ -167,7 +167,7 @@ GROUP BY pol.id""", (tuple(ids),))
                                                                                  ['purchase_line_id'], 20)}),
     }
 
-    confirm_date = fields.Datetime("Confirm date", help="Confirmation Date", readonly=True)
+    confirm_date = fields.Datetime(string=u"Confirm date", readonly=True)
     requested_date = fields.Date("Requested date", help="The line was required to the supplier at that date",
                                  default=fields.Date.context_today, states={'sent': [('readonly', True)],
                                                                             'bid': [('readonly', True)],
@@ -196,7 +196,7 @@ GROUP BY pol.id""", (tuple(ids),))
         """write method overridden here to propagate date_planned to the stock_moves of the receipt."""
         if vals.get('date_planned'):
             for line in self:
-                if line.state == "draft" and vals.get('status', 'draft') == 'draft':
+                if vals.get('stats', line.state) == 'draft':
                     vals['requested_date'] = vals['date_planned']
         result = super(PurchaseOrderLinePlanningImproved, self).write(vals)
         if vals.get('date_planned'):
@@ -214,6 +214,7 @@ GROUP BY pol.id""", (tuple(ids),))
 class PurchaseOrderPlanningImproved(models.Model):
     _inherit = 'purchase.order'
 
+    confirm_date = fields.Datetime(string=u"Confirm date", readonly=True)
     limit_order_date = fields.Date(string=u"Limit order date to be late", readonly=True)
 
     @api.model
@@ -237,9 +238,15 @@ ORDER BY po.id""")
     @api.multi
     def write(self, vals):
         """write method overridden here to propagate date_planned to the stock_moves of the receipt."""
-        result = super(PurchaseOrderPlanningImproved, self).write(vals)
         if vals.get('state') == 'approved':
+            date_now = fields.Datetime.now()
+            vals['confirm_date'] = date_now
             order_lines = self.env['purchase.order.line'].search([('order_id', 'in', self.ids)])
             if order_lines:
-                order_lines.write({'confirm_date': fields.Datetime.now()})
-        return result
+                order_lines.write({'confirm_date': date_now})
+        if vals.get('state') in ['draft', 'cancel']:
+            vals['confirm_date'] = False
+            order_lines = self.env['purchase.order.line'].search([('order_id', 'in', self.ids)])
+            if order_lines:
+                order_lines.write({'confirm_date': False})
+        return super(PurchaseOrderPlanningImproved, self).write(vals)

@@ -198,6 +198,12 @@ class UpdateChangeProductionQty(models.TransientModel):
         for rec in self:
             if self.env.context.get('active_id'):
                 order = self.env['mrp.production'].browse(self.env.context.get('active_id'))
+                # Raise if MO is linked to a procurement, in order not to allow a difference between procurement and
+                # its origin moves (which are production moves of the MO)
+                if order.procurement_id:
+                    raise exceptions. \
+                        except_orm(_(u"Error!"),
+                                   _(u"%s: impossible to change the quantity of a manufacturing order created by Odoo. Please create an extra manufacturing order or make stock scheduler cancel this one.") % order.display_name)
                 # Check raw material moves
                 if order.bom_id and float_compare(order.product_qty, rec.product_qty,
                                                   precision_rounding=order.product_id.uom_id.rounding) != 0:

@@ -18,21 +18,24 @@
 #
 
 {
-    'name': 'Specific View Id for all ir.action.X model',
+    'name': 'Action search bar',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Dependency',
+    'category': 'General',
     'depends': ['web'],
     'description': """
-Specific View Id for all ir.action.X model
-==========================================
-Add a field view_ids  inside the model ir.actions.server and ir.actions.act_window
-To filter only for the specific view if the action is visible 
+Action search bar
+=================
+THis module add a search bar in the header (top menu bar) and allow you to search in all odoo action window recorded in
+database
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
-    'demo': ['tests/test_data_view_act2.xml'],
+    'data': [
+        'views/action_search_bar.xml',
+    ],
+    'qweb': ['static/src/xml/*.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
