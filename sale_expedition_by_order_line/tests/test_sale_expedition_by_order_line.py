@@ -34,7 +34,9 @@ class TestSaleExpeditionByOrder(common.TransactionCase):
         self.order_line_2 = self.browse_ref('sale_expedition_by_order_line.order_line_2')
         self.order_line_3 = self.browse_ref('sale_expedition_by_order_line.order_line_3')
         self.order_2 = self.browse_ref('sale_expedition_by_order_line.order_2')
+        self.order_3 = self.browse_ref('sale_expedition_by_order_line.order_3')
         self.order_line_4 = self.browse_ref('sale_expedition_by_order_line.order_line_4')
+        self.order_line_5 = self.browse_ref('sale_expedition_by_order_line.order_line_5')
         self.unit = self.browse_ref('product.product_uom_unit')
         self.supplier = self.browse_ref('stock.stock_location_suppliers')
         self.stock = self.browse_ref('stock.stock_location_stock')
@@ -392,3 +394,97 @@ class TestSaleExpeditionByOrder(common.TransactionCase):
 
         for packop in picking.pack_operation_ids:
             self.assertEqual(len(packop.linked_move_operation_ids), 1)
+
+    def test_80_compute_rae_progress(self):
+        self.order_3.signal_workflow('order_confirm')
+        self.order_3.update_remaining_qties()
+        self.assertEqual(self.order_line_5.remaining_qty, 10)
+        self.assertEqual(len(self.order_3.picking_ids), 1)
+        picking1 = self.order_3.picking_ids
+        self.assertEqual(len(picking1.move_lines), 1)
+        move = picking1.move_lines
+        move.reserved_quant_ids = [(6, 0, [self.env['stock.quant'].create({
+                'product_id': move.product_id.id,
+                'location_id': move.location_id.id,
+                'qty': move.product_qty,
+            }).id])]
+        picking1.action_assign()
+        self.assertEqual(move.state, 'assigned')
+        wizard_id = picking1.do_enter_transfer_details()['res_id']
+        wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        self.assertEqual(len(wizard.item_ids), 1)
+        wizard.item_ids.quantity = 8
+        wizard.do_detailed_transfer()
+        self.order_3.update_remaining_qties()
+        self.assertEqual(self.order_line_5.remaining_qty, 2)
+        self.order_3.compute_workflow_state()
+        self.assertEqual(self.order_3.state, 'progress')
+        self.assertEqual(len(self.order_3.picking_ids), 2)
+        picking_to_do = False
+        for pick in self.order_3.picking_ids:
+            if pick != picking1:
+                picking_to_do = pick
+        self.assertTrue(picking_to_do)
+        self.assertEqual(len(picking_to_do.move_lines), 1)
+        picking_to_do.action_assign()
+        self.assertEqual(picking_to_do.move_lines.state, 'assigned')
+        wizard_id = picking_to_do.do_enter_transfer_details()['res_id']
+        wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        self.assertEqual(len(wizard.item_ids), 1)
+        self.assertEqual(wizard.item_ids.quantity, 2)
+        wizard.do_detailed_transfer()
+        self.order_3.update_remaining_qties()
+        self.assertEqual(self.order_3.state, 'progress')
+        self.assertEqual(self.order_line_5.remaining_qty, 0)
+        self.order_3.compute_workflow_state()
+        self.assertEqual(self.order_3.state, 'done')
+
+    def test_81_compute_rae_manual(self):
+        self.order_3.order_policy = 'manual'
+        self.order_3.signal_workflow('order_confirm')
+        self.order_3.update_remaining_qties()
+        self.assertEqual(self.order_line_5.remaining_qty, 10)
+        self.assertEqual(len(self.order_3.picking_ids), 1)
+        picking1 = self.order_3.picking_ids
+        self.assertEqual(len(picking1.move_lines), 1)
+        move = picking1.move_lines
+        move.reserved_quant_ids = [(6, 0, [self.env['stock.quant'].create({
+            'product_id': move.product_id.id,
+            'location_id': move.location_id.id,
+            'qty': move.product_qty,
+        }).id])]
+        picking1.action_assign()
+        self.assertEqual(move.state, 'assigned')
+        wizard_id = picking1.do_enter_transfer_details()['res_id']
+        wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        self.assertEqual(len(wizard.item_ids), 1)
+        wizard.item_ids.quantity = 8
+        wizard.do_detailed_transfer()
+        self.order_3.update_remaining_qties()
+        self.assertEqual(self.order_line_5.remaining_qty, 2)
+        self.order_3.compute_workflow_state()
+        self.assertEqual(self.order_3.state, 'manual')
+        self.assertEqual(len(self.order_3.picking_ids), 2)
+        picking_to_do = False
+        for pick in self.order_3.picking_ids:
+            if pick != picking1:
+                picking_to_do = pick
+        self.assertTrue(picking_to_do)
+        self.assertEqual(len(picking_to_do.move_lines), 1)
+        picking_to_do.action_assign()
+        self.assertEqual(picking_to_do.move_lines.state, 'assigned')
+        wizard_id = picking_to_do.do_enter_transfer_details()['res_id']
+        wizard = self.env['stock.transfer_details'].browse(wizard_id)
+        self.assertEqual(len(wizard.item_ids), 1)
+        self.assertEqual(wizard.item_ids.quantity, 2)
+        wizard.do_detailed_transfer()
+        self.order_3.update_remaining_qties()
+        self.assertEqual(self.order_3.state, 'manual')
+        self.assertEqual(self.order_line_5.remaining_qty, 0)
+        self.order_3.compute_workflow_state()
+        self.assertEqual(self.order_3.state, 'manual')
+
+
+
+
+
