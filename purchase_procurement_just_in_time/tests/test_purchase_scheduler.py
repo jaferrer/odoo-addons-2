@@ -216,8 +216,6 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual('coverage_computed', purchase2.order_line.covering_state)
         self.assertEqual('3003-09-22 15:00:00', purchase2.order_line.covering_date)
 
-
-
     def test_11_schedule_a_limited_number_of_orders(self):
         """Test of purchase order creation from scratch when nb_max_draft_orders is defined for the suplier."""
         self.supplier.nb_max_draft_orders = 2

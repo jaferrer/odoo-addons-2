@@ -965,4 +965,4 @@ msgstr "État non calculé"
 #: model:ir.values,name:purchase_procurement_just_in_time.ir_value_quick_compute_coverage_state
 #: model:ir.values,name:purchase_procurement_just_in_time.ir_value_quick_compute_coverage_state_po
 msgid "Compute Unknown Coverage State"
-msgstr "Calculer les états de courverture inconnue"
+msgstr "Calculer les états de couverture inconnus"
