@@ -32,7 +32,7 @@ To filter only for the specific view if the action is visible
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
-    'demo': [],
+    'demo': ['tests/test_data_view_act2.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,

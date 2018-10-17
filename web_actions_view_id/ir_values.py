@@ -41,9 +41,8 @@ class IrValues(models.Model):
     @api.model
     def get_actions(self, action_slot, model, res_id=False):
         res = super(IrValues, self).get_actions(action_slot, model, res_id)
-        action = self.env.context.get("params", {}).get("action")
         view_id = None
-        if action and self.env.context.get("view_type_fields_view_get"):
+        if self.env.context.get("view_type_fields_view_get"):
             view_id = self.find_view_id(model)
         filtered_result = []
         for id, name, action_def in res:
@@ -65,7 +64,9 @@ class IrValues(models.Model):
             if view_ref:
                 if '.' in view_ref:
                     module, view_ref = view_ref.split('.', 1)
-                    self.env.execute("SELECT res_id FROM ir_model_data WHERE model='ir.ui.view' AND module=%s AND name=%s", (module, view_ref))
+                    self.env.cr.execute("""SELECT res_id
+FROM ir_model_data
+WHERE model = 'ir.ui.view' AND module = %s AND name = %s""", (module, view_ref))
                     view_ref_res = self.env.cr.fetchone()
                     if view_ref_res:
                         view_id = view_ref_res[0]

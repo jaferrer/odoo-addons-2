@@ -26,7 +26,7 @@
     'category': 'Sale',
     'depends': [
         'sale_line_numbers', 'stock_performance_improved', 'stock_transfert_picking_type', 'sale_date_planned',
-        'connector', 'sale_backlog',
+        'connector', 'sale_backlog', 'sale_order_workflow_improved',
     ],
     'description': """
 Sale Expedition By Order Line

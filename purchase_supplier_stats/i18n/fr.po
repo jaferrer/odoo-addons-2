@@ -29,3 +29,8 @@ msgstr "Total des ventes"
 #: field:res.partner,total_purchase:0
 msgid "Total Purchases"
 msgstr "Total des achats"
+
+#. module: purchase_supplier_stats
+#: view:res.partner:purchase_supplier_stats.purchase_supplier_stats_vue_form
+msgid "Supplier Stats"
+msgstr "Statistiques fournisseurs"
