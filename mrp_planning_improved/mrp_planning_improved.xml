@@ -18,14 +18,10 @@
                         <attribute name="attrs">{'readonly':[('taken_into_account','=',False)]}</attribute>
                     </field>
                     <field name="date_planned" position="before">
-                        <field name="procurement_id" invisible="1"/>
                         <field name="date_required" attrs="{'readonly': [('procurement_id', '!=', False)]}"/>
                     </field>
                     <field name="date_planned" position="after">
                         <field name="taken_into_account"/>
-                    </field>
-                    <field name="priority" position="before">
-                        <field name="procurement_id"/>
                     </field>
                 </data>
             </field>

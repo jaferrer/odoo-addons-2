@@ -19,6 +19,8 @@
 
 from datetime import datetime
 
+import openerp.addons.decimal_precision as dp
+
 from openerp import fields, models, api, _, exceptions, osv
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, float_round
 from openerp.tools.float_utils import float_compare
@@ -311,7 +313,7 @@ class PurchaseOrderLineJustInTime(models.Model):
 
     _columns = {
         'remaining_qty': osv.fields.function(
-            _get_remaining_qty, type="float", copy=False,
+            _get_remaining_qty, type="float", copy=False, digits_compute=dp.get_precision('Product Unit of Measure'),
             store={
                 'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids, ['product_qty'], 20),
                 'stock.move': (_get_purchase_order_lines, ['purchase_line_id', 'product_uom_qty',
@@ -570,13 +572,12 @@ class PurchaseOrderLineJustInTime(models.Model):
         for rec in self:
             last_proc = self.env['procurement.order'].search([('id', 'in', rec.procurement_ids.ids)],
                                                              order='date_planned desc', limit=1)
-            print 1/0
             if last_proc:
                 next_proc = self.env['procurement.order'].search([
                     ('state', 'not in', ['confirmed', 'done', 'cancel', 'exception']),
                     ('product_id', '=', last_proc.product_id.id),
                     ('location_id', '=', last_proc.location_id.id),
-                    ('date_planned', '>=', last_proc.date_planned)
+                    ('date_planned', '>', last_proc.date_planned)
                 ], order='date_planned asc', limit=1)
                 rec.write({
                     'covering_date': next_proc.date_planned,

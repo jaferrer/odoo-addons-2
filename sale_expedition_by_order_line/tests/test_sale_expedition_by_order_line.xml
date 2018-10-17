@@ -78,5 +78,23 @@
             <field name="tax_id" eval="[(6, 0, [ref('test_vat_sale')])]"/>
         </record>
 
+
+        <record model="sale.order" id="order_3">
+            <field name="pricelist_id" ref="product.list0"/>
+            <field name="partner_id" ref="base.res_partner_4"/>
+            <field name="order_policy">picking</field>
+        </record>
+
+        <record model="sale.order.line" id="order_line_5">
+            <field name="name">Order Line 4 (Sale Reception By Order)</field>
+            <field name="order_id" ref="order_3"/>
+            <field name="date_planned" eval="time.strftime('%Y/%m/10')"/>
+            <field name="product_id" ref="test_product_1"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="price_unit" eval="10"/>
+            <field name="product_uom_qty" eval="10"/>
+            <field name="tax_id" eval="[(6, 0, [ref('test_vat_sale')])]"/>
+        </record>
+
     </data>
 </openerp>
