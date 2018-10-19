@@ -23,8 +23,4 @@ from openerp import models, fields
 class ProcurementOrderImproved(models.Model):
     _inherit = 'procurement.order'
 
-    state = fields.Selection([('cancel', 'Cancelled'),
-                              ('confirmed', 'Draft'),
-                              ('exception', 'Exception'),
-                              ('running', 'Running'),
-                              ('done', 'Done')], 'Status', required=True, track_visibility='onchange', copy=False)
+    state = fields.Selection(selection_add=[('confirmed', 'Draft')])
