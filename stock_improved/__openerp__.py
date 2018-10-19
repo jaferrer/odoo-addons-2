@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,10 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields
-
-
-class ProcurementOrderImproved(models.Model):
-    _inherit = 'procurement.order'
-
-    state = fields.Selection(selection_add=[('confirmed', 'Draft')])
+{
+    'name': 'Stock Improved',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Stock',
+    'depends': ['stock'],
+    'description': """
+Stock Improved
+==============
+This modules improves stock
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

@@ -17,10 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields
+from openerp import models, api
 
 
-class ProcurementOrderImproved(models.Model):
-    _inherit = 'procurement.order'
+class StockPickingImproved(models.Model):
+    _inherit = 'stock.picking'
 
-    state = fields.Selection(selection_add=[('confirmed', 'Draft')])
+    @api.multi
+    def unlink(self):
+        self.env['stock.pack.operation'].search([('picking_id', 'in', self.ids)]).unlink()
+        return super(StockPickingImproved, self).unlink()
