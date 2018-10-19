@@ -135,7 +135,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     _inherit = 'procurement.order'
 
     state = fields.Selection([('cancel', "Cancelled"),
-                              ('confirmed', "Confirmed"),
+                              ('confirmed', "Draft"),
                               ('exception', "Exception"),
                               ('buy_to_run', "Buy rule to run"),
                               ('running', "Running"),
