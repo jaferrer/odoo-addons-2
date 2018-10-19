@@ -18,26 +18,24 @@
 #
 
 {
-    'name': 'Procurement Management',
+    'name': 'Procurement Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Stock',
-    'depends': ['stock', 'procurement_improved'],
+    'depends': ['procurement'],
     'description': """
-Procurement Management
-======================
-This modules allows to manage procurements in an improved way. It is now possible to run several procurements at one
-time, group the procurements by location, and see the moves existing before and after the procurement.
+Procurement Improved
+====================
+This modules improves procurements
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'procurement_management.xml'
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    'sequence': 999,
 }
