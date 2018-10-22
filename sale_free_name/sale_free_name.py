@@ -17,28 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from openerp import fields, models
 
-{
-    'name': 'Free Numbering of Purchase Orders',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase'],
-    'description': """
-Free Numbering of Purchase Orders
-=================================
-With this module, the auto-incremented number of the purchase order can be modified by the user when it is in draft
-state.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'purchase_free_name_view.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+
+class SaleOrder(models.Model):
+    _inherit = 'sale.order'
+
+    def _get_default_name(self):
+        seq = self.env['ir.sequence'].next_by_code('sale.order') or '/'
+        return seq
+
+    name = fields.Char(readonly=True, states={'draft': [('readonly', False)]}, default=_get_default_name)

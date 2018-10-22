@@ -17,28 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-{
-    'name': 'Free Numbering of Purchase Orders',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase'],
-    'description': """
-Free Numbering of Purchase Orders
-=================================
-With this module, the auto-incremented number of the purchase order can be modified by the user when it is in draft
-state.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'purchase_free_name_view.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from . import sale_free_name
