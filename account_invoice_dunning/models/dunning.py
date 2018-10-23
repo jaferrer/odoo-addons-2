@@ -31,8 +31,7 @@ class AccountInvoiceRelanceConfig(models.Model):
     sequence_id = fields.Many2one('ir.sequence', string=u"Sequence")
     report_id = fields.Many2one('ir.actions.report.xml', string=u"Report",
                                 domain=[('model', '=', 'account.invoice.dunning')], required=True)
-    mail_template_id = fields.Many2one('mail.template', string=u"Mail Template", domain=_get_domain_mail_template,
-                                       required=True)
+    mail_template_id = fields.Many2one('mail.template', string=u"Mail Template", domain=_get_domain_mail_template)
     company_id = fields.Many2one('res.company', string=u"Company", default=lambda self: self.env.user.company_id)
     join_invoices_attachments = fields.Boolean(string=u"Join invoices attachments to dunning mail")
 
@@ -118,7 +117,7 @@ class AccountInvoiceRelance(models.Model):
             default_model=self._name,
             default_res_id=self.id,
             default_composition_mode='comment',
-            default_template_id=self.mail_template_id.ensure_one().id,
+            default_template_id=self.mail_template_id and self.mail_template_id.id or False,
         )
         if self.dunning_type_id.join_invoices_attachments:
             attachment_ids = self.env['ir.attachment'].search([('res_id', 'in', self.invoice_ids.ids),
