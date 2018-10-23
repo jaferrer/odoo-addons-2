@@ -19,21 +19,21 @@
 
 
 {
-    'name': 'Free Numbering of Purchase Orders',
+    'name': 'Free Numbering of Sale Orders',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
     'depends': ['purchase'],
     'description': """
-Free Numbering of Purchase Orders
-=================================
-With this module, the auto-incremented number of the purchase order can be modified by the user when it is in draft
+Free Numbering of Sale Orders
+=============================
+With this module, the auto-incremented number of the sale order can be modified by the user when it is in draft
 state.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'purchase_free_name_view.xml',
+        'sale_free_name_view.xml',
     ],
     'demo': [],
     'test': [],
