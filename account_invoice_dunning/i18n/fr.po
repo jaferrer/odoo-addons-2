@@ -33,6 +33,11 @@ msgid "Company"
 msgstr "Société"
 
 #. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_join_invoices_attachments
+msgid "Join invoices attachments to dunning mail"
+msgstr "Joindre les pièces jointes des factures aux mails de relance"
+
+#. module: account_invoice_dunning
 #: model:ir.actions.server,name:account_invoice_dunning.ir_actions_server_report_relance
 msgid "Create Dunning"
 msgstr "Créer relance"

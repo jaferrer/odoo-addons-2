@@ -16,7 +16,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from openerp import fields, models, api, _, osv
+from openerp import fields, models, api, _
+from openerp.exceptions import UserError
 
 
 class AccountInvoiceRelanceConfig(models.Model):
@@ -33,6 +34,7 @@ class AccountInvoiceRelanceConfig(models.Model):
     mail_template_id = fields.Many2one('mail.template', string=u"Mail Template", domain=_get_domain_mail_template,
                                        required=True)
     company_id = fields.Many2one('res.company', string=u"Company", default=lambda self: self.env.user.company_id)
+    join_invoices_attachments = fields.Boolean(string=u"Join invoices attachments to dunning mail")
 
     @api.multi
     def _get_dunning_name(self):
@@ -56,7 +58,7 @@ class AccountInvoiceRelance(models.Model):
         ('done', u"Done")], string=u"State", readonly=True, default='draft', track_visibility='onchange')
     partner_id = fields.Many2one('res.partner', string=u"Partner")
     company_id = fields.Many2one('res.company', string=u"Company", default=lambda self: self.env.user.company_id)
-    dunning_type_id = fields.Many2one('account.invoice.dunning.type', string=u"Dunning Type")
+    dunning_type_id = fields.Many2one('account.invoice.dunning.type', string=u"Dunning Type", ondelete='restrict')
     report_id = fields.Many2one('ir.actions.report.xml', string=u"Report", related='dunning_type_id.report_id',
                                 readonly=True)
     sequence_id = fields.Many2one('ir.sequence', related='dunning_type_id.sequence_id', readonly=True)
@@ -118,6 +120,11 @@ class AccountInvoiceRelance(models.Model):
             default_composition_mode='comment',
             default_template_id=self.mail_template_id.ensure_one().id,
         )
+        if self.dunning_type_id.join_invoices_attachments:
+            attachment_ids = self.env['ir.attachment'].search([('res_id', 'in', self.invoice_ids.ids),
+                                                               ('res_model', '=', 'account.invoice')]).ids
+            if attachment_ids:
+                ctx['default_attachment_ids'] = [(6, 0, attachment_ids)]
         ctx.update(self._default_dict_send_mail_action())
         return {
             'name': _(u"Send a message"),
@@ -195,14 +202,14 @@ class AccountInvoice(models.Model):
 
     @api.multi
     def _no_next_dunning(self):
-        raise osv.osv.except_orm(_(u"Error !"), _(u"No next Dunning Type for the invoice %s" % self.number))
+        raise UserError(_(u"No next Dunning Type for the invoice %s" % self.number))
 
     @api.multi
     def _validate_to_create_dunning(self):
         if self.state != 'open':
-            raise osv.osv.except_orm(_(u"Error !"), _(u"You can't create a Dunning on an invoice which is not open"))
+            raise UserError(_(u"You can't create a Dunning on an invoice which is not open"))
         if self.type != 'out_invoice':
-            raise osv.osv.except_orm(_(u"Error !"), _(u"You can only create a Dunning on an Sale Invoice"))
+            raise UserError(_(u"You can only create a Dunning on an Sale Invoice"))
 
     @api.multi
     def _get_next_dunning_type(self):
