@@ -115,7 +115,7 @@ class TestSchedulerAsyncRunProcs(common.TransactionCase):
 
         # Proc with no job uuid
         session = ConnectorSession.from_env(self.env)
-        run_or_check_procurements(session, 'procurement.order', [('id', '=', self.proc.id)],
+        run_or_check_procurements(session, 'procurement.order', [self.proc.id],
                                   'run', dict(self.env.context))
         self.assertEqual(self.proc.state, 'exception')
 
@@ -130,7 +130,7 @@ class TestSchedulerAsyncRunProcs(common.TransactionCase):
         self.assertEqual(init_job.state, 'pending')
         session = ConnectorSession.from_env(self.env)
         with session.change_context(job_uuid=init_job.uuid):
-            run_or_check_procurements(session, 'procurement.order', [('id', '=', self.proc.id)],
+            run_or_check_procurements(session, 'procurement.order', [self.proc.id],
                                       'run', dict(self.env.context))
         self.assertEqual(self.proc.state, 'exception')
 
@@ -146,6 +146,6 @@ class TestSchedulerAsyncRunProcs(common.TransactionCase):
         session = ConnectorSession.from_env(self.env)
         with session.change_context(job_uuid='wrong_job_uuid'):
             with self.assertRaises(RetryableJobError):
-                run_or_check_procurements(session, 'procurement.order', [('id', '=', self.proc.id)],
+                run_or_check_procurements(session, 'procurement.order', [self.proc.id],
                                           'run', dict(self.env.context))
         self.assertEqual(self.proc.state, 'confirmed')
