@@ -457,7 +457,15 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
                 if rec.workflow_done:
                     rec.action_done()
                 else:
-                    rec.with_context(enable_trigger_sale_order_workflow=True).trigger_sale_order_workflow()
+                    # On test le jeton du workflow pour lancer le bon signal
+                    workflow = self.env.ref('sale.wkf_sale')
+                    workflow_instance = self.env['workflow.instance'].search([('wkf_id', '=', workflow.id),
+                                                                              ('res_id', '=', rec.id)])
+                    wokrflow_item = self.env['workflow.workitem'].search([('inst_id', '=', workflow_instance.id)])
+                    if wokrflow_item.act_id == self.env.ref('sale.act_ship'):
+                        rec.with_context(enable_trigger_sale_order_workflow=True).trigger_sale_order_workflow()
+                    if wokrflow_item.act_id == self.env.ref('sale.act_ship_except'):
+                        rec.signal_workflow('ship_corrected')
 
     @api.multi
     def trigger_sale_order_workflow(self):
