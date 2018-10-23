@@ -18,22 +18,19 @@
 #
 
 {
-    'name': 'Procurement Management',
+    'name': 'Stock Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Stock',
-    'depends': ['stock', 'procurement_improved'],
+    'depends': ['stock'],
     'description': """
-Procurement Management
-======================
-This modules allows to manage procurements in an improved way. It is now possible to run several procurements at one
-time, group the procurements by location, and see the moves existing before and after the procurement.
+Stock Improved
+==============
+This modules improves stock
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'procurement_management.xml'
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,

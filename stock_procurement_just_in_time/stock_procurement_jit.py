@@ -242,6 +242,7 @@ class ProcurementOrderQuantity(models.Model):
 
     @api.multi
     def cancel_procs_just_in_time(self, stock_qty, qty):
+        self.ensure_one()
         self.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
         self.unlink()
         return stock_qty - qty

@@ -134,12 +134,7 @@ class ProductSupplierinfoJIT(models.Model):
 class ProcurementOrderPurchaseJustInTime(models.Model):
     _inherit = 'procurement.order'
 
-    state = fields.Selection([('cancel', "Cancelled"),
-                              ('confirmed', "Confirmed"),
-                              ('exception', "Exception"),
-                              ('buy_to_run', "Buy rule to run"),
-                              ('running', "Running"),
-                              ('done', "Done")])
+    state = fields.Selection(selection_add=[('buy_to_run', "Buy rule to run")])
     purchase_line_id = fields.Many2one('purchase.order.line', index=True)
     date_buy_to_run = fields.Datetime(string=u"Date buy to run", copy=False, readonly=True)
 
