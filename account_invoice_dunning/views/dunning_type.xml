@@ -12,6 +12,7 @@
                     <field name="company_id"/>
                     <field name="report_id"/>
                     <field name="mail_template_id"/>
+                    <field name="join_invoices_attachments"/>
                     <field name="sequence_id"/>
                 </tree>
             </field>

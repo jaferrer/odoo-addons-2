@@ -34,6 +34,7 @@ class AccountInvoiceRelanceConfig(models.Model):
     mail_template_id = fields.Many2one('mail.template', string=u"Mail Template", domain=_get_domain_mail_template,
                                        required=True)
     company_id = fields.Many2one('res.company', string=u"Company", default=lambda self: self.env.user.company_id)
+    join_invoices_attachments = fields.Boolean(string=u"Join invoices attachments to dunning mail")
 
     @api.multi
     def _get_dunning_name(self):
@@ -119,6 +120,11 @@ class AccountInvoiceRelance(models.Model):
             default_composition_mode='comment',
             default_template_id=self.mail_template_id.ensure_one().id,
         )
+        if self.dunning_type_id.join_invoices_attachments:
+            attachment_ids = self.env['ir.attachment'].search([('res_id', 'in', self.invoice_ids.ids),
+                                                               ('res_model', '=', 'account.invoice')]).ids
+            if attachment_ids:
+                ctx['default_attachment_ids'] = [(6, 0, attachment_ids)]
         ctx.update(self._default_dict_send_mail_action())
         return {
             'name': _(u"Send a message"),
