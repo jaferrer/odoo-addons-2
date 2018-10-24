@@ -99,8 +99,9 @@ class MrpWorkorder(models.Model):
                     if rec.production_id.date_planned_start > vals['date_planned_start']:
                         rec.production_id.date_planned_start = vals['date_planned_start']
                 dps = fields.Datetime.from_string(vals['date_planned_start'])
-                dpf = rec.workcenter_id.schedule_working_hours(
-                    rec._get_expected_duration(vals['date_planned_start'], vals.get('date_planned_finished')), dps)
+                exp_duration = rec._get_expected_duration(vals['date_planned_start'],
+                                                          vals.get('date_planned_finished', rec.date_planned_finished))
+                dpf = rec.workcenter_id.schedule_working_hours(exp_duration, dps)
                 vals['date_planned_finished'] = fields.Datetime.to_string(dpf)
 
             if 'date_planned_finished' in vals:
