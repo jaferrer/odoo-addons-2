@@ -467,8 +467,8 @@ class TypeMessage(models.Model):
             distri_config_ids = self.env["distributeur.config"].search([("dest", "=", self.dest.id),
                                                                         ("type_id", "=", self.type_message_id.id)])
             if not distri_config_ids:
-                raise exceptions.ValidationError(u"Distributeur config non trouvé : %s, %s" %
-                                                 (self.dest, self.type_message_id))
+                raise exceptions.ValidationError(u"Distributeur config non trouvé : %s , %s -> %s" %
+                                                 (self.type_message_id, self.origin_code, self.dest_code))
             for item in distri_config_ids:
                 trt_seq = {}
                 trt_seq["archive"] = archive
