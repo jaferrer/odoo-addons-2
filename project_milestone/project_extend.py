@@ -26,7 +26,6 @@ class ProjectMilestone(models.Model):
     name = fields.Char(u"Titre de la Milestone")
     active = fields.Boolean(u"Archivé", default=True, readonly=True)
     start_date = fields.Date(u"Date de début")
-    project_id = fields.Many2one('project.project', u"Projet")
 
     task_ids = fields.One2many('project.task', 'milestone_id', u"Tâches", readonly=True)
 
@@ -98,15 +97,10 @@ class ProjectMilestone(models.Model):
         }
 
 
-class ProjectProjectMilestone(models.Model):
-    _inherit = 'project.project'
-
-    milestone_ids = fields.One2many('project.milestone', 'project_id', u"Milestones")
-
-
 class ProjectTaskMilestone(models.Model):
     _inherit = 'project.task'
 
     milestone_id = fields.Many2one('project.milestone', u"Milestone")
     milestone_state = fields.Selection(related='milestone_id.state', string=u"Milestone state", store=True,
                                        readonly=True)
+    milestone_name = fields.Char(related='milestone_id.name', string=u"Milestone", readonly=True)
