@@ -132,6 +132,7 @@
                                     <field name="name"/>
                                     <field name="user_id"/>
                                     <field name="priority" widget="priority"/>
+                                    <field name="planned_hours" sum="Total"/>
                                     <field name="stage_id"/>
                                 </tree>
                             </field>
