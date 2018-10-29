@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api
+from openerp import fields, models, api, _
 
 
 class ProjectMilestone(models.Model):
@@ -26,35 +26,28 @@ class ProjectMilestone(models.Model):
     name = fields.Char(u"Titre de la Milestone")
     active = fields.Boolean(u"Archivé", default=True, readonly=True)
     start_date = fields.Date(u"Date de début")
-
     task_ids = fields.One2many('project.task', 'milestone_id', u"Tâches", readonly=True)
-
-    nb_tasks = fields.Integer(u"Nb tâches", compute='_compute_nb_related')
-
+    nb_tasks = fields.Integer(u"Number of tasks", compute='_compute_nb_tasks')
     state = fields.Selection([
         ('open', u"Ouverte"),
         ('in_qualif', u"En Qualif"),
         ('in_prod', u"En Prod"),
         ('closed', u"Fermée")
     ], default='open', readonly=True)
-
-    qualif_should_be_livred_at = fields.Date(u"Doit être livée en Qualif le")
-    should_be_closed_at = fields.Date(u"Doit être livée en Prod le")
-
+    qualif_should_be_livred_at = fields.Date(u"Doit être livée en Qualif le", required=True)
+    should_be_closed_at = fields.Date(u"Doit être livée en Prod le", required=True)
     livred_in_qualif_at = fields.Date(u"Livrée en qualif le", readonly=True)
     livred_in_qualif_by = fields.Many2one('res.users', u"Livrée en qualif par", readonly=True,
                                           groups="project_milestone.group_project_milestone_manager")
-
     livred_in_prod_at = fields.Date(u"Livrée en Prod le", readonly=True)
     livred_in_prod_by = fields.Many2one('res.users', u"Livrée en Prod par", readonly=True,
                                         groups="project_milestone.group_project_milestone_manager")
-
     closed_by = fields.Many2one('res.users', u"Livrée en prod par", readonly=True,
                                 groups="project_milestone.group_project_milestone_manager")
     closed_at = fields.Date(u"Fermée le", readonly=True)
 
     @api.multi
-    def _compute_nb_related(self):
+    def _compute_nb_tasks(self):
         for rec in self:
             rec.nb_tasks = len(rec.task_ids)
 
@@ -80,14 +73,13 @@ class ProjectMilestone(models.Model):
             'closed_at': fields.Datetime.now(),
             'closed_by': self.env.user.id,
             'state': 'closed',
-            'active': False,
         })
 
     @api.multi
     def see_tasks(self):
         self.ensure_one()
         return {
-            'name': u"Tâches de la Milestone %s" % self.name,
+            'name': _(u"Tasks of milestone %s") % self.name,
             'type': 'ir.actions.act_window',
             'view_type': 'form',
             'view_mode': 'form',
@@ -100,7 +92,14 @@ class ProjectMilestone(models.Model):
 class ProjectTaskMilestone(models.Model):
     _inherit = 'project.task'
 
-    milestone_id = fields.Many2one('project.milestone', u"Milestone")
+    milestone_id = fields.Many2one('project.milestone', u"Milestone", domain=[('state', '!=', 'closed')])
     milestone_state = fields.Selection(related='milestone_id.state', string=u"Milestone state", store=True,
                                        readonly=True)
     milestone_name = fields.Char(related='milestone_id.name', string=u"Milestone", readonly=True)
+
+    @api.onchange('milestone_id')
+    def onchange_milestone_id(self):
+        for rec in self:
+            if rec.milestone_id:
+                rec.date_deadline = rec.milestone_id.qualif_should_be_livred_at and \
+                    rec.milestone_id.qualif_should_be_livred_at[:10] or False
