@@ -57,4 +57,11 @@ class ProjectDeliveryType(models.Model):
 class ProjectDeliveryTask(models.Model):
     _inherit = 'project.task'
 
-    delivery_ids = fields.Many2many('project.delivery', 'delivery_task_rel', string=u"Tasks")
+    delivery_ids = fields.Many2many('project.delivery', 'delivery_task_rel', string=u"Deliveries")
+
+
+class ProjectDeliveryProject(models.Model):
+    _inherit = 'project.project'
+
+    delivery_ids = fields.Many2many('project.delivery', 'delivery_task_rel', string=u"Deliveries")
+    use_delivery = fields.Boolean(u"This project use Delivery")

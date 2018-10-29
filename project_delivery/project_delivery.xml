@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+
+        <record model="ir.ui.view" id="project_project_form_delivery">
+            <field name="name">project_project_form_delivery</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="user_id" position="after">
+                    <field name="use_delivery"/>
+                </field>
+            </field>
+        </record>
+
+
         <record model="ir.ui.view" id="project_delivery_task_form_ext">
             <field name="name">project_delivery_task_form_ext</field>
             <field name="model">project.task</field>
@@ -42,7 +56,7 @@
             <field name="model">project.delivery</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <search string="Search Production">
+                <search string="Search Delivery">
                     <field name="name"/>
                     <field name="type_id"/>
                     <field name="effective_date"/>
