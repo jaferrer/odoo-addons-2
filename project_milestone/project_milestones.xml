@@ -32,7 +32,7 @@
             <field name="model">project.milestone</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <search string="Search Production">
+                <search string="Search Milestone">
                     <field name="name"/>
                     <field name="project_id"/>
                     <field name="should_be_closed_at"/>
@@ -52,11 +52,11 @@
             <field name="arch" type="xml">
                 <form string="Milestone">
                     <header>
-                        <button name="set_to_livred_in_qualif" type="object" string="Marqué comme livrée en Qualif"
+                        <button name="set_to_livred_in_qualif" type="object" string="Is in Qualification"
                                 class="btn-primary" attrs="{'invisible':[('state', '!=', 'open')]}"/>
-                        <button name="set_to_livred_in_prod" type="object" string="Marqué comme livrée en prod"
+                        <button name="set_to_livred_in_prod" type="object" string="Is in Production"
                                 class="btn-primary" attrs="{'invisible':[('state', '!=', 'in_qualif')]}"/>
-                        <button name="close_milestone" type="object" string="Fermer la Milestone"
+                        <button name="close_milestone" type="object" string="Close"
                                 class="btn-primary" attrs="{'invisible':[('state', '!=', 'in_prod')]}"/>
                         <field name="state" widget="statusbar" readonly="1"/>
                     </header>
