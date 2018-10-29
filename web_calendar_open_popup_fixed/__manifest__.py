@@ -4,7 +4,7 @@
 {
     'name': 'Web Calendar',
     'category': 'Hidden',
-    'description':"""
+    'description': """
 Odoo Web Calendar view.
 ==========================
 
@@ -12,7 +12,7 @@ Odoo Web Calendar view.
     'author': 'Odoo SA, Valentino Lab (Kalysto)',
     'version': '2.0',
     'depends': ['web'],
-    'data' : [
+    'data': [
         'views/web_calendar_templates.xml',
     ],
     'qweb': [
