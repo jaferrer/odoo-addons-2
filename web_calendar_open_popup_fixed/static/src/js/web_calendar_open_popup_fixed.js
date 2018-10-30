@@ -1,29 +1,16 @@
-# -*- coding: utf8 -*-
-#
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
-#
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as
-#    published by the Free Software Foundation, either version 3 of the
-#    License, or (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-#
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
-
-odoo.define('web_calendar_fixed_colors.CalendarView', function (require) {
+odoo.define('web_calendar_open_popup_fixed.CalendarView', function (require) {
     "use strict";
 
     var CalendarView = require('web_calendar.CalendarView');
-    var QuickCreate = require('web_calendar.widgets.QuickCreate');
+    var QuickCreate = require('web_calendar.widgets');
 
-    QuickCreate.include({
+    var form_common = require('web.form_common');
+
+    function isNullOrUndef(value) {
+        return _.isUndefined(value) || _.isNull(value);
+    }
+
+    QuickCreate.QuickCreate.include({
 
         start: function (action_id) {
             var self = this;

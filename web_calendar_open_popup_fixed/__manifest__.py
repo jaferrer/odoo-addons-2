@@ -28,7 +28,7 @@ Web Calendar open popup fixed.
 """,
     'author': 'NDP Systèmes',
     'version': '2.0',
-    'depends': ['web'],
+    'depends': ['web', 'web_calendar'],
     'data': [
         'views/web_calendar_templates.xml',
     ],
