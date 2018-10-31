@@ -36,6 +36,7 @@ except ImportError:
 
 from openerp.http import request
 from openerp.addons.web.controllers import main
+from openerp.service.report import exp_report, exp_report_get
 from openerp import http
 import tempfile
 from openerp.loglevels import ustr
@@ -84,12 +85,11 @@ class WebRouteExtend(main.Reports):
         return self._file_report(current_action, token, context)
 
     def _zip_report(self, current_action, token, context):
-        report_srv = request.session.proxy("report")
         report_data, report_ids = self._get_report_data(context, current_action)
         temp_dir = tempfile.mkdtemp()
         num = 0
         for report_id_todo in report_ids:
-            report_struct = self._get_report_struct(current_action, report_data, [report_id_todo], report_srv, context)
+            report_struct = self._get_report_struct(current_action, report_data, [report_id_todo], context)
             report = base64.b64decode(report_struct['result'])
             if report_struct.get('code') == 'zlib':
                 report = zlib.decompress(report)
@@ -160,17 +160,12 @@ class WebRouteExtend(main.Reports):
                     file_join = os.path.join(root, file)
                     ziph.write(file_join, basename(file_join))
 
-    def _get_report_struct(self, current_action, report_data, report_id_todo, report_srv, context):
-        report_id = report_srv.report(request.session.db, request.session.uid, request.session.password,
-                                      current_action["report_name"], report_id_todo,
-                                      report_data, context
-                                      )
+    def _get_report_struct(self, current_action, report_data, report_id_todo, context):
+        report_id = exp_report(request.session.db, request.session.uid, current_action["report_name"],
+                               [report_id_todo], report_data, context)
         report_struct = None
         while True:
-            report_struct = report_srv.report_get(request.session.db,
-                                                  request.session.uid,
-                                                  request.session.password,
-                                                  report_id)
+            report_struct = exp_report_get(request.session.db, request.session.uid, report_id)
             if report_struct["state"]:
                 break
             time.sleep(self.POLLING_DELAY)
