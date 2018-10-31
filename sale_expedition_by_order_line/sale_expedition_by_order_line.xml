@@ -46,6 +46,7 @@ self.update_remaining_qty(cr,uid,context.get('active_ids'),context)
                             attrs="{'invisible': [('lines_display', '=', 'all')]}" class="oe_right"/>
                     <button name="toggle_lines_display" type="object" string="Hide Delivered Lines"
                             attrs="{'invisible': [('lines_display', '!=', 'all')]}" class="oe_right"/>
+                    <field name="line_not_null_remaining_qty_ids" attrs="{'invisible': [('lines_display', '!=', 'not_null_remaining_quantity')]}"/>
                 </field>
                 <field name="order_line" position="attributes">
                     <attribute name="attrs">{'invisible': [('lines_display', '!=', 'all')]}</attribute>
