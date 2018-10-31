@@ -24,8 +24,8 @@
     'description': """
 Web Calendar Starred Domain.
 ============================
-Change the native behavior of calendar views by introducing a new attribute for calendar views: now you can specify a 
-starred_domain in XML Calendar Views to filter the persons you want in the SidebarFilter (when you use the attribute 
+Change the native behavior of calendar views by introducing a new attribute for calendar views: starred_domain. It
+allows to specify a domain in order to filter the partner that appear in the SidebarFilter (when you use the attribute
 use_contacts).
 
 """,
