@@ -416,6 +416,20 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
                                                       states={'done': [('readonly', True)],
                                                               'cancel': [('readonly', True)]})
 
+    @api.model
+    def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
+        """Permet de copier les vues embarqué du champs 'order_line' dans le champ 'line_not_null_remaining_qty_ids'
+        uniquement pour la vue 'sale.view_order_form'"""
+        res = super(ExpeditionByOrderLineSaleOrder, self).fields_view_get(view_id=view_id, view_type=view_type,
+                                                                          toolbar=toolbar, submenu=submenu)
+        id = self.env.ref('sale.view_order_form').id
+        valid = res['view_id'] == id and {'line_not_null_remaining_qty_ids', 'order_line'}.issubset(res['fields'])
+        valid = valid and not res['fields']['line_not_null_remaining_qty_ids'].get('views')
+        valid = valid and bool(res['fields']['order_line'].get('views'))
+        if valid:
+            res['fields']['line_not_null_remaining_qty_ids']['views'] = res['fields']['order_line']['views']
+        return res
+
     @api.multi
     def toggle_lines_display(self):
         for rec in self:

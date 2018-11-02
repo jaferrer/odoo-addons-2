@@ -50,6 +50,21 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="project_task_search_ext">
+            <field name="name">project_task_search_ext</field>
+            <field name="model">project.task</field>
+            <field name="priority" eval="16"/>
+            <field name="inherit_id" ref="project.view_task_search_form"/>
+            <field name="arch" type="xml">
+                <field name="project_id" position="after">
+                    <field name="milestone_id"/>
+                </field>
+                <filter name="project" position="before">
+                    <filter string="Milestone" name="milestone" context="{'group_by':'milestone_id'}"/>
+                </filter>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="project_milestone_tree">
             <field name="name">project.milestone.tree</field>
             <field name="model">project.milestone</field>
