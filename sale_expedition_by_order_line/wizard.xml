@@ -13,7 +13,7 @@
                 </field>
                 <xpath expr="//field[@name='item_expedition_ids']//field[@name='quantity']" position="after">
                     <field name="sale_line_id"
-                           domain="[('product_id', '=', product_id), ('order_id.name', '=', group_name)]"
+                           domain="[('product_id', '=', product_id), ('order_id.name', '=', group_name), ('remaining_qty', '&gt;', 0)]"
                            options="{'no_create': True, 'no_edit': True}"
                            context="{'display_line_no': True}"/>
                 </xpath>
