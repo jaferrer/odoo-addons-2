@@ -349,7 +349,8 @@ class StockPicking(models.Model):
                 picking.picking_correctly_filled = True
 
     @api.multi
-    def open_picking_form(self, is_manual_op):
+    def get_picking_action(self, is_manual_op):
+        self.ensure_one()
         if is_manual_op:
             if not self:
                 raise exceptions.except_orm(_("error"), _("No line selected"))
