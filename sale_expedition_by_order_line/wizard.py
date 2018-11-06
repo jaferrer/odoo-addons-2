@@ -42,7 +42,7 @@ class ExpeditionByOrderTransferDetails(models.TransientModel):
                                                        "linked to another product. Please check your packing "
                                                        "operations and retry."))
         # Create new pack operations if needed
-        for item in self.item_expedition_ids:
+        for item in self.item_ids:
             if not item.packop_id:
                 new_packop = self.env['stock.pack.operation'].create({
                     'picking_id': self.picking_id and self.picking_id.id or False,
