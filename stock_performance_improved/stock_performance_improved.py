@@ -194,17 +194,21 @@ class stock_pack_operation(models.Model):
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    location_id = fields.Many2one("stock.location", string="Location", readonly=True, compute="_compute_location_id")
-    location_dest_id = fields.Many2one("stock.location", string="Destination Location", readonly=True,
-                                       compute="_compute_location_id")
+    location_id_compute = """SELECT min(sm.location_id)
+FROM stock_picking sp
+  LEFT JOIN stock_move sm ON sm.picking_id = sp.id
+WHERE sp.id = $1.id"""
 
-    @api.depends('move_lines.location_id', 'move_lines.location_dest_id')
-    def _compute_location_id(self):
-        for rec in self:
-            moves = self.env['stock.move'].search([('picking_id', '=', rec.id)], limit=1)
-            if moves:
-                rec.location_id = moves.location_id
-                rec.location_dest_id = moves.location_dest_id
+    location_dest_id_compute = """SELECT min(sm.location_dest_id)
+FROM stock_picking sp
+  LEFT JOIN stock_move sm ON sm.picking_id = sp.id
+WHERE sp.id = $1.id"""
+
+    location_id = fields.Many2one('stock.location', string=u"Location", readonly=True,
+                                  compute_sql=location_id_compute)
+    location_dest_id = fields.Many2one('stock.location', string=u"Destination Location", readonly=True,
+                                       compute_sql=location_dest_id_compute)
+    picking_type_id = fields.Many2one('stock.picking.type', index=True)
 
     @api.model
     def rereserve_quants(self, picking, move_ids=[]):

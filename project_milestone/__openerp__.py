@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project'],
+    'depends': ['project', 'web_tree_many2one_clickable'],
     'description': """
 Milestone, Jalon dans les projets
 =================================
