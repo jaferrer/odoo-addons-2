@@ -208,6 +208,7 @@ WHERE sp.id = $1.id"""
                                   compute_sql=location_id_compute)
     location_dest_id = fields.Many2one('stock.location', string=u"Destination Location", readonly=True,
                                        compute_sql=location_dest_id_compute)
+    picking_type_id = fields.Many2one('stock.picking.type', index=True)
 
     @api.model
     def rereserve_quants(self, picking, move_ids=[]):
