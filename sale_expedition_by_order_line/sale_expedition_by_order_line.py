@@ -41,6 +41,7 @@ def job_synchronize_lines(session, model_name, chunk_list_lines_to_synchronize, 
 def job_update_remaining_qty(session, model_name, order_id):
     order = session.env[model_name].browse(order_id)
     order.update_remaining_qties()
+    order.compute_workflow_state()
     order.remove_old_delivery_moves()
 
 
@@ -84,7 +85,6 @@ class ReceptionByOrderStockPackOperation(models.Model):
                 if res.get('sale_line_id') == op_sale_line.id:
                     filtred_result.append(res)
         return filtred_result
-
 
 
 class ExpeditionByOrderLinePicking(models.Model):
@@ -416,6 +416,20 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
                                                       states={'done': [('readonly', True)],
                                                               'cancel': [('readonly', True)]})
 
+    @api.model
+    def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
+        """Permet de copier les vues embarqué du champs 'order_line' dans le champ 'line_not_null_remaining_qty_ids'
+        uniquement pour la vue 'sale.view_order_form'"""
+        res = super(ExpeditionByOrderLineSaleOrder, self).fields_view_get(view_id=view_id, view_type=view_type,
+                                                                          toolbar=toolbar, submenu=submenu)
+        id = self.env.ref('sale.view_order_form').id
+        valid = res['view_id'] == id and {'line_not_null_remaining_qty_ids', 'order_line'}.issubset(res['fields'])
+        valid = valid and not res['fields']['line_not_null_remaining_qty_ids'].get('views')
+        valid = valid and bool(res['fields']['order_line'].get('views'))
+        if valid:
+            res['fields']['line_not_null_remaining_qty_ids']['views'] = res['fields']['order_line']['views']
+        return res
+
     @api.multi
     def toggle_lines_display(self):
         for rec in self:
@@ -447,6 +461,30 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
                         move.procurement_id.cancel()
                     if move.state != 'cancel':
                         move.action_cancel()
+
+    @api.multi
+    def compute_workflow_state(self):
+        for rec in self:
+            if rec.order_policy == 'picking' and all([
+                float_compare(line.remaining_qty, 0, line.product_uom.rounding) <= 0 for line in rec.order_line
+            ]):
+                if rec.workflow_done:
+                    rec.action_done()
+                else:
+                    # On test le jeton du workflow pour lancer le bon signal
+                    workflow = self.env.ref('sale.wkf_sale')
+                    workflow_instance = self.env['workflow.instance'].search([('wkf_id', '=', workflow.id),
+                                                                              ('res_id', '=', rec.id)])
+                    wokrflow_item = self.env['workflow.workitem'].search([('inst_id', '=', workflow_instance.id)])
+                    if wokrflow_item.act_id == self.env.ref('sale.act_ship'):
+                        rec.with_context(enable_trigger_sale_order_workflow=True).trigger_sale_order_workflow()
+                    if wokrflow_item.act_id == self.env.ref('sale.act_ship_except'):
+                        rec.signal_workflow('ship_corrected')
+
+    @api.multi
+    def trigger_sale_order_workflow(self):
+        if self.env.context.get('enable_trigger_sale_order_workflow'):
+            super(ExpeditionByOrderLineSaleOrder, self).trigger_sale_order_workflow()
 
     @api.model
     def cron_compute_remaining_qties(self):

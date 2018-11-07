@@ -242,6 +242,7 @@ class ProcurementOrderQuantity(models.Model):
 
     @api.multi
     def cancel_procs_just_in_time(self, stock_qty, qty):
+        self.ensure_one()
         self.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
         self.unlink()
         return stock_qty - qty
@@ -374,6 +375,13 @@ class StockWarehouseOrderPointJit(models.Model):
             return True
         return False
 
+    @api.model
+    def process_events_at_date(self, event, events, stock_after_event):
+        self.ensure_one()
+        events_at_date = [item for item in events if item['date'] == event['date']]
+        stock_after_event += sum(item['move_qty'] for item in events_at_date)
+        return events_at_date, stock_after_event
+
     @api.multi
     def process(self):
         """Process this orderpoint."""
@@ -386,8 +394,7 @@ class StockWarehouseOrderPointJit(models.Model):
             stock_after_event = 0
             for event in events:
                 if event['date'] not in done_dates:
-                    events_at_date = [item for item in events if item['date'] == event['date']]
-                    stock_after_event += sum(item['move_qty'] for item in events_at_date)
+                    events_at_date, stock_after_event = op.process_events_at_date(event, events, stock_after_event)
                     done_dates += [event['date']]
                 if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned']:
                     proc_oversupply = self.env['procurement.order'].search([('id', '=', event['proc_id']),

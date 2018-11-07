@@ -26,6 +26,10 @@ class QuantOriginStockQuant(models.Model):
     origin = fields.Char(string='Quant origin', readonly=True)
 
     @api.model
+    def get_new_quants_vals(self, move):
+        return {'origin': move.origin}
+
+    @api.model
     def _quant_create(self, qty, move, lot_id=False, owner_id=False, src_package_id=False, dest_package_id=False,
                       force_location_from=False, force_location_to=False):
         created_quant = super(QuantOriginStockQuant, self)._quant_create(qty, move, lot_id=lot_id, owner_id=owner_id,
@@ -34,5 +38,5 @@ class QuantOriginStockQuant(models.Model):
                                                                           force_location_from=force_location_from,
                                                                           force_location_to=force_location_to)
         created_quants = created_quant + created_quant.propagated_from_id
-        created_quants.sudo().write({'origin': move.origin})
+        created_quants.sudo().write(self.get_new_quants_vals(move))
         return created_quant

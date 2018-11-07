@@ -121,7 +121,7 @@ class ProductLineMoveWizard(models.TransientModel):
         new_picking = quants_to_move.with_context(mail_notrack=True). \
             move_to(self.global_dest_loc, self.picking_type_id, move_items=move_items, is_manual_op=is_manual_op,
                     filling_method=self.filling_method)
-        return new_picking.open_picking_form(is_manual_op)
+        return new_picking.get_picking_action(is_manual_op)
 
 
 class ProductLineMoveWizardLine(models.TransientModel):

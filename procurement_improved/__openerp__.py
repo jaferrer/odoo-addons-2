@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,25 +18,24 @@
 #
 
 {
-    'name': 'Stock transfert picking type split by pack',
-    'sequence': 1,
+    'name': 'Procurement Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Stock',
-    'depends': ['stock_transfert_picking_type', 'stock_transfer_split_by_pack'],
+    'depends': ['procurement'],
     'description': """
-Stock transfert picking type split by pack
-==========================================
+Procurement Improved
+====================
+This modules improves procurements
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views.xml',
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': True,
+    'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    'sequence': 999,
 }

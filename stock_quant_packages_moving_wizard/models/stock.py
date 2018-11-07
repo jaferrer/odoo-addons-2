@@ -120,7 +120,6 @@ WHERE sm.sum_move_ids = 0 AND
       sm.id NOT IN %s
 ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(quant.history_ids.ids or [0]),))
             moves_no_ancestors_ids = [move_id for move_id in set([item[0] for item in self.env.cr.fetchall()])]
-        print 'get_corresponding_move_ids', moves_correct_chain_ids + moves_no_ancestors_ids
         return moves_correct_chain_ids + moves_no_ancestors_ids
 
     @api.model
@@ -166,11 +165,9 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
                 quant.reservation_id.do_unreserve()
             for move_id in corresponding_move_ids:
                 move = self.env['stock.move'].search([('id', '=', move_id)])
-                print 'move', move, move.product_qty, dict_reservation_target.get(move), target_qty
                 if move not in dict_reservation_target:
                     dict_reservation_target[move] = {'available_qty': move.product_qty, 'reservations': []}
                     move.do_unreserve()
-                    print 'unreserve', dict_reservation_target.get(move)
                 if float_compare(target_qty, dict_reservation_target[move]['available_qty'],
                                  precision_rounding=prec) <= 0:
                     dict_reservation_target[move]['reservations'] += [(quant, target_qty)]
@@ -178,7 +175,6 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
                     if float_compare(dict_reservation_target[move]['available_qty'], 0, precision_rounding=prec) <= 0:
                         full_moves |= move
                     target_qty -= move.product_qty
-                    print 'target_qty<=available_qty', dict_reservation_target.get(move), target_qty
                     break
                 else:
                     qty_to_reserve_on_move = dict_reservation_target[move]['available_qty']
@@ -187,9 +183,7 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
                     dict_reservation_target[move]['available_qty'] = 0
                     full_moves |= move
                     quant, target_qty = splitted_quant, target_qty - qty_to_reserve_on_move
-                    print 'else', dict_reservation_target.get(move), target_qty
             if float_compare(target_qty, 0, precision_rounding=prec) > 0:
-                print 'add', [(quant, target_qty)]
                 moves_to_create += [(quant, target_qty)]
         return dict_reservation_target, moves_to_create
 
@@ -355,7 +349,8 @@ class StockPicking(models.Model):
                 picking.picking_correctly_filled = True
 
     @api.multi
-    def open_picking_form(self, is_manual_op):
+    def get_picking_action(self, is_manual_op):
+        self.ensure_one()
         if is_manual_op:
             if not self:
                 raise exceptions.except_orm(_("error"), _("No line selected"))

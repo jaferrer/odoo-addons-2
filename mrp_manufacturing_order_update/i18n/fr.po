@@ -74,6 +74,7 @@ msgstr "Mouvement de %s créé pour l'article %s<br>"
 #. module: mrp_manufacturing_order_update
 #: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:60
 #: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:190
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:205
 #, python-format
 msgid "Error!"
 msgstr "Erreur !"
@@ -89,3 +90,9 @@ msgstr "Article %s sur l'OF %s : %s %s ont été consommés, impossible de baiss
 #, python-format
 msgid "Product %s in MO %s: forbidden to cancel a move with reserved quants (quantity to unreserve: %s %s)"
 msgstr "Article %s dans l'OF %s : interdit d'annuler un mouvement qui a des quants réservés (quantité à déréserver : %s %s)"
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:206
+#, python-format
+msgid "%s: impossible to change the quantity of a manufacturing order created by Odoo. Please create an extra manufacturing order or make stock scheduler cancel this one."
+msgstr "%s : impossible de changer la quantité d'un OF créé par Odoo. Veuillez créez manuellement un OF complémentaire, ou bien faites annuler celui-ci par le planificateur."

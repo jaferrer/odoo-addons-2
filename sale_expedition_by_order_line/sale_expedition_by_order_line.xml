@@ -46,6 +46,7 @@ self.update_remaining_qty(cr,uid,context.get('active_ids'),context)
                             attrs="{'invisible': [('lines_display', '=', 'all')]}" class="oe_right"/>
                     <button name="toggle_lines_display" type="object" string="Hide Delivered Lines"
                             attrs="{'invisible': [('lines_display', '!=', 'all')]}" class="oe_right"/>
+                    <field name="line_not_null_remaining_qty_ids" attrs="{'invisible': [('lines_display', '!=', 'not_null_remaining_quantity')]}"/>
                 </field>
                 <field name="order_line" position="attributes">
                     <attribute name="attrs">{'invisible': [('lines_display', '!=', 'all')]}</attribute>
@@ -108,14 +109,13 @@ self.update_remaining_qty(cr,uid,context.get('active_ids'),context)
             </field>
         </record>
 
-        <record model="ir.ui.view" id="stock_transfert_picking_form">
-            <field name="name">stock_transfert_picking_form</field>
+        <record model="ir.ui.view" id="expedition_by_order_picking_form">
+            <field name="name">expedition_by_order_picking_form</field>
             <field name="model">stock.picking</field>
-            <field name="inherit_id" ref="stock_transfert_picking_type.stock_transfert_picking_form"/>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <xpath expr="//field[@name='pack_operation_expedition_ids']//field[@name='picking_type_code']"
-                       position="after">
+                <xpath expr="//field[@name='pack_operation_ids']//field[@name='product_uom_id']" position="after">
                     <field name="sale_line_id"
                            domain="[('product_id', '=', product_id), ('order_id.name', '=', group_name)]"
                            options="{'no_create': True, 'no_edit': True}"
