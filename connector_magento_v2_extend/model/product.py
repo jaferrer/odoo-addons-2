@@ -665,6 +665,7 @@ class StockLevelExporter(Exporter):
             product_id,
             magentoextend_id,
             default_code
+            order by qty asc
                     """, (self.backend_record.connector_id.home_id.id,
                           self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id,
                           self.backend_record.connector_id.home_id.id
