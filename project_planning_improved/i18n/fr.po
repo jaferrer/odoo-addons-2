@@ -127,7 +127,7 @@ msgstr "Temps alloué total"
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_duration_unit_tasks
 msgid "Allocated duration for unit tasks"
-msgstr "Tempas alloué pour les tâches unitaires"
+msgstr "Temps alloué pour les tâches unitaires"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration

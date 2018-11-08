@@ -1,0 +1,276 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* account_invoice_dunning
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-05-03 08:56+0000\n"
+"PO-Revision-Date: 2018-05-03 08:56+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: account_invoice_dunning
+#: selection:account.invoice.dunning,state:0
+msgid "Cancel"
+msgstr "Annulé"
+
+#. module: account_invoice_dunning
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_form_view
+msgid "Cancel Dunning"
+msgstr "Annuler la relance"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_company_id
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_company_id
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_search_view
+msgid "Company"
+msgstr "Société"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_join_invoices_attachments
+msgid "Join invoices attachments to dunning mail"
+msgstr "Joindre les pièces jointes des factures aux mails de relance"
+
+#. module: account_invoice_dunning
+#: model:ir.actions.server,name:account_invoice_dunning.ir_actions_server_report_relance
+msgid "Create Dunning"
+msgstr "Créer relance"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_create_uid
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_create_date
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_display_name
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: account_invoice_dunning
+#: selection:account.invoice.dunning,state:0
+msgid "Done"
+msgstr "Terminé"
+
+#. module: account_invoice_dunning
+#: selection:account.invoice.dunning,state:0
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: account_invoice_dunning
+#: code:addons/account_invoice_dunning/models/dunning.py:141
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_form_dunning_link
+#, python-format
+msgid "Dunning"
+msgstr "Relance"
+
+#. module: account_invoice_dunning
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_tree_view
+msgid "Dunning Tree"
+msgstr "Relances"
+
+#. module: account_invoice_dunning
+#: model:ir.actions.act_window,name:account_invoice_dunning.relance_config_action
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_dunning_type_id
+#: model:ir.ui.menu,name:account_invoice_dunning.menu_relance_config
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_search_view
+msgid "Dunning Type"
+msgstr "Type de relance"
+
+#. module: account_invoice_dunning
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_type_tree_view
+msgid "Dunning Type Tree"
+msgstr "Types de relance"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_date_done
+msgid "Dunning date done"
+msgstr "Date d'envoi de la relance"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_number
+msgid "Dunning number"
+msgstr "Numéro de relance"
+
+#. module: account_invoice_dunning
+#: model:ir.actions.act_window,name:account_invoice_dunning.dunning_view_action
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_invoice_dunning_ids
+#: model:ir.ui.menu,name:account_invoice_dunning.menu_account_invoice_dunning
+#: model:ir.ui.menu,name:account_invoice_dunning.menu_account_invoice_dunning_action
+msgid "Dunnings"
+msgstr "Relances"
+
+#. module: account_invoice_dunning
+#: model:ir.model,name:account_invoice_dunning.model_mail_compose_message
+msgid "Email composition wizard"
+msgstr "Assistant de composition de courriel"
+
+#. module: account_invoice_dunning
+#: code:addons/account_invoice_dunning/models/dunning.py:195
+#: code:addons/account_invoice_dunning/models/dunning.py:200
+#: code:addons/account_invoice_dunning/models/dunning.py:202
+#, python-format
+msgid "Error !"
+msgstr "Erreur !"
+
+#. module: account_invoice_dunning
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_search_view
+msgid "Group by..."
+msgstr "Grouper par..."
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_id
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_id
+msgid "ID"
+msgstr "ID"
+
+#. module: account_invoice_dunning
+#: model:ir.model,name:account_invoice_dunning.model_account_invoice
+msgid "Invoice"
+msgstr "Facture"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_invoice_ids
+msgid "Invoices"
+msgstr "Factures"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning___last_update
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_write_uid
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_write_date
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_mail_template_id
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_mail_template_id
+msgid "Mail Template"
+msgstr "Modèle de mail"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_name
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_name
+msgid "Name"
+msgstr "Nom"
+
+#. module: account_invoice_dunning
+#: code:addons/account_invoice_dunning/models/dunning.py:195
+#, python-format
+msgid "No next Dunning Type for the invoice %s"
+msgstr "Il n'existe pas de prochain type de relance pour la facture : %s"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_number
+msgid "Nomber of Dunning send"
+msgstr "Nombre de relances envoyées"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_partner_id
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_search_view
+msgid "Partner"
+msgstr "Partenaire"
+
+#. module: account_invoice_dunning
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_form_view
+msgid "Print Dunning"
+msgstr "Imprimer la relance"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_report_id
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_report_id
+msgid "Report"
+msgstr "Rapport"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_residual_signed
+msgid "Residual"
+msgstr "Restant dû"
+
+#. module: account_invoice_dunning
+#: selection:account.invoice.dunning,state:0
+msgid "Send"
+msgstr "Envoyé"
+
+#. module: account_invoice_dunning
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_form_view
+msgid "Send Dunning"
+msgstr "Envoyer la relance"
+
+#. module: account_invoice_dunning
+#: code:addons/account_invoice_dunning/models/dunning.py:120
+#, python-format
+msgid "Send a message"
+msgstr "Envoyer un message"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_sequence_id
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_sequence_id
+msgid "Sequence"
+msgstr "Séquence"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_state
+msgid "State"
+msgstr "État"
+
+#. module: account_invoice_dunning
+#: sql_constraint:account.invoice.dunning.type:0
+msgid "The Dunning number must be unique per company !"
+msgstr "Le numero du type de relance doit est unique par société !"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_amount_total_signed
+msgid "Total"
+msgstr "Total"
+
+#. module: account_invoice_dunning
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_form_view
+msgid "Validate Dunning"
+msgstr "Valider la relance"
+
+#. module: account_invoice_dunning
+#: code:addons/account_invoice_dunning/models/dunning.py:202
+#, python-format
+msgid "You can only create a Dunning on an Sale Invoice"
+msgstr "Vous ne pouvez créer une relance que pour les factures client"
+
+#. module: account_invoice_dunning
+#: code:addons/account_invoice_dunning/models/dunning.py:200
+#, python-format
+msgid "You can't create a Dunning on an invoice which is not open"
+msgstr "Vous ne pouvez pas créer une relance pour une facture qui n'est pas ouverte"
+
+#. module: account_invoice_dunning
+#: model:ir.model,name:account_invoice_dunning.model_account_invoice_dunning
+msgid "account.invoice.dunning"
+msgstr "account.invoice.dunning"
+
+#. module: account_invoice_dunning
+#: model:ir.model,name:account_invoice_dunning.model_account_invoice_dunning_type
+msgid "account.invoice.dunning.type"
+msgstr "account.invoice.dunning.type"
+

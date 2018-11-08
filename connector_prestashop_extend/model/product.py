@@ -162,6 +162,10 @@ class ProductCombinationRecordImport(TranslatableRecordImporter):
         prestashop_products = []
         combinations = self.has_combinations(self.prestashopextend_record)
         if combinations:
+            if not isinstance(combinations, list):
+                item = combinations
+                combinations = []
+                combinations.append(item)
             for comb in combinations:
                 prestashop_product = self.prestashopextend_record.copy()
                 rec_comb = self.get_reccord_presta(comb.get("id"), "combinations")
@@ -359,6 +363,9 @@ class StockLevelExporter(Exporter):
     def run(self):
         log = ""
 
+        url_default = self.env["connector.type.prestashop.parameter"].search(
+            [("line_id", "=", self.backend_record.connector_id.line_id.id)])[0].location
+
         self.env.cr.execute(""" WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
             SELECT
               sl.id AS loc_id,
@@ -423,9 +430,6 @@ class StockLevelExporter(Exporter):
         log = ""
 
         export = False
-
-        url_default = self.env["connector.type.prestashop.parameter"].search(
-            [("line_id", "=", self.backend_record.connector_id.line_id.id)])[0].location
 
         for product in self.env.cr.dictfetchall():
             export = True

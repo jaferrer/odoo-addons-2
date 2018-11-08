@@ -18,3 +18,4 @@
 #
 
 from . import connector_improved
+from . import ir_autovacuum

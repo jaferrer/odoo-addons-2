@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+
+    <record model="ir.cron" id="base.autovacuum_job">
+        <field name="function">launch_job_power_on</field>
+    </record>
+
+</openerp>
