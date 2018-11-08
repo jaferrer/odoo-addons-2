@@ -464,6 +464,8 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
 
     @api.multi
     def compute_workflow_state(self):
+        act_ship = self.env.ref('sale.act_ship')
+        act_ship_except = self.env.ref('sale.act_ship_except')
         for rec in self:
             if rec.order_policy == 'picking' and all([
                 float_compare(line.remaining_qty, 0, line.product_uom.rounding) <= 0 for line in rec.order_line
@@ -476,10 +478,11 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
                     workflow_instance = self.env['workflow.instance'].search([('wkf_id', '=', workflow.id),
                                                                               ('res_id', '=', rec.id)])
                     wokrflow_item = self.env['workflow.workitem'].search([('inst_id', '=', workflow_instance.id)])
-                    if wokrflow_item.act_id == self.env.ref('sale.act_ship'):
-                        rec.with_context(enable_trigger_sale_order_workflow=True).trigger_sale_order_workflow()
-                    if wokrflow_item.act_id == self.env.ref('sale.act_ship_except'):
-                        rec.signal_workflow('ship_corrected')
+                    for item in wokrflow_item:
+                        if item.act_id == act_ship:
+                            rec.with_context(enable_trigger_sale_order_workflow=True).trigger_sale_order_workflow()
+                        if item.act_id == act_ship_except:
+                            rec.signal_workflow('ship_corrected')
 
     @api.multi
     def trigger_sale_order_workflow(self):
