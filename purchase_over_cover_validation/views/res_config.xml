@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="purchase_config_form_jit">
+            <field name="name">purchase.config.form.jit</field>
+            <field name="model">purchase.config.settings</field>
+            <field name="inherit_id" ref="purchase_procurement_just_in_time.purchase_config_form_jit"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <div name="purchase_planner" position="inside">
+                        <div>
+                            <label for="nb_days_max_cover"/>
+                            <field name="nb_days_max_cover" class="oe_inline"/>
+                        </div>
+                    </div>
+                </data>
+            </field>
+        </record>
+
+    </data>
+</openerp>
