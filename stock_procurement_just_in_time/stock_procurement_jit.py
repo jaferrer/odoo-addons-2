@@ -84,7 +84,7 @@ class ProcurementOrderQuantity(models.Model):
     state = fields.Selection(index=True)
     qty = fields.Float(string="Quantity", digits_compute=dp.get_precision('Product Unit of Measure'),
                        help='Quantity in the default UoM of the product', compute="_compute_qty", store=True)
-    protected_against_scheduler = fields.Boolean(u"Protected Against Scheduler")
+    protected_against_scheduler = fields.Boolean(u"Protected Against Scheduler", track_visibility='onchange')
 
     @api.multi
     @api.depends('product_qty', 'product_uom')

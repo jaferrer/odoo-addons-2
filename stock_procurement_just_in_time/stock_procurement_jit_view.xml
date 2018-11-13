@@ -14,6 +14,18 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="procurement_order_inherit">
+            <field name="name">procurement_order_inherit</field>
+            <field name="model">procurement.order</field>
+            <field name="inherit_id" ref="procurement.procurement_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="origin" position="before">
+                    <field name="protected_against_scheduler"/>
+                </field>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="stock_location_form">
             <field name="name">stock_location_form</field>
             <field name="model">stock.location</field>
