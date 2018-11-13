@@ -17,19 +17,29 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from dateutil.relativedelta import relativedelta
 import logging
+from datetime import datetime as dt
+
 import openerp.addons.decimal_precision as dp
-from openerp.addons.connector.session import ConnectorSession
+from dateutil.relativedelta import relativedelta
 from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+from openerp import fields, models, api, exceptions, _
 from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
-from openerp import fields, models, api, exceptions, _
-from datetime import datetime as dt
 
 ORDERPOINT_CHUNK = 1
 
 _logger = logging.getLogger(__name__)
+
+
+class ForbiddenCancelProtectedProcurement(exceptions.except_orm):
+
+    def __init__(self, proc_id):
+        self.proc_id = proc_id
+        super(ForbiddenCancelProtectedProcurement, self).__init__(_(u"Error!"),
+                                                                  _(u"You can't cancel a protected procurement"))
 
 
 @job(default_channel='root.procurement_just_in_time')
@@ -74,6 +84,7 @@ class ProcurementOrderQuantity(models.Model):
     state = fields.Selection(index=True)
     qty = fields.Float(string="Quantity", digits_compute=dp.get_precision('Product Unit of Measure'),
                        help='Quantity in the default UoM of the product', compute="_compute_qty", store=True)
+    protected_against_scheduler = fields.Boolean(u"Protected Against Scheduler")
 
     @api.multi
     @api.depends('product_qty', 'product_uom')
@@ -84,7 +95,7 @@ class ProcurementOrderQuantity(models.Model):
 
     @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
-                                    run_moves=True):
+        run_moves=True):
         """
         Create procurement based on orderpoint
 
@@ -178,7 +189,18 @@ class ProcurementOrderQuantity(models.Model):
         return {}
 
     @api.multi
+    def check_can_be_canceled(self, raise_error=True):
+        for rec in self:
+            if rec.protected_against_scheduler and self.env.context.get('is_scheduler'):
+                if raise_error:
+                    raise ForbiddenCancelProtectedProcurement(rec.id)
+                else:
+                    return False
+        return True
+
+    @api.multi
     def cancel(self):
+        self.check_can_be_canceled()
         result = super(ProcurementOrderQuantity, self).cancel()
         if self.env.context.get('unlink_all_chain'):
             delete_moves_cancelled_by_planned = bool(self.env['ir.config_parameter'].get_param(
@@ -193,7 +215,7 @@ class ProcurementOrderQuantity(models.Model):
                             moves_to_unlink += move
                             if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
                                 move.procurement_id.state == 'cancel' and \
-                                    not any([move.state == 'done' for move in move.procurement_id.move_ids]):
+                                not any([move.state == 'done' for move in move.procurement_id.move_ids]):
                                 procurements_to_unlink += move.procurement_id
                 if moves_to_unlink:
                     moves_to_unlink.unlink()
@@ -243,9 +265,15 @@ class ProcurementOrderQuantity(models.Model):
     @api.multi
     def cancel_procs_just_in_time(self, stock_qty, qty):
         self.ensure_one()
-        self.with_context(unlink_all_chain=True, cancel_procurement=True).cancel()
-        self.unlink()
-        return stock_qty - qty
+        result = stock_qty
+        try:
+            with self.env.cr.savepoint():
+                self.with_context(unlink_all_chain=True, cancel_procurement=True, is_scheduler=True).cancel()
+                self.unlink()
+                result = stock_qty - qty
+        except ForbiddenCancelProtectedProcurement as e:
+            _logger.info(e.value)
+        return result
 
 
 class StockMoveJustInTime(models.Model):
@@ -321,7 +349,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-            fields.Datetime.from_string(last_schedule[0].get('date')) or False
+              fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -404,7 +432,7 @@ class StockWarehouseOrderPointJit(models.Model):
                         _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
                         stock_after_event = proc_oversupply.cancel_procs_just_in_time(stock_after_event, qty_same_proc)
                     if op.is_under_stock_min(stock_after_event) and \
-                            any([item['move_type'] == 'out' for item in events_at_date]):
+                        any([item['move_type'] == 'out' for item in events_at_date]):
                         new_proc = op.create_from_need(event, stock_after_event)
                         stock_after_event += new_proc and new_proc.product_qty or 0
                 elif op.is_under_stock_min(stock_after_event):
@@ -419,7 +447,7 @@ class StockWarehouseOrderPointJit(models.Model):
 
     @api.model
     def compute_stock_levels_requirements(self, product_id, location, list_move_types, limit=1,
-                                          parameter_to_sort='date', to_reverse=False, max_date=None):
+        parameter_to_sort='date', to_reverse=False, max_date=None):
         """
         Computes stock level report
         :param product_id: int
