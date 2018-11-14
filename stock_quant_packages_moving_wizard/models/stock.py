@@ -330,6 +330,7 @@ class StockPicking(models.Model):
     _columns = {
         'group_id': osv.fields.function(
             _compute_group_id, type='many2one', relation='procurement.group',
+            string='Procurement Group',
             store={
                 'stock.picking': (lambda self, cr, uid, ids, ctx: ids, ['move_lines'], 20),
                 'stock.move': (_get_pickings, ['group_id', 'picking_id'], 20)}
