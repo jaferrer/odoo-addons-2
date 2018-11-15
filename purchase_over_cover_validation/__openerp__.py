@@ -17,5 +17,27 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# from . import test_stock_procurement_jit
-from . import test_protected_procurement
+{
+    'name': 'Purchase Over Cover Validation',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Purchase',
+    'depends': ['purchase_procurement_just_in_time'],
+    'description': """
+Purchase Over Cover Validation
+==============================
+This module creates a new validation step for purchase orders, if the new cover date is too far.""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'security/security.xml',
+        'views/res_config.xml',
+        'views/purchase_over_cover_validation.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

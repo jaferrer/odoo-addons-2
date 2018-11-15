@@ -41,7 +41,7 @@ class TestSchedulerAsyncCheckProcs(common.TransactionCase):
 
     def test_10_scheduler_async_proc_create_job(self):
         """Check that procurements are checked by a job"""
-        self.env['procurement.order'].with_context(jobify=True).run_check_procurements()
+        self.env['procurement.order'].with_context(jobify=True).run_confirm_procurements()
         self.assertTrue(self.proc.run_or_confirm_job_uuid)
         job = self.get_jobs_for_proc(self.proc)
         self.assertEqual(len(job), 1)
@@ -49,14 +49,14 @@ class TestSchedulerAsyncCheckProcs(common.TransactionCase):
 
     def test_20_scheduler_async_proc_do_not_recreate_job(self):
         """Check that a new job can not be created for a procurement linked to a running job"""
-        self.env['procurement.order'].with_context(jobify=True).run_check_procurements()
+        self.env['procurement.order'].with_context(jobify=True).run_confirm_procurements()
         self.assertTrue(self.proc.run_or_confirm_job_uuid)
         init_job = self.get_jobs_for_proc(self.proc)
         self.assertEqual(len(init_job), 1)
         self.assertEqual(init_job.state, 'pending')
 
         # Job in state pending
-        self.env['procurement.order'].with_context(jobify=True).run_check_procurements()
+        self.env['procurement.order'].with_context(jobify=True).run_confirm_procurements()
         self.assertTrue(self.proc.run_or_confirm_job_uuid)
         job = self.get_jobs_for_proc(self.proc)
         self.assertEqual(job, init_job)
@@ -64,7 +64,7 @@ class TestSchedulerAsyncCheckProcs(common.TransactionCase):
 
         # Job in state enqueued
         init_job.state = 'enqueued'
-        self.env['procurement.order'].with_context(jobify=True).run_check_procurements()
+        self.env['procurement.order'].with_context(jobify=True).run_confirm_procurements()
         self.assertTrue(self.proc.run_or_confirm_job_uuid)
         job = self.get_jobs_for_proc(self.proc)
         self.assertEqual(job, init_job)
@@ -72,7 +72,7 @@ class TestSchedulerAsyncCheckProcs(common.TransactionCase):
 
         # Job in state started
         init_job.state = 'started'
-        self.env['procurement.order'].with_context(jobify=True).run_check_procurements()
+        self.env['procurement.order'].with_context(jobify=True).run_confirm_procurements()
         self.assertTrue(self.proc.run_or_confirm_job_uuid)
         job = self.get_jobs_for_proc(self.proc)
         self.assertEqual(job, init_job)
@@ -80,7 +80,7 @@ class TestSchedulerAsyncCheckProcs(common.TransactionCase):
 
     def test_30_scheduler_async_proc_recreate_job_if_needed(self):
         """Check that a new job can not be created for a procurement linked to a failed or done job"""
-        self.env['procurement.order'].with_context(jobify=True).run_check_procurements()
+        self.env['procurement.order'].with_context(jobify=True).run_confirm_procurements()
         self.assertTrue(self.proc.run_or_confirm_job_uuid)
         init_job = self.get_jobs_for_proc(self.proc)
         self.assertEqual(len(init_job), 1)
@@ -88,7 +88,7 @@ class TestSchedulerAsyncCheckProcs(common.TransactionCase):
 
         # Case when inked job is failed
         init_job.state = 'failed'
-        self.env['procurement.order'].with_context(jobify=True).run_check_procurements()
+        self.env['procurement.order'].with_context(jobify=True).run_confirm_procurements()
         self.assertTrue(self.proc.run_or_confirm_job_uuid)
         job = self.get_jobs_for_proc(self.proc)
         self.assertEqual(len(job), 1)
@@ -99,7 +99,7 @@ class TestSchedulerAsyncCheckProcs(common.TransactionCase):
         # Case when inked job is done
         init_job = job
         init_job.state = 'done'
-        self.env['procurement.order'].with_context(jobify=True).run_check_procurements()
+        self.env['procurement.order'].with_context(jobify=True).run_confirm_procurements()
         self.assertTrue(self.proc.run_or_confirm_job_uuid)
         job = self.get_jobs_for_proc(self.proc)
         self.assertEqual(len(job), 1)

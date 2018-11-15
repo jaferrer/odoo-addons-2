@@ -303,13 +303,12 @@ class PurchaseOrderLineJustInTime(models.Model):
     father_line_id = fields.Many2one('purchase.order.line', string="Very first line splited", readonly=True)
     children_line_ids = fields.One2many('purchase.order.line', 'father_line_id', string="Children lines")
     children_number = fields.Integer(string="Number of children", readonly=True, compute='_compute_children_number')
-    covering_date = fields.Datetime(string=u"Covered Date")
+    covering_date = fields.Datetime(string=u"Covered Date", readonly=True)
     covering_state = fields.Selection([
         ('all_covered', u"All Need Covered"),
         ('coverage_computed', u"Computed Coverage"),
         ('unknow_coverage', u"Not Calculated State")
-
-    ], string=u"Covered State", default='unknow_coverage', required=True)
+    ], string=u"Covered State", default='unknow_coverage', required=True, readonly=True)
 
     _columns = {
         'remaining_qty': osv.fields.function(
@@ -517,6 +516,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         :return: the same result as original write function
         """
 
+        vals = self._reset_covering_field_if_needed(vals)
         result = super(PurchaseOrderLineJustInTime, self).write(vals)
         for rec in self:
             if 'product_qty' in vals.keys() and not self.env.context.get('no_update_moves'):
@@ -528,6 +528,48 @@ class PurchaseOrderLineJustInTime(models.Model):
                                                               ('state', 'not in', ['draft', 'cancel', 'done'])])
                 active_moves.write({'price_unit': vals['price_unit']})
         return result
+
+    @api.multi
+    def _reset_covering_field_if_needed(self, vals):
+        need_reset_covering = 'product_qty' in vals or 'product_uom' in vals or 'order_id' in vals or 'product_id' in vals
+        line_to_reset = self.env['purchase.order.line']
+        if need_reset_covering:
+            vals['covering_state'] = 'unknow_coverage'
+            vals['covering_date'] = False
+
+            group_product_by_order = {}
+            if 'order_id' in vals and 'product_id' in vals:
+                product = group_product_by_order.get(vals['order_id'], [])
+                product.append(vals['product_id'])
+                group_product_by_order[vals['order_id']] = product
+
+            for rec in self:
+                if 'order_id' in vals and 'product_id' not in vals:
+                    product = group_product_by_order.get(vals['order_id'], [])
+                    product.append(rec.product_id.id)
+                    group_product_by_order[vals['order_id']] = product
+
+                if 'order_id' not in vals and 'product_id' in vals:
+                    product = group_product_by_order.get(rec.order_id.id, [])
+                    product.append(vals['product_id'])
+                    group_product_by_order[rec.order_id.id] = product
+
+
+                product = group_product_by_order.get(rec.order_id.id, [])
+                product.append(rec.product_id.id)
+                group_product_by_order[rec.order_id.id] = product
+
+
+            for order, product in group_product_by_order.items():
+                line_to_reset |= self.env['purchase.order.line'].search([
+                    ('product_id', 'in', product), ('order_id', '=', order), ('id', 'not in', self.ids)
+                ])
+
+
+            if line_to_reset:
+                line_to_reset.write({'covering_state': 'unknow_coverage', 'covering_date': False})
+
+        return vals
 
     @api.model
     def get_warehouse_for_stock_report(self):

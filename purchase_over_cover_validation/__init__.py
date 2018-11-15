@@ -17,5 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# from . import test_stock_procurement_jit
-from . import test_protected_procurement
+from . import models

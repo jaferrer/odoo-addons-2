@@ -615,8 +615,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
             # We consider procurements after the reference date
             # (if we ignore past procurements, past ones are already removed)
             line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
-            line_vals['covering_date'] = next_proc_group_planned_date
-            line_vals['covering_state'] = next_proc_group_planned_date and 'coverage_computed' or 'all_covered'
             forbid_creation = bool(seller.nb_max_draft_orders)
             draft_order = first_proc.with_context(forbid_creation=forbid_creation). \
                 get_corresponding_draft_order(seller, purchase_date)
@@ -656,6 +654,7 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
                     procurement.with_context(check_product_qty=False).add_proc_to_line(line)
                     if procurement == last_proc and new_qty > line.product_qty:
                         line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
+                        line.quick_compute_coverage_state()
         return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
 
     @api.model

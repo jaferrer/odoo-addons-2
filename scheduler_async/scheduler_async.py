@@ -17,10 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import api, models, fields
+from openerp.addons.connector.exception import RetryableJobError
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
-from openerp.addons.connector.exception import RetryableJobError
+
+from openerp import api, models, fields
 
 PROC_CHUNK = 100
 MOVE_CHUNK = 100
@@ -44,25 +45,24 @@ def run_procure_orderpoint_async(session, model_name, company_id, context):
 
 
 @job(default_channel='root.confprocs')
-def run_or_check_procurements(session, model_name, domain, action, context):
+def run_or_check_procurements(session, model_name, proc_for_job_ids, action, context):
     """Confirm or check procurements"""
     job_uuid = session.context.get('job_uuid')
     job = job_uuid and session.env['queue.job'].search([('uuid', '=', job_uuid)]) or session.env['queue.job']
     proc_obj = session.env[model_name].with_context(context)
     prev_procs = proc_obj
-    not_runned_yet = True
     while True:
-        procs = proc_obj.sudo().search(domain)
+        procs = proc_obj.sudo().search([('id', 'in', proc_for_job_ids)])
         if procs:
             session.env.cr.execute("""SELECT
             po.id
             FROM procurement_order po
             WHERE po.id IN %s AND (
-                po.run_or_confirm_job_uuid IS NULL or po.run_or_confirm_job_uuid = %s
+                po.run_or_confirm_job_uuid IS NULL OR po.run_or_confirm_job_uuid = %s
             )""", (tuple(procs.ids), job_uuid))
             res = session.env.cr.fetchall()
             proc_ids = [item[0] for item in res]
-            if not_runned_yet and procs and not proc_ids:
+            if procs and not proc_ids:
                 # In case the job runs before the procs have been assigned their job uuid
                 msg = "No procurements found for this job's UUID"
                 if job and job.max_retries and job.retry >= job.max_retries:
@@ -96,7 +96,7 @@ def confirm_moves(session, model_name, ids, context):
             sm.id
             FROM stock_move sm
             WHERE sm.id IN %s AND (
-                sm.confirm_job_uuid IS NULL or sm.confirm_job_uuid = %s
+                sm.confirm_job_uuid IS NULL OR sm.confirm_job_uuid = %s
             )""", (tuple(ids), job_uuid))
         res = session.env.cr.fetchall()
         move_ids = [item[0] for item in res]
@@ -237,34 +237,35 @@ WHERE (sm.confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND sm.id 
     @api.model
     def run_confirm_procurements(self, company_id=None):
         """Launches the job to confirm all procurements."""
-        base_dom = [('state', '=', 'confirmed')]
-        if company_id:
-            base_dom += [('company_id', '=', company_id)]
+        self._do_procurements_run_or_check('confirmed', 'run', company_id)
+
+    @api.model
+    def _do_procurements_run_or_check(self, state, action_to_do, company_id=None):
+        """Launches the job to confirm all procurements."""
         products = self.env['product.product'].search([], limit=PRODUCT_CHUNK)
         offset = 0
-        while products:
-            dom = base_dom + [('product_id', 'in', products.ids)]
-            if self.env.context.get('jobify', False):
-                params = company_id and (tuple(products.ids), company_id,) or (tuple(products.ids),)
-                query = """SELECT po.id
+        query = """SELECT po.id
 FROM procurement_order po
   LEFT JOIN queue_job qj ON qj.uuid = po.run_or_confirm_job_uuid
   WHERE (po.run_or_confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND
-                      po.state = 'confirmed' AND
+                      po.state = %s AND
                       po.product_id IN %s"""
-                if company_id:
-                    query += """ AND po.company_id = %s"""
+        if company_id:
+            query += """ AND po.company_id = %s"""
+        while products:
+            # We want to write run_or_confirm_job_uuid only if the proc has none
+            # or if the uuid points to a done or cancelled job
+            params = company_id and (state, tuple(products.ids), company_id,) or (state, tuple(products.ids),)
+            self.env.cr.execute(query, params)
+            proc_for_job_ids = [item[0] for item in self.env.cr.fetchall()]
+            if self.env.context.get('jobify', False):
                 job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env),
-                                                           'procurement.order', dom,
-                                                           'run', dict(self.env.context))
-                # We want to write run_or_confirm_job_uuid only if the proc has none
-                # or if the uuid points to a done or cancelled job
-                self.env.cr.execute(query, params)
-                proc_for_job_ids = [item[0] for item in self.env.cr.fetchall()]
+                                                           'procurement.order', proc_for_job_ids,
+                                                           action_to_do, dict(self.env.context))
                 procs_for_job = self.search([('id', 'in', proc_for_job_ids)])
                 procs_for_job.write({'run_or_confirm_job_uuid': job_uuid})
             else:
-                run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
+                run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', proc_for_job_ids,
                                           'run', dict(self.env.context))
             offset += PRODUCT_CHUNK
             products = self.env['product.product'].search([], limit=PRODUCT_CHUNK, offset=offset)
@@ -272,36 +273,7 @@ FROM procurement_order po
     @api.model
     def run_check_procurements(self, company_id=None):
         """Launches the job to check all procurements."""
-        base_dom = [('state', '=', 'running')]
-        if company_id:
-            base_dom += [('company_id', '=', company_id)]
-        products = self.env['product.product'].search([], limit=PRODUCT_CHUNK)
-        offset = 0
-        while products:
-            dom = base_dom + [('product_id', 'in', products.ids)]
-            if self.env.context.get('jobify', False):
-                params = company_id and (tuple(products.ids), company_id,) or (tuple(products.ids),)
-                query = """SELECT po.id
-                FROM procurement_order po
-                  LEFT JOIN queue_job qj ON qj.uuid = po.run_or_confirm_job_uuid
-                  WHERE (po.run_or_confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND
-                                      po.state = 'confirmed' AND
-                                      po.product_id IN %s"""
-                if company_id:
-                    query += """ AND po.company_id = %s"""
-                job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order',
-                                                           dom, 'check', dict(self.env.context))
-                # We want to write run_or_confirm_job_uuid only if the proc has none
-                # or if the uuid points to a done or cancelled job
-                self.env.cr.execute(query, params)
-                proc_for_job_ids = [item[0] for item in self.env.cr.fetchall()]
-                procs_for_job = self.search([('id', 'in', proc_for_job_ids)])
-                procs_for_job.write({'run_or_confirm_job_uuid': job_uuid})
-            else:
-                run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', dom,
-                                          'check', dict(self.env.context))
-            offset += PRODUCT_CHUNK
-            products = self.env['product.product'].search([], limit=PRODUCT_CHUNK, offset=offset)
+        self._do_procurements_run_or_check('running', 'check', company_id)
 
     @api.model
     def run_scheduler_async(self, use_new_cursor=False, company_id=False):
