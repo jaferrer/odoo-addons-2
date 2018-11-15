@@ -7,6 +7,8 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
     var _ = require('_');
     var $ = require('$');
     var session = require('web.session');
+    var pyeval = require('web.pyeval');
+    // var context = require('web.CompoundContext');
 
     var _t = core._t;
 
@@ -28,10 +30,44 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
                     }).value();
             }
         },
-
+        on_data_loaded_2: function(events, group_bys) {
+            var self = this;
+            var data = [];
+            var groups = [];
+            _.each(events, function(event) {
+                if (event[self.date_start]){
+                    data.push(self.event_data_transform(event));
+                }
+            });
+            // get the groups
+            var split_groups = function(events, group_bys) {
+                if (group_bys.length === 0)
+                    return events;
+                var groups = [];
+                groups.push({id:-1, content: _t('-')})
+                _.each(events, function(event) {
+                    var group_name = event[_.first(group_bys)];
+                    if (group_name) {
+                        var group = _.find(groups, function(group) { return _.isEqual(group.id, group_name[0]); });
+                        if (group === undefined) {
+                            group = {id: group_name[0], content: group_name[1]};
+                            groups.push(group);
+                        }
+                    }
+                });
+                return groups;
+            }
+            var groups = split_groups(events, group_bys);
+            this.timeline.setGroups(groups);
+            this.timeline.setItems(data);
+            if (this.range_start == false && this.range_end == false){
+                this.timeline.fit();
+            }
+        },
         view_loading: function (fv) {
             /* xml view timeline options */
             var attrs = fv.arch.attrs;
+            console.log("attrs", attrs);
             var self = this;
             this.fields_view = fv;
             this.parse_colors();
@@ -61,6 +97,10 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
             this.mode = attrs.mode;
             this.date_start = attrs.date_start;
             this.date_stop = attrs.date_stop;
+            if (attrs.range_start && attrs.range_end){
+                this.range_start = py.eval(attrs.range_start, pyeval.context());
+                this.range_end = py.eval(attrs.range_end, pyeval.context());
+            }
             this.order_by = (attrs.order_by == undefined) ? "id" : attrs.order_by;
 
 
@@ -102,7 +142,6 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
                 self.init_timeline().then(function () {
                     $(window).trigger('resize');
                     self.trigger('timeline_view_loaded', fv);
-
                     self.ready.resolve();
                 });
 
@@ -115,6 +154,8 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
 
 
                 self.timeline.setOptions({
+                    'start': self.range_start,
+                    'end': self.range_end,
                     order: function (a, b) {
                         // order by fields supplier in 'order_by'
                         (attrs.order_by == undefined) ? "id" : attrs.order_by
