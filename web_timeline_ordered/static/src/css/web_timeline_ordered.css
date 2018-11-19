@@ -15,7 +15,7 @@
 .oe_timeline_buttons
 {
     position: fixed;
-    width: 100%;
+    width: 85%;
     z-index: 99;
     background: #f0eeee;
 }
