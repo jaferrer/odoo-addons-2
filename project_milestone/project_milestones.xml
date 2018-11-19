@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+
         <record model="ir.ui.view" id="project_task_form_ext">
             <field name="name">project.task.form.ext</field>
             <field name="model">project.task</field>
@@ -12,6 +13,7 @@
                 </field>
             </field>
         </record>
+
         <record model="ir.ui.view" id="project_task_tree_ext">
             <field name="name">project_task_tree_ext</field>
             <field name="model">project.task</field>
@@ -23,6 +25,7 @@
                 </field>
             </field>
         </record>
+
         <record model="ir.ui.view" id="project_milestone_tree">
             <field name="name">project.milestone.tree</field>
             <field name="model">project.milestone</field>
@@ -55,7 +58,6 @@
                 </search>
             </field>
         </record>
-
 
         <record model="ir.ui.view" id="project_milestone_form">
             <field name="name">project.milestone.form</field>
@@ -141,7 +143,9 @@
                 </p>
             </field>
         </record>
+
         <menuitem action="project_milestone_action" id="menu_project_milestone" parent="project.menu_project_config"
                   groups="project.group_project_user"/>
+
     </data>
 </openerp>
