@@ -64,6 +64,12 @@
             <field name="categ_id" ref="stock_move_wizard_product_category"/>
         </record>
 
+        <record id="product_c" model="product.product">
+            <field name="name">Test Product C</field>
+            <field name="type">product</field>
+            <field name="categ_id" ref="stock_move_wizard_product_category"/>
+        </record>
+
         <record model="product.product" id="product1">
             <field name="name">Product 1 (Stock Quant Package Moving Wizard)</field>
             <field name="type">product</field>

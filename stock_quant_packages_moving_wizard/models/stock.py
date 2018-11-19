@@ -54,7 +54,7 @@ class StockQuant(models.Model):
         for move_tuple in move_tuples:
             qty_reserved = 0
             qty_to_reserve = move_tuple['qty']
-            quants = self.env['stock.quant'].search([('id', 'in', move_tuple['quant_ids'])])
+            quants = self.env['stock.quant'].search([('id', 'in', move_tuple['quant_ids'])], order='qty asc')
             for quant in quants:
                 quant_read = quant.read(['id', 'qty'], load=False)[0]
                 # If the new quant does not exceed the requested qty, we move it (end of loop) and continue
@@ -77,8 +77,7 @@ class StockQuant(models.Model):
                   ('state', 'not in', ['draft', 'done', 'cancel']),
                   ('location_id', '=', location_from.id),
                   ('location_dest_id', '=', dest_location.id),
-                  '|',
-                  ('picking_type_id', '=', picking_type_id),
+                  '|', ('picking_type_id', '=', picking_type_id),
                   ('picking_type_id', '=', False)]
         if force_domain:
             domain += force_domain
@@ -165,6 +164,8 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
                 quant.reservation_id.do_unreserve()
             for move_id in corresponding_move_ids:
                 move = self.env['stock.move'].search([('id', '=', move_id)])
+                if quant.reservation_id and quant.reservation_id != move:
+                    quant.reservation_id.do_unreserve()
                 if move not in dict_reservation_target:
                     dict_reservation_target[move] = {'available_qty': move.product_qty, 'reservations': []}
                     move.do_unreserve()
@@ -190,7 +191,6 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
     @api.model
     def fill_new_picking_for_product(self, product_id, move_tuples, dest_location_id, picking_type_id, new_picking_id):
         product = self.env['product.product'].search([('id', '=', product_id)])
-        new_picking = self.env['stock.picking'].search([('id', '=', new_picking_id)])
         first_quant_id = move_tuples[0]['quant_ids'][0]
         location_from = self.env['stock.quant'].search([('id', '=', first_quant_id)]).location_id
         dest_location = self.env['stock.location'].search([('id', '=', dest_location_id)])
@@ -200,10 +200,10 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
             get_reservation_target(list_reservations, product, location_from, dest_location, picking_type_id)
         self.env['stock.move'].split_not_totally_consumed_moves(dict_reservation_target)
         self.reserve_quants_on_moves_ok(dict_reservation_target)
-        moves_to_unresrerve = self.env['stock.move']
+        moves_to_unreserve = self.env['stock.move']
         for quant in [item[0] for item in moves_to_create]:
-            moves_to_unresrerve |= quant.reservation_id
-        moves_to_unresrerve.do_unreserve()
+            moves_to_unreserve |= quant.reservation_id
+        moves_to_unreserve.do_unreserve()
         new_moves = self.move_remaining_quants(product, location_from, dest_location, picking_type_id,
                                                new_picking_id, moves_to_create)
         new_moves.assign_moves_to_new_picking(dict_reservation_target, new_picking_id)
@@ -330,6 +330,7 @@ class StockPicking(models.Model):
     _columns = {
         'group_id': osv.fields.function(
             _compute_group_id, type='many2one', relation='procurement.group',
+            string='Procurement Group',
             store={
                 'stock.picking': (lambda self, cr, uid, ids, ctx: ids, ['move_lines'], 20),
                 'stock.move': (_get_pickings, ['group_id', 'picking_id'], 20)}
