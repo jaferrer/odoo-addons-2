@@ -77,6 +77,10 @@ class ProjectMilestone(models.Model):
         })
 
     @api.multi
+    def reopen(self):
+        self.ensure_one().write({'state': 'open'})
+
+    @api.multi
     def see_tasks(self):
         self.ensure_one()
         return {

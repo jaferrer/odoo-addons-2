@@ -83,6 +83,11 @@ msgid "Close"
 msgstr "Fermer"
 
 #. module: project_milestone
+#: model:ir.ui.view,arch_db:project_milestone.project_milestone_form
+msgid "Re-open"
+msgstr "Ré-ouvrir"
+
+#. module: project_milestone
 #: model:ir.ui.view,arch_db:project_milestone.project_milestone_search
 msgid "Group By..."
 msgstr "Regrouper par..."
