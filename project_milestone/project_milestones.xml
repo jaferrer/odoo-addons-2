@@ -116,6 +116,8 @@
                                 class="btn-primary" attrs="{'invisible':[('state', '!=', 'in_qualif')]}"/>
                         <button name="close_milestone" type="object" string="Close"
                                 class="btn-primary" attrs="{'invisible':[('state', '!=', 'in_prod')]}"/>
+                        <button name="reopen" type="object" string="Re-open"
+                                class="btn-primary" attrs="{'invisible':[('state', '!=', 'closed')]}"/>
                         <field name="state" widget="statusbar" readonly="1"/>
                     </header>
                     <sheet string="Milestone">
