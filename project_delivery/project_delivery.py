@@ -42,10 +42,6 @@ class ProjectDelivery(models.Model):
             rec.done_by_id = self.env.user.id
             rec.done_effective_date = fields.Date.today()
 
-    def close(self):
-        for rec in self:
-            rec.active = False
-
 
 class ProjectDeliveryType(models.Model):
     _name = 'project.delivery.type'

@@ -30,10 +30,11 @@
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
+                    <field name="start_date"/>
                     <field name="qualif_should_be_livred_at"/>
                     <field name="should_be_closed_at"/>
                     <field name="project_id"/>
-                    <field name="nb_tasks"/>
+                    <field name="nb_days_tasks"/>
                 </tree>
             </field>
         </record>
@@ -87,6 +88,7 @@
                         </group>
                         <group>
                             <group>
+                                <field name="start_date"/>
                                 <field name="qualif_should_be_livred_at"/>
                                 <field name="should_be_test_before"/>
                                 <field name="should_be_closed_at"/>

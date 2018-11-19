@@ -168,6 +168,11 @@ msgid "Should be in Prod at"
 msgstr "Date de mise en Production"
 
 #. module: project_milestone
+#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_start_date
+msgid "Start date"
+msgstr "Date de début"
+
+#. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_qualif_should_be_livred_at
 msgid "Should be in Test at"
 msgstr "Date de mise en recette"

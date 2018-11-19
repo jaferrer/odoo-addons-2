@@ -26,11 +26,19 @@ class ProjectMilestone(models.Model):
     name = fields.Char(u"Title", required=True)
     active = fields.Boolean(u"Active", default=True, readonly=True)
     project_id = fields.Many2one('project.project', u"Project", required=True)
-
     task_ids = fields.One2many('project.task', 'milestone_id', u"Task", readonly=True)
-
     nb_tasks = fields.Integer(u"Nb Task", compute='_compute_nb_related')
-
+    nb_days_tasks = fields.Integer(u"Nb Task", compute='_compute_nb_related')
+    start_date = fields.Date(u"Start date", required=True)
+    qualif_should_be_livred_at = fields.Date(u"Should be in Test at", required=True)
+    should_be_closed_at = fields.Date(u"Should be in Prod at")
+    should_be_test_before = fields.Date(u"Should be tested before")
+    livred_in_qualif_at = fields.Date(u"Delivery in Test at", readonly=True)
+    livred_in_qualif_by = fields.Many2one('res.users', u"Delivery in Test by", readonly=True)
+    livred_in_prod_at = fields.Date(u"Delivery in Prod at", readonly=True)
+    livred_in_prod_by = fields.Many2one('res.users', u"Delivery in Prod by", readonly=True)
+    closed_by = fields.Many2one('res.users', u"Closed by", readonly=True)
+    closed_at = fields.Date(u"Closed at", readonly=True)
     state = fields.Selection([
         ('open', u"Open"),
         ('in_qualif', u"In Test"),
@@ -38,23 +46,11 @@ class ProjectMilestone(models.Model):
         ('closed', u"Closed")
     ], default='open', readonly=True)
 
-    qualif_should_be_livred_at = fields.Date(u"Should be in Test at")
-    should_be_closed_at = fields.Date(u"Should be in Prod at")
-    should_be_test_before = fields.Date(u"Should be tested before")
-
-    livred_in_qualif_at = fields.Date(u"Delivery in Test at", readonly=True)
-    livred_in_qualif_by = fields.Many2one('res.users', u"Delivery in Test by", readonly=True)
-
-    livred_in_prod_at = fields.Date(u"Delivery in Prod at", readonly=True)
-    livred_in_prod_by = fields.Many2one('res.users', u"Delivery in Prod by", readonly=True)
-
-    closed_by = fields.Many2one('res.users', u"Closed by", readonly=True)
-    closed_at = fields.Date(u"Closed at", readonly=True)
-
     @api.multi
     def _compute_nb_related(self):
         for rec in self:
             rec.nb_tasks = len(rec.task_ids)
+            rec.nb_days_tasks = sum([task.planned_hours for task in rec.task_ids])
 
     @api.multi
     def set_to_livred_in_prod(self):
@@ -78,7 +74,6 @@ class ProjectMilestone(models.Model):
             'closed_at': fields.Datetime.now(),
             'closed_by': self.env.user.id,
             'state': 'closed',
-            'active': False,
         })
 
     @api.multi
