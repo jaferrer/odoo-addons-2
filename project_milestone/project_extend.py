@@ -24,7 +24,7 @@ class ProjectMilestone(models.Model):
     _name = 'project.milestone'
 
     name = fields.Char(u"Title", required=True)
-    active = fields.Boolean(u"Active", default=True, readonly=True)
+    active = fields.Boolean(u"Active", default=True)
     project_id = fields.Many2one('project.project', u"Project", required=True)
     task_ids = fields.One2many('project.task', 'milestone_id', u"Task", readonly=True)
     nb_tasks = fields.Integer(u"Nb Task", compute='_compute_nb_related')
