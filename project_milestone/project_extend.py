@@ -48,9 +48,9 @@ class ProjectMilestone(models.Model):
 
     @api.constrains('start_date', 'qualif_should_be_livred_at', 'should_be_closed_at')
     def check_dates_coherence(self):
-        if self.start_date >= self.qualif_should_be_livred_at:
+        if self.start_date > self.qualif_should_be_livred_at:
             raise exceptions.ValidationError(_(u"Start date must be before test date."))
-        if self.qualif_should_be_livred_at >= self.should_be_closed_at:
+        if self.should_be_closed_at and self.qualif_should_be_livred_at > self.should_be_closed_at:
             raise exceptions.ValidationError(_(u"Test date must be before prod date."))
 
     @api.multi
