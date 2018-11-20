@@ -35,7 +35,8 @@ class ProjectMilestone(models.Model):
 class ProjectIssueMilestone(models.Model):
     _inherit = 'project.issue'
 
-    milestone_id = fields.Many2one('project.milestone', u"Milestone", domain=[('state', '!=', 'closed')])
+    milestone_id = fields.Many2one('project.milestone', u"Milestone", domain=[('state', '!=', 'closed')],
+                                   track_visibility='onchange')
     milestone_name = fields.Char(related='milestone_id.name', string=u"Milestone", readonly=True)
     milestone_state = fields.Selection(related='milestone_id.state', string=u"Milestone State", readonly=True)
 

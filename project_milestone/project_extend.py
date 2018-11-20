@@ -96,7 +96,8 @@ class ProjectMilestone(models.Model):
 class ProjectTaskMilestone(models.Model):
     _inherit = 'project.task'
 
-    milestone_id = fields.Many2one('project.milestone', u"Milestone", domain=[('state', '!=', 'closed')])
+    milestone_id = fields.Many2one('project.milestone', u"Milestone", domain=[('state', '!=', 'closed')],
+                                   track_visibility='onchange')
     milestone_state = fields.Selection(related='milestone_id.state', string=u"Milestone state", store=True,
                                        readonly=True)
     milestone_name = fields.Char(related='milestone_id.name', string=u"Milestone", readonly=True)
