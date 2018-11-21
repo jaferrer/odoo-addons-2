@@ -85,7 +85,7 @@ class StockInventory(models.Model):
         return {
             'product_id': self.product_id.id,
             'location_id': self.location_id.id,
-            'product_uom_id': self.product_id.product_uom_id.id,
+            'product_uom_id': self.product_id.uom_id.id,
             'product_qty': 0,
             'inventory_id': self.id,
         }
