@@ -76,6 +76,10 @@ class ProjectMilestone(models.Model):
         })
 
     @api.multi
+    def reopen(self):
+        self.ensure_one().write({'state': 'open'})
+
+    @api.multi
     def see_tasks(self):
         self.ensure_one()
         return {
@@ -92,7 +96,8 @@ class ProjectMilestone(models.Model):
 class ProjectTaskMilestone(models.Model):
     _inherit = 'project.task'
 
-    milestone_id = fields.Many2one('project.milestone', u"Milestone", domain=[('state', '!=', 'closed')])
+    milestone_id = fields.Many2one('project.milestone', u"Milestone", domain=[('state', '!=', 'closed')],
+                                   track_visibility='onchange')
     milestone_state = fields.Selection(related='milestone_id.state', string=u"Milestone state", store=True,
                                        readonly=True)
     milestone_name = fields.Char(related='milestone_id.name', string=u"Milestone", readonly=True)

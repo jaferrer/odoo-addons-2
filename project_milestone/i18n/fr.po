@@ -161,3 +161,9 @@ msgstr "Marquer comme livrée en prod"
 #: view:project.milestone:project_milestone.project_milestone_form
 msgid "Close"
 msgstr "Fermer"
+
+
+#. module: project_milestone
+#: view:project.milestone:project_milestone.project_milestone_form
+msgid "Re-open"
+msgstr "Ré-ouvrir"
