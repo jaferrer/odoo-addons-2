@@ -26,7 +26,7 @@ class ProjectMilestone(models.Model):
     name = fields.Char(u"Titre de la Milestone")
     active = fields.Boolean(u"Archivé", default=True, readonly=True)
     start_date = fields.Date(u"Date de début")
-    task_ids = fields.One2many('project.task', 'milestone_id', u"Tâches", readonly=True)
+    task_ids = fields.One2many('project.task', 'milestone_id', u"Tâches")
     nb_tasks = fields.Integer(u"Number of tasks", compute='_compute_nb_tasks')
     state = fields.Selection([
         ('open', u"Ouverte"),
