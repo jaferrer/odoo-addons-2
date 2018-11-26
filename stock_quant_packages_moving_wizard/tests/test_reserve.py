@@ -114,9 +114,7 @@ class TestWizard(common.TransactionCase):
         picking = self.env['stock.picking'].browse(picking_id)
         self.assertEqual(picking.state, 'assigned')
         # Move used should be move 1 (move with highest priority)
-        print move1._order
         self.assertEqual(picking.move_lines, move1)
-        self.assertEqual(picking.move_lines[0].name, move1.name)
 
         # Move 1 should have taken a part on quant3 (smallest quant available)
         self.assertEqual(move1.product_qty, 8)
