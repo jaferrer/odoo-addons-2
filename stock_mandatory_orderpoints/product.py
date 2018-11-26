@@ -123,7 +123,7 @@ WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_loca
         return values
 
 
-class SirailLogistiqueStockLocationRoute(models.Model):
+class StockLocationRoute(models.Model):
     _inherit = 'stock.location.route'
 
     required_orderpoint_location_ids = fields.Many2many('stock.location', 'stock_location_route_to_location_ref',

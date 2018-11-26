@@ -44,12 +44,12 @@ msgstr "Est en extourne"
 
 #. module: account_invoice_reversal_and_reallocate
 #: view:account.move:account_invoice_reversal_and_reallocate.account_move_form_compta2
-#: code:sirail-phase2/account_invoice_reversal_and_reallocate/models/account.py:245
+#: code:account_invoice_reversal_and_reallocate/models/account.py:245
 msgid "Reversal the accounting entry"
 msgstr "Extourner l'écriture comptable"
 
 #. module: account_invoice_reversal_and_reallocate
 #: view:account.move:account_invoice_reversal_and_reallocate.account_move_form_compta2
-#: code:sirail-phase2/account_invoice_reversal_and_reallocate/models/account.py:245
+#: code:account_invoice_reversal_and_reallocate/models/account.py:245
 msgid "Re-allocate the accounting entry"
 msgstr "Ré-imputer l'écriture comptable"

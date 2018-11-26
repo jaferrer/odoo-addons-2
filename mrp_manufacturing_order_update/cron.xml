@@ -2,7 +2,7 @@
 <openerp>
     <data noupdate="1">
 
-        <record id="sirail_productin_update_mrp_production" model="ir.cron">
+        <record id="cron_run_schedule_button_update" model="ir.cron">
             <field name="name">Daily manufacturing order update</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="active"/>
