@@ -26,7 +26,7 @@ openerp.web_graph_update = function(instance) {
 		        						"-"+item.field:item.field).append("<div>"+cell.text+"</div>");
 			            if (cell.is_bold) {$cell.css('font-weight', 'bold');}
 			            if (self.pivot.sort!=null && self.pivot.sort[0].indexOf(item.field)>=0) {
-			            	$cell.addClass((self.pivot.sort[0].indexOf('-') == -1)?"sortdown":"sortup");
+			            	$cell.addClass((self.pivot.sort[0].indexOf('-') == -1)?"sortup":"sortdown");
 			            }
 			            $row.append($cell);
 	        		}
