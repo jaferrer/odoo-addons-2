@@ -26,7 +26,7 @@ class ProjectMilestone(models.Model):
     name = fields.Char(u"Title", required=True)
     active = fields.Boolean(u"Active", default=True)
     project_id = fields.Many2one('project.project', u"Project", required=True)
-    task_ids = fields.One2many('project.task', 'milestone_id', u"Task", readonly=True)
+    task_ids = fields.One2many('project.task', 'milestone_id', u"Task")
     nb_tasks = fields.Integer(u"Nb Task", compute='_compute_nb_related')
     nb_days_tasks = fields.Integer(u"Number of days", compute='_compute_nb_related')
     start_date = fields.Date(u"Start date", required=True)
