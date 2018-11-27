@@ -49,6 +49,12 @@ msgid "Number of tasks"
 msgstr "Nombre de tâches"
 
 #. module: project_milestone
+#: field:project.milestone,nb_days_tasks:0
+msgid "Number of days"
+msgstr "Nombre de jours"
+
+
+#. module: project_milestone
 #: field:project.milestone,state:0
 #: view:project.milestone:project_milestone.project_milestone_search
 msgid "State"
