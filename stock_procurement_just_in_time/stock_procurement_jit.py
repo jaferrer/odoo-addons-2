@@ -612,6 +612,7 @@ class StockWarehouseOrderPointJit(models.Model):
                     'date': dictionary['date'],
                     'qty': level_qty,
                     'move_qty': dictionary['move_qty'],
+                    'move_id': dictionary['move_id'],
                 }]
         result = sorted(result, key=lambda z: z[parameter_to_sort], reverse=to_reverse)
         if limit:
