@@ -67,8 +67,8 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="mrp_production_search_view_sirail">
-            <field name="name">mrp.production.search.view.sirail</field>
+        <record model="ir.ui.view" id="mrp_production_search">
+            <field name="name">mrp.production.search</field>
             <field name="model">mrp.production</field>
             <field name="inherit_id" ref="mrp.view_mrp_production_filter"/>
             <field name="priority" eval="16"/>

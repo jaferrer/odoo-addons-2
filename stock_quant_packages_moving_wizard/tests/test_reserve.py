@@ -58,7 +58,7 @@ class TestWizard(common.TransactionCase):
             'picking_type_id': self.picking_type.id,
             'product_uom_qty': 25,
             'date': '2018-10-6',
-            'priority': '0',
+            'priority': '2',
         })
         move2 = self.env['stock.move'].create({
             'name': "Move 2",
@@ -80,7 +80,7 @@ class TestWizard(common.TransactionCase):
             'picking_type_id': self.picking_type.id,
             'product_uom_qty': 10,
             'date': '2018-10-6',
-            'priority': '2',
+            'priority': '0',
         })
         move1.action_confirm()
         move2.action_confirm()
