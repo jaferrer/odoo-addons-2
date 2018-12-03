@@ -102,10 +102,11 @@ class purchase_order_line_working_days(models.Model):
 
 
 class purchase_working_days(models.Model):
-    _inherit = "procurement.order"
+    _inherit = 'procurement.order'
 
     @api.model
-    def _get_purchase_schedule_date(self, procurement, company, ref_date=False, reverse=False):
+    def _get_purchase_schedule_date(self, procurement, company, ref_product=False, ref_location=False, ref_date=False,
+                                    reverse=False):
         """Return the datetime value to use as Schedule Date (``date_planned``) for the
            Purchase Order Lines created to satisfy the given procurement.
            Overriden here to calculate dates taking into account the applicable working days calendar of our warehouse
@@ -121,9 +122,10 @@ class purchase_working_days(models.Model):
         if not ref_date:
             ref_date = procurement.date_planned
         date = fields.Datetime.from_string(ref_date)
-        location = procurement.location_id or procurement.warehouse_id.view_location_id
+        location = ref_location or procurement.location_id or procurement.warehouse_id.view_location_id
         # If key 'do_not_save_result' in context of self, we transfer it to location's context.
-        nb_days = company.po_lead + procurement.product_id.seller_id.purchase_lead_time
+        product = ref_product or procurement.product_id
+        nb_days = company.po_lead + product.seller_id.purchase_lead_time
         if reverse:
             return location.with_context(do_not_save_result=do_not_save_result). \
                 schedule_working_days(nb_days + 1, date)
@@ -131,7 +133,7 @@ class purchase_working_days(models.Model):
             schedule_working_days(-nb_days , date)
 
     @api.model
-    def _get_purchase_order_date(self, procurement, company, schedule_date, reverse=False):
+    def _get_purchase_order_date(self, procurement, company, schedule_date, ref_product=False, reverse=False):
         """Return the datetime value to use as Order Date (``date_order``) for the
            Purchase Order created to satisfy the given procurement.
            Overriden here to calculate dates taking into account the applicable working days calendar.
@@ -142,12 +144,13 @@ class purchase_working_days(models.Model):
            :rtype: datetime
            :return: the desired Order Date for the PO
         """
-        seller_delay = int(procurement.product_id.seller_delay)
+        product = ref_product or procurement.product_id
+        seller_delay = int(product.seller_delay)
         partner_id = self.env.context.get('force_partner_id')
         if partner_id:
             partner = self.env['res.partner'].search([('id', '=', partner_id)])
         else:
-            partner = procurement.product_id.seller_id.with_context(self.env.context)
+            partner = product.seller_id.with_context(self.env.context)
         if reverse:
             return partner.schedule_working_days(seller_delay + 1, schedule_date)
         return partner.schedule_working_days(-seller_delay, schedule_date)

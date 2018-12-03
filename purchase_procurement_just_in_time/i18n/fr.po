@@ -546,7 +546,7 @@ msgstr "CDE"
 #. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,product_id:0
 msgid "Product"
-msgstr "ARTICLE"
+msgstr "Article"
 
 #. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,product_qty:0
@@ -566,7 +566,7 @@ msgstr "Dernière date de livraison annoncée"
 #. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,price_unit:0
 msgid "Unit Price"
-msgstr "PRIX UNITAIRE"
+msgstr "Prix unitaire"
 
 #. module: purchase_procurement_just_in_time
 #: view:split.line:0
@@ -933,36 +933,3 @@ msgstr "Nombre maximal de commande par défaut pour chaque nouveau fournisseur"
 #: field:purchase.config.settings,nb_days_scheduler_frequency:0
 msgid "Default scheduler frequency (in days)"
 msgstr "Fréquence par défaut du planificateur achats (en jours)"
-
-#. module: purchase_procurement_just_in_time
-#: field:purchase.order.line,covering_date:0
-msgid "Covered Date"
-msgstr "Date de couverture"
-
-#. module: purchase_procurement_just_in_time
-#: field:purchase.order.line,covering_state:0
-msgid "Covered State"
-msgstr "État de couverture"
-
-#. module: purchase_procurement_just_in_time
-#: selection:purchase.order.line,covering_state:0
-msgid "All Need Covered"
-msgstr "Tous besoins couverts"
-
-#. module: purchase_procurement_just_in_time
-#: selection:purchase.order.line,covering_state:0
-msgid "Computed Coverage"
-msgstr "Besoin calculé"
-
-#. module: purchase_procurement_just_in_time
-#: selection:purchase.order.line,covering_state:0
-msgid "Not Calculated State"
-msgstr "État non calculé"
-
-#. module: purchase_procurement_just_in_time
-#: model:ir.actions.server,name:purchase_procurement_just_in_time.ir_actions_server_quick_compute_coverage_state
-#: model:ir.actions.server,name:purchase_procurement_just_in_time.ir_actions_server_quick_compute_coverage_state_po
-#: model:ir.values,name:purchase_procurement_just_in_time.ir_value_quick_compute_coverage_state
-#: model:ir.values,name:purchase_procurement_just_in_time.ir_value_quick_compute_coverage_state_po
-msgid "Compute Unknown Coverage State"
-msgstr "Calculer les états de couverture inconnus"

@@ -24,7 +24,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Stock',
-    'depends': ['stock'],
+    'depends': ['stock_performance_improved'],
     'description': """
 Stock transfert picking type
 ================================

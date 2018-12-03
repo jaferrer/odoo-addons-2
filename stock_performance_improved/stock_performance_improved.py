@@ -204,10 +204,20 @@ FROM stock_move sm
 WHERE sm.picking_id = $1.id
 LIMIT 1"""
 
+    picking_type_code_compute = """SELECT pt.code :: return_type
+FROM stock_picking_type pt
+WHERE pt.id = $1.picking_type_id
+LIMIT 1"""
+
     location_id = fields.Many2one('stock.location', compute_sql=location_id_compute, readonly=True, store=True,
                                   related=None)
     location_dest_id = fields.Many2one('stock.location', compute_sql=location_dest_id_compute, readonly=True,
                                        store=True, related=None)
+    picking_type_code = fields.Selection([('incoming', 'Suppliers'), ('outgoing', 'Customers'),
+                                          ('internal', 'Internal')],
+                                         string=u"Picking type code", store=True,
+                                         compute_sql=picking_type_code_compute, readonly=True,
+                                         related=None)
     picking_type_id = fields.Many2one('stock.picking.type', index=True)
 
     @api.model
