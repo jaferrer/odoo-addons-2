@@ -19,21 +19,10 @@
 
 from datetime import datetime
 
-from openerp import fields, models, api
-from openerp.osv import fields as old_api_fields
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
+import openerp.addons.decimal_precision as dp
 
-QUERY_MIN_PROC = """
-SELECT
-  p.id as id,
-  min(p.date_planned) as date
-FROM procurement_order p
-WHERE p.purchase_line_id = %s 
-AND p.state not in ('done', 'cancel')
-GROUP BY p.id
-ORDER BY p.date_planned ASC 
-LIMIT 1
-"""
+from openerp import modules, fields, models, api, osv
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, float_round
 
 
 class ProcurementOrderPurchasePlanningImproved(models.Model):
@@ -74,100 +63,42 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     _inherit = 'purchase.order.line'
 
     @api.cr_uid_ids_context
-    def _compute_dates(self, cr, uid, ids, field_name, arg, context=None):
+    def _get_remaining_qty(self, cr, uid, ids, field_name, arg, context=None):
         res = {}
-        for line in self.search_read(cr, uid,
-                                     domain=[('id', 'in', ids)],
-                                     fields=['date_planned', 'date_required', 'limit_order_date',
-                                             'order_id', 'company_id', 'id'],
-                                     context=context):
-            company = self.pool.get('res.company').browse(cr, uid, line['company_id'][0], context=context)
-            partner_id = self.pool.get('purchase.order').search_read(cr, uid,
-                                                                     domain=[('id', '=', line['order_id'][0])],
-                                                                     fields=['partner_id'],
-                                                                     limit=1,
-                                                                     context=context)[0]['partner_id'][0]
-            line_data = {'date_required': line['date_required'], 'limit_order_date': line['limit_order_date']}
-            cr.execute(QUERY_MIN_PROC, [line['id']])
-            vals = cr.dictfetchone()
-            if vals:
-                min_date = vals['date']
-                min_proc = self.pool.get('procurement.order').browse(cr, uid, [vals['id']], context=context)
-                if min_proc.rule_id:
-                    context = dict(context, do_not_save_result=True, force_partner_id=partner_id)
-                    date_required = self.pool.get('procurement.order'). \
-                        _get_purchase_schedule_date(cr, uid, min_proc, company, context=context)
-                    date_planned = fields.Datetime.from_string(line['date_planned'])
-                    limit_order_date = self.pool.get('procurement.order'). \
-                        _get_purchase_order_date(cr, uid, min_proc, company,
-                                                 date_planned , context=context)
-                    limit_order_date = limit_order_date and fields.Datetime.to_string(limit_order_date) or False
-                    date_required = date_required and fields.Datetime.to_string(date_required) or False
-                else:
-                    date_required = min_date
-                    limit_order_date = min_date
-            else:
-                date_required = line['date_planned']
-                limit_order_date = line['date_planned']
-            target_data = {'date_required': date_required and date_required[:10] or False,
-                           'limit_order_date': limit_order_date and limit_order_date[:10] or False}
-            if target_data != line_data:
-                res[line['id']] = target_data
+        for line in self.browse(cr, uid, ids, context=context):
+            remaining_qty = 0
+            if line.product_id and line.product_id.type != 'service':
+                delivered_qty = sum([self.pool.get('product.uom').
+                                    _compute_qty(cr, uid, move.product_uom.id,
+                                                 move.product_uom_qty, line.product_uom.id)
+                                     for move in line.move_ids if move.state == 'done'])
+                remaining_qty = float_round(line.product_qty - delivered_qty,
+                                            precision_rounding=line.product_uom.rounding)
+            res[line.id] = remaining_qty
+            if res[line.id] == line.remaining_qty:
+                del res[line.id]
         return res
 
     @api.cr_uid_ids_context
-    def _compute_has_procurements(self, cr, uid, ids, field_name, arg, context=None):
-        res = {}
-        if ids:
-            cr.execute("""SELECT pol.id
-FROM purchase_order_line pol
-  INNER JOIN procurement_order po ON po.purchase_line_id = pol.id
-WHERE pol.id IN %s
-GROUP BY pol.id""", (tuple(ids),))
-            line_with_proc_ids = [item[0] for item in cr.fetchall()]
-            for line in self.browse(cr, uid, ids, context=context):
-                if line.id in line_with_proc_ids and not line.has_procurements:
-                    res[line.id] = True
-                elif line.id not in line_with_proc_ids and line.has_procurements:
-                    res[line.id] = False
-        return res
-
-    @api.cr_uid_ids_context
-    def _get_order_lines(self, cr, uid, ids, context=None):
+    def _get_purchase_order_lines(self, cr, uid, ids, context=None):
         res = set()
-        for proc in self.browse(cr, uid, ids, context=context):
-            if proc.purchase_line_id:
-                res.add(proc.purchase_line_id.id)
+        for move in self.browse(cr, uid, ids, context=context):
+            if move.purchase_line_id:
+                res.add(move.purchase_line_id.id)
         return list(res)
 
-    _columns = {
-        'date_required': old_api_fields.function(_compute_dates, type='date', string=u"Required Date",
-                                                 help=u"Required date for this purchase line. "
-                                                      "Computed as planned date of the first proc - supplier purchase "
-                                                      "lead time - company purchase lead time",
-                                                 multi="compute_dates",
-                                                 store={
-                                                     'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids,
-                                                                             ['order_id', 'date_planned'], 20),
-                                                     'procurement.order': (_get_order_lines,
-                                                                           ['date_planned', 'purchase_line_id'], 20)
-                                                 }, readonly=True),
-        'limit_order_date': old_api_fields.function(_compute_dates, type='date', string=u"Limit Order Date",
-                                                    help=u"Limit order date to be late :required date - supplier delay",
-                                                    multi="compute_dates",
-                                                    store={
-                                                        'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids,
-                                                                                ['order_id', 'date_planned'], 20),
-                                                        'procurement.order': (_get_order_lines,
-                                                                              ['date_planned', 'purchase_line_id'], 20)
-                                                    }, readonly=True),
-        'has_procurements': old_api_fields.function(_compute_has_procurements, type='boolean',
-                                                    string=u"Has procurements", readonly=True,
-                                                    store={'procurement.order': (_get_order_lines,
-                                                                                 ['purchase_line_id'], 20)}),
-    }
-
     confirm_date = fields.Datetime(string=u"Confirm date", readonly=True)
+    date_required = fields.Date(string=u"Required Date", help=u"Required date for this purchase line. "
+                                                      u"Computed as planned date of the first proc - supplier purchase "
+                                                      u"lead time - company purchase lead time", readonly=True)
+    limit_order_date = fields.Date(string=u"Limit Order Date", help=u"Limit order date to be late :required date - "
+                                                                    u"supplier delay", readonly=True)
+    covering_date = fields.Date(string=u"Covered Date", readonly=True)
+    covering_state = fields.Selection([
+        ('all_covered', u"All Need Covered"),
+        ('coverage_computed', u"Computed Coverage"),
+        ('unknown_coverage', u"Not Calculated State")
+    ], string=u"Covered State", default='unknown_coverage', required=True, readonly=True)
     requested_date = fields.Date("Requested date", help="The line was required to the supplier at that date",
                                  default=fields.Date.context_today, states={'sent': [('readonly', True)],
                                                                             'bid': [('readonly', True)],
@@ -179,6 +110,48 @@ GROUP BY pol.id""", (tuple(ids),))
                                                                             'cancel': [('readonly', True)],
                                                                             })
 
+    _columns = {
+        'remaining_qty': osv.fields.function(
+            _get_remaining_qty, type="float", copy=False, digits_compute=dp.get_precision('Product Unit of Measure'),
+            store={
+                'purchase.order.line': (lambda self, cr, uid, ids, ctx: ids, ['product_qty'], 20),
+                'stock.move': (_get_purchase_order_lines, ['purchase_line_id', 'product_uom_qty',
+                                                           'product_uom', 'state'], 20)},
+            string="Remaining quantity", help="Quantity not yet delivered by the supplier")}
+
+    @api.multi
+    def compute_coverage_state(self):
+        module_path = modules.get_module_path('purchase_planning_improved')
+        products = self.mapped('product_id')
+        if not products:
+            return
+        with open(module_path + '/sql/' + 'covering_dates_query.sql') as sql_file:
+            self.env.cr.execute(sql_file.read(), (tuple(products.ids),))
+            for result_line in self.env.cr.dictfetchall():
+                line = self.env['purchase.order.line'].search([('id', '=', result_line['pol_id'])])
+                real_need_date = result_line['real_need_date'] or False
+                date_required = real_need_date and self.env['procurement.order']. \
+                    _get_purchase_schedule_date(procurement=False,
+                                                company=line.order_id.company_id,
+                                                ref_product=line.product_id,
+                                                ref_location=line.order_id.location_id,
+                                                ref_date=real_need_date) or False
+                limit_order_date = date_required and self.env['procurement.order']. \
+                    with_context(force_partner_id=line.order_id.partner_id.id). \
+                    _get_purchase_order_date(procurement=False,
+                                             company=line.order_id.company_id,
+                                             schedule_date=date_required,
+                                             ref_product=line.product_id) or False
+                limit_order_date = limit_order_date and fields.Datetime.to_string(limit_order_date) or False
+                date_required = date_required and fields.Datetime.to_string(date_required) or False
+                dict_pol = {
+                    'date_required': date_required,
+                    'limit_order_date': limit_order_date,
+                    'covering_date': result_line['covering_date'] or False,
+                    'covering_state': result_line['covering_date'] and 'coverage_computed' or 'all_covered'
+                }
+                line.write(dict_pol)
+
     @api.multi
     def set_moves_dates(self, date_required):
         for rec in self:
@@ -189,17 +162,23 @@ GROUP BY pol.id""", (tuple(ids),))
     def create(self, vals):
         if vals.get('date_planned'):
             vals['requested_date'] = vals['date_planned']
-        return super(PurchaseOrderLinePlanningImproved, self).create(vals)
+        result = super(PurchaseOrderLinePlanningImproved, self).create(vals)
+        result.compute_coverage_state()
+        return result
 
     @api.multi
     def write(self, vals):
         """write method overridden here to propagate date_planned to the stock_moves of the receipt."""
-        if vals.get('date_planned'):
+        need_cover_reset = 'product_qty' in vals or 'product_uom' in vals or 'order_id' in vals or 'product_id' in vals
+        if need_cover_reset:
+            vals['covering_state'] = 'unknown_coverage'
+            vals['covering_date'] = False
+        if 'date_planned' in vals:
             for line in self:
                 if vals.get('stats', line.state) == 'draft':
                     vals['requested_date'] = vals['date_planned']
         result = super(PurchaseOrderLinePlanningImproved, self).write(vals)
-        if vals.get('date_planned'):
+        if 'date_planned' in vals:
             date = vals.get('date_planned') + " 12:00:00"
             for line in self:
                 moves = self.env['stock.move'].search([('purchase_line_id', '=', line.id),
@@ -208,6 +187,8 @@ GROUP BY pol.id""", (tuple(ids),))
                     moves.write({'date_expected': date})
                 else:
                     moves.write({'date_expected': date, 'date': date})
+        if need_cover_reset:
+            self.compute_coverage_state()
         return result
 
 
@@ -234,6 +215,10 @@ ORDER BY po.id""")
                 order.limit_order_date = item['new_limit_order_date']
             order_with_limit_dates_ids += [item['order_id']]
         self.search([('id', 'not in', order_with_limit_dates_ids)]).write({'limit_order_date': False})
+
+    @api.multi
+    def compute_coverage_state(self):
+        self.mapped('order_line').compute_coverage_state()
 
     @api.multi
     def write(self, vals):

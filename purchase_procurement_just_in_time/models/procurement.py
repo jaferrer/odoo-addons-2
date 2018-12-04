@@ -23,62 +23,9 @@ from dateutil.relativedelta import relativedelta
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
 
-from openerp import models, fields, api, _
+from openerp import modules, models, fields, api, _
 from openerp.tools.float_utils import float_compare, float_round
 from openerp.addons.connector.exception import RetryableJobError
-
-
-QUERY_PROCS_BY_SELLER = """WITH po_to_process AS (
-    SELECT po.id
-    FROM procurement_order po
-      LEFT JOIN product_product pp ON pp.id = po.product_id
-      LEFT JOIN procurement_rule pr ON pr.id = po.rule_id
-    WHERE po.state NOT IN ('cancel', 'done', 'exception') AND pr.action = 'buy'),
-
-    min_ps_sequences AS (
-      SELECT
-        po.id            AS procurement_order_id,
-        min(ps.sequence) AS min_ps_sequence
-      FROM procurement_order po
-        LEFT JOIN product_product pp ON pp.id = po.product_id
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
-      WHERE po.id IN (SELECT po_to_process.id
-                      FROM po_to_process) AND
-            (ps.company_id = po.company_id OR ps.company_id IS NULL)
-      GROUP BY po.id),
-
-    min_ps_sequences_and_id AS (
-      SELECT
-        po.id      AS procurement_order_id,
-        mps.min_ps_sequence,
-        min(ps.id) AS min_ps_id_for_sequence
-      FROM procurement_order po
-        LEFT JOIN product_product pp ON pp.id = po.product_id
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
-        LEFT JOIN min_ps_sequences mps ON mps.procurement_order_id = po.id
-      WHERE po.id IN (SELECT po_to_process.id
-                      FROM po_to_process) AND
-            (ps.company_id = po.company_id OR ps.company_id IS NULL) AND
-            ps.sequence = mps.min_ps_sequence
-      GROUP BY po.id, mps.min_ps_sequence)
-
-SELECT
-  po.id                   AS procurement_order_id,
-  (CASE WHEN ps.name IS NOT NULL
-    THEN ps.name
-   ELSE pp.seller_id END) AS seller_id,
-  po.company_id,
-  po.location_id,
-  po.product_id
-FROM procurement_order po
-  LEFT JOIN product_product pp ON pp.id = po.product_id
-  LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
-  LEFT JOIN min_ps_sequences_and_id mps ON mps.procurement_order_id = po.id
-WHERE po.id IN (SELECT po_to_process.id
-                FROM po_to_process) AND
-      (ps.company_id = po.company_id OR ps.company_id IS NULL) AND
-      ps.sequence = mps.min_ps_sequence AND
-      ps.id = mps.min_ps_id_for_sequence"""
 
 
 @job(default_channel='root.purchase_scheduler')
@@ -247,7 +194,9 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
                                  self.env['res.partner'].search([('supplier', '=', True)]).ids or \
                                  compute_supplier_ids or []
         dict_proc_sellers = {seller_id: [] for seller_id in sellers_to_compute_ids}
-        self.env.cr.execute(QUERY_PROCS_BY_SELLER)
+        module_path = modules.get_module_path('purchase_procurement_just_in_time')
+        with open(module_path + '/sql/' + 'procs_by_seller_query.sql') as sql_file:
+            self.env.cr.execute(sql_file.read())
         for item in self.env.cr.fetchall():
             if compute_all_products or compute_supplier_ids and item[1] in compute_supplier_ids or compute_product_ids \
                     and item[4] in compute_product_ids:
@@ -654,7 +603,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
                     procurement.with_context(check_product_qty=False).add_proc_to_line(line)
                     if procurement == last_proc and new_qty > line.product_qty:
                         line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
-                        line.quick_compute_coverage_state()
         return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
 
     @api.model

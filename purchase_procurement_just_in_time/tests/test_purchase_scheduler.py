@@ -136,10 +136,32 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.proc6.run()
         self.assertEqual(self.proc6.state, 'buy_to_run')
 
+    def create_move_out_corresponding_to_procs(self):
+        self.env['stock.move'].search([('origin', '=', 'to_remove'),
+                                       ('state', 'not in', ['cancel', 'done'])]).action_cancel()
+        for proc in self.env['procurement.order'].search([('state', 'not in', ['done', 'cancel']),
+                                                          ('location_id', '=', self.location_a.id),
+                                                          ('rule_id.action', '=', 'buy')]):
+            if not proc.move_dest_id:
+                move = self.env['stock.move'].create({
+                    'name': "Outgoing move corresponding to proc %s" % proc.display_name,
+                    'product_id': proc.product_id.id,
+                    'product_uom_qty': proc.product_qty,
+                    'product_uom': proc.product_uom.id,
+                    'location_id': self.location_a.id,
+                    'location_dest_id': self.location_b.id,
+                    'date': proc.date_planned,
+                    'origin': 'to_remove'
+                })
+                move.action_confirm()
+                self.assertEqual(move.state, 'confirmed')
+        self.env.invalidate_all()
+
     def test_10_schedule_and_reschedule_from_scratch(self):
         """Test of purchase order creation from scratch when there are none at the beginning."""
         self.company.write({'po_lead': 3})
         self.supplier.write({'purchase_lead_time': 2})
+        self.create_move_out_corresponding_to_procs()
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_supplier_ids=self.supplier,
                                                         jobify=False)
@@ -168,18 +190,19 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(2, len(purchase1.order_line))
         for line in purchase1.order_line:
             if line.product_id == self.product1:
-                self.assertEqual('3003-09-14 17:00:00', line.covering_date)
+                self.assertEqual('3003-09-14', line.covering_date)
                 self.assertEqual('coverage_computed', line.covering_state)
             if line.product_id == self.product2:
                 self.assertFalse(line.covering_date)
                 self.assertEqual('all_covered', line.covering_state)
         self.assertFalse(purchase3.order_line.covering_date)
         self.assertEqual('all_covered', purchase3.order_line.covering_state)
-        self.assertEqual('3003-09-22 15:00:00', purchase5.order_line.covering_date)
+        self.assertEqual('3003-09-22', purchase5.order_line.covering_date)
         self.assertEqual('coverage_computed', purchase5.order_line.covering_state)
 
         # Let's change a date and reschedule
         self.proc1.date_planned = '3003-09-23 12:00:00'
+        self.create_move_out_corresponding_to_procs()
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_supplier_ids=self.supplier,
                                                         jobify=False)
@@ -206,15 +229,15 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         self.assertFalse(purchase1.order_line.covering_date)
         self.assertEqual('all_covered', purchase1.order_line.covering_state)
-        self.assertEqual('3003-09-22 15:00:00', purchase2.order_line.covering_date)
+        self.assertEqual('3003-09-22', purchase2.order_line.covering_date)
         self.assertEqual('coverage_computed', purchase2.order_line.covering_state)
 
-        purchase1.quick_compute_coverage_state()
+        purchase1.compute_coverage_state()
         self.assertEqual('all_covered', purchase1.order_line.covering_state)
         self.assertFalse(purchase1.order_line.covering_date)
-        purchase2.quick_compute_coverage_state()
+        purchase2.compute_coverage_state()
         self.assertEqual('coverage_computed', purchase2.order_line.covering_state)
-        self.assertEqual('3003-09-22 15:00:00', purchase2.order_line.covering_date)
+        self.assertEqual('3003-09-22', purchase2.order_line.covering_date)
 
     def test_11_schedule_a_limited_number_of_orders(self):
         """Test of purchase order creation from scratch when nb_max_draft_orders is defined for the suplier."""

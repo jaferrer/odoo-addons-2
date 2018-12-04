@@ -35,7 +35,7 @@ class PurchaseOrderOverCover(models.Model):
 
     @api.multi
     def purchase_confirm(self):
-        self.quick_compute_coverage_state()
+        self.compute_coverage_state()
         nb_days_max_cover = int(self.env['ir.config_parameter'].
                                 get_param('purchase_over_cover_validation.nb_days_max_cover') or 0)
         max_coverage_date = fields.Datetime.to_string(self.partner_id.schedule_working_days(nb_days_max_cover,
