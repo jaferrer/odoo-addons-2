@@ -194,17 +194,31 @@ class stock_pack_operation(models.Model):
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    location_id = fields.Many2one("stock.location", string="Location", readonly=True, compute="_compute_location_id")
-    location_dest_id = fields.Many2one("stock.location", string="Destination Location", readonly=True,
-                                       compute="_compute_location_id")
+    location_id_compute = """SELECT sm.location_id::return_type
+FROM stock_move sm
+WHERE sm.picking_id = $1.id
+LIMIT 1"""
 
-    @api.depends('move_lines.location_id', 'move_lines.location_dest_id')
-    def _compute_location_id(self):
-        for rec in self:
-            moves = self.env['stock.move'].search([('picking_id', '=', rec.id)], limit=1)
-            if moves:
-                rec.location_id = moves.location_id
-                rec.location_dest_id = moves.location_dest_id
+    location_dest_id_compute = """SELECT sm.location_dest_id::return_type
+FROM stock_move sm
+WHERE sm.picking_id = $1.id
+LIMIT 1"""
+
+    picking_type_code_compute = """SELECT pt.code :: return_type
+FROM stock_picking_type pt
+WHERE pt.id = $1.picking_type_id
+LIMIT 1"""
+
+    location_id = fields.Many2one('stock.location', compute_sql=location_id_compute, readonly=True, store=True,
+                                  related=None)
+    location_dest_id = fields.Many2one('stock.location', compute_sql=location_dest_id_compute, readonly=True,
+                                       store=True, related=None)
+    picking_type_code = fields.Selection([('incoming', 'Suppliers'), ('outgoing', 'Customers'),
+                                          ('internal', 'Internal')],
+                                         string=u"Picking type code", store=True,
+                                         compute_sql=picking_type_code_compute, readonly=True,
+                                         related=None)
+    picking_type_id = fields.Many2one('stock.picking.type', index=True)
 
     @api.model
     def rereserve_quants(self, picking, move_ids=[]):

@@ -22,6 +22,7 @@ from openerp.addons.connector.session import ConnectorSession
 
 from openerp import fields, models, api, exceptions, _
 from openerp.tools import float_compare
+from .exceptions import ForbiddenChangeQtyMO
 
 
 @job(default_channel='root.mrp.update')
@@ -189,6 +190,10 @@ class MoUpdateMrpProduction(models.Model):
                 run_mrp_production_update(ConnectorSession.from_env(self.env), 'mrp.production', [mrp_id],
                                           dict(self.env.context))
 
+    @api.multi
+    def update_prod_after_change_qty(self):
+        self.button_update()
+
 
 class UpdateChangeProductionQty(models.TransientModel):
     _inherit = 'change.production.qty'
@@ -201,14 +206,13 @@ class UpdateChangeProductionQty(models.TransientModel):
                 # Raise if MO is linked to a procurement, in order not to allow a difference between procurement and
                 # its origin moves (which are production moves of the MO)
                 if order.procurement_id:
-                    raise exceptions. \
-                        except_orm(_(u"Error!"),
+                    raise ForbiddenChangeQtyMO(order.id,
                                    _(u"%s: impossible to change the quantity of a manufacturing order created by Odoo. Please create an extra manufacturing order or make stock scheduler cancel this one.") % order.display_name)
                 # Check raw material moves
                 if order.bom_id and float_compare(order.product_qty, rec.product_qty,
                                                   precision_rounding=order.product_id.uom_id.rounding) != 0:
                     order.product_qty = rec.product_qty
-                    order.button_update()
+                    order.update_prod_after_change_qty()
                 # Check production moves
                 if order.move_prod_id:
                     order.move_prod_id.write({'product_uom_qty': rec.product_qty})

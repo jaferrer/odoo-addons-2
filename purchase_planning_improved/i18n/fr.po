@@ -155,3 +155,36 @@ msgstr "Date limite de commande"
 #: help:purchase.order.line,date_required:0
 msgid "Required date for this purchase line. Computed as planned date of the first proc - supplier purchase lead time - company purchase lead time"
 msgstr "Date de besoin pour cette ligne de commande. Calculée comme la date prévue du premier approvisionnement - délai de sécurité pour les approvisionnements sur le fournisseur considéré - marge d'approvisionnemenrt de la société"
+
+#. module: purchase_planning_improved
+#: field:purchase.order.line,covering_date:0
+msgid "Covered Date"
+msgstr "Date de couverture"
+
+#. module: purchase_planning_improved
+#: field:purchase.order.line,covering_state:0
+msgid "Covered State"
+msgstr "État de couverture"
+
+#. module: purchase_planning_improved
+#: selection:purchase.order.line,covering_state:0
+msgid "All Need Covered"
+msgstr "Tous besoins couverts"
+
+#. module: purchase_planning_improved
+#: selection:purchase.order.line,covering_state:0
+msgid "Computed Coverage"
+msgstr "Besoin calculé"
+
+#. module: purchase_planning_improved
+#: selection:purchase.order.line,covering_state:0
+msgid "Not Calculated State"
+msgstr "État non calculé"
+
+#. module: purchase_planning_improved
+#: model:ir.actions.server,name:purchase_planning_improved.ir_actions_server_compute_coverage_state
+#: model:ir.actions.server,name:purchase_planning_improved.ir_actions_server_compute_coverage_state_po
+#: model:ir.values,name:purchase_planning_improved.ir_value_compute_coverage_state
+#: model:ir.values,name:purchase_planning_improved.ir_value_compute_coverage_state_po
+msgid "Compute Coverage State"
+msgstr "Calculer les états de couverture"

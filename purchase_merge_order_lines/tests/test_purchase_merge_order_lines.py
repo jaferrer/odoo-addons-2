@@ -38,7 +38,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
 
     def create_procurement_order_1(self):
         return self.env['procurement.order'].create({
-            'name': 'Procurement order 5 (Sirail Achats)',
+            'name': 'Procurement order 5 (Merge Order Lines)',
             'product_id': self.product.id,
             'product_qty': 80,
             'warehouse_id': self.ref('stock.warehouse0'),
@@ -50,7 +50,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
 
     def create_procurement_order_2(self):
         return self.env['procurement.order'].create({
-            'name': 'Procurement order 6 (Sirail Achats)',
+            'name': 'Procurement order 6 (Merge Order Lines)',
             'product_id': self.product.id,
             'product_qty': 80,
             'warehouse_id': self.ref('stock.warehouse0'),
@@ -62,7 +62,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
 
     def create_procurement_order_3(self):
         return self.env['procurement.order'].create({
-            'name': 'Procurement order 5 (Sirail Achats)',
+            'name': 'Procurement order 5 (Merge Order Lines)',
             'product_id': self.product.id,
             'product_qty': 80,
             'warehouse_id': self.ref('stock.warehouse0'),
@@ -74,7 +74,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
 
     def create_procurement_order_4(self):
         return self.env['procurement.order'].create({
-            'name': 'Procurement order 6 (Sirail Achats)',
+            'name': 'Procurement order 6 (Merge Order Lines)',
             'product_id': self.product.id,
             'product_qty': 50,
             'warehouse_id': self.ref('stock.warehouse0'),
@@ -86,7 +86,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
 
     def create_procurement_order_5(self):
         return self.env['procurement.order'].create({
-            'name': 'Procurement order 5 (Sirail Achats)',
+            'name': 'Procurement order 5 (Merge Order Lines)',
             'product_id': self.product.id,
             'product_qty': 30,
             'warehouse_id': self.ref('stock.warehouse0'),
@@ -98,7 +98,7 @@ class TestPurchaseMergeOrderLines(common.TransactionCase):
 
     def create_procurement_order_6(self):
         return self.env['procurement.order'].create({
-            'name': 'Procurement order 6 (Sirail Achats)',
+            'name': 'Procurement order 6 (Merge Order Lines)',
             'product_id': self.product.id,
             'product_qty': 50,
             'warehouse_id': self.ref('stock.warehouse0'),

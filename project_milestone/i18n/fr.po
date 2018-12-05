@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* products_moving_wizard_auto_report
+# 	* project_milestone
 #
 msgid ""
 msgstr ""
@@ -45,8 +45,8 @@ msgstr "Tâches"
 
 #. module: project_milestone
 #: field:project.milestone,nb_tasks:0
-msgid "Tasks count"
-msgstr "Nb tâches"
+msgid "Number of tasks"
+msgstr "Nombre de tâches"
 
 #. module: project_milestone
 #: field:project.milestone,state:0
@@ -161,3 +161,9 @@ msgstr "Marquer comme livrée en prod"
 #: view:project.milestone:project_milestone.project_milestone_form
 msgid "Close"
 msgstr "Fermer"
+
+
+#. module: project_milestone
+#: view:project.milestone:project_milestone.project_milestone_form
+msgid "Re-open"
+msgstr "Ré-ouvrir"

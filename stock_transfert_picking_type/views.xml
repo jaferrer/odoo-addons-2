@@ -3,7 +3,7 @@
     <data>
 
         <record model="ir.ui.view" id="stock_transfert_picking_form">
-            <field name="name">reception_by_order_picking_form</field>
+            <field name="name">stock_transfert_picking_form</field>
             <field name="model">stock.picking</field>
             <field name="inherit_id" ref="stock.view_picking_form"/>
             <field name="priority" eval="16"/>
@@ -12,58 +12,10 @@
                     <attribute name="context">{'default_picking_id': active_id, 'default_location_id': location_id,
                         'default_location_dest_id': location_dest_id, 'display_line_no': True}
                     </attribute>
-                    <attribute name="attrs">{'invisible': [('picking_type_code','!=','internal')]}</attribute>
                 </field>
                 <xpath expr="//field[@name='pack_operation_ids']//tree" position="inside">
                     <field name="group_name" invisible="1"/>
                 </xpath>
-                <field name="pack_operation_ids" position="after">
-                    <field name="pack_operation_expedition_ids"
-                           context="{'default_picking_id': active_id, 'default_location_id': location_id,
-                        'default_location_dest_id': location_dest_id, 'display_line_no': True}"
-                           nolabel="1"
-                           attrs="{'invisible': [('picking_type_code','!=','outgoing')]}">
-                        <tree editable="top">
-                            <field name="group_name" invisible="1"/>
-                            <field name="package_id" groups="stock.group_tracking_lot"/>
-                            <field name="product_id"
-                                   on_change="product_id_change(product_id, product_uom_id, product_qty)"/>
-                            <field name="product_uom_id" groups="product.group_uom"/>
-                            <field name="picking_type_code" invisible="1"/>
-                            <field name="lot_id" domain="[('product_id','=?', product_id)]"
-                                   context="{'product_id': product_id}" groups="stock.group_production_lot"/>
-                            <field name="picking_id" invisible="1"/>
-                            <field name="owner_id" groups="stock.group_tracking_owner"/>
-                            <field name="product_qty" attrs="{'required': [('product_id', '!=', False)]}"/>
-                            <field name="location_id" domain="[('id', 'child_of', parent.location_id)]"/>
-                            <field name="location_dest_id" domain="[('id', 'child_of', parent.location_dest_id)]"/>
-                            <field name="result_package_id" groups="stock.group_tracking_lot"
-                                   context="{'location_id': location_dest_id}"/>
-                        </tree>
-                    </field>
-                    <field name="pack_operation_reception_ids"
-                           context="{'default_picking_id': active_id, 'default_location_id': location_id,
-                        'default_location_dest_id': location_dest_id, 'display_line_no': True}" nolabel="1"
-                           attrs="{'invisible': [('picking_type_code','!=','incoming')]}">
-                        <tree editable="top">
-                            <field name="group_name" invisible="1"/>
-                            <field name="package_id" groups="stock.group_tracking_lot"/>
-                            <field name="product_id"
-                                   on_change="product_id_change(product_id, product_uom_id, product_qty)"/>
-                            <field name="product_uom_id" groups="product.group_uom"/>
-                            <field name="picking_type_code" invisible="1"/>
-                            <field name="lot_id" domain="[('product_id','=?', product_id)]"
-                                   context="{'product_id': product_id}" groups="stock.group_production_lot"/>
-                            <field name="picking_id" invisible="1"/>
-                            <field name="owner_id" groups="stock.group_tracking_owner"/>
-                            <field name="product_qty" attrs="{'required': [('product_id', '!=', False)]}"/>
-                            <field name="location_id" domain="[('id', 'child_of', parent.location_id)]"/>
-                            <field name="location_dest_id" domain="[('id', 'child_of', parent.location_dest_id)]"/>
-                            <field name="result_package_id" groups="stock.group_tracking_lot"
-                                   context="{'location_id': location_dest_id}"/>
-                        </tree>
-                    </field>
-                </field>
             </field>
         </record>
 
