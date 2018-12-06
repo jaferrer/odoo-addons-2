@@ -129,3 +129,43 @@ class TestMrpWorkingDays(common.TransactionCase):
         self.assertEqual(last_order.date_planned_start, self.utcize_date('2017-11-30 13:40:00'))
         self.assertEqual(first_order.date_planned_finished, self.utcize_date('2017-11-27 18:00:00'))
         self.assertEqual(first_order.date_planned_start, self.utcize_date('2017-11-27 16:20:00'))
+
+    def test_21_default_calendar_schedule(self):
+        """Test scheduling production orders with new ."""
+        company = self.browse_ref('base.main_company')
+        proc_env = self.env["procurement.order"]
+        # Create Production order
+        proc_mo = proc_env.create({
+            'name': 'Test MRP Schedule',
+            'date_planned': '2017-12-01 14:00:00',
+            'product_id': self.product.id,
+            'product_qty': 1,
+            'product_uom': self.ref('product.product_uom_unit'),
+            'warehouse_id': self.warehouse.id,
+            'location_id': self.stock.id,
+        })
+        # Force company mo lead to 1
+        company.manufacturing_lead = 1
+        company.duration_between_wo = 16
+        proc_mo.run()
+        proc_mo.check()
+        # MO has been created
+        self.assertTrue(proc_mo.production_id.id)
+        # MO Planned date
+        production_order = proc_mo.production_id
+        self.assertEqual(production_order.date_planned_finished, '2017-12-01 14:00:00')
+        self.assertEqual(production_order.date_planned_start[:10], '2017-11-06')
+
+        # Create workorders
+        production_order.button_plan()
+        self.assertEqual(len(production_order.workorder_ids), 2)
+        last_order, first_order = self.env['mrp.workorder'], self.env['mrp.workorder']
+        for order in production_order.workorder_ids:
+            if order.next_work_order_id:
+                first_order = order
+            else:
+                last_order = order
+        self.assertEqual(last_order.date_planned_finished, self.utcize_date('2017-11-30 17:00:00'))
+        self.assertEqual(last_order.date_planned_start, self.utcize_date('2017-11-30 13:40:00'))
+        self.assertEqual(first_order.date_planned_finished, self.utcize_date('2017-11-22 18:00:00'))
+        self.assertEqual(first_order.date_planned_start, self.utcize_date('2017-11-22 16:20:00'))

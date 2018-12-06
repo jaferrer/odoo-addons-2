@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,7 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import mrp
-from . import res_company
-from . import procurement
-from . import mrp_config_settings
+from odoo import fields, models
+
+
+class MrpConfigSettings(models.TransientModel):
+    _inherit = 'mrp.config.settings'
+
+    duration_between_wo = fields.Float(related='company_id.duration_between_wo')
