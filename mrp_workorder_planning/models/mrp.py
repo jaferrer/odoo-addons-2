@@ -58,7 +58,8 @@ class MrpProduction(models.Model):
                 current.date_planned_finished = dt_end
                 dt_start = current.workcenter_id.schedule_working_hours(-current._get_expected_duration(), dt_end)
                 current.date_planned_start = dt_start
-                dt_end = current.workcenter_id.schedule_working_hours(-1, dt_start)
+                dt_end = current.workcenter_id.schedule_working_hours(-self.env.user.company_id.duration_between_wo,
+                                                                      dt_start)
                 current = current.previous_workorder_ids and current.previous_workorder_ids[0] or False
 
 
