@@ -72,12 +72,11 @@ Notes
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'purchase_planning_improved_view.xml',
-        'cron.xml',
+        'views/res_config.xml',
+        'views/purchase_planning_improved_view.xml',
+        'data/cron.xml',
     ],
-    'demo': [
-        'purchase_planning_improved_demo.xml',
-    ],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
