@@ -115,6 +115,15 @@ WITH product_product_restricted AS (
       GROUP BY sm.date, sm.product_id, sm.location_id
       ORDER BY sm.date, sm.product_id, sm.location_id),
 
+    global_needs AS (
+      SELECT
+        move_out.product_id,
+        move_out.location_id,
+        sum(move_out.out_qty) AS global_need
+      FROM moves_out_reception move_out
+      GROUP BY move_out.product_id,
+        move_out.location_id),
+
     cumulated_out_qty AS (
       SELECT
         move_out.product_id,
@@ -199,9 +208,33 @@ WITH product_product_restricted AS (
          FROM real_need_dates rd2
          WHERE rd2.product_id = rd.product_id AND rd2.location_id = rd.location_id AND
                rd2.real_need_date > rd.real_need_date) AS covering_date
-      FROM real_need_dates rd)
+      FROM real_need_dates rd),
 
-SELECT *
-FROM all_dates_with_fake_lines
-WHERE pol_id IN (SELECT id
-                 FROM purchase_order_line)
+    needed_qties_before_after_pol AS (
+      SELECT
+        line.*,
+        coalesce((SELECT gn.global_need
+                  FROM global_needs gn
+                  WHERE gn.product_id = line.product_id AND gn.location_id = line.location_id), 0) -
+        line.received_qty_without_pol AS total_remaining_need_before_pol,
+        coalesce((SELECT gn.global_need
+                  FROM global_needs gn
+                  WHERE gn.product_id = line.product_id AND gn.location_id = line.location_id), 0) -
+        line.received_qty_without_pol -
+        line.remaining_po_uom_qty     AS total_remaining_need_after_pol
+      FROM all_dates_with_fake_lines line
+      WHERE line.pol_id IN (SELECT pol.id
+                            FROM purchase_order_line pol)
+      ORDER BY line.product_id, line.location_id, line.pol_state_order_key, line.date_planned, line.pol_id)
+
+SELECT
+  *,
+  (CASE WHEN total_remaining_need_before_pol <= 0.01
+    THEN TRUE
+   ELSE FALSE END) AS to_delete,
+  (CASE WHEN total_remaining_need_after_pol < 0
+    THEN (CASE WHEN total_remaining_need_before_pol > 0
+      THEN total_remaining_need_before_pol
+          ELSE 0 END)
+   ELSE 0 END)     AS opmsg_reduce_qty
+FROM needed_qties_before_after_pol
