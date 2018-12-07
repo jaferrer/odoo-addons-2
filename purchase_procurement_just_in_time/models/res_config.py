@@ -23,16 +23,6 @@ from openerp import fields, models, api
 class purchase_jit_config(models.TransientModel):
     _inherit = 'purchase.config.settings'
 
-    opmsg_min_late_delay = fields.Integer(string="Delay to be late (in days)",
-                                          help="Minimum delay to create an operational message specifying that the "
-                                               "purchase order line is late. If the planned date is less than this "
-                                               "number of days beyond the required date, no message will be displayed."
-                                               "\nDefaults to 1 day.")
-    opmsg_min_early_delay = fields.Integer(string="Delay to be early (in days)",
-                                           help="Minimum delay to create an operational message specifying that the "
-                                                "purchase order line is early. If the planned date is less than this "
-                                                "number of days before the required date, no message will be displayed."
-                                                "\nDefaults to 7 days.")
     delta_begin_grouping_period = fields.Integer(string="Delta begin grouping period",
                                                  help="Grouping periods will be centered on the date of tomorrow, "
                                                       "increased by this delta")
@@ -46,32 +36,6 @@ class purchase_jit_config(models.TransientModel):
     order_group_period = fields.Many2one('procurement.time.frame', "Default order grouping period")
     nb_max_draft_orders = fields.Integer(string="Default maximal number of draft purchase orders for each new supplier")
     nb_days_scheduler_frequency = fields.Integer(string="Default scheduler frequency (in days)")
-
-    @api.multi
-    def get_default_opmsg_min_late_delay(self):
-        opmsg_min_late_delay = self.env['ir.config_parameter'].get_param(
-            "purchase_procurement_just_in_time.opmsg_min_late_delay", default=1)
-        return {'opmsg_min_late_delay': int(opmsg_min_late_delay)}
-
-    @api.multi
-    def set_opmsg_min_late_delay(self):
-        config_parameters = self.env["ir.config_parameter"]
-        for record in self:
-            config_parameters.set_param("purchase_procurement_just_in_time.opmsg_min_late_delay",
-                                        record.opmsg_min_late_delay or '1')
-
-    @api.multi
-    def get_default_opmsg_min_early_delay(self):
-        opmsg_min_early_delay = self.env['ir.config_parameter'].get_param(
-            "purchase_procurement_just_in_time.opmsg_min_early_delay", default=7)
-        return {'opmsg_min_early_delay': int(opmsg_min_early_delay)}
-
-    @api.multi
-    def set_opmsg_min_early_delay(self):
-        config_parameters = self.env["ir.config_parameter"]
-        for record in self:
-            config_parameters.set_param("purchase_procurement_just_in_time.opmsg_min_early_delay",
-                                        record.opmsg_min_early_delay or '7')
 
     @api.multi
     def get_default_delta_begin_grouping_period(self):

@@ -27,6 +27,7 @@
     'depends': ['purchase', 'purchase_order_quantities_improved', 'purchase_planning_improved',
                 'stock_procurement_just_in_time', 'purchase_line_numbers', 'purchase_working_days',
                 'stock_moves_to_assigned_pickings', 'mail_improved', 'web_tree_many2one_clickable',
+                'procurement_improved',
                 ],
     'description': """
 Purchase Just-In-Time Extension
@@ -59,7 +60,7 @@ Notes
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
-        'views/res_config_view.xml',
+        'views/res_config.xml',
         'views/time_frame.xml',
         'views/purchase_procurement_jit.xml',
         'views/purchase.xml',

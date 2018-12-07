@@ -45,3 +45,13 @@ WHERE COALESCE(mrp.procurement_id, 0) != COALESCE(procs.procurement_id, 0)""")
         for line in result:
             order = self.browse(line[0])
             order.write({'procurement_id': line[1] or False})
+
+
+class MrpImprovedProcurementOrder(models.Model):
+    _inherit = 'procurement.order'
+
+    @api.model
+    def _prepare_mo_vals(self, procurement):
+        result = super(MrpImprovedProcurementOrder, self)._prepare_mo_vals(procurement)
+        result['procurement_id'] = procurement.id
+        return result

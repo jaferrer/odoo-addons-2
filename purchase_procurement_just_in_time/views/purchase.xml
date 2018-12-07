@@ -64,9 +64,6 @@
                 <field name="product_qty" position="attributes">
                     <attribute name="on_change"/>
                 </field>
-                <field name="price_unit" position="before">
-                    <field name="remaining_qty" readonly="1"/>
-                </field>
                 <field name="price_unit" position="after">
                     <field name="order_id" readonly="1"/>
                     <field name="line_no"/>
@@ -81,10 +78,6 @@
                 </field>
                 <field name="date_planned" position="before">
                     <field name="requested_date"/>
-                </field>
-                <field name="date_planned" position="after">
-                    <field name="covering_date"/>
-                    <field name="covering_state"/>
                 </field>
                 <field name="date_planned" position="attributes">
                     <attribute name="attrs">{'readonly': [('state','=','done')]}</attribute>
@@ -141,10 +134,6 @@
                     <xpath expr="//field[@name='order_line']//field[@name='product_id']" position="before">
                         <field name="line_no"/>
                     </xpath>
-                    <xpath expr="//field[@name='order_line']//field[@name='date_planned']" position="before">
-                        <field name="covering_date"/>
-                        <field name="covering_state"/>
-                    </xpath>
                     <xpath expr="//notebook/page[@string='Deliveries &amp; Invoices']/group" position="inside">
                         <group>
                             <field name="date_order" required="1"/>
@@ -174,38 +163,6 @@
         <act_window name="Open order lines" id="open_order_lines"
                     res_model="purchase.order.line" src_model="purchase.order" view_type="form"
                     view_mode="tree" key2="client_action_multi" context="{'search_default_order_id': active_id}"/>
-
-        <record model="ir.actions.server" id="ir_actions_server_quick_compute_coverage_state">
-            <field name="name">Compute Unknown Coverage State</field>
-            <field name="model_id" ref="purchase.model_purchase_order_line"/>
-            <field name="code">
-                self.quick_compute_coverage_state(cr, uid, context.get('active_ids'), False, context)
-            </field>
-        </record>
-
-        <record model="ir.values" id="ir_value_quick_compute_coverage_state">
-            <field name="key">action</field>
-            <field name="key2">client_action_multi</field>
-            <field name="model">purchase.order.line</field>
-            <field name="name">Compute Unknown Coverage State</field>
-            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_quick_compute_coverage_state)"/>
-        </record>
-
-        <record model="ir.actions.server" id="ir_actions_server_quick_compute_coverage_state_po">
-            <field name="name">Compute Unknown Coverage State</field>
-            <field name="model_id" ref="purchase.model_purchase_order"/>
-            <field name="code">
-                self.quick_compute_coverage_state(cr, uid, context.get('active_ids'), False, context)
-            </field>
-        </record>
-
-        <record model="ir.values" id="ir_value_quick_compute_coverage_state_po">
-            <field name="key">action</field>
-            <field name="key2">client_action_multi</field>
-            <field name="model">purchase.order</field>
-            <field name="name">Compute Unknown Coverage State</field>
-            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_quick_compute_coverage_state_po)"/>
-        </record>
 
     </data>
 </openerp>

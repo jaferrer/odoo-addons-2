@@ -22,8 +22,8 @@
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': '',
-    'depends': ['stock'],
+    'category': 'Stock',
+    'depends': ['stock', 'procurement_improved'],
     'description': """
 Procurement Management
 ======================

@@ -22,8 +22,7 @@ from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
 
 from openerp import models, fields, api
-
-DOMAIN_PARTNER_ACTIVE_SCHEDULER = [('supplier', '=', True),
+DOMAIN_PARTNER_ACTIVE_SCHEDULER = [('supplier', '=', True), ('is_company', '=', True),
                                    ('nb_days_scheduler_frequency', '!=', False),
                                    ('nb_days_scheduler_frequency', '!=', 0),
                                    ('next_scheduler_date', '!=', False)]

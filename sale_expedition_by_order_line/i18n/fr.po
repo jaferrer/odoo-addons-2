@@ -44,6 +44,7 @@ msgstr "Quantité déjà expédiée"
 #. module: sale_expedition_by_order_line
 #: field:stock.move,sale_line_id:0
 #: field:stock.pack.operation,sale_line_id:0
+#: field:stock.transfer_details_items,sale_line_id:0
 msgid "Sale Order Line"
 msgstr "Poste de vente"
 

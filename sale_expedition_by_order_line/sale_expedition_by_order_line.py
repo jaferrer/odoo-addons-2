@@ -416,6 +416,20 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
                                                       states={'done': [('readonly', True)],
                                                               'cancel': [('readonly', True)]})
 
+    @api.model
+    def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
+        """Permet de copier les vues embarqué du champs 'order_line' dans le champ 'line_not_null_remaining_qty_ids'
+        uniquement pour la vue 'sale.view_order_form'"""
+        res = super(ExpeditionByOrderLineSaleOrder, self).fields_view_get(view_id=view_id, view_type=view_type,
+                                                                          toolbar=toolbar, submenu=submenu)
+        id = self.env.ref('sale.view_order_form').id
+        valid = res['view_id'] == id and {'line_not_null_remaining_qty_ids', 'order_line'}.issubset(res['fields'])
+        valid = valid and not res['fields']['line_not_null_remaining_qty_ids'].get('views')
+        valid = valid and bool(res['fields']['order_line'].get('views'))
+        if valid:
+            res['fields']['line_not_null_remaining_qty_ids']['views'] = res['fields']['order_line']['views']
+        return res
+
     @api.multi
     def toggle_lines_display(self):
         for rec in self:
@@ -450,6 +464,8 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
 
     @api.multi
     def compute_workflow_state(self):
+        act_ship = self.env.ref('sale.act_ship')
+        act_ship_except = self.env.ref('sale.act_ship_except')
         for rec in self:
             if rec.order_policy == 'picking' and all([
                 float_compare(line.remaining_qty, 0, line.product_uom.rounding) <= 0 for line in rec.order_line
@@ -457,7 +473,16 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
                 if rec.workflow_done:
                     rec.action_done()
                 else:
-                    rec.with_context(enable_trigger_sale_order_workflow=True).trigger_sale_order_workflow()
+                    # On test le jeton du workflow pour lancer le bon signal
+                    workflow = self.env.ref('sale.wkf_sale')
+                    workflow_instance = self.env['workflow.instance'].search([('wkf_id', '=', workflow.id),
+                                                                              ('res_id', '=', rec.id)])
+                    wokrflow_item = self.env['workflow.workitem'].search([('inst_id', '=', workflow_instance.id)])
+                    for item in wokrflow_item:
+                        if item.act_id == act_ship:
+                            rec.with_context(enable_trigger_sale_order_workflow=True).trigger_sale_order_workflow()
+                        if item.act_id == act_ship_except:
+                            rec.signal_workflow('ship_corrected')
 
     @api.multi
     def trigger_sale_order_workflow(self):

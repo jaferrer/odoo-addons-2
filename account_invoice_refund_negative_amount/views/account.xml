@@ -2,7 +2,7 @@
 <openerp>
     <data>
 		<record model="ir.ui.view" id="invoice_tree_negative_amount_refund">
-            <field name="name">sirail.compta.account.journal.form</field>
+            <field name="name">account.journal.form</field>
             <field name="model">account.invoice</field>
             <field name="inherit_id" ref="account.invoice_tree"/>
             <field name="priority" eval="16"/>

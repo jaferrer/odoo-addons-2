@@ -23,35 +23,31 @@ from openerp import models, fields, api
 class StockTransfertPickingTypeTransferDetails(models.TransientModel):
     _inherit = 'stock.transfer_details'
 
-    item_expedition_ids = fields.One2many('stock.transfer_details_items', 'transfer_id', 'Items',
-                                          domain=[('product_id', '!=', False)])
-    item_reception_ids = fields.One2many('stock.transfer_details_items', 'transfer_id', 'Items',
-                                         domain=[('product_id', '!=', False)])
-    picking_type_code = fields.Char(string=u"Picking Type Code", related='picking_id.picking_type_code', readonly=True)
+    picking_type_code = fields.Selection(string=u"Picking Type Code", related='picking_id.picking_type_code',
+                                         readonly=True)
     picking_group_name = fields.Char(string="Procurement group name", related='picking_id.group_id.name', readonly=True)
 
 
 class ReceptionByOrderTransferDetailsItems(models.TransientModel):
     _inherit = 'stock.transfer_details_items'
 
-    group_name = fields.Char(string="Picking group name", related='transfer_id.picking_id.group_id.name',
-                             readonly=True)
+    group_name = fields.Char(string="Picking group name", related='transfer_id.picking_id.group_id.name', readonly=True)
 
 
 class StockTransfertPickingTypeStockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    pack_operation_expedition_ids = fields.One2many('stock.pack.operation', 'picking_id',
-                                                    states={'done': [('readonly', True)],
-                                                            'cancel': [('readonly', True)]},
-                                                    string=u'Related Packing Operations')
-    pack_operation_reception_ids = fields.One2many('stock.pack.operation', 'picking_id',
-                                                   states={'done': [('readonly', True)],
-                                                           'cancel': [('readonly', True)]},
-                                                   string=u'Related Packing Operations')
+    @api.cr_uid_ids_context
+    def do_enter_transfer_details(self, cr, uid, picking, context=None):
+        pick = self.pool.get('stock.picking').browse(cr, uid, picking, context)
+        if not context:
+            context = {}
+        context = dict(context)
+        context['picking_type_code'] = pick.picking_type_code
+        return super(StockTransfertPickingTypeStockPicking, self).do_enter_transfer_details(cr, uid, picking, context)
 
 class StockTransfertPickingTypePackOp(models.Model):
     _inherit = 'stock.pack.operation'
 
-    picking_type_code = fields.Char(u"Picking Type Code", related="picking_id.picking_type_code", readonly=True)
+    picking_type_code = fields.Selection(u"Picking Type Code", related="picking_id.picking_type_code", readonly=True)
     group_name = fields.Char(string="Picking group name", related='picking_id.group_id.name', readonly=True)
