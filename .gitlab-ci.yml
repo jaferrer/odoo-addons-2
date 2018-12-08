@@ -1,57 +1,10 @@
-image: ndpsystemes/odoo-ci
-stages:
-  - test
-  - preview
-  - deploy
-
-before_script:
-  - sh /init.sh
+include: "https://gitlab.ndp-systemes.fr/odoo-addons/ci-files/raw/master/default-gitlab-ci.yml"
 
 variables:
   ODOO_VERSION: "9.0"
-  GIT_STRATEGY: "fetch"
   ODOO_DEPENDS: "odoo-addons/community-addons"
   ODOO_MODULE: "ALL"
   VERBOSE: "True"
 
 lint_flake8:
-  stage: test
-  script:
-    - /run.sh
-  tags:
-    - lint
   allow_failure: true
-
-runbot:
-  stage: test
-  script:
-    - /run.sh
-  tags:
-    - runbot
-
-preview_odoo:
-  stage: preview
-  script:
-    - /run.sh
-  environment:
-    name: preview/$CI_BUILD_REF_NAME
-    url: https://$CI_ENVIRONMENT_SLUG.ndp-systemes.fr
-    on_stop: stop_preview_odoo
-  when: manual
-  tags:
-    - preview
-  only:
-    - gitlab_ci
-
-stop_preview_odoo:
-  stage: preview
-  script:
-    - /run.sh
-  when: manual
-  tags:
-    - preview
-  environment:
-    name: preview/$CI_BUILD_REF_NAME
-    action: stop
-  only:
-    - gitlab_ci
