@@ -1,5 +1,6 @@
-image: ndpsystemes/odoo-ci
+image: ndpsystemes/odoo-ci:kubernetes
 stages:
+  - lint
   - test
   - preview
   - deploy
@@ -15,12 +16,11 @@ variables:
   ODOO_IMG: "8.0-ndp"
 
 lint_flake8:
-  stage: test
+  stage: lint
   script:
     - /run.sh
   tags:
     - lint
-  allow_failure: true
 
 runbot:
   stage: test
