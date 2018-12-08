@@ -21,6 +21,15 @@ lint_flake8:
     - /run.sh
   tags:
     - lint
+  allow_failure: true
+  
+po:
+  stage: lint
+  script:
+    - /run.sh
+  tags:
+    - lint
+  allow_failure: true
 
 runbot:
   stage: test
