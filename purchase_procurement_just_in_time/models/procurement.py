@@ -844,7 +844,6 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
             not_assigned_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
         return_msg += u"\nRemoving unsassigned procurements from purchase order lines: %s s." % \
                       int((dt.now() - time_now).seconds)
-        # TODO: mettre à jour les message ops
         return_msg = self.env['procurement.order'].prepare_procurements_redistribution(dict_procs_lines, return_msg)
         return_msg = self.env['procurement.order']. \
             launch_procurement_redistribution(dict_procs_lines, return_msg, jobify=jobify)
