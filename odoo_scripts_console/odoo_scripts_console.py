@@ -17,10 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import base64
+import xlsxwriter
+
+from io import BytesIO
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
-
-from openerp import models, fields, api, exceptions
+from openerp import models, fields, api, exceptions, _
 
 FORBIDDEN_SQL_KEYWORDS = ["UPDATE", "INSERT", "ALTER", "DELETE", "GRANT", "DROP"]
 
@@ -97,6 +100,7 @@ class OdooScriptWatcher(models.Model):
     nb_lines = fields.Integer(string=u"Number of lines detected", track_visibility='onchange', readonly=True,
                               copy=False)
     script_id = fields.Many2one('odoo.script', string=u"Linked script", copy=False)
+    is_automatic = fields.Boolean(string=u"Is automatic", default=True)
 
     @api.multi
     def watch(self):
@@ -106,16 +110,110 @@ class OdooScriptWatcher(models.Model):
             if forbidden_keyword in query_upper:
                 raise exceptions.except_orm(u"Error!", u"Forbidden keyword %s in watcher query" % forbidden_keyword)
         self.env.cr.execute("""%s""" % self.query)
-        res = self.env.cr.fetchall()
+        res = self.env.cr.dictfetchall()
+
         if res:
             if self.nb_lines != len(res) or not self.has_result:
                 self.write({'has_result': True, 'nb_lines': len(res)})
         elif self.has_result:
             self.write({'has_result': False, 'nb_lines': 0})
 
+        return res
+
+    @api.multi
+    def export(self):
+        self.ensure_one()
+        res = self.watch()
+
+        if not self.has_result:
+            raise exceptions.Warning(_(u"No results to export!"))
+
+        file_name = 'export_resultat_watcher_%i_du_%s' % (self.id, fields.Datetime.now())
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        style_title, style_text = self.define_styles(workbook)
+        column_number = 0
+
+        worksheet = workbook.add_worksheet(u"Resultats")
+
+        if res:
+            # Création de la première ligne d'entête
+            for key in res[0].keys():
+                column_number = self.fill_column(worksheet, column_number, style_title, key)
+            # Remplissage des lignes
+            line_no = 0
+            for line in res:
+                line_no += 1
+                column_number = 0
+                for value in line.values():
+                    column_number = self.fill_line(worksheet, line_no, column_number, style_text, value or "")
+
+        # Élargissement des colonnes
+        worksheet.set_column(0, column_number, 30, None)
+
+        # On fige la première ligne
+        worksheet.freeze_panes(1, 0)
+
+        workbook.close()
+        data = output.getvalue()
+        attachment = self.create_attachment(base64.encodestring(data), file_name + '.xlsx')
+        url = "/web/binary/saveas?model=ir.attachment&field=datas&id=%s&filename_field=name" % attachment.id
+        return {
+            "type": "ir.actions.act_url",
+            "url": url,
+            "target": "self"
+        }
+
+    @api.multi
+    def create_attachment(self, binary, name):
+        self.ensure_one()
+        if not binary:
+            return False
+        return self.env['ir.attachment'].create({
+            'type': 'binary',
+            'res_model': self._name,
+            'res_name': name,
+            'datas_fname': name,
+            'name': name,
+            'datas': binary,
+            'res_id': self.id,
+        })
+
+    @api.model
+    def define_styles(self, workbook):
+        style_title = workbook.add_format({
+            'font_name': 'Arial Narrow',
+            'font_size': 12,
+            'valign': 'vcenter',
+            'align': 'center',
+            'text_wrap': True,
+            'border': True,
+            'bold': True,
+        })
+        style_text = workbook.add_format({
+            'font_name': 'Arial Narrow',
+            'font_size': 12,
+            'valign': 'vcenter',
+            'align': 'left',
+            'text_wrap': True,
+            'border': True,
+        })
+
+        return style_title, style_text
+
+    @api.multi
+    def fill_column(self, worksheet, column_number, style, name):
+        worksheet.write(0, column_number, name, style)
+        return column_number + 1
+
+    @api.multi
+    def fill_line(self, worksheet, line_no, column_number, style, value):
+        worksheet.write(line_no, column_number, value, style)
+        return column_number + 1
+
     @api.model
     def launch_jobs_watch_lines(self):
-        watchers = self.search([])
+        watchers = self.search([('is_automatic', '=', True)])
         for watcher in watchers:
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             job_launch_watchers.delay(session, 'odoo.script.watcher', watcher.ids,

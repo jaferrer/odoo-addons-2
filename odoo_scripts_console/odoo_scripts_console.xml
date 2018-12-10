@@ -90,6 +90,17 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
             <field name="value" eval="'ir.actions.server,'+str(act_server_script_watcher)"/>
         </record>
 
+        <record model="ir.ui.view" id="odoo_script_watcher_search">
+           <field name="name">odoo_script_watcher_search</field>
+           <field name="model">odoo.script.watcher</field>
+            <field name="arch" type="xml">
+                <search>
+                    <filter string="Automatic" domain="[('is_automatic', '=', True)]"/>
+                    <filter string="Manual" domain="[('is_automatic', '=', False)]"/>
+                </search>
+           </field>
+        </record>
+
         <record model="ir.ui.view" id="odoo_script_watcher_form">
             <field name="name">odoo_script_watcher_form</field>
             <field name="model">odoo.script.watcher</field>
@@ -98,6 +109,7 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
                 <form>
                     <header>
                         <button name="watch" type="object" string="Watch" class="oe_highlight"/>
+                        <button name="export" type="object" string="Export" groups="odoo_scripts_console.group_sripts_user_watcher"/>
                     </header>
                     <sheet>
                         <group>
@@ -106,6 +118,9 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
                             <field name="has_result"/>
                             <field name="nb_lines"/>
                             <field name="script_id"/>
+                            <field name="is_automatic"/>
+                            <field name="create_uid" readonly="1"/>
+                            <field name="write_uid" readonly="1"/>
                         </group>
                         <notebook>
                             <page string="SQL query to execute">
@@ -132,7 +147,7 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
         </record>
 
         <menuitem id="menu_odoo_script_watcher" name="Odoo Script Watchers" action="act_window_odoo_script_watcher"
-                  parent="base.menu_custom" sequence="6"/>
+                  parent="connector.menu_connector" sequence="6"/>
 
     </data>
 </openerp>
