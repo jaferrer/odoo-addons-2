@@ -67,11 +67,25 @@ class StockQuant(models.Model):
                       force_location_from=False, force_location_to=False):
         if (not config["test_enable"] or self.env.context.get('force_forbid_negative_quants')) \
                 and move.location_id.usage == 'internal' and move.product_id.type == 'product':
+            prec = move.product_id.uom_id.rounding
+            if float_compare(float_round(qty, precision_rounding=prec), 0, precision_rounding=prec) == 0:
+                raise exceptions.except_orm(
+                    _("Error !"),
+                    _("You are not allowed to create null quants. "
+                      "Product: %s, quantity: %s, Location: %s, Lot: %s, Package: %s. "
+                      "Please contact your technical support.") % (
+                        move.product_id.display_name,
+                        qty,
+                        move.location_id.complete_name,
+                        lot_id and self.env['stock.production.lot'].browse(lot_id).name or "-",
+                        src_package_id and self.env['stock.quant.package'].browse(src_package_id).name or "-",
+                    )
+                )
             raise exceptions.except_orm(
                 _("Error !"),
                 _("You are not allowed to move products quants that are not available. "
                   "If the quants are available, check that package, owner and lot no. match. "
-                  "Product: %s, Missing qty: %s, Location: %s, Lot: %s, Package: %s") % (
+                  "Product: %s, Missing quantity: %s, Location: %s, Lot: %s, Package: %s.") % (
                     move.product_id.display_name,
                     qty,
                     move.location_id.complete_name,

@@ -26,7 +26,7 @@
                     <field name="date_required" readonly="1"/>
                     <field name="requested_date"/>
                     <field name="date_planned"/>
-                    <field name="covering_date"/>
+                    <field name="covering_date" widget="date"/>
                     <field name="covering_state"/>
                     <field name="ack_ref"/>
                     <field name="date_ack"/>
@@ -83,7 +83,7 @@
                     <field name="requested_date"/>
                 </field>
                 <field name="date_planned" position="after">
-                    <field name="covering_date"/>
+                    <field name="covering_date" widget="date"/>
                     <field name="covering_state"/>
                 </field>
                 <field name="date_planned" position="attributes">
@@ -142,7 +142,7 @@
                         <field name="line_no"/>
                     </xpath>
                     <xpath expr="//field[@name='order_line']//field[@name='date_planned']" position="before">
-                        <field name="covering_date"/>
+                        <field name="covering_date" widget="date"/>
                         <field name="covering_state"/>
                     </xpath>
                     <xpath expr="//notebook/page[@string='Deliveries &amp; Invoices']/group" position="inside">

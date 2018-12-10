@@ -17,4 +17,5 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import test_stock_quant_packages_moving_wizard
+from . import test_stock_quant_packages_moving_wizard
+from . import test_reserve

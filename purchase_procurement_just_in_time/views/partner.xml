@@ -10,7 +10,7 @@
             <field name="arch" type="xml">
                 <data>
                     <xpath expr="//notebook/page[@name='sales_purchases']/group" position="inside">
-                        <group name="grouping_period" attrs="{'invisible': [('supplier','=',False)]}">
+                        <group name="grouping_period" attrs="{'invisible': ['|', ('supplier','=',False), ('is_company', '=', False)]}">
                             <field name="order_group_period"/>
                             <field name="nb_max_draft_orders"/>
                             <field name="nb_days_scheduler_frequency"/>
@@ -45,7 +45,7 @@
             <field name="res_model">res.partner</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree</field>
-            <field name="domain">[('supplier', '=', True)]</field>
+            <field name="domain">[('supplier', '=', True), ('is_company', '=', True)]</field>
             <field name="context">{}</field>
             <field name="view_id" ref="purchase_scheduler_management_tree"/>
         </record>

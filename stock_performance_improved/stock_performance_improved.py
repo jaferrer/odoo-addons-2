@@ -194,20 +194,20 @@ class stock_pack_operation(models.Model):
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    location_id_compute = """SELECT min(sm.location_id)
-FROM stock_picking sp
-  LEFT JOIN stock_move sm ON sm.picking_id = sp.id
-WHERE sp.id = $1.id"""
+    location_id_compute = """SELECT sm.location_id::return_type
+FROM stock_move sm
+WHERE sm.picking_id = $1.id
+LIMIT 1"""
 
-    location_dest_id_compute = """SELECT min(sm.location_dest_id)
-FROM stock_picking sp
-  LEFT JOIN stock_move sm ON sm.picking_id = sp.id
-WHERE sp.id = $1.id"""
+    location_dest_id_compute = """SELECT sm.location_dest_id::return_type
+FROM stock_move sm
+WHERE sm.picking_id = $1.id
+LIMIT 1"""
 
-    location_id = fields.Many2one('stock.location', string=u"Location", readonly=True,
-                                  compute_sql=location_id_compute)
-    location_dest_id = fields.Many2one('stock.location', string=u"Destination Location", readonly=True,
-                                       compute_sql=location_dest_id_compute)
+    location_id = fields.Many2one('stock.location', compute_sql=location_id_compute, readonly=True, store=True,
+                                  related=None)
+    location_dest_id = fields.Many2one('stock.location', compute_sql=location_dest_id_compute, readonly=True,
+                                       store=True, related=None)
     picking_type_id = fields.Many2one('stock.picking.type', index=True)
 
     @api.model

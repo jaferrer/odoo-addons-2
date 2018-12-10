@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="purchase_order_invoiced_qty">
+            <field name="name">purchase_order_invoiced_qty</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <button name="action_cancel" position="before">
+                    <field name="nb_picking_to_invoice" invisible="1"/>
+                    <field name="is_service_to_invoice" invisible="1"/>
+                    <button name="create_invoice" string="Create Invoice" type="object"
+                            attrs="{'invisible': ['|', ('invoice_method', '!=', 'picking'), '&amp;', ('nb_picking_to_invoice', '=', 0), ('is_service_to_invoice', '=', False)]}"/>
+                </button>
+                <xpath expr="//field[@name='order_line']//field[@name='price_subtotal']" position="after">
+                    <field name="remaining_invoice_qty"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="invoice_service_stock_invoice_onshipping_form">
+            <field name="name">invoice_service_stock_invoice_onshipping_form</field>
+            <field name="model">stock.invoice.onshipping</field>
+            <field name="inherit_id" ref="stock_account.view_stock_invoice_onshipping"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <footer position="before">
+                    <field name="display_remaining_services" invisible="1"/>
+                    <field name="service_line_ids" attrs="{'invisible': [('display_remaining_services', '=', False)]}">
+                        <tree create="false" delete="false" editable="top">
+                            <field name="product_id"/>
+                            <field name="name"/>
+                            <field name="invoice_qty"/>
+                            <field name="remaining_invoice_qty"/>
+                            <field name="purchase_line_id" invisible="1"/>
+                        </tree>
+                    </field>
+                </footer>
+            </field>
+        </record>
+
+    </data>
+</openerp>
