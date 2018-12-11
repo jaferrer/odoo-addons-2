@@ -15,10 +15,6 @@
                             <label for="id" string="Stock Planner"/>
                             <div name="stock_planner">
                                 <div>
-                                    <field name="delete_moves_cancelled_by_planned" class="oe_inline"/>
-                                    <label for="delete_moves_cancelled_by_planned"/>
-                                </div>
-                                <div>
                                     <field name="relative_stock_delta" class="oe_inline"/>
                                     <label for="relative_stock_delta"/>
                                 </div>

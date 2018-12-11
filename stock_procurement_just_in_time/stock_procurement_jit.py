@@ -54,6 +54,12 @@ def process_orderpoints(session, model_name, ids, context):
         line.set_to_done()
 
 
+@job(default_channel='root.auto_delete_cancelled_moves_procs')
+def job_delete_cancelled_moves_and_procs(session, model_name, id):
+    object_to_delete = session.env[model_name].search([('id', '=', id)])
+    object_to_delete.unlink()
+
+
 class StockLocationSchedulerSequence(models.Model):
     _name = 'stock.location.scheduler.sequence'
 
@@ -85,6 +91,7 @@ class StockMove(models.Model):
     _inherit = 'stock.move'
 
     procurement_id = fields.Many2one('procurement.order', index=True)
+    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
 
 
 class ProcurementOrderQuantity(models.Model):
@@ -93,6 +100,7 @@ class ProcurementOrderQuantity(models.Model):
     qty = fields.Float(string="Quantity", digits_compute=dp.get_precision('Product Unit of Measure'),
                        help='Quantity in the default UoM of the product', compute="_compute_qty", store=True)
     protected_against_scheduler = fields.Boolean(u"Protected Against Scheduler", track_visibility='onchange')
+    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
 
     @api.multi
     @api.depends('product_qty', 'product_uom')
@@ -214,24 +222,21 @@ class ProcurementOrderQuantity(models.Model):
         self.check_can_be_canceled()
         result = super(ProcurementOrderQuantity, self).cancel()
         if self.env.context.get('unlink_all_chain'):
-            delete_moves_cancelled_by_planned = bool(self.env['ir.config_parameter'].get_param(
-                'stock_procurement_just_in_time.delete_moves_cancelled_by_planned', default=False))
-            if delete_moves_cancelled_by_planned:
-                moves_to_unlink = self.env['stock.move']
-                procurements_to_unlink = self.env['procurement.order']
-                for rec in self:
-                    parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
-                    for move in parent_moves:
-                        if move.state == 'cancel':
-                            moves_to_unlink += move
-                            if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
+            moves_to_unlink = self.env['stock.move']
+            procurements_to_unlink = self.env['procurement.order']
+            for rec in self:
+                parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
+                for move in parent_moves:
+                    if move.state == 'cancel':
+                        moves_to_unlink += move
+                        if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
                                 move.procurement_id.state == 'cancel' and \
-                                    not any([move.state == 'done' for move in move.procurement_id.move_ids]):
-                                procurements_to_unlink += move.procurement_id
-                if moves_to_unlink:
-                    moves_to_unlink.unlink()
-                if procurements_to_unlink:
-                    procurements_to_unlink.unlink()
+                                not any([move.state == 'done' for move in move.procurement_id.move_ids]):
+                            procurements_to_unlink += move.procurement_id
+
+            moves_to_unlink.write({'to_delete': True})
+            procurements_to_unlink.write({'to_delete': True})
+
         return result
 
     @api.model
@@ -285,6 +290,17 @@ class ProcurementOrderQuantity(models.Model):
         except ForbiddenCancelProtectedProcurement as e:
             _logger.info(e.value)
         return result
+
+    @api.model
+    def delete_cancelled_moves_and_procs(self):
+        procs_to_delete = self.search([('to_delete', '=', True)])
+        for proc in procs_to_delete:
+            job_delete_cancelled_moves_and_procs.delay(
+                ConnectorSession.from_env(self.env), 'procurement.order', proc.id)
+
+        moves_to_delete = self.env['stock.move'].search([('to_delete', '=', True)])
+        for moves in moves_to_delete:
+            job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env), 'stock.move', moves.id)
 
 
 class StockMoveJustInTime(models.Model):
