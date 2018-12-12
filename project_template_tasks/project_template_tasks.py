@@ -17,9 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 from openerp import models, fields, api, _
 from openerp import tools
-from openerp.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class ProjectTemplateProject(models.Model):
@@ -86,12 +89,18 @@ class ProjectTemplateTaskType(models.Model):
             project = self.env['project.project'].browse(project_id)
             for rec in self:
                 generated_tasks = self.env['project.task']
-                tasks_for_stage = project.tasks.filtered(lambda task: task.stage_id == rec)
+                tasks_for_stage = self.env['project.task'].search([('id', 'in', project.tasks.ids),
+                                                                   ('stage_id', '=', rec.id)])
                 if tasks_for_stage:
                     result[rec] = tasks_for_stage
                 else:
+                    nb_tasks = len(rec.task_ids)
+                    index = 0
                     for task in rec.task_ids:
+                        index += 1
                         vals_copy = rec.get_values_new_task(task, project)
+                        _logger.info(u"Generating task %s for project %s (%s/%s for stage %s)" %
+                                     (task.display_name, project.display_name, index, nb_tasks, rec.display_name))
                         generated_tasks |= task.with_context(mail_notrack=True).copy(vals_copy)
                     result[rec] = generated_tasks
         return result

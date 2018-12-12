@@ -11,7 +11,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='partner_id']" position="after">
                     <field name="reference_task_id" context="{'default_project_id': id}"
-                           domain="[('project_id', '=', id)]"/>
+                           domain="[('project_id', '=', id)]" options="{'no_create': True}"/>
                     <field name="reference_task_end_date" widget="date"/>
                 </xpath>
                 <group name="misc" position="before">

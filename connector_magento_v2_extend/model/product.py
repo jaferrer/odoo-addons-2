@@ -36,6 +36,7 @@ from openerp.addons.connector.exception import IDMissingInBackend
 from openerp.addons.connector.queue.job import job, related_action
 from openerp.addons.connector.exception import (JobError)
 from openerp.addons.connector.unit.mapper import (mapping,
+                                                  only_create,
                                                   ImportMapper
                                                   )
 from openerp.addons.connector.unit.synchronizer import (Importer, Exporter
@@ -66,6 +67,7 @@ class magentoextendProductProductv2(models.Model):
         return [
             ('simple', 'Simple Product'),
             ('configurable', 'Configurable Product'),
+            ('amgiftcard', 'Carte Cadeau'),
             # XXX activate when supported
             # ('grouped', 'Grouped Product'),
             # ('virtual', 'Virtual Product'),
@@ -584,9 +586,12 @@ class ProductProductImportMapper(ImportMapper):
         return {'list_price': record.get('price', 0.0)}
 
     @mapping
+    @only_create
     def type(self, record):
         if record['type_id'] == 'simple':
             return {'type': 'product'}
+        elif record['type_id'] == 'amgiftcard':
+            return {'type': 'service'}
         return
 
     @mapping
@@ -665,6 +670,7 @@ class StockLevelExporter(Exporter):
             product_id,
             magentoextend_id,
             default_code
+            order by qty asc
                     """, (self.backend_record.connector_id.home_id.id,
                           self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id,
                           self.backend_record.connector_id.home_id.id
