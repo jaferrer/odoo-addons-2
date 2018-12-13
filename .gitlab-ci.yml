@@ -6,6 +6,17 @@ variables:
   ODOO_MODULE: "ALL"
   ODOO_IMG: "8.0-ndp"
   VERBOSE: "True"
+  BEFORE_ODOO_MODULE: "sale_mrp"
+
+runbot_depends:
+  stage: test
+  script:
+    - /run.sh
+  tags:
+    - runbot
+
+runbot:
+  when: manual
 
 lint_flake8:
   allow_failure: true
