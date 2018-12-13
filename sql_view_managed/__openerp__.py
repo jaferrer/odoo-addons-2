@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,28 +16,23 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Stock transfert picking type',
-    'sequence': 1,
+    'name': 'Sql View Managed',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Stock',
-    'depends': ['stock_performance_improved'],
+    'category': 'Init',
+    'depends': [],
     'description': """
-Stock transfert picking type
-================================
+Utility For Sql View
+====================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'wizard.xml',
-        'views.xml',
-    ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'data': [],
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
+    "installable": True,
 }
