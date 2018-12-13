@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import psycopg2
 from openerp.addons.connector.exception import RetryableJobError
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
@@ -47,6 +48,14 @@ def run_procure_orderpoint_async(session, model_name, company_id, context):
 @job(default_channel='root.confprocs')
 def run_or_check_procurements(session, model_name, proc_for_job_ids, action, context):
     """Confirm or check procurements"""
+    if not proc_for_job_ids:
+        return
+    try:
+        session.env.cr.execute("""SELECT id FROM procurement_order WHERE id IN %s FOR UPDATE NOWAIT""",
+                               (tuple(proc_for_job_ids),))
+    except psycopg2.OperationalError:
+        session.env.cr.rollback()
+        return "Conflict detected with another job"
     job_uuid = session.context.get('job_uuid')
     job = job_uuid and session.env['queue.job'].search([('uuid', '=', job_uuid)]) or session.env['queue.job']
     proc_obj = session.env[model_name].with_context(context)
@@ -54,12 +63,10 @@ def run_or_check_procurements(session, model_name, proc_for_job_ids, action, con
     while True:
         procs = proc_obj.sudo().search([('id', 'in', proc_for_job_ids)])
         if procs:
-            session.env.cr.execute("""SELECT
-            po.id
-            FROM procurement_order po
-            WHERE po.id IN %s AND (
-                po.run_or_confirm_job_uuid IS NULL OR po.run_or_confirm_job_uuid = %s
-            )""", (tuple(procs.ids), job_uuid))
+            session.env.cr.execute("""SELECT po.id
+FROM procurement_order po
+WHERE po.id IN %s AND (po.run_or_confirm_job_uuid IS NULL OR po.run_or_confirm_job_uuid = %s)""",
+                                   (tuple(procs.ids), job_uuid))
             res = session.env.cr.fetchall()
             proc_ids = [item[0] for item in res]
             if procs and not proc_ids:
@@ -87,27 +94,34 @@ def run_or_check_procurements(session, model_name, proc_for_job_ids, action, con
 @job
 def confirm_moves(session, model_name, ids, context):
     """Confirm draft moves"""
+    if not ids:
+        return
+    try:
+        session.env.cr.execute("""SELECT id FROM stock_move WHERE id IN %s FOR UPDATE NOWAIT""", (tuple(ids),))
+    except psycopg2.OperationalError:
+        session.env.cr.rollback()
+        return "Conflict detected with another confirmation job"
     job_uuid = session.context.get('job_uuid')
     job = job_uuid and session.env['queue.job'].search([('uuid', '=', job_uuid)]) or session.env['queue.job']
     move_obj = session.env[model_name].with_context(context)
     not_runned_yet = True
-    if ids:
-        session.env.cr.execute("""SELECT
-            sm.id
-            FROM stock_move sm
-            WHERE sm.id IN %s AND (
-                sm.confirm_job_uuid IS NULL OR sm.confirm_job_uuid = %s
-            )""", (tuple(ids), job_uuid))
-        res = session.env.cr.fetchall()
-        move_ids = [item[0] for item in res]
-        if not_runned_yet and not move_ids:
-            # In case the job runs before the moves have been assigned their job uuid
-            msg = "No moves found for this job's UUID"
-            if job and job.max_retries and job.retry >= job.max_retries:
-                return msg
-            raise RetryableJobError(msg)
-        moves = move_obj.search([('id', 'in', move_ids)])
-        moves.action_confirm()
+    session.env.cr.execute("""SELECT
+        sm.id
+        FROM stock_move sm
+        WHERE sm.id IN %s AND (
+            sm.confirm_job_uuid IS NULL OR sm.confirm_job_uuid = %s
+        )""", (tuple(ids), job_uuid))
+    res = session.env.cr.fetchall()
+    move_ids = [item[0] for item in res]
+    if not_runned_yet and not move_ids:
+        # In case the job runs before the moves have been assigned their job uuid
+        msg = "No moves found for this job's UUID"
+        if job and job.max_retries and job.retry >= job.max_retries:
+            return msg
+        raise RetryableJobError(msg)
+    moves = move_obj.search([('id', 'in', move_ids)])
+    moves.action_confirm()
+    return "Moves confirmed correctly"
 
 
 @job(default_channel='root.asgnmoves')
@@ -176,12 +190,6 @@ class ProcurementOrderAsync(models.Model):
 
     run_or_confirm_job_uuid = fields.Char(tring=u"Job UUID to confirm or check this procurement")
 
-    @api.multi
-    def run(self, autocommit=False):
-        self.env.cr.execute("""SELECT po.id FROM procurement_order po WHERE po.id IN %s FOR UPDATE""",
-                            (tuple(self.ids or [0]),))
-        return super(ProcurementOrderAsync, self).run(autocommit=autocommit)
-
     @api.model
     def run_confirm_moves(self, domain=False):
         group_draft_moves = {}
@@ -190,9 +198,6 @@ class ProcurementOrderAsync(models.Model):
 
         all_draft_moves = self.env['stock.move'].search(domain + [('state', '=', 'draft')], limit=None,
                                                         order='priority desc, date_expected asc')
-        if all_draft_moves:
-            self.env.cr.execute("""SELECT id FROM stock_move WHERE id IN %s FOR UPDATE""",
-                                (tuple(all_draft_moves.ids),))
         all_draft_moves_ids = all_draft_moves.read(['id', 'group_id', 'location_id', 'location_dest_id'], load=False)
 
         for move in all_draft_moves_ids:
@@ -328,12 +333,6 @@ class StockMoveAsync(models.Model):
     _inherit = 'stock.move'
 
     confirm_job_uuid = fields.Char(tring=u"Job UUID to confirm this move")
-
-    @api.multi
-    def action_confirm(self):
-        self.env.cr.execute("""SELECT sm.id FROM stock_move sm WHERE sm.id IN %s FOR UPDATE""",
-                            (tuple(self.ids or [0]),))
-        return super(StockMoveAsync, self).action_confirm()
 
 
 class OrderpointAsync(models.Model):
