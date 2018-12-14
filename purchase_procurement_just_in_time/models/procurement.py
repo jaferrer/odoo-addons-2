@@ -174,11 +174,19 @@ WHERE product_qty - qty_done_proc_uom > 0""", (tuple(self.ids),))
             prec = proc_dict['prec']
             if float_compare(remaining_qty, 0.0, precision_rounding=prec) > 0:
                 procurement = self.browse(proc_dict['id'])
+                ratio = procurement.product_uos_qty / procurement.product_qty
+                new_proc_qty = float_round(qty_done_proc_uom, precision_rounding=prec)
+                old_proc_qty = float_round(remaining_qty, precision_rounding=prec)
                 new_proc = procurement.copy({
-                    'product_qty': float_round(qty_done_proc_uom, precision_rounding=prec),
+                    'product_qty': new_proc_qty,
+                    'product_uos_qty': new_proc_qty * ratio,
                     'state': 'done',
                 })
-                procurement.product_qty = float_round(remaining_qty, precision_rounding=prec)
+
+                procurement.write({
+                    'product_qty': old_proc_qty,
+                    'product_uos_qty': old_proc_qty * ratio,
+                })
                 # Attach done and cancelled moves to new_proc
                 done_moves = self.env['stock.move'].search([('procurement_id', '=', proc_dict['id']),
                                                             ('state', 'in', ['done', 'cancel'])])
