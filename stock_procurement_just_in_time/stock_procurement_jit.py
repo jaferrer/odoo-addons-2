@@ -79,9 +79,6 @@ class StockMove(models.Model):
 class ProcurementOrderQuantity(models.Model):
     _inherit = 'procurement.order'
 
-    move_dest_id = fields.Many2one('stock.move', index=True)
-    product_id = fields.Many2one('product.product', index=True)
-    state = fields.Selection(index=True)
     qty = fields.Float(string="Quantity", digits_compute=dp.get_precision('Product Unit of Measure'),
                        help='Quantity in the default UoM of the product', compute="_compute_qty", store=True)
     protected_against_scheduler = fields.Boolean(u"Protected Against Scheduler", track_visibility='onchange')
@@ -612,6 +609,7 @@ class StockWarehouseOrderPointJit(models.Model):
                     'date': dictionary['date'],
                     'qty': level_qty,
                     'move_qty': dictionary['move_qty'],
+                    'move_id': dictionary['move_id'],
                 }]
         result = sorted(result, key=lambda z: z[parameter_to_sort], reverse=to_reverse)
         if limit:

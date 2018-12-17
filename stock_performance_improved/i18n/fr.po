@@ -252,3 +252,8 @@ msgstr "Date de passage à annulé"
 #: field:procurement.order,cancel_user_id:0
 msgid "Cancel user"
 msgstr "Utilisateur ayant annulé"
+
+#. module: stock_performance_improved
+#: field:stock.picking,picking_type_code:0
+msgid "Picking type code"
+msgstr "Code du type de picking"

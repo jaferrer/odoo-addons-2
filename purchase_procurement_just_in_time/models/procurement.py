@@ -23,62 +23,9 @@ from dateutil.relativedelta import relativedelta
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
 
-from openerp import models, fields, api, _
+from openerp import modules, models, fields, api, exceptions, _
 from openerp.tools.float_utils import float_compare, float_round
 from openerp.addons.connector.exception import RetryableJobError
-
-
-QUERY_PROCS_BY_SELLER = """WITH po_to_process AS (
-    SELECT po.id
-    FROM procurement_order po
-      LEFT JOIN product_product pp ON pp.id = po.product_id
-      LEFT JOIN procurement_rule pr ON pr.id = po.rule_id
-    WHERE po.state NOT IN ('cancel', 'done', 'exception') AND pr.action = 'buy'),
-
-    min_ps_sequences AS (
-      SELECT
-        po.id            AS procurement_order_id,
-        min(ps.sequence) AS min_ps_sequence
-      FROM procurement_order po
-        LEFT JOIN product_product pp ON pp.id = po.product_id
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
-      WHERE po.id IN (SELECT po_to_process.id
-                      FROM po_to_process) AND
-            (ps.company_id = po.company_id OR ps.company_id IS NULL)
-      GROUP BY po.id),
-
-    min_ps_sequences_and_id AS (
-      SELECT
-        po.id      AS procurement_order_id,
-        mps.min_ps_sequence,
-        min(ps.id) AS min_ps_id_for_sequence
-      FROM procurement_order po
-        LEFT JOIN product_product pp ON pp.id = po.product_id
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
-        LEFT JOIN min_ps_sequences mps ON mps.procurement_order_id = po.id
-      WHERE po.id IN (SELECT po_to_process.id
-                      FROM po_to_process) AND
-            (ps.company_id = po.company_id OR ps.company_id IS NULL) AND
-            ps.sequence = mps.min_ps_sequence
-      GROUP BY po.id, mps.min_ps_sequence)
-
-SELECT
-  po.id                   AS procurement_order_id,
-  (CASE WHEN ps.name IS NOT NULL
-    THEN ps.name
-   ELSE pp.seller_id END) AS seller_id,
-  po.company_id,
-  po.location_id,
-  po.product_id
-FROM procurement_order po
-  LEFT JOIN product_product pp ON pp.id = po.product_id
-  LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
-  LEFT JOIN min_ps_sequences_and_id mps ON mps.procurement_order_id = po.id
-WHERE po.id IN (SELECT po_to_process.id
-                FROM po_to_process) AND
-      (ps.company_id = po.company_id OR ps.company_id IS NULL) AND
-      ps.sequence = mps.min_ps_sequence AND
-      ps.id = mps.min_ps_id_for_sequence"""
 
 
 @job(default_channel='root.purchase_scheduler')
@@ -175,40 +122,88 @@ WHERE key = 'purchase_procurement_just_in_time.delta_begin_grouping_period'""")
             return company_supplier.name
         return procurement.product_id.seller_id
 
-    @api.model
+    @api.multi
+    def compute_procs_done_qties(self):
+        if not self:
+            return []
+        # We compute quantities of done moves for each procurement in self, excluding procurements with no done move.
+        self.env.cr.execute("""WITH procs_done_qties AS (
+    SELECT
+      po.id                                           AS proc_id,
+      po.product_id,
+      po.product_qty,
+      po.product_uom,
+      proc_uom.rounding as prec,
+      sum(coalesce((CASE WHEN proc_uom.id != move_uom.id
+        THEN
+          round((CASE WHEN move_uom.uom_type != 'reference'
+            THEN 1 / move_uom.factor
+                 ELSE 1 END) *
+                (CASE WHEN proc_uom.uom_type != 'reference'
+                  THEN proc_uom.factor
+                 ELSE 1 END) *
+                sm.product_uom_qty :: NUMERIC, -log(proc_uom.rounding) :: INTEGER)
+                    ELSE sm.product_uom_qty END), 0)) AS qty_done_proc_uom
+    FROM procurement_order po
+      INNER JOIN procurement_rule pr ON pr.id = po.rule_id AND pr.action = 'buy'
+      INNER JOIN stock_move sm ON sm.procurement_id = po.id AND sm.state = 'done'
+      INNER JOIN product_product pp ON pp.id = po.product_id
+      INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id
+      INNER JOIN product_uom proc_uom ON proc_uom.id = po.product_uom
+      INNER JOIN product_uom move_uom ON move_uom.id = sm.product_uom
+    WHERE po.id IN %s
+    GROUP BY po.id, proc_uom.rounding)
+
+SELECT
+  *,
+  product_qty - qty_done_proc_uom AS remaining_qty
+FROM procs_done_qties
+WHERE product_qty - qty_done_proc_uom > 0""", (tuple(self.ids),))
+        return self.env.cr.fetchall()
+
+    @api.multi
     def remove_done_moves(self):
         """Splits the given procs creating a copy with the qty of their done moves and set to done.
         """
-        for procurement in self:
-            if procurement.rule_id.action == 'buy':
-                qty_done_product_uom = sum([m.product_qty for m in procurement.move_ids if m.state == 'done'])
-                qty_done_proc_uom = self.env['product.uom']._compute_qty(procurement.product_id.uom_id.id,
-                                                                         qty_done_product_uom,
-                                                                         procurement.product_uom.id)
-                remaining_qty = procurement.product_qty - qty_done_proc_uom
-                prec = procurement.product_uom.rounding
-                if float_compare(qty_done_proc_uom, 0.0, precision_rounding=prec) > 0 and \
-                        float_compare(remaining_qty, 0.0, precision_rounding=prec) > 0:
-                    new_proc = procurement.copy({
-                        'product_qty': float_round(qty_done_proc_uom,
-                                                   precision_rounding=procurement.product_uom.rounding),
-                        'state': 'done',
-                    })
-                    procurement.write({
-                        'product_qty': float_round(remaining_qty,
-                                                   precision_rounding=procurement.product_uom.rounding),
-                    })
-                    # Attach done and cancelled moves to new_proc
-                    done_moves = procurement.move_ids.filtered(lambda m: m.state in ['done', 'cancel'])
-                    done_moves.write({'procurement_id': new_proc.id})
-                # Detach the other moves and reconfirm them so that we have push rules applied if any
-                remaining_moves = procurement.move_ids.filtered(lambda m: m.state not in ['done', 'cancel'])
-                remaining_moves.write({
-                    'procurement_id': False,
-                    'move_dest_id': False,
+        if not self:
+            return
+        dict_procs_done_qties = self.compute_procs_done_qties()
+        for proc_dict in dict_procs_done_qties:
+            qty_done_proc_uom = proc_dict['qty_done_proc_uom']
+            remaining_qty = proc_dict['remaining_qty']
+            prec = proc_dict['prec']
+            if float_compare(remaining_qty, 0.0, precision_rounding=prec) > 0:
+                procurement = self.browse(proc_dict['id'])
+                ratio = procurement.product_uos_qty / procurement.product_qty
+                new_proc_qty = float_round(qty_done_proc_uom, precision_rounding=prec)
+                old_proc_qty = float_round(remaining_qty, precision_rounding=prec)
+                new_proc = procurement.copy({
+                    'product_qty': new_proc_qty,
+                    'product_uos_qty': new_proc_qty * ratio,
+                    'state': 'done',
                 })
-                remaining_moves.action_confirm()
-                remaining_moves.force_assign()
+
+                procurement.write({
+                    'product_qty': old_proc_qty,
+                    'product_uos_qty': old_proc_qty * ratio,
+                })
+                # Attach done and cancelled moves to new_proc
+                done_moves = self.env['stock.move'].search([('procurement_id', '=', proc_dict['id']),
+                                                            ('state', 'in', ['done', 'cancel'])])
+                done_moves.write({'procurement_id': new_proc.id})
+        # Detach the other moves and reconfirm them so that we have push rules applied if any
+        self.env.cr.execute("""SELECT sm.id
+FROM stock_move sm
+  INNER JOIN procurement_order po ON po.id = sm.procurement_id
+  INNER JOIN procurement_rule pr ON pr.id = po.rule_id AND pr.action = 'buy'
+WHERE sm.state NOT IN ('done', 'cancel') AND sm.procurement_id IN %s""", (tuple(self.ids),))
+        remaining_moves = self.env['stock.move'].search([('id', 'in', [item[0] for item in self.env.cr.fetchall()])])
+        remaining_moves.write({
+            'procurement_id': False,
+            'move_dest_id': False,
+        })
+        remaining_moves.action_confirm()
+        remaining_moves.force_assign()
         return super(ProcurementOrderPurchaseJustInTime, self).remove_done_moves()
 
     @api.model
@@ -247,7 +242,9 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
                                  self.env['res.partner'].search([('supplier', '=', True)]).ids or \
                                  compute_supplier_ids or []
         dict_proc_sellers = {seller_id: [] for seller_id in sellers_to_compute_ids}
-        self.env.cr.execute(QUERY_PROCS_BY_SELLER)
+        module_path = modules.get_module_path('purchase_procurement_just_in_time')
+        with open(module_path + '/sql/' + 'procs_by_seller_query.sql') as sql_file:
+            self.env.cr.execute(sql_file.read())
         for item in self.env.cr.fetchall():
             if compute_all_products or compute_supplier_ids and item[1] in compute_supplier_ids or compute_product_ids \
                     and item[4] in compute_product_ids:
@@ -382,16 +379,16 @@ WHERE sm.state = 'done' AND sm.procurement_id IN %s
 GROUP BY sm.procurement_id""", (tuple([proc['id'] for proc in procurements]),))
         done_moves_qties = {item[0]: item[1] or 0 for item in self.env.cr.fetchall()}
         for proc in procurements:
-            proc_product = self.env['product.product'].search([('id', '=', proc['product_id'][0])])
+            product_uom_id = self.env['product.product'].browse([(proc['product_id'])]).uom_id.id
             proc_qty = proc['product_qty']
-            if proc['product_uom'][0] != pol.product_uom.id:
-                proc_qty_pol_uom = self.env['product.uom']._compute_qty(proc['product_uom'][0], proc_qty,
+            if proc['product_uom'] != pol.product_uom.id:
+                proc_qty_pol_uom = self.env['product.uom']._compute_qty(proc['product_uom'], proc_qty,
                                                                         pol.product_uom.id)
             else:
                 proc_qty_pol_uom = proc_qty
             done_moves_qty = done_moves_qties.get(proc['id'], 0)
-            if proc_product.uom_id != pol.product_uom:
-                done_moves_qty_pol_uom = self.env['product.uom']._compute_qty(proc_product.uom_id.id, done_moves_qty,
+            if product_uom_id != pol.product_uom.id:
+                done_moves_qty_pol_uom = self.env['product.uom']._compute_qty(product_uom_id, done_moves_qty,
                                                                               pol.product_uom.id)
             else:
                 done_moves_qty_pol_uom = done_moves_qty
@@ -418,99 +415,128 @@ GROUP BY sm.procurement_id""", (tuple([proc['id'] for proc in procurements]),))
         return ['done', 'cancel']
 
     @api.model
-    def compute_which_procs_for_lines(self, procurement_ids):
-        forbidden_order_states = self.get_forbidden_order_states_for_proc_assignment()
+    def get_dict_ordered_procs_by_product(self, procurement_ids, order_by):
+        if not procurement_ids:
+            return {}
+        dict_ordered_procs_by_product = {}
         ORDER_BY_CLAUSE = """
-ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
-        dict_procs_lines = {}
-        not_assigned_proc_ids = []
-        possible_domains = self.env['procurement.order']. \
-            read_group(domain=[('id', 'in', procurement_ids)], fields=['company_id', 'location_id', 'product_id'],
-                       groupby=['company_id', 'location_id', 'product_id'], lazy=False)
-        for possible_domain in possible_domains:
-            company_id = possible_domain['company_id'][0]
-            location_id = possible_domain['location_id'][0]
-            product_id = possible_domain['product_id'][0]
-            ORDER_LINES_QUERY = """SELECT pol.id
-            FROM purchase_order_line pol
-              LEFT JOIN purchase_order po ON po.id = pol.order_id
-            WHERE po.state NOT IN %s AND
-                  coalesce(pol.remaining_qty, 0) > 0 AND
-                  po.company_id = %s AND
-                  po.location_id = %s AND
-                  pol.product_id = %s""" % (tuple(forbidden_order_states), company_id, location_id, product_id)
-            procurements = self.env['procurement.order'].search_read(fields=['product_id', 'location_id', 'product_qty', 'product_uom'],
-                                                                     domain=[('id', 'in', procurement_ids),
-                                                                             ('product_id', '=', product_id),
-                                                                             ('company_id', '=', company_id),
-                                                                             ('location_id', '=', location_id)],
-                                                                     order='date_planned asc, product_qty asc')
-            # First, let's check running lines
-            self.env.cr.execute(ORDER_LINES_QUERY + """ AND po.state != 'draft'""" + ORDER_BY_CLAUSE)
-            purchase_line_ids = [item[0] for item in self.env.cr.fetchall()]
-            while procurements and purchase_line_ids:
-                procurements, purchase_line_ids, dict_procs_lines = self. \
-                    compute_procs_for_first_line_found(procurements, purchase_line_ids, dict_procs_lines)
-            # If some procurements are not assigned yet, we check draft lines
-            self.env.cr.execute(ORDER_LINES_QUERY + """ AND po.state = 'draft'""" + ORDER_BY_CLAUSE)
-            purchase_line_ids = [item[0] for item in self.env.cr.fetchall()]
-            while procurements and purchase_line_ids:
-                procurements, purchase_line_ids, dict_procs_lines = self. \
-                    compute_procs_for_first_line_found(procurements, purchase_line_ids, dict_procs_lines)
-            not_assigned_proc_ids += [proc['id'] for proc in procurements]
-        return dict_procs_lines, not_assigned_proc_ids
+ORDER BY %s""" % order_by
+        self.env.cr.execute("""SELECT
+  po.id,
+  po.product_id,
+  po.product_qty,
+  po.product_uom,
+  po.date_planned
+FROM procurement_order po
+WHERE po.id IN %s""" + ORDER_BY_CLAUSE, (tuple(procurement_ids),))
+        for item in self.env.cr.dictfetchall():
+            if item['product_id'] not in dict_ordered_procs_by_product:
+                dict_ordered_procs_by_product[item['product_id']] = []
+            dict_ordered_procs_by_product[item['product_id']] += [{'id': item['id'],
+                                                                   'product_id': item['product_id'],
+                                                                   'product_qty': item['product_qty'],
+                                                                   'product_uom': item['product_uom'],
+                                                                   'date_planned': item['date_planned']}]
+        return dict_ordered_procs_by_product
 
     @api.model
-    def get_purchase_line_procurements(self, first_proc, purchase_date, company, seller, order_by, force_domain=None):
-        """Returns procurements that must be integrated in the same purchase order line as first_proc, by
-        taking all procurements of the same product as first_proc between the date of first proc and date_end.
-        """
+    def compute_which_procs_for_lines(self, procurement_ids, company, location):
+        dict_procs_lines = {}
+        not_assigned_proc_ids = []
+        if not procurement_ids:
+            return dict_procs_lines, not_assigned_proc_ids
+        forbidden_order_states = self.get_forbidden_order_states_for_proc_assignment()
+        dict_ordered_procs_by_product = self.get_dict_ordered_procs_by_product(procurement_ids,
+                                                                               order_by='date_planned, product_qty')
+        ORDER_BY_CLAUSE_FOR_LINES = """
+ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
+        for product_id, corresponding_procurements in dict_ordered_procs_by_product.items():
+            # First, let's check running lines
+            ORDER_LINES_QUERY = """SELECT pol.id
+FROM purchase_order_line pol
+  LEFT JOIN purchase_order po ON po.id = pol.order_id
+WHERE po.state NOT IN %s AND
+      coalesce(pol.remaining_qty, 0) > 0 AND
+      po.company_id = %s AND
+      po.location_id = %s AND
+      pol.product_id = %s"""
+            self.env.cr.execute(ORDER_LINES_QUERY + """ AND po.state != 'draft'""" + ORDER_BY_CLAUSE_FOR_LINES,
+                                (tuple(forbidden_order_states), company.id, location.id, product_id,))
+            purchase_line_ids = [item[0] for item in self.env.cr.fetchall()]
+            while corresponding_procurements and purchase_line_ids:
+                corresponding_procurements, purchase_line_ids, dict_procs_lines = self. \
+                    compute_procs_for_first_line_found(corresponding_procurements, purchase_line_ids, dict_procs_lines)
+            # If some procurements are not assigned yet, we check draft lines
+            self.env.cr.execute(ORDER_LINES_QUERY + """ AND po.state = 'draft'""" + ORDER_BY_CLAUSE_FOR_LINES,
+                                (tuple(forbidden_order_states), company.id, location.id, product_id,))
+            purchase_line_ids = [item[0] for item in self.env.cr.fetchall()]
+            while corresponding_procurements and purchase_line_ids:
+                corresponding_procurements, purchase_line_ids, dict_procs_lines = self. \
+                    compute_procs_for_first_line_found(corresponding_procurements, purchase_line_ids, dict_procs_lines)
+            not_assigned_proc_ids += [proc['id'] for proc in corresponding_procurements]
+        return dict_procs_lines, not_assigned_proc_ids
+
+    @api.multi
+    def get_end_date_for_procs_grouping_period(self, seller, purchase_date, company):
+        self.ensure_one()
         frame = seller.get_effective_order_group_period()
         date_end = False
         if frame and frame.period_type:
             date_end = frame.get_date_end_period(purchase_date)
         end_date_planned = False
         if date_end:
-            end_schedule_date = self._get_purchase_order_date(first_proc, company, date_end, reverse=True)
+            end_schedule_date = self._get_purchase_order_date(self, company, date_end, reverse=True)
             end_schedule_date = fields.Datetime.to_string(end_schedule_date)
-            end_date_planned = self._get_purchase_schedule_date(first_proc, company, ref_date=end_schedule_date,
-                                                                reverse=True)
+            end_date_planned = self._get_purchase_schedule_date(self, company, ref_date=end_schedule_date, reverse=True)
             end_date_planned = fields.Datetime.to_string(end_date_planned)
-        domain_procurements = [('product_id', '=', first_proc.product_id.id),
-                               ('location_id', '=', first_proc.location_id.id),
-                               ('company_id', '=', first_proc.company_id.id),
-                               ('date_planned', '>=', first_proc.date_planned)] + (force_domain or [])
-        domain_end_date = []
-        if end_date_planned:
-            domain_end_date = [('date_planned', '<=', end_date_planned)]
-        if first_proc.rule_id.picking_type_id:
-            domain_procurements += [('rule_id.picking_type_id', '=', first_proc.rule_id.picking_type_id.id)]
-        procurements_grouping_period = self.search(domain_procurements + domain_end_date, order=order_by)
+        return end_date_planned
+
+    @api.multi
+    def add_procs_to_reach_moq(self, seller, procurements_grouping_period, procurements_after_period):
+        self.ensure_one()
+        product_uom_id = self.product_id.uom_id.id
+        product_uom_rounding = self.product_id.uom_id.rounding
         line_qty_product_uom = sum([self.env['product.uom'].
-                                   _compute_qty(proc.product_uom.id, proc.product_qty,
-                                                proc.product_id.uom_id.id) for proc in
+                                   _compute_qty(proc['product_uom'], proc['product_qty'], product_uom_id) for proc in
                                     procurements_grouping_period]) or 0
-        supplierinfo = self.env['product.supplierinfo'].search([('id', 'in', first_proc.product_id.seller_ids.ids),
+        supplierinfo = self.env['product.supplierinfo'].search([('id', 'in', self.product_id.seller_ids.ids),
                                                                 ('name', '=', seller and seller.id or False)],
                                                                order='sequence, id', limit=1)
         moq = supplierinfo and supplierinfo.min_qty or False
-        procurements_after_period = self.search(domain_procurements +
-                                                [('id', 'not in', procurements_grouping_period.ids)],
-                                                order=order_by)
-        next_proc_group_planned_date = procurements_after_period and procurements_after_period[0].date_planned or None
+        next_proc_group_planned_date = procurements_after_period and \
+            procurements_after_period[0]['date_planned'] or None
         if moq and float_compare(line_qty_product_uom, moq,
-                                 precision_rounding=first_proc.product_id.uom_id.rounding) < 0:
+                                 precision_rounding=product_uom_rounding) < 0:
             for proc in procurements_after_period:
-                proc_qty_product_uom = self.env['product.uom']. \
-                    _compute_qty(proc.product_uom.id, proc.product_qty,
-                                 proc.product_id.uom_id.id)
+                proc_qty_product_uom = self.env['product.uom']._compute_qty(proc['product_uom'],
+                                                                            proc['product_qty'],
+                                                                            product_uom_id)
                 if float_compare(line_qty_product_uom + proc_qty_product_uom, moq,
-                                 precision_rounding=proc.product_id.uom_id.rounding) > 0:
-                    next_proc_group_planned_date = proc.date_planned
+                                 precision_rounding=product_uom_rounding) > 0:
+                    next_proc_group_planned_date = proc['date_planned']
                     break
-                procurements_grouping_period |= proc
                 line_qty_product_uom += proc_qty_product_uom
-        return self.search([('id', 'in', procurements_grouping_period.ids)], order=order_by), next_proc_group_planned_date
+                procurements_grouping_period += [proc]
+        return procurements_grouping_period, next_proc_group_planned_date
+
+    @api.model
+    def get_purchase_line_procurements(self, procurement_dicts, purchase_date, company, seller, order_by):
+        """Returns procurements that must be integrated in the same purchase order line as first_proc, by
+        taking all procurements of the same product as first_proc between the date of first proc and date_end.
+        """
+        first_proc = self.browse(procurement_dicts[0]['id'])
+        end_date_planned = first_proc.get_end_date_for_procs_grouping_period(seller, purchase_date, company)
+        procurements_grouping_period = procurement_dicts
+        if end_date_planned:
+            procurements_grouping_period = [proc for proc in procurement_dicts if
+                                            proc['date_planned'] <= end_date_planned]
+        procurements_grouping_period_ids = [proc['id'] for proc in procurements_grouping_period]
+        procurements_after_period = [proc for proc in procurement_dicts if
+                                     proc['id'] not in procurements_grouping_period_ids]
+        procurements_grouping_period, next_proc_group_planned_date = first_proc. \
+            add_procs_to_reach_moq(seller, procurements_grouping_period, procurements_after_period)
+        procurements_grouping_period_ids = [proc['id'] for proc in procurements_grouping_period]
+        return procurements_grouping_period_ids, next_proc_group_planned_date
 
     @api.multi
     def get_corresponding_draft_order_main_domain(self, seller):
@@ -586,55 +612,56 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
         return draft_order
 
     @api.multi
-    def group_procurements_by_orders(self, seller):
+    def group_procurements_by_orders(self, seller, company):
         if not self:
             return self, {}
         dict_lines_to_create = {}
         days_delta = self.get_delta_begin_grouping_period()
         order_by = 'date_planned asc, product_qty asc, id asc'
         not_assigned_procs = self
-        procurements_to_check = self.search([('id', 'in', self.ids)], order=order_by)
+        dict_ordered_procs_by_product = self.get_dict_ordered_procs_by_product(self.ids, order_by=order_by)
         nb_draft_orders = 0
         force_date_ref = self.env.context.get('force_date_ref')
-        company = self[0].company_id or False
         date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 06:00:00') or \
             seller.schedule_working_days(days_delta, dt.today())
-        while procurements_to_check:
-            first_proc = procurements_to_check[0]
-            product = first_proc.product_id
-            # Let's process procurements by grouping period
-            schedule_date = self._get_purchase_schedule_date(first_proc, company)
-            if schedule_date <= date_ref:
-                purchase_date = date_ref
-            else:
-                purchase_date = self._get_purchase_order_date(first_proc, company, schedule_date)
-                purchase_date = max(purchase_date, date_ref)
-            pol_procurements, next_proc_group_planned_date = self. \
-                get_purchase_line_procurements(first_proc, purchase_date, company, seller,
-                                               order_by, force_domain=[('id', 'in', procurements_to_check.ids)])
-            # We consider procurements after the reference date
-            # (if we ignore past procurements, past ones are already removed)
-            line_vals = self._get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
-            forbid_creation = bool(seller.nb_max_draft_orders)
-            draft_order = first_proc.with_context(forbid_creation=forbid_creation). \
-                get_corresponding_draft_order(seller, purchase_date)
-            if draft_order and pol_procurements:
-                line_vals.update(order_id=draft_order.id, product_qty=0)
-                if not dict_lines_to_create.get(draft_order.id):
-                    nb_draft_orders += 1
-                    dict_lines_to_create[draft_order.id] = {}
-                if not dict_lines_to_create[draft_order.id].get(product.id):
-                    dict_lines_to_create[draft_order.id][product.id] = {'vals': line_vals,
-                                                                        'procurement_ids': pol_procurements.ids}
+        for product_id, procurement_dicts in dict_ordered_procs_by_product.iteritems():
+            if not procurement_dicts:
+                continue
+            while procurement_dicts:
+                first_proc = self.browse(procurement_dicts[0]['id'])
+                product = first_proc.product_id
+                # Let's process procurements by grouping period
+                schedule_date = self.env['procurement.order']._get_purchase_schedule_date(first_proc, company)
+                if schedule_date <= date_ref:
+                    purchase_date = date_ref
                 else:
-                    dict_lines_to_create[draft_order.id][product.id]['procurement_ids'] += pol_procurements.ids
-                not_assigned_procs -= pol_procurements
-            if not draft_order and forbid_creation:
-                procurements_to_check = self.search([('id', 'in', procurements_to_check.ids),
-                                                     ('product_id', '!=', product.id)], order=order_by)
-            else:
-                procurements_to_check = self.search([('id', 'in', procurements_to_check.ids),
-                                                     ('id', 'not in', pol_procurements.ids)], order=order_by)
+                    purchase_date = self.env['procurement.order']. \
+                        _get_purchase_order_date(first_proc, company, schedule_date)
+                    purchase_date = max(purchase_date, date_ref)
+                pol_procurement_ids, next_proc_group_planned_date = self.env['procurement.order']. \
+                    get_purchase_line_procurements(procurement_dicts, purchase_date, company, seller, order_by)
+                forbid_creation = bool(seller.nb_max_draft_orders)
+                draft_order = first_proc.with_context(forbid_creation=forbid_creation). \
+                    get_corresponding_draft_order(seller, purchase_date)
+                if draft_order and pol_procurement_ids:
+                    force_fiscal_position_id = draft_order.fiscal_position and draft_order.fiscal_position.id or False
+                    line_vals = self.env['procurement.order']. \
+                        with_context(force_fiscal_position_id=force_fiscal_position_id). \
+                        _get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
+                    line_vals.update(order_id=draft_order.id, product_qty=0)
+                    if not dict_lines_to_create.get(draft_order.id):
+                        nb_draft_orders += 1
+                        dict_lines_to_create[draft_order.id] = {}
+                    if not dict_lines_to_create[draft_order.id].get(product.id):
+                        dict_lines_to_create[draft_order.id][product.id] = {'vals': line_vals,
+                                                                            'procurement_ids': pol_procurement_ids}
+                    else:
+                        dict_lines_to_create[draft_order.id][product.id]['procurement_ids'] += pol_procurement_ids
+                    not_assigned_procs -= self.browse(pol_procurement_ids)
+                if not draft_order and forbid_creation:
+                    procurement_dicts = []
+                else:
+                    procurement_dicts = [proc for proc in procurement_dicts if proc['id'] not in pol_procurement_ids]
         return not_assigned_procs, dict_lines_to_create
 
     @api.model
@@ -654,7 +681,6 @@ ORDER BY pol.date_planned ASC, pol.remaining_qty DESC"""
                     procurement.with_context(check_product_qty=False).add_proc_to_line(line)
                     if procurement == last_proc and new_qty > line.product_qty:
                         line.sudo().write({'product_qty': new_qty, 'price_unit': new_price})
-                        line.quick_compute_coverage_state()
         return _(u"Order was correctly filled in %s s." % int((dt.now() - time_begin).seconds))
 
     @api.model
@@ -851,31 +877,36 @@ GROUP BY location_id""", (tuple(self.ids),))
         return location
 
     @api.multi
-    def check_procs_same_sellers(self):
-        seller = self.env['res.partner']
-        self.env.cr.execute("""SELECT
-  min(id) AS proc_id
-FROM procurement_order
-WHERE id IN %s
-GROUP BY company_id, product_id""", (tuple(self.ids),))
-        fetchall = self.env.cr.fetchall()
-        for key in fetchall:
-            proc_id = key[0]
-            proc = self.search([('id', '=', proc_id)])
-            seller |= self.env['procurement.order']._get_product_supplier(proc)
-        assert len(seller) == 1, "purchase_schedule_procurements should be called with procs of the same supplier"
+    def check_procs_same_sellers(self, seller):
+        # We check only procurements linked to products with no supplierinfo or supplierinfos of wrong seller
+        seller.ensure_one()
+        self.env.cr.execute("""SELECT min(po.id) AS procurement_id
+FROM procurement_order po
+  LEFT JOIN product_product pp ON pp.id = po.product_id
+  LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
+WHERE po.id IN %s AND (ps.name IS NULL OR ps.name != %s)
+GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
+        for line in self.env.cr.dictfetchall():
+            proc = self.browse(line['procurement_id'])
+            proc_seller = self.env['procurement.order']._get_product_supplier(proc)
+            if not proc_seller or proc_seller != seller:
+                raise exceptions.except_orm(u"Error!", u"purchase_schedule_procurements should be called with procs "
+                                                       u"of the same supplier")
         return seller
 
     @api.multi
     def purchase_schedule_procurements(self, jobify=False):
         return_msg = u""
         time_now = dt.now()
-        self.check_procs_same_companies()
-        self.check_procs_same_locations()
-        seller = self.check_procs_same_sellers()
+        if not self:
+            return return_msg
+        company = self.check_procs_same_companies()
+        location = self.check_procs_same_locations()
+        seller = self.env['procurement.order']._get_product_supplier(self[0])
+        self.check_procs_same_sellers(seller)
         return_msg += u"Checking same company, location and seller: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
-        dict_procs_lines, not_assigned_proc_ids = self.compute_which_procs_for_lines(self.ids)
+        dict_procs_lines, not_assigned_proc_ids = self.compute_which_procs_for_lines(self.ids, company, location)
         return_msg += u"\nComputing which procs for lines: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         if seller.nb_max_draft_orders and seller.get_effective_order_group_period() and not_assigned_proc_ids:
@@ -889,14 +920,13 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         return_msg += u"\nCreating draft orders if needed: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         not_assigned_procs = self.browse(not_assigned_proc_ids)
-        not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders(seller)
+        not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders(seller, company)
         return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         if not_assigned_procs:
             not_assigned_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
         return_msg += u"\nRemoving unsassigned procurements from purchase order lines: %s s." % \
                       int((dt.now() - time_now).seconds)
-        # TODO: mettre à jour les message ops
         return_msg = self.env['procurement.order'].prepare_procurements_redistribution(dict_procs_lines, return_msg)
         return_msg = self.env['procurement.order']. \
             launch_procurement_redistribution(dict_procs_lines, return_msg, jobify=jobify)
@@ -908,23 +938,21 @@ GROUP BY company_id, product_id""", (tuple(self.ids),))
         if not self:
             return
         self.remove_done_moves()
-        pickings_with_pol = self.search([('id', 'in', self.ids), ('purchase_line_id', '!=', False)])
-        pickings_with_pol.with_context(tracking_disable=True).write({'purchase_line_id': False})
+        procs_with_pol = self.search([('id', 'in', self.ids), ('purchase_line_id', '!=', False)])
+        procs_with_pol.with_context(tracking_disable=True).write({'purchase_line_id': False})
         to_reset = self.search([('id', 'in', self.ids), ('state', 'in', ['running', 'exception'])])
         to_reset.with_context(tracking_disable=True).write({'state': 'buy_to_run'})
         procs_moves_to_detach = self.env['stock.move']
-        for proc in self:
-            if proc.state in ['done', 'cancel']:
-                # Done and cancel procs should not change purchase order line
-                continue
-            proc_moves = self.env['stock.move'].search([('procurement_id', '=', proc.id),
-                                                        ('state', 'not in', ['cancel', 'done'])]
-                                                       ).with_context(mail_notrack=True)
-            if cancel_moves_to_procs:
-                # We cancel procurement to cancel previous moves, and keep next ones
-                proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
-            else:
-                procs_moves_to_detach += proc_moves
+        procs_to_check = self.search([('id', 'in', self.ids), ('state', 'not in', ['done', 'cancel'])])
+        # Done and cancel procs should not change purchase order line
+        proc_moves = self.env['stock.move'].search([('procurement_id', 'in', procs_to_check.ids),
+                                                    ('state', 'not in', ['cancel', 'done'])]
+                                                   ).with_context(mail_notrack=True)
+        if cancel_moves_to_procs:
+            # We cancel procurement to cancel previous moves, and keep next ones
+            proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
+        else:
+            procs_moves_to_detach += proc_moves
         procs_moves_to_detach = self.env['stock.move'].search([('id', 'in', procs_moves_to_detach.ids),
                                                                '|', ('purchase_line_id', '!=', False),
                                                                ('picking_id', '!=', False)])

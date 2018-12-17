@@ -76,6 +76,7 @@
                     <field name="should_be_closed_at"/>
                     <field name="nb_tasks"/>
                     <field name="state"/>
+                    <field name="nb_days_tasks"/>
                 </tree>
             </field>
         </record>

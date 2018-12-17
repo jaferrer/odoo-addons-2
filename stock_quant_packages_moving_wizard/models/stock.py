@@ -54,7 +54,7 @@ class StockQuant(models.Model):
         for move_tuple in move_tuples:
             qty_reserved = 0
             qty_to_reserve = move_tuple['qty']
-            quants = self.env['stock.quant'].search([('id', 'in', move_tuple['quant_ids'])], order='qty asc')
+            quants = self.env['stock.quant'].search([('id', 'in', move_tuple['quant_ids'])], order='qty asc, id asc')
             for quant in quants:
                 quant_read = quant.read(['id', 'qty'], load=False)[0]
                 # If the new quant does not exceed the requested qty, we move it (end of loop) and continue
@@ -99,9 +99,10 @@ FROM correct_moves sm
     LEFT JOIN stock_move move_history ON move_history.id = rel.move_id
 WHERE move_orig.id = move_history.id OR
       sm.id = move_history.id
+GROUP BY sm.id, sm.priority, sm.date
 ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), quant.id,))
 
-            moves_correct_chain_ids = [move_id for move_id in set([item[0] for item in self.env.cr.fetchall()])]
+            moves_correct_chain_ids = [item[0] for item in self.env.cr.fetchall()]
             self.env.cr.execute("""WITH nb_ancestors AS (
     SELECT
         sm.id,
@@ -117,8 +118,9 @@ SELECT sm.id
 FROM nb_ancestors sm
 WHERE sm.sum_move_ids = 0 AND
       sm.id NOT IN %s
+GROUP BY sm.id, sm.priority, sm.date
 ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(quant.history_ids.ids or [0]),))
-            moves_no_ancestors_ids = [move_id for move_id in set([item[0] for item in self.env.cr.fetchall()])]
+            moves_no_ancestors_ids = [item[0] for item in self.env.cr.fetchall()]
         return moves_correct_chain_ids + moves_no_ancestors_ids
 
     @api.model
@@ -581,7 +583,7 @@ FROM
             domain.append(('lot_id', 'in', lot_ids))
         if uom_ids:
             domain.append(('product_id.uom_id', 'in', uom_ids))
-        return self.env['stock.quant'].search(domain, order='in_date, qty'), quants_packaged
+        return self.env['stock.quant'].search(domain, order='in_date, qty, id'), quants_packaged
 
 
 

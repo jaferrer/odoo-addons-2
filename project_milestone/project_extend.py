@@ -27,7 +27,8 @@ class ProjectMilestone(models.Model):
     active = fields.Boolean(u"Archivé", default=True, readonly=True)
     start_date = fields.Date(u"Date de début")
     task_ids = fields.One2many('project.task', 'milestone_id', u"Tâches")
-    nb_tasks = fields.Integer(u"Number of tasks", compute='_compute_nb_tasks')
+    nb_tasks = fields.Integer(u"Number of tasks", compute='_compute_nb_related')
+    nb_days_tasks = fields.Integer(u"Number of days", compute='_compute_nb_related')
     state = fields.Selection([
         ('open', u"Ouverte"),
         ('in_qualif', u"En Qualif"),
@@ -47,9 +48,10 @@ class ProjectMilestone(models.Model):
     closed_at = fields.Date(u"Fermée le", readonly=True)
 
     @api.multi
-    def _compute_nb_tasks(self):
+    def _compute_nb_related(self):
         for rec in self:
             rec.nb_tasks = len(rec.task_ids)
+            rec.nb_days_tasks = sum([task.planned_hours for task in rec.task_ids])
 
     @api.multi
     def set_to_livred_in_prod(self):
