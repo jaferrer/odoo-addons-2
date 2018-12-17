@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api
+from openerp import models, fields, api, exceptions
 
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
@@ -55,6 +55,7 @@ def traitement_reception_replay(session, model_name, recepteur_id, archive, arch
     recep = session.pool[model_name].browse(session.cr, session.uid, recepteur_id)
     recep.exec_recep_seq(archive, archive_id, state="IDENT")
     return "OK"
+
 
 class MessageType(models.Model):
     _name = 'message.type'
@@ -215,7 +216,7 @@ class Recepteur(models.Model):
     @api.multi
     def exec_identificateur(self, archive, archive_id, code):
         type_message = self.env['message.type'].search([('code', '=', code)])
-        if not type_message :
+        if not type_message:
             type_message = self.env.ref('data_bus_system_backend.message_inconnu')
         archive_msg = self.env['archive'].browse(archive_id)
 
@@ -254,7 +255,7 @@ class Recepteur(models.Model):
 
                 origin = self.env["application.config"].search([('identifiant', '=', index.origin),
                                                                 ('type_id', "=",
-                                                                index.type_message_id)])
+                                                                 index.type_message_id)])
                 dest = self.env["application.config"].search([('identifiant', '=', index.dest),
                                                               ('type_id', "=",
                                                                index.type_message_id)])
@@ -338,12 +339,11 @@ class ConfigTraitement(models.Model):
     _name = 'traitement.config'
 
     traitement_id = fields.Many2one('traitement', string=u"Traitement",
-                                           required=True)
+                                    required=True)
     traitement_module_id = fields.Many2one('module.dynamique', string=u"Type Distributeur",
                                            required=True,
                                            domain='[("type", "=", "TRT")]')
     sequence = fields.Integer(string=u'Sequence')
-
 
 
 class Distributeur(models.Model):
@@ -431,7 +431,7 @@ class TypeMessage(models.Model):
                               ("REPLAY", u"Rejoué"),
                               ("IDENTIFIE", u"Identifié"),
                               ("INDEX", u'Indexé'),
-                              ("TRT", u'Traité' ),
+                              ("TRT", u'Traité'),
                               ("DISTRIBUE", u'Distribué'),
                               ("OK", u'Validé'),
                               ("ERROR", u'Erreur'),
@@ -465,14 +465,17 @@ class TypeMessage(models.Model):
         try:
             exec_dict = []
             distri_config_ids = self.env["distributeur.config"].search([("dest", "=", self.dest.id),
-                                                              ("type_id", "=", self.type_message_id.id)])
-
+                                                                        ("type_id", "=", self.type_message_id.id)])
+            if not distri_config_ids:
+                raise exceptions.ValidationError(u"Distributeur config non trouvé : %s , %s -> %s" %
+                                                 (self.type_message_id, self.origin_code, self.dest_code))
             for item in distri_config_ids:
                 trt_seq = {}
                 trt_seq["archive"] = archive
                 if item.traitement_id:
                     for trt_id in item.traitement_id.traitement_lines:
-                        trt_seq["archive"] = getattr(self, trt_id.traitement_module_id.method_name)(trt_seq["archive"], self.id)
+                        trt_seq["archive"] = getattr(self, trt_id.traitement_module_id.method_name)(trt_seq["archive"],
+                                                                                                    self.id)
                         self.create_log({
                             'archive_id': self.id,
                             'state': 'TRT',
@@ -538,7 +541,7 @@ class ArchiveLog(models.Model):
                               ("REPLAY", u"Rejoué"),
                               ("IDENTIFIE", u"Identifié"),
                               ("INDEX", u'Indexé'),
-                              ("TRT", u'Traité' ),
+                              ("TRT", u'Traité'),
                               ("DISTRIBUE", u'Distribué'),
                               ("OK", u'Validé'),
                               ("ERROR", u'Erreur'),
