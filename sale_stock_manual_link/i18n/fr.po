@@ -101,8 +101,10 @@ msgstr "Origine de la demande d'approvisionnement"
 msgid "Scheduled for sale order line"
 msgstr "Prévu pour le poste de vente"
 
+
+
 #. module: sale_stock_manual_link
-#: field:procurement.sale.link,salke_id:0
+#: field:procurement.sale.link,sale_id:0
 msgid "Sale order"
 msgstr "Commande de vente"
 
@@ -114,12 +116,22 @@ msgstr "Date de la commande de vente"
 #. module: sale_stock_manual_link
 #: view:procurement.sale.link:sale_stock_manual_link.procurement_sale_link_search
 msgid "Procurements missing on lines"
-msgstr "Demandee d'approvisionnement manquantes"
+msgstr "Demande d'appro. manquantes"
 
 #. module: sale_stock_manual_link
 #: view:procurement.sale.link:sale_stock_manual_link.procurement_sale_link_search
 msgid "Procurements not linked to a line"
-msgstr "Demandee d'approvisionnemente non liées à des ventes"
+msgstr "Demande d'appro. non liées à des ventes"
+
+#. module: sale_stock_manual_link
+#: view:procurement.sale.link:sale_stock_manual_link.procurement_sale_link_search
+msgid "With manual consideration"
+msgstr "Avec prise en compte manuelle"
+
+#. module: sale_stock_manual_link
+#: view:procurement.sale.link:sale_stock_manual_link.procurement_sale_link_search
+msgid "Without manual consideration"
+msgstr "Sans prise en compte manuelle"
 
 #. module: sale_stock_manual_link
 #: model:ir.actions.server,name:sale_stock_manual_link.ir_actions_server_generate_procurements
@@ -132,3 +144,20 @@ msgstr "Générer les approvisionnements"
 #: model:ir.actions.act_window,name:sale_stock_manual_link.act_procurement_sale_link
 msgid "Procurements/Sales Links"
 msgstr "Lettrage approvisionnements/ventes"
+
+#. module: sale_stock_manual_link
+#: field:procurement.sale.link,sol_manual_consideration:0
+msgid "Manual consideration"
+msgstr "Prise en compte manuelle"
+
+#. module: sale_stock_manual_link
+#: field:procurement.sale.link,sale_warehouse_id:0
+#: field:sale.order.line,manual_consideration:0
+#: view:procurement.sale.link:sale_stock_manual_link.procurement_sale_link_search
+msgid "Warehouse"
+msgstr "Entrepôt"
+
+#. module: sale_stock_manual_link
+#: view:procurement.sale.link:sale_stock_manual_link.procurement_sale_link_search
+msgid "Group By..."
+msgstr "Grouper par"
