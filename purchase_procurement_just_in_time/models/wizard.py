@@ -129,8 +129,11 @@ class LaunchPurchasePlanner(models.TransientModel):
 
     @api.multi
     def procure_calculation(self):
+        force_product_domain = self.env.context.get('force_product_domain') or []
         self.env['procurement.order'].purchase_schedule(compute_product_ids=self.product_ids,
                                                         compute_supplier_ids=self.supplier_ids,
                                                         compute_all_products=self.compute_all,
                                                         force_date_ref=self.date_ref,
-                                                        jobify=True, manual=True)
+                                                        jobify=True,
+                                                        manual=True,
+                                                        force_product_domain=force_product_domain)
