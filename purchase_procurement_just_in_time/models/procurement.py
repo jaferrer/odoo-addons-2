@@ -30,12 +30,13 @@ from openerp.addons.connector.exception import RetryableJobError
 
 @job(default_channel='root.purchase_scheduler')
 def job_purchase_schedule(session, model_name, compute_all_products, compute_supplier_ids,
-                          compute_product_ids, jobify, force_date_ref=False):
+                          compute_product_ids, jobify, force_date_ref=False, force_product_domain=None):
     result = session.env[model_name].launch_purchase_schedule(compute_all_products,
                                                               compute_supplier_ids,
                                                               compute_product_ids,
                                                               jobify,
-                                                              force_date_ref=force_date_ref)
+                                                              force_date_ref=force_date_ref,
+                                                              force_product_domain=force_product_domain)
     return result
 
 
@@ -208,7 +209,7 @@ WHERE sm.state NOT IN ('done', 'cancel') AND sm.procurement_id IN %s""", (tuple(
 
     @api.model
     def purchase_schedule(self, compute_all_products=True, compute_supplier_ids=None, compute_product_ids=None,
-                          jobify=True, manual=False, force_date_ref=False):
+                          jobify=True, manual=False, force_date_ref=False, force_product_domain=None):
         config_sellers_manually = bool(self.env['ir.config_parameter'].
                                        get_param('purchase_procurement_just_in_time.config_sellers_manually'))
         if manual or not config_sellers_manually:
@@ -219,15 +220,17 @@ WHERE sm.state NOT IN ('done', 'cancel') AND sm.procurement_id IN %s""", (tuple(
                 job_purchase_schedule.delay(session, 'procurement.order', compute_all_products,
                                             compute_supplier_ids, compute_product_ids, jobify,
                                             force_date_ref=force_date_ref,
-                                            description=_("Scheduling purchase orders"))
+                                            description=_("Scheduling purchase orders"),
+                                            force_product_domain=force_product_domain)
             else:
                 job_purchase_schedule(session, 'procurement.order', compute_all_products,
                                       compute_supplier_ids, compute_product_ids, jobify,
-                                      force_date_ref=force_date_ref)
+                                      force_date_ref=force_date_ref, force_product_domain=force_product_domain)
 
     @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify,
-                                 force_date_ref=False):
+                                 force_date_ref=False, force_product_domain=None):
+        corresponding_products = self.env['product.product'].search(force_product_domain or [])
         self.env['product.template'].update_seller_ids()
         self.env.cr.execute("""SELECT sc.id
 FROM stock_scheduler_controller sc
@@ -244,7 +247,7 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
         dict_proc_sellers = {seller_id: [] for seller_id in sellers_to_compute_ids}
         module_path = modules.get_module_path('purchase_procurement_just_in_time')
         with open(module_path + '/sql/' + 'procs_by_seller_query.sql') as sql_file:
-            self.env.cr.execute(sql_file.read())
+            self.env.cr.execute(sql_file.read(), (tuple(corresponding_products.ids or [0]),))
         for item in self.env.cr.fetchall():
             if compute_all_products or compute_supplier_ids and item[1] in compute_supplier_ids or compute_product_ids \
                     and item[4] in compute_product_ids:

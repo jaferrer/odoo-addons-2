@@ -3,7 +3,9 @@ WITH po_to_process AS (
     FROM procurement_order po
       LEFT JOIN product_product pp ON pp.id = po.product_id
       LEFT JOIN procurement_rule pr ON pr.id = po.rule_id
-    WHERE po.state NOT IN ('cancel', 'done', 'exception') AND pr.action = 'buy'),
+    WHERE po.state NOT IN ('cancel', 'done', 'exception') AND
+          pr.action = 'buy' AND
+          po.product_id IN %s),
 
     min_ps_sequences AS (
       SELECT
