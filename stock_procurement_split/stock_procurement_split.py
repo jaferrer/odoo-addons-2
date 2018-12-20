@@ -35,9 +35,13 @@ class StockMove(models.Model):
             new_proc = proc.copy({
                 'state': 'running',
                 'product_qty': new_move.product_uom_qty,
+                'product_uos_qty': new_move.product_uos_qty,
                 'move_dest_id': new_move.move_dest_id.id,
             })
-            proc.product_qty -= new_move.product_uom_qty
+            proc.write({
+                'product_qty': proc.product_qty - new_move.product_uom_qty,
+                'product_uos_qty': proc.product_uos_qty - new_move.product_uos_qty,
+            })
             new_move.procurement_id = new_proc
             new_proc.check()
             proc.check()
