@@ -68,6 +68,7 @@ msgstr "Brouillon"
 #. module: account_invoice_dunning
 #: code:addons/account_invoice_dunning/models/dunning.py:141
 #: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_form_dunning_link
+#: model:ir.ui.view,arch_db:account_invoice_dunning.view_account_invoice_dunning_config
 #, python-format
 msgid "Dunning"
 msgstr "Relance"
@@ -268,4 +269,12 @@ msgstr "account.invoice.dunning"
 #: model:ir.model,name:account_invoice_dunning.model_account_invoice_dunning_type
 msgid "account.invoice.dunning.type"
 msgstr "account.invoice.dunning.type"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_config_settings_sending_validity_duration
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_base_config_settings_sending_validity_duration
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_res_config_settings_sending_validity_duration
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_sale_config_settings_sending_validity_duration
+msgid "Duration of validity of the sendings"
+msgstr "Durée de validité des envois"
 

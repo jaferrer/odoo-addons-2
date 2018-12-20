@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import datetime
 from odoo import fields, models, api, _, osv
 
 
@@ -177,21 +178,7 @@ class AccountInvoice(models.Model):
 
     @api.multi
     def action_create_dunning(self):
-        result = self.env['account.invoice.dunning']
-        for rec in self:
-            rec._validate_to_create_dunning()
-            next_dunning_type = rec._get_next_dunning_type()
-            if next_dunning_type:
-                existing_dunning = self.env['account.invoice.dunning']._get_existing_dunning(rec, next_dunning_type)
-                if existing_dunning:
-                    existing_dunning.invoice_ids = [(4, rec.id, {})]
-                else:
-                    existing_dunning = self.env['account.invoice.dunning'].create(
-                        rec._prepare_invoice_dunning(next_dunning_type))
-                result |= existing_dunning
-            else:
-                rec._no_next_dunning()
-        return result._get_action_view()
+        return self._create_dunning()._get_action_view()
 
     @api.multi
     def _no_next_dunning(self):
@@ -230,6 +217,39 @@ class AccountInvoice(models.Model):
                 if dunning.state == 'draft':
                     rec.invoice_dunning_ids = [(3, dunning.id)]
         return super(AccountInvoice, self).action_invoice_paid()
+
+    @api.multi
+    def _create_dunning(self):
+        result = self.env['account.invoice.dunning']
+        for rec in self:
+            rec._validate_to_create_dunning()
+            next_dunning_type = rec._get_next_dunning_type()
+            if next_dunning_type:
+                existing_dunning = self.env['account.invoice.dunning']._get_existing_dunning(rec, next_dunning_type)
+                if existing_dunning:
+                    existing_dunning.invoice_ids = [(4, rec.id, {})]
+                else:
+                    existing_dunning = self.env['account.invoice.dunning'].create(
+                        rec._prepare_invoice_dunning(next_dunning_type))
+                result |= existing_dunning
+            else:
+                rec._no_next_dunning()
+        return result
+
+    @api.model
+    def compute_dunning_invoice(self):
+
+        days = self.env.user.company_id.sending_validity_duration
+
+        limite_validate_of_sent = datetime.datetime.now() - datetime.timedelta(days=days)
+
+        invoices_with_send_dunning = self.env['account.invoice.dunning'].search(
+            [('state', '=', 'send'), ('date_done', '>=', limite_validate_of_sent)]).mapped('invoice_ids')
+        invoices_dunning_to_create = self.search(
+            [('type', '=', 'out_invoice'), ('state', '=', 'open'), ('date_due', '<', fields.Datetime.now()),
+             ('id', 'not in', invoices_with_send_dunning.ids)])
+
+        invoices_dunning_to_create._create_dunning()
 
 
 class MailComposeMessage(models.TransientModel):
