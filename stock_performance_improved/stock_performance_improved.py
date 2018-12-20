@@ -878,12 +878,16 @@ class ProcurementOrder(models.Model):
     _inherit = 'procurement.order'
 
     priority = fields.Selection(track_visibility=False)
-    state = fields.Selection(track_visibility=False)
     rule_id = fields.Many2one(track_visibility=False)
     date_running = fields.Datetime(string=u"Running date", copy=False, readonly=True)
     date_done = fields.Datetime(string=u"Done date", copy=False, readonly=True)
     date_cancel = fields.Datetime(string=u"Cancel date", copy=False, readonly=True)
     cancel_user_id = fields.Many2one('res.users', string=u"Cancel user", copy=False, readonly=True)
+    product_id = fields.Many2one('product.product', index=True)
+    company_id = fields.Many2one('res.company', index=True)
+    location_id = fields.Many2one('stock.location', index=True)
+    move_dest_id = fields.Many2one('stock.move', index=True)
+    state = fields.Selection(index=True, track_visibility=False)
 
     @api.model
     def _run_move_create(self, procurement):
