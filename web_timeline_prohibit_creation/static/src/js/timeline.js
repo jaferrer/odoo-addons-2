@@ -1,4 +1,4 @@
-odoo.define('web_mrp_timeline.TimelineView', function (require) {
+odoo.define('web_timeline_prohibit_creation.TimelineView', function (require) {
     "use strict";
 
     var core = require('web.core');
@@ -8,26 +8,33 @@ odoo.define('web_mrp_timeline.TimelineView', function (require) {
     var TimelineView = require('web_timeline.TimelineView');
 
 
-    TimelineView = View.include({
+    TimelineView.include({
 
-         init_timeline: function () {
-             var self = this;
-             var res_super = self._super();
-             var add = false;
-             if (self.fields_view.arch.attrs.create != 'undefined') {
-                 if (self.permissions['create'] == true) {
-                     if (self.fields_view.arch.attrs.create == 'true') {
-                         add = true;
-                     } else {
-                         add = false;
-                     }
-                 } else {
-                     add = false;
-                 }
-             } else {
-                 add = self.permissions['create'];
-             }
-             self.options.editable.add = add;
-             self.timeline.setOptions(self.options);
-     });
-});
+        init_timeline: function () {
+            var self = this;
+            var res_super = self._super();
+            var add = false;
+            if (self.ViewManager.action.context.create != 'undefined') {
+                if (self.permissions['create'] == true) {
+                    if (self.ViewManager.action.context.create == true) {
+                        add = true;
+                    } else {
+                        add = false;
+                    }
+                } else {
+                    add = false;
+                }
+            } else {
+                add = self.permissions['create'];
+            }
+            var options = {
+                editable: {
+                    // add new items by double tapping
+                    add: add
+                }
+            };
+            self.timeline.setOptions(options);
+        }
+    })
+})
+;
