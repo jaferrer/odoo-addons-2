@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Account',
-    'depends': ['account_viewer', 'hr_viewer'],
+    'depends': ['account_fiscal_controller_user'],
     'description': """
 France - Fiscal Controller User
 ===============================
