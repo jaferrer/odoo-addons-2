@@ -37,8 +37,13 @@ def traitement_distri_odoo(session, model_name, distri_id, archive, archive_id):
         archive_msg = session.pool["archive"].browse(session.cr, session.uid, archive_id)
         param = session.env[distri.type_id.model_param_name].search([('distributeur_id',
                                                                       '=',
-                                                                      distri_id)])[0]
-
+                                                                      distri_id)], limit=1)
+        if not param:
+            archive_msg.create_log({
+                'archive_id': archive_msg.id,
+                'state': 'ERROR',
+                'log': u"Aucun paramètre de distribution sur %s" % (distri.name)
+            })
         if not param.url:
             archive_msg.create_log({
                 'archive_id': archive_msg.id,
