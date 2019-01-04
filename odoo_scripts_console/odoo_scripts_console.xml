@@ -95,8 +95,8 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
            <field name="model">odoo.script.watcher</field>
             <field name="arch" type="xml">
                 <search>
-                    <filter string="Automatic" domain="[('is_automatic', '=', True)]"/>
-                    <filter string="Manual" domain="[('is_automatic', '=', False)]"/>
+                    <filter string="Automatic" name="auto" domain="[('is_automatic', '=', True)]"/>
+                    <filter string="Manual" name="manual" domain="[('is_automatic', '=', False)]"/>
                 </search>
            </field>
         </record>
@@ -108,7 +108,7 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button name="watch" type="object" string="Watch" class="oe_highlight"/>
+                        <button name="watch" type="object" string="Watch" class="oe_highlight" groups="odoo_scripts_console.group_sripts_user_watcher"/>
                         <button name="export" type="object" string="Export" groups="odoo_scripts_console.group_sripts_user_watcher"/>
                     </header>
                     <sheet>
@@ -142,8 +142,6 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
-            <field name="context">{}</field>
-            <field name="help"></field>
         </record>
 
         <menuitem id="menu_odoo_script_watcher" name="Odoo Script Watchers" action="act_window_odoo_script_watcher"
