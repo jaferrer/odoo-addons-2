@@ -114,9 +114,9 @@ class OdooScriptWatcher(models.Model):
 
         if res:
             if self.nb_lines != len(res) or not self.has_result:
-                self.write({'has_result': True, 'nb_lines': len(res)})
+                self.sudo().write({'has_result': True, 'nb_lines': len(res)})
         elif self.has_result:
-            self.write({'has_result': False, 'nb_lines': 0})
+            self.sudo().write({'has_result': False, 'nb_lines': 0})
 
         return res
 
