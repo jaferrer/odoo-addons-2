@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+            name="Lines"
+            id="rida_lines_menu"
+            parent="rida_menu"/>
+
+    <menuitem
+            name="RIDA"
+            id="rida_report_menu"
+            parent="rida_menu"/>
+
+    <menuitem
+            name="RIDA"
+            id="rida_menu"
+            parent="rida_root_menu"/>
+
+    <menuitem
+            name="RIDA"
+            id="rida_root_menu"/>
+</odoo>
