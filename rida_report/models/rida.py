@@ -23,7 +23,11 @@ from odoo import fields, models, api
 class RidaReport(models.Model):
     _name = 'rida.report'
 
-    line_ids = fields.One2many('rida.lines', 'report_id', u"Lines")
+    name = fields.Char(u"Name", required=True)
+    theme_id = fields.Many2one('res.partner', u"Theme")
+    project_id = fields.Many2one('project.project', u"Related project")
+    creation_date = fields.Date(u"Creation date", required=True, default=fields.Date.today)
+    line_ids = fields.One2many('rida.line', 'report_id', u"Lines")
 
 
 class RidaLine(models.Model):
@@ -36,11 +40,11 @@ class RidaLine(models.Model):
     ], u"Type", required=True)
     name = fields.Char(u"Description", required=True)
     user_id = fields.Many2one('res.users', u"Related user", required=True, default=lambda self: self.env.uid)
-    creation_date = fields.Date(u"Creation date", required=True, default=fields.Date.today)
+    date = fields.Date(u"Date", required=True, default=fields.Date.today)
     report_id = fields.Many2one('rida.report', u"Related RIDA", required=True)
 
     # The following field only exists if type is 'action'
     state = fields.Selection([
-        ('todo', u"To do"),
+        ('normal', u"To do"),
         ('done', u"Done"),
     ], u"Line state")
