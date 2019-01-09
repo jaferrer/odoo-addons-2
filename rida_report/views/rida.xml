@@ -10,10 +10,10 @@
             <tree editable="top">
                 <field name="type"/>
                 <field name="name"/>
-                <field name="user_id"/>
                 <field name="report_id"/>
-                <field name="date"/>
-                <field name="state" widget="kanban_state_selection"/>
+                <field name="user_id" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <field name="date" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <field name="state" widget="kanban_state_selection" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
             </tree>
         </field>
     </record>
@@ -52,9 +52,9 @@
                         <tree editable="bottom">
                             <field name="type"/>
                             <field name="name"/>
-                            <field name="user_id"/>
-                            <field name="date"/>
-                            <field name="state" widget="kanban_state_selection"/>
+                            <field name="user_id" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                            <field name="date" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                            <field name="state" widget="kanban_state_selection" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                         </tree>
                     </field>
                 </group>
@@ -70,8 +70,14 @@
                 <filter name="information_only" string="Informations only" domain="[('type', '=', 'information')]"/>
                 <filter name="decision_only" string="Decisions only" domain="[('type', '=', 'decision')]"/>
                 <filter name="action_only" string="Actions only" domain="[('type', '=', 'action')]"/>
-                <filter name="action_todo" string="To do" domain="[('type', '=', 'action'), ('state', '=', 'normal')]"/>
-                <filter name="action_done" string="Done" domain="[('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="all_action_todo" string="All actions to do" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
+                <filter name="all_action_done" string="All actions done" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="my_action_todo" string="My actions to do" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
+                <filter name="my_action_done" string="My actions done" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="own_lines" string="My lines" domain="[('user_id', '=', uid), ]"/>
+                <group string="Group by">
+                    <field name="report_id"/>
+                </group>
             </search>
         </field>
     </record>
@@ -82,7 +88,7 @@
         <field name="name">Lines</field>
         <field name="res_model">rida.line</field>
         <field name="view_mode">tree</field>
-        <field name="context">{'search_default_action_todo': 1}</field>
+        <field name="context">{'search_default_my_action_todo': 1}</field>
     </record>
 
     <record model="ir.actions.act_window" id="rida_report_action">

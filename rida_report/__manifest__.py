@@ -18,18 +18,22 @@
 #
 
 {
-    'name': u"Implementation of the RIDA method (Relevé d'Information Décision Action)",
+    'name': "RIDA Report",
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['web_kanban_state_selection'],
-    'description': """
-Implements the RIDA methodology in odoo
+    'depends': [
+        'project',
+        'web_kanban_state_selection'
+    ],
+    'description': u"""
+Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'views/rida.xml',
+        'security/ir.model.access.csv',
     ],
     'demo': [],
     'test': [],

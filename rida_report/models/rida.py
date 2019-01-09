@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models
+from odoo import fields, models, api
 
 
 class RidaReport(models.Model):
@@ -39,8 +39,8 @@ class RidaLine(models.Model):
         ('action', u"Action")
     ], u"Type", required=True)
     name = fields.Char(u"Description", required=True)
-    user_id = fields.Many2one('res.users', u"Related user", required=True, default=lambda self: self.env.uid)
-    date = fields.Date(u"Date", required=True, default=fields.Date.today)
+    user_id = fields.Many2one('res.users', u"Related user", default=lambda self: self.env.uid)
+    date = fields.Date(u"Expected date", default=fields.Date.today)
     report_id = fields.Many2one('rida.report', u"Related RIDA", required=True)
 
     # The following field only exists if type is 'action'
@@ -48,3 +48,14 @@ class RidaLine(models.Model):
         ('normal', u"To do"),
         ('done', u"Done"),
     ], u"Line state", default='normal')
+
+    @api.multi
+    @api.onchange('type')
+    def _onchange_type(self):
+        self.ensure_one()
+        if self.type == 'action':
+            self.date = fields.Date.today()
+            self.user_id = self.env.user
+        else:
+            self.date = False
+            self.user_id = False
