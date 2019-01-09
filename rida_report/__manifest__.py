@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['base_location'],
+    'depends': ['web_kanban_state_selection'],
     'description': """
 Implements the RIDA methodology in odoo
 """,

@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models, api
+from odoo import fields, models
 
 
 class RidaReport(models.Model):
@@ -25,7 +25,7 @@ class RidaReport(models.Model):
 
     name = fields.Char(u"Name", required=True)
     theme_id = fields.Many2one('res.partner', u"Theme")
-    project_id = fields.Many2one('project.project', u"Related project")
+    project_id = fields.Many2one('project.project', u"Related project", required=True)
     creation_date = fields.Date(u"Creation date", required=True, default=fields.Date.today)
     line_ids = fields.One2many('rida.line', 'report_id', u"Lines")
 
@@ -47,4 +47,4 @@ class RidaLine(models.Model):
     state = fields.Selection([
         ('normal', u"To do"),
         ('done', u"Done"),
-    ], u"Line state")
+    ], u"Line state", default='normal')

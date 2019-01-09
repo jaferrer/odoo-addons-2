@@ -80,7 +80,8 @@
 
     <menuitem
             name="RIDA"
-            id="rida_root_menu"/>
+            id="rida_root_menu"
+            web_icon="rida_report,static/description/icon.png"/>
 
     <menuitem
             name="RIDA"
@@ -88,7 +89,7 @@
             parent="rida_root_menu"/>
 
     <menuitem
-            name="Lines"
+            name="My Lines"
             id="rida_line_menu"
             action="rida_line_action"
             parent="rida_menu"/>
