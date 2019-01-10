@@ -24,7 +24,7 @@ class RidaReport(models.Model):
     _name = 'rida.report'
 
     name = fields.Char(u"Name", required=True)
-    theme_id = fields.Many2one('res.partner', u"Theme")
+    theme_id = fields.Many2one('res.partner', u"Theme", required=True)
     project_id = fields.Many2one('project.project', u"Related project", required=True)
     creation_date = fields.Date(u"Creation date", required=True, default=fields.Date.today)
     line_ids = fields.One2many('rida.line', 'report_id', u"Lines")
@@ -39,8 +39,8 @@ class RidaLine(models.Model):
         ('action', u"Action")
     ], u"Type", required=True)
     name = fields.Char(u"Description", required=True)
-    user_id = fields.Many2one('res.users', u"Related user", default=lambda self: self.env.uid)
-    date = fields.Date(u"Expected date", default=fields.Date.today)
+    user_id = fields.Many2one('res.users', u"Related user")
+    date = fields.Date(u"Expected date")
     report_id = fields.Many2one('rida.report', u"Related RIDA", required=True)
 
     # The following field only exists if type is 'action'

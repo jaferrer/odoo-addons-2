@@ -75,8 +75,9 @@
                 <filter name="my_action_todo" string="My actions to do" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
                 <filter name="my_action_done" string="My actions done" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
                 <filter name="own_lines" string="My lines" domain="[('user_id', '=', uid), ]"/>
-                <group string="Group by">
-                    <field name="report_id"/>
+                <group expand="0" string="Group By">
+                    <filter string="RIDA" domain="[]" context="{'group_by': 'report_id'}"/>
+                    <filter string="Type" domain="[]" context="{'group_by': 'type'}"/>
                 </group>
             </search>
         </field>
