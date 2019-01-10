@@ -332,8 +332,8 @@ FROM procurement_order po
     @api.multi
     def launch_job_cancel_procurement(self):
         context = dict(self.env.context)
-        for rec in self:
-            job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', rec.ids, context)
+        for proc_id in self.ids:
+            job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', [proc_id], context)
 
 
 class StockMoveAsync(models.Model):
