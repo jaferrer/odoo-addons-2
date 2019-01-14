@@ -169,7 +169,7 @@ class OdooScriptWatcher(models.Model):
         self.ensure_one()
         if not binary:
             return False
-        return self.env['ir.attachment'].create({
+        return self.env['ir.attachment'].sudo().create({
             'type': 'binary',
             'res_model': self._name,
             'res_name': name,
