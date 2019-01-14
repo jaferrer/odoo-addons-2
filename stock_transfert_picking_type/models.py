@@ -23,7 +23,8 @@ from openerp import models, fields, api
 class StockTransfertPickingTypeTransferDetails(models.TransientModel):
     _inherit = 'stock.transfer_details'
 
-    picking_type_code = fields.Char(string=u"Picking Type Code", related='picking_id.picking_type_code', readonly=True)
+    picking_type_code = fields.Selection(string=u"Picking Type Code", related='picking_id.picking_type_code',
+                                         readonly=True)
     picking_group_name = fields.Char(string="Procurement group name", related='picking_id.group_id.name', readonly=True)
 
 
@@ -48,5 +49,5 @@ class StockTransfertPickingTypeStockPicking(models.Model):
 class StockTransfertPickingTypePackOp(models.Model):
     _inherit = 'stock.pack.operation'
 
-    picking_type_code = fields.Char(u"Picking Type Code", related="picking_id.picking_type_code", readonly=True)
+    picking_type_code = fields.Selection(u"Picking Type Code", related="picking_id.picking_type_code", readonly=True)
     group_name = fields.Char(string="Picking group name", related='picking_id.group_id.name', readonly=True)

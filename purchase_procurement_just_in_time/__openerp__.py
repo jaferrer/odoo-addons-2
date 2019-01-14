@@ -60,7 +60,7 @@ Notes
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
-        'views/res_config_view.xml',
+        'views/res_config.xml',
         'views/time_frame.xml',
         'views/purchase_procurement_jit.xml',
         'views/purchase.xml',
