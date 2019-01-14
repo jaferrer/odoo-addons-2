@@ -318,9 +318,10 @@ class StockWarehouseOrderPointJit(models.Model):
             if not consider_end_contract_effect:
                 product_max_qty += self.product_min_qty
         qty = max(max(self.product_min_qty, product_max_qty) - stock_after_event, 0)
-        reste = self.qty_multiple > 0 and qty % self.qty_multiple or 0.0
-        if float_compare(reste, 0.0, precision_rounding=self.product_uom.rounding) > 0:
-            qty += self.qty_multiple - reste
+        if self.qty_multiple > 1:
+            reste = qty % self.qty_multiple or 0.0
+            if float_compare(reste, 0.0, precision_rounding=self.product_uom.rounding) > 0:
+                qty += self.qty_multiple - reste
         qty = float_round(qty, precision_rounding=self.product_uom.rounding)
 
         if float_compare(qty, 0.0, precision_rounding=self.product_uom.rounding) > 0:
@@ -377,7 +378,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
             if not consider_end_contract_effect:
                 product_max_qty += self.product_min_qty
-        if self.qty_multiple and product_max_qty % self.qty_multiple != 0:
+        if self.qty_multiple > 1 and product_max_qty % self.qty_multiple != 0:
             product_max_qty = (product_max_qty // self.qty_multiple + 1) * self.qty_multiple
         relative_stock_delta = float(self.env['ir.config_parameter'].get_param(
             'stock_procurement_just_in_time.relative_stock_delta', default=0))
