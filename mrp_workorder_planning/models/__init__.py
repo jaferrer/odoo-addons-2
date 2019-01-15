@@ -20,3 +20,4 @@
 from . import mrp
 from . import res_company
 from . import procurement
+from . import mrp_config_settings

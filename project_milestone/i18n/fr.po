@@ -83,6 +83,11 @@ msgid "Close"
 msgstr "Fermer"
 
 #. module: project_milestone
+#: model:ir.ui.view,arch_db:project_milestone.project_milestone_form
+msgid "Re-open"
+msgstr "Ré-ouvrir"
+
+#. module: project_milestone
 #: model:ir.ui.view,arch_db:project_milestone.project_milestone_search
 msgid "Group By..."
 msgstr "Regrouper par..."
@@ -146,6 +151,11 @@ msgid "Nb Task"
 msgstr "Nb tâches"
 
 #. module: project_milestone
+#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_nb_days_tasks
+msgid "Number of days"
+msgstr "Nombre de jours"
+
+#. module: project_milestone
 #: selection:project.milestone,state:0
 msgid "Open"
 msgstr "Ouvert"
@@ -166,6 +176,11 @@ msgstr "Recherche d'une Milestone"
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_should_be_closed_at
 msgid "Should be in Prod at"
 msgstr "Date de mise en Production"
+
+#. module: project_milestone
+#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_start_date
+msgid "Start date"
+msgstr "Date de début"
 
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_qualif_should_be_livred_at
@@ -191,7 +206,7 @@ msgstr "Tâche"
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_name
 msgid "Title"
-msgstr "Civilité"
+msgstr "Titre"
 
 #. module: project_milestone
 #: model:ir.ui.view,arch_db:project_milestone.project_milestone_form
@@ -202,3 +217,13 @@ msgstr "Tâches"
 #: model:ir.model,name:project_milestone.model_project_milestone
 msgid "project.milestone"
 msgstr "project.milestone"
+
+#. module: project_milestone
+#: code:addons/project_milestone/project_extend.py:52
+msgid "Start date must be before test date."
+msgstr "La date de début doit être avant la date de mise en qualif."
+
+#. module: project_milestone
+#: code:addons/project_milestone/project_extend.py:52
+msgid "Test date must be before prod date."
+msgstr "La date de mise en qualif doit être avant la date de mise en production."

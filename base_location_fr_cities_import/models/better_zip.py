@@ -18,7 +18,11 @@
 #
 
 import urllib
+import logging
 from odoo import models, fields, api
+
+
+_logger = logging.getLogger(__name__)
 
 
 class BetterZipWithUpdate(models.Model):
@@ -28,12 +32,14 @@ class BetterZipWithUpdate(models.Model):
 
     @api.multi
     def update_french_zipcodes(self):
+        _logger.info(u"Started updating french zip codes database")
         france_id = self.env['res.country'].search([('name', '=', 'France')])[0]
 
         already_known = set(self.env['res.better.zip'].search(
             [('country_id', '=', france_id.id)]).mapped(lambda x: (x.name, x.city)))
 
-        ans = urllib.urlopen('https://www.data.gouv.fr/fr/datasets/r/554590ab-ae62-40ac-8353-ee75162c05ee')
+        ans = urllib.urlopen('https://datanova.legroupe.laposte.fr/explore/dataset/laposte_hexasmal/download/'
+                             '?format=csv&timezone=Europe/Berlin&use_labels_for_header=true')
         ans.readline()
 
         for line in ans.readlines():
@@ -52,3 +58,5 @@ class BetterZipWithUpdate(models.Model):
             except ValueError:
                 # If the current line's format is wrong
                 pass
+
+        _logger.info(u"Zip codes update succeed")

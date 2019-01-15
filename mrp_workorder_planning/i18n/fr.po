@@ -98,3 +98,9 @@ msgstr "Vous devez définir un calendrier pour ce poste de travail (%s) ou cette
 #, python-format
 msgid "date should be a datetime.datime. Received %s"
 msgstr "date devrait être du type datetime.datetime au lieu de %s"
+
+#. module: mrp_workorder_planning
+#: model:ir.model.fields,field_description:mrp_workorder_planning.field_res_company_duration_between_wo
+#: model:ir.model.fields,field_description:mrp_workorder_planning.field_mrp_config_settings_duration_between_wo
+msgid "Default duration between 2 work orders (h)"
+msgstr "Durée par défaut entre 2 OT (h)"

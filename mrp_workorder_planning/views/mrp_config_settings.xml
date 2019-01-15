@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="mrp_config_settings_form_prodex">
+            <field name="name">mrp.config.settings.form.prodex</field>
+            <field name="model">mrp.config.settings</field>
+            <field name="inherit_id" ref="mrp.view_mrp_config"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form position="inside">
+                    <group name="Paramètres">
+                        <field name="duration_between_wo"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

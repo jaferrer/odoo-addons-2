@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+
         <record model="ir.ui.view" id="project_task_form_ext">
             <field name="name">project.task.form.ext</field>
             <field name="model">project.task</field>
@@ -12,6 +13,19 @@
                 </field>
             </field>
         </record>
+
+        <record model="ir.ui.view" id="project_task_tree_ext">
+            <field name="name">project_task_tree_ext</field>
+            <field name="model">project.task</field>
+            <field name="priority" eval="16"/>
+            <field name="inherit_id" ref="project.view_task_tree2"/>
+            <field name="arch" type="xml">
+                <field name="project_id" position="after">
+                    <field name="milestone_id"/>
+                </field>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="project_milestone_tree">
             <field name="name">project.milestone.tree</field>
             <field name="model">project.milestone</field>
@@ -19,10 +33,11 @@
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
+                    <field name="start_date"/>
                     <field name="qualif_should_be_livred_at"/>
                     <field name="should_be_closed_at"/>
                     <field name="project_id"/>
-                    <field name="nb_tasks"/>
+                    <field name="nb_days_tasks"/>
                 </tree>
             </field>
         </record>
@@ -44,7 +59,6 @@
             </field>
         </record>
 
-
         <record model="ir.ui.view" id="project_milestone_form">
             <field name="name">project.milestone.form</field>
             <field name="model">project.milestone</field>
@@ -58,6 +72,8 @@
                                 class="btn-primary" attrs="{'invisible':[('state', '!=', 'in_qualif')]}"/>
                         <button name="close_milestone" type="object" string="Close"
                                 class="btn-primary" attrs="{'invisible':[('state', '!=', 'in_prod')]}"/>
+                        <button name="reopen" type="object" string="Re-open"
+                                class="btn-primary" attrs="{'invisible':[('state', '!=', 'closed')]}"/>
                         <field name="state" widget="statusbar" readonly="1"/>
                     </header>
                     <sheet string="Milestone">
@@ -76,6 +92,7 @@
                         </group>
                         <group>
                             <group>
+                                <field name="start_date"/>
                                 <field name="qualif_should_be_livred_at"/>
                                 <field name="should_be_test_before"/>
                                 <field name="should_be_closed_at"/>
@@ -101,9 +118,10 @@
                         </group>
                         <group string="Tâches" name="task_group">
                             <field name="task_ids" nolabel="1">
-                                <tree nolabel="1">
+                                <tree nolabel="1" create="false" delete="false">
                                     <field name="name"/>
                                     <field name="user_id"/>
+                                    <field name="planned_hours"/>
                                     <field name="priority" widget="priority"/>
                                     <field name="stage_id"/>
                                     <field name="tag_ids"/>
@@ -126,7 +144,9 @@
                 </p>
             </field>
         </record>
+
         <menuitem action="project_milestone_action" id="menu_project_milestone" parent="project.menu_project_config"
                   groups="project.group_project_user"/>
+
     </data>
 </openerp>

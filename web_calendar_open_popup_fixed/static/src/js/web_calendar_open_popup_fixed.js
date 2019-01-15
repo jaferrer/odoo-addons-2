@@ -95,6 +95,9 @@ odoo.define('web_calendar_open_popup_fixed.CalendarView', function (require) {
 
     CalendarView.include({
         open_quick_create: function(data_template) {
+            if (this.fields_view.arch.attrs.create == 'false'){
+                return false
+            }
             if (!isNullOrUndef(this.quick)) {
                 return this.quick.close();
             }
