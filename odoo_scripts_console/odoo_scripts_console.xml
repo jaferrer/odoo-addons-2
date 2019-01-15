@@ -95,6 +95,8 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
            <field name="model">odoo.script.watcher</field>
             <field name="arch" type="xml">
                 <search>
+                    <field name="name"/>
+                    <field name="query"/>
                     <filter string="Automatic" name="auto" domain="[('is_automatic', '=', True)]"/>
                     <filter string="Manual" name="manual" domain="[('is_automatic', '=', False)]"/>
                 </search>
