@@ -847,6 +847,30 @@ class StockMove(models.Model):
         else:
             return True
 
+    @api.multi
+    def assign_to_picking(self):
+        """Assign the moves to an appropriate picking (or not)."""
+        todo_map = {}
+        for move in self:
+            key = (move.group_id.id, move.location_id.id, move.location_dest_id.id, move.picking_type_id.id)
+            if key not in todo_map:
+                todo_map[key] = self.env['stock.move']
+            todo_map[key] |= move
+        for key, moves in todo_map.iteritems():
+            procurement_group, location_from, location_to, _ = key
+            moves._picking_assign(procurement_group, location_from, location_to)
+
+    @api.multi
+    def action_assign(self):
+        """ Checks the product type and accordingly writes the state.
+        Overridden here to also assign a picking if it is not done yet.
+        """
+        # moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
+        moves_no_pick = self.search([
+            ('id', 'in', self.ids), ('picking_type_id', '!=', False), ('picking_id', '=', False)])
+        moves_no_pick.assign_to_picking()
+        return super(StockMove, self).action_assign()
+
 
 class ProcurementRule(models.Model):
     _inherit = 'procurement.rule'
