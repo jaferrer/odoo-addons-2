@@ -139,6 +139,7 @@ class OdooScriptWatcher(models.Model):
         if res:
             # Création de la première ligne d'entête
             for key in res[0].keys():
+                key = unicode(key.decode('utf-8'))
                 column_number = self.fill_column(worksheet, column_number, style_title, key)
             # Remplissage des lignes
             line_no = 0
