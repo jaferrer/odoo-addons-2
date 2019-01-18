@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
-    'depends': ['base', 'connector'],
+    'depends': ['base'],
     'description': """
 Translations improved
 =====================
