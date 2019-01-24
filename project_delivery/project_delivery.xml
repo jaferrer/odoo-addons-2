@@ -22,7 +22,8 @@
             <field name="inherit_id" ref="project.view_task_form2"/>
             <field name="arch" type="xml">
                 <notebook position="inside">
-                    <page string="Delivery">
+                    <field name="project_use_delivery"/>
+                    <page string="Delivery" attrs="{'invisible':[('project_use_delivery', '=', True)]}">
                         <field name="delivery_ids" readonly="1">
                             <tree>
                                 <field name="name"/>

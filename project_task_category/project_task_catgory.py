@@ -32,3 +32,9 @@ class ProjectTask(models.Model):
     _inherit = 'project.task'
 
     category_id = fields.Many2one('project.task.category', string=u"Category")
+
+
+class ProjectProject(models.Model):
+    _inherit = 'project.project'
+
+    category_ids = fields.One2many('project.task.category', 'project_id', string=u"Categories")
