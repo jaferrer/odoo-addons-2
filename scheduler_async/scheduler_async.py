@@ -81,9 +81,9 @@ WHERE po.id IN %s AND (po.run_or_confirm_job_uuid IS NULL OR po.run_or_confirm_j
         else:
             prev_procs = procs
         if action == 'run':
-            procs.sudo().run(autocommit=True)
+            procs.sudo().with_context(job_uuid=job_uuid).run(autocommit=True)
         elif action == 'check':
-            procs.sudo().check(autocommit=True)
+            procs.sudo().with_context(job_uuid=job_uuid).check(autocommit=True)
         moves_to_run = session.env['stock.move'].search([('procurement_id', 'in', procs.ids),
                                                          ('state', '=', 'draft')])
         if moves_to_run:

@@ -318,9 +318,10 @@ class StockWarehouseOrderPointJit(models.Model):
             if not consider_end_contract_effect:
                 product_max_qty += self.product_min_qty
         qty = max(max(self.product_min_qty, product_max_qty) - stock_after_event, 0)
-        reste = self.qty_multiple > 0 and qty % self.qty_multiple or 0.0
-        if float_compare(reste, 0.0, precision_rounding=self.product_uom.rounding) > 0:
-            qty += self.qty_multiple - reste
+        if self.qty_multiple > 1:
+            reste = qty % self.qty_multiple or 0.0
+            if float_compare(reste, 0.0, precision_rounding=self.product_uom.rounding) > 0:
+                qty += self.qty_multiple - reste
         qty = float_round(qty, precision_rounding=self.product_uom.rounding)
 
         if float_compare(qty, 0.0, precision_rounding=self.product_uom.rounding) > 0:
@@ -369,6 +370,7 @@ class StockWarehouseOrderPointJit(models.Model):
 
     @api.multi
     def get_max_allowed_qty(self, need):
+        # TODO: passer need en date
         self.ensure_one()
         product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
         if self.fill_strategy == 'duration':
@@ -376,7 +378,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
             if not consider_end_contract_effect:
                 product_max_qty += self.product_min_qty
-        if self.qty_multiple and product_max_qty % self.qty_multiple != 0:
+        if self.qty_multiple > 1 and product_max_qty % self.qty_multiple != 0:
             product_max_qty = (product_max_qty // self.qty_multiple + 1) * self.qty_multiple
         relative_stock_delta = float(self.env['ir.config_parameter'].get_param(
             'stock_procurement_just_in_time.relative_stock_delta', default=0))
@@ -421,15 +423,15 @@ class StockWarehouseOrderPointJit(models.Model):
                 if event['date'] not in done_dates:
                     events_at_date, stock_after_event = op.process_events_at_date(event, events, stock_after_event)
                     done_dates += [event['date']]
-                if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned']:
-                    proc_oversupply = self.env['procurement.order'].search([('id', '=', event['proc_id']),
-                                                                            ('state', '!=', 'done')])
-                    qty_same_proc = sum(item['move_qty'] for item in events if item['proc_id'] == event['proc_id'])
-                    if proc_oversupply:
-                        _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
+                if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned'] and event['proc_id']:
+                    procs_oversupply = self.env['procurement.order'].search([('id', 'in', [item['proc_id'] for item in events_at_date]),
+                                                                             ('state', '!=', 'done')])
+                    for proc_oversupply in procs_oversupply:
+                        qty_same_proc = sum([item['move_qty'] for item in events if item['proc_id'] == proc_oversupply.id])
+                        _logger.debug("Oversupply detected: deleting procurements %s " % proc_oversupply.id)
                         stock_after_event = proc_oversupply.cancel_procs_just_in_time(stock_after_event, qty_same_proc)
                     if op.is_under_stock_min(stock_after_event) and \
-                        any([item['move_type'] == 'out' for item in events_at_date]):
+                            any([item['move_type'] == 'out' for item in events_at_date]):
                         new_proc = op.create_from_need(event, stock_after_event)
                         stock_after_event += new_proc and new_proc.product_qty or 0
                 elif op.is_under_stock_min(stock_after_event):
