@@ -191,6 +191,9 @@ class IncompeteProductionMrpProduction(models.Model):
 
     @api.model
     def action_produce(self, production_id, production_qty, production_mode, wiz=False):
+        if not wiz or not wiz.create_child and (not wiz.return_raw_materials or not wiz.return_location_id):
+            return super(IncompeteProductionMrpProduction, self.with_context(cancel_procurement=True)). \
+                action_produce(production_id, production_qty, production_mode, wiz=wiz)
 
         production = self.browse(production_id)
         list_cancelled_moves_1 = production.move_lines2
