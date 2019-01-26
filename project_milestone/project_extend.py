@@ -111,3 +111,11 @@ class ProjectTaskMilestone(models.Model):
     _inherit = 'project.task'
 
     milestone_id = fields.Many2one('project.milestone', u"Milestone", track_visibility='onchange')
+
+    qualif_should_be_livred_at = fields.Date(u"Should be in Test at",
+                                             related="milestone_id.qualif_should_be_livred_at",
+                                             readonly=True, store=True)
+    should_be_closed_at = fields.Date(u"Should be in Prod at", related="milestone_id.should_be_closed_at",
+                                      readonly=True, store=True)
+    should_be_test_before = fields.Date(u"Should be tested before", related="milestone_id.should_be_test_before",
+                                        readonly=True, store=True)

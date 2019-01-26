@@ -23,7 +23,12 @@ from odoo import fields, models, api
 class ProjectTaskTypeGitLab(models.Model):
     _inherit = 'project.task.type'
 
-    project_id = fields.Many2one('project.project', compute='_get_project_id', inverse='_set_project_id', store=True)
+    project_id = fields.Many2one(
+        'project.project',
+        string=u"Project",
+        compute='_get_project_id',
+        inverse='_set_project_id',
+        store=True)
 
     @api.multi
     def _set_project_id(self):
@@ -34,3 +39,20 @@ class ProjectTaskTypeGitLab(models.Model):
     def _get_project_id(self):
         for rec in self:
             rec.project_id = rec.project_ids and rec.project_ids[0] or False
+
+
+class ProjectProject(models.Model):
+    _inherit = 'project.project'
+
+    task_type_ids = fields.One2many(
+        'project.task.type',
+        'project_id',
+        string=u"Project Stage"
+    )
+
+
+class ProjectTags(models.Model):
+    _inherit = 'project.tags'
+
+    project_id = fields.Many2one('project.project', u"Project")
+    active = fields.Boolean(u"Actif", default=True)
