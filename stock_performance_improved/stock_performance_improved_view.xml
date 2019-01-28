@@ -2,14 +2,6 @@
 <openerp>
     <data>
 
-        <record model="ir.actions.server" id="ir_actions_server_process_prereservations">
-            <field name="name">Process Prereservations</field>
-            <field name="model_id" ref="stock.model_stock_picking"/>
-            <field name="code">
-self.process_prereservations(cr, uid, context)
-            </field>
-        </record>
-
         <record model="ir.actions.server" id="ir_actions_server_confirm_procurements">
             <field name="name">Run Procurements</field>
             <field name="model_id" ref="procurement.model_procurement_order"/>
@@ -44,14 +36,6 @@ self.run_confirm_moves(cr, uid, context=context)
 context.update({'jobify': True})
 self.run_assign_moves(cr, uid, context=context)
             </field>
-        </record>
-
-        <record model="ir.values" id="ir_value_process_prereservation">
-            <field name="key">action</field>
-            <field name="key2">client_action_multi</field>
-            <field name="model">stock.picking</field>
-            <field name="name">Process Prereservations</field>
-            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_process_prereservations)"/>
         </record>
 
         <record model="ir.ui.view" id="stock_performance_improved_quant_tree">
@@ -142,35 +126,6 @@ self.run_assign_moves(cr, uid, context=context)
             </field>
         </record>
 
-        <record model="ir.ui.view" id="confirm_process_prereservations_form">
-            <field name="name">confirm_process_prereservations_form</field>
-            <field name="model">confirm.process.prereservations</field>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <form>
-                    <footer>
-                        <button name="confirm" type="object" string="Confirm" class="oe_highlight"/>
-                        or
-                        <button string="Cancel" class="oe_link" special="cancel"/>
-                    </footer>
-                </form>
-            </field>
-        </record>
-
-        <record model="ir.actions.act_window" id="launch_confirm_process_prereservations">
-            <field name="name">Are you sure you want to process prereservations?</field>
-            <field name="res_model">confirm.process.prereservations</field>
-            <field name="view_type">form</field>
-            <field name="view_mode">form</field>
-            <field name="domain">[]</field>
-            <field name="context">{}</field>
-            <field name="help"></field>
-            <field name="target">new</field>
-        </record>
-
-        <menuitem id="menu_process_prereservations" name="Process Prereservations"
-                  action="launch_confirm_process_prereservations"
-                  parent="stock.menu_stock_warehouse_mgmt" sequence="10"/>
         <menuitem id="menu_confirm_procurements" name="Confirm Procurements"
                   action="ir_actions_server_confirm_procurements"
                   parent="stock.menu_stock_sched" sequence="14"/>

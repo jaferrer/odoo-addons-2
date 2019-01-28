@@ -1090,13 +1090,6 @@ class StockPrereservation(models.Model):
         """)
 
 
-class ConfirmProcessPrereservations(models.TransientModel):
-    _name = 'confirm.process.prereservations'
-
-    @api.multi
-    def confirm(self):
-        self.env['stock.picking'].process_prereservations()
-
 
 class StockInventoryLine(models.Model):
     _inherit = 'stock.inventory.line'
