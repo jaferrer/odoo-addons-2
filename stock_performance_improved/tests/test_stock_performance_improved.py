@@ -58,8 +58,6 @@ class TestStockPerformanceImproved(common.TransactionCase):
         self.dozen = self.browse_ref('product.product_uom_dozen')
         self.existing_quants = self.env['stock.quant'].search([])
         self.env['stock.location']._parent_store_compute()
-        # Call process_prereservations here to test it in all tests
-        # self.env['stock.picking'].process_prereservations()
 
     def test_10_simple_moves(self):
         """Basic checks of picking assignment."""
