@@ -148,7 +148,7 @@
                         </group>
                         <group string="Tâches" name="task_group">
                             <field name="task_ids" nolabel="1">
-                                <tree nolabel="1">
+                                <tree nolabel="1" create="false" delete="false">
                                     <field name="name"/>
                                     <field name="user_id"/>
                                     <field name="project_id"/>

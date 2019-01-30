@@ -68,8 +68,10 @@ class BaseTestStockProcurementJIT(common.TransactionCase):
                                   line.location_sequence, line.route_sequence, line.run_procs, line.done)
                                  for line in controller_lines]
         for op in orderpoints:
-            self.assertIn((op, op.product_id, op.location_id, 0, op.location_id.stock_scheduler_sequence,
-                           False, False), controller_lines_data)
+            for sequence in op.stock_scheduler_sequence_ids:
+                self.assertIn((op, op.product_id, op.location_id, 0, sequence.name,
+                               False, False), controller_lines_data)
+
         self.env['stock.scheduler.controller'].update_scheduler_controller(jobify=False, run_procurements=False)
         self.env['stock.scheduler.controller'].update_scheduler_controller(jobify=False, run_procurements=False)
         orderpoints = self.env['stock.warehouse.orderpoint'].search([('product_id', 'in', product_ids)])
@@ -80,5 +82,6 @@ class BaseTestStockProcurementJIT(common.TransactionCase):
                                   line.route_sequence, line.run_procs, line.job_uuid, line.done)
                                  for line in controller_lines]
         for op in orderpoints:
-            self.assertIn((op, op.product_id, op.location_id, 0, op.location_id.stock_scheduler_sequence,
-                           False, str(op.id), True), controller_lines_data)
+            for sequence in op.stock_scheduler_sequence_ids:
+                self.assertIn((op, op.product_id, op.location_id, 0, sequence.name,
+                               False, str(op.id), True), controller_lines_data)
