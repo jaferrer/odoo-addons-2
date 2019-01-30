@@ -205,10 +205,6 @@ class ProcurementSaleLink(models.Model):
         else:
             missing_part_for_line.product_qty = sale_line.procurements_not_scheduled_qty
 
-    # @api.multi
-    # def split_procurement(self):
-    #     self.ensure_one()
-
     @api.multi
     def generate_procurements(self):
         for rec in self:
@@ -218,7 +214,7 @@ class ProcurementSaleLink(models.Model):
                                _(u"Impossible to generate a procurement on a line which has no sale order line."))
             if rec.procurement_id:
                 continue
-            first_move = self.env['stock.move'].search([('sale_line_id', '=', rec.id),
+            first_move = self.env['stock.move'].search([('sale_line_id', '=', rec.scheduled_for_sale_line_id.id),
                                                         ('state', 'not in', ['draft', 'cancel'])], limit=1)
             if not first_move:
                 raise exceptions. \

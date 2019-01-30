@@ -81,9 +81,9 @@ WHERE po.id IN %s AND (po.run_or_confirm_job_uuid IS NULL OR po.run_or_confirm_j
         else:
             prev_procs = procs
         if action == 'run':
-            procs.sudo().run(autocommit=True)
+            procs.sudo().with_context(job_uuid=job_uuid).run(autocommit=True)
         elif action == 'check':
-            procs.sudo().check(autocommit=True)
+            procs.sudo().with_context(job_uuid=job_uuid).check(autocommit=True)
         moves_to_run = session.env['stock.move'].search([('procurement_id', 'in', procs.ids),
                                                          ('state', '=', 'draft')])
         if moves_to_run:
@@ -332,8 +332,8 @@ FROM procurement_order po
     @api.multi
     def launch_job_cancel_procurement(self):
         context = dict(self.env.context)
-        for rec in self:
-            job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', rec.ids, context)
+        for proc_id in self.ids:
+            job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', [proc_id], context)
 
 
 class StockMoveAsync(models.Model):

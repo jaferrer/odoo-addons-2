@@ -111,13 +111,11 @@ class OdooScriptWatcher(models.Model):
                 raise exceptions.except_orm(u"Error!", u"Forbidden keyword %s in watcher query" % forbidden_keyword)
         self.env.cr.execute("""%s""" % self.query)
         res = self.env.cr.dictfetchall()
-
         if res:
             if self.nb_lines != len(res) or not self.has_result:
                 self.sudo().write({'has_result': True, 'nb_lines': len(res)})
         elif self.has_result:
             self.sudo().write({'has_result': False, 'nb_lines': 0})
-
         return res
 
     @api.multi
@@ -139,6 +137,7 @@ class OdooScriptWatcher(models.Model):
         if res:
             # Création de la première ligne d'entête
             for key in res[0].keys():
+                key = unicode(key.decode('utf-8'))
                 column_number = self.fill_column(worksheet, column_number, style_title, key)
             # Remplissage des lignes
             line_no = 0
@@ -169,7 +168,7 @@ class OdooScriptWatcher(models.Model):
         self.ensure_one()
         if not binary:
             return False
-        return self.env['ir.attachment'].create({
+        return self.env['ir.attachment'].sudo().create({
             'type': 'binary',
             'res_model': self._name,
             'res_name': name,

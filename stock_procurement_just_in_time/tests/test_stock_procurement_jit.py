@@ -18,8 +18,6 @@
 #
 
 from openerp import fields
-from openerp.tests import common
-from openerp.tools.misc import frozendict
 from .base_test_stock_procurement_jit import BaseTestStockProcurementJIT
 
 
@@ -957,3 +955,66 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
         self.assertEqual(procs[5].date_planned, "2015-03-26 18:00:00")
         self.assertEqual(procs[5].product_qty, 5)
         self.assertEqual(procs[5].state, 'confirmed')
+
+    def test_16_create_not_integer_proc(self):
+        procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
+                                                      ('product_id', 'in', [self.test_product.id,
+                                                                            self.test_product2.id,
+                                                                            self.test_product3.id,
+                                                                            self.test_product4.id,
+                                                                            ]),
+                                                      ('state', '!=', 'cancel')])
+        self.assertFalse(procs)
+        move_need1 = self.browse_ref('stock_procurement_just_in_time.need1')
+        move_need1.product_uom_qty = 2.2
+        self.warehouse_orderpoint1.qty_multiple = 1
+        self.process_orderpoints()
+        procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
+                                                      ('product_id', 'in', [self.test_product.id,
+                                                                            self.test_product2.id,
+                                                                            self.test_product3.id,
+                                                                            self.test_product4.id,
+                                                                            ]),
+                                                      ('state', '!=', 'cancel')], order='date_planned, product_id')
+
+        self.assertEqual(len(procs), 8)
+
+        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].product_qty, 8.2)
+        self.assertEqual(procs[0].state, 'running')
+        self.assertEqual(procs[0].product_id, self.test_product)
+
+        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].product_qty, 8)
+        self.assertEqual(procs[1].state, 'exception')
+        self.assertEqual(procs[1].product_id, self.test_product3)
+
+        self.assertEqual(procs[2].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[2].product_qty, 5)
+        self.assertEqual(procs[2].state, 'running')
+        self.assertEqual(procs[2].product_id, self.test_product)
+
+        self.assertEqual(procs[3].date_planned, "2015-03-21 10:00:00")
+        self.assertEqual(procs[3].product_qty, 6)
+        self.assertEqual(procs[3].state, 'exception')
+        self.assertEqual(procs[3].product_id, self.test_product3)
+
+        self.assertEqual(procs[4].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[4].product_qty, 13)
+        self.assertEqual(procs[4].state, 'running')
+        self.assertEqual(procs[4].product_id, self.test_product)
+
+        self.assertEqual(procs[5].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[5].product_qty, 12)
+        self.assertEqual(procs[5].state, 'exception')
+        self.assertEqual(procs[5].product_id, self.test_product3)
+
+        self.assertEqual(procs[6].date_planned[:10], fields.Date.today())
+        self.assertEqual(procs[6].product_qty, 6)
+        self.assertEqual(procs[6].state, 'running')
+        self.assertEqual(procs[6].product_id, self.test_product4)
+
+        self.assertEqual(procs[7].date_planned[:10], fields.Date.today())
+        self.assertEqual(procs[7].product_qty, 6)
+        self.assertEqual(procs[7].state, 'running')
+        self.assertEqual(procs[7].product_id, self.test_product4)
