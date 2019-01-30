@@ -282,11 +282,10 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
         suppliers = product.seller_ids and self.env['product.supplierinfo']. \
             search([('id', 'in', product.seller_ids.ids),
                     ('name', '=', seller.id)]) or False
+        min_date = date_ref
         if suppliers:
-            min_date = fields.Datetime.to_string(seller.schedule_working_days(product.seller_delay, date_ref))
-        else:
-            min_date = date_ref
-        return min_date
+            min_date = seller.schedule_working_days(product.seller_delay, date_ref)
+        return fields.Datetime.to_string(min_date)
 
     @api.model
     def sanitize_draft_orders(self, seller_id):
