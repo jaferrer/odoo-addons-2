@@ -16,30 +16,39 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from lxml import etree
 
-from odoo import fields, models, api
+from odoo import models, api
+from odoo.tools.safe_eval import safe_eval
 
 
 class Base(models.AbstractModel):
     _inherit = 'base'
 
     @api.model
-    def read_aggregates(self, domain, aggregates):
+    def read_aggregates(self, domain, statistics):
         """Returns a list of aggregated values
 
         :param domain: Odoo Domain
-        :param aggregates: dict {
+        :param statistics: dict {
             "aggregate_name': {
                 'field': field name to aggregate
                 'group_operator': sql func
                 'name': aggregate name
                 'string': display label
             },
+            "formula_name": {
+                'name': formula name
+                'string": display label
+                'value': formula
+            }
             "other_aggregate": {...}
         }
         :return: dict {
             "aggregate_name": value,
             "other_aggregate": {...},
+            "formula_name": value,
+            "other_formula": {...},
         }
         """
         self.check_access_rights('read')
@@ -51,6 +60,9 @@ class Base(models.AbstractModel):
 
         def prefix_term(prefix, term):
             return ('%s %s' % (prefix, term)) if term else ''
+
+        aggregates = {k: v for k, v in statistics.iteritems() if not v.get('formula')}
+        formulas = {k: v for k, v in statistics.iteritems() if v.get('formula')}
 
         select_terms = []
         for agg in aggregates.values():
@@ -78,5 +90,20 @@ class Base(models.AbstractModel):
         }
         self.env.cr.execute(query, where_clause_params)
         res = self.env.cr.fetchone()
-        res = dict(zip([a['name'] for a in aggregates.values()], res))
+        res = dict(zip([a['name'] for a in aggregates.values()], [r or 0 for r in res]))
+        eval_context = res.copy()
+        for formula in formulas.values():
+            eval_context[formula['name']] = safe_eval(formula['formula'], eval_context)
+            res[formula['name']] = eval_context[formula['name']]
+        return res
+
+    @api.model
+    def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
+        res = super(Base, self).fields_view_get(view_id, view_type, toolbar, submenu)
+        if res['type'] == 'analysis':
+            doc = etree.fromstring(res['arch'])
+            for view in doc.iter('view'):
+                if view.get('ref'):
+                    view.set('view_id', str(self.env.ref(view.get('ref')).id))
+            res['arch'] = etree.tostring(doc, encoding="utf-8").replace('\t', '')
         return res

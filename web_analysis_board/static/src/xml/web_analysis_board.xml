@@ -2,8 +2,6 @@
 
 <templates>
     <t t-name="AnalysisBoard">
-        <div class="o_analysis_board_widget">
-            Page d'accueil
-        </div>
+        <div class="o_analysis_board_widget"></div>
     </t>
 </templates>
