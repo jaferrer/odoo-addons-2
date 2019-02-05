@@ -173,6 +173,11 @@ msgid "Search Milestone"
 msgstr "Recherche d'une Milestone"
 
 #. module: project_milestone
+#: model:ir.ui.view,arch_db:project_milestone.project_milestone_search
+msgid "Open"
+msgstr "Ouverte"
+
+#. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_should_be_closed_at
 msgid "Should be in Prod at"
 msgstr "Date de mise en Production"
@@ -227,3 +232,8 @@ msgstr "La date de début doit être avant la date de mise en qualif."
 #: code:addons/project_milestone/project_extend.py:52
 msgid "Test date must be before prod date."
 msgstr "La date de mise en qualif doit être avant la date de mise en production."
+
+#. module: project_milestone
+#: code:addons/project_milestone/project_extend.py:123
+msgid "Milestones for project %s"
+msgstr "Milestones pour le projet %s"

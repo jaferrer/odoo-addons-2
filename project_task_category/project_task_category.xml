@@ -91,6 +91,9 @@
                 <search position="inside">
                     <field name="category_id"/>
                 </search>
+                <group expand="0" position="inside">
+                    <filter string="Category" name="group_category_id" context="{'group_by':'category_id'}"/>
+                </group>
             </field>
         </record>
 
