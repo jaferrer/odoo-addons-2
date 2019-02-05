@@ -47,7 +47,7 @@ class ProjectTemplateTask(models.Model):
 
     is_template = fields.Boolean(string="Template task")
     generated_from_template_id = fields.Many2one('project.task', string=u"Generated from template task",
-                                                 domain=[('is_template', '=', True)])
+                                                 domain=[('is_template', '=', True)], readonly=True)
 
     _sql_constraints = [
         ('is_template_project_id', 'check(not(is_template is true and project_id is not null))',
