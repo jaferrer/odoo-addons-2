@@ -2,6 +2,28 @@
 <openerp>
     <data>
 
+        <record model="ir.ui.view" id="project_project_kanban">
+            <field name="name">project_project_kanban</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.view_project_kanban"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <kanban position="inside">
+                    <field name="nb_milestones"/>
+                </kanban>
+                <div class="o_project_kanban_boxes" position="inside">
+                    <div t-if="record.nb_milestones.raw_value" class="o_project_kanban_box">
+                        <a name="milestone_tree_view" type="object">
+                            <span class="o_value">
+                                <t t-esc="record.nb_milestones.value"/>
+                            </span>
+                            <span class="o_label">Milestones</span>
+                        </a>
+                    </div>
+                </div>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="project_task_form_ext">
             <field name="name">project.task.form.ext</field>
             <field name="model">project.task</field>
@@ -9,7 +31,8 @@
             <field name="inherit_id" ref="project.view_task_form2"/>
             <field name="arch" type="xml">
                 <field name="project_id" position="after">
-                    <field name="milestone_id" domain="[('project_id', '=', project_id)]"/>
+                    <field name="milestone_id" domain="[('project_id', '=', project_id), ('state', '!=', 'closed')]"
+                           context="{'default_project_id': project_id}"/>
                 </field>
             </field>
         </record>
@@ -51,6 +74,7 @@
                     <field name="name"/>
                     <field name="project_id"/>
                     <field name="should_be_closed_at"/>
+                    <filter name="open" string="Open" domain="[('state', '!=', 'closed')]"/>
                     <group expand="0" string="Group By...">
                         <filter string="Project" icon="terp-stock_align_left_24" domain="[]"
                                 context="{'group_by':'project_id'}"/>
@@ -138,6 +162,7 @@
             <field name="res_model">project.milestone</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
+            <field name="context">{'search_default_open': True}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">
                     Click to add a new Milestone.
