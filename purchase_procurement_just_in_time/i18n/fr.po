@@ -207,11 +207,6 @@ msgid "Supplier Code"
 msgstr "Référence fournisseur"
 
 #. module: purchase_procurement_just_in_time
-#: view:purchase.order:0
-msgid "Are you sure you want to recompute all the line Numbers?"
-msgstr "Êtes-vous sûr de vouloir recalculer tous les numéros des lignes ?"
-
-#. module: purchase_procurement_just_in_time
 #: view:split.line:0
 msgid "Cancel"
 msgstr "Annuler"
@@ -416,11 +411,6 @@ msgstr "Référence de la dernière réponse du fournisseur pour confirmer la da
 #: field:purchase.order.line,requested_date:0
 msgid "Requested date"
 msgstr "Date demandée"
-
-#. module: purchase_procurement_just_in_time
-#: view:purchase.order:0
-msgid "Reset line numbers"
-msgstr "Numéroter les lignes"
 
 #. module: purchase_procurement_just_in_time
 #: model:ir.actions.act_window,name:purchase_procurement_just_in_time.act_split_line

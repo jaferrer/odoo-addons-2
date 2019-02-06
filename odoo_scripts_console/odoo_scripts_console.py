@@ -111,13 +111,11 @@ class OdooScriptWatcher(models.Model):
                 raise exceptions.except_orm(u"Error!", u"Forbidden keyword %s in watcher query" % forbidden_keyword)
         self.env.cr.execute("""%s""" % self.query)
         res = self.env.cr.dictfetchall()
-
         if res:
             if self.nb_lines != len(res) or not self.has_result:
                 self.sudo().write({'has_result': True, 'nb_lines': len(res)})
         elif self.has_result:
             self.sudo().write({'has_result': False, 'nb_lines': 0})
-
         return res
 
     @api.multi
