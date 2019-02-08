@@ -81,7 +81,7 @@ msgstr "Terminé"
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_date
 msgid "Expected date"
-msgstr "Date prévue"
+msgstr "Echéance"
 
 #. module: rida_report
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
@@ -176,18 +176,20 @@ msgstr "RIDA lié"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_project_id
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_project_id
 msgid "Related project"
-msgstr "Project lié"
+msgstr "Projet"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_user_id
 msgid "Related user"
-msgstr "Utilisateur lié"
+msgstr "Pilote"
 
 #. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_theme_id
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_theme_id
 msgid "Theme"
-msgstr "Thème"
+msgstr "Client"
 
 #. module: rida_report
 #: selection:rida.line,state:0

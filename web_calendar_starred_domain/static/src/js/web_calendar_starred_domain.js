@@ -12,7 +12,10 @@ odoo.define('web_calendar_starred_domain.SidebarFilter', function (require) {
             var self = this;
             // Untick sidebar's filters if there is an active partner in the context
             var active_partner = (this.view.dataset.context.active_model === 'res.partner');
-            var ticked_partner_ids = (this.view.dataset.context.ticked_partner_ids);
+            var ticked_partner_ids = [];
+            if(this.view.dataset.context.hasOwnProperty('ticked_partner_ids')){
+                 ticked_partner_ids = (this.view.dataset.context.ticked_partner_ids);
+            }
             var starred_domain = this.view.fields_view.arch.attrs['starred_domain'];
             return session.is_bound.then(function () {
                 self.view.all_filters = {};
