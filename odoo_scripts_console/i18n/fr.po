@@ -166,5 +166,17 @@ msgstr "Est automatique"
 #. module: odoo_scripts_console
 #: code:addons\odoo_scripts_console\odoo_scripts_console.py:129
 #, python-format
-msgid "No results to export"
-msgstr "Pas de résultats à exporter"
+msgid "No results to export!"
+msgstr "Pas de résultats à exporter!"
+
+#. module: odoo_scripts_console
+#: code:addons\odoo_scripts_console\odoo_scripts_console.py:160
+#, python-format
+msgid "True"
+msgstr "Vrai"
+
+#. module: odoo_scripts_console
+#: code:addons\odoo_scripts_console\odoo_scripts_console.py:162
+#, python-format
+msgid "False"
+msgstr "Faux"

@@ -19,6 +19,8 @@
 
 import base64
 import xlsxwriter
+import csv
+import StringIO
 
 from io import BytesIO
 from openerp.addons.connector.session import ConnectorSession
@@ -109,19 +111,25 @@ class OdooScriptWatcher(models.Model):
         for forbidden_keyword in FORBIDDEN_SQL_KEYWORDS:
             if forbidden_keyword in query_upper:
                 raise exceptions.except_orm(u"Error!", u"Forbidden keyword %s in watcher query" % forbidden_keyword)
-        self.env.cr.execute("""%s""" % self.query)
-        res = self.env.cr.dictfetchall()
-        if res:
-            if self.nb_lines != len(res) or not self.has_result:
-                self.sudo().write({'has_result': True, 'nb_lines': len(res)})
+
+        query_with_header = "COPY (%s) TO STDOUT WITH CSV HEADER" % self.query
+        output = StringIO.StringIO()
+        self.env.cr.copy_expert(query_with_header, output)
+        output.seek(0)
+        res = csv.reader(output)
+        rows_with_header = [row for row in res]
+        len_row_without_header = len(rows_with_header) - 1
+        if len_row_without_header:
+            if self.nb_lines != len_row_without_header or not self.has_result:
+                self.sudo().write({'has_result': True, 'nb_lines': len_row_without_header})
         elif self.has_result:
             self.sudo().write({'has_result': False, 'nb_lines': 0})
-        return res
+        return rows_with_header
 
     @api.multi
     def export(self):
         self.ensure_one()
-        res = self.watch()
+        rows_with_header = self.watch()
 
         if not self.has_result:
             raise exceptions.Warning(_(u"No results to export!"))
@@ -134,18 +142,25 @@ class OdooScriptWatcher(models.Model):
 
         worksheet = workbook.add_worksheet(u"Resultats")
 
-        if res:
-            # Création de la première ligne d'entête
-            for key in res[0].keys():
-                key = unicode(key.decode('utf-8'))
-                column_number = self.fill_column(worksheet, column_number, style_title, key)
-            # Remplissage des lignes
-            line_no = 0
-            for line in res:
-                line_no += 1
-                column_number = 0
-                for value in line.values():
-                    column_number = self.fill_line(worksheet, line_no, column_number, style_text, value or "")
+        # Création de la première ligne d'entête
+        for head in rows_with_header[0]:
+            head = unicode(head.decode('utf-8'))
+            column_number = self.fill_column(worksheet, column_number, style_title, head)
+
+        rows_with_header.pop(0)
+
+        # Remplissage des lignes
+        line_no = 0
+        for row in rows_with_header:
+            line_no += 1
+            column_number = 0
+            for value in row:
+                value = unicode(value.decode('utf-8'))
+                if value == 't':
+                    value = _(u"True")
+                elif value == 'f':
+                    value = _(u"False")
+                column_number = self.fill_line(worksheet, line_no, column_number, style_text, value or "")
 
         # Élargissement des colonnes
         worksheet.set_column(0, column_number, 30, None)
