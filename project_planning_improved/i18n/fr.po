@@ -144,8 +144,8 @@ msgstr "Date de fin prévue"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_duration
-msgid "Expected duration (hours)"
-msgstr "Durée réelle (heures)"
+msgid "Expected duration (days)"
+msgstr "Durée réelle (jours)"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_start_date
