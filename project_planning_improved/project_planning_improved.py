@@ -289,7 +289,7 @@ class ProjectImprovedTask(models.Model):
                                            store=True)
     expected_start_date = fields.Datetime(string=u"Expected start date")
     expected_end_date = fields.Datetime(string=u"Expected end date")
-    expected_duration = fields.Float(string=u"Expected duration (hours)", compute='_compute_expected_duration',
+    expected_duration = fields.Float(string=u"Expected duration (days)", compute='_compute_expected_duration',
                                      store=True)
     allocated_duration = fields.Float(string=u"Allocated duration", help=u"In project time unit of the company")
     allocated_duration_unit_tasks = fields.Float(string=u"Allocated duration for unit tasks",
@@ -310,9 +310,13 @@ class ProjectImprovedTask(models.Model):
     @api.depends('expected_start_date', 'expected_end_date')
     def _compute_expected_duration(self):
         for rec in self:
-            nb_hours = rec.expected_start_date and rec.expected_end_date and \
-                rec.get_nb_working_hours_from_expected_dates()[1] or 0
-            rec.expected_duration = nb_hours
+            _, calendar = rec.get_default_calendar_and_resource()
+            attendances = calendar.attendance_ids
+            nb_working_hours_by_week = sum([abs(attendance.hour_to - attendance.hour_from) for attendance in attendances])
+            nb_working_days = len(list(set([attendance.dayofweek for attendance in attendances]))) or 5
+            nb_working_hours_by_day = float(nb_working_hours_by_week) / nb_working_days
+            rec.expected_duration = rec.expected_start_date and rec.expected_end_date and \
+                float(rec.get_nb_working_hours_from_expected_dates()[1]) / nb_working_hours_by_day or 0
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
     @api.multi
@@ -353,12 +357,8 @@ class ProjectImprovedTask(models.Model):
                                                              ('resource_type', '=', 'user')], limit=1)
         calendar = False
         if use_calendar:
-            if resource:
-                calendar = resource.calendar_id
-            else:
-                calendar = self.company_id.calendar_id
-            if not calendar:
-                calendar = self.env.ref('resource_improved.default_calendar')
+            calendar = resource and resource.calendar_id or self.company_id.calendar_id or \
+                self.env.ref('resource_improved.default_calendar')
         return resource, calendar
 
     @api.multi
