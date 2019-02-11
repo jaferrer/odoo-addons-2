@@ -72,6 +72,7 @@
                     <field name="expected_end_date" widget="date"
                            attrs="{'required': [('taken_into_account', '=', True)]}"/>
                     <field name="objective_end_date" widget="date"/>
+                    <field name="expected_duration"/>
                     <field name="previous_task_ids" widget="many2many_tags"/>
                     <field name="next_task_ids" widget="many2many_tags"/>
                 </tree>
