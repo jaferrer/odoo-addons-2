@@ -285,10 +285,12 @@ class ProjectImprovedTask(models.Model):
     objective_duration = fields.Integer(string=u"Objective Needed Time (in days)")
     children_task_ids = fields.One2many('project.task', 'parent_task_id', string=u"Children tasks")
     objective_end_date = fields.Datetime(string=u"Objective end date", readonly=True)
-    expected_end_date = fields.Datetime(string=u"Expected end date")
     objective_start_date = fields.Datetime(string=u"Objective start date", compute='_compute_objective_start_date',
                                            store=True)
     expected_start_date = fields.Datetime(string=u"Expected start date")
+    expected_end_date = fields.Datetime(string=u"Expected end date")
+    expected_duration = fields.Float(string=u"Expected duration (hours)", compute='_compute_expected_duration',
+                                     store=True)
     allocated_duration = fields.Float(string=u"Allocated duration", help=u"In project time unit of the company")
     allocated_duration_unit_tasks = fields.Float(string=u"Allocated duration for unit tasks",
                                                  help=u"In project time unit of the comany",
@@ -303,6 +305,14 @@ class ProjectImprovedTask(models.Model):
     @api.constrains('expected_start_date', 'expected_end_date')
     def constraint_dates_consistency(self):
         self.check_dates_working_days()
+
+    @api.multi
+    @api.depends('expected_start_date', 'expected_end_date')
+    def _compute_expected_duration(self):
+        for rec in self:
+            nb_hours = rec.expected_start_date and rec.expected_end_date and \
+                rec.get_nb_working_hours_from_expected_dates()[1] or 0
+            rec.expected_duration = nb_hours
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
     @api.multi
