@@ -33,6 +33,7 @@ It also enables working days planification of production orders.
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'views/res_company.xml',
+        'views/mrp_config_settings.xml',
     ],
     'demo': [
         'demo/mrp_workorder_planning_demo.xml',

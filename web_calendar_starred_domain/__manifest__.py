@@ -28,7 +28,8 @@ Change the native behavior of calendar views by introducing a new attribute for 
 allows to specify a domain in order to filter the partner that appear in the SidebarFilter (when you use the attribute
 use_contacts).
 
-""",
+You can also include in context a variable called ticked_partner_ids, which will tick only partners in the provided
+list.""",
     'author': 'NDP Systèmes',
     'version': '2.0',
     'depends': ['web', 'web_calendar'],

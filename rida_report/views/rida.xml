@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- views -->
+
+    <record model="ir.ui.view" id="rida_line_tree">
+        <field name="name">rida.line.tree</field>
+        <field name="model">rida.line</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="type"/>
+                <field name="name"/>
+                <field name="project_id"/>
+                <field name="theme_id"/>
+                <field name="report_id"/>
+                <field name="user_id" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <field name="date" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <field name="state" widget="kanban_state_selection" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="rida_report_tree">
+        <field name="name">rida.report.tree</field>
+        <field name="model">rida.report</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="creation_date"/>
+                <field name="project_id"/>
+                <field name="theme_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="rida_report_form">
+        <field name="name">rida.report.form</field>
+        <field name="model">rida.report</field>
+        <field name="arch" type="xml">
+            <form>
+                <div class="oe_title">
+                    <h1>
+                        <field name="name" placeholder="Name"/>
+                    </h1>
+                </div>
+                <group>
+                    <group colspan="2">
+                        <field name="theme_id"/>
+                        <field name="project_id"/>
+                    </group>
+                </group>
+                <group string="Lines" col="1">
+                    <field name="line_ids" nolabel="1">
+                        <tree editable="bottom">
+                            <field name="type"/>
+                            <field name="name"/>
+                            <field name="user_id" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                            <field name="date" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                            <field name="state" widget="kanban_state_selection" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                        </tree>
+                    </field>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="rida_line_search">
+        <field name="name">rida.line.search</field>
+        <field name="model">rida.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter name="information_only" string="Informations only" domain="[('type', '=', 'information')]"/>
+                <filter name="decision_only" string="Decisions only" domain="[('type', '=', 'decision')]"/>
+                <filter name="action_only" string="Actions only" domain="[('type', '=', 'action')]"/>
+                <filter name="all_action_todo" string="All actions to do" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
+                <filter name="all_action_done" string="All actions done" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="my_action_todo" string="My actions to do" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
+                <filter name="my_action_done" string="My actions done" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="own_lines" string="My lines" domain="[('user_id', '=', uid), ]"/>
+                <group expand="0" string="Group By">
+                    <filter string="RIDA" domain="[]" context="{'group_by': 'report_id'}"/>
+                    <filter string="Type" domain="[]" context="{'group_by': 'type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- actions -->
+
+    <record model="ir.actions.act_window" id="rida_line_action">
+        <field name="name">Lines</field>
+        <field name="res_model">rida.line</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{'search_default_my_action_todo': 1}</field>
+    </record>
+
+    <record model="ir.actions.act_window" id="rida_report_action">
+        <field name="name">RIDA</field>
+        <field name="res_model">rida.report</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- menuitems -->
+
+    <menuitem
+            name="RIDA"
+            id="rida_root_menu"
+            web_icon="rida_report,static/description/icon.png"/>
+
+    <menuitem
+            name="RIDA"
+            id="rida_menu"
+            parent="rida_root_menu"/>
+
+    <menuitem
+            name="My Lines"
+            id="rida_line_menu"
+            action="rida_line_action"
+            parent="rida_menu"/>
+
+    <menuitem
+            name="RIDA"
+            id="rida_report_menu"
+            action="rida_report_action"
+            parent="rida_menu"/>
+</odoo>

@@ -26,6 +26,7 @@ class ResCompany(models.Model):
     _inherit = 'res.company'
 
     calendar_id = fields.Many2one('resource.calendar', string=u"Company Calendar")
+    duration_between_wo = fields.Float(u"Default duration between 2 work orders (h)", default=1)
 
     def schedule_working_days(self, nb_days, day_date):
         """Returns the date that is nb_days working days after day_date in the context of this company.

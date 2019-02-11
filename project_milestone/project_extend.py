@@ -17,44 +17,48 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models, api
+from odoo import fields, models, api, exceptions, _
 
 
 class ProjectMilestone(models.Model):
     _name = 'project.milestone'
+    _order = 'qualif_should_be_livred_at, id'
 
     name = fields.Char(u"Title", required=True)
-    active = fields.Boolean(u"Active", default=True, readonly=True)
+    active = fields.Boolean(u"Active", default=True)
     project_id = fields.Many2one('project.project', u"Project", required=True)
-
-    task_ids = fields.One2many('project.task', 'milestone_id', u"Task", readonly=True)
-
+    task_ids = fields.One2many('project.task', 'milestone_id', u"Task")
     nb_tasks = fields.Integer(u"Nb Task", compute='_compute_nb_related')
-
+    nb_days_tasks = fields.Integer(u"Number of days", compute='_compute_nb_related')
+    start_date = fields.Date(u"Start date", required=True)
+    qualif_should_be_livred_at = fields.Date(u"Should be in Test at", required=True)
+    should_be_closed_at = fields.Date(u"Should be in Prod at")
+    should_be_test_before = fields.Date(u"Should be tested before")
+    livred_in_qualif_at = fields.Date(u"Delivery in Test at", readonly=True)
+    livred_in_qualif_by = fields.Many2one('res.users', u"Delivery in Test by", readonly=True)
+    livred_in_prod_at = fields.Date(u"Delivery in Prod at", readonly=True)
+    livred_in_prod_by = fields.Many2one('res.users', u"Delivery in Prod by", readonly=True)
+    closed_by = fields.Many2one('res.users', u"Closed by", readonly=True)
+    closed_at = fields.Date(u"Closed at", readonly=True)
     state = fields.Selection([
         ('open', u"Open"),
         ('in_qualif', u"In Test"),
         ('in_prod', u"In Production"),
         ('closed', u"Closed")
-    ], default='open', readonly=True)
+    ], default='open', readonly=True, required=True)
 
-    qualif_should_be_livred_at = fields.Date(u"Should be in Test at")
-    should_be_closed_at = fields.Date(u"Should be in Prod at")
-    should_be_test_before = fields.Date(u"Should be tested before")
-
-    livred_in_qualif_at = fields.Date(u"Delivery in Test at", readonly=True)
-    livred_in_qualif_by = fields.Many2one('res.users', u"Delivery in Test by", readonly=True)
-
-    livred_in_prod_at = fields.Date(u"Delivery in Prod at", readonly=True)
-    livred_in_prod_by = fields.Many2one('res.users', u"Delivery in Prod by", readonly=True)
-
-    closed_by = fields.Many2one('res.users', u"Closed by", readonly=True)
-    closed_at = fields.Date(u"Closed at", readonly=True)
+    @api.constrains('start_date', 'qualif_should_be_livred_at', 'should_be_closed_at')
+    def check_dates_coherence(self):
+        if self.start_date > self.qualif_should_be_livred_at:
+            raise exceptions.ValidationError(_(u"Start date must be before test date."))
+        if self.should_be_closed_at and self.qualif_should_be_livred_at > self.should_be_closed_at:
+            raise exceptions.ValidationError(_(u"Test date must be before prod date."))
 
     @api.multi
     def _compute_nb_related(self):
         for rec in self:
             rec.nb_tasks = len(rec.task_ids)
+            rec.nb_days_tasks = sum([task.planned_hours for task in rec.task_ids])
 
     @api.multi
     def set_to_livred_in_prod(self):
@@ -78,8 +82,11 @@ class ProjectMilestone(models.Model):
             'closed_at': fields.Datetime.now(),
             'closed_by': self.env.user.id,
             'state': 'closed',
-            'active': False,
         })
+
+    @api.multi
+    def reopen(self):
+        self.ensure_one().write({'state': 'open'})
 
     @api.multi
     def see_tasks(self):
@@ -99,9 +106,38 @@ class ProjectProjectMilestone(models.Model):
     _inherit = 'project.project'
 
     milestone_ids = fields.One2many('project.milestone', 'project_id', u"Milestones")
+    nb_milestones = fields.Integer(string=u"Number of milestones", compute='_compute_nb_milestones')
+
+    @api.multi
+    def _compute_nb_milestones(self):
+        for rec in self:
+            rec.nb_milestones = len([milestone for milestone in rec.milestone_ids if milestone.state != 'closed'])
+
+    @api.multi
+    def milestone_tree_view(self):
+        self.ensure_one()
+        ctx = dict(self.env.context)
+        ctx['search_default_project_id'] = self.id
+        ctx['default_project_id'] = self.id
+        ctx['search_default_open'] = True
+        return {
+            'name': _(u"Milestones for project %s") % self.display_name,
+            'res_model': 'project.milestone',
+            'type': 'ir.actions.act_window',
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'context': ctx,
+        }
 
 
 class ProjectTaskMilestone(models.Model):
     _inherit = 'project.task'
 
     milestone_id = fields.Many2one('project.milestone', u"Milestone", track_visibility='onchange')
+    qualif_should_be_livred_at = fields.Date(u"Should be in Test at",
+                                             related="milestone_id.qualif_should_be_livred_at",
+                                             readonly=True, store=True)
+    should_be_closed_at = fields.Date(u"Should be in Prod at", related="milestone_id.should_be_closed_at",
+                                      readonly=True, store=True)
+    should_be_test_before = fields.Date(u"Should be tested before", related="milestone_id.should_be_test_before",
+                                        readonly=True, store=True)

@@ -25,11 +25,16 @@ class ProjectTaskCategory(models.Model):
 
     name = fields.Char(u"Name")
     project_id = fields.Many2one('project.project', string=u"Project")
-
-    active = fields.Boolean(u"Active", default=True, readonly=True)
+    active = fields.Boolean(u"Active", default=True)
 
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
     category_id = fields.Many2one('project.task.category', string=u"Category")
+
+
+class ProjectProject(models.Model):
+    _inherit = 'project.project'
+
+    category_ids = fields.One2many('project.task.category', 'project_id', string=u"Categories")

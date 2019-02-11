@@ -18,3 +18,5 @@
 #
 
 from . import dunning
+from . import dunning_config
+from . import res_company
