@@ -20,15 +20,25 @@
 from openerp import fields, models, api
 
 
-class StockMove(models.Model):
+class ProcurementManagementStockMove(models.Model):
     _inherit = 'stock.move'
 
     cancel_date = fields.Datetime(string=u"Cancel date")
     cancel_uid = fields.Many2one('res.users', string=u"Cancel user")
+
+    @api.model
+    def _create_procurements(self, moves):
+        not_cancelled_procurements = self.env['procurement.order'].search([('move_dest_id', 'in', moves.ids),
+                                                                           ('state', '!=', 'cancel')])
+        to_process = self.search([('state', 'not in', ['done', 'cancel']),
+                                  ('product_id.type', '!=', 'service'),
+                                  ('id', 'in', moves.ids),
+                                  ('id', 'not in', [proc.move_dest_id.id for proc in not_cancelled_procurements])])
+        return super(ProcurementManagementStockMove, self)._create_procurements(to_process)
 
     @api.multi
     def write(self, vals):
         if vals.get('state') == 'cancel':
             vals['cancel_date'] = fields.Datetime.now()
             vals['cancel_uid'] = self.env.user.id
-        return super(StockMove, self).write(vals)
+        return super(ProcurementManagementStockMove, self).write(vals)
