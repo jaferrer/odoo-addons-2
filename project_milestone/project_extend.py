@@ -22,6 +22,7 @@ from odoo import fields, models, api, exceptions, _
 
 class ProjectMilestone(models.Model):
     _name = 'project.milestone'
+    _order = 'qualif_should_be_livred_at, id'
 
     name = fields.Char(u"Title", required=True)
     active = fields.Boolean(u"Active", default=True)
@@ -44,7 +45,7 @@ class ProjectMilestone(models.Model):
         ('in_qualif', u"In Test"),
         ('in_prod', u"In Production"),
         ('closed', u"Closed")
-    ], default='open', readonly=True)
+    ], default='open', readonly=True, required=True)
 
     @api.constrains('start_date', 'qualif_should_be_livred_at', 'should_be_closed_at')
     def check_dates_coherence(self):
@@ -105,9 +106,38 @@ class ProjectProjectMilestone(models.Model):
     _inherit = 'project.project'
 
     milestone_ids = fields.One2many('project.milestone', 'project_id', u"Milestones")
+    nb_milestones = fields.Integer(string=u"Number of milestones", compute='_compute_nb_milestones')
+
+    @api.multi
+    def _compute_nb_milestones(self):
+        for rec in self:
+            rec.nb_milestones = len([milestone for milestone in rec.milestone_ids if milestone.state != 'closed'])
+
+    @api.multi
+    def milestone_tree_view(self):
+        self.ensure_one()
+        ctx = dict(self.env.context)
+        ctx['search_default_project_id'] = self.id
+        ctx['default_project_id'] = self.id
+        ctx['search_default_open'] = True
+        return {
+            'name': _(u"Milestones for project %s") % self.display_name,
+            'res_model': 'project.milestone',
+            'type': 'ir.actions.act_window',
+            'view_mode': 'tree,form',
+            'view_type': 'form',
+            'context': ctx,
+        }
 
 
 class ProjectTaskMilestone(models.Model):
     _inherit = 'project.task'
 
     milestone_id = fields.Many2one('project.milestone', u"Milestone", track_visibility='onchange')
+    qualif_should_be_livred_at = fields.Date(u"Should be in Test at",
+                                             related="milestone_id.qualif_should_be_livred_at",
+                                             readonly=True, store=True)
+    should_be_closed_at = fields.Date(u"Should be in Prod at", related="milestone_id.should_be_closed_at",
+                                      readonly=True, store=True)
+    should_be_test_before = fields.Date(u"Should be tested before", related="milestone_id.should_be_test_before",
+                                        readonly=True, store=True)

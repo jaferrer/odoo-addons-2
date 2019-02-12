@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-        <record model="ir.ui.view" id="project_task_type_mono_project_form">
+        <record id="project_task_type_mono_project_form" model="ir.ui.view" >
             <field name="name">project_task_type_mono_project_form</field>
             <field name="model">project.task.type</field>
             <field name="inherit_id" ref="project.task_type_edit"/>
@@ -11,7 +11,20 @@
                     <attribute name="invisible">1</attribute>
                 </field>
                 <field name="project_ids" position="after">
+                    <field name="project_id" required="1"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="project_task_type_mono_project_project_tags_form_view" model="ir.ui.view" >
+            <field name="name">project_task_type_mono_project_project_tags_form_view</field>
+            <field name="model">project.tags</field>
+            <field name="inherit_id" ref="project.project_tags_form_view"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="name" position="after">
                     <field name="project_id"/>
+                    <field name="active"/>
                 </field>
             </field>
         </record>

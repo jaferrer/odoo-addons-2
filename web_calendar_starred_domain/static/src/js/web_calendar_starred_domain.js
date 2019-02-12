@@ -12,11 +12,17 @@ odoo.define('web_calendar_starred_domain.SidebarFilter', function (require) {
             var self = this;
             // Untick sidebar's filters if there is an active partner in the context
             var active_partner = (this.view.dataset.context.active_model === 'res.partner');
+            var ticked_partner_ids = [];
+            if(this.view.dataset.context.hasOwnProperty('ticked_partner_ids')){
+                 ticked_partner_ids = (this.view.dataset.context.ticked_partner_ids);
+            }
             var starred_domain = this.view.fields_view.arch.attrs['starred_domain'];
             return session.is_bound.then(function () {
                 self.view.all_filters = {};
                 self.view.now_filter_ids = [];
-                self._add_filter(session.partner_id, session.name + _lt(" [Me]"), !active_partner);
+                if (ticked_partner_ids.length == 0){
+                    self._add_filter(session.partner_id, session.name + _lt(" [Me]"), !active_partner);
+                }
                 self._add_filter(-1, _lt("Everybody's calendars"), false, false);
                 //Get my coworkers/contacts
                 if (starred_domain) {
@@ -26,7 +32,11 @@ odoo.define('web_calendar_starred_domain.SidebarFilter', function (require) {
                         .all()
                         .then(function (result) {
                             _.each(result, function (item) {
-                                self._add_filter(item.id, item.name, !active_partner, true);
+                                var ticked = false;
+                                if (ticked_partner_ids.length == 0 || ticked_partner_ids.indexOf(item.id) >= 0 || active_partner == true){
+                                    ticked = true
+                                }
+                                self._add_filter(item.id, item.name, ticked, true);
                             });
 
                             self.view.now_filter_ids = _.pluck(self.view.all_filters, 'value');
