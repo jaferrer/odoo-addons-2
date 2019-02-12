@@ -23,7 +23,7 @@ from openerp.exceptions import except_orm
 from openerp import fields, models, api, _
 
 
-class product_supplierinfo_improved (models.Model):
+class productSupplierinfoImproved (models.Model):
     _inherit = "product.supplierinfo"
     validity_date_2 = fields.Date(
         "Validity date",

@@ -102,6 +102,10 @@ class ProcurementOrderQuantity(models.Model):
             m.qty = qty
 
     @api.model
+    def get_default_supplierinfos_for_orderpoint_confirm(self):
+        return self.env['product.supplierinfo'].search([('name', 'in', self.env.context['compute_supplier_ids'])])
+
+    @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
                                     run_moves=True):
         """
@@ -115,9 +119,8 @@ class ProcurementOrderQuantity(models.Model):
         if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
             dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
         if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
-            supplierinfo_ids = self.env['product.supplierinfo']. \
-                search([('name', 'in', self.env.context['compute_supplier_ids'])])
-            read_supplierinfos = supplierinfo_ids.read(['id', 'product_tmpl_id'], load=False)
+            supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
+            read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
             dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
         orderpoints = orderpoint_env.search(dom)
         if run_procurements:
