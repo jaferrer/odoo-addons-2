@@ -708,10 +708,20 @@ WHERE po.state NOT IN %s AND
             return_msg += u"\nDraft order(s) filled: %s s." % int((dt.now() - time_now).seconds)
         return return_msg
 
+    @api.model
+    def get_query_product_supplierinfo_restricted(self):
+        return """product_supplierinfo_restricted AS (
+      SELECT *
+      FROM product_supplierinfo
+      WHERE product_tmpl_id IN (SELECT id
+                                FROM product_template_restricted) AND
+            name = %s),"""
+
     @api.multi
     def get_first_date_planned_by_delay(self, seller):
         if not self:
             return {}
+        query_product_supplierinfo_restricted = self.get_query_product_supplierinfo_restricted()
         self.env.cr.execute("""WITH procurement_order_restricted AS (
     SELECT *
     FROM procurement_order
@@ -729,12 +739,7 @@ WHERE po.state NOT IN %s AND
       WHERE id IN (SELECT product_tmpl_id
                    FROM product_product_restricted)),
 
-    product_supplierinfo_restricted AS (
-      SELECT *
-      FROM product_supplierinfo
-      WHERE product_tmpl_id IN (SELECT id
-                                FROM product_template_restricted) AND
-            name = %s),
+""" + query_product_supplierinfo_restricted + """
 
     main_supplier_table_intermediate AS (
       SELECT

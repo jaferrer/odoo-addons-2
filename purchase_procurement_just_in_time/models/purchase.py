@@ -273,7 +273,7 @@ class PurchaseOrderLineJustInTime(models.Model):
     def _compute_supplier_code(self):
         for rec in self:
             supplierinfo = self.env['product.supplierinfo']. \
-                search([('product_tmpl_id', '=', rec.product_id.product_tmpl_id.id),
+                search([('id', 'in', rec.product_id.seller_ids.ids),
                         ('name', '=', rec.partner_id.id)], order='sequence, id', limit=1)
             if supplierinfo:
                 rec.supplier_code = supplierinfo.product_code
