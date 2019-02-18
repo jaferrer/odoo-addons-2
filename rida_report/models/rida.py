@@ -42,8 +42,8 @@ class RidaLine(models.Model):
     user_id = fields.Many2one('res.users', u"Related user")
     date = fields.Date(u"Expected date")
     report_id = fields.Many2one('rida.report', u"Related RIDA", required=True)
-    project_id = fields.Many2one('project.project', related='report_id.project_id')
-    theme_id = fields.Many2one('res.partner', related='report_id.theme_id')
+    project_id = fields.Many2one('project.project', related='report_id.project_id', store=True)
+    theme_id = fields.Many2one('res.partner', related='report_id.theme_id', store=True)
 
     # The following field only exists if type is 'action'
     state = fields.Selection([
