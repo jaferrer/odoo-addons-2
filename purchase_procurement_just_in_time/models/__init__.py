@@ -20,6 +20,7 @@
 from . import time_frame
 from . import purchase
 from . import procurement
+from . import stock
 from . import wizard
 from . import partner
 from . import res_config

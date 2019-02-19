@@ -455,7 +455,8 @@ class TestPurchaseScheduler(common.TransactionCase):
         line5.product_qty = 50
         purchase5.signal_workflow('purchase_confirm')
         self.assertEqual(purchase5.state, 'approved')
-        move5 = self.env['stock.move'].search([('procurement_id', '=', self.proc5.id)])
+        move5 = line5.move_ids
+        self.assertEqual(len(move5), 1)
         # We check uom treatment for function compute_procs_for_first_line_found
         self.assertEqual(self.proc1.product_qty, 34)
         self.assertEqual(self.proc1.product_uom, self.unit)
@@ -463,7 +464,11 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.proc1.product_uom = self.uom_couple
         self.assertEqual(len(move5), 1)
         self.assertEqual(move5.purchase_line_id, line5)
-        move5.action_done()
+        # Let's transfer 4 units (qty of proc 5).
+        new_move_id = self.env['stock.move'].split(move5, 4)
+        new_move = self.env['stock.move'].browse(new_move_id)
+        self.assertEqual(new_move.purchase_line_id, line5)
+        new_move.action_done()
         self.assertEqual(self.proc5.state, 'done')
         self.assertEqual(line5.remaining_qty, 46)
 
@@ -493,10 +498,8 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # Let's check moves and procurements for line5
         moves_data = [(move.procurement_id, move.state, move.product_uom_qty) for move in line5.move_ids]
-        self.assertIn((self.proc5, 'done', 4), moves_data)
-        self.assertIn((self.proc1, 'assigned', 34), moves_data)
-        self.assertIn((self.proc2, 'assigned', 2), moves_data)
-        self.assertIn((self.env['procurement.order'], 'assigned', 10), moves_data)
+        self.assertIn((self.env['procurement.order'], 'done', 4), moves_data)
+        self.assertIn((self.env['procurement.order'], 'assigned', 46), moves_data)
 
         procs_data = [(proc, proc.state, proc.product_qty, proc.product_uom) for proc in line5.procurement_ids]
         self.assertIn((self.proc5, 'done', 4, self.unit), procs_data)
@@ -532,24 +535,42 @@ class TestPurchaseScheduler(common.TransactionCase):
         line1 = purchase1.order_line
         self.assertEqual(len(line1), 1)
         self.assertEqual(line1.product_qty, 36)
+        self.assertEqual(len(line1.procurement_ids), 2)
+        self.assertIn(self.proc1, line1.procurement_ids)
+        self.assertIn(self.proc2, line1.procurement_ids)
         line1.product_qty = 35
+
         purchase1.signal_workflow('purchase_confirm')
         self.assertEqual(purchase1.state, 'approved')
+        self.assertEqual(len(line1.move_ids), 1)
+        self.assertEqual(line1.move_ids.product_qty, 35)
+        self.assertFalse(line1.move_ids.procurement_id)
+        # No proc was removed from this line (this will be done by the next purchase scheduler)
+        self.assertEqual(len(line1.procurement_ids), 2)
+        self.assertIn(self.proc1, line1.procurement_ids)
+        self.assertIn(self.proc2, line1.procurement_ids)
+
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_product_ids=self.product1,
                                                         jobify=False)
+        # proc2 was removed from this line, and there is still only one move linked
+        self.assertEqual(line1.procurement_ids, self.proc1)
+        self.assertEqual(len(line1.move_ids), 1)
+        self.assertEqual(line1.move_ids.product_qty, 35)
+        self.assertFalse(line1.move_ids.procurement_id)
 
         line1.product_qty = 40
 
         self.assertEqual(len(line1.procurement_ids), 1)
-        self.assertEqual(line1.procurement_ids[0], self.proc1)
+        self.assertEqual(line1.procurement_ids, self.proc1)
         self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 2)
         m1, m2 = [self.env['stock.move']] * 2
         for move in line1.move_ids.filtered(lambda move: move.state != 'cancel'):
-            if move.product_qty == 34:
+            if move.product_qty == 35:
                 m1 = move
-            elif move.product_qty == 6:
+            elif move.product_qty == 5:
                 m2 = move
+        self.assertTrue(m1 and m2)
 
         picking = purchase1.picking_ids[0]
         picking.do_prepare_partial()
@@ -557,11 +578,12 @@ class TestPurchaseScheduler(common.TransactionCase):
         picking.pack_operation_ids[0].product_qty = 35
         picking.do_transfer()
 
-        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 3)
+        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 2)
         self.assertEqual(m1.state, 'done')
-        self.assertEqual(m1.product_qty, 34)
-        self.assertEqual(m2.state, 'done')
-        self.assertEqual(m2.product_qty, 1)
+        self.assertEqual(m1.product_qty, 35)
+        self.assertEqual(m2.state, 'assigned')
+        self.assertEqual(m2.product_qty, 5)
+        self.assertNotEqual(m1.picking_id, m2.picking_id)
 
         self.assertEqual(line1.remaining_qty, 5)
 
@@ -605,16 +627,10 @@ class TestPurchaseScheduler(common.TransactionCase):
         line1.product_qty = 40
         purchase1.signal_workflow('purchase_confirm')
         self.assertEqual(purchase1.state, 'approved')
-        move1 = self.env['stock.move'].search([('procurement_id', '=', self.proc1.id)])
-        self.assertEqual(len(move1), 1)
-        move2 = self.env['stock.move'].search([('procurement_id', '=', self.proc2.id)])
-        self.assertEqual(len(move2), 1)
-        self.assertEqual(len(line1.move_ids), 3)
-        self.assertIn(move1, line1.move_ids)
-        extra_move1 = line1.move_ids.filtered(lambda move: move not in [move1, move2])
-        self.assertTrue(extra_move1)
-        group1 = move1.group_id
-        picking1 = move1.picking_id
+        move = line1.move_ids
+        self.assertEqual(len(move), 1)
+        group1 = move.group_id
+        picking1 = move.picking_id
         self.assertEqual(picking1.partner_id, self.supplier)
         self.assertTrue(group1)
         self.assertTrue(picking1)
@@ -635,8 +651,8 @@ class TestPurchaseScheduler(common.TransactionCase):
 
         # Let's change a date, duplicate proc 1 to swith proc 1 to a draft order (purchase5) and reschedule
         self.proc1.date_planned = '3003-09-14 11:58:22'
-        self.assertNotEqual(extra_move1.state, 'cancel')
-        self.assertFalse(extra_move1.procurement_id)
+        self.assertNotEqual(move.state, 'cancel')
+        self.assertFalse(move.procurement_id)
         new_proc1 = self.prepare_proc_1()
         new_proc1.run()
         self.assertEqual(new_proc1.state, 'buy_to_run')
@@ -646,12 +662,8 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn(line1_id, [line.id for line in self.env['purchase.order.line'].search([])])
 
         # Let's check purchase1 moves
-        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 3)
-        moves_data = [(move.procurement_id, move.state, move.product_uom_qty, move.group_id, move.picking_id) for
-                      move in line1.move_ids.filtered(lambda move: move.state != 'cancel')]
-        self.assertIn((new_proc1, 'assigned', 34, group1, picking1), moves_data)
-        self.assertIn((self.proc2, 'assigned', 2, group1, picking1), moves_data)
-        self.assertIn((self.env['procurement.order'], 'assigned', 4, group1, picking1), moves_data)
+        self.assertEqual(len(line1.move_ids), 1)
+        self.assertEqual(line1.move_ids, move)
 
         # Let's check data for proc1
         purchase5 = self.proc5.purchase_id
@@ -662,7 +674,7 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertEqual(line5.state, "draft")
         self.assertEqual(self.proc1.purchase_id, purchase5)
         self.assertEqual(self.proc1.purchase_line_id, line5)
-        self.assertEqual(len(self.proc1.move_ids.filtered(lambda move: move.state != 'cancel')), 0)
+        self.assertFalse(self.proc1.move_ids)
 
     def test_25_switch_proc_from_confirmed_to_sent_order(self):
         self.env['procurement.order'].purchase_schedule(jobify=False)
@@ -693,23 +705,17 @@ class TestPurchaseScheduler(common.TransactionCase):
         line1.product_qty = 40
         purchase1.signal_workflow('purchase_confirm')
         self.assertEqual(purchase1.state, 'approved')
-        move1 = self.env['stock.move'].search([('procurement_id', '=', self.proc1.id)])
-        self.assertEqual(len(move1), 1)
-        move2 = self.env['stock.move'].search([('procurement_id', '=', self.proc2.id)])
-        self.assertEqual(len(move2), 1)
-        self.assertEqual(len(line1.move_ids), 3)
-        self.assertIn(move1, line1.move_ids)
-        extra_move1 = line1.move_ids.filtered(lambda move: move not in [move1, move2])
-        self.assertTrue(extra_move1)
-        group1 = move1.group_id
-        picking1 = move1.picking_id
+        move = line1.move_ids
+        self.assertEqual(len(move), 1)
+        group1 = move.group_id
+        picking1 = move.picking_id
         self.assertTrue(group1)
         self.assertTrue(picking1)
 
         # Let's change a date, duplicate proc 1 to swith proc 1 to a draft order (purchase5) and reschedule
         self.proc1.date_planned = '3003-09-14 11:58:22'
-        self.assertNotEqual(extra_move1.state, 'cancel')
-        self.assertFalse(extra_move1.procurement_id)
+        self.assertNotEqual(move.state, 'cancel')
+        self.assertFalse(move.procurement_id)
 
         # Let's switch purchase5 to 'sent' status
         purchase5.state = 'sent'
@@ -719,12 +725,8 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn(line1_id, [line.id for line in self.env['purchase.order.line'].search([])])
 
         # Let's check purchase1 moves
-        self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 3)
-        moves_data = [(move.procurement_id, move.state, move.product_uom_qty, move.group_id, move.picking_id) for
-                      move in line1.move_ids.filtered(lambda move: move.state != 'cancel')]
-        self.assertIn((self.proc1, 'assigned', 34, group1, picking1), moves_data)
-        self.assertIn((self.proc2, 'assigned', 2, group1, picking1), moves_data)
-        self.assertIn((self.proc5, 'assigned', 4, group1, picking1), moves_data)
+        self.assertEqual(len(line1.move_ids), 1)
+        self.assertEqual(line1.move_ids, move)
 
         # Let's check that sent order still has no picking
         self.assertFalse(purchase5.picking_ids)
