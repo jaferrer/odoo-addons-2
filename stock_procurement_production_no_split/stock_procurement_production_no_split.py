@@ -17,12 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from openerp import models
 
 
 class StockProcurementProductionNoSplit(models.Model):
     _inherit = 'stock.move'
 
-    def split_proc(self, new_move, current_move=False):
+    def split_proc_for_move(self, new_move, current_move=False):
         if not current_move.production_id:
-            super(StockProcurementProductionNoSplit, self).split_proc(new_move)
+            super(StockProcurementProductionNoSplit, self).split_proc_for_move(new_move)
