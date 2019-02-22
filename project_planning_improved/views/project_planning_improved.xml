@@ -135,6 +135,7 @@ self.update_ready_for_execution(cr, uid, context.get('active_ids'), False, conte
                 </sheet>
                 <field name="tag_ids" position="after">
                     <field name="critical_task"/>
+                    <field name="notify_managers_when_dates_change"/>
                 </field>
                 <field name="planned_hours" position="after">
                     <field name="objective_duration"/>
