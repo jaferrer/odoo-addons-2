@@ -178,7 +178,9 @@ class SaleAdvancePaymentInv(models.TransientModel):
             'tax_id': [(6, 0, taxes.ids)],
         }]
 
+    @api.multi
     def _prepare_deposit_product(self):
+        self.ensure_one()
         return {
             'name': 'Down payment',
             'type': 'service',
