@@ -21,6 +21,7 @@ from dateutil.relativedelta import relativedelta
 
 from openerp import models, fields, api, _
 from openerp.exceptions import UserError
+from openerp.report import report_sxw
 
 
 class ProjectImprovedProject(models.Model):
@@ -301,6 +302,8 @@ class ProjectImprovedTask(models.Model):
     conflict = fields.Boolean(string=u"Conflict")
     is_milestone = fields.Boolean(string="Is milestone", compute="_get_is_milestone", store=True, default=False)
     ready_for_execution = fields.Boolean(string=u"Ready for execution", readonly=True, track_visibility=True)
+    notify_managers_when_dates_change = fields.Boolean(string=u"Notify managers when dates change",
+                                                       help=u"The list of managers is defined in project configuration")
 
     @api.constrains('expected_start_date', 'expected_end_date')
     def constraint_dates_consistency(self):
@@ -765,7 +768,57 @@ class ProjectImprovedTask(models.Model):
                 rec.with_context(propagating_tasks=True).propagate_dates()
                 # Unit tests should cover the potential cases of ond "check_dates" function
                 # rec.check_dates()
+            if dates_changed and rec.notify_managers_when_dates_change:
+                rec.notify_managers_for_date_change()
         return True
+
+    @api.multi
+    def notify_managers_for_date_change(self):
+        self.ensure_one()
+        email_from = self.env['mail.message']._get_default_from()
+        partners_to_notify_config = self.env['ir.config_parameter']. \
+            get_param('project_planning_improved.notify_date_changes_for_partner_ids', '[]')
+        partner_to_notify_ids = eval(partners_to_notify_config)
+        if not partner_to_notify_ids:
+            return
+        rml_obj = report_sxw.rml_parse(self.env.cr, self.env.uid, 'project.task', dict(self.env.context))
+        rml_obj.localcontext.update({'lang': self.env.context.get('lang', False)})
+        for rec in self:
+            for partner_id in partner_to_notify_ids:
+                if partner_id == self.env.user.partner_id.id:
+                    continue
+                partner = self.env['res.partner'].browse(partner_id)
+                channels = self.env['mail.channel']. \
+                    search([('channel_partner_ids', '=', partner_id),
+                            ('channel_partner_ids', '=', self.env.user.partner_id.id)])
+                chosen_channel = self.env['mail.channel']
+                for channel in channels:
+                    if len(channel.channel_partner_ids) == 2:
+                        chosen_channel = channel
+                        break
+                if not chosen_channel:
+                    chosen_channel = self.env['mail.channel'].create({
+                        'name': "%s, %s" % (partner.name, self.env.user.partner_id.name),
+                        'public': 'private',
+                        'partner_ids': [(6, 0, [partner_id, self.env.user.partner_id.id])]
+                    })
+                message = self.env['mail.message'].create({
+                    'subject': _(u"Replanification of task %s in project %s" %
+                                 (rec.display_name, rec.project_id.display_name)),
+                    'body': _(u"%s has changed the dates of task %s in project %s: "
+                              u"expected start date %s, expected end date %s.") %
+                            (self.env.user.partner_id.name, rec.display_name, rec.project_id.display_name,
+                             rml_obj.formatLang(rec.expected_start_date[:10], date=True),
+                             rml_obj.formatLang(rec.expected_end_date[:10], date=True)),
+                    'record_name': rec.name,
+                    'email_from': email_from,
+                    'reply_to': email_from,
+                    'model': 'project.task',
+                    'res_id': rec.id,
+                    'no_auto_thread': True,
+                    'channel_ids': [(6, 0, chosen_channel.ids)],
+                })
+                partner.with_context(auto_delete=True)._notify(message, force_send=True, user_signature=True)
 
     @api.multi
     def get_slide_tasks(self, vals):
