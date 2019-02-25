@@ -228,6 +228,12 @@ WHERE sm.state NOT IN ('done', 'cancel') AND sm.procurement_id IN %s""", (tuple(
                                       force_date_ref=force_date_ref, force_product_domain=force_product_domain)
 
     @api.model
+    def execute_procs_by_seller_query(self, corresponding_products):
+        module_path = modules.get_module_path('purchase_procurement_just_in_time')
+        with open(module_path + '/sql/' + 'procs_by_seller_query.sql') as sql_file:
+            self.env.cr.execute(sql_file.read(), (tuple(corresponding_products.ids or [0]),))
+
+    @api.model
     def launch_purchase_schedule(self, compute_all_products, compute_supplier_ids, compute_product_ids, jobify,
                                  force_date_ref=False, force_product_domain=None):
         corresponding_products = self.env['product.product'].search(force_product_domain or [])
@@ -245,9 +251,7 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
                                  self.env['res.partner'].search([('supplier', '=', True)]).ids or \
                                  compute_supplier_ids or []
         dict_proc_sellers = {seller_id: [] for seller_id in sellers_to_compute_ids}
-        module_path = modules.get_module_path('purchase_procurement_just_in_time')
-        with open(module_path + '/sql/' + 'procs_by_seller_query.sql') as sql_file:
-            self.env.cr.execute(sql_file.read(), (tuple(corresponding_products.ids or [0]),))
+        self.execute_procs_by_seller_query(corresponding_products)
         for item in self.env.cr.fetchall():
             if compute_all_products or compute_supplier_ids and item[1] in compute_supplier_ids or compute_product_ids \
                     and item[4] in compute_product_ids:
