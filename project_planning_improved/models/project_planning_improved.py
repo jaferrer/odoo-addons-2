@@ -773,14 +773,17 @@ class ProjectImprovedTask(models.Model):
         return True
 
     @api.multi
+    def get_partner_to_notify_ids(self):
+        self.ensure_one()
+        partners_to_notify_config = self.env['ir.config_parameter']. \
+            get_param('project_planning_improved.notify_date_changes_for_partner_ids', '[]')
+        return eval(partners_to_notify_config) or []
+
+    @api.multi
     def notify_managers_for_date_change(self):
         self.ensure_one()
         email_from = self.env['mail.message']._get_default_from()
-        partners_to_notify_config = self.env['ir.config_parameter']. \
-            get_param('project_planning_improved.notify_date_changes_for_partner_ids', '[]')
-        partner_to_notify_ids = eval(partners_to_notify_config)
-        if not partner_to_notify_ids:
-            return
+        partner_to_notify_ids = self.get_partner_to_notify_ids()
         rml_obj = report_sxw.rml_parse(self.env.cr, self.env.uid, 'project.task', dict(self.env.context))
         rml_obj.localcontext.update({'lang': self.env.context.get('lang', False)})
         for rec in self:
@@ -790,7 +793,9 @@ class ProjectImprovedTask(models.Model):
                 partner = self.env['res.partner'].browse(partner_id)
                 channels = self.env['mail.channel']. \
                     search([('channel_partner_ids', '=', partner_id),
-                            ('channel_partner_ids', '=', self.env.user.partner_id.id)])
+                            ('channel_partner_ids', '=', self.env.user.partner_id.id),
+                            ('email_send', '=', False),
+                            ('group_ids', '=', False)])
                 chosen_channel = self.env['mail.channel']
                 for channel in channels:
                     if len(channel.channel_partner_ids) == 2:
@@ -800,7 +805,8 @@ class ProjectImprovedTask(models.Model):
                     chosen_channel = self.env['mail.channel'].create({
                         'name': "%s, %s" % (partner.name, self.env.user.partner_id.name),
                         'public': 'private',
-                        'partner_ids': [(6, 0, [partner_id, self.env.user.partner_id.id])]
+                        'email_send': False,
+                        'channel_partner_ids': [(6, 0, [partner_id, self.env.user.partner_id.id])]
                     })
                 message = self.env['mail.message'].create({
                     'subject': _(u"Replanification of task %s in project %s" %
