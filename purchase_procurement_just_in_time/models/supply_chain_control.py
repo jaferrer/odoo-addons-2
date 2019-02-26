@@ -134,7 +134,7 @@ class ProductTemplateJit(models.Model):
     @api.multi
     def get_main_supplierinfo(self, force_company=None):
         self.ensure_one()
-        supplier_infos_domain = [('product_tmpl_id', '=', self.id)]
+        supplier_infos_domain = [('id', 'in', self.seller_ids.ids)]
         if force_company:
             supplier_infos_domain += ['|', ('company_id', '=', force_company.id), ('company_id', '=', False)]
         return self.env['product.supplierinfo'].search(supplier_infos_domain, order='sequence, id', limit=1)

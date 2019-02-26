@@ -46,21 +46,32 @@ class ForbiddenCancelProtectedProcurement(exceptions.except_orm):
 def process_orderpoints(session, model_name, ids, context):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    orderpoints = session.env[model_name].with_context(context).search([('id', 'in', ids)],
-                                                                       order='stock_scheduler_sequence desc')
+    orderpoints = session.env[model_name].with_context(context).search([('id', 'in', ids)])
     orderpoints.process()
     job_uuid = session.context.get('job_uuid')
     if job_uuid:
-        line = session.env['stock.scheduler.controller'].search([('job_uuid', '=', job_uuid),
-                                                                 ('done', '=', False)])
+        line = session.env['stock.scheduler.controller'].search([('job_uuid', '=', job_uuid), ('done', '=', False)])
         line.set_to_done()
+
+
+class StockLocationSchedulerSequence(models.Model):
+    _name = 'stock.location.scheduler.sequence'
+
+    name = fields.Char(string=u"Stock scheduler sequence", required=True)
+    location_id = fields.Many2one('stock.location', string=u"Location", ondelete='cascade')
+
+    _sql_constraints = [
+        ('location_sequence_unique', 'unique(location_id, name)',
+         _(u"Each sequence must be unique for the same location!")),
+    ]
 
 
 class StockLocation(models.Model):
     _inherit = 'stock.location'
 
-    stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence",
-                                              help=u"Same order as the logistic flow")
+    stock_scheduler_sequence_ids = fields.One2many('stock.location.scheduler.sequence', 'location_id',
+                                                   string=u"Stock scheduler sequence",
+                                                   help=u"Same order as the logistic flow")
 
 
 class StockLocationRoute(models.Model):
@@ -91,8 +102,12 @@ class ProcurementOrderQuantity(models.Model):
             m.qty = qty
 
     @api.model
+    def get_default_supplierinfos_for_orderpoint_confirm(self):
+        return self.env['product.supplierinfo'].search([('name', 'in', self.env.context['compute_supplier_ids'])])
+
+    @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
-        run_moves=True):
+                                    run_moves=True):
         """
         Create procurement based on orderpoint
 
@@ -104,9 +119,8 @@ class ProcurementOrderQuantity(models.Model):
         if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
             dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
         if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
-            supplierinfo_ids = self.env['product.supplierinfo']. \
-                search([('name', 'in', self.env.context['compute_supplier_ids'])])
-            read_supplierinfos = supplierinfo_ids.read(['id', 'product_tmpl_id'], load=False)
+            supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
+            read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
             dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
         orderpoints = orderpoint_env.search(dom)
         if run_procurements:
@@ -138,7 +152,7 @@ class ProcurementOrderQuantity(models.Model):
           op.id                                     AS orderpoint_id,
           op.product_id,
           op.location_id,
-          COALESCE(sl.stock_scheduler_sequence, 0)  AS location_sequence,
+          COALESCE(slss.name :: INTEGER, 0)         AS location_sequence ,
           COALESCE(slr.stock_scheduler_sequence, 0) AS route_sequence,
           FALSE                                     AS run_procs,
           FALSE                                     AS done,
@@ -149,12 +163,12 @@ class ProcurementOrderQuantity(models.Model):
           (SELECT user_id
            FROM user_id)                            AS write_uid
         FROM stock_warehouse_orderpoint op
-          LEFT JOIN stock_location sl ON sl.id = op.location_id
+          LEFT JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
           LEFT JOIN product_product pp ON pp.id = op.product_id
           LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
           LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
         WHERE op.id IN %s
-        GROUP BY op.id, sl.stock_scheduler_sequence, slr.stock_scheduler_sequence),
+        GROUP BY op.id, slr.stock_scheduler_sequence, slss.name),
 
       list_sequences AS (
         SELECT
@@ -212,7 +226,7 @@ class ProcurementOrderQuantity(models.Model):
                             moves_to_unlink += move
                             if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
                                 move.procurement_id.state == 'cancel' and \
-                                not any([move.state == 'done' for move in move.procurement_id.move_ids]):
+                                    not any([move.state == 'done' for move in move.procurement_id.move_ids]):
                                 procurements_to_unlink += move.procurement_id
                 if moves_to_unlink:
                     moves_to_unlink.unlink()
@@ -289,8 +303,8 @@ class StockMoveJustInTime(models.Model):
 class StockWarehouseOrderPointJit(models.Model):
     _inherit = 'stock.warehouse.orderpoint'
 
-    stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence", default=1000,
-                                              related='location_id.stock_scheduler_sequence', store=True, readonly=True)
+    stock_scheduler_sequence_ids = fields.One2many(string=u"Stock scheduler sequences",
+                                                   related='location_id.stock_scheduler_sequence_ids')
 
     @api.multi
     def get_list_events(self):
@@ -347,7 +361,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-              fields.Datetime.from_string(last_schedule[0].get('date')) or False
+            fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -446,7 +460,7 @@ class StockWarehouseOrderPointJit(models.Model):
 
     @api.model
     def compute_stock_levels_requirements(self, product_id, location, list_move_types, limit=1,
-        parameter_to_sort='date', to_reverse=False, max_date=None):
+                                          parameter_to_sort='date', to_reverse=False, max_date=None):
         """
         Computes stock level report
         :param product_id: int

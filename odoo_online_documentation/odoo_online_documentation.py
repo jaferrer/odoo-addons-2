@@ -21,6 +21,7 @@ import os
 import base64
 import subprocess
 from openerp import modules, models, fields, api
+import shutil
 
 
 class OdooOnlineDocumentation(models.Model):
@@ -59,7 +60,11 @@ class OdooOnlineDocumentation(models.Model):
             module_path = modules.get_module_path(module_name)
             path_from_module = len(split_path) > 1 and os.sep.join(split_path[1:]) or ''
             total_path = os.sep.join([module_path, path_from_module])
-            cmd = subprocess.Popen("asciidoctor-pdf -D /tmp " + total_path,
+            # We have to run all the process from the same directory (here, it is /tmp).
+            # Otherwise, asciidoctor-diagram will generate its pictures in /tmp and look for them in original path
+            # (this is an asciidoctor-diagram reported issue).
+            shutil.copyfile(total_path, '/tmp/' + file_name_total)
+            cmd = subprocess.Popen('asciidoctor-pdf -r asciidoctor-diagram /tmp/' + file_name_total,
                                    stderr=subprocess.STDOUT, shell=True, stdout=subprocess.PIPE)
             cmd.wait()
             with open('/tmp/' + file_name + '.pdf', 'rb') as file:
