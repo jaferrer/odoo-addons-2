@@ -18,22 +18,22 @@
 #
 
 {
-    'name': 'Odoo Online Documentation',
+    'name': 'Odoo Online Documentation Sharepoint',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Knowledge',
-    'depends': [],
-    'depends': ['knowledge'],
+    'depends': ['odoo_online_documentation'],
     'description': """
-Odoo Online Documentation
-=========================
+Odoo Online Documentation Sharepoint
+====================================
 This modules allows Odoo Developpers to provide online technical documentation, with auto-update after each delivery.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
-        'odoo_online_documentation.xml',
+        'odoo_online_documentation_sharepoint.xml',
+        'cron.xml',
     ],
     'demo': [],
     'test': [],
