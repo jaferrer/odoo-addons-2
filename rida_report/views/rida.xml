@@ -10,6 +10,8 @@
             <tree editable="top">
                 <field name="type"/>
                 <field name="name"/>
+                <field name="project_id"/>
+                <field name="theme_id"/>
                 <field name="report_id"/>
                 <field name="user_id" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                 <field name="date" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>

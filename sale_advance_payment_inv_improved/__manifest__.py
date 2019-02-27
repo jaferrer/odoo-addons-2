@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,19 +18,23 @@
 #
 
 {
-    'name': 'Translations improved',
+    'name': 'Improved Code of sale.advance.payment.inv',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical',
-    'depends': ['base'],
+    'category': 'Sale',
+    'depends': ['sale'],
     'description': """
-Translations improved
-=====================
-This modules improves a few features for translations management.
+Improved Code of sale.advance.payment.inv Model
+===============================================
+Splitting big functions with multi sub functions then we can override the behavior in other modules
+
+This module don't change the original behavior
+
+All Odoo Test of sale should be ok after installing this module
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['cron.xml'],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,

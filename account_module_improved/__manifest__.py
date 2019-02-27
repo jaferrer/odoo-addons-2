@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,27 +17,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
 {
-    'name': 'Web Calendar Starred Domain',
-    'category': 'Hidden',
-    'description': """
-Web Calendar Starred Domain.
-============================
-Change the native behavior of calendar views by introducing a new attribute for calendar views: starred_domain. It
-allows to specify a domain in order to filter the partner that appear in the SidebarFilter (when you use the attribute
-use_contacts).
-
-You can also include in context a variable called ticked_partner_ids, which will tick only partners in the provided
-list.""",
+    'name': 'Account Module Improved',
+    'version': '0.1',
     'author': 'NDP Systèmes',
-    'version': '2.0',
-    'depends': ['web', 'web_calendar'],
-    'data': [
-        'views/web_calendar_templates.xml',
-    ],
-    'qweb': [
-    ],
+    'maintainer': 'NDP Systèmes',
+    'category': 'Account',
+    'depends': ['account', 'report_aeroo'],
+    'description': """
+Account Module Improved
+=======================
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [],
+    'demo': [],
+    'test': [],
+    'installable': True,
     'auto_install': False,
-    'application': False
+    'license': 'AGPL-3',
+    'application': False,
 }

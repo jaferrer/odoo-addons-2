@@ -54,6 +54,11 @@ class ProjectDeliveryTask(models.Model):
     _inherit = 'project.task'
 
     delivery_ids = fields.Many2many('project.delivery', 'delivery_task_rel', string=u"Deliveries")
+    project_use_delivery = fields.Boolean(
+        u"This project use Delivery",
+        related='project_id.use_delivery',
+        readonly=True
+    )
 
 
 class ProjectDeliveryProject(models.Model):
