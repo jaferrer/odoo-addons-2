@@ -24,7 +24,7 @@ class ProjectPlanningImprovedSettings(models.TransientModel):
     _inherit = 'project.config.settings'
 
     notify_date_changes_for_partner_ids = fields. \
-        Many2many('res.partner', domain=[('user_ids', '!=', False), ('user_ids.share', '=', False)],
+        Many2many('res.partner', domain=[('has_internal_user', '=', True)],
                   string=u"Partners to notify for date modifications in tasks",
                   help=u"Only for tasks flaged as 'notify managers when dates change'")
 
