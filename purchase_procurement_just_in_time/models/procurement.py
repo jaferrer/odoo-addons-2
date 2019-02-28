@@ -24,7 +24,7 @@ from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession, ConnectorSessionHandler
 
 from openerp import modules, models, fields, api, exceptions, _
-from openerp.tools.float_utils import float_compare, float_round
+from openerp.tools.float_utils import float_compare
 from openerp.addons.connector.exception import RetryableJobError
 
 
@@ -85,6 +85,7 @@ class ProcurementOrderPurchaseJustInTime(models.Model):
     state = fields.Selection(selection_add=[('buy_to_run', "Buy rule to run")])
     purchase_line_id = fields.Many2one('purchase.order.line', index=True)
     date_buy_to_run = fields.Datetime(string=u"Date buy to run", copy=False, readonly=True)
+    forced_to_done_by_reception = fields.Boolean(string=u"Status forced to done during a reception")
 
     @api.multi
     def write(self, vals):
@@ -103,16 +104,12 @@ WHERE key = 'purchase_procurement_just_in_time.delta_begin_grouping_period'""")
     @api.model
     def propagate_cancel(self, procurement):
         """
-        Improves the original propagate_cancel function. If the corresponding purchase order is draft, it eventually
-        cancels and/or deletes the purchase order line and the purchase order.
+        Now, the cancelment of a procurement has not any consequence on its purchase order line.
         """
-        result = None
         if procurement.rule_id.action == 'buy' and procurement.purchase_line_id:
-            # Keep proc with new qty if some moves are already done
-            procurement.remove_done_moves()
+            return None
         else:
-            result = super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
-        return result
+            return super(ProcurementOrderPurchaseJustInTime, self).propagate_cancel(procurement)
 
     @api.model
     def _get_product_supplier(self, procurement):
@@ -122,90 +119,6 @@ WHERE key = 'purchase_procurement_just_in_time.delta_begin_grouping_period'""")
         if company_supplier:
             return company_supplier.name
         return procurement.product_id.seller_id
-
-    @api.multi
-    def compute_procs_done_qties(self):
-        if not self:
-            return []
-        # We compute quantities of done moves for each procurement in self, excluding procurements with no done move.
-        self.env.cr.execute("""WITH procs_done_qties AS (
-    SELECT
-      po.id                                           AS proc_id,
-      po.product_id,
-      po.product_qty,
-      po.product_uom,
-      proc_uom.rounding as prec,
-      sum(coalesce((CASE WHEN proc_uom.id != move_uom.id
-        THEN
-          round((CASE WHEN move_uom.uom_type != 'reference'
-            THEN 1 / move_uom.factor
-                 ELSE 1 END) *
-                (CASE WHEN proc_uom.uom_type != 'reference'
-                  THEN proc_uom.factor
-                 ELSE 1 END) *
-                sm.product_uom_qty :: NUMERIC, -log(proc_uom.rounding) :: INTEGER)
-                    ELSE sm.product_uom_qty END), 0)) AS qty_done_proc_uom
-    FROM procurement_order po
-      INNER JOIN procurement_rule pr ON pr.id = po.rule_id AND pr.action = 'buy'
-      INNER JOIN stock_move sm ON sm.procurement_id = po.id AND sm.state = 'done'
-      INNER JOIN product_product pp ON pp.id = po.product_id
-      INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id
-      INNER JOIN product_uom proc_uom ON proc_uom.id = po.product_uom
-      INNER JOIN product_uom move_uom ON move_uom.id = sm.product_uom
-    WHERE po.id IN %s
-    GROUP BY po.id, proc_uom.rounding)
-
-SELECT
-  *,
-  product_qty - qty_done_proc_uom AS remaining_qty
-FROM procs_done_qties
-WHERE product_qty - qty_done_proc_uom > 0""", (tuple(self.ids),))
-        return self.env.cr.fetchall()
-
-    @api.multi
-    def remove_done_moves(self):
-        """Splits the given procs creating a copy with the qty of their done moves and set to done.
-        """
-        if not self:
-            return
-        dict_procs_done_qties = self.compute_procs_done_qties()
-        for proc_dict in dict_procs_done_qties:
-            qty_done_proc_uom = proc_dict['qty_done_proc_uom']
-            remaining_qty = proc_dict['remaining_qty']
-            prec = proc_dict['prec']
-            if float_compare(remaining_qty, 0.0, precision_rounding=prec) > 0:
-                procurement = self.browse(proc_dict['id'])
-                ratio = procurement.product_uos_qty / procurement.product_qty
-                new_proc_qty = float_round(qty_done_proc_uom, precision_rounding=prec)
-                old_proc_qty = float_round(remaining_qty, precision_rounding=prec)
-                new_proc = procurement.copy({
-                    'product_qty': new_proc_qty,
-                    'product_uos_qty': new_proc_qty * ratio,
-                    'state': 'done',
-                })
-
-                procurement.write({
-                    'product_qty': old_proc_qty,
-                    'product_uos_qty': old_proc_qty * ratio,
-                })
-                # Attach done and cancelled moves to new_proc
-                done_moves = self.env['stock.move'].search([('procurement_id', '=', proc_dict['id']),
-                                                            ('state', 'in', ['done', 'cancel'])])
-                done_moves.write({'procurement_id': new_proc.id})
-        # Detach the other moves and reconfirm them so that we have push rules applied if any
-        self.env.cr.execute("""SELECT sm.id
-FROM stock_move sm
-  INNER JOIN procurement_order po ON po.id = sm.procurement_id
-  INNER JOIN procurement_rule pr ON pr.id = po.rule_id AND pr.action = 'buy'
-WHERE sm.state NOT IN ('done', 'cancel') AND sm.procurement_id IN %s""", (tuple(self.ids),))
-        remaining_moves = self.env['stock.move'].search([('id', 'in', [item[0] for item in self.env.cr.fetchall()])])
-        remaining_moves.write({
-            'procurement_id': False,
-            'move_dest_id': False,
-        })
-        remaining_moves.action_confirm()
-        remaining_moves.force_assign()
-        return super(ProcurementOrderPurchaseJustInTime, self).remove_done_moves()
 
     @api.model
     def purchase_schedule(self, compute_all_products=True, compute_supplier_ids=None, compute_product_ids=None,
@@ -343,7 +256,7 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
                 min_date = self.get_delivery_date_for_dateref_order(product, seller, date_ref)
                 past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
                 if past_procurements:
-                    past_procurements.remove_procs_from_lines(cancel_moves_to_procs=True)
+                    past_procurements.remove_procs_from_lines()
                     procurements_to_run -= past_procurements
                 domain += [('date_planned', '>', min_date)]
             procurements = self.search(domain)
@@ -377,32 +290,13 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
         procs_for_first_line_ids = self.env['procurement.order'].search([('purchase_line_id', '=', pol.id),
                                                                          ('state', 'in', ['done', 'cancel'])]).ids
         remaining_qty = pol.remaining_qty
-        self.env.cr.execute("""SELECT
-  sm.procurement_id,
-  COALESCE(sum(sm.product_qty), 0)
-FROM stock_move sm
-WHERE sm.state = 'done' AND sm.procurement_id IN %s
-GROUP BY sm.procurement_id""", (tuple([proc['id'] for proc in procurements]),))
-        done_moves_qties = {item[0]: item[1] or 0 for item in self.env.cr.fetchall()}
         for proc in procurements:
-            product_uom_id = self.env['product.product'].browse([(proc['product_id'])]).uom_id.id
-            proc_qty = proc['product_qty']
-            if proc['product_uom'] != pol.product_uom.id:
-                proc_qty_pol_uom = self.env['product.uom']._compute_qty(proc['product_uom'], proc_qty,
-                                                                        pol.product_uom.id)
-            else:
-                proc_qty_pol_uom = proc_qty
-            done_moves_qty = done_moves_qties.get(proc['id'], 0)
-            if product_uom_id != pol.product_uom.id:
-                done_moves_qty_pol_uom = self.env['product.uom']._compute_qty(product_uom_id, done_moves_qty,
-                                                                              pol.product_uom.id)
-            else:
-                done_moves_qty_pol_uom = done_moves_qty
-            remaining_proc_qty_pol_uom = proc_qty_pol_uom - done_moves_qty_pol_uom
-            if float_compare(remaining_qty, remaining_proc_qty_pol_uom,
-                             precision_rounding=pol.product_uom.rounding) >= 0:
+            proc_qty_pol_uom = self.env['product.uom']._compute_qty(proc['product_uom'],
+                                                                    proc['product_qty'],
+                                                                    pol.product_uom.id)
+            if float_compare(remaining_qty, proc_qty_pol_uom, precision_rounding=pol.product_uom.rounding) >= 0:
                 procs_for_first_line_ids += [proc['id']]
-                remaining_qty -= remaining_proc_qty_pol_uom
+                remaining_qty -= proc_qty_pol_uom
             else:
                 break
         if not dict_procs_lines.get(pol.order_id.id):
@@ -935,7 +829,7 @@ GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
         return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         if not_assigned_procs:
-            not_assigned_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
+            not_assigned_procs.remove_procs_from_lines()
         return_msg += u"\nRemoving unsassigned procurements from purchase order lines: %s s." % \
                       int((dt.now() - time_now).seconds)
         return_msg = self.env['procurement.order'].prepare_procurements_redistribution(dict_procs_lines, return_msg)
@@ -945,67 +839,19 @@ GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
         return return_msg
 
     @api.multi
-    def remove_procs_from_lines(self, cancel_moves_to_procs=False):
+    def remove_procs_from_lines(self):
         if not self:
             return
-        self.remove_done_moves()
         procs_with_pol = self.search([('id', 'in', self.ids), ('purchase_line_id', '!=', False)])
         procs_with_pol.with_context(tracking_disable=True).write({'purchase_line_id': False})
         to_reset = self.search([('id', 'in', self.ids), ('state', 'in', ['running', 'exception'])])
         to_reset.with_context(tracking_disable=True).write({'state': 'buy_to_run'})
-        procs_moves_to_detach = self.env['stock.move']
-        procs_to_check = self.search([('id', 'in', self.ids), ('state', 'not in', ['done', 'cancel'])])
-        # Done and cancel procs should not change purchase order line
-        proc_moves = self.env['stock.move'].search([('procurement_id', 'in', procs_to_check.ids),
-                                                    ('state', 'not in', ['cancel', 'done'])]
-                                                   ).with_context(mail_notrack=True)
-        if cancel_moves_to_procs:
-            # We cancel procurement to cancel previous moves, and keep next ones
-            proc_moves.with_context(cancel_procurement=True, mail_notrack=True).action_cancel()
-        else:
-            procs_moves_to_detach += proc_moves
-        procs_moves_to_detach = self.env['stock.move'].search([('id', 'in', procs_moves_to_detach.ids),
-                                                               '|', ('purchase_line_id', '!=', False),
-                                                               ('picking_id', '!=', False)])
-        if procs_moves_to_detach:
-            procs_moves_to_detach.write({'purchase_line_id': False, 'picking_id': False})
 
     @api.multi
     def add_proc_to_line(self, pol):
         pol.ensure_one()
-        for rec in self:
-            assert rec.state not in ['done', 'cancel']
-
-            orig_pol = rec.purchase_line_id
-            rec.remove_procs_from_lines()
-            if orig_pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
-                orig_pol.adjust_move_no_proc_qty()
-            rec.with_context(tracking_disable=True).write({'purchase_line_id': pol.id})
-            if not rec.move_ids:
-                continue
-
-            assert not any([move.state == 'done' for move in rec.move_ids])
-            running_moves = self.env['stock.move'].search([('id', 'in', rec.move_ids.ids),
-                                                           ('state', 'not in', ['done', 'cancel'])]
-                                                          ).with_context(mail_notrack=True)
-            if pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
-                group = self.env['procurement.group'].search([('name', '=', pol.order_id.name),
-                                                              ('partner_id', '=', pol.order_id.partner_id.id)],
-                                                             limit=1)
-                if not group:
-                    group = self.env['procurement.group'].create({'name': pol.order_id.name,
-                                                                  'partner_id': pol.order_id.partner_id.id})
-                running_moves.write({'purchase_line_id': pol.id,
-                                     'picking_id': False,
-                                     'group_id': group.id,
-                                     'origin': pol.order_id.name})
-                # We try to attach the move to the correct picking (matching new procurement group)
-                running_moves.action_confirm()
-                running_moves.force_assign()
-            else:
-                # We attach the proc to a draft line, so we cancel all moves if any
-                running_moves.with_context(cancel_procurement=True, tracking_disable=True).action_cancel()
-        self.with_context(tracking_disable=True).write({'state': 'running'})
+        self.remove_procs_from_lines()
+        self.with_context(tracking_disable=True).write({'purchase_line_id': pol.id, 'state': 'running'})
 
     @api.model
     def prepare_procurements_redistribution(self, dict_procs_lines, return_msg):
@@ -1033,8 +879,6 @@ GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
                 for proc in procurements:
                     if proc not in pol.procurement_ids:
                         proc.add_proc_to_line(pol)
-                if pol.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
-                    pol.adjust_move_no_proc_qty()
         return u"\nAdding procs into running lines and adjusting moves no procs qty for running " \
                u"lines: %s s." % int((dt.now() - time_now).seconds)
 
@@ -1091,22 +935,9 @@ GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
 
     @api.model
     def _check(self, procurement):
-        if procurement.purchase_line_id:
-            if procurement.purchase_line_id.order_id.shipped:
-                return True
-            elif procurement.move_ids:
-                cancel_test_list = [x.state == 'cancel' for x in procurement.move_ids]
-                done_cancel_test_list = [x.state in ('done', 'cancel') for x in procurement.move_ids]
-                all_done_or_cancel = all(done_cancel_test_list)
-                all_cancel = all(cancel_test_list)
-                if not all_done_or_cancel:
-                    return False
-                elif all_done_or_cancel and not all_cancel:
-                    return True
-                elif all_cancel:
-                    procurement.message_post(body=_('All stock moves have been cancelled for this procurement.'))
-                    procurement.write({'state': 'cancel'})
-                return False
+        pol = procurement.purchase_line_id
+        if pol.order_id.shipped or pol and procurement.forced_to_done_by_reception:
+            return True
         return super(ProcurementOrderPurchaseJustInTime, self)._check(procurement)
 
     @api.model
