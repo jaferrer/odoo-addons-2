@@ -20,9 +20,21 @@
 from datetime import datetime
 
 import openerp.addons.decimal_precision as dp
+from openerp.addons.connector.session import ConnectorSession
+from openerp.addons.connector.queue.job import job
 
 from openerp import modules, fields, models, api, osv, _
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, float_round
+
+
+@job(default_channel='root.compute_coverage_state')
+def job_compute_coverage_state(session, model_name, pol_id, context):
+    pol_id = session.env[model_name].browse(pol_id)
+    if pol_id:
+        pol_id.with_context(context).compute_coverage_state()
+        return u"The coverage state of line no %s (%s) is recomputed" % (pol_id.line_no, pol_id.order_id.name)
+    else:
+        return u"Purchase order line not found for id %i" % pol_id
 
 
 class ProcurementOrderPurchasePlanningImproved(models.Model):
@@ -89,8 +101,8 @@ class PurchaseOrderLinePlanningImproved(models.Model):
 
     confirm_date = fields.Datetime(string=u"Confirm date", readonly=True)
     date_required = fields.Date(string=u"Required Date", help=u"Required date for this purchase line. "
-                                                      u"Computed as planned date of the first proc - supplier purchase "
-                                                      u"lead time - company purchase lead time", readonly=True)
+                                                              u"Computed as planned date of the first proc - supplier purchase "
+                                                              u"lead time - company purchase lead time", readonly=True)
     limit_order_date = fields.Date(string=u"Limit Order Date", help=u"Limit order date to be late :required date - "
                                                                     u"supplier delay", readonly=True)
     covering_date = fields.Date(string=u"Covered Date", readonly=True)
@@ -217,6 +229,15 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                         'opmsg_reduce_qty': line.product_qty,
                     }
                 line.write(dict_pol)
+
+    @api.model
+    def cron_compute_coverage_state(self):
+        pol_coverage_to_recompute = self.search([('order_id.state', '!=', 'draft'), ('remaining_qty', '>', 0)])
+        for pol in pol_coverage_to_recompute:
+            job_compute_coverage_state.delay(ConnectorSession.from_env(self.env), 'purchase.order.line', pol.id,
+                                             context=dict(self.env.context),
+                                             description=u"Update coverage state for line no %s (%s)" % (
+                                             pol.line_no, pol.order_id.name))
 
     @api.multi
     def set_moves_dates(self, date_required):
