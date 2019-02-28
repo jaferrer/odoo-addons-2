@@ -883,8 +883,7 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
         self.warehouse_orderpoint1.fill_strategy = 'duration'
         self.warehouse_orderpoint1.fill_duration = 4
-        wizard = self.env['stock.config.settings'].create({'delete_moves_cancelled_by_planned': True,
-                                                           'relative_stock_delta': 10,
+        wizard = self.env['stock.config.settings'].create({'relative_stock_delta': 10,
                                                            'absolute_stock_delta': 2,
                                                            'consider_end_contract_effect': False})
         wizard.execute()
