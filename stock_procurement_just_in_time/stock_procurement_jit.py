@@ -55,9 +55,9 @@ def process_orderpoints(session, model_name, ids, context):
 
 
 @job(default_channel='root.auto_delete_cancelled_moves_procs')
-def job_delete_cancelled_moves_and_procs(session, model_name, id):
-    object_to_delete = session.env[model_name].search([('id', '=', id)])
-    object_to_delete.unlink()
+def job_delete_cancelled_moves_and_procs(session, model_name, ids):
+    objects_to_delete = session.env[model_name].search([('id', 'in', ids)])
+    objects_to_delete.unlink()
 
 
 class StockLocationSchedulerSequence(models.Model):
@@ -292,15 +292,23 @@ class ProcurementOrderQuantity(models.Model):
         return result
 
     @api.model
-    def delete_cancelled_moves_and_procs(self):
+    def delete_cancelled_moves_and_procs(self, jobify=True):
         procs_to_delete = self.search([('to_delete', '=', True)])
-        for proc in procs_to_delete:
-            job_delete_cancelled_moves_and_procs.delay(
-                ConnectorSession.from_env(self.env), 'procurement.order', proc.id)
-
+        if jobify:
+            for proc in procs_to_delete:
+                job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
+                                                           'procurement.order', proc.ids)
+        else:
+            job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
+                                                 'procurement.order', procs_to_delete.ids)
         moves_to_delete = self.env['stock.move'].search([('to_delete', '=', True)])
-        for moves in moves_to_delete:
-            job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env), 'stock.move', moves.id)
+        if jobify:
+            for moves in moves_to_delete:
+                job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
+                                                           'stock.move', moves.ids)
+        else:
+            job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
+                                                 'stock.move', moves_to_delete.ids)
 
 
 class StockMoveJustInTime(models.Model):

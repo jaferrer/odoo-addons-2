@@ -662,6 +662,10 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
         move_need7 = self.browse_ref('stock_procurement_just_in_time.need7')
         move_need7.action_cancel()
         self.process_orderpoints()
+        self.assertTrue(move_to_a_2.to_delete)
+        self.assertTrue(move_to_b.to_delete)
+        # Let's launch asynchronous deletion of procs and moves
+        self.env['procurement.order'].delete_cancelled_moves_and_procs(jobify=False)
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
                                                       ('product_id', 'in', [self.test_product.id,
                                                                             self.test_product3.id]),
