@@ -86,3 +86,13 @@ msgstr "Replanifier les approvisionnements"
 #: view:stock.move:0
 msgid "Links"
 msgstr "Liens"
+
+#. module: procurement_management
+#: field:stock.move,cancel_date:0
+msgid "Cancel date"
+msgstr "Annulé le"
+
+#. module: procurement_management
+#: field:stock.move,cancel_uid:0
+msgid "Cancel user"
+msgstr "Annulé par"
