@@ -91,14 +91,16 @@ class ProjectMilestone(models.Model):
     @api.multi
     def see_tasks(self):
         self.ensure_one()
+        ctx = dict(self.env.context)
+        ctx['search_default_milestone_id'] = self.id
         return {
             'name': u"Tâches de la Milestone %s" % self.name,
             'type': 'ir.actions.act_window',
             'view_type': 'form',
-            'view_mode': 'form',
+            'view_mode': 'tree',
             'res_model': 'project.task',
-            'target': 'new',
-            'domain': [('milestone_id', '=', self.id)]
+            'domain': [],
+            'context': ctx
         }
 
 
