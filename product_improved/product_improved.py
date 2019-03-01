@@ -19,7 +19,7 @@
 
 import re
 
-from openerp import models, api, _
+from openerp import models, api
 from openerp.osv import expression
 from openerp.tools import float_round
 
@@ -61,26 +61,6 @@ class ProductLabelProductProduct(models.Model):
             products = self.search(args, limit=limit)
         result = products.name_get()
         return result
-
-    @api.multi
-    def open_moves_for_product(self):
-        self.ensure_one()
-        ctx = self.env.context.copy()
-        ctx['search_default_done'] = True
-        ctx['search_default_product_id'] = self.id
-        ctx['default_product_id'] = self.id
-        return {
-            'name': _("Moves for product %s") % self.name,
-            'type': 'ir.actions.act_window',
-            'view_type': 'form',
-            'view_mode': 'tree,form',
-            'res_model': 'stock.move',
-            'domain': ['|', ('location_id.company_id', '=', False),
-                       ('location_id.company_id', 'child_of', self.env.user.company_id.id),
-                       '|', ('location_dest_id.company_id', '=', False),
-                       ('location_dest_id.company_id', 'child_of', self.env.user.company_id.id)],
-            'context': ctx,
-        }
 
 
 class ProductUomImproved(models.Model):

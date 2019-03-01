@@ -132,9 +132,11 @@ class ProductTemplateJit(models.Model):
     }
 
     @api.multi
-    def get_main_supplierinfo(self, force_company=None):
+    def get_main_supplierinfo(self, force_supplier=None, force_company=None):
         self.ensure_one()
         supplier_infos_domain = [('id', 'in', self.seller_ids.ids)]
+        if force_supplier:
+            supplier_infos_domain += [('name', '=', force_supplier.id)]
         if force_company:
             supplier_infos_domain += ['|', ('company_id', '=', force_company.id), ('company_id', '=', False)]
         return self.env['product.supplierinfo'].search(supplier_infos_domain, order='sequence, id', limit=1)
@@ -189,9 +191,9 @@ class SupplyChainControlProductProduct(models.Model):
         return False
 
     @api.multi
-    def get_main_supplierinfo(self, force_company=None):
+    def get_main_supplierinfo(self, force_supplier=None, force_company=None):
         self.ensure_one()
-        return self.product_tmpl_id.get_main_supplierinfo(force_company=force_company)
+        return self.product_tmpl_id.get_main_supplierinfo(force_supplier=force_supplier, force_company=force_company)
 
     @api.multi
     def get_available_qty_supply_control(self, available_quantities):
