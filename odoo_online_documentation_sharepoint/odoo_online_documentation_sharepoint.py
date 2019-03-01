@@ -42,7 +42,9 @@ class OdooOnlineDocumentationSharepoint(models.Model):
 
     @api.multi
     def open_documentation(self):
-        """Function called to open a sharepoint document"""
+        """
+        Function called to open a sharepoint document.
+        """
 
         for rec in self:
             if rec.nature == u"sharepoint":
@@ -87,7 +89,7 @@ class ExploreSharepointFolders(models.Model):
     @api.multi
     def get_subdirectories(self, sess, current_path=None):
         """
-        Function to get access to the son folders of the current folder
+        Function to get access to the son folders of the current folder.
         """
 
         if not current_path:
@@ -107,6 +109,7 @@ class ExploreSharepointFolders(models.Model):
         """
         Function to load son folders only when the user ask it, so we don't have to load all the data at once.
         """
+
         self.ensure_one()
         session = self.access_sharepoint()
         folders_info = self.get_subdirectories(session)
@@ -153,22 +156,22 @@ class ExploreSharepointFolders(models.Model):
         """
         Function to recursively get all files from all folders starting from a given 'root' folder.
         """
-        self.ensure_one()
         session = self.access_sharepoint()
-        root = self.path
-        stack = [root]
 
-        while stack:
-            # la valeur .pop est enlevée de stack est mise dans cur_dir
-            current_dir = stack.pop()
-            subdirs = [d['final_path'] for d in self.get_subdirectories(session, current_dir)]
-            stack += subdirs
-            self.get_files(session, current_dir)
+        for rec in self:
+            root = rec.path
+            stack = [root]
+            while stack:
+                # la valeur .pop est enlevée de stack est mise dans cur_dir
+                current_dir = stack.pop()
+                subdirs = [d['final_path'] for d in rec.get_subdirectories(session, current_dir)]
+                stack += subdirs
+                rec.get_files(session, current_dir)
 
     @api.model
     def folders_to_scan(self, jobify=True):
         """
-        Cron to split the job between group of 100 folders
+        Cron to split the job between group of 100 folders.
         """
 
         folders = self.search([('scannable', '=', True)])
@@ -184,7 +187,7 @@ class ExploreSharepointFolders(models.Model):
     @api.multi
     def open_folder(self):
         """
-        Function linked to a button to open the folder in tree view
+        Function linked to a button to open the folder in tree view.
         """
 
         return {
