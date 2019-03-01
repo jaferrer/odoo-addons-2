@@ -30,7 +30,7 @@ Product Improved
 This module improves products management.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': ['data.xml'],
     'installable': True,
     'auto_install': True,
     'license': 'AGPL-3',
