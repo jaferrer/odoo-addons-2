@@ -106,6 +106,8 @@ self.action_reschedule(cr, uid, context.get('active_ids'), context)
                     <field name="create_uid" readonly="1"/>
                     <field name="write_date" readonly="1"/>
                     <field name="write_uid" readonly="1"/>
+                    <field name="cancel_date" readonly="1" />
+                    <field name="cancel_uid" readonly="1" />
                 </field>
                 <xpath expr="//group[@name='quants_grp']" position="before" >
                     <group string="Links" colspan="4">
@@ -120,7 +122,18 @@ self.action_reschedule(cr, uid, context.get('active_ids'), context)
                         </div>
                     </group>
                 </xpath>
+            </field>
+        </record>
 
+        <record model="ir.ui.view" id="procurement_management_stock_move_search">
+            <field name="name">procurement.management.stock.move.search</field>
+            <field name="model">stock.move</field>
+            <field name="inherit_id" ref="stock.view_move_search" />
+            <field name="arch" type="xml">
+                <field name="date" position="after">
+                    <field name="cancel_date" widget="date" />
+                    <field name="cancel_uid"/>
+                </field>
             </field>
         </record>
     </data>

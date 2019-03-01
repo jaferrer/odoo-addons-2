@@ -17,4 +17,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import procurement_management
+from openerp import fields, models, api
+
+
+class StockMove(models.Model):
+    _inherit = 'stock.move'
+
+    cancel_date = fields.Datetime(string=u"Cancel date")
+    cancel_uid = fields.Many2one('res.users', string=u"Cancel user")
+
+    @api.multi
+    def write(self, vals):
+        if vals.get('state') == 'cancel':
+            vals['cancel_date'] = fields.Datetime.now()
+            vals['cancel_uid'] = self.env.user.id
+        return super(StockMove, self).write(vals)

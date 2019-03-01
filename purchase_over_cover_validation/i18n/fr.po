@@ -18,8 +18,8 @@ msgstr ""
 
 #. module: purchase_over_cover_validation
 #: field:purchase.config.settings,nb_days_max_cover:0
-msgid "Maximal number days for cover"
-msgstr "Nombre maximal de jours de couverture"
+msgid "Maximal number days for cover (working days)"
+msgstr "Nombre maximal de jours de couverture (jours ouvrés)"
 
 
 #. module: purchase_over_cover_validation

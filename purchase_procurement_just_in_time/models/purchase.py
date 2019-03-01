@@ -17,10 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime
-
 from openerp import fields, models, api, _, exceptions
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT, float_round
+from openerp.tools import float_round
 from openerp.tools.float_utils import float_compare
 
 
@@ -68,18 +66,25 @@ class PurchaseOrderJustInTime(models.Model):
     def _prepare_order_line_move(self, order, order_line, picking_id, group_id):
         ''' prepare the stock move data from the PO line. This function returns a list of dictionary ready to be
         used in stock.move's create()'''
-        product_uom = self.env['product.uom']
         price_unit = order_line.get_move_unit_price_from_line(order)
-        res = []
         if order.location_id.usage == 'customer':
             name = order_line.product_id.with_context(lang=order.dest_address_id.lang).display_name
         else:
             name = order_line.name or ''
-        move_template = {
+        existing_quantity = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
+                                                                      order_line.product_uom.id) for move in
+                                 order_line.move_ids if move.state != 'cancel'])
+        qty_to_add = float_round(order_line.product_qty - existing_quantity,
+                                 precision_rounding=order_line.product_uom.rounding)
+        if float_compare(qty_to_add, 0.0, precision_rounding=order_line.product_uom.rounding) == 0:
+            return []
+        return [{
             'name': name,
             'product_id': order_line.product_id.id,
             'product_uom': order_line.product_uom.id,
             'product_uos': order_line.product_uom.id,
+            'product_uom_qty': qty_to_add,
+            'product_uos_qty': qty_to_add,
             'date': order.date_order,
             'date_expected': order_line.date_planned + ' 01:00:00',
             'location_id': order.partner_id.property_stock_supplier.id,
@@ -100,62 +105,7 @@ class PurchaseOrderJustInTime(models.Model):
             'warehouse_id': order.picking_type_id.warehouse_id.id,
             'invoice_state': order.invoice_method == 'picking' and '2binvoiced' or 'none',
             'propagate': True,
-        }
-
-        diff_quantity = order_line.product_qty
-        for procurement in order_line.procurement_ids:
-            if procurement.move_ids:
-                # Remove data if proc already has a move
-                for move in procurement.move_ids:
-                    if move.state in ['draft', 'cancel']:
-                        continue
-                    if move.purchase_line_id == order_line:
-                        move_qty_in_pol_uom = product_uom._compute_qty(move.product_uom.id, move.product_uom_qty,
-                                                                       to_uom_id=order_line.product_uom.id)
-                        diff_quantity -= move_qty_in_pol_uom
-                    else:
-                        line_to_check = move.purchase_line_id
-                        move.procurement_id = False
-                        line_to_check.adjust_move_no_proc_qty()
-                continue
-            if procurement.state in ['done', 'cancel']:
-                # Done or cancel proc without moves
-                continue
-            procurement_qty = product_uom._compute_qty(procurement.product_uom.id, procurement.product_qty,
-                                                       to_uom_id=order_line.product_uom.id)
-            tmp = move_template.copy()
-            min_qty = min(procurement_qty, diff_quantity)
-            rounded_min_qty = float_round(min_qty, precision_rounding=order_line.product_uom.rounding)
-            if float_compare(rounded_min_qty, 0.0, precision_rounding=order_line.product_uom.rounding) != 0:
-                tmp.update({
-                    'product_uom_qty': rounded_min_qty,
-                    'product_uos_qty': rounded_min_qty,
-                    'move_dest_id': procurement.move_dest_id.id,  # move destination is same as procurement destination
-                    'group_id': procurement.group_id.id or group_id,
-                    # move group is same as group of procurements if it exists, otherwise take another group
-                    'procurement_id': procurement.id,
-                    'invoice_state': procurement.rule_id.invoice_state or (
-                        procurement.location_id and procurement.location_id.usage == 'customer' and procurement.invoice_state == '2binvoiced' and '2binvoiced') or (
-                                         order.invoice_method == 'picking' and '2binvoiced') or 'none',
-                    # dropship case takes from sale
-                    'propagate': procurement.rule_id.propagate,
-                })
-                res.append(tmp)
-            diff_quantity -= min_qty
-        # if the order line has a bigger quantity than the procurement it was for (manually changed or minimal quantity), then
-        # split the future stock move in two because the route followed may be different.
-        for move in order_line.move_ids:
-            if move.state in ['draft', 'cancel'] or move.procurement_id:
-                continue
-            move_qty_in_pol_uom = product_uom._compute_qty(move.product_uom.id, move.product_uom_qty,
-                                                           to_uom_id=order_line.product_uom.id)
-            diff_quantity -= move_qty_in_pol_uom
-        rounded_diff_qty = float_round(diff_quantity, precision_rounding=order_line.product_uom.rounding)
-        if float_compare(rounded_diff_qty, 0.0, precision_rounding=order_line.product_uom.rounding) > 0:
-            move_template['product_uom_qty'] = rounded_diff_qty
-            move_template['product_uos_qty'] = rounded_diff_qty
-            res.append(move_template)
-        return res
+        }]
 
     @api.model
     def get_purchase_order_states_with_moves(self):
@@ -168,14 +118,9 @@ class PurchaseOrderJustInTime(models.Model):
             order_line_ids += rec.order_line.ids
         running_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', order_line_ids),
                                                               ('state', '=', 'running')])
-        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', order_line_ids),
-                                                        ('procurement_id', '=', False)])
-        # We explicitly cancel moves without procurements so that move_dest_id get cancelled too in this case
-        moves_no_procs.action_cancel()
-        # For the other moves, we don't want the move_dest_id to be cancelled, so we pass cancel_procurement
-        res = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).action_cancel()
-        running_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
-        return res
+        result = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).action_cancel()
+        running_procs.remove_procs_from_lines()
+        return result
 
     @api.multi
     def set_order_line_status(self, status):
@@ -202,13 +147,8 @@ class PurchaseOrderJustInTime(models.Model):
             order_line_ids += rec.order_line.ids
         running_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', order_line_ids),
                                                               ('state', '=', 'running')])
-        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', order_line_ids),
-                                                        ('procurement_id', '=', False)])
-        # We explicitly cancel moves without procurements so that move_dest_id get cancelled too in this case
-        moves_no_procs.action_cancel()
-        # For the other moves, we don't want the move_dest_id to be cancelled, so we pass cancel_procurement
         res = super(PurchaseOrderJustInTime, self.with_context(cancel_procurement=True)).unlink()
-        running_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
+        running_procs.remove_procs_from_lines()
         return res
 
     @api.multi
@@ -313,7 +253,7 @@ class PurchaseOrderLineJustInTime(models.Model):
                     not result.move_ids and not self.env.context.get('no_update_moves') and \
                     result.order_id.state in states_with_moves:
                 # We create associated moves
-                self.env['purchase.order']._create_stock_moves(result.order_id, result)
+                self.env['purchase.order']._create_stock_moves(result.order_id, order_lines=result)
         return result
 
     @api.multi
@@ -326,59 +266,34 @@ class PurchaseOrderLineJustInTime(models.Model):
         :param target_qty: new quantity of the purchase order line
         """
         self.ensure_one()
-
+        done_moves = self.env['stock.move'].search([('purchase_line_id', '=', self.id),
+                                                    ('state', '=', 'done')])
+        done_moves_qty = sum([move.product_qty for move in done_moves])
+        done_moves_qty_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
+                                                                      done_moves_qty,
+                                                                      self.product_uom.id)
         if self.product_id.type == 'service':
-            qty_done_moves = sum([x.product_qty for x in self.move_ids if x.state == 'done'])
-            qty_done_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
-                                                                    qty_done_moves,
-                                                                    self.product_uom.id)
-            target_qty = qty_done_pol_uom
-
-        moves_without_proc_id = self.move_ids.filtered(
-            lambda m: m.state not in ['done', 'cancel'] and not m.procurement_id).sorted(key=lambda m: m.product_qty,
-                                                                                         reverse=True)
-        moves_with_proc_id = self.move_ids.filtered(
-            lambda m: m.state not in ['done', 'cancel'] and m.procurement_id).sorted(key=lambda m: m.product_qty,
-                                                                                     reverse=True)
-        qty_not_cancelled_moves = sum([x.product_qty for x in self.move_ids if x.state != 'cancel'])
-        qty_moves_no_proc = sum([x.product_qty for x in moves_without_proc_id])
-        qty_not_cancelled_moves_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
-                                                                               qty_not_cancelled_moves,
-                                                                               self.product_uom.id)
-        qty_moves_no_proc_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
-                                                                         qty_moves_no_proc,
+            target_qty = done_moves_qty_pol_uom
+        running_moves = self.env['stock.move'].search([('purchase_line_id', '=', self.id),
+                                                       ('state', 'not in', ['done', 'cancel'])])
+        running_moves_qty = sum([move.product_qty for move in running_moves])
+        running_moves_qty_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
+                                                                         running_moves_qty,
                                                                          self.product_uom.id)
-
-        qty_to_remove = qty_not_cancelled_moves_pol_uom - qty_moves_no_proc_pol_uom - target_qty
-        to_detach_procs = self.env['procurement.order']
-
-        while float_compare(qty_to_remove, 0, precision_rounding=self.product_uom.rounding) > 0 and moves_with_proc_id:
-            move = moves_with_proc_id[0]
-            moves_with_proc_id -= move
-            to_detach_procs |= move.procurement_id
-            qty_to_remove -= self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
-                                                                  move.product_qty,
-                                                                  self.product_uom.id)
-
-        to_detach_procs.remove_procs_from_lines(cancel_moves_to_procs=True)
-        self.adjust_move_no_proc_qty()
-
-    def adjust_move_no_proc_qty(self):
-        """Adjusts the quantity of the move without proc, recreating it if necessary."""
-        self = self.with_context(check_product_qty=False)
-        moves_no_procs = self.env['stock.move'].search(
-            [('purchase_line_id', 'in', self.ids),
-             ('procurement_id', '=', False),
-             ('state', 'not in', ['done', 'cancel'])]).with_context(mail_notrack=True)
-        # Dirty hack to keep the moves so that we don't to set the PO in shipping except
-        # but still compute the correct qty in _create_stock_moves
-        moves_no_procs.write({'product_uom_qty': 0})
-        for rec in self:
-            self.env['purchase.order']._create_stock_moves(rec.order_id, rec)
-
-        # We don't want cancel_procurement context here,
-        # because we want to cancel next move too (no procs).
-        moves_no_procs.action_cancel()
+        if float_compare(target_qty, done_moves_qty_pol_uom, precision_rounding=self.product_uom.rounding) < 0:
+            raise exceptions.except_orm(_(u"Error!"), _(u"Impossible to cancel moves at state done."))
+        final_running_qty = target_qty - done_moves_qty_pol_uom
+        moves_to_cancel = self.env['stock.move']
+        if float_compare(running_moves_qty_pol_uom, final_running_qty,
+                         precision_rounding=self.product_uom.rounding) > 0:
+            moves_to_cancel = running_moves
+            # If we cancel all the moves, the order may switch to 'picking_except' state.
+            moves_to_cancel.write({'product_uom_qty': 0})
+            running_moves_qty_pol_uom -= running_moves_qty_pol_uom
+        if float_compare(running_moves_qty_pol_uom, final_running_qty,
+                         precision_rounding=self.product_uom.rounding) < 0:
+            self.order_id._create_stock_moves(self.order_id, order_lines=self)
+        moves_to_cancel.action_cancel()
 
     @api.multi
     def update_moves(self, vals):
@@ -396,20 +311,9 @@ class PurchaseOrderLineJustInTime(models.Model):
         qty_done = sum([x.product_qty for x in self.move_ids if x.state == 'done'])
         qty_done_pol_uom = self.env['product.uom']._compute_qty(product.uom_id.id, qty_done, uom.id)
         if vals['product_qty'] < qty_done_pol_uom:
-            raise exceptions.except_orm(_('Error!'), _("Impossible to cancel moves at state done."))
+            raise exceptions.except_orm(_(u"Error!"), _(u"Impossible to cancel moves at state done."))
         if self.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
             self.adjust_moves_qties(vals['product_qty'])
-        elif self.state == 'draft':
-            sum_procs = sum([self.env['product.uom']._compute_qty(product.uom_id.id, p.product_qty, uom.id) for
-                             p in self.procurement_ids])
-            # We remove procs if there qty is above the line
-            for proc in self.procurement_ids. \
-                    sorted(key=lambda m: self.env['product.uom']._compute_qty(product.uom_id.id, m.product_qty, uom.id),
-                           reverse=True):
-                if float_compare(vals['product_qty'], sum_procs, precision_rounding=uom.rounding) >= 0:
-                    break
-                proc.remove_procs_from_lines()
-                sum_procs -= proc.product_qty
 
     @api.multi
     def write(self, vals):
@@ -455,14 +359,13 @@ class PurchaseOrderLineJustInTime(models.Model):
         procurements_to_detach = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids)])
         cancelled_procs = self.env['procurement.order'].search([('purchase_line_id', 'in', self.ids),
                                                                 ('state', '=', 'cancel')])
-        moves_no_procs = self.env['stock.move'].search([('purchase_line_id', 'in', self.ids),
-                                                        ('procurement_id', '=', False),
-                                                        ('state', 'not in', ['done', 'cancel'])])
-        moves_no_procs.action_cancel()
+        moves = self.env['stock.move'].search([('purchase_line_id', 'in', self.ids),
+                                               ('state', 'not in', ['done', 'cancel'])])
+        moves.action_cancel()
         result = super(PurchaseOrderLineJustInTime,
                        self.with_context(tracking_disable=True, message_code='delete_when_proc_no_exception')).unlink()
         # We reset initially cancelled procs to state 'cancel', because the unlink function of module purchase would
         # have set them to state 'exception'
         cancelled_procs.with_context(tracking_disable=True).write({'state': 'cancel'})
-        procurements_to_detach.remove_procs_from_lines(cancel_moves_to_procs=True)
+        procurements_to_detach.remove_procs_from_lines()
         return result

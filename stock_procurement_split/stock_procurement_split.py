@@ -26,22 +26,34 @@ class StockMove(models.Model):
     @api.model
     def split(self, move, qty, restrict_lot_id=False, restrict_partner_id=False):
         split_move_id = super(StockMove, self).split(move, qty, restrict_lot_id, restrict_partner_id)
-        self.split_proc(new_move=self.search([('id', '=', split_move_id)]), current_move=move)
+        self.split_proc_for_move(new_move=self.search([('id', '=', split_move_id)]), current_move=move)
         return split_move_id
 
-    def split_proc(self, new_move, current_move=False):
+    def split_proc_for_move(self, new_move, current_move=False):
         proc = new_move.procurement_id
         if proc:
-            new_proc = proc.copy({
-                'state': 'running',
-                'product_qty': new_move.product_uom_qty,
-                'product_uos_qty': new_move.product_uos_qty,
-                'move_dest_id': new_move.move_dest_id.id,
-            })
-            proc.write({
-                'product_qty': proc.product_qty - new_move.product_uom_qty,
-                'product_uos_qty': proc.product_uos_qty - new_move.product_uos_qty,
-            })
+            new_proc = proc.split(new_move.product_uom_qty,
+                                  force_move_dest_id=new_move.move_dest_id.id,
+                                  force_state='running')
             new_move.procurement_id = new_proc
             new_proc.check()
             proc.check()
+
+
+class ProcurementOrder(models.Model):
+    _inherit = 'procurement.order'
+
+    @api.multi
+    def split(self, qty, force_move_dest_id=False, force_state=False):
+        self.ensure_one()
+        new_procurement = self.copy({
+                'state': force_state or 'confirmed',
+                'product_qty': qty,
+                'product_uos_qty': qty,
+                'move_dest_id': force_move_dest_id,
+            })
+        self.write({
+            'product_qty': self.product_qty - qty,
+            'product_uos_qty': self.product_uos_qty - qty,
+        })
+        return new_procurement

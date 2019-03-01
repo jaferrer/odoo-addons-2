@@ -46,6 +46,8 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
     scheduled_procurement_ids = fields.One2many('procurement.order', 'scheduled_for_sale_line_id',
                                                 string=u"Procurement orders scheduled for this line")
 
+    manual_consideration = fields.Boolean(string=u"Manual consideration", default=False)
+
     @api.depends('product_uom_qty', 'scheduled_procurement_ids', 'scheduled_procurement_ids.product_qty',
                  'scheduled_procurement_ids.product_uom', 'scheduled_procurement_ids.state')
     def _compute_procurements_not_scheduled_qty(self):
@@ -81,6 +83,9 @@ class ProcurementSaleLink(models.Model):
                               store=True, readonly=True)
     sale_date_planned = fields.Datetime(string=u"Sale date", readonly=True,
                                         related='scheduled_for_sale_line_id.date_planned', store=True)
+    sol_manual_consideration = fields.Boolean(
+        string=u"Manual consideration", related='scheduled_for_sale_line_id.manual_consideration', store=True)
+    sale_warehouse_id = fields.Many2one(string=u"Warehouse", related='sale_id.warehouse_id', store=True)
 
     @api.model
     def update_table(self):
@@ -221,6 +226,11 @@ class ProcurementSaleLink(models.Model):
                     except_orm(_(u"Error!"), _(u"Sale order %s: impossible to determine source location for delivery "
                                                u"slip. Please generate it first.") % rec.sale_id.display_name)
             rec.finalize_procurement_creation(first_move)
+
+    @api.multi
+    def manual_consideration(self):
+        for rec in self:
+            rec.scheduled_for_sale_line_id.manual_consideration = True
 
     @api.multi
     def finalize_procurement_creation(self, delivery_move):
