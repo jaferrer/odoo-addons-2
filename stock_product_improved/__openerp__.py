@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,27 +18,19 @@
 #
 
 {
-    'name': 'Improvement of purchase order quantities calculation',
+    'name': 'Stock Product Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Product',
-    'depends': ['purchase', 'product_improved'],
+    'category': 'Stock',
+    'depends': ['stock'],
     'description': """
-Improvement of purchase order quantities calculation
-====================================================
-This module calculates the order quantities of each purchase order line in an improved way.
-It considers all the procurement orders related to a purchase order line, calculates the global need, and sets the purchase quantity to a value which is higher or equal to the minimum purchase order of this product, for the supplier considered.
-Furthermore, it sets the purchase quantity to a multiple of the number of articles contained in the standard packaging.
+Stock Product Improved
+======================
+This module improves products management for stock applications.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-             'supplierinfo.xml'
-    ],
-    'demo': [
-        'test_order_quantities_demo.xml'
-    ],
-    'test': [],
+    'data': ['stock_product_improved.xml'],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',

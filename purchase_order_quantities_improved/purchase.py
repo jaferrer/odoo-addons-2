@@ -84,12 +84,9 @@ class procurement_order_improved(models.Model):
 
     @api.model
     def _get_po_line_values_from_proc(self, procurement, partner, company, schedule_date):
-        result = super(procurement_order_improved, self)._get_po_line_values_from_proc(procurement,
-                                                                                       partner, company, schedule_date)
-        list_supplierinfo_ids = self.env['product.supplierinfo']. \
-            search([('name', '=', partner.id),
-                    ('id', 'in', procurement.product_id.seller_ids.ids)])
-        supplierinfo = list_supplierinfo_ids[0]
+        result = super(procurement_order_improved, self). \
+            _get_po_line_values_from_proc(procurement, partner, company, schedule_date)
+        supplierinfo = procurement.product_id.get_main_supplierinfo(force_supplier=partner)
         packaging_number = supplierinfo.packaging_qty
         if packaging_number == 0:
             packaging_number = 1
