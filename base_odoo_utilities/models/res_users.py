@@ -23,7 +23,7 @@ from odoo import fields, models
 
 
 class ResUsers(models.Model):
-    _name = 'res.users'
+    _inherit = 'res.users'
 
     def format_local_date(self, date=None):
         date_py = date or datetime.date.today()
