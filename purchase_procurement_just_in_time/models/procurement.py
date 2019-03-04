@@ -468,6 +468,7 @@ WHERE po.state NOT IN %s AND
                                seller.property_account_position.id or False,
             'payment_term_id': seller.property_supplier_payment_term.id or False,
             'dest_address_id': self.partner_dest_id.id,
+            'is_created_by_admin': True,
         }
 
     @api.multi
