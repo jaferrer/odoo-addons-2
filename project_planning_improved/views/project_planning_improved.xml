@@ -157,6 +157,7 @@ self.update_ready_for_execution(cr, uid, context.get('active_ids'), False, conte
                                    attrs="{'required': [('taken_into_account', '=', True)]}"/>
                             <field name="total_allocated_duration"/>
                             <field name="taken_into_account"/>
+                            <field name="expected_duration"/>
                         </group>
                     </group>
                 </xpath>
