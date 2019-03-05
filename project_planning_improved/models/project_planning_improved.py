@@ -412,9 +412,14 @@ class ProjectImprovedTask(models.Model):
         nb_days = 0
         nb_hours = 0
         if self.expected_start_date and self.expected_end_date:
-            nb_hours = calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
-                                                  fields.Datetime.from_string(self.expected_end_date),
-                                                  compute_leaves=True, resource_id=resource.id)
+            if self.expected_start_date[:10] == self.expected_end_date[:10]:
+                nb_hours = calendar.get_working_hours_of_date(fields.Datetime.from_string(self.expected_start_date),
+                                                              fields.Datetime.from_string(self.expected_end_date),
+                                                              compute_leaves=True, resource_id=resource.id)
+            else:
+                nb_hours = calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
+                                                      fields.Datetime.from_string(self.expected_end_date),
+                                                      compute_leaves=True, resource_id=resource.id)
             nb_hours = nb_hours and nb_hours[0] or 0
         else:
             nb_days = self.objective_duration
