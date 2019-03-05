@@ -21,6 +21,7 @@ from dateutil.relativedelta import relativedelta
 
 from openerp import models, fields, api, _
 from openerp.exceptions import UserError
+from openerp.report import report_sxw
 
 
 class ProjectImprovedProject(models.Model):
@@ -285,10 +286,12 @@ class ProjectImprovedTask(models.Model):
     objective_duration = fields.Integer(string=u"Objective Needed Time (in days)")
     children_task_ids = fields.One2many('project.task', 'parent_task_id', string=u"Children tasks")
     objective_end_date = fields.Datetime(string=u"Objective end date", readonly=True)
-    expected_end_date = fields.Datetime(string=u"Expected end date")
     objective_start_date = fields.Datetime(string=u"Objective start date", compute='_compute_objective_start_date',
                                            store=True)
     expected_start_date = fields.Datetime(string=u"Expected start date")
+    expected_end_date = fields.Datetime(string=u"Expected end date")
+    expected_duration = fields.Float(string=u"Expected duration (days)", compute='_compute_expected_duration',
+                                     store=True)
     allocated_duration = fields.Float(string=u"Allocated duration", help=u"In project time unit of the company")
     allocated_duration_unit_tasks = fields.Float(string=u"Allocated duration for unit tasks",
                                                  help=u"In project time unit of the comany",
@@ -299,10 +302,26 @@ class ProjectImprovedTask(models.Model):
     conflict = fields.Boolean(string=u"Conflict")
     is_milestone = fields.Boolean(string="Is milestone", compute="_get_is_milestone", store=True, default=False)
     ready_for_execution = fields.Boolean(string=u"Ready for execution", readonly=True, track_visibility=True)
+    notify_users_when_dates_change = fields.Boolean(string=u"Notify users when dates change",
+                                                    help=u"An additional list of users is defined in project "
+                                                         u"configuration")
 
     @api.constrains('expected_start_date', 'expected_end_date')
     def constraint_dates_consistency(self):
         self.check_dates_working_days()
+
+    @api.multi
+    @api.depends('expected_start_date', 'expected_end_date')
+    def _compute_expected_duration(self):
+        for rec in self:
+            _, calendar = rec.get_default_calendar_and_resource()
+            attendances = calendar.attendance_ids
+            nb_working_hours_by_week = sum([abs(attendance.hour_to - attendance.hour_from) for
+                                            attendance in attendances])
+            nb_working_days = len(list(set([attendance.dayofweek for attendance in attendances]))) or 5
+            nb_working_hours_by_day = float(nb_working_hours_by_week) / nb_working_days
+            rec.expected_duration = rec.expected_start_date and rec.expected_end_date and \
+                float(rec.get_nb_working_hours_from_expected_dates()[1]) / nb_working_hours_by_day or 0
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
     @api.multi
@@ -343,12 +362,8 @@ class ProjectImprovedTask(models.Model):
                                                              ('resource_type', '=', 'user')], limit=1)
         calendar = False
         if use_calendar:
-            if resource:
-                calendar = resource.calendar_id
-            else:
-                calendar = self.company_id.calendar_id
-            if not calendar:
-                calendar = self.env.ref('resource_improved.default_calendar')
+            calendar = resource and resource.calendar_id or self.company_id.calendar_id or \
+                self.env.ref('resource_improved.default_calendar')
         return resource, calendar
 
     @api.multi
@@ -397,9 +412,14 @@ class ProjectImprovedTask(models.Model):
         nb_days = 0
         nb_hours = 0
         if self.expected_start_date and self.expected_end_date:
-            nb_hours = calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
-                                                  fields.Datetime.from_string(self.expected_end_date),
-                                                  compute_leaves=True, resource_id=resource.id)
+            if self.expected_start_date[:10] == self.expected_end_date[:10]:
+                nb_hours = calendar.get_working_hours_of_date(fields.Datetime.from_string(self.expected_start_date),
+                                                              fields.Datetime.from_string(self.expected_end_date),
+                                                              compute_leaves=True, resource_id=resource.id)
+            else:
+                nb_hours = calendar.get_working_hours(fields.Datetime.from_string(self.expected_start_date),
+                                                      fields.Datetime.from_string(self.expected_end_date),
+                                                      compute_leaves=True, resource_id=resource.id)
             nb_hours = nb_hours and nb_hours[0] or 0
         else:
             nb_days = self.objective_duration
@@ -554,7 +574,8 @@ class ProjectImprovedTask(models.Model):
         self.ensure_one()
         new_expected_end_date = new_date
         nb_days, nb_hours = self.get_nb_working_hours_from_expected_dates() or 0
-        new_expected_start_date = fields.Datetime.to_string(self.schedule_get_date(fields.Datetime.from_string(new_date), nb_hours=-nb_hours))
+        new_expected_start_date = fields.Datetime. \
+            to_string(self.schedule_get_date(fields.Datetime.from_string(new_date), nb_hours=-nb_hours))
         result = {}
         if self.expected_start_date != new_expected_start_date:
             result['expected_start_date'] = new_expected_start_date
@@ -755,7 +776,63 @@ class ProjectImprovedTask(models.Model):
                 rec.with_context(propagating_tasks=True).propagate_dates()
                 # Unit tests should cover the potential cases of ond "check_dates" function
                 # rec.check_dates()
+            if dates_changed and rec.notify_users_when_dates_change:
+                rec.notify_users_for_date_change()
         return True
+
+    @api.multi
+    def get_partner_to_notify_ids(self):
+        self.ensure_one()
+        partners_to_notify_config = self.env['ir.config_parameter']. \
+            get_param('project_planning_improved.notify_date_changes_for_partner_ids', '[]')
+        return eval(partners_to_notify_config) or []
+
+    @api.multi
+    def notify_users_for_date_change(self):
+        self.ensure_one()
+        email_from = self.env['mail.message']._get_default_from()
+        partner_to_notify_ids = self.get_partner_to_notify_ids()
+        rml_obj = report_sxw.rml_parse(self.env.cr, self.env.uid, 'project.task', dict(self.env.context))
+        rml_obj.localcontext.update({'lang': self.env.context.get('lang', False)})
+        for rec in self:
+            for partner_id in partner_to_notify_ids:
+                if partner_id == self.env.user.partner_id.id:
+                    continue
+                partner = self.env['res.partner'].browse(partner_id)
+                channels = self.env['mail.channel']. \
+                    search([('channel_partner_ids', '=', partner_id),
+                            ('channel_partner_ids', '=', self.env.user.partner_id.id),
+                            ('email_send', '=', False),
+                            ('group_ids', '=', False)])
+                chosen_channel = self.env['mail.channel']
+                for channel in channels:
+                    if len(channel.channel_partner_ids) == 2:
+                        chosen_channel = channel
+                        break
+                if not chosen_channel:
+                    chosen_channel = self.env['mail.channel'].create({
+                        'name': "%s, %s" % (partner.name, self.env.user.partner_id.name),
+                        'public': 'private',
+                        'email_send': False,
+                        'channel_partner_ids': [(6, 0, [partner_id, self.env.user.partner_id.id])]
+                    })
+                message = self.env['mail.message'].create({
+                    'subject': _(u"Replanification of task %s in project %s" %
+                                 (rec.display_name, rec.project_id.display_name)),
+                    'body': _(u"%s has changed the dates of task %s in project %s: "
+                              u"expected start date %s, expected end date %s.") %
+                            (self.env.user.partner_id.name, rec.display_name, rec.project_id.display_name,
+                             rml_obj.formatLang(rec.expected_start_date[:10], date=True),
+                             rml_obj.formatLang(rec.expected_end_date[:10], date=True)),
+                    'record_name': rec.name,
+                    'email_from': email_from,
+                    'reply_to': email_from,
+                    'model': 'project.task',
+                    'res_id': rec.id,
+                    'no_auto_thread': True,
+                    'channel_ids': [(6, 0, chosen_channel.ids)],
+                })
+                partner.with_context(auto_delete=True)._notify(message, force_send=True, user_signature=True)
 
     @api.multi
     def get_slide_tasks(self, vals):

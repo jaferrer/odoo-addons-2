@@ -72,6 +72,7 @@
                     <field name="expected_end_date" widget="date"
                            attrs="{'required': [('taken_into_account', '=', True)]}"/>
                     <field name="objective_end_date" widget="date"/>
+                    <field name="expected_duration"/>
                     <field name="previous_task_ids" widget="many2many_tags"/>
                     <field name="next_task_ids" widget="many2many_tags"/>
                 </tree>
@@ -134,6 +135,7 @@ self.update_ready_for_execution(cr, uid, context.get('active_ids'), False, conte
                 </sheet>
                 <field name="tag_ids" position="after">
                     <field name="critical_task"/>
+                    <field name="notify_users_when_dates_change"/>
                 </field>
                 <field name="planned_hours" position="after">
                     <field name="objective_duration"/>
@@ -155,6 +157,7 @@ self.update_ready_for_execution(cr, uid, context.get('active_ids'), False, conte
                                    attrs="{'required': [('taken_into_account', '=', True)]}"/>
                             <field name="total_allocated_duration"/>
                             <field name="taken_into_account"/>
+                            <field name="expected_duration"/>
                         </group>
                     </group>
                 </xpath>
