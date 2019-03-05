@@ -302,8 +302,9 @@ class ProjectImprovedTask(models.Model):
     conflict = fields.Boolean(string=u"Conflict")
     is_milestone = fields.Boolean(string="Is milestone", compute="_get_is_milestone", store=True, default=False)
     ready_for_execution = fields.Boolean(string=u"Ready for execution", readonly=True, track_visibility=True)
-    notify_managers_when_dates_change = fields.Boolean(string=u"Notify managers when dates change",
-                                                       help=u"The list of managers is defined in project configuration")
+    notify_users_when_dates_change = fields.Boolean(string=u"Notify users when dates change",
+                                                    help=u"An additional list of users is defined in project "
+                                                         u"configuration")
 
     @api.constrains('expected_start_date', 'expected_end_date')
     def constraint_dates_consistency(self):
@@ -315,7 +316,8 @@ class ProjectImprovedTask(models.Model):
         for rec in self:
             _, calendar = rec.get_default_calendar_and_resource()
             attendances = calendar.attendance_ids
-            nb_working_hours_by_week = sum([abs(attendance.hour_to - attendance.hour_from) for attendance in attendances])
+            nb_working_hours_by_week = sum([abs(attendance.hour_to - attendance.hour_from) for
+                                            attendance in attendances])
             nb_working_days = len(list(set([attendance.dayofweek for attendance in attendances]))) or 5
             nb_working_hours_by_day = float(nb_working_hours_by_week) / nb_working_days
             rec.expected_duration = rec.expected_start_date and rec.expected_end_date and \
@@ -567,7 +569,8 @@ class ProjectImprovedTask(models.Model):
         self.ensure_one()
         new_expected_end_date = new_date
         nb_days, nb_hours = self.get_nb_working_hours_from_expected_dates() or 0
-        new_expected_start_date = fields.Datetime.to_string(self.schedule_get_date(fields.Datetime.from_string(new_date), nb_hours=-nb_hours))
+        new_expected_start_date = fields.Datetime. \
+            to_string(self.schedule_get_date(fields.Datetime.from_string(new_date), nb_hours=-nb_hours))
         result = {}
         if self.expected_start_date != new_expected_start_date:
             result['expected_start_date'] = new_expected_start_date
@@ -768,8 +771,8 @@ class ProjectImprovedTask(models.Model):
                 rec.with_context(propagating_tasks=True).propagate_dates()
                 # Unit tests should cover the potential cases of ond "check_dates" function
                 # rec.check_dates()
-            if dates_changed and rec.notify_managers_when_dates_change:
-                rec.notify_managers_for_date_change()
+            if dates_changed and rec.notify_users_when_dates_change:
+                rec.notify_users_for_date_change()
         return True
 
     @api.multi
@@ -780,7 +783,7 @@ class ProjectImprovedTask(models.Model):
         return eval(partners_to_notify_config) or []
 
     @api.multi
-    def notify_managers_for_date_change(self):
+    def notify_users_for_date_change(self):
         self.ensure_one()
         email_from = self.env['mail.message']._get_default_from()
         partner_to_notify_ids = self.get_partner_to_notify_ids()

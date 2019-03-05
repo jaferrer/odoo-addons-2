@@ -26,7 +26,7 @@ class ProjectPlanningImprovedSettings(models.TransientModel):
     notify_date_changes_for_partner_ids = fields. \
         Many2many('res.partner', domain=[('has_internal_user', '=', True)],
                   string=u"Partners to notify for date modifications in tasks",
-                  help=u"Only for tasks flaged as 'notify managers when dates change'")
+                  help=u"Only for tasks flaged as 'notify users when dates change'")
 
     @api.multi
     def get_default_notify_date_changes_for_partner_ids(self):
