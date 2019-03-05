@@ -148,14 +148,14 @@ msgid "Expected duration (days)"
 msgstr "Durée réelle (jours)"
 
 #. module: project_planning_improved
-#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_notify_managers_when_dates_change
-msgid "Notify managers when dates change"
-msgstr "Notifier les responsables lorsque les dates changent"
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_notify_users_when_dates_change
+msgid "Notify users when dates change"
+msgstr "Notifier les utilisateurs lorsque les dates changent"
 
 #. module: project_planning_improved
-#: model:ir.model.fields,help:project_planning_improved.field_project_task_notify_managers_when_dates_change
-msgid "The list of managers is defined in project configuration"
-msgstr "La liste des responsables est définie dans la configuration du projet"
+#: model:ir.model.fields,help:project_planning_improved.field_project_task_notify_users_when_dates_change
+msgid "An additional list of users is defined in project configuration"
+msgstr "Une liste supplémentaire d'utilisateurs est définie dans la configuration du projet"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_config_settings_notify_date_changes_for_partner_ids
@@ -164,13 +164,13 @@ msgstr "Contacts à notifier lors des changements de date dans les tâches"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,help:project_planning_improved.field_project_config_settings_notify_date_changes_for_partner_ids
-msgid "Only for tasks flaged as 'notify managers when dates change'"
-msgstr "Les tâches prises en compte sont celles qui sont marquées via le champ 'notifier les responsables lorsque les dates changent'"
+msgid "Only for tasks flaged as 'notify users when dates change'"
+msgstr "Les tâches prises en compte sont celles qui sont marquées via le champ 'notifier les utilisateurs lorsque les dates changent'"
 
 #. module: project_planning_improved
 #: view:project.config.settings:project_planning_improved.project_planning_improved_settings
-msgid "Managers notification"
-msgstr "Notification des responsables"
+msgid "Users notification"
+msgstr "Notification des utilisateurs"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_start_date

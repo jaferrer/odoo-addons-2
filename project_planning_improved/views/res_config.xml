@@ -9,7 +9,7 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form position="inside">
-                    <group string="Managers notification">
+                    <group string="Users notification">
                         <field name="notify_date_changes_for_partner_ids" widget="many2many_tags"/>
                     </group>
                 </form>
