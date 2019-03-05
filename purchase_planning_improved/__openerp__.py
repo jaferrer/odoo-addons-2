@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase_working_days', 'stock_planning_improved', 'connector'],
+    'depends': ['purchase_working_days', 'stock_planning_improved', 'connector', 'purchase_improved'],
     'description': """
 Purchase Planning Improved
 ==========================

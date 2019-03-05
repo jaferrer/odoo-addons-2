@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,22 +18,22 @@
 #
 
 {
-    'name': 'Purchase Invoiced Quantity',
+    'name': 'Purchase Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'product_improved', 'purchase_improved'],
+    'depends': ['purchase'],
     'description': """
-Purchase Invoiced Quantity
-==========================
+Purchase Improved
+=================
+This module improves purchase management.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['views/purchase.xml'],
-    'demo': ['tests/test_purchase_invoiced_quantity.xml'],
-    'test': [],
+    'data': [],
+    'demo': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
 }
