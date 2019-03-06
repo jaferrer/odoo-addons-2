@@ -83,7 +83,8 @@ class ExploreSharepointFolders(models.Model):
             .GetCookies()
         session = requests.Session()
         session.cookies = authcookie
-        session.headers.update({"Accept": "application/json"})
+        # session.headers.update({"Accept": "application/json"})
+        session.headers.update({'accept': 'application/json;odata=verbose'})
         return session
 
     @api.multi
