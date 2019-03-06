@@ -17,23 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Product Improved',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Product',
-    'depends': ['product'],
-    'description': """
-Product Improved
-================
-This module improves products management.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['data.xml'],
-    'demo': ['demo.xml'],
-    'installable': True,
-    'auto_install': True,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from . import stock_product_improved

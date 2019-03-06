@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,20 +18,20 @@
 #
 
 {
-    'name': 'Product Improved',
+    'name': 'Purchase Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Product',
-    'depends': ['product'],
+    'category': 'Purchase',
+    'depends': ['purchase'],
     'description': """
-Product Improved
-================
-This module improves products management.
+Purchase Improved
+=================
+This module improves purchase management.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['data.xml'],
-    'demo': ['demo.xml'],
+    'data': [],
+    'demo': [],
     'installable': True,
     'auto_install': True,
     'license': 'AGPL-3',

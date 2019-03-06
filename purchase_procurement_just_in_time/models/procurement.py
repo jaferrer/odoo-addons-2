@@ -196,11 +196,9 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
 
     @api.model
     def get_delivery_date_for_dateref_order(self, product, seller, date_ref):
-        suppliers = product.seller_ids and self.env['product.supplierinfo']. \
-            search([('id', 'in', product.seller_ids.ids),
-                    ('name', '=', seller.id)]) or False
+        supplierinfo = product.get_main_supplierinfo(force_supplier=seller)
         min_date = date_ref
-        if suppliers:
+        if supplierinfo:
             min_date = seller.schedule_working_days(product.seller_delay, date_ref)
         return fields.Datetime.to_string(min_date)
 

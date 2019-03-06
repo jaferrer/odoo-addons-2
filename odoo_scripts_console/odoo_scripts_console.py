@@ -112,7 +112,7 @@ class OdooScriptWatcher(models.Model):
             if forbidden_keyword in query_upper:
                 raise exceptions.except_orm(u"Error!", u"Forbidden keyword %s in watcher query" % forbidden_keyword)
 
-        query_with_header = "COPY (%s) TO STDOUT WITH CSV HEADER" % self.query
+        query_with_header = "COPY (%s) TO STDOUT WITH CSV HEADER" % self.query.rstrip(';')
         output = StringIO.StringIO()
         self.env.cr.copy_expert(query_with_header, output)
         output.seek(0)

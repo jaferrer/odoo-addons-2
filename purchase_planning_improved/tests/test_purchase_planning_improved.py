@@ -32,6 +32,7 @@ class TestPurchasePlanningImproved(common.TransactionCase):
         self.location_c = self.browse_ref("stock_planning_improved.stock_location_c")
         self.location_inv = self.browse_ref("stock.location_inventory")
         self.product_uom_unit_id = self.ref("product.product_uom_unit")
+        self.env['product.template'].update_seller_ids()
 
     def create_move_out_corresponding_to_procs(self):
         self.env['stock.move'].search([('origin', '=', 'to_remove'),
