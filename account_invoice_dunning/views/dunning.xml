@@ -26,6 +26,7 @@
                             <group>
                                 <field name="name"
                                        attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('sequence_id', '!=', False)]}"/>
+                                <field name="user_id"/>
                                 <field name="sequence_id" invisible="1"/>
                                 <field name="company_id" groups="base.group_multi_company"/>
                             </group>
@@ -69,7 +70,7 @@
                     <field name="name"/>
                     <field name="dunning_type_id"/>
                     <field name="partner_id"/>
-                    <field name="mail_template_id"/>
+                    <field name="user_id"/>
                     <field name="date_done"/>
                     <field name="state"/>
                 </tree>
@@ -85,11 +86,17 @@
                     <field name="dunning_type_id"/>
                     <field name="company_id" groups="base.group_multi_company"/>
                     <field name="state"/>
+                    <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                    <filter name="sent" string="Sent" domain="[('state', '=', 'send')]"/>
+                    <filter name="done" string="Done" domain="[('state', '=', 'done')]"/>
+                    <filter name="cancel" string="Cancel" domain="[('state', '=', 'cancel')]"/>
                     <group string="Group by...">
                         <filter name="group_partner_id" string="Partner" context="{'group_by': 'partner_id'}"/>
                         <filter name="group_dunning_type_id" string="Dunning Type"
                                 context="{'group_by': 'dunning_type_id'}"/>
                         <filter name="group_company_id" string="Company" context="{'group_by': 'company_id'}"/>
+                        <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                        <filter name="group_user_id" string="Responsible" context="{'group_by': 'user_id'}"/>
                     </group>
                 </search>
             </field>
