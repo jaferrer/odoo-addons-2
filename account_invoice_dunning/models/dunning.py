@@ -47,12 +47,14 @@ class AccountInvoiceRelanceConfig(models.Model):
 class AccountInvoiceRelance(models.Model):
     _name = 'account.invoice.dunning'
     _inherit = ['mail.thread']
+    _description = u"Invoice Dunning"
+    _order = 'id DESC'
 
     name = fields.Char(u"Name")
     date_done = fields.Date(u"Dunning date done", readonly=True)
     state = fields.Selection([
         ('draft', u"Draft"),
-        ('send', u"Send"),
+        ('send', u"Sent"),
         ('cancel', u"Cancel"),
         ('done', u"Done")], string=u"State", readonly=True, default='draft', track_visibility='onchange')
     partner_id = fields.Many2one('res.partner', string=u"Partner")
@@ -67,6 +69,7 @@ class AccountInvoiceRelance(models.Model):
     amount_total_signed = fields.Float(u"Total", compute='_compute_amounts')
     residual_signed = fields.Float(u"Residual", compute='_compute_amounts')
     note = fields.Text(u"Notes")
+    user_id = fields.Many2one('res.users', u"Responsible")
 
     @api.multi
     def _compute_amounts(self):
@@ -206,6 +209,7 @@ class AccountInvoice(models.Model):
             'invoice_ids': [(4, self.id, {})],
             'partner_id': self.partner_id.id,
             'company_id': self.company_id.id,
+            'user_id': self.user_id.id,
             'name': dunning_type_id._get_dunning_name()
         }
 

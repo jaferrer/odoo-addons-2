@@ -17,6 +17,7 @@ msgstr ""
 
 #. module: account_invoice_dunning
 #: selection:account.invoice.dunning,state:0
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_search_view
 msgid "Cancel"
 msgstr "Annulé"
 
@@ -57,11 +58,13 @@ msgstr "Nom affiché"
 
 #. module: account_invoice_dunning
 #: selection:account.invoice.dunning,state:0
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_search_view
 msgid "Done"
 msgstr "Terminé"
 
 #. module: account_invoice_dunning
 #: selection:account.invoice.dunning,state:0
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_search_view
 msgid "Draft"
 msgstr "Brouillon"
 
@@ -208,7 +211,8 @@ msgstr "Restant dû"
 
 #. module: account_invoice_dunning
 #: selection:account.invoice.dunning,state:0
-msgid "Send"
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_search_view
+msgid "Sent"
 msgstr "Envoyé"
 
 #. module: account_invoice_dunning
@@ -278,3 +282,9 @@ msgstr "account.invoice.dunning.type"
 msgid "Duration of validity of the sendings"
 msgstr "Durée de validité des envois"
 
+#. module: account_invoice_dunning
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_search_view
+#: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_form_view
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_user_id
+msgid "Responsible"
+msgstr "Responsable"
