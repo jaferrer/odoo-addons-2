@@ -28,6 +28,9 @@ class OdooOnlineDocumentation(models.Model):
     file = fields.Binary(string=u"File", attachment=True)
     doc_type_id = fields.Many2one('odoo.online.document.type', string=u"Document type")
     nature = fields.Selection([('PJ', _(u"Attached document"))], string=u"Nature", default='PJ', readonly=True)
+    seen_in_sales = fields.Boolean(string=u"Must be seen in sales", default=False)
+    seen_in_purchases = fields.Boolean(string=u"Must be seen in purchases", default=False)
+    seen_in_prod = fields.Boolean(string=u"Must be seen in manufacturing", default=False)
     # product_product_id = fields.Many2one('product.product')
 
     _sql_constraints = [('path_unique_per_file', 'unique(path)',

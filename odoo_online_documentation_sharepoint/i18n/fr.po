@@ -44,7 +44,7 @@ msgid "To scan"
 msgstr "À scanner"
 
 #. module: odoo_online_documentation_sharepoint
-#: view:odoo.online.documentation:sharepoint_folders_tree
+#: model:ir.ui.menu,name:odoo_online_documentation_sharepoint.sharepoint_folders_menu
 msgid "Updating sharepoint folders"
 msgstr "Updating sharepoint folders"
 

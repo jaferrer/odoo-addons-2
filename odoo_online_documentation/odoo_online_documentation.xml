@@ -38,10 +38,13 @@
             <field name="model">odoo.online.documentation</field>
             <field name="arch" type="xml">
                 <form>
-                    <group>
+                    <group col="4" colspan="2">
                         <field name="name"/>
+                        <field name="seen_in_sales"/>
                         <field name="nature"/>
+                        <field name="seen_in_purchases"/>
                         <field name="doc_type_id"/>
+                        <field name="seen_in_prod"/>
                         <field name="file"/>
                     </group>
                 </form>

@@ -58,6 +58,21 @@ msgid "File"
 msgstr "Fichier"
 
 #. module: odoo_online_documentation
+#: field:odoo.online.documentation,seen_in_sales:0
+msgid "Must be seen in sales"
+msgstr "Doit être vu dans les ventes"
+
+#. module: odoo_online_documentation
+#: field:odoo.online.documentation,seen_in_purchases:0
+msgid "Must be seen in purchases"
+msgstr "Doit être vu dans les achats"
+
+#. module: odoo_online_documentation
+#: field:odoo.online.documentation,seen_in_prod:0
+msgid "Must be seen in manufacturing"
+msgstr "Doit être vu en production"
+
+#. module: odoo_online_documentation
 #: view:odoo.online.documentation:odoo_online_documentation_tree.odoo_online_documentation_tree
 msgid "Open Documentation"
 msgstr "Ouvrir la documentation"
