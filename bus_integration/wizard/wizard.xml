@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_sirail_trt_msg_syncro_form" model="ir.ui.view">
+            <field name="name">sirail.trt.msg.syncro.form</field>
+            <field name="model">sirail.trt.msg.synchro</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="model"/>
+                        <field name="domain"/>
+                        <field name="chunk"/>
+                        <field name="code"/>
+                    </group>
+                    <footer>
+                        <button name="write" string="Sauver" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Annuler" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</openerp>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <!-- TODO: À passer dans le common module approprié -->
+        <record model="traitement.type" id="sirail_synchro_trt">
+            <field name="name">Traitement de synchronisation</field>
+            <field name="model_param_name">sirail.trt.msg.synchro</field>
+            <field name="method_name">export_message_synchro</field>
+        </record>
+
+        <record model="traitement.type" id="sirail_synchro_trt_del">
+            <field name="name">Traitement de synchronisation de suppression</field>
+            <field name="model_param_name">sirail.trt.msg.synchro</field>
+            <field name="method_name">export_message_synchro_deletion</field>
+        </record>
+
+    </data>
+</openerp>
