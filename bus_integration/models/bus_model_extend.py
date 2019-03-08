@@ -17,8 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, exceptions, _ as _t
+from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.unit.mapper import mapping, ImportMapper
+
+from openerp import api, models
+from openerp import fields, exceptions, _ as _t
+from .. import jobs
 from ..backend import BUSEXTEND
 from ..unit.import_synchronizer import BusextendImporter
 
@@ -78,6 +82,16 @@ class BusModelExtend(models.Model):
                             raise ValueError(u"Impossible to create %s with data : %s" % (vals.get("model"), vals))
                         vals.update({"openerp_id": object.id})
         return super(BusModelExtend, self).write(self.extract_field_object(self._name, vals))
+
+    @api.model
+    def receive_message(self, archive):
+        self.sudo()
+        jobs.job_receive_message.delay(
+            ConnectorSession.from_env(self.env),
+            'bus.model.extend',
+            0,
+            archive)
+        return True
 
     def extract_field_object(self, model, vals):
         object = self.env[model]

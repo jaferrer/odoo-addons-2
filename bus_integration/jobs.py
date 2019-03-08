@@ -27,8 +27,8 @@ from .models.bus_model_extend import BusImporter
 from .connector import get_environment
 
 
-@job(default_channel='root.recep_message')
-def recep_message(session, model_name, backend_id, archive, wait_dependency=False):
+@job(default_channel='root.receive_message')
+def job_receive_message(session, model_name, backend_id, archive, wait_dependency=False):
     backend = session.env.ref("bus_integration.backend")
     msg = eval(archive)
     serial_id = int(msg.get("header").get("serial_id"))

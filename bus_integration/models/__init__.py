@@ -17,7 +17,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import backend_bus
 from . import busextend_backend_batch
 from . import busextend_backend_batch_histo
 from . import home_backend
