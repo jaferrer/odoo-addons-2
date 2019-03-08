@@ -22,5 +22,5 @@ from . import busextend_backend_batch
 from . import busextend_backend_batch_histo
 from . import home_backend
 from . import object_mapping
-from . import sirail_config
+from . import bus_config_update
 from . import user_bus_right
