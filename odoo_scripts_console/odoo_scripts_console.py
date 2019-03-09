@@ -17,7 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api, exceptions
+from odoo import models, fields, api, exceptions
+from odoo.tools.safe_eval import safe_eval
 
 FORBIDDEN_SQL_KEYWORDS = ["UPDATE", "INSERT", "ALTER", "DELETE", "GRANT", "DROP"]
 
@@ -55,10 +56,8 @@ class OdooScript(models.Model):
     @api.multi
     def execute(self, autocommit=False):
         self.ensure_one()
-        glob = globals()
-        loc = locals()
         self.last_execution_begin = fields.Datetime.now()
-        exec (self.script, glob, loc)
+        safe_eval(self.script, globals(), locals(), "exec")
         self.last_execution_end = fields.Datetime.now()
         if autocommit:
             self.env.cr.commit()
