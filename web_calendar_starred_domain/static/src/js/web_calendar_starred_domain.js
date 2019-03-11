@@ -33,9 +33,9 @@ odoo.define('web_calendar_starred_domain.SidebarFilter', function (require) {
         load_favorite_list_with_ticked: function (favorite_model, favorite_domain, favorite_ticked_domain) {
             var self = this;
             var active_partner = (favorite_model === 'res.partner');
-            var ticked_partner = [];
+            var favorites = [];
             return this.get_favorite_partner_ids(favorite_model, favorite_domain).done(function (result) {
-                ticked_partner = result;
+                favorites = result;
             }).then(function () {
                 session.is_bound.then(function () {
                     self.view.all_filters = {};
@@ -54,19 +54,19 @@ odoo.define('web_calendar_starred_domain.SidebarFilter', function (require) {
                                 _.each(result, function (item) {
                                     favorite_ticked_ids = favorite_ticked_ids.concat(item.id)
                                 });
-                                _.each(ticked_partner, function (item) {
-                                    var ticked = favorite_ticked_ids.length > 0 || favorite_ticked_ids.indexOf(item.id) >= 0;
-                                    var name = item.name;
-                                    if (active_partner && item.id === session.patner_id) {
+                                _.each(favorites, function (favorite) {
+                                    let ticked = favorite_ticked_ids.includes(favorite.id);
+                                    let name = favorite.name;
+                                    if (active_partner && favorite.id === session.patner_id) {
                                         me_added = true;
                                         name = session.name + _lt(" [Me]");
                                         ticked = ticked || active_partner === true
 
                                     }
-                                    self._add_filter(item.id, name, ticked, true);
+                                    self._add_filter(favorite.id, name, ticked, true);
                                 });
                                 if (!me_added && active_partner) {
-                                    self._add_filter(session.partner_id, session.name + _lt(" [Me]"), ticked_partner.length === 0, true);
+                                    self._add_filter(session.partner_id, session.name + _lt(" [Me]"), favorites.length === 0, true);
                                 }
 
                                 self.view.now_filter_ids = _.pluck(self.view.all_filters, 'value');
