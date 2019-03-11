@@ -53,7 +53,7 @@ class BusextendImporter(Importer):
             return
         if importer_class is None:
             importer_class = BusextendImporter
-        importer = self.unit_for(importer_class, model="bus.model.extend")
+        importer = self.unit_for(importer_class, model="bus.receive.transfer")
         depend = importer.run(busextend_record, bus_model, self.dependency)
         return depend
 
@@ -149,7 +149,7 @@ class BusextendImporter(Importer):
                     ir_translation_name = "%s,%s" % (binding.model, field)
                     ir_translation = self.env['ir.translation'].search([('name', '=', ir_translation_name),
                                                                         ('type', '=', 'model'), ('lang', '=', lang),
-                                                                        ('res_id', '=', binding.openerp_id)])
+                                                                        ('res_id', '=', binding.local_id)])
                     trad.update({'comments': u"Set by BUS %s" % datetime.now()})
                     if ir_translation:
                         ir_translation.write(trad)
@@ -157,7 +157,7 @@ class BusextendImporter(Importer):
                         trad.update({
                             'name': ir_translation_name,
                             'lang': lang,
-                            'res_id': binding.openerp_id,
+                            'res_id': binding.local_id,
                             'type': 'field'
                         })
                         self.env['ir.translation'].create(trad)
@@ -186,13 +186,13 @@ class BusextendImporter(Importer):
             return skip
 
         binding = self._get_binding(self.busextend_id, self.bus_model)
-        model_map = self.env["object.mapping"].search([("name", "=", self.bus_model),
+        model_map = self.env["bus.object.mapping"].search([("name", "=", self.bus_model),
                                                        ("active", "=", True),
                                                        ("transmit", "=", True)])
         object = True
         link_model = False
         if binding:
-            object = self.env[self.bus_model].search([('id', '=', binding.openerp_id)])
+            object = self.env[self.bus_model].search([('id', '=', binding.local_id)])
         if not binding and len(self.busextend_record.keys()) < 6 or binding and not object:
             return {
                 "model": bus_model,
@@ -205,7 +205,7 @@ class BusextendImporter(Importer):
                     [('model', '=', model_map.name), ('module', '=', module), ('name', '=', name)])
                 link_model = self.env[self.bus_model].search([("id", "=", ir_model_data.res_id)])
             if not model_map.key_xml_id or not link_model:
-                map_field = self.env["object.mapping.field"].search([("migration", '=', True),
+                map_field = self.env["bus.object.mapping.field"].search([("migration", '=', True),
                                                                      ("object_id", "=", model_map.id)])
                 domain = []
                 if map_field:
@@ -216,11 +216,11 @@ class BusextendImporter(Importer):
 
             if link_model and len(link_model) == 1:
                 if binding:
-                    binding.openerp_id = link_model[0].id
+                    binding.local_id = link_model[0].id
                 else:
-                    binding = self.env["bus.model.extend"].create({
+                    binding = self.env["bus.receive.transfer"].create({
                         "model": self.bus_model,
-                        "openerp_id": link_model[0].id,
+                        "local_id": link_model[0].id,
                         "external_key": self.busextend_id
                     })
 
@@ -239,7 +239,7 @@ class BusextendImporter(Importer):
             datas = self._create_data(map_record)
             binding = self._create(datas, model_map.migration)
             self._update_translation(binding)
-            record["openerp_id"] = binding.openerp_id
+            record["local_id"] = binding.local_id
             return record
 
     def get_domain(self, field, domain):
@@ -249,7 +249,7 @@ class BusextendImporter(Importer):
                 external_id = str(self.busextend_record.get(field.map_name).get('id'))
                 external_key = self.dependency.get(field.relation).get(external_id).get('external_key')
                 external_binding = self._get_binding(external_key, field.relation)
-                domain_item = (field.name, "=", external_binding.openerp_id)
+                domain_item = (field.name, "=", external_binding.local_id)
             else:
                 domain_item = (field.name, "=", self.busextend_record.get(field.map_name))
         if domain_item:
@@ -261,11 +261,11 @@ class BusextendImporter(Importer):
         self.busextend_record = record
         self.bus_model = bus_model
         self.busextend_model = record.get("model", False)
-        self.busextend_openerp_id = record.get("openerp_id", 0)
+        self.busextend_local_id = record.get("local_id", 0)
         self.dependency = dependency_list
         binding = self.env[self.bus_model].search([('id', "=", self.busextend_id)])
-        if binding and binding.to_deactivate and binding.openerp_id == self.busextend_openerp_id:
-            object = self.env[self.busextend_model].search([("id", "=", self.busextend_openerp_id)])
+        if binding and binding.to_deactivate and binding.local_id == self.busextend_local_id:
+            object = self.env[self.busextend_model].search([("id", "=", self.busextend_local_id)])
             if object and object.id:
                 raise exceptions.except_orm(u"Error",
                                             u"Unable to delete binding, some object already exist: %s") % record
@@ -281,13 +281,13 @@ class BusextendImporter(Importer):
         self.busextend_record["_dependency"] = self.dependency
         unlink = "False"
         model_to_delete = record.get("model", "")
-        id_to_delete = record.get("openerp_id", "")
+        id_to_delete = record.get("local_id", "")
         external_key_to_delete = self.dependency.get(model_to_delete, "").get(id_to_delete, "").get("external_key")
         if external_key_to_delete and record.get("to_deactivate", False):
-            binding_to_delete = self.env["bus.model.extend"].search(
+            binding_to_delete = self.env["bus.receive.transfer"].search(
                 [("model", "=", model_to_delete), ("external_key", "=", external_key_to_delete)])
             if binding_to_delete:
-                record_to_delete = self.env[model_to_delete].browse(binding_to_delete.openerp_id)
+                record_to_delete = self.env[model_to_delete].browse(binding_to_delete.local_id)
                 if record_to_delete:
                     record_to_delete.write({"active": False})
                     unlink = "Ok"

@@ -25,7 +25,7 @@ from openerp.addons.connector.connector import ConnectorEnvironment
 
 def get_environment(session, model_name, backend_id):
     """ Create an environment to work with.  """
-    backend_record = session.env['busextend.backend'].browse(backend_id)
+    backend_record = session.env['bus.backend'].browse(backend_id)
     env = ConnectorEnvironment(backend_record, session, model_name)
     lang_code = 'fr_FR'
     if lang_code == session.context.get('lang'):
@@ -49,4 +49,4 @@ def add_checkpoint(session, model_name, record_id, backend_id):
     :type backend_id: int
     """
     return checkpoint.add_checkpoint(session, model_name, record_id,
-                                     'busextend.backend', backend_id)
+                                     'bus.backend', backend_id)

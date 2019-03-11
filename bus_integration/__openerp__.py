@@ -17,24 +17,29 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 {
-    'name': 'SIRAIL bus connector',
+    'name': 'Connector to Odoo Databus',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
-    'depends': ['base'],
+    'depends': ['connector'],
     'description': """
-SIRAIL bus connector
-====================
-connector bus for SIRAIL
+Connector to Odoo Databus
+=========================
+Connector to Odoo Databus
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
-        "data/data.xml",
-        "data/cron.xml",
-        "views/sirail_connector.xml",
-        "wizard/wizard.xml"
+        'data/cron.xml',
+        'data/bus_configuration.xml',
+        'views/bus_receive_transfer.xml',
+        'views/bus_backend.xml',
+        'views/bus_backend_batch.xml',
+        'views/bus_backend_batch_histo.xml',
+        'views/bus_message.xml',
+        'views/bus_object_mapping.xml',
+        'views/res_partner.xml',
     ],
     'demo': [],
     'test': [],

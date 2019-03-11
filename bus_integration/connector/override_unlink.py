@@ -39,19 +39,19 @@ def unlink(self):
     ids = self.ids
     res_unlink = UNLINK_ORIGINAL(self)
     if is_module_installed(self.env, 'bus_integration'):
-        object_mapping = self.env['object.mapping'].search([('name', '=', self._name)])
+        object_mapping = self.env['bus.object.mapping'].search([('name', '=', self._name)])
         if object_mapping.deactivate_on_delete:
             recs = self.search([('id', 'in', ids)])
             if not recs and res_unlink:
                 for id in ids:
-                    sync_histo = self.env['bus.model.extend'].search([('model', '=', self._name),
-                                                                      ('openerp_id', '=', id)])
+                    sync_histo = self.env['bus.receive.transfer'].search([('model', '=', self._name),
+                                                                          ('local_id', '=', id)])
                     if sync_histo:
                         sync_histo.write({'to_deactivate': True})
                     else:
-                        self.env['bus.model.extend'].create({
+                        self.env['bus.receive.transfer'].create({
                             'model': self._name,
-                            'openerp_id': id,
+                            'local_id': id,
                             'to_deactivate': True
                         })
     return res_unlink

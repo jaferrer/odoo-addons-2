@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,13 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import res_partner
-from . import bus_object_mapping
-from . import bus_receive_transfer
-from . import bus_backend
-from . import bus_backend_batch_histo
-from . import bus_backend_batch
-from . import bus_config_update
-from . import bus_message
-from . import ir_cron
-from . import access_rights
+from openerp import models, fields
+
+
+class BackendPartner(models.Model):
+    _inherit = 'res.partner'
+
+    bus_username = fields.Char(u"BUS user name")

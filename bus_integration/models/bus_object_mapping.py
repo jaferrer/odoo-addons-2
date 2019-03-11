@@ -21,13 +21,13 @@ from openerp import models, fields, api, exceptions, _ as _t
 
 
 class ObjectMapping(models.Model):
-    _name = 'object.mapping'
+    _name = 'bus.object.mapping'
 
-    name = fields.Char(u"Modèle", readonly=True)
+    name = fields.Char(u"Model", readonly=True)
     transmit = fields.Boolean(u"Communicable")
-    active = fields.Boolean(u"Actif", default=True)
+    active = fields.Boolean(u"Active", default=True)
     migration = fields.Boolean(u"Objet migrable", default=False)
-    field_ids = fields.One2many('object.mapping.field', 'object_id', string=u"Fields")
+    field_ids = fields.One2many('bus.object.mapping.field', 'object_id', string=u"Fields")
     key_xml_id = fields.Boolean(string=u"Migration key on xml id",
                                 help=u"if XML id not find, migration on key in fields")
     deactivated_sync = fields.Boolean(string=u"Synchronize inactive items")
@@ -42,35 +42,36 @@ class ObjectMapping(models.Model):
     def write(self, vals):
         for rec in self:
             if vals.get('deactivated_sync', False):
-                field = self.env['object.mapping.field'].search([('object_id', '=', rec.id), ('name', '=', 'active')])
+                field = self.env['bus.object.mapping.field'].search([('object_id', '=', rec.id), ('name', '=', 'active')])
                 if field:
                     field.write({'export_field': True, 'import_field': True, 'active': True})
         return super(ObjectMapping, self).write(vals)
 
     @api.model
     def get_mapping(self, model_name):
-        return self.env['object.mapping'].search([('name', '=', model_name)], limit=1)
+        return self.env['bus.object.mapping'].search([('name', '=', model_name)], limit=1)
 
 
 class ObjectMappingField(models.Model):
-    _name = 'object.mapping.field'
+    _name = 'bus.object.mapping.field'
 
-    object_id = fields.Many2one("object.mapping", string=u"Modèle")
-    name = fields.Char(string=u"name", readonly=True)
-    map_name = fields.Char(string=u"map name")
-    type_field = fields.Selection([(u'PRIMARY', u'Primaire'), (u'M2O', u'Objet'), (u"M2M", u"Objets")], readonly=True,
-                                  string=u"type")
+    object_id = fields.Many2one("bus.object.mapping", string=u"Model")
+    name = fields.Char(string=u"Name", readonly=True)
+    map_name = fields.Char(string=u"Map name")
+    type_field = fields.Selection([('primary', u"Primaire"),
+                                   ('many2one', u"Object"),
+                                   ('many2many', u"Objects")], readonly=True, string=u"Type")
     relation = fields.Char(string=u'Relation', readonly=True)
-    export_field = fields.Boolean(u"Champs à exporter")
-    import_field = fields.Boolean(u"Champs à importer")
-    active = fields.Boolean(u"Actif", default=True)
-    migration = fields.Boolean(u"Clés de migration", default=False)
+    export_field = fields.Boolean(u"Field to export")
+    import_field = fields.Boolean(u"Field to import")
+    active = fields.Boolean(u"Active", default=True)
+    migration = fields.Boolean(u"Migration key", default=False)
 
     @api.multi
     def write(self, vals):
         for rec in self:
-            if rec.type_field == "M2O" and rec.relation and (vals.get("export_field") or vals.get("import_field")):
-                mod = self.env['object.mapping'].search([("name", "=", rec.relation)])
+            if rec.type_field == "many2one" and rec.relation and (vals.get("export_field") or vals.get("import_field")):
+                mod = self.env['bus.object.mapping'].search([("name", "=", rec.relation)])
                 mod.write({
                     "transmit": True
                 })
@@ -78,5 +79,5 @@ class ObjectMappingField(models.Model):
 
     @api.model
     def get_mapping_field(self, mapping, field_name):
-        return self.env['object.mapping.field'].search([('name', '=', field_name),
+        return self.env['bus.object.mapping.field'].search([('name', '=', field_name),
                                                         ('object_id', '=', mapping.id)], limit=1)

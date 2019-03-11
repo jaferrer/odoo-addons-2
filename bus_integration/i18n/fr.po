@@ -16,36 +16,30 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: bus_integration
-#: model:ir.ui.menu,name:bus_integration.sirail_menu_bus_sirail_menu
+#: model:ir.ui.menu,name:bus_integration.menu_bus
 msgid "Bus"
 msgstr "Bus"
 
 #. module: bus_integration
-#: model:ir.actions.act_window,name:bus_integration.sirail_act_window_bus_config
-#: model:ir.ui.menu,name:bus_integration.sirail_menu_bus_config_menu
+#: model:ir.actions.act_window,name:bus_integration.act_window_bus_backend
+#: model:ir.ui.menu,name:bus_integration.menu_bus_config_menu
 msgid "Configuration"
 msgstr "Configuration"
 
 #. module: bus_integration
-#: model:ir.actions.act_window,name:bus_integration.sirail_act_window_object_mapping
-#: model:ir.ui.menu,name:bus_integration.sirail_menu_object_mapping_menu
+#: model:ir.actions.act_window,name:bus_integration.act_window_object_mapping
+#: model:ir.ui.menu,name:bus_integration.menu_object_mapping_menu
 msgid "Object Mapping"
 msgstr "Mapping des objets"
 
 #. module: bus_integration
-#: model:ir.actions.act_window,name:bus_integration.sirail_act_window_bus_config_export
-#: model:ir.ui.menu,name:bus_integration.sirail_menu_bus_config_export_menu
+#: model:ir.actions.act_window,name:bus_integration.act_window_bus_config_export
+#: model:ir.ui.menu,name:bus_integration.menu_bus_config_export_menu
 msgid "Configuration of template exports"
 msgstr "Configuration des exports des modèles"
 
 #. module: bus_integration
-#: model:ir.actions.act_window,name:bus_integration.sirail_act_window_bus_model_extend
-#: model:ir.ui.menu,name:bus_integration.sirail_menu_bus_model_extend
+#: model:ir.actions.act_window,name:bus_integration.act_window_bus_model_extend
+#: model:ir.ui.menu,name:bus_integration.menu_bus_model_extend
 msgid "Synchronized Data"
 msgstr "Données synchronisées"
-
-#. module: bus_integration
-#: help:sirail.trt.msg.synchro,domain:0
-msgid "You can see the additional object/functions in the model busextend.backend.batch. You can acces to : relativedelta, self, context. For datetime use shorcut date, date_to_str to translate dates. last_send_date to get the last date of dispatch."
-msgstr "Vous pouvez visualiser les objets ou fonctions additionnelles dans le model busextend.backend.batch. Vous pouvez accèdez à : relativedelta, self, context, Pour datetime utilisez le raccourci date, date_to_str pour traduire les dates. last_send_date pour obtenir la dernière date d'envoi."
-

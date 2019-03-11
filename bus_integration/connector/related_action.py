@@ -25,8 +25,8 @@ from openerp.addons.connector import related_action
 
 from openerp import exceptions, _
 from .connector import get_environment
-from .unit.backend_adapter import GenericAdapter
-from .unit.binder import BusextendBinding
+from ..unit.backend_adapter import GenericAdapter
+from ..unit.binder import BusextendBinding
 
 UNWRAP_BINDING = functools.partial(related_action.unwrap_binding,
                                    binder_class=BusextendBinding)

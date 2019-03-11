@@ -22,7 +22,7 @@
 from openerp.addons.connector.connector import Binder
 
 import openerp
-from openerp.addons.bus_integration.backend import BUSEXTEND
+from openerp.addons.bus_integration.connector.backend import BUSEXTEND
 
 
 class BusextendBinding(Binder):
@@ -41,7 +41,7 @@ class BusextendBindingModelBinder(BusextendBinding):
     fields belonging to the magentoextend instance.
     """
     _model_name = [
-        'bus.model.extend',
+        'bus.receive.transfer',
     ]
 
     def to_openerp(self, external_id, models, unwrap=False, browse=False):
@@ -55,15 +55,15 @@ class BusextendBindingModelBinder(BusextendBinding):
                  or an empty recordset if no binding is found
         :rtype: recordset
         """
-        bindings = self.env['bus.model.extend'].with_context(active_test=False).search(
+        bindings = self.env['bus.receive.transfer'].with_context(active_test=False).search(
             [('external_key', '=', str(external_id)),
              ('model', '=', str(models))]
         )
         if not bindings:
-            return self.env['bus.model.extend'].browse() if browse else None
+            return self.env['bus.receive.transfer'].browse() if browse else None
         assert len(bindings) == 1, "Several records found: %s" % (bindings,)
         if unwrap:
-            return bindings.openerp_id if browse else bindings.openerp_id.id
+            return bindings.local_id if browse else bindings.local_id.id
         return bindings if browse else bindings.id
 
     def to_backend(self, record_id, models, wrap=False):
@@ -83,8 +83,8 @@ class BusextendBindingModelBinder(BusextendBinding):
             record = record_id
             record_id = record_id.id
         if wrap:
-            binding = self.env['bus.model.extend'].with_context(active_test=False).search(
-                [('openerp_id', '=', record_id),
+            binding = self.env['bus.receive.transfer'].with_context(active_test=False).search(
+                [('local_id', '=', record_id),
                  ('model', '=', models),
                  ]
             )
@@ -134,7 +134,7 @@ class BusextendBindingModelBinder(BusextendBinding):
         else:
             binding = self.model.browse(binding_id)
 
-        openerp_record = binding.openerp_id
+        openerp_record = binding.local_id
         if browse:
             return openerp_record
         return openerp_record.id
@@ -145,12 +145,12 @@ class BusextendBindingModelBinder(BusextendBinding):
         Example: when called on a binder for ``magentoextend.product.product``,
         it will return ``product.product``.
 
-        This binder assumes that the normal model lays in ``openerp_id`` since
+        This binder assumes that the normal model lays in ``local_id`` since
         this is the field we use in the ``_inherits`` bindings.
         """
         try:
-            column = self.env['bus.model.extend']._fields['openerp_id']
+            column = self.env['bus.receive.transfer']._fields['local_id']
         except KeyError:
             raise ValueError('Cannot unwrap model %s, because it has '
-                             'no openerp_id field' % self.model._name)
+                             'no local_id field' % self.model._name)
         return column.comodel_name
