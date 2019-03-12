@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="busextend_backend_batch_histo_tree">
+            <field name="name">busextend_backend_batch_histo_tree</field>
+            <field name="model">bus.backend.batch.histo</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" edit="false" delete="false">
+                    <field name="state"/>
+                    <field name="name"/>
+                    <field name="serial_id"/>
+                    <field name="batch_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_busextend_backend_batch_histo">
+            <field name="name">Synchronized Historique</field>
+            <field name="res_model">bus.backend.batch.histo</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"/>
+        </record>
+
+        <menuitem id="menu_busextend_backend_batch_histo" name="Synchronized Histo"
+                  action="act_window_busextend_backend_batch_histo" parent="menu_bus"
+                  sequence="100"/>
+
+        <record model="ir.ui.view" id="busextend_backend_batch_histo_log_tree">
+            <field name="name">busextend_backend_batch_histo_log_tree</field>
+            <field name="model">bus.backend.batch.histo.log</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" edit="false" delete="false">
+                    <field name="histo_id"/>
+                    <field name="serial_id"/>
+                    <field name="job_uid"/>
+                    <field name="log"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_busextend_backend_batch_histo_log">
+            <field name="name">Synchronized logs</field>
+            <field name="res_model">bus.backend.batch.histo.log</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"/>
+        </record>
+        <menuitem id="menu_bus_model_extend_log" name="Synchronized Log"
+                  action="act_window_busextend_backend_batch_histo_log" parent="menu_bus"
+                  sequence="100"/>
+
+    </data>
+</openerp>

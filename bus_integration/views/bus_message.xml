@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="bus_message_tree">
+            <field name="name">bus_message_tree</field>
+            <field name="model">bus.message</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="type"/>
+                    <field name="treatment"/>
+                    <field name="create_date"/>
+                    <field name="create_uid"/>
+                    <field name="done"/>
+                    <field name="date_done"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="bus_message_form">
+            <field name="name">bus_message_form</field>
+            <field name="model">bus.message</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="type"/>
+                            <field name="treatment"/>
+                            <field name="create_date"/>
+                            <field name="create_uid"/>
+                            <field name="done"/>
+                            <field name="date_done"/>
+                        </group>
+                        <separator string="Header"/>
+                        <field name="header_param_ids">
+                            <tree>
+                                <field name="name"/>
+                                <field name="value"/>
+                            </tree>
+                        </field>
+                        <separator string="Body"/>
+                        <field name="body"/>
+                        <separator string="Extra content"/>
+                        <field name="extra_content"/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="bus_message_search">
+            <field name="name">bus_message_search</field>
+            <field name="model">bus.message</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="type"/>
+                    <field name="treatment"/>
+                    <field name="header_param_ids"/>
+                    <field name="body"/>
+                    <field name="extra_content"/>
+                    <filter name="running" string="Running" domain="[('done', '=', False)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_bus_message">
+            <field name="name">Bus Messages</field>
+            <field name="res_model">bus.message</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{'search_default_running': True}</field>
+        </record>
+
+        <menuitem id="menu_bus_message" name="Bus Messages" action="act_window_bus_message"
+                  parent="menu_bus" sequence="150"/>
+
+    </data>
+</openerp>

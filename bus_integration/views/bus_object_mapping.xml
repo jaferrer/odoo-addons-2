@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        
+        <record model="ir.ui.view" id="object_mapping_tree">
+            <field name="name">bus.object.mapping.tree</field>
+            <field name="model">bus.object.mapping</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" edit="false" delete="false">
+                    <field name="name"/>
+                    <field name="transmit"/>
+                    <field name="migration"/>
+                    <field name="key_xml_id"/>
+                    <field name="deactivated_sync"/>
+                    <field name="deactivate_on_delete"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="object_mapping_search">
+            <field name="name">bus.object.mapping.search</field>
+            <field name="model">bus.object.mapping</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search string="Object Mapping">
+                    <field name="name"/>
+                    <field name="transmit"/>
+                    <group expand="0" string="Filters">
+                        <filter name="transmit_ok" string="Transmit"
+                                domain="[('transmit','!=', False)]"/>
+                        <filter name="mibrable_ok" string="Mibrable"
+                                domain="[('migration','!=', False)]"/>
+                        <filter name="key_xml_id" string="Key on xml id"
+                                domain="[('key_xml_id','!=', False)]"/>
+                        <filter name="deactivated_sync" string="Deactivated sync"
+                                domain="[('deactivated_sync','!=', False)]"/>
+                        <filter name="deactivate_on_delete" string="Deactivate on delete"
+                                domain="[('deactivate_on_delete','!=', False)]"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="object_mapping_form">
+            <field name="name">bus.object.mapping.form</field>
+            <field name="model">bus.object.mapping</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Object mapping">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="transmit"/>
+                            <field name="migration"/>
+                            <field name="key_xml_id"/>
+                            <field name="deactivated_sync"/>
+                            <field name="deactivate_on_delete"/>
+                        </group>
+                        <notebook>
+                            <page>
+                                <field name="field_ids">
+                                    <tree create="false" delete="false" editable="bottom">
+                                        <field name="export_field"/>
+                                        <field name="import_field"/>
+                                        <field name="migration"/>
+                                        <field name="name"/>
+                                        <field name="map_name"/>
+                                        <field name="type_field"/>
+                                        <field name="relation"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_object_mapping">
+            <field name="name">Object Mapping</field>
+            <field name="res_model">bus.object.mapping</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{'search_default_transmit_ok': True}</field>
+            <field name="help"/>
+        </record>
+
+        <menuitem id="menu_object_mapping_menu" name="Object Mapping"
+                  action="act_window_object_mapping" parent="menu_bus"
+                  sequence="50"/>
+
+    </data>
+</openerp>
