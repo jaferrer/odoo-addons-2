@@ -33,6 +33,10 @@ class ObjectMapping(models.Model):
     deactivated_sync = fields.Boolean(string=u"Synchronize inactive items")
     deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
 
+    _sql_constraints = [
+        ('name_uniq', 'unique(name)', u"A mapping object already exists with the same model."),
+    ]
+
     @api.constrains('deactivate_on_delete', 'deactivated_sync')
     def _contrains_deactivate_on_delete(self):
         if "active" not in self.env[self.name]._fields and (self.deactivate_on_delete or self.deactivated_sync):
@@ -55,7 +59,7 @@ class ObjectMapping(models.Model):
 class ObjectMappingField(models.Model):
     _name = 'bus.object.mapping.field'
 
-    object_id = fields.Many2one("bus.object.mapping", string=u"Model")
+    object_id = fields.Many2one('bus.object.mapping', string=u"Model")
     name = fields.Char(string=u"Name", readonly=True)
     map_name = fields.Char(string=u"Map name")
     type_field = fields.Selection([('primary', u"Primaire"),
@@ -66,6 +70,10 @@ class ObjectMappingField(models.Model):
     import_field = fields.Boolean(u"Field to import")
     active = fields.Boolean(u"Active", default=True)
     migration = fields.Boolean(u"Migration key", default=False)
+
+    _sql_constraints = [
+        ('name_uniq_by_model', 'unique(name, object_id)', u"This field already exists for this model."),
+    ]
 
     @api.multi
     def write(self, vals):
