@@ -150,3 +150,24 @@ class ProductUomImproved(models.Model):
             return price
         return super(ProductUomImproved, self). \
             _compute_price(cr, uid, from_uom_id, price, to_uom_id)
+
+
+class ProductSupplierinfoImproved(models.Model):
+    _inherit = 'product.supplierinfo'
+
+    @api.multi
+    def update_seller_ids_for_products(self):
+        templates = self.env['product.template'].search([('id', 'in', [rec.product_tmpl_id.id for rec in self])])
+        templates.update_seller_ids()
+
+    @api.model
+    def create(self, vals):
+        result = super(ProductSupplierinfoImproved, self).create(vals)
+        result.update_seller_ids_for_products()
+        return result
+
+    @api.multi
+    def write(self, vals):
+        result = super(ProductSupplierinfoImproved, self).write(vals)
+        self.update_seller_ids_for_products()
+        return result
