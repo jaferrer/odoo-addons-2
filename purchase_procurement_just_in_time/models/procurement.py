@@ -814,7 +814,8 @@ GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
         time_now = dt.now()
         if seller.nb_max_draft_orders and seller.get_effective_order_group_period() and not_assigned_proc_ids:
             not_assigned_procs = self.env['procurement.order'].search([('id', 'in', not_assigned_proc_ids)])
-            first_purchase_dates = not_assigned_procs.get_first_purchase_dates_for_seller(seller)
+            first_purchase_dates = not_assigned_procs.with_context(force_partner_id=seller.id). \
+                get_first_purchase_dates_for_seller(seller)
             for company_id in first_purchase_dates:
                 for location_id in first_purchase_dates[company_id]:
                     first_purchase_date = first_purchase_dates[company_id][location_id]['first_purchase_date']
@@ -823,7 +824,8 @@ GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
         return_msg += u"\nCreating draft orders if needed: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         not_assigned_procs = self.browse(not_assigned_proc_ids)
-        not_assigned_procs, dict_lines_to_create = not_assigned_procs.group_procurements_by_orders(seller, company)
+        not_assigned_procs, dict_lines_to_create = not_assigned_procs.with_context(force_partner_id=seller.id). \
+            group_procurements_by_orders(seller, company)
         return_msg += u"\nGrouping unassigned procurements by orders: %s s." % int((dt.now() - time_now).seconds)
         time_now = dt.now()
         if not_assigned_procs:

@@ -26,7 +26,7 @@ class ObjectMapping(models.Model):
     name = fields.Char(u"Model", readonly=True)
     transmit = fields.Boolean(u"Communicable")
     active = fields.Boolean(u"Active", default=True)
-    migration = fields.Boolean(u"Objet migrable", default=False)
+    migration = fields.Boolean(u"Migrable Object", default=False)
     field_ids = fields.One2many('bus.object.mapping.field', 'object_id', string=u"Fields")
     key_xml_id = fields.Boolean(string=u"Migration key on xml id",
                                 help=u"if XML id not find, migration on key in fields")
@@ -39,7 +39,9 @@ class ObjectMapping(models.Model):
 
     @api.constrains('deactivate_on_delete', 'deactivated_sync')
     def _contrains_deactivate_on_delete(self):
-        if "active" not in self.env[self.name]._fields and (self.deactivate_on_delete or self.deactivated_sync):
+        # We do not map the obsolete tables
+        if self.name in self.env.registry and 'active' not in self.env[self.name]._fields and \
+                (self.deactivate_on_delete or self.deactivated_sync):
             raise exceptions.except_orm(_t(u"Error"), _t(u"This model must have the field 'active', (%s)" % self.name))
 
     @api.multi

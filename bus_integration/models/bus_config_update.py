@@ -17,7 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 from openerp import models, api
+
+_logger = logging.getLogger(__name__)
 
 
 class BusConfigUpdate(models.TransientModel):
@@ -32,6 +36,7 @@ class BusConfigUpdate(models.TransientModel):
         for model in models:
             mapping = self.env['bus.object.mapping'].search([('name', '=', model.model), ('active', '=', False)])
             if not mapping:
+                _logger.info(u"Creation of bus mapping for objet %s" % model.model)
                 mapping = self.env['bus.object.mapping'].create({
                     'name': model.model,
                     'transmit': False,
