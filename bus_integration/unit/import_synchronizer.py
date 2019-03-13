@@ -121,23 +121,23 @@ class BusextendImporter(Importer):
     def _create_data(self, map_record, **kwargs):
         return map_record.values(for_create=True, **kwargs)
 
-    def _create(self, data, migration):
+    def _create(self, data, is_importable):
         """ Create the OpenERP record """
         # special check on data before import
         self._validate_data(data)
         model = self.model.with_context(connector_no_export=True)._name
-        binding = self.env[model].with_context(migration=migration).create(data)
+        binding = self.env[model].with_context(is_importable=is_importable).create(data)
         _logger.debug('%d created from busextend %s %s', binding, self.busextend_id, self.bus_model)
         return binding
 
     def _update_data(self, map_record, **kwargs):
         return map_record.values(**kwargs)
 
-    def _update(self, binding, data, migration):
+    def _update(self, binding, data, is_importable):
         """ Update an OpenERP record """
         # special check on data before import
         self._validate_data(data)
-        binding.with_context(connector_no_export=True, migration=migration).write(data)
+        binding.with_context(connector_no_export=True, is_importable=is_importable).write(data)
         _logger.debug('%d updated from busextend %s %s', binding, self.busextend_id, self.bus_model)
         return
 
@@ -188,7 +188,7 @@ class BusextendImporter(Importer):
         binding = self._get_binding(self.busextend_id, self.bus_model)
         model_map = self.env["bus.object.mapping"].search([("name", "=", self.bus_model),
                                                        ("active", "=", True),
-                                                       ("transmit", "=", True)])
+                                                       ("is_exportable", "=", True)])
         object = True
         link_model = False
         if binding:
@@ -205,8 +205,8 @@ class BusextendImporter(Importer):
                     [('model', '=', model_map.name), ('module', '=', module), ('name', '=', name)])
                 link_model = self.env[self.bus_model].search([("id", "=", ir_model_data.res_id)])
             if not model_map.key_xml_id or not link_model:
-                map_field = self.env["bus.object.mapping.field"].search([("migration", '=', True),
-                                                                     ("object_id", "=", model_map.id)])
+                map_field = self.env['bus.object.mapping.field'].search([('is_importable', '=', True),
+                                                                         ('mapping_id', '=', model_map.id)])
                 domain = []
                 if map_field:
                     for field in map_field:
@@ -219,9 +219,9 @@ class BusextendImporter(Importer):
                     binding.local_id = link_model[0].id
                 else:
                     binding = self.env["bus.receive.transfer"].create({
-                        "model": self.bus_model,
-                        "local_id": link_model[0].id,
-                        "external_key": self.busextend_id
+                        'model': self.bus_model,
+                        'local_id': link_model[0].id,
+                        'external_key': self.busextend_id
                     })
 
         if not force and self._is_uptodate(binding):
@@ -233,11 +233,11 @@ class BusextendImporter(Importer):
         map_record = self._map_data()
         if binding:
             datas = self._update_data(map_record)
-            self._update(binding, datas, model_map.migration)
+            self._update(binding, datas, model_map.is_importable)
             self._update_translation(binding)
         else:
             datas = self._create_data(map_record)
-            binding = self._create(datas, model_map.migration)
+            binding = self._create(datas, model_map.is_importable)
             self._update_translation(binding)
             record["local_id"] = binding.local_id
             return record

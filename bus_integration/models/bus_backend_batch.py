@@ -101,7 +101,7 @@ class BusextendBackendBatch(models.Model):
         if not cron:
             cron = self._create_cron()
         return {
-            'name': 'Cron',
+            'name': u"Cron",
             'type': 'ir.actions.act_window',
             'view_type': 'form',
             'view_mode': 'form',
@@ -220,7 +220,7 @@ class BusextendBackendBatch(models.Model):
             }
         }
         model_name = param.get('export').get('model')
-        object_mapping = self.env['bus.object.mapping'].search([('name', '=', model_name)])
+        object_mapping = self.env['bus.object.mapping'].get_mapping(model_name)
         for export_id in export_ids:
             if not message_dict['body']['root'].get(model_name):
                 message_dict['body']['root'][model_name] = {}
@@ -251,7 +251,7 @@ class BusextendBackendBatch(models.Model):
             }
         }
         model_name = param.get('export').get('model')
-        object_mapping = self.env['bus.object.mapping'].search([('name', '=', model_name)])
+        object_mapping = self.env['bus.object.mapping'].get_mapping(model_name)
         for export_id in export_ids:
             if not message_dict['body']['root'].get(model_name):
                 message_dict['body']['root'][model_name] = {}
@@ -324,11 +324,10 @@ class BusextendBackendBatch(models.Model):
 
     @api.model
     def generate_dependency(self, message_dict, model, id):
-        map = self.env['bus.object.mapping'].search([('name', '=', model),
-                                                 ('transmit', '=', True)])
+        map = self.env['bus.object.mapping'].get_mapping(model, only_transmit=True)
         map_field = self.env['bus.object.mapping.field'].search([('type_field', '=', 'many2one'),
                                                              ('export_field', '=', True),
-                                                             ('object_id', '=', map.id)])
+                                                             ('mapping_id', '=', map.id)])
         export_id = self.env[model].browse(id)
         for field in map_field:
             if export_id[field.name]:

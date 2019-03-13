@@ -7,10 +7,10 @@
             <field name="model">bus.object.mapping</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree create="false" edit="false" delete="false">
-                    <field name="name"/>
-                    <field name="transmit"/>
-                    <field name="migration"/>
+                <tree>
+                    <field name="model_id"/>
+                    <field name="is_exportable"/>
+                    <field name="is_importable"/>
                     <field name="key_xml_id"/>
                     <field name="deactivated_sync"/>
                     <field name="deactivate_on_delete"/>
@@ -24,19 +24,13 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <search string="Object Mapping">
-                    <field name="name"/>
-                    <field name="transmit"/>
+                    <field name="model_id"/>
                     <group expand="0" string="Filters">
-                        <filter name="transmit_ok" string="Transmit"
-                                domain="[('transmit','!=', False)]"/>
-                        <filter name="mibrable_ok" string="Mibrable"
-                                domain="[('migration','!=', False)]"/>
-                        <filter name="key_xml_id" string="Key on xml id"
-                                domain="[('key_xml_id','!=', False)]"/>
-                        <filter name="deactivated_sync" string="Deactivated sync"
-                                domain="[('deactivated_sync','!=', False)]"/>
-                        <filter name="deactivate_on_delete" string="Deactivate on delete"
-                                domain="[('deactivate_on_delete','!=', False)]"/>
+                        <filter name="is_exportable" string="is_exportable" domain="[('is_exportable','=', True)]"/>
+                        <filter name="is_importable" string="Mibrable" domain="[('is_importable','=', True)]"/>
+                        <filter name="key_xml_id" string="Key on xml id" domain="[('key_xml_id','!=', False)]"/>
+                        <filter name="deactivated_sync" string="Deactivated sync" domain="[('deactivated_sync','=', True)]"/>
+                        <filter name="deactivate_on_delete" string="Deactivate on delete" domain="[('deactivate_on_delete','=', True)]"/>
                     </group>
                 </search>
             </field>
@@ -48,26 +42,30 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form string="Object mapping">
+                    <header>
+                        <button name="open_object_configuration" string="Mapping configuration helper" type="object"/>
+                    </header>
                     <sheet>
                         <group>
-                            <field name="name"/>
-                            <field name="transmit"/>
-                            <field name="migration"/>
+                            <field name="model_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="is_exportable"/>
+                            <field name="is_importable"/>
                             <field name="key_xml_id"/>
                             <field name="deactivated_sync"/>
                             <field name="deactivate_on_delete"/>
                         </group>
                         <notebook>
                             <page>
-                                <field name="field_ids">
-                                    <tree create="false" delete="false" editable="bottom">
-                                        <field name="export_field"/>
-                                        <field name="import_field"/>
-                                        <field name="migration"/>
-                                        <field name="name"/>
-                                        <field name="map_name"/>
+                                <field name="field_ids"  context="{'default_model_id': model_id}">
+                                    <tree editable="bottom">
+                                        <field name="model_id" invisible="1"/>
+                                        <field name="field_id" domain="[('model_id', '=', model_id)]" options="{'no_create': True, 'no_open': True}"/>
                                         <field name="type_field"/>
                                         <field name="relation"/>
+                                        <field name="map_name"/>
+                                        <field name="export_field"/>
+                                        <field name="import_field"/>
+                                        <field name="is_migration_key"/>
                                     </tree>
                                 </field>
                             </page>

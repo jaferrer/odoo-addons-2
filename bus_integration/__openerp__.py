@@ -22,7 +22,10 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
-    'depends': ['connector'],
+    'depends': [
+        'connector',
+        'web_sheet_full_width_selective',
+    ],
     'description': """
 Connector to Odoo Databus
 =========================
@@ -39,6 +42,7 @@ Connector to Odoo Databus
         'views/bus_backend_batch_histo.xml',
         'views/bus_message.xml',
         'views/bus_object_mapping.xml',
+        'views/mapping_configuration_helper.xml',
         'views/res_partner.xml',
     ],
     'demo': [],
