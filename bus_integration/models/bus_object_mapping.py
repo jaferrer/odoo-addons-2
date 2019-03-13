@@ -20,74 +20,93 @@
 from openerp import models, fields, api, exceptions, _ as _t
 
 
-class ObjectMapping(models.Model):
-    _name = 'bus.object.mapping'
+class BusObjectMappingAbstract(models.AbstractModel):
+    _name = 'bus.object.mapping.abstract'
 
-    name = fields.Char(u"Model", readonly=True)
-    transmit = fields.Boolean(u"Communicable")
-    active = fields.Boolean(u"Active", default=True)
-    migration = fields.Boolean(u"Migrable Object", default=False)
-    field_ids = fields.One2many('bus.object.mapping.field', 'object_id', string=u"Fields")
+    model_id = fields.Many2one('ir.model', u"Model", required=True)
     key_xml_id = fields.Boolean(string=u"Migration key on xml id",
-                                help=u"if XML id not find, migration on key in fields")
+                                help=u"if XML id not find, is_importable on key in fields")
     deactivated_sync = fields.Boolean(string=u"Synchronize inactive items")
     deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
 
+    @api.multi
+    def name_get(self):
+        return [(rec.id, u"Mapping of object %s" % rec.model_id.name) for rec in self]
+
+
+class BusObjectMappingFieldAbstract(models.AbstractModel):
+    _name = 'bus.object.mapping.field.abstract'
+
+    field_id = fields.Many2one('ir.model.fields', u"Field", required=True,
+                               context={'display_technical_field_names': True})
+    type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
+    relation = fields.Char(string=u'Relation', related='field_id.relation', store=True, readonly=True)
+    map_name = fields.Char(u"Mapping name", required=True)
+    export_field = fields.Boolean(u"To export")
+    import_field = fields.Boolean(u"To import")
+    is_migration_key = fields.Boolean(u"Migration key", default=False)
+
+
+class BusObjectMapping(models.Model):
+    _name = 'bus.object.mapping'
+    _inherit = 'bus.object.mapping.abstract'
+
+    active = fields.Boolean(u"Active", default=True)
+    is_exportable = fields.Boolean(u"Is exportable", compute='_compute_export_data', store=True)
+    is_importable = fields.Boolean(u"Is importable", compute='_compute_export_data', store=True)
+    field_ids = fields.One2many('bus.object.mapping.field', 'mapping_id', string=u"Fields")
+
     _sql_constraints = [
-        ('name_uniq', 'unique(name)', u"A mapping object already exists with the same model."),
+        ('model_id_uniq', 'unique(model_id)', u"A mapping object already exists with the same model."),
     ]
 
     @api.constrains('deactivate_on_delete', 'deactivated_sync')
     def _contrains_deactivate_on_delete(self):
         # We do not map the obsolete tables
-        if self.name in self.env.registry and 'active' not in self.env[self.name]._fields and \
+        if self.model_id.model in self.env.registry and 'active' not in self.env[self.model_id.model]._fields and \
                 (self.deactivate_on_delete or self.deactivated_sync):
-            raise exceptions.except_orm(_t(u"Error"), _t(u"This model must have the field 'active', (%s)" % self.name))
+            raise exceptions.except_orm(_t(u"Error"),
+                                        _t(u"This model must have the field 'active', (%s)" % self.model_id.model))
 
+    @api.depends('field_ids', 'field_ids.type_field', 'field_ids.export_field', 'field_ids.import_field')
     @api.multi
-    def write(self, vals):
+    def _compute_export_data(self):
         for rec in self:
-            if vals.get('deactivated_sync', False):
-                field = self.env['bus.object.mapping.field'].search([('object_id', '=', rec.id), ('name', '=', 'active')])
-                if field:
-                    field.write({'export_field': True, 'import_field': True, 'active': True})
-        return super(ObjectMapping, self).write(vals)
+            rec.is_exportable = any([field.export_field for field in rec.field_ids])
+            rec.is_importable = any([field.import_field for field in rec.field_ids])
 
     @api.model
-    def get_mapping(self, model_name):
-        return self.env['bus.object.mapping'].search([('name', '=', model_name)], limit=1)
+    def get_mapping(self, model_name, only_transmit=False):
+        domain = [('model_id.name', '=', model_name)]
+        if only_transmit:
+            only_transmit += [('is_exportable', '=', True)]
+        return self.env['bus.object.mapping'].search(domain, limit=1)
+
+    @api.multi
+    def open_object_configuration(self):
+        self.ensure_one()
+        wizard = self.env['mapping.configuration.helper'].create({'model_id': self.model_id.id})
+        wizard.onchange_model_id()
+        return {
+            'name': u"Mapping configuration helper",
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'mapping.configuration.helper',
+            'res_id': wizard.id,
+            'target': 'new',
+            'context': self.env.context
+        }
 
 
-class ObjectMappingField(models.Model):
+class BusObjectMappingField(models.Model):
     _name = 'bus.object.mapping.field'
+    _inherit = 'bus.object.mapping.field.abstract'
 
-    object_id = fields.Many2one('bus.object.mapping', string=u"Model")
-    name = fields.Char(string=u"Name", readonly=True)
-    map_name = fields.Char(string=u"Map name")
-    type_field = fields.Selection([('primary', u"Primaire"),
-                                   ('many2one', u"Object"),
-                                   ('many2many', u"Objects")], readonly=True, string=u"Type")
-    relation = fields.Char(string=u'Relation', readonly=True)
-    export_field = fields.Boolean(u"Field to export")
-    import_field = fields.Boolean(u"Field to import")
+    mapping_id = fields.Many2one('bus.object.mapping', string=u"Model")
     active = fields.Boolean(u"Active", default=True)
-    migration = fields.Boolean(u"Migration key", default=False)
+    model_id = fields.Many2one('ir.model', u"Model", related='mapping_id.model_id', readonly=True)
 
     _sql_constraints = [
-        ('name_uniq_by_model', 'unique(name, object_id)', u"This field already exists for this model."),
+        ('name_uniq_by_model', 'unique(field_id, mapping_id)', u"This field already exists for this model."),
     ]
-
-    @api.multi
-    def write(self, vals):
-        for rec in self:
-            if rec.type_field == "many2one" and rec.relation and (vals.get("export_field") or vals.get("import_field")):
-                mod = self.env['bus.object.mapping'].search([("name", "=", rec.relation)])
-                mod.write({
-                    "transmit": True
-                })
-        return super(ObjectMappingField, self).write(vals)
-
-    @api.model
-    def get_mapping_field(self, mapping, field_name):
-        return self.env['bus.object.mapping.field'].search([('name', '=', field_name),
-                                                        ('object_id', '=', mapping.id)], limit=1)

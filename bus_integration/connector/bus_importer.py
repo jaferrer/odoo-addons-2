@@ -33,9 +33,7 @@ class BusMapperImportMapper(ImportMapper):
     @mapping
     def automap(self, record):
         rep = {}
-        model_map = self.env['bus.object.mapping'].search([('name', '=', record.get('_bus_model')),
-                                                       ('active', '=', True),
-                                                       ('transmit', '=', True)])
+        model_map = self.env['bus.object.mapping'].get_mapping(record.get('_bus_model'), only_transmit=True)
         if model_map:
             dependency = record.get('_dependency', False)
             for field in model_map.field_ids:

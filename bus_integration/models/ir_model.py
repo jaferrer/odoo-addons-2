@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,14 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import res_partner
-from . import bus_object_mapping
-from . import bus_receive_transfer
-from . import bus_backend
-from . import bus_backend_batch_histo
-from . import bus_backend_batch
-from . import bus_message
-from . import ir_model
-from . import ir_cron
-from . import mapping_configuration_helper
-from . import access_rights
+from openerp import models, api
+
+
+class BusIrModelFields(models.Model):
+    _inherit = 'ir.model.fields'
+    
+    @api.multi
+    def name_get(self):
+        if self.env.context.get('display_technical_field_names'):
+            return [(rec.id, rec.name) for rec in self]
+        return super(BusIrModelFields, self).name_get()

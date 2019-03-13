@@ -48,7 +48,7 @@ class BusReceiveTransfer(models.Model):
         model = vals.get('model')
         received_data = vals.get('received_data', "{}")
         if not vals.get('local_id'):
-            if not self.env.context.get('migration', False):
+            if not self.env.context.get('is_importable', False):
                 raise exceptions.except_orm(_t(u"Error"), _t(u"No matching for %s external_id : %s") %
                                             (vals.get('model'), vals.get('external_key', '')))
             try:
@@ -69,7 +69,7 @@ class BusReceiveTransfer(models.Model):
                 received_data = vals.get('received_data', rec.received_data) or "{}"
                 object = self.env[model].search([('id', '=', local_id)])
                 safe_values = self.remove_not_existing_fields(model, received_data)
-                if self.env.context.get('migration'):
+                if self.env.context.get('is_importable'):
                     if object:
                         try:
                             object.write(safe_values)

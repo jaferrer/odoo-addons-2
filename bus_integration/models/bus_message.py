@@ -250,9 +250,9 @@ class BusMessage(models.Model):
                 resp['body']['dependency'][key][str(id)] = {
                     'id': id
                 }
-                bus_model = self.env['bus.object.mapping'].search([('name', '=', key)])
+                bus_model = self.env['bus.object.mapping'].get_mapping(key)
                 map_field = self.env['bus.object.mapping.field'].search([('export_field', '=', True),
-                                                                           ('object_id', '=', bus_model.id)])
+                                                                           ('mapping_id', '=', bus_model.id)])
                 item_odoo = self.env[key].browse(int(id))
 
                 resp = self.env['bus.backend.batch'].generate_dependency(resp, key, item_odoo.id)

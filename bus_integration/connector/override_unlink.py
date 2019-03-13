@@ -39,7 +39,7 @@ def unlink(self):
     ids = self.ids
     res_unlink = UNLINK_ORIGINAL(self)
     if is_module_installed(self.env, 'bus_integration'):
-        object_mapping = self.env['bus.object.mapping'].search([('name', '=', self._name)])
+        object_mapping = self.env['bus.object.mapping'].get_mapping(self._name)
         if object_mapping.deactivate_on_delete:
             recs = self.search([('id', 'in', ids)])
             if not recs and res_unlink:
