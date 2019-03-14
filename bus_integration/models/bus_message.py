@@ -34,10 +34,10 @@ class BusMessage(models.Model):
     header_param_ids = fields.One2many('bus.message.header.param', 'message_id', u"Header parameters")
     body = fields.Text(u"Body")
     extra_content = fields.Text(u"Extra-content")
-    type = fields.Selection([('received', u"Received"), ('sent', u"Sent"), u"Message Type"], required=True)
+    type = fields.Selection([('received', u"Received"), ('sent', u"Sent")], u"Message Type", required=True)
     treatment = fields.Selection([('synchronization', u"Synchronization"),
                                   ('DEPENDENCY_SYNCRONIZATION', u"Dependency synchronization"),
-                                  ('DEPENDENCY_DEMAND_SYNCHRONIZATION', u"SDependency demand sychronization"),
+                                  ('DEPENDENCY_DEMAND_SYNCHRONIZATION', u"Dependency demand sychronization"),
                                   ('SYNCHRONIZATION_RETURN', u"Synchronization return"),
                                   ('DELETION_SYNCHRONIZATION', u"Deletion synchronization"),
                                   ('DELETION_SYNCHRONIZATION_RETURN', u"Deletion synchronization return"),
