@@ -56,7 +56,7 @@
                         </group>
                         <notebook>
                             <page>
-                                <field name="field_ids"  context="{'default_model_id': model_id}">
+                                <field name="field_ids" context="{'default_model_id': model_id, 'default_export_field': is_exportable, 'default_import_field': is_importable}">
                                     <tree editable="bottom">
                                         <field name="model_id" invisible="1"/>
                                         <field name="field_id" domain="[('model_id', '=', model_id)]" options="{'no_create': True, 'no_open': True}"/>
