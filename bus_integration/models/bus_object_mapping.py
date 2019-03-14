@@ -24,6 +24,8 @@ class BusObjectMappingAbstract(models.AbstractModel):
     _name = 'bus.object.mapping.abstract'
 
     model_id = fields.Many2one('ir.model', u"Model", required=True)
+    is_exportable = fields.Boolean(u"Is exportable")
+    is_importable = fields.Boolean(u"Is importable")
     key_xml_id = fields.Boolean(string=u"Migration key on xml id",
                                 help=u"if XML id not find, is_importable on key in fields")
     deactivated_sync = fields.Boolean(string=u"Synchronize inactive items")
@@ -52,8 +54,6 @@ class BusObjectMapping(models.Model):
     _inherit = 'bus.object.mapping.abstract'
 
     active = fields.Boolean(u"Active", default=True)
-    is_exportable = fields.Boolean(u"Is exportable", compute='_compute_export_data', store=True)
-    is_importable = fields.Boolean(u"Is importable", compute='_compute_export_data', store=True)
     field_ids = fields.One2many('bus.object.mapping.field', 'mapping_id', string=u"Fields")
 
     _sql_constraints = [
@@ -67,13 +67,6 @@ class BusObjectMapping(models.Model):
                 (self.deactivate_on_delete or self.deactivated_sync):
             raise exceptions.except_orm(_t(u"Error"),
                                         _t(u"This model must have the field 'active', (%s)" % self.model_id.model))
-
-    @api.depends('field_ids', 'field_ids.type_field', 'field_ids.export_field', 'field_ids.import_field')
-    @api.multi
-    def _compute_export_data(self):
-        for rec in self:
-            rec.is_exportable = any([field.export_field for field in rec.field_ids])
-            rec.is_importable = any([field.import_field for field in rec.field_ids])
 
     @api.model
     def get_mapping(self, model_name, only_transmit=False):
