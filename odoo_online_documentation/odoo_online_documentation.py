@@ -18,8 +18,12 @@
 #
 
 import base64
+import logging
 import os
+import shutil
 import subprocess
+
+_logger = logging.getLogger(__name__)
 
 from openerp import modules, models, fields, api
 
@@ -63,22 +67,35 @@ class OdooOnlineDocumentation(models.Model):
             total_path_split = total_path.split(os.sep)
             total_path_no_filename = len(total_path_split) >= 2 and os.sep.join([item for item in
                                                                                  total_path_split[:-1]]) or ''
+            folders_before_generation = [item for item in os.listdir(total_path_no_filename) if
+                                         os.path.isdir(os.path.join(total_path_no_filename, item))]
             files_before_generation = [item for item in os.listdir(total_path_no_filename) if
                                        os.path.isfile(os.path.join(total_path_no_filename, item))]
             # We have to run all the process from the same directory).
             # That is why we delete the created files at the end of the process
+            _logger.info(u"Generatig doc from path %s" % total_path)
             cmd = subprocess.Popen('asciidoctor-pdf -r asciidoctor-diagram ' + total_path,
                                    stderr=subprocess.STDOUT, shell=True, stdout=subprocess.PIPE)
             cmd.wait()
+            _logger.info(u"File generation finished, returned %s" % cmd.returncode)
             with open(total_path_no_filename + os.sep + file_name_no_extension + '.pdf', 'rb') as file:
                 content = file.read()
                 rec.remove_attachments()
                 attachment = rec.create_attachment(base64.encodestring(content), rec.name + '.pdf')
+            folders_after_generation = [item for item in os.listdir(total_path_no_filename) if
+                                        os.path.isdir(os.path.join(total_path_no_filename, item))]
             files_after_generation = [item for item in os.listdir(total_path_no_filename) if
                                       os.path.isfile(os.path.join(total_path_no_filename, item))]
+            created_folders = [item for item in folders_after_generation if item not in folders_before_generation]
             created_files = [item for item in files_after_generation if item not in files_before_generation]
+            for created_folder in created_folders:
+                total_path_to_created_folder = total_path_no_filename + os.sep + created_folder
+                _logger.info(u"Removing folder %s" % total_path_to_created_folder)
+                shutil.rmtree(total_path_to_created_folder)
             for created_file in created_files:
-                os.remove(total_path_no_filename + os.sep + created_file)
+                total_path_to_created_file = total_path_no_filename + os.sep + created_file
+                _logger.info(u"Removing file %s" % total_path_to_created_file)
+                os.remove(total_path_to_created_file)
             url = "/web/binary/saveas?model=ir.attachment&field=datas&id=%s&filename_field=name" % attachment.id
             return {
                 "type": "ir.actions.act_url",
