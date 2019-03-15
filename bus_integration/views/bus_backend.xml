@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="bus_config_form">
+            <field name="name">bus.backend.form</field>
+            <field name="model">bus.backend</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Object mapping">
+                    <sheet>
+                        <group>
+                            <field name="connexion_url"/>
+                            <field name="port"/>
+                            <field name="db_odoo"/>
+                            <field name="user_id"/>
+                            <field name="login"/>
+                            <field name="password" password="1"/>
+                            <field name="sender_id"/>
+                            <field name="bus_username"/>
+                            <field name="reception_treatment"/>
+                            <group colspan="2">
+                                <button name="test_connexion" type="object" string="Test Connexion"/>
+                                <field name="connexion_state" nolabel="1"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page>
+                                <field name="batch_ids"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_bus_backend">
+            <field name="name">Configuration</field>
+            <field name="res_model">bus.backend</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"/>
+        </record>
+
+        <menuitem id="menu_bus_config_menu" name="Configuration"
+                  action="act_window_bus_backend" parent="menu_bus"
+                  sequence="10"/>
+
+    </data>
+</openerp>

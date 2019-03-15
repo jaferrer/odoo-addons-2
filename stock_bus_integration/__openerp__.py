@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,7 +16,29 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-# from . import test_get_start_end_date
-# from . import test_purchase_procurement_jit
-from . import test_purchase_scheduler
+{
+    'name': 'Stock - bus connector',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Technical',
+    'depends': [
+        'stock',
+        'bus_integration',
+    ],
+    'description': """
+Stock - bus connector
+=====================
+Bus connector for stock applications.
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'views/stock.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': True,
+    'license': 'AGPL-3',
+    'application': False,
+}
