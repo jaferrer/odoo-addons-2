@@ -8,11 +8,11 @@
             <field name="inherit_id" ref="stock.product_form_view_procurement_button"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <button name="%(stock.act_product_stock_move_open)d" position="replace">
+                <xpath expr="//button[@string='Moves']" position="replace">
                     <button class="oe_inline oe_stat_button" string="Moves" name="open_moves_for_product" type="object"
                             attrs="{'invisible':[('type', '=', 'service')]}" groups="stock.group_stock_user"
                             icon="fa-arrows-v"/>
-                </button>
+                </xpath>
             </field>
         </record>
 
