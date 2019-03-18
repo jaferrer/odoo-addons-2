@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="bus_integration_res_partner_form">
+            <field name="name">bus_integration_res_partner_form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <data>
+                    <field name="title" position="after">
+                        <field name="bus_username"/>
+                    </field>
+                </data>
+            </field>
+        </record>
+
+    </data>
+</openerp>

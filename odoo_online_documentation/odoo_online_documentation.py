@@ -17,11 +17,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import os
 import base64
-import subprocess
-from openerp import modules, models, fields, api
+import logging
+import os
 import shutil
+import subprocess
+
+_logger = logging.getLogger(__name__)
+
+from openerp import modules, models, fields, api
 
 
 class OdooOnlineDocumentation(models.Model):
@@ -55,25 +59,46 @@ class OdooOnlineDocumentation(models.Model):
             split_path = rec.path.split(os.sep)
             module_name = len(split_path) > 1 and split_path[0] or ''
             file_name_total = len(split_path) > 1 and split_path[-1] or ''
-            file_name_split = file_name_total and file_name_total.split(os.extsep) or False
-            file_name = len(file_name_split) > 1 and file_name_split[0] or ''
+            file_name_total_split = file_name_total and file_name_total.split(os.extsep) or ''
+            file_name_no_extension = len(file_name_total_split) > 1 and file_name_total_split[0] or ''
             module_path = modules.get_module_path(module_name)
             path_from_module = len(split_path) > 1 and os.sep.join(split_path[1:]) or ''
             total_path = os.sep.join([module_path, path_from_module])
-            # We have to run all the process from the same directory (here, it is /tmp).
-            # Otherwise, asciidoctor-diagram will generate its pictures in /tmp and look for them in original path
-            # (this is an asciidoctor-diagram reported issue).
-            shutil.copyfile(total_path, '/tmp/' + file_name_total)
-            cmd = subprocess.Popen('asciidoctor-pdf -r asciidoctor-diagram /tmp/' + file_name_total,
+            total_path_split = total_path.split(os.sep)
+            total_path_no_filename = len(total_path_split) >= 2 and os.sep.join([item for item in
+                                                                                 total_path_split[:-1]]) or ''
+            folders_before_generation = [item for item in os.listdir(total_path_no_filename) if
+                                         os.path.isdir(os.path.join(total_path_no_filename, item))]
+            files_before_generation = [item for item in os.listdir(total_path_no_filename) if
+                                       os.path.isfile(os.path.join(total_path_no_filename, item))]
+            # We have to run all the process from the same directory).
+            # That is why we delete the created files at the end of the process
+            _logger.info(u"Generatig doc from path %s" % total_path)
+            cmd = subprocess.Popen('asciidoctor-pdf -r asciidoctor-diagram ' + total_path,
                                    stderr=subprocess.STDOUT, shell=True, stdout=subprocess.PIPE)
             cmd.wait()
-            with open('/tmp/' + file_name + '.pdf', 'rb') as file:
+            _logger.info(u"File generation finished, returned %s" % cmd.returncode)
+            with open(total_path_no_filename + os.sep + file_name_no_extension + '.pdf', 'rb') as file:
                 content = file.read()
                 rec.remove_attachments()
                 attachment = rec.create_attachment(base64.encodestring(content), rec.name + '.pdf')
-                url = "/web/binary/saveas?model=ir.attachment&field=datas&id=%s&filename_field=name" % attachment.id
-                return {
-                    "type": "ir.actions.act_url",
-                    "url": url,
-                    "target": "self"
-                }
+            folders_after_generation = [item for item in os.listdir(total_path_no_filename) if
+                                        os.path.isdir(os.path.join(total_path_no_filename, item))]
+            files_after_generation = [item for item in os.listdir(total_path_no_filename) if
+                                      os.path.isfile(os.path.join(total_path_no_filename, item))]
+            created_folders = [item for item in folders_after_generation if item not in folders_before_generation]
+            created_files = [item for item in files_after_generation if item not in files_before_generation]
+            for created_folder in created_folders:
+                total_path_to_created_folder = total_path_no_filename + os.sep + created_folder
+                _logger.info(u"Removing folder %s" % total_path_to_created_folder)
+                shutil.rmtree(total_path_to_created_folder)
+            for created_file in created_files:
+                total_path_to_created_file = total_path_no_filename + os.sep + created_file
+                _logger.info(u"Removing file %s" % total_path_to_created_file)
+                os.remove(total_path_to_created_file)
+            url = "/web/binary/saveas?model=ir.attachment&field=datas&id=%s&filename_field=name" % attachment.id
+            return {
+                "type": "ir.actions.act_url",
+                "url": url,
+                "target": "self"
+            }
