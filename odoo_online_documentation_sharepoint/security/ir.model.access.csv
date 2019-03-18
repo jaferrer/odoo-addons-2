@@ -1,4 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_odoo_online_documentation_user,odoo_online_documentation,model_odoo_online_documentation,base.group_user,1,1,1,1
 access_explore_sharepoint_folders_user,explore_sharepoint_folders,model_explore_sharepoint_folders,base.group_user,1,1,1,1
-access_knowledge_config_settings_user,knowledge_config_settings,model_knowledge_config_settings,base.group_user,1,1,1,1
