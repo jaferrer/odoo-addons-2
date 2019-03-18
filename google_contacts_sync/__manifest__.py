@@ -23,7 +23,10 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Contacts',
-    'depends': ['google_account'],
+    'depends': ['google_account', 'contacts'],
+    'external_dependencies': {
+        'python': ['gdata'],
+    },
     'description': """
 LMDT Sale
 =========
