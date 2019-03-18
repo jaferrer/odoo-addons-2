@@ -28,8 +28,7 @@
         'python': ['gdata'],
     },
     'description': """
-LMDT Sale
-=========
+Synchronize contacts Odoo with Google
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
