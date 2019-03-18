@@ -20,7 +20,7 @@
 import logging
 import json
 import urllib2
-import datetime
+# import datetime
 from datetime import timedelta, datetime
 import werkzeug
 import gdata.contacts.client
