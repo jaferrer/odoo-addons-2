@@ -43,22 +43,26 @@ class Sale(osv.osv):
     _columns = {
         'amount_untaxed': fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'),
                                           string='Untaxed Amount', store={
-            'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
-                                                      'product_uom', 'product_id', 'price_unit',
-                                                      'order_id'], 10),
-        }, multi="sums", help="The amount without tax", track_visibility='always'),
+                                          'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                                          'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
+                                                                                    'product_uom', 'product_id', 'price_unit',
+                                                                                    'order_id'], 10),
+                                          }, multi="sums", help="The amount without tax", track_visibility='always'),
         'amount_tax': fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'), string='Taxes',
                                       store={
-            'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
-                                                      'product_uom', 'product_id', 'price_unit',
-                                                      'order_id'], 10),
+                                          'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                                          'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
+                                                                                    'product_uom', 'product_id',
+                                                                                    'price_unit',
+                                                                                    'order_id'], 10),
         }, multi="sums", help="The tax amount"),
         'amount_total': fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'),
                                         string='Total', store={
-            'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
-                                                      'product_uom', 'product_id', 'price_unit',
-                                                      'order_id'], 10),
-        }, multi="sums", help="The total amount")
+                                        'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                                        'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
+                                                                                  'product_uom', 'product_id', 'price_unit',
+                                                                                  'order_id'], 10),
+                                        }, multi="sums", help="The total amount")
     }
     _inherit = ['sale.order']
     _description = "Sale Order"
