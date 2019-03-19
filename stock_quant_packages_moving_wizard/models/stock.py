@@ -518,28 +518,33 @@ FROM
     LEFT JOIN nb_products_by_package nb_products ON nb_products.package_id = rqx.package_id
 )
             """)
+        
+    @api.model
+    def get_wizard_line_vals(self):
+        self.ensure_one()
+        return {
+                'product_id': self.product_id.id,
+                'product_name': self.product_id.display_name,
+                'package_id': self.package_id and self.package_id.id or False,
+                'package_name': self.package_id and self.package_id.display_name or False,
+                'parent_id': self.parent_id and self.parent_id.id or False,
+                'lot_id': self.lot_id and self.lot_id.id or False,
+                'lot_name': self.lot_id and self.lot_id.display_name or False,
+                'available_qty': self.qty,
+                'qty': self.qty,
+                'uom_id': self.uom_id and self.uom_id.id or False,
+                'uom_name': self.uom_id and self.uom_id.display_name or False,
+                'location_id': self.location_id.id,
+                'location_name': self.location_id.display_name,
+                'created_from_id': self.id,
+            }
 
     @api.model
     def get_default_lines_data_for_wizard(self):
         quant_lines = []
         package_lines = []
         for line in self:
-            line_dict = {
-                'product_id': line.product_id.id,
-                'product_name': line.product_id.display_name,
-                'package_id': line.package_id and line.package_id.id or False,
-                'package_name': line.package_id and line.package_id.display_name or False,
-                'parent_id': line.parent_id and line.parent_id.id or False,
-                'lot_id': line.lot_id and line.lot_id.id or False,
-                'lot_name': line.lot_id and line.lot_id.display_name or False,
-                'available_qty': line.qty,
-                'qty': line.qty,
-                'uom_id': line.uom_id and line.uom_id.id or False,
-                'uom_name': line.uom_id and line.uom_id.display_name or False,
-                'location_id': line.location_id.id,
-                'location_name': line.location_id.display_name,
-                'created_from_id': line.id,
-            }
+            line_dict = line.get_wizard_line_vals()
             if line.product_id or not line.package_id:
                 quant_lines.append(line_dict)
             else:
