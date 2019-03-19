@@ -159,9 +159,11 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
         moves_to_create = []
         for reservation_tuple in list_reservations:
             quant, target_qty = reservation_tuple
-            corresponding_move_ids = self. \
-                get_corresponding_move_ids(quant, location_from, dest_location, picking_type_id,
-                                           force_domain=[('id', 'not in', full_moves.ids)])
+            corresponding_move_ids = []
+            if not dest_location.has_orderpoint_for_product(product):
+                corresponding_move_ids = self. \
+                    get_corresponding_move_ids(quant, location_from, dest_location, picking_type_id,
+                                               force_domain=[('id', 'not in', full_moves.ids)])
             if quant.reservation_id and quant.reservation_id.id not in corresponding_move_ids:
                 quant.reservation_id.do_unreserve()
             for move_id in corresponding_move_ids:
@@ -586,8 +588,6 @@ FROM
         return self.env['stock.quant'].search(domain, order='in_date, qty, id'), quants_packaged
 
 
-
-
 class ProductToBeFilled(models.Model):
     _name = 'product.to.be.filled'
 
@@ -648,3 +648,10 @@ class StockLocation(models.Model):
             return push_rule.location_dest_id, push_rule.picking_type_id
         else:
             return False, False
+
+    @api.multi
+    def has_orderpoint_for_product(self, product):
+        self.ensure_one()
+        product.ensure_one()
+        return bool(self.env['stock.warehouse.orderpoint'].search([('location_id', '=', self.id),
+                                                                   ('product_id', '=', product.id)]))
