@@ -32,10 +32,10 @@ class StockTransfertDetails(models.TransientModel):
 
     @api.multi
     def delete_quant_product_consu(self, item):
-        invetory = self.env['stock.inventory']
+        inventory = self.env['stock.inventory']
         for vals in item.create_inventory_data().values():
-            invetory |= self.env['stock.inventory'].create(vals)
-        invetory.auto_execute()
+            inventory |= self.env['stock.inventory'].create(vals)
+        inventory.auto_execute()
 
 
 class StockTransferDetailsItems(models.TransientModel):
