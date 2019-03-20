@@ -23,11 +23,35 @@ from odoo import fields, models, api
 class RidaReport(models.Model):
     _name = 'rida.report'
 
-    name = fields.Char(u"Name", required=True)
+    name = fields.Char(u"Label", required=True)
+    code = fields.Char(u"Code", default=lambda self: self.env['ir.sequence'].next_by_code('rida.report'), readonly=True)
     theme_id = fields.Many2one('res.partner', u"Theme")
     project_id = fields.Many2one('project.project', u"Related project")
     creation_date = fields.Date(u"Creation date", required=True, default=fields.Date.today)
     line_ids = fields.One2many('rida.line', 'report_id', u"Lines")
+    state = fields.Selection([
+        ('open', u"Open"),
+        ('archived', u"Archived"),
+    ], u"Status", compute='_compute_state', inverse='_inverse_state')
+    active = fields.Boolean(u"Active", default=True)
+    line_cpt = fields.Integer(default=0)
+
+    @api.multi
+    def _compute_state(self):
+        for rec in self:
+            rec.state = 'open' if rec.active else 'archived'
+
+    @api.multi
+    def _inverse_state(self):
+        for rec in self:
+            if rec.state == 'open':
+                rec.active = True
+            elif rec.state == 'archived':
+                rec.active = False
+
+    @api.multi
+    def name_get(self):
+        return [(rec.id, "%s - %s" % (rec.code, rec.name)) for rec in self]
 
 
 class RidaLine(models.Model):
@@ -39,25 +63,60 @@ class RidaLine(models.Model):
         ('action', u"Action")
     ], u"Type", required=True)
     name = fields.Char(u"Description", required=True)
-    user_id = fields.Many2one('res.users', u"Related user")
-    date = fields.Date(u"Expected date")
-    report_id = fields.Many2one('rida.report', u"Related RIDA", required=True)
+    reference = fields.Char(u"Action reference", readonly=True)
+    user_id = fields.Many2one('res.users', u"Related user", default=lambda self: self.env.user)
+    date = fields.Date(u"Expected date", default=fields.Date.today)
+    report_id = fields.Many2one('rida.report', u"Related RIDA", required=True, ondelete='cascade')
     project_id = fields.Many2one('project.project', related='report_id.project_id', store=True)
     theme_id = fields.Many2one('res.partner', related='report_id.theme_id', store=True)
-
-    # The following field only exists if type is 'action'
+    context = fields.Char(u"Context")
+    level = fields.Char(u"Level")
+    comment = fields.Text(u"Comment")
+    date_done = fields.Date(u"Completion date")
+    attachment_ids = fields.Many2many('ir.attachment', string=u"Attachments")
     state = fields.Selection([
-        ('normal', u"To do"),
+        ('open', u"Open"),
+        ('info', u"Information"),
         ('done', u"Done"),
-    ], u"Line state", default='normal')
+        ('closed', u"Closed"),
+        ('duplicate', u"Duplicate"),
+        ('cancel', u"Cancelled")
+    ], u"Line state", default='open', required=True)
+    priority = fields.Selection([
+        ('low', u"Low"),
+        ('medium', u"Medium"),
+        ('high', u"High"),
+    ], u"Priority", default='low', required=True)
+
+    @api.model
+    def create(self, vals):
+        rida = self.env['rida.report'].browse(vals['report_id'])
+        rida.line_cpt += 1
+        vals['reference'] = u"%s - %d" % (rida.code, rida.line_cpt)
+
+        if vals.get('state', '') == 'done':
+            vals['date_done'] = fields.Date.today()
+
+        return super(RidaLine, self).create(vals)
 
     @api.multi
-    @api.onchange('type')
-    def _onchange_type(self):
+    def write(self, vals):
+        if vals.get('state', '') == 'done':
+            self.filtered(lambda r: r.state != 'done').write({'date_done': fields.Date.today()})
+
+        return super(RidaLine, self).write(vals)
+
+    @api.multi
+    def action_form_view(self):
         self.ensure_one()
-        if self.type == 'action':
-            self.date = fields.Date.today()
-            self.user_id = self.env.user
-        else:
-            self.date = False
-            self.user_id = False
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'rida.line',
+            'view_mode': 'form',
+            'target': 'current',
+            'res_id': self.id,
+        }
+
+    @api.multi
+    def name_get(self):
+        return [(rec.id, rec.reference) for rec in self]
