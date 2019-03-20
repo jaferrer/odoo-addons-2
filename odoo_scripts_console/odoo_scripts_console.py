@@ -105,6 +105,11 @@ class OdooScriptWatcher(models.Model):
     is_automatic = fields.Boolean(string=u"Is automatic", default=True)
 
     @api.multi
+    def watch_multi(self):
+        for rec in self:
+            rec.watch()
+
+    @api.multi
     def watch(self):
         self.ensure_one()
         query_upper = self.query.upper()
