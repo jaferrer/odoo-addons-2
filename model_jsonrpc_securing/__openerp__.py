@@ -27,7 +27,8 @@
     'description': """
 Model jsonrpc securing
 ======================
-Prohibit call of create, edit and unlink function, prevent call from jsonrpc. Use protected sub method like _secure_write(values)
+Prohibit call of create, edit and unlink function, prevent call from jsonrpc. 
+Use protected sub method like _secure_write(values)
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
