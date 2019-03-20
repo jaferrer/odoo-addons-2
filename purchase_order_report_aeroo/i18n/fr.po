@@ -21,15 +21,10 @@ msgid "Capital Stock"
 msgstr "Capital Social"
 
 #. module: purchase_order_report_aeroo
-#: model:ir.actions.report.xml,name:purchase_order_report_aeroo.purchase_order_report_aeroo
-msgid "Purchase Order"
-msgstr "Devis / Commande de achat"
-
-#. module: purchase_order_report_aeroo
 #: report:ir.actions.report.xml:purchase_order_report_aeroo.purchase_order_report_aeroo
 #: report:ir.actions.report.xml,name:purchase_order_report_aeroo.purchase_order_report_aeroo
 msgid "Purchase Order"
-msgstr "Commande d'achat"
+msgstr "Devis / Commande d'achat"
 
 #. module: purchase_order_report_aeroo
 #: report:ir.actions.report.xml:purchase_order_report_aeroo.purchase_order_report_aeroo

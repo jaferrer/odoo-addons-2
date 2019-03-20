@@ -5,7 +5,7 @@
         <function model="purchase.order.delete.report" name="delete_report"/>
 
 		<record id="purchase_order_report_aeroo" model="ir.actions.report.xml">
-			<field name="name">Purchase Order</field>
+			<field name="name">Quotation / Purchase Order</field>
 			<field name="type">ir.actions.report.xml</field>
 			<field name="model">purchase.order</field>
 			<field name="report_name">purchase.order.report.aeroo</field>
