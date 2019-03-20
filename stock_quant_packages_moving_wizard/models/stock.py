@@ -157,10 +157,11 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
         dict_reservation_target = {}
         full_moves = self.env['stock.move']
         moves_to_create = []
+        dest_loc_has_orderpoints = dest_location.has_orderpoint_for_product(product)
         for reservation_tuple in list_reservations:
             quant, target_qty = reservation_tuple
             corresponding_move_ids = []
-            if not dest_location.has_orderpoint_for_product(product):
+            if not dest_loc_has_orderpoints:
                 corresponding_move_ids = self. \
                     get_corresponding_move_ids(quant, location_from, dest_location, picking_type_id,
                                                force_domain=[('id', 'not in', full_moves.ids)])
