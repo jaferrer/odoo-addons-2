@@ -129,7 +129,9 @@ class StockQuantPackageImproved(models.Model):
 
 
 class stock_pack_operation(models.Model):
-    _inherit = "stock.pack.operation"
+    _inherit = 'stock.pack.operation'
+
+    picking_id = fields.Many2one('stock.picking', index=True)
 
     def _get_remaining_prod_quantities(self, cr, uid, operation, context=None):
         '''Get the remaining quantities per product on an operation with a package.
@@ -727,6 +729,8 @@ WHERE nb_moves = 0""")
 
 class StockMove(models.Model):
     _inherit = 'stock.move'
+
+    procurement_id = fields.Many2one('procurement.order', index=True)
 
     @api.multi
     def _check_package_from_moves(self):

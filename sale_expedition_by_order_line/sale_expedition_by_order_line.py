@@ -48,7 +48,7 @@ def job_update_remaining_qty(session, model_name, order_id):
 class ReceptionByOrderStockPackOperation(models.Model):
     _inherit = 'stock.pack.operation'
 
-    sale_line_id = fields.Many2one('sale.order.line', string="Sale order line")
+    sale_line_id = fields.Many2one('sale.order.line', string="Sale order line", index=True)
 
     @api.multi
     def get_list_operations_to_process(self):
