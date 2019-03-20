@@ -211,10 +211,12 @@ FROM stock_picking_type pt
 WHERE pt.id = $1.picking_type_id
 LIMIT 1"""
 
-    location_id = fields.Many2one('stock.location', compute_sql=location_id_compute, readonly=True, store=True,
-                                  related=None)
-    location_dest_id = fields.Many2one('stock.location', compute_sql=location_dest_id_compute, readonly=True,
-                                       store=True, related=None)
+    location_id_compute_sql = fields.Many2one('stock.location', compute_sql=location_id_compute, readonly=True,
+                                              store=True)
+    location_dest_id_compute_sql = fields.Many2one('stock.location', compute_sql=location_dest_id_compute,
+                                                   readonly=True, store=True)
+    location_id = fields.Many2one(related='location_id_compute_sql', readonly=True, store=False)
+    location_dest_id = fields.Many2one(related='location_dest_id_compute_sql', readonly=True, store=False)
     picking_type_code = fields.Selection([('incoming', 'Suppliers'), ('outgoing', 'Customers'),
                                           ('internal', 'Internal')],
                                          string=u"Picking type code", store=True,
