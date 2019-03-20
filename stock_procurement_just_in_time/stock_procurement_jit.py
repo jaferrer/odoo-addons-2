@@ -90,7 +90,6 @@ class StockLocationRoute(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    procurement_id = fields.Many2one('procurement.order', index=True)
     to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
 
 
