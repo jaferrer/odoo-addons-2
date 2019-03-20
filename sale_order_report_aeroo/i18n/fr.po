@@ -21,19 +21,11 @@ msgid "Capital Stock"
 msgstr "Capital Social"
 
 #. module: sale_order_report_aeroo
+#: report:ir.actions.report.xml,name:sale_order_report_aeroo.sale_order_report_aeroo
+#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
 #: model:ir.actions.report.xml,name:sale_order_report_aeroo.sale_order_report_aeroo
 msgid "Sale Order"
 msgstr "Devis / Commande de vente"
-
-#. module: sale_order_report_aeroo
-#: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
-msgid "Sale Order"
-msgstr "Commande de vente"
-
-#. module: sale_order_report_aeroo
-#: report:ir.actions.report.xml,name:sale_order_report_aeroo.sale_order_report_aeroo
-msgid "Sale Order"
-msgstr "Commande de vente"
 
 #. module: sale_order_report_aeroo
 #: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
