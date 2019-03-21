@@ -66,6 +66,7 @@ class PurchaseOrder(models.Model):
         context['active_ids'] = self.get_pickings_to_invoice().ids
         context['default_display_remaining_services'] = self.is_service_to_invoice
         context['default_service_line_ids'] = service_line_vals
+        context['default_journal_type'] = 'purchase'
         context['invoice_purchase_order_id'] = self.id
         result['context'] = context
         return result
