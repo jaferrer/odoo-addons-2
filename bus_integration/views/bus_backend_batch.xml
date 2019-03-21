@@ -6,12 +6,13 @@
             <field name="name">bus_export_config_tree</field>
             <field name="model">bus.backend.batch</field>
             <field name="arch" type="xml">
-                <tree string="Configuration of template exports" editable="bottom">
+                <tree string="Configuration of template exports">
                     <field name="recipient_id"/>
                     <field name="bus_username"/>
                     <field name="treatment_type"/>
                     <field name="bus_reception_treatment"/>
                     <field name="model"/>
+                    <field name="serial_id"/>
                     <field name="last_transfer_state"/>
                     <field name="init_conf" invisible="1"/>
                     <button string="Init" name="create_cron" type="object"
@@ -24,12 +25,57 @@
             </field>
         </record>
 
+        <record id="bus_export_config_form" model="ir.ui.view">
+            <field name="name">bus_export_config_form</field>
+            <field name="model">bus.backend.batch</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="run_batch" string="Run batch" class="oe_highlight" type="object"/>
+                        <button name="edit_cron" string="Cron" class="oe_highlight" type="object"/>
+                        <field name="last_transfer_state" widget="statusbar" statusbar_visible=""
+                               statusbar_colors="{'done':'green', 'error': 'red'}"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1>
+                                <field name="name" placeholder="......"/>
+                            </h1>
+                        </div>
+                        <group>
+
+                            <group>
+                                <field name="backend_id"/>
+                                <field name="recipient_id"/>
+                                <field name="bus_username"/>
+                                <field name="treatment_type"/>
+                                <field name="bus_reception_treatment"/>
+                            </group>
+                            <group>
+                                <field name="serial_id"/>
+                                <field name="model"/>
+                                <field name="domain"/>
+                                <field name="chunk"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page id="histo" string="History">
+                                <field name="bach_histo_ids" nolabel="1"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
         <record id="bus_export_config_search" model="ir.ui.view">
             <field name="name">bus_export_config_search</field>
             <field name="model">bus.backend.batch</field>
             <field name="arch" type="xml">
                 <search string="Configuration of template exports">
                     <field name="recipient_id"/>
+                    <field name="serial_id"/>
                     <field name="bus_username"/>
                     <field name="treatment_type"/>
                     <field name="bus_reception_treatment"/>

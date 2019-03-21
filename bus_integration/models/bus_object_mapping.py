@@ -24,6 +24,7 @@ class BusObjectMappingAbstract(models.AbstractModel):
     _name = 'bus.object.mapping.abstract'
 
     model_id = fields.Many2one('ir.model', u"Model", required=True)
+    model_name = fields.Char(u"Model name", readonly=True, related='model_id.model', store=True)
     is_exportable = fields.Boolean(u"Is exportable")
     is_importable = fields.Boolean(u"Is importable")
     key_xml_id = fields.Boolean(string=u"Migration key on xml id",
@@ -41,6 +42,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
 
     field_id = fields.Many2one('ir.model.fields', u"Field", required=True,
                                context={'display_technical_field_names': True})
+    field_name = fields.Char(u"Field name", readonly=True, related='field_id.name', store=True)
     type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
     relation = fields.Char(string=u'Relation', related='field_id.relation', store=True, readonly=True)
     map_name = fields.Char(u"Mapping name", required=True)
@@ -70,7 +72,7 @@ class BusObjectMapping(models.Model):
 
     @api.model
     def get_mapping(self, model_name, only_transmit=False):
-        domain = [('model_id.name', '=', model_name)]
+        domain = [('model_name', '=', model_name)]
         if only_transmit:
             only_transmit += [('is_exportable', '=', True)]
         return self.env['bus.object.mapping'].search(domain, limit=1)
@@ -83,13 +85,23 @@ class BusObjectMapping(models.Model):
         return {
             'name': u"Mapping configuration helper",
             'type': 'ir.actions.act_window',
-            'view_type': 'form',
+            r'view_type': 'form',
             'view_mode': 'form',
             'res_model': 'mapping.configuration.helper',
             'res_id': wizard.id,
             'target': 'new',
             'context': self.env.context
         }
+
+    @api.multi
+    def get_field_to_export(self):
+        self.ensure_one()
+        return [field for field in self.field_ids if field.export_field]
+
+    @api.multi
+    def get_field_to_import(self):
+        self.ensure_one()
+        return [field for field in self.field_ids if field.import_field]
 
 
 class BusObjectMappingField(models.Model):

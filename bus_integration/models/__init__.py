@@ -18,13 +18,19 @@
 #
 
 from . import res_partner
+from . import bus_binder
+from . import bus_mapper
+from . import bus_receiver
+from . import bus_importer
+from . import bus_exporter
 from . import bus_object_mapping
 from . import bus_receive_transfer
 from . import bus_backend
 from . import bus_backend_batch_histo
 from . import bus_backend_batch
 from . import bus_message
+from . import bus_message_log
 from . import ir_model
 from . import ir_cron
 from . import mapping_configuration_helper
-from . import access_rights
+# from . import access_rights
