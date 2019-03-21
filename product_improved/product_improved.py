@@ -155,6 +155,8 @@ class ProductUomImproved(models.Model):
 class ProductSupplierinfoImproved(models.Model):
     _inherit = 'product.supplierinfo'
 
+    name = fields.Many2one(index=True)
+
     @api.multi
     def update_seller_ids_for_products(self):
         templates = self.env['product.template'].search([('id', 'in', [rec.product_tmpl_id.id for rec in self])])
