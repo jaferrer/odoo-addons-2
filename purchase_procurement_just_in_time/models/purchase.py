@@ -33,6 +33,7 @@ class PurchaseOrderJustInTime(models.Model):
                                           "PO order date.")
     group_id = fields.Many2one('procurement.group', string="Procurement Group", readonly=True)
     date_order = fields.Datetime(required=False, string="Start date for grouping period")
+    is_created_by_admin = fields.Boolean(string="Created by admin", default=False)
 
     @api.model
     def _create_stock_moves(self, order, order_lines, picking_id=False):
