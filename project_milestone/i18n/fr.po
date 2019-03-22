@@ -156,11 +156,6 @@ msgid "Number of days"
 msgstr "Nombre de jours"
 
 #. module: project_milestone
-#: selection:project.milestone,state:0
-msgid "Open"
-msgstr "Ouvert"
-
-#. module: project_milestone
 #: model:ir.model,name:project_milestone.model_project_project
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_project_id
 #: model:ir.ui.view,arch_db:project_milestone.project_milestone_search
@@ -174,6 +169,7 @@ msgstr "Recherche d'une Milestone"
 
 #. module: project_milestone
 #: model:ir.ui.view,arch_db:project_milestone.project_milestone_search
+#: selection:project.milestone,state:0
 msgid "Open"
 msgstr "Ouverte"
 

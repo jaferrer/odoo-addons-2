@@ -17,28 +17,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': "RIDA Report",
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': [
-        'project',
-        'web_kanban_state_selection'
-    ],
-    'description': u"""
-Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/rida.xml',
-        'security/ir.model.access.csv',
-        'data/sequence.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-}
+import datetime
+
+from odoo import fields, models
+
+
+class ResUsers(models.Model):
+    _inherit = 'res.users'
+
+    def format_local_date(self, date=None):
+        date_py = date or datetime.date.today()
+        if isinstance(date_py, (str, unicode)):
+            date_py = fields.Date.from_string(date_py)
+        return date_py.strftime(self.env['res.lang'].search([('code', '=', self.env.user.lang)]).date_format)
+
+    def format_local_datetime(self, date=None):
+        date_py = date or datetime.datetime.now()
+        if isinstance(date_py, (str, unicode)):
+            date_py = fields.Datetime.from_string(date_py)
+        lang = self.env['res.lang'].search([('code', '=', self.env.user.lang)])
+        return date_py.strftime("%s %s" % (lang.date_format, lang.time_format))

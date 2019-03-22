@@ -17,28 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': "RIDA Report",
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': [
-        'project',
-        'web_kanban_state_selection'
-    ],
-    'description': u"""
-Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/rida.xml',
-        'security/ir.model.access.csv',
-        'data/sequence.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-}
+from . import models

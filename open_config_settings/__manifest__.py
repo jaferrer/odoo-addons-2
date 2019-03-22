@@ -18,24 +18,17 @@
 #
 
 {
-    'name': "RIDA Report",
+    'name': 'Open Config Settings',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': [
-        'project',
-        'web_kanban_state_selection'
-    ],
-    'description': u"""
-Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
+    'depends': [],
+    'description': """
+A config settings model like res.config.settings, but usable by any users of a specific group, instead of only an admin
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/rida.xml',
-        'security/ir.model.access.csv',
-        'data/sequence.xml',
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,
