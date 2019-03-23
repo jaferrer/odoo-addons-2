@@ -28,14 +28,15 @@ class PurchaseOrderLineOverCover(models.Model):
     @api.multi
     def compute_coverage_state(self):
         result = super(PurchaseOrderLineOverCover, self).compute_coverage_state()
-        orders = self.env['purchase.order']
-        draft_orders = self.env['purchase.order']
-        for rec in self:
-            orders |= rec.order_id
-            if rec.order_id.state == 'draft':
-                draft_orders |= rec.order_id
-        orders.reset_coverage_data()
-        draft_orders.update_coverage_data()
+        if not self.env.context.get('do_not_update_coverage_data'):
+            orders = self.env['purchase.order']
+            draft_orders = self.env['purchase.order']
+            for rec in self:
+                orders |= rec.order_id
+                if rec.order_id.state == 'draft':
+                    draft_orders |= rec.order_id
+            orders.reset_coverage_data()
+            draft_orders.update_coverage_data()
         return result
 
 
