@@ -270,6 +270,12 @@ msgid "Impossible to schedule task %s, because it is already taken into account"
 msgstr "Impossible de planifier la tâche %s, car elle est déjà prise en compte"
 
 #. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:799
+#, python-format
+msgid "Replanification of task %s in project %s"
+msgstr "Replanification de la tâche %s dans le projet %s"
+
+#. module: project_planning_improved
 #: code:addons\project_planning_improved\project_planning_improved.py:803
 #, python-format
 msgid "%s has changed the dates of task %s in project %s: expected start date %s, expected end date %s."
