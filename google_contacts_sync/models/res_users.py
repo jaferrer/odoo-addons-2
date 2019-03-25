@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,28 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': "RIDA Report",
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': [
-        'project',
-        'web_kanban_state_selection'
-    ],
-    'description': u"""
-Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/rida.xml',
-        'security/ir.model.access.csv',
-        'data/sequence.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-}
+from odoo import fields, models
+
+
+class GoogleContactUsers(models.Model):
+    _inherit = 'res.users'
+
+    google_contacts_rtoken = fields.Char(string="Refresh Token")
+    google_contacts_token = fields.Char(string="User token")
+    google_contacts_token_validity = fields.Datetime(string="Token Validity")
+    google_contacts_last_sync_date = fields.Datetime(string="Last synchro date")
+    contact_synchronization = fields.Boolean(u"Synchronisation Google des contacts")
