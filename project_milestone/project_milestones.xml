@@ -170,8 +170,9 @@
             </field>
         </record>
 
-        <menuitem action="project_milestone_action" id="menu_project_milestone" parent="project.menu_project_management"
-                  groups="project.group_project_user"/>
+        <menuitem action="project_milestone_action" id="menu_project_milestone"
+                  parent="project.menu_project_management"
+                  groups="project.group_project_user" sequence="10"/>
 
     </data>
 </openerp>
