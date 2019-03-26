@@ -196,32 +196,14 @@ class stock_pack_operation(models.Model):
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    location_id_compute = """SELECT sm.location_id::return_type
-FROM stock_move sm
-WHERE sm.picking_id = $1.id
-LIMIT 1"""
-
-    location_dest_id_compute = """SELECT sm.location_dest_id::return_type
-FROM stock_move sm
-WHERE sm.picking_id = $1.id
-LIMIT 1"""
-
-    picking_type_code_compute = """SELECT pt.code :: return_type
-FROM stock_picking_type pt
-WHERE pt.id = $1.picking_type_id
-LIMIT 1"""
-
-    location_id_compute_sql = fields.Many2one('stock.location', compute_sql=location_id_compute, readonly=True,
-                                              store=True)
-    location_dest_id_compute_sql = fields.Many2one('stock.location', compute_sql=location_dest_id_compute,
-                                                   readonly=True, store=True)
-    location_id = fields.Many2one(related='location_id_compute_sql', readonly=True, store=False)
-    location_dest_id = fields.Many2one(related='location_dest_id_compute_sql', readonly=True, store=False)
+    location_id_store = fields.Many2one('stock.location', related='move_lines.location_id', store=True)
+    location_id = fields.Many2one(related='location_id_store', readonly=True, store=False)
+    location_dest_id_store = fields.Many2one('stock.location', related='move_lines.location_dest_id', store=True)
+    location_dest_id = fields.Many2one(related='location_dest_id_store', readonly=True, store=False)
+    picking_type_code_store = fields.Selection(related='picking_type_id.code', store=True)
     picking_type_code = fields.Selection([('incoming', 'Suppliers'), ('outgoing', 'Customers'),
-                                          ('internal', 'Internal')],
-                                         string=u"Picking type code", store=True,
-                                         compute_sql=picking_type_code_compute, readonly=True,
-                                         related=None)
+                                          ('internal', 'Internal')], string=u"Picking type code", readonly=True,
+                                         related='picking_type_code_store')
     picking_type_id = fields.Many2one('stock.picking.type', index=True)
 
     @api.model
