@@ -3,8 +3,14 @@
     width: 250px;
 }
 
+.vis.timeline .labelset .vlabel {
+    margin-top: 30px;
+}
+.vis.timeline .foreground .group {
+    margin-top: 30px;
+}
 .vis.timeline .macro_tache {
-    top: 0px !important
+    top: -29px !important
 }
 .vis.timeline .timeaxis .grid.minor {
     border-color: #bbbbbb;
@@ -30,8 +36,4 @@
 }
 .vispanel.bottom .timeaxis.foreground{
     display: none;
-}
-
-.vis.timeline .vispanel.center, .vis.timeline .vispanel.left, .vis.timeline .vispanel.right {
-    height: auto !important;
 }

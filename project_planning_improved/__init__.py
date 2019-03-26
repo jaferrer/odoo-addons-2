@@ -17,5 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import project_planning_improved
-from . import conflicts_tracking
+from . import models
