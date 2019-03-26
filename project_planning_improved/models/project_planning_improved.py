@@ -776,9 +776,15 @@ class ProjectImprovedTask(models.Model):
                 rec.with_context(propagating_tasks=True).propagate_dates()
                 # Unit tests should cover the potential cases of ond "check_dates" function
                 # rec.check_dates()
+        self.notify_users_if_needed(vals)
+        return True
+
+    @api.multi
+    def notify_users_if_needed(self, vals):
+        dates_changed = (vals.get('expected_start_date') or vals.get('expected_end_date')) and True or False
+        for rec in self:
             if dates_changed and rec.notify_users_when_dates_change:
                 rec.notify_users_for_date_change()
-        return True
 
     @api.multi
     def get_partner_to_notify_ids(self):
@@ -788,12 +794,25 @@ class ProjectImprovedTask(models.Model):
         return eval(partners_to_notify_config) or []
 
     @api.multi
+    def get_notification_subject(self):
+        self.ensure_one()
+        return _(u"Replanification of task %s in project %s") % (self.display_name, self.project_id.display_name)
+
+    @api.multi
+    def get_notification_body(self):
+        self.ensure_one()
+        rml_obj = report_sxw.rml_parse(self.env.cr, self.env.uid, 'project.task', dict(self.env.context))
+        rml_obj.localcontext.update({'lang': self.env.context.get('lang', False)})
+        return _(u"%s has changed the dates of task %s in project %s: expected start date %s, expected end date %s.") % \
+            (self.env.user.partner_id.name, self.display_name, self.project_id.display_name,
+             rml_obj.formatLang(self.expected_start_date[:10], date=True),
+             rml_obj.formatLang(self.expected_end_date[:10], date=True))
+
+    @api.multi
     def notify_users_for_date_change(self):
         self.ensure_one()
         email_from = self.env['mail.message']._get_default_from()
         partner_to_notify_ids = self.get_partner_to_notify_ids()
-        rml_obj = report_sxw.rml_parse(self.env.cr, self.env.uid, 'project.task', dict(self.env.context))
-        rml_obj.localcontext.update({'lang': self.env.context.get('lang', False)})
         for rec in self:
             for partner_id in partner_to_notify_ids:
                 if partner_id == self.env.user.partner_id.id:
@@ -817,13 +836,8 @@ class ProjectImprovedTask(models.Model):
                         'channel_partner_ids': [(6, 0, [partner_id, self.env.user.partner_id.id])]
                     })
                 message = self.env['mail.message'].create({
-                    'subject': _(u"Replanification of task %s in project %s" %
-                                 (rec.display_name, rec.project_id.display_name)),
-                    'body': _(u"%s has changed the dates of task %s in project %s: "
-                              u"expected start date %s, expected end date %s.") %
-                            (self.env.user.partner_id.name, rec.display_name, rec.project_id.display_name,
-                             rml_obj.formatLang(rec.expected_start_date[:10], date=True),
-                             rml_obj.formatLang(rec.expected_end_date[:10], date=True)),
+                    'subject': rec.get_notification_subject(),
+                    'body': rec.get_notification_body(),
                     'record_name': rec.name,
                     'email_from': email_from,
                     'reply_to': email_from,
