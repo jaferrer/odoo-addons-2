@@ -248,7 +248,7 @@ class ProductProductAdapter(GenericAdapter):
             raise JobError('FTP Host and User have to be filled in settings')
 
         _logger.debug('Try to connect FTP server %s with login %s', host, user)
-        ftp_session_factory = ftputil.session.session_factory(use_passive_mode=False)
+        ftp_session_factory = ftputil.session.session_factory()
         with ftputil.FTPHost(host, user, pasw, session_factory=ftp_session_factory) as ftp_session:
             targetfile = '%s/%s' % (target, filename)
             with ftp_session.open(targetfile, 'w') as awa_file:
