@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Generic Modules',
-    'depends': [],
+    'depends': ['base'],
     'description': """
 Base res config improved
 ========================
