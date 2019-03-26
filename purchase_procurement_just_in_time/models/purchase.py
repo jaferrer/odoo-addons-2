@@ -33,6 +33,7 @@ class PurchaseOrderJustInTime(models.Model):
                                           "PO order date.")
     group_id = fields.Many2one('procurement.group', string="Procurement Group", readonly=True)
     date_order = fields.Datetime(required=False, string="Start date for grouping period")
+    is_created_by_admin = fields.Boolean(string="Created by admin", default=False)
 
     @api.model
     def _create_stock_moves(self, order, order_lines, picking_id=False):
@@ -71,10 +72,15 @@ class PurchaseOrderJustInTime(models.Model):
             name = order_line.product_id.with_context(lang=order.dest_address_id.lang).display_name
         else:
             name = order_line.name or ''
-        existing_quantity = sum([self.env['product.uom']._compute_qty(move.product_uom.id, move.product_uom_qty,
-                                                                      order_line.product_uom.id) for move in
-                                 order_line.move_ids if move.state != 'cancel'])
-        qty_to_add = float_round(order_line.product_qty - existing_quantity,
+        self.env.cr.execute("""SELECT sum(sm.product_qty)
+FROM purchase_order_line pol
+LEFT JOIN stock_move sm ON sm.purchase_line_id = pol.id AND sm.state != 'cancel'
+WHERE pol.id = %s""", (order_line.id,))
+        existing_quantity = self.env.cr.fetchall()[0][0] or 0
+        existing_quantity_pol_uom = self.env['product.uom']._compute_qty(order_line.product_id.uom_id.id,
+                                                                         existing_quantity,
+                                                                         order_line.product_uom.id)
+        qty_to_add = float_round(order_line.product_qty - existing_quantity_pol_uom,
                                  precision_rounding=order_line.product_uom.rounding)
         if float_compare(qty_to_add, 0.0, precision_rounding=order_line.product_uom.rounding) == 0:
             return []
@@ -308,7 +314,11 @@ class PurchaseOrderLineJustInTime(models.Model):
         self.ensure_one()
         product = self.env['product.product'].browse(vals.get('product_id', self.product_id.id))
         uom = self.env['product.uom'].browse(vals.get('product_uom', self.product_uom.id))
-        qty_done = sum([x.product_qty for x in self.move_ids if x.state == 'done'])
+        self.env.cr.execute("""SELECT sum(sm.product_qty)
+FROM purchase_order_line pol
+LEFT JOIN stock_move sm ON sm.purchase_line_id = pol.id AND sm.state = 'done'
+WHERE pol.id = %s""", (self.id,))
+        qty_done = self.env.cr.fetchall()[0][0] or 0
         qty_done_pol_uom = self.env['product.uom']._compute_qty(product.uom_id.id, qty_done, uom.id)
         if vals['product_qty'] < qty_done_pol_uom:
             raise exceptions.except_orm(_(u"Error!"), _(u"Impossible to cancel moves at state done."))

@@ -79,7 +79,7 @@ msgstr "Quantité à facturer"
 #. module: purchase_invoiced_quantity
 #: field:stock.invoice.onshipping.service.line,remaining_invoice_qty:0
 msgid "Remaining quantity to invoice"
-msgstr "Quantité restante à facturer"
+msgstr "Quantité restant à facturer"
 
 #. module: purchase_invoiced_quantity
 #: field:stock.invoice.onshipping,service_line_ids:0

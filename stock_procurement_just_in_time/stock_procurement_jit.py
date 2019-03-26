@@ -90,7 +90,6 @@ class StockLocationRoute(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    procurement_id = fields.Many2one('procurement.order', index=True)
     to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
 
 
@@ -462,10 +461,12 @@ class StockWarehouseOrderPointJit(models.Model):
                     events_at_date, stock_after_event = op.process_events_at_date(event, events, stock_after_event)
                     done_dates += [event['date']]
                 if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned'] and event['proc_id']:
-                    procs_oversupply = self.env['procurement.order'].search([('id', 'in', [item['proc_id'] for item in events_at_date]),
-                                                                             ('state', '!=', 'done')])
+                    procs_oversupply = self.env[
+                        'procurement.order'].search([('id', 'in', [item['proc_id'] for item in events_at_date]),
+                                                     ('state', '!=', 'done')])
                     for proc_oversupply in procs_oversupply:
-                        qty_same_proc = sum([item['move_qty'] for item in events if item['proc_id'] == proc_oversupply.id])
+                        qty_same_proc = sum([item['move_qty']
+                                            for item in events if item['proc_id'] == proc_oversupply.id])
                         _logger.debug("Oversupply detected: deleting procurements %s " % proc_oversupply.id)
                         stock_after_event = proc_oversupply.cancel_procs_just_in_time(stock_after_event, qty_same_proc)
                     if op.is_under_stock_min(stock_after_event) and \
@@ -863,6 +864,18 @@ class StockSchedulerController(models.Model):
                                                        ('run_procs', '=', False)])
 
                 if not controller_lines_no_run:
+                    controller_lines_no_run_blocked = self.search([('done', '=', False),
+                                                                   ('job_uuid', '!=', False),
+                                                                   ('location_sequence', '=', max_location_sequence),
+                                                                   ('route_sequence', '=', max_route_sequence),
+                                                                   ('run_procs', '=', False)])
+                    if controller_lines_no_run_blocked:
+                        for line_blocked in controller_lines_no_run_blocked:
+                            queue_job = self.env['queue.job'].search(
+                                [('uuid', '=', line_blocked.job_uuid), ('state', 'in', ['done', 'failed'])])
+                            if queue_job:
+                                line_blocked.done = True
+
                     controller_lines_run_procs = self.search([('done', '=', False),
                                                               ('location_sequence', '=', max_location_sequence),
                                                               ('route_sequence', '=', max_route_sequence),

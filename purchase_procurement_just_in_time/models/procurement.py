@@ -58,7 +58,8 @@ def job_purchase_schedule_procurements(session, model_name, ids, jobify,
 
 @job(default_channel='root.purchase_scheduler')
 def job_create_draft_lines(session, model_name, dict_lines_to_create):
-    result = session.env[model_name].create_draft_lines(dict_lines_to_create)
+    result = session.env[model_name].with_context(do_not_update_coverage_data=True). \
+        create_draft_lines(dict_lines_to_create)
     return result
 
 
@@ -468,6 +469,7 @@ WHERE po.state NOT IN %s AND
                                seller.property_account_position.id or False,
             'payment_term_id': seller.property_supplier_payment_term.id or False,
             'dest_address_id': self.partner_dest_id.id,
+            'is_created_by_admin': True,
         }
 
     @api.multi
@@ -600,7 +602,7 @@ WHERE po.state NOT IN %s AND
                           (order.name, seller.name, number_order, total_number_orders))
             return_msg += u"\nCreating jobs to fill draft orders: %s s." % int((dt.now() - time_now).seconds)
         else:
-            self.create_draft_lines(dict_lines_to_create)
+            self.with_context(do_not_update_coverage_data=True).create_draft_lines(dict_lines_to_create)
             return_msg += u"\nDraft order(s) filled: %s s." % int((dt.now() - time_now).seconds)
         return return_msg
 

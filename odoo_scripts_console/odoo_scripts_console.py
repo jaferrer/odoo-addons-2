@@ -105,6 +105,11 @@ class OdooScriptWatcher(models.Model):
     is_automatic = fields.Boolean(string=u"Is automatic", default=True)
 
     @api.multi
+    def watch_multi(self):
+        for rec in self:
+            rec.watch()
+
+    @api.multi
     def watch(self):
         self.ensure_one()
         query_upper = self.query.upper()
@@ -170,6 +175,13 @@ class OdooScriptWatcher(models.Model):
 
         workbook.close()
         data = output.getvalue()
+
+        watcher_attachements = self.env['ir.attachment'].sudo().search(
+            [('res_model', '=', self._name), ('res_id', '=', self.id), ('name', 'like', 'export_resultat_watcher_%')])
+
+        if watcher_attachements:
+            watcher_attachements.unlink()
+
         attachment = self.create_attachment(base64.encodestring(data), file_name + '.xlsx')
         url = "/web/binary/saveas?model=ir.attachment&field=datas&id=%s&filename_field=name" % attachment.id
         return {
