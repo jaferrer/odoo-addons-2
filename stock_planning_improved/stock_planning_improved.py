@@ -82,6 +82,12 @@ class stock_move_planning_improved(models.Model):
 
         return super(stock_move_planning_improved, self).write(vals)
 
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        new_order = ", ".join(orderby and groupby + [orderby] or groupby)
+        return super(stock_move_planning_improved, self).read_group(
+            domain, fields, groupby, offset, limit=limit, context=self.env.context, orderby=new_order, lazy=lazy)
+
 
 class stock_picking_planning_improved(models.Model):
     _inherit = 'stock.picking'
