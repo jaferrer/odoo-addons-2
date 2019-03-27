@@ -58,7 +58,7 @@ WHERE op.company_id != sl.company_id""")
             orderpoint = self.env['stock.warehouse.orderpoint'].browse(orderpoint_id)
             orderpoint.write({'company_id': company_id})
         location_config_ids = self.env['ir.config_parameter'].get_param(
-            "stock_location_orderpoint.required_orderpoint_location_ids", default="[]")
+            'stock_location_orderpoint.required_orderpoint_location_ids', default='[]')
         orderpoint_required_locations = location_config_ids and self.env['stock.location']. \
             browse(eval(location_config_ids))
         self.env.cr.execute("""WITH product_product_restricted AS (
@@ -103,6 +103,7 @@ SELECT
 FROM existing_orderpoints
 WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_locations.ids or [0]),))
         for product_id, location_id in self.env.cr.fetchall():
+            print 'ffor', product_id, location_id
             product = self.env['product.product'].search([('id', '=', product_id)])
             location = self.env['stock.location'].search([('id', '=', location_id)])
             self.env['stock.warehouse.orderpoint'].create(product._prepare_order_point_data(location))
