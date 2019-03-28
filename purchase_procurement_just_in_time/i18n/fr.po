@@ -830,3 +830,21 @@ msgstr "Nombre maximal de commande par défaut pour chaque nouveau fournisseur"
 #: field:purchase.config.settings,nb_days_scheduler_frequency:0
 msgid "Default scheduler frequency (in days)"
 msgstr "Fréquence par défaut du planificateur achats (en jours)"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order:purchase_procurement_just_in_time.view_purchase_rfq_search
+#: view:purchase.order:purchase_procurement_just_in_time.view_purchase_form_search
+msgid "Hide purchase orders without lines created by the scheduler"
+msgstr "Cacher les commandes sans lignes créées par le planificateur"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order:purchase_procurement_just_in_time.view_purchase_rfq_search
+#: view:purchase.order:purchase_procurement_just_in_time.view_purchase_form_search
+msgid "Purchase order without lines created by users"
+msgstr "Commandes sans lignes créées par les utilisateurs"
+
+#. module: purchase_procurement_just_in_time
+#: view:purchase.order:purchase_procurement_just_in_time.view_purchase_rfq_search
+#: view:purchase.order:purchase_procurement_just_in_time.view_purchase_form_search
+msgid "Purchase order without lines created by the scheduler"
+msgstr "Commandes sans lignes créées par le planificateur"
