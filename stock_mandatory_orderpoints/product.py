@@ -103,7 +103,6 @@ SELECT
 FROM existing_orderpoints
 WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_locations.ids or [0]),))
         for product_id, location_id in self.env.cr.fetchall():
-            print 'ffor', product_id, location_id
             product = self.env['product.product'].search([('id', '=', product_id)])
             location = self.env['stock.location'].search([('id', '=', location_id)])
             self.env['stock.warehouse.orderpoint'].create(product._prepare_order_point_data(location))
