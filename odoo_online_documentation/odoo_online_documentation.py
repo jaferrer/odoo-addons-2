@@ -21,7 +21,8 @@ import base64
 import os
 import subprocess
 
-from odoo import modules, models, fields, api
+from odoo import modules, models, fields, api, _
+from odoo.exceptions import UserError
 
 
 class OdooOnlineDocumentation(models.Model):
@@ -62,7 +63,13 @@ class OdooOnlineDocumentation(models.Model):
             total_path = os.sep.join([module_path, path_from_module])
             cmd = subprocess.Popen("asciidoctor-pdf -D /tmp " + total_path,
                                    stderr=subprocess.STDOUT, shell=True, stdout=subprocess.PIPE)
-            cmd.wait()
+            res = cmd.wait()
+            if res == 127:
+                raise UserError(_(u"The documentation cannot be compiled, because asciidoc-pdf isn't installed on the "
+                                  u"server. Please install it to fix this issue"))
+            elif res:
+                raise UserError(_(u"An unexpected error occured while trying to compile this documentation to pdf"))
+
             with open('/tmp/' + file_name + '.pdf', 'rb') as file:
                 content = file.read()
                 rec.remove_attachments()
