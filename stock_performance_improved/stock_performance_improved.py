@@ -31,10 +31,10 @@ PRODUCT_CHUNK = 1
 
 
 class StockQuantPackageImproved(models.Model):
-    _inherit = "stock.quant.package"
+    _inherit = 'stock.quant.package'
 
     _sql_constraints = [
-        ('name_uniq', 'unique (name)', 'The name of the package must be unique!')
+        ('name_uniq', 'unique (name)', "The name of the package must be unique!")
     ]
 
     def _get_packages(self, cr, uid, ids, context=None):
@@ -715,6 +715,8 @@ class StockMove(models.Model):
     _inherit = 'stock.move'
 
     procurement_id = fields.Many2one('procurement.order', index=True)
+    group_id = fields.Many2one('procurement.group', index=True)
+    picking_type_id = fields.Many2one('stock.picking.type', index=True)
 
     @api.multi
     def _check_package_from_moves(self):
