@@ -17,15 +17,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models
+from odoo import models, api
 
 
 class SQLfunctions(models.Model):
     _name = 'group.operators'
     _auto = False
 
-    def init(self, cr):
-        cr.execute("""
+    @api.model_cr
+    def init(self):
+        self._cr.execute("""
         CREATE OR REPLACE FUNCTION public.median_agg(anyarray)
         RETURNS FLOAT8 LANGUAGE SQL IMMUTABLE STRICT AS $$
             SELECT percentile_cont(0.5)
