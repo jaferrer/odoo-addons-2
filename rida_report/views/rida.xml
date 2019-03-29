@@ -66,6 +66,7 @@
         <field name="model">rida.report</field>
         <field name="arch" type="xml">
             <tree>
+                <field name="code"/>
                 <field name="name"/>
                 <field name="project_id"/>
                 <field name="theme_id"/>
@@ -92,7 +93,7 @@
                     </div>
                     <div class="oe_title">
                         <h1>
-                            <field name="name" placeholder="Name"/>
+                            <div class="o_row"><field name="code"/> - <field name="name" placeholder="Name"/></div>
                         </h1>
                     </div>
                     <group>

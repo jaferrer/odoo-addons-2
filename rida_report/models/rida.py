@@ -96,7 +96,10 @@ class RidaLine(models.Model):
 
     @api.onchange('type')
     def onchange_type(self):
-        if type == 'action':
+        if not self.type:
+            self.state = 'open'
+            self.priority = False
+        elif self.type == 'action':
             self.state = 'open'
             self.priority = 'low'
         else:
