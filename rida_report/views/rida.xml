@@ -16,9 +16,12 @@
                 <field name="type"/>
                 <field name="priority"/>
                 <field name="name"/>
-                <field name="user_id"/>
-                <field name="state"/>
-                <field name="date"/>
+                <field name="user_id"
+                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <field name="state"
+                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <field name="date"
+                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                 <button name="action_form_view" type="object" string="Details" class="btn-primary"/>
             </tree>
         </field>
@@ -38,9 +41,12 @@
                         <field name="create_date" widget="date" readonly="True"/>
                         <field name="priority"/>
                         <field name="name"/>
-                        <field name="user_id"/>
-                        <field name="state"/>
-                        <field name="date"/>
+                        <field name="user_id"
+                               attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                        <field name="state"
+                               attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                        <field name="date"
+                               attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                         <field name="write_date" widget="date" readonly="True"/>
                         <field name="date_done" readonly="True"/>
                     </group>
@@ -60,6 +66,7 @@
         <field name="model">rida.report</field>
         <field name="arch" type="xml">
             <tree>
+                <field name="code"/>
                 <field name="name"/>
                 <field name="project_id"/>
                 <field name="theme_id"/>
@@ -80,18 +87,24 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
-                            <field name="active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
+                            <field name="active" widget="boolean_button"
+                                   options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
                         </button>
                     </div>
                     <div class="oe_title">
                         <h1>
-                            <field name="name" placeholder="Name"/>
+                            <div class="o_row"><field name="code"/> - <field name="name" placeholder="Name"/></div>
                         </h1>
                     </div>
                     <group>
                         <group>
                             <field name="theme_id"/>
                             <field name="project_id"/>
+                        </group>
+                        <group>
+                            <field name="auth_mode"/>
+                            <field name="user_ids" widget="many2many_tags"
+                                   attrs="{'invisible': [('auth_mode', '!=', 'private')]}"/>
                         </group>
                     </group>
                     <group string="Lines" col="1">
@@ -104,9 +117,12 @@
                                 <field name="type"/>
                                 <field name="priority"/>
                                 <field name="name"/>
-                                <field name="user_id"/>
-                                <field name="state"/>
-                                <field name="date"/>
+                                <field name="user_id"
+                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                                <field name="state"
+                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                                <field name="date"
+                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                                 <button name="action_form_view" type="object" string="Details" class="btn-primary"/>
                             </tree>
                         </field>
@@ -138,10 +154,14 @@
                 <filter name="decision_only" string="Decisions only" domain="[('type', '=', 'decision')]"/>
                 <filter name="action_only" string="Actions only" domain="[('type', '=', 'action')]"/>
                 <separator/>
-                <filter name="all_action_todo" string="All actions to do" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'open')]"/>
-                <filter name="all_action_done" string="All actions done" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
-                <filter name="my_action_todo" string="My actions to do" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'open')]"/>
-                <filter name="my_action_done" string="My actions done" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="all_action_todo" string="All actions to do"
+                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'open')]"/>
+                <filter name="all_action_done" string="All actions done"
+                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="my_action_todo" string="My actions to do"
+                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'open')]"/>
+                <filter name="my_action_done" string="My actions done"
+                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
                 <separator/>
                 <filter name="own_lines" string="My lines" domain="[('user_id', '=', uid), ]"/>
                 <group expand="0" string="Group By">
