@@ -3,48 +3,89 @@
 
     <!-- views -->
 
-    <record model="ir.ui.view" id="rida_line_tree">
+    <record id="rida_line_tree" model="ir.ui.view">
         <field name="name">rida.line.tree</field>
         <field name="model">rida.line</field>
         <field name="arch" type="xml">
-            <tree editable="top">
-                <field name="type"/>
-                <field name="name"/>
-                <field name="project_id"/>
-                <field name="theme_id"/>
+            <tree editable="top"
+                  decoration-warning="state not in ('closed', 'duplicate', 'cancel') and priority == 'medium'"
+                  decoration-danger="state not in ('closed', 'duplicate', 'cancel') and priority == 'high'"
+                  decoration-muted="state in ('closed', 'duplicate', 'cancel')">
+                <field name="reference"/>
                 <field name="report_id"/>
+                <field name="type"/>
+                <field name="priority"/>
+                <field name="name"/>
                 <field name="user_id"
+                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <field name="state"
                        attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                 <field name="date"
                        attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                <field name="state" widget="kanban_state_selection"
-                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <button name="action_form_view" type="object" string="Details" class="btn-primary"/>
             </tree>
         </field>
     </record>
 
-    <record model="ir.ui.view" id="rida_report_tree">
+    <record id="rida_line_form" model="ir.ui.view">
+        <field name="name">rida.line.form</field>
+        <field name="model">rida.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="4">
+                        <field name="reference"/>
+                        <field name="type"/>
+                        <field name="context"/>
+                        <field name="level"/>
+                        <field name="create_date" widget="date" readonly="True"/>
+                        <field name="priority"/>
+                        <field name="name"/>
+                        <field name="user_id"
+                               attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                        <field name="state"
+                               attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                        <field name="date"
+                               attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                        <field name="write_date" widget="date" readonly="True"/>
+                        <field name="date_done" readonly="True"/>
+                    </group>
+                    <group colspan="4">
+                        <field name="comment"/>
+                    </group>
+                    <group colspan="4">
+                        <field name="attachment_ids" widget="many2many_binary"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="rida_report_tree" model="ir.ui.view">
         <field name="name">rida.report.tree</field>
         <field name="model">rida.report</field>
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
-                <field name="creation_date"/>
                 <field name="project_id"/>
                 <field name="theme_id"/>
+                <field name="state"/>
+                <field name="write_date" widget="date" readonly="True"/>
             </tree>
         </field>
     </record>
 
-    <record model="ir.ui.view" id="rida_report_form">
+    <record id="rida_report_form" model="ir.ui.view">
         <field name="name">rida.report.form</field>
         <field name="model">rida.report</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="toggle_active" type="object"
-                                class="oe_stat_button" icon="fa-archive">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
                             <field name="active" widget="boolean_button"
                                    options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
                         </button>
@@ -67,15 +108,21 @@
                     </group>
                     <group string="Lines" col="1">
                         <field name="line_ids" nolabel="1">
-                            <tree editable="bottom">
+                            <tree editable="bottom"
+                                  decoration-warning="state not in ('closed', 'duplicate', 'cancel') and priority == 'medium'"
+                                  decoration-danger="state not in ('closed', 'duplicate', 'cancel') and priority == 'high'"
+                                  decoration-muted="state in ('closed', 'duplicate', 'cancel')">
+                                <field name="reference"/>
                                 <field name="type"/>
+                                <field name="priority"/>
                                 <field name="name"/>
                                 <field name="user_id"
                                        attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                                <field name="state"
+                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                                 <field name="date"
                                        attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                                <field name="state" widget="kanban_state_selection"
-                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                                <button name="action_form_view" type="object" string="Details" class="btn-primary"/>
                             </tree>
                         </field>
                     </group>
@@ -84,7 +131,20 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="rida_line_search">
+    <record id="rida_report_search" model="ir.ui.view">
+        <field name="name">rida.report.search</field>
+        <field name="model">rida.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="theme_id"/>
+                <field name="project_id"/>
+                <filter name="archived" string="Archived projects only" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="rida_line_search" model="ir.ui.view">
         <field name="name">rida.line.search</field>
         <field name="model">rida.line</field>
         <field name="arch" type="xml">
@@ -92,14 +152,16 @@
                 <filter name="information_only" string="Informations only" domain="[('type', '=', 'information')]"/>
                 <filter name="decision_only" string="Decisions only" domain="[('type', '=', 'decision')]"/>
                 <filter name="action_only" string="Actions only" domain="[('type', '=', 'action')]"/>
+                <separator/>
                 <filter name="all_action_todo" string="All actions to do"
-                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
+                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'open')]"/>
                 <filter name="all_action_done" string="All actions done"
                         domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
                 <filter name="my_action_todo" string="My actions to do"
-                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
+                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'open')]"/>
                 <filter name="my_action_done" string="My actions done"
                         domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <separator/>
                 <filter name="own_lines" string="My lines" domain="[('user_id', '=', uid), ]"/>
                 <group expand="0" string="Group By">
                     <filter string="RIDA" domain="[]" context="{'group_by': 'report_id'}"/>
@@ -111,17 +173,17 @@
 
     <!-- actions -->
 
+    <record model="ir.actions.act_window" id="rida_report_action">
+        <field name="name">RIDA</field>
+        <field name="res_model">rida.report</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
     <record model="ir.actions.act_window" id="rida_line_action">
         <field name="name">Lines</field>
         <field name="res_model">rida.line</field>
         <field name="view_mode">tree</field>
         <field name="context">{'search_default_my_action_todo': 1}</field>
-    </record>
-
-    <record model="ir.actions.act_window" id="rida_report_action">
-        <field name="name">RIDA</field>
-        <field name="res_model">rida.report</field>
-        <field name="view_mode">tree,form</field>
     </record>
 
     <!-- menuitems -->
@@ -134,7 +196,8 @@
     <menuitem
             name="RIDA"
             id="rida_menu"
-            parent="rida_root_menu"/>
+            parent="rida_root_menu"
+            sequence="10"/>
 
     <menuitem
             name="RIDA"
@@ -144,7 +207,7 @@
             sequence="10"/>
 
     <menuitem
-            name="Lines"
+            name="My Lines"
             id="rida_line_menu"
             action="rida_line_action"
             parent="rida_menu"

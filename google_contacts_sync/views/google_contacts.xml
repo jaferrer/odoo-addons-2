@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+      <record id="synchronize_contacts_view" model="ir.ui.view">
+          <field name="name">synchronize.contacts.view.form</field>
+          <field name="model">google.contacts</field>
+          <field name="arch" type="xml">
+              <form>
+                  <field name="access_token_present" invisible="True"/>
+                  <p>
+                      La synchronisation des contacts permet de copier les contacts Odoo vers Google.
+                  </p>
+                  <p class="oe_view_nocontent_create" attrs="{'invisible':[('access_token_present','!=',False)]}">
+                      <i>Attention, il est nécessaire de générer un code d'accès avant d'effectuer la première
+                          synchronisation</i>
+                  </p>
+                  <group>
+                      <field name="google_uri" widget="url" text="Générer un code d'accès"
+                               class="oe_inline oe_bold" readonly="1" nolabel="1"
+                               attrs="{'invisible':[('access_token_present','!=',False)]}"/>
+                  </group>
+                  <footer>
+                      <button name="synchronize_contacts" string="Synchroniser" type="object" class="oe_highlight"/>
+                      <button string="Annuler" class="oe_link" special="cancel" />
+                  </footer>
+              </form>
+          </field>
+      </record>
+
+      <menuitem id="menu_google_contacts" name="Contacts Google" sequence="5" parent="contacts.menu_contacts"/>
+
+      <record id="synchronize_contacts_action" model="ir.actions.act_window">
+            <field name="name">Synchronisation des contacts vers Google</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">google.contacts</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+      </record>
+
+      <menuitem id="menu_synchronize_google_contacts" name="Synchronisation des contacts" sequence="1"
+                  parent="menu_google_contacts" action="synchronize_contacts_action"/>
+
+  </data>
+</odoo>
