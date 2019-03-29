@@ -23,11 +23,18 @@ from odoo import fields, models, api
 class RidaReport(models.Model):
     _name = 'rida.report'
 
+    def _get_default_user_ids(self):
+        return [(6, 0, [self.env.uid])]
+
     name = fields.Char(u"Name", required=True)
-    theme_id = fields.Many2one('res.partner', u"Theme")
-    project_id = fields.Many2one('project.project', u"Related project")
+    active = fields.Boolean(u"Active", default=True)
+    theme_id = fields.Many2one('res.partner', u"Theme", index=True)
+    project_id = fields.Many2one('project.project', u"Related project", index=True)
     creation_date = fields.Date(u"Creation date", required=True, default=fields.Date.today)
     line_ids = fields.One2many('rida.line', 'report_id', u"Lines")
+    auth_mode = fields.Selection([('public', u"Tout le monde"), ('private', u"Les utilisateurs invités")],
+                                 string=u"Utilisateurs autorisés", required=True, default='private')
+    user_ids = fields.Many2many('res.users', string=u"Utilisateurs invités", default=_get_default_user_ids)
 
 
 class RidaLine(models.Model):

@@ -13,9 +13,12 @@
                 <field name="project_id"/>
                 <field name="theme_id"/>
                 <field name="report_id"/>
-                <field name="user_id" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                <field name="date" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                <field name="state" widget="kanban_state_selection" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <field name="user_id"
+                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <field name="date"
+                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                <field name="state" widget="kanban_state_selection"
+                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
             </tree>
         </field>
     </record>
@@ -38,28 +41,45 @@
         <field name="model">rida.report</field>
         <field name="arch" type="xml">
             <form>
-                <div class="oe_title">
-                    <h1>
-                        <field name="name" placeholder="Name"/>
-                    </h1>
-                </div>
-                <group>
-                    <group colspan="2">
-                        <field name="theme_id"/>
-                        <field name="project_id"/>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object"
+                                class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button"
+                                   options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="theme_id"/>
+                            <field name="project_id"/>
+                        </group>
+                        <group>
+                            <field name="auth_mode"/>
+                            <field name="user_ids" widget="many2many_tags"
+                                   attrs="{'invisible': [('auth_mode', '!=', 'private')]}"/>
+                        </group>
                     </group>
-                </group>
-                <group string="Lines" col="1">
-                    <field name="line_ids" nolabel="1">
-                        <tree editable="bottom">
-                            <field name="type"/>
-                            <field name="name"/>
-                            <field name="user_id" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                            <field name="date" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                            <field name="state" widget="kanban_state_selection" attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                        </tree>
-                    </field>
-                </group>
+                    <group string="Lines" col="1">
+                        <field name="line_ids" nolabel="1">
+                            <tree editable="bottom">
+                                <field name="type"/>
+                                <field name="name"/>
+                                <field name="user_id"
+                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                                <field name="date"
+                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                                <field name="state" widget="kanban_state_selection"
+                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
             </form>
         </field>
     </record>
@@ -72,10 +92,14 @@
                 <filter name="information_only" string="Informations only" domain="[('type', '=', 'information')]"/>
                 <filter name="decision_only" string="Decisions only" domain="[('type', '=', 'decision')]"/>
                 <filter name="action_only" string="Actions only" domain="[('type', '=', 'action')]"/>
-                <filter name="all_action_todo" string="All actions to do" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
-                <filter name="all_action_done" string="All actions done" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
-                <filter name="my_action_todo" string="My actions to do" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
-                <filter name="my_action_done" string="My actions done" domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="all_action_todo" string="All actions to do"
+                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
+                <filter name="all_action_done" string="All actions done"
+                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="my_action_todo" string="My actions to do"
+                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'normal')]"/>
+                <filter name="my_action_done" string="My actions done"
+                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
                 <filter name="own_lines" string="My lines" domain="[('user_id', '=', uid), ]"/>
                 <group expand="0" string="Group By">
                     <filter string="RIDA" domain="[]" context="{'group_by': 'report_id'}"/>
@@ -113,14 +137,17 @@
             parent="rida_root_menu"/>
 
     <menuitem
-            name="My Lines"
-            id="rida_line_menu"
-            action="rida_line_action"
-            parent="rida_menu"/>
-
-    <menuitem
             name="RIDA"
             id="rida_report_menu"
             action="rida_report_action"
-            parent="rida_menu"/>
+            parent="rida_menu"
+            sequence="10"/>
+
+    <menuitem
+            name="Lines"
+            id="rida_line_menu"
+            action="rida_line_action"
+            parent="rida_menu"
+            sequence="20"/>
+
 </odoo>

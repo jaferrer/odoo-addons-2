@@ -34,6 +34,7 @@ Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
     'data': [
         'views/rida.xml',
         'security/ir.model.access.csv',
+        'security/rida_security.xml',
     ],
     'demo': [],
     'test': [],
