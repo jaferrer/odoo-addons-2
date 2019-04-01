@@ -56,9 +56,10 @@ class PurchaseOrderOverCover(models.Model):
                 pol_covering_date = fields.Datetime.from_string(line.covering_date) if line.covering_date else False
                 date_coverage_max = rec.location_id.schedule_working_days(nb_days_max_cover, pol_requested_date)
                 if not pol_covering_date or pol_covering_date and pol_covering_date > date_coverage_max:
-                    line.coverage_to_approve = True
                     any_line_over_covered = True
-            if any_line_over_covered:
+                    if not any_line_over_covered.coverage_to_approve:
+                        line.coverage_to_approve = True
+            if any_line_over_covered and not rec.coverage_to_approve:
                 rec.coverage_to_approve = True
             elif confirm_is_possible:
                 rec.signal_workflow('purchase_confirm')
@@ -73,8 +74,9 @@ class PurchaseOrderOverCover(models.Model):
 
     @api.multi
     def reset_coverage_data(self):
-        self.write({'coverage_to_approve': False})
-        self.env['purchase.order.line'].search([('order_id', 'in', self.ids)]).write({'coverage_to_approve': False})
+        self.search([('coverage_to_approve', '=', True)]).write({'coverage_to_approve': False})
+        self.env['purchase.order.line'].search([('order_id', 'in', self.ids),
+                                                ('coverage_to_approve', '=', True)]).write({'coverage_to_approve': False})
 
     @api.multi
     def action_cancel(self):
