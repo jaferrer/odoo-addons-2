@@ -83,7 +83,6 @@ class Base(models.AbstractModel):
             FROM %(from)s
             %(where)s
         """ % {
-            'table': self._table,
             'extra_fields': prefix_terms('', select_terms),
             'from': from_clause,
             'where': prefix_term('WHERE', where_clause),

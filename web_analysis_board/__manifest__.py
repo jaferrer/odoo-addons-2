@@ -27,7 +27,7 @@
     'description': """
 Web Analysis Board
 ====================
-This module adds a new view type called "analysis" with which you can create 
+This module adds a new view type called "analysis" with which you can create
 analysis boards for models.
 """,
     'website': 'http://www.ndp-systemes.fr',
