@@ -26,8 +26,8 @@ class PurchaseOrderLineOverCover(models.Model):
     coverage_to_approve = fields.Boolean(string=u"Coverage to approve", readonly=True)
 
     @api.multi
-    def compute_coverage_state(self):
-        result = super(PurchaseOrderLineOverCover, self).compute_coverage_state()
+    def compute_coverage_state(self, force_product_ids=None):
+        result = super(PurchaseOrderLineOverCover, self).compute_coverage_state(force_product_ids=force_product_ids)
         if not self.env.context.get('do_not_update_coverage_data'):
             orders = self.env['purchase.order']
             draft_orders = self.env['purchase.order']

@@ -26,14 +26,11 @@ from openerp import modules, fields, models, api, _
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 
 
-@job(default_channel='root.compute_coverage_state')
-def job_compute_coverage_state(session, model_name, pol_id, context):
-    pol_id = session.env[model_name].browse(pol_id)
-    if pol_id:
-        pol_id.with_context(context).compute_coverage_state()
-        return u"The coverage state of line no %s (%s) is recomputed" % (pol_id.line_no, pol_id.order_id.name)
-    else:
-        return u"Purchase order line not found for id %i" % pol_id
+@job
+def job_compute_coverage_state(session, model_name, ids, force_product_ids, context):
+    session.env[model_name].with_context(context).browse(ids). \
+        compute_coverage_state(force_product_ids=force_product_ids)
+    return u"Coverage state computed"
 
 
 class ProcurementOrderPurchasePlanningImproved(models.Model):
@@ -151,13 +148,16 @@ class PurchaseOrderLinePlanningImproved(models.Model):
             rec.opmsg_text = msg
 
     @api.multi
-    def compute_coverage_state(self):
+    def compute_coverage_state(self, force_product_ids=None):
         module_path = modules.get_module_path('purchase_planning_improved')
-        products = self.mapped('product_id')
-        if not products:
-            return
+        product_ids = force_product_ids or []
+        if not force_product_ids:
+            products = self.mapped('product_id')
+            if not products:
+                return
+            product_ids = products.ids
         with open(module_path + '/sql/' + 'covering_dates_query.sql') as sql_file:
-            self.env.cr.execute(sql_file.read(), (tuple(products.ids),))
+            self.env.cr.execute(sql_file.read(), (tuple(product_ids),))
             for result_line in self.env.cr.dictfetchall():
                 line = self.env['purchase.order.line'].search([('id', '=', result_line['pol_id'])])
                 if line.product_id.type == 'product':
@@ -198,11 +198,13 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     @api.model
     def cron_compute_coverage_state(self):
         pol_coverage_to_recompute = self.search([('order_id.state', '!=', 'draft'), ('remaining_qty', '>', 0)])
-        for pol in pol_coverage_to_recompute:
-            job_compute_coverage_state.delay(ConnectorSession.from_env(self.env), 'purchase.order.line', pol.id,
-                                             context=dict(self.env.context),
-                                             description=u"Update coverage state for line no %s (%s)" % (
-                                             pol.line_no, pol.order_id.name))
+        products_to_process_ids = list(set([line.product_id.id for line in pol_coverage_to_recompute if
+                                            line.product_id]))
+        if products_to_process_ids:
+            job_compute_coverage_state.delay(ConnectorSession.from_env(self.env), 'purchase.order.line',
+                                             pol_coverage_to_recompute.ids,
+                                             products_to_process_ids, context=dict(self.env.context),
+                                             description=u"Update coverage states")
 
     @api.multi
     def set_moves_dates(self, date_required):
