@@ -38,7 +38,7 @@ msgstr "Emplacement"
 #: model:ir.actions.act_window,name:odoo_online_documentation.act_window_odoo_online_document_type_knowledge
 #: model:ir.ui.menu,name:odoo_online_documentation.odoo_online_document_type_menu_knowledge
 #: field:odoo.online.documentation,doc_type_id:0
-#: field:odoo.online.document.type,type:0
+#: field:odoo.online.document.type,name:0
 msgid "Document type"
 msgstr "Type de document"
 
