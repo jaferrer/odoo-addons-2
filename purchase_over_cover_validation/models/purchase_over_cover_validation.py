@@ -57,7 +57,7 @@ class PurchaseOrderOverCover(models.Model):
                 date_coverage_max = rec.location_id.schedule_working_days(nb_days_max_cover, pol_requested_date)
                 if not pol_covering_date or pol_covering_date and pol_covering_date > date_coverage_max:
                     any_line_over_covered = True
-                    if not any_line_over_covered.coverage_to_approve:
+                    if not line.coverage_to_approve:
                         line.coverage_to_approve = True
             if any_line_over_covered and not rec.coverage_to_approve:
                 rec.coverage_to_approve = True
