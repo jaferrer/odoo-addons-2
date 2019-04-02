@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['sale', 'decimal_precision', 'computed_field_database'],
+    'depends': ['sale', 'decimal_precision'],
     'description': """
 Sale Performance Improved
 =========================
