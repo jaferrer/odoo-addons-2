@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,28 +18,29 @@
 #
 
 {
-    'name': "RIDA Report",
+    'name': 'Web Analysis Board',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': [
-        'project',
-        'web_kanban_state_selection'
-    ],
-    'description': u"""
-Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
+    'category': 'User Interface',
+    'depends': ['web'],
+    'description': """
+Web Analysis Board
+====================
+This module adds a new view type called "analysis" with which you can create
+analysis boards for models.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/rida.xml',
-        'security/ir.model.access.csv',
-        'data/sequence.xml',
-        'security/rida_security.xml',
+        'views/templates.xml',
     ],
     'demo': [],
     'test': [],
+    'qweb': [
+        'static/src/xml/web_analysis_board.xml',
+    ],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
+    'application': False,
 }

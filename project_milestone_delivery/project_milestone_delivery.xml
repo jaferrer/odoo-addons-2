@@ -20,8 +20,8 @@
             <field name="inherit_id" ref="project_milestone.project_milestone_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <group name="task_group" position="after">
-                    <group string="Deliveries" name="task_delivery">
+                <page name="task_page" position="after">
+                    <page string="Deliveries" name="task_delivery">
                         <field name="delivery_ids" nolabel="1">
                             <tree nolabel="1">
                                 <field name="name"/>
@@ -29,8 +29,8 @@
                                 <field name="state"/>
                             </tree>
                         </field>
-                    </group>
-                </group>
+                    </page>
+                </page>
             </field>
         </record>
 
