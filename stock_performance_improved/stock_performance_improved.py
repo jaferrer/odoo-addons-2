@@ -200,8 +200,12 @@ class StockPicking(models.Model):
     location_id = fields.Many2one(related='location_id_store', readonly=True, store=False)
     location_dest_id_store = fields.Many2one('stock.location', related='move_lines.location_dest_id', store=True)
     location_dest_id = fields.Many2one(related='location_dest_id_store', readonly=True, store=False)
-    picking_type_code_store = fields.Selection(related='picking_type_id.code', store=True)
-    picking_type_code = fields.Selection([('incoming', 'Suppliers'), ('outgoing', 'Customers'),
+    picking_type_code_store = fields.Selection([('incoming', 'Suppliers'),
+                                                ('outgoing', 'Customers'),
+                                                ('internal', 'Internal')],
+                                               string=u"Picking type code (store)", readonly=True)
+    picking_type_code = fields.Selection([('incoming', 'Suppliers'),
+                                          ('outgoing', 'Customers'),
                                           ('internal', 'Internal')], string=u"Picking type code", readonly=True,
                                          related='picking_type_code_store')
     picking_type_id = fields.Many2one('stock.picking.type', index=True)
@@ -1104,7 +1108,6 @@ class StockPrereservation(models.Model):
         """)
 
 
-
 class StockInventoryLine(models.Model):
     _inherit = 'stock.inventory.line'
 
@@ -1143,3 +1146,25 @@ class StockMoveOperationLinkImporved(models.Model):
 DELETE FROM stock_move_operation_link
 WHERE id IN (SELECT id
              FROM link_ids_to_delete);""")
+
+
+class StockPickingType(models.Model):
+    _inherit = 'stock.picking.type'
+
+    @api.multi
+    def update_picking_type_codes(self):
+        for rec in self:
+            pickings = self.env['stock.picking'].search([('picking_type_id', '=', rec.id)])
+            pickings.write({'picking_type_code_store': rec.code})
+
+    @api.multi
+    def write(self, vals):
+        result = super(StockPickingType, self).write(vals)
+        self.update_picking_type_codes()
+        return result
+
+    @api.model
+    def create(self, vals):
+        result = super(StockPickingType, self).create(vals)
+        result.update_picking_type_codes()
+        return result
