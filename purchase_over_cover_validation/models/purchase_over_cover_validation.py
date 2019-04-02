@@ -74,7 +74,8 @@ class PurchaseOrderOverCover(models.Model):
 
     @api.multi
     def reset_coverage_data(self):
-        self.search([('coverage_to_approve', '=', True)]).write({'coverage_to_approve': False})
+        self.search([('coverage_to_approve', '=', True),
+                     ('id', 'in', self.ids)]).write({'coverage_to_approve': False})
         self.env['purchase.order.line'].search([('order_id', 'in', self.ids),
                                                 ('coverage_to_approve', '=', True)]).write({'coverage_to_approve': False})
 
