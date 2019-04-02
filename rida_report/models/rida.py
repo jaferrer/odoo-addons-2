@@ -23,17 +23,23 @@ from odoo import fields, models, api
 class RidaReport(models.Model):
     _name = 'rida.report'
 
+    def _get_default_user_ids(self):
+        return [(6, 0, [self.env.uid])]
+
     name = fields.Char(u"Label", required=True)
     code = fields.Char(u"Code", default=lambda self: self.env['ir.sequence'].next_by_code('rida.report'), readonly=True)
-    theme_id = fields.Many2one('res.partner', u"Theme")
-    project_id = fields.Many2one('project.project', u"Related project")
+    active = fields.Boolean(u"Active", default=True)
+    theme_id = fields.Many2one('res.partner', u"Theme", index=True)
+    project_id = fields.Many2one('project.project', u"Related project", index=True)
     creation_date = fields.Date(u"Creation date", required=True, default=fields.Date.today)
     line_ids = fields.One2many('rida.line', 'report_id', u"Lines")
+    auth_mode = fields.Selection([('public', u"Tout le monde"), ('private', u"Les utilisateurs invités")],
+                                 string=u"Utilisateurs autorisés", required=True, default='private')
+    user_ids = fields.Many2many('res.users', string=u"Utilisateurs invités", default=_get_default_user_ids)
     state = fields.Selection([
         ('open', u"Open"),
         ('archived', u"Archived"),
     ], u"Status", compute='_compute_state', inverse='_inverse_state')
-    active = fields.Boolean(u"Active", default=True)
     line_cpt = fields.Integer(default=0)
 
     @api.multi
@@ -64,8 +70,8 @@ class RidaLine(models.Model):
     ], u"Type", required=True)
     name = fields.Char(u"Description", required=True)
     reference = fields.Char(u"Action reference", readonly=True)
-    user_id = fields.Many2one('res.users', u"Related user", default=lambda self: self.env.user)
-    date = fields.Date(u"Expected date", default=fields.Date.today)
+    user_id = fields.Many2one('res.users', u"Related user")
+    date = fields.Date(u"Expected date")
     report_id = fields.Many2one('rida.report', u"Related RIDA", required=True, ondelete='cascade')
     project_id = fields.Many2one('project.project', related='report_id.project_id', store=True)
     theme_id = fields.Many2one('res.partner', related='report_id.theme_id', store=True)
@@ -86,7 +92,19 @@ class RidaLine(models.Model):
         ('low', u"Low"),
         ('medium', u"Medium"),
         ('high', u"High"),
-    ], u"Priority", default='low', required=True)
+    ], u"Priority", default='low')
+
+    @api.onchange('type')
+    def onchange_type(self):
+        if not self.type:
+            self.state = 'open'
+            self.priority = False
+        elif self.type == 'action':
+            self.state = 'open'
+            self.priority = 'low'
+        else:
+            self.state = 'info'
+            self.priority = False
 
     @api.model
     def create(self, vals):

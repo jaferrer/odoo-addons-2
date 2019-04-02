@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<templates>
+    <t t-name="AnalysisBoard">
+        <div class="o_analysis_board_widget"></div>
+    </t>
+</templates>

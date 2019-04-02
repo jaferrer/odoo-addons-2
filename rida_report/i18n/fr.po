@@ -222,8 +222,8 @@ msgstr "Moyenne"
 
 #. module: rida_report
 #: model:ir.ui.menu,name:rida_report.rida_line_menu
-msgid "My Lines"
-msgstr "Mes lignes"
+msgid "Lines"
+msgstr "Lignes"
 
 #. module: rida_report
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,28 +18,35 @@
 #
 
 {
-    'name': "RIDA Report",
+    'name': 'Extra Group Operators',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': [
-        'project',
-        'web_kanban_state_selection'
-    ],
-    'description': u"""
-Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
+    'depends': [],
+    'description': """
+Extra Group Operators
+=====================
+This module implements new aggregate functions in PostgreSQL to be used in group_operator parameter of fields.
+
+Currently implements:
+
+- median: This operator will return the median of a list. This function may prove particularly useful when dealing with
+cumulative fields inside the database, particularly in DB views.
+
+Note:
+
+This module removes and adds again the aggregate function in the database, so make sure that all modules using these new
+aggregate functions depend from this module so that they get updated.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/rida.xml',
         'security/ir.model.access.csv',
-        'data/sequence.xml',
-        'security/rida_security.xml',
     ],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
+    'application': False,
 }
