@@ -83,14 +83,6 @@ class QueueJob(models.Model):
         # The fail message is useless
         return super(QueueJob, self.with_context(mail_notrack=vals.get('state') == 'failed')).write(vals)
 
-    def _register_hook(self, cr):
-
-        started_jobs_ids = self.search(cr, 1, [('state', '=', 'started')])
-        started_jobs = self.browse(cr, 1, started_jobs_ids)
-        started_jobs.requeue()
-
-        return super(QueueJob, self)._register_hook(cr)
-
 
 class ConnectorCheckpointImproved(models.Model):
     _inherit = 'connector.checkpoint'
