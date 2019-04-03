@@ -17,6 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.procurement import procurement
 from openerp.addons.scheduler_async import scheduler_async
@@ -24,6 +26,8 @@ from openerp.addons.scheduler_async import scheduler_async
 from openerp import fields, models, api, osv, _
 from openerp.osv import fields as old_api_fields
 from openerp.tools import drop_view_if_exists, flatten, float_compare, float_round
+
+_logger = logging.getLogger(__name__)
 
 assign_moves = scheduler_async.assign_moves
 
@@ -200,8 +204,12 @@ class StockPicking(models.Model):
     location_id = fields.Many2one(related='location_id_store', readonly=True, store=False)
     location_dest_id_store = fields.Many2one('stock.location', related='move_lines.location_dest_id', store=True)
     location_dest_id = fields.Many2one(related='location_dest_id_store', readonly=True, store=False)
-    picking_type_code_store = fields.Selection(related='picking_type_id.code', store=True)
-    picking_type_code = fields.Selection([('incoming', 'Suppliers'), ('outgoing', 'Customers'),
+    picking_type_code_store = fields.Selection([('incoming', 'Suppliers'),
+                                                ('outgoing', 'Customers'),
+                                                ('internal', 'Internal')],
+                                               string=u"Picking type code (store)", readonly=True)
+    picking_type_code = fields.Selection([('incoming', 'Suppliers'),
+                                          ('outgoing', 'Customers'),
                                           ('internal', 'Internal')], string=u"Picking type code", readonly=True,
                                          related='picking_type_code_store')
     picking_type_id = fields.Many2one('stock.picking.type', index=True)
@@ -1104,7 +1112,6 @@ class StockPrereservation(models.Model):
         """)
 
 
-
 class StockInventoryLine(models.Model):
     _inherit = 'stock.inventory.line'
 
@@ -1143,3 +1150,41 @@ class StockMoveOperationLinkImporved(models.Model):
 DELETE FROM stock_move_operation_link
 WHERE id IN (SELECT id
              FROM link_ids_to_delete);""")
+
+
+class StockPickingType(models.Model):
+    _inherit = 'stock.picking.type'
+
+    @api.multi
+    def update_picking_type_codes(self):
+        for rec in self:
+            pickings = self.env['stock.picking'].search([('picking_type_id', '=', rec.id),
+                                                         ('picking_type_code_store', '!=', rec.code)])
+            pickings.write({'picking_type_code_store': rec.code})
+
+    @api.multi
+    def write(self, vals):
+        result = super(StockPickingType, self).write(vals)
+        self.update_picking_type_codes()
+        return result
+
+    @api.model
+    def create(self, vals):
+        result = super(StockPickingType, self).create(vals)
+        result.update_picking_type_codes()
+        return result
+
+
+class StockPerformanceImprovedConfig(models.TransientModel):
+    _name = 'stock.performance.improved.config'
+
+    @api.model
+    def update_picking_type_codes(self):
+        picking_types = self.env['stock.picking.type'].search([])
+        nb_picking_types = len(picking_types)
+        index = 0
+        for picking_type in picking_types:
+            index += 1
+            _logger.info(u"Updating picking type codes for picking type %s (%s/%s)" %
+                         (picking_type.display_name, index, nb_picking_types))
+            picking_type.update_picking_type_codes()

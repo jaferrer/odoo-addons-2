@@ -48,6 +48,7 @@ menus to finely control the scheduler:
     'data': [
         'security/ir.model.access.csv',
         'stock_performance_improved_view.xml',
+        'stock_performance_improved_config.xml',
         'stock_performance_improved_data.xml',
     ],
     'demo': [
