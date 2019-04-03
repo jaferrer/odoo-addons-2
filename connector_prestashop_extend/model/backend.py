@@ -146,7 +146,7 @@ class prestashopextend_backend(models.Model):
                                    context=new_ctx)
         import_start_time = datetime.now()
         backend_id = self.id
-        product = self.env['prestashopextend.product.product'].search([], limit=1, order="updated_at desc")
+        product = self.env['prestashopextend.product.product'].search([('backend_id', '=', self.id)], limit=1, order="updated_at desc")
         from_date = None
         opts = {}
         if product:
