@@ -52,7 +52,8 @@ def unlink(self):
                         self.env['bus.receive.transfer'].create({
                             'model': self._name,
                             'local_id': id,
-                            'to_deactivate': True
+                            'to_deactivate': True,
+                            'received_data': u"Deleting %s, model : %s" % (id, self._name)
                         })
     return res_unlink
 

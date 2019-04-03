@@ -25,6 +25,7 @@
     'depends': [
         'connector',
         'web_sheet_full_width_selective',
+        'bus_send_message',
     ],
     'description': """
 Connector to Odoo Databus

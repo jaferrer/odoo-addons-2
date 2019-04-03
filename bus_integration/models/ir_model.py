@@ -22,7 +22,7 @@ from openerp import models, api
 
 class BusIrModelFields(models.Model):
     _inherit = 'ir.model.fields'
-    
+
     @api.multi
     def name_get(self):
         if self.env.context.get('display_technical_field_names'):
