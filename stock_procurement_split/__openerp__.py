@@ -33,7 +33,9 @@ then the procurement is split too.
 This allows procurements/move chains to remain consistent and propagate cancels even after split.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': [
+        'stock_procurement_split_view.xml',
+    ],
     'demo': [
         'stock_procurement_split_demo.xml',
     ],
