@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,13 +16,15 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import urllib
+import requests
+import json
 
 from openerp import models, fields, api, _
 from openerp.addons.connector.queue.job import job
 from openerp.exceptions import Warning as UserError
 from openerp.addons.connector.session import ConnectorSession
-from shareplum import Office365
-import requests
+# from shareplum import Office365
 
 
 @job(default_channel='root')
@@ -74,21 +76,39 @@ class ExploreSharepointFolders(models.Model):
 
     @api.multi
     def access_sharepoint(self):
+        """
+        Access to Sharepoint via OAuth2 method.
+        """
 
-        username = self.env['knowledge.config.settings'].get_default_username_sharepoint(fields=None)[
-            'username_sharepoint']
-        password = self.env['knowledge.config.settings'].get_default_password_sharepoint(fields=None)[
-            'password_sharepoint']
-        authcookie = Office365('https://sirail.sharepoint.com', username=username, password=password)\
-            .GetCookies()
         session = requests.Session()
-        session.cookies = authcookie
-        # session.headers.update({"Accept": "application/json"})
-        session.headers.update({'accept': 'application/json;'})
+        access_token = self.env['knowledge.config.settings'].get_token()
+        authorization = u"Bearer " + access_token
+
+        session.headers.update({
+            # 'Host': u"https://graph.microsoft.com",
+            'Authorization': authorization,
+            'accept': u"application/json;",
+        })
+
         return session
 
+    # @api.multi
+    # def access_sharepoint(self):
+    #
+    #     username = self.env['knowledge.config.settings'].get_default_username_sharepoint(fields=None)[
+    #         'username_sharepoint']
+    #     password = self.env['knowledge.config.settings'].get_default_password_sharepoint(fields=None)[
+    #         'password_sharepoint']
+    #     authcookie = Office365('https://sirail.sharepoint.com', username=username, password=password)\
+    #         .GetCookies()
+    #     session = requests.Session()
+    #     session.cookies = authcookie
+    #     # session.headers.update({"Accept": "application/json"})
+    #     session.headers.update({'accept': 'application/json;'})
+    #     return session
+
     @api.multi
-    def get_subdirectories(self, sess, current_path=None):
+    def get_subdirectories(self, session, current_path=None):
         """
         Function to get access to the son folders of the current folder.
         """
@@ -100,7 +120,7 @@ class ExploreSharepointFolders(models.Model):
         current_path = current_path.rstrip('/').replace("'", "''")
         full_url = """https://sirail.sharepoint.com/_api/web/GetFolderByServerRelativeUrl('%s')/Folders""" % \
                    current_path
-        ans = sess.get(full_url)
+        ans = session.get(full_url)
         if ans.status_code != 200:
             raise UserError(_(u"HTTP Request returned a %d error" % ans.status_code))
         return [{'final_path': current_path + '/' + d['Name'], 'name': d['Name']} for d in ans.json()['value']]
@@ -207,10 +227,11 @@ class SharepointAccessIdConfig(models.TransientModel):
 
     username_sharepoint = fields.Char(u"Username")
     password_sharepoint = fields.Char(u"Password")
+    auth_code_url_sharepoint = fields.Char(u"Authentication url")
 
     @api.model
     def get_default_username_sharepoint(self, fields):
-        username_sharepoint = self.env['ir.config_parameter'].\
+        username_sharepoint = self.env['ir.config_parameter']. \
             get_param('odoo_online_documentation_sharepoint.username_sharepoint')
         return {'username_sharepoint': username_sharepoint}
 
@@ -218,7 +239,7 @@ class SharepointAccessIdConfig(models.TransientModel):
     def set_username_sharepoint(self):
         config_parameters = self.env["ir.config_parameter"]
         for rec in self:
-            config_parameters.\
+            config_parameters. \
                 set_param("odoo_online_documentation_sharepoint.username_sharepoint", rec.username_sharepoint)
 
     @api.model
@@ -233,3 +254,99 @@ class SharepointAccessIdConfig(models.TransientModel):
         for rec in self:
             config_parameters. \
                 set_param("odoo_online_documentation_sharepoint.password_sharepoint", rec.password_sharepoint)
+
+    @api.model
+    def get_default_auth_code_url_sharepoint(self, fields):
+        auth_code_url_sharepoint = self.env['ir.config_parameter']. \
+            get_param('odoo_online_documentation_sharepoint.auth_code_url_sharepoint')
+        return {'auth_code_url_sharepoint': auth_code_url_sharepoint}
+
+    @api.multi
+    def set_auth_code_url_sharepoint(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for rec in self:
+            config_parameters. \
+                set_param('odoo_online_documentation_sharepoint.auth_code_url_sharepoint', rec.auth_code_url_sharepoint)
+
+    @api.multi
+    def button_get_auth_code_sharepoint(self):
+        """
+        Request an authorization code for ndp@sirailgroup.com to microsoft to be able to do modifications on Sharepoint.
+        """
+
+        full_redirect_uri = self.env['ir.config_parameter'].get_param('web.base.url') + u"/sirail_sharepoint"
+        dbname = self.env.cr.dbname
+
+        params = {
+            'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
+            'response_type': u"code",
+            'redirect_uri': full_redirect_uri,
+            'response_mode': u"query",
+            'scope': u"openid offline_access https://graph.microsoft.com/user.readwrite",
+            'state': json.dumps({'d': dbname}),
+        }
+        encoded_params = urllib.urlencode(params)
+        url = self.auth_code_url_sharepoint + u"/common/oauth2/v2.0/authorize?" + encoded_params
+
+        return {
+            'type': "ir.actions.act_url",
+            'url': url,
+            'target': "new"}
+
+    @api.model
+    def get_refresh_token(self, authorization_code):
+        """
+        Allow to get the refresh_token using the authorization code.
+        """
+
+        config_parameters = self.env['ir.config_parameter']
+        redirect_uri = self.env['ir.config_parameter'].get_param('web.base.url') + u"/sirail_sharepoint"
+
+        headers = {
+            'Content-Type': u"application/x-www-form-urlencoded",
+        }
+
+        data = {
+            'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
+            'scope': u"openid offline_access https://graph.microsoft.com/user.readwrite",
+            'code': authorization_code,
+            'redirect_uri': redirect_uri,
+            'grant_type': u"authorization_code",
+            'client_secret': u"Q:>QIg|I>+cE#&Vv:&=(5+ld{q[_LF%@o!=};{c1#3)",
+        }
+
+        request_token = requests.post(u"https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                                      headers=headers, data=data)
+        token_dico = request_token.json()
+
+        vals = {}
+        vals['sharepoint_refresh_token'] = token_dico.get('refresh_token')
+        config_parameters.set_param('sharepoint_refresh_token', token_dico.get('refresh_token'))
+
+    def get_token(self):
+        """
+        Allow to get a new token using the refresh_token when the access_token is not valid anymore (3600s).
+        """
+
+        sharepoint_refresh_token = self.env['ir.config_parameter'].get_param('sharepoint_refresh_token')
+        redirect_uri = self.env['ir.config_parameter'].get_param('web.base.url') + u"/sirail_sharepoint"
+
+        headers = {
+            'Content-Type': u"application/x-www-form-urlencoded",
+        }
+
+        data = {
+            'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
+            'scope': u"openid offline_access https://graph.microsoft.com/user.readwrite",
+            'refresh_token': sharepoint_refresh_token,
+            'redirect_uri': redirect_uri,
+            'grant_type': u"refresh_token",
+            'client_secret': u"Q:>QIg|I>+cE#&Vv:&=(5+ld{q[_LF%@o!=};{c1#3)",
+        }
+
+        request_token = requests.post(u"https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                                      headers=headers, data=data)
+        token_dico = request_token.json()
+        sharepoint_token = token_dico.get('access_token')
+
+        return sharepoint_token

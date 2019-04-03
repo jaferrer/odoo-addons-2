@@ -87,6 +87,8 @@
                     <group>
                         <field name="username_sharepoint"/>
                         <field name="password_sharepoint" password="True"/>
+                        <field name="auth_code_url_sharepoint"/>
+                        <button name="button_get_auth_code_sharepoint" type="object" string="Authentication"/>
                     </group>
                 </xpath>
             </field>
