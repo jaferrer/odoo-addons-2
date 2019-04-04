@@ -32,7 +32,7 @@ class ProjectMilestone(models.Model):
     nb_days_tasks = fields.Integer(u"Number of days", compute='_compute_nb_related')
     start_date = fields.Date(u"Start date", required=True)
     qualif_should_be_livred_at = fields.Date(u"Should be in Test at", required=True)
-    should_be_closed_at = fields.Date(u"Should be in Prod at")
+    should_be_closed_at = fields.Date(u"Should be in Prod at", required=True)
     should_be_test_before = fields.Date(u"Should be tested before")
     livred_in_qualif_at = fields.Date(u"Delivery in Test at", readonly=True)
     livred_in_qualif_by = fields.Many2one('res.users', u"Delivery in Test by", readonly=True)
