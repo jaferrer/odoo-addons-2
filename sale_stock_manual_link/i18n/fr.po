@@ -147,6 +147,8 @@ msgstr "Lettrage approvisionnements/ventes"
 
 #. module: sale_stock_manual_link
 #: field:procurement.sale.link,sol_manual_consideration:0
+#: model:ir.actions.server,name:sale_stock_manual_link.ir_actions_server_manual_consideration
+#: model:ir.values,name:sale_stock_manual_link.ir_value_manual_consideration
 msgid "Manual consideration"
 msgstr "Prise en compte manuelle"
 
