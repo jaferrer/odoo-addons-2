@@ -131,3 +131,13 @@ class StockLocationRoute(models.Model):
                                                         string=u"Required Orderpoint Location")
     product_ids = fields.Many2many('product.product', 'stock_route_product', 'route_id', 'product_id',
                                    string=u"Products")
+
+class SirailStockLocation(models.Model):
+    _inherit = 'stock.location'
+
+    warehouse_id = fields.Many2one('stock.warehouse', u"Warehouse of the top location", compute='_compute_warehouse')
+
+    @api.multi
+    def _compute_warehouse(self):
+        for rec in self:
+            rec.warehouse_id = rec.get_warehouse(location=rec)
