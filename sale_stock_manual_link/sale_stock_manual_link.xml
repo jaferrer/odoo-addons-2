@@ -50,7 +50,7 @@ action = self.manual_consideration(cr, uid, context.get('active_ids'), context=c
             </field>
         </record>
 
-        <record model="ir.values" id="ir_value_generate_procurements">
+        <record model="ir.values" id="ir_value_manual_consideration">
             <field name="key">action</field>
             <field name="key2">client_action_multi</field>
             <field name="model">procurement.sale.link</field>
