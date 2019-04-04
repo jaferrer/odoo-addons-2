@@ -167,7 +167,7 @@
                 <timeline date_start="qualif_should_be_livred_at"
                           date_stop="should_be_closed_at"
                           default_group_by="project_id"
-                          colors="project_id"/>
+                          colors="#ec7063: project_id == False;"/>
             </field>
         </record>
 
