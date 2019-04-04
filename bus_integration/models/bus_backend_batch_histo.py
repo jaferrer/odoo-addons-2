@@ -79,7 +79,7 @@ class BusextendostoLog(models.Model):
     def check_state(self):
         logs = self.search([('state', '=', 'running')])
         for log in logs:
-            if log.job_uid:
+            if log.job_uuid:
                 job = self.env['queue.job'].search([('uuid', '=', log.job_uid)])
                 if job.state == 'failed':
                     log.state = 'error'

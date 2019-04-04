@@ -87,6 +87,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         ids = export_msg.get('export').get('ids')
         histo = batch.get_serial(str(ids))
         message_dict['header']['serial_id'] = histo.id
+        message_dict['header']['batch_id'] = batch.id
         exported_records = self.env[model_name].search([('id', 'in', ids)])
         if deletion:
             result = self._generate_msg_body_deletion(exported_records, model_name)
@@ -236,33 +237,26 @@ class BusSynchronizationExporter(models.AbstractModel):
             }
         }
         log_message = u""
-        if not result:
-            return_state = 'error'
-            for log in message.log_ids:
-                log_message += u"%s : %s \n" % (log.type, log.information)
-        else:
-            return_state = 'done'
-            result = True
+
+        return_state = 'done'
+        for log in message.log_ids:
+            if log.type == 'error':
+                return_state = 'error'
+            log_message += u"%s : %s \n" % (log.type, log.information)
             log_message = u"Synchronization OK"
+
         dest = message_dict.get('header').get('origin')
         resp['header'] = message_dict.get('header')
         resp['header']['serial_id'] = message_dict.get('header').get('serial_id')
         resp['header']['origin'] = message_dict.get('header').get('dest')
         resp['header']['dest'] = dest
         resp['header']['treatment'] = 'SYNCHRONIZATION_RETURN'
-        if message.treatment == 'SYNCHRONIZATION':
-            resp['header']['parent'] = message_dict.get('header').get('id')
-            resp['body']['return'] = {
-                'result': result,
-                'log': log_message,
-                'state': return_state
-            }
-        else:
-            resp['header']['parent'] = message_dict.get('header').get('parent')
-            resp['body']['return'] = {
-                'log': u'Intégration du message de synchro des dépendences OK',
-                'state': u'running'
-            }
+        resp['header']['parent'] = message_dict.get('header').get('id')
+        resp['body']['return'] = {
+            'result': result,
+            'log': log_message,
+            'state': return_state,
+        }
         self.env['bus.message'].create_message(resp, type='sent', backend_id=message.backend_id.id)
         response = json.dumps(resp, encoding='utf-8')
         job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.backend', message.backend_id.id, response)
@@ -305,8 +299,9 @@ class BusSynchronizationExporter(models.AbstractModel):
         resp['header']['origin'] = origin
         resp['header']['dest'] = dest
         resp['header']['treatment'] = 'DEPENDENCY_SYNCHRONIZATION'
-        demand = message_dict.get('body').get('demand')
-        body = {}
+        demand = message_dict.get('body', {}).get('demand', {})
+        model_content = {}
+        dependency_content = {}
         for model_name in demand.keys():
             record_ids = demand.get(model_name).keys()
             exported_records = self.env[model_name].search([('id', 'in', record_ids)])
@@ -317,8 +312,12 @@ class BusSynchronizationExporter(models.AbstractModel):
                     'information': u"All requested records not found : %s" % record_ids
                 })
             result = self._generate_msg_body(exported_records, model_name)
-            body.update(result.get('body'))
-        resp['body'] = body
+            model_content[model_name] = result.get('body', {}).get('root', {}).get(model_name, {})
+            for dep_model, dep_value in result.get('body', {}).get('dependency', {}).items():
+                dependency_content.setdefault(dep_model, dependency_content.get(dep_model, {}))
+                dependency_content[dep_model].update(dep_value)
+        resp['body']['root'] = model_content
+        resp['body']['dependency'] = dependency_content
         self.env['bus.message'].create_message(resp, type='sent', backend_id=message.backend_id.id)
         response = json.dumps(resp)
         job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.backend', message.backend_id.id, response)

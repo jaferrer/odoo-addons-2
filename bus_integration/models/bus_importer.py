@@ -27,7 +27,7 @@ class BusSynchronizationImporter(models.AbstractModel):
 
     @api.model
     def import_synchronization_message(self, message_id):
-        error_import = False
+        import_results = {}
         message = self.env['bus.message'].browse(message_id)
         message_dict = json.loads(message.message, encoding='utf-8')
         root = message_dict.get('body', {}).get('root', {})
@@ -35,10 +35,13 @@ class BusSynchronizationImporter(models.AbstractModel):
         demand = self.check_needed_dependencies(message_id, dependencies)
         if not demand:
             for model in root.keys():
+                import_results[model] = {}
                 for record in root.get(model).values():
-                    if not self.run_import(message_id, record, model, dependencies):
-                        error_import = True
-        return error_import, demand
+                    result = self.run_import(message_id, record, model, dependencies)
+                    original_id = record.get('id', False)
+                    result.update({'bus_original_id': original_id})
+                    import_results[model][original_id] = result
+        return import_results, demand
 
     @api.model
     def import_deletion_synchronization_message(self, message_id):
@@ -82,15 +85,10 @@ class BusSynchronizationImporter(models.AbstractModel):
     def check_needed_dependency(self, record, model):
         external_key = record.get('external_key', False)
         record.get('external_key', False)
-        _, odoo_record = self.env['bus.binder'].get_record_by_exernal_key(external_key, model)
+        transfer, odoo_record = self.env['bus.binder'].get_record_by_external_key(external_key, model)
         if not odoo_record:
             return {'model': model, 'external_key': external_key, 'id': record.get('id', False)}
         return {}
-
-    @api.model
-    def _get_binding(self, record_bus_id, model):
-        return self.env['bus.receive.transfer'].search([('external_key', '=', str(record_bus_id)),
-                                                        ('model', '=', str(model))], limit=1)
 
     @api.model
     def get_records_for_dependency(self, record, obj, dependencies):
@@ -163,21 +161,22 @@ class BusSynchronizationImporter(models.AbstractModel):
         mapping = self.env['bus.mapper'].process_mapping(record, model, external_key, model_mapping,
                                                          dependencies)
         binding_data, record_data, errors = mapping
-        has_error = False
+        no_error = True
         for error in errors:
             error_type, error_message = error
             if error_type == 'error':
-                has_error = True
+                no_error = False
             self.env['bus.message.log'].create({
                 'message_id': message_id,
                 'type': error_type,
                 'information': error_message
             })
-        if not has_error:
+        if no_error:
             transfer, odoo_record = transfer.import_datas(transfer, odoo_record, binding_data, record_data)
             if translation:
                 self._update_translation(transfer, translation)
-        return False, True
+            return {'external_key': external_key, 'id': transfer.local_id}
+        return False
 
     @api.model
     def run_import_deletion(self, record, model, dependencies):
@@ -214,3 +213,21 @@ class BusSynchronizationImporter(models.AbstractModel):
                         'external_key': datas.get('external_key')
                     })
         return True
+
+    @api.model
+    def import_bus_references(self, dict_result):
+        if not dict_result:
+            return True
+        for model in dict_result.keys():
+            for id in dict_result.get(model).keys():
+                datas = dict_result.get(model).get(id)
+                external_key = datas.get('external_key', False)
+                local_id = datas.get('bus_original_id', False)
+                transfer = self.env['bus.binder']._get_transfer(external_key, model)
+                if not transfer:
+                    self.env['bus.receive.transfer'].create({
+                        'model': model,
+                        'local_id': local_id,
+                        'external_key': external_key,
+                        'received_data': datas
+                    })
