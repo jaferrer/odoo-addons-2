@@ -17,59 +17,21 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import json
-import jsonrpclib
-
-from openerp.addons.connector.exception import FailedJobError
 from openerp.addons.connector.queue.job import job
 
 
 @job(default_channel='root.receive_message')
-def job_receive_message(session, model_name, backend_id, message_dict, message_id):
-    backend = session.env[model_name].browse(backend_id)
-    backend.ensure_one()
-    # TODO: revoir le fonctionnement des histo.
-    histo = session.env['bus.backend.batch.histo'].create_histo_if_needed(message_dict)
-    message = session.env['bus.message'].search([('id', '=', message_id)])
-    return message.process_received_message(backend, histo, message_dict)
-
-@job(default_channel='root.generate_response')
-def generate_response(session, model_name, backend_id, message, bus_reception_treatment=False, name='rpc'):
-    backend = session.env[model_name].browse(backend_id)
-    server, connexion_result = backend.test_connexion()
-    args = [backend.db_odoo, connexion_result, backend.password, 'recepteur', 'classical_reception', bus_reception_treatment,
-            message, name]
-    _call_object_execute(server, args)
-    return True
+def job_receive_message(session, model_name, message_id):
+    return session.env[model_name].process_received_message(message_id)
 
 
-@job(default_channel='root.generate_demand')
-def generate_demand(session, model_name, backend_id, message, bus_reception_treatment=False, name='rpc'):
+@job(default_channel='root.send_response')
+def job_send_response(session, model_name, backend_id, message):
     backend = session.env[model_name].browse(backend_id)
-    server, connexion_result = backend.test_connexion()
-    args = [backend.db_odoo, connexion_result, backend.password, 'recepteur', 'classical_reception', bus_reception_treatment,
-            message, name]
-    _call_object_execute(server, args)
-    return True
+    return backend.send_odoo_message('bus.database.message', 'odoo_synchronization_bus', backend.reception_treatment,
+                                     message)
 
 
 @job(default_channel='root.generate_message')
-def job_generate_message(session, model_name, backend_id, ids_to_sync, bus_reception_treatment=False, name='rpc', deletion=False):
-    backend = session.env[model_name].browse(backend_id)
-    server, connexion_result = backend.test_connexion()
-    message = str(session.env['bus.backend.batch'].generate_message(ids_to_sync, deletion=deletion))
-    args = [backend.db_odoo, connexion_result, backend.password, 'recepteur', 'classical_reception', bus_reception_treatment,
-            message, name]
-    _call_object_execute(server, args)
-    return True
-
-
-def _return_last_jsonrpclib_error():
-    return json.loads(jsonrpclib.history.response).get('error', {}).get('data', {}).get('message', "")
-
-
-def _call_object_execute(server, args):
-    try:
-        server.call(service='object', method='execute', args=args)
-    except jsonrpclib.ProtocolError:
-        raise FailedJobError(_return_last_jsonrpclib_error())
+def job_generate_message(session, model_name, batch_id, export_msg, bus_reception_treatment=False, deletion=False):
+    return session.env[model_name].generate_message(batch_id, export_msg, bus_reception_treatment, deletion=deletion)

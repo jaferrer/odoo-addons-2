@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf8 -*-
 #
-#
-#    Tech-Receptives Solutions Pvt. Ltd.
-#    Copyright (C) 2009-TODAY Tech-Receptives(<http://www.techreceptives.com>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -10,6 +8,7 @@
 #    License, or (at your option) any later version.
 #
 #    This program is distributed in the hope that it will be useful,
+#
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
 #    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #    GNU Affero General Public License for more details.
@@ -17,13 +16,18 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-#
 
-import openerp.addons.connector.backend as backend
+{
+    'name': "Change label 'add attachment' button with size limit",
 
-
-BUSEXTEND = backend.Backend('BUSEXTEND')
-""" Generic bus Backend """
-
-BUSEXTEND_V1 = backend.Backend(parent=BUSEXTEND, version='v1')
-""" bus Backend for version v1 """
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'web',
+    'depends': ['web'],
+    'description': """Change label 'add attachment' button with size limit
+        """,
+    'qweb': [
+        'static/src/xml/qweb.xml'
+    ],
+}

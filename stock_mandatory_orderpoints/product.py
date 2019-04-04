@@ -58,7 +58,7 @@ WHERE op.company_id != sl.company_id""")
             orderpoint = self.env['stock.warehouse.orderpoint'].browse(orderpoint_id)
             orderpoint.write({'company_id': company_id})
         location_config_ids = self.env['ir.config_parameter'].get_param(
-            "stock_location_orderpoint.required_orderpoint_location_ids", default="[]")
+            'stock_location_orderpoint.required_orderpoint_location_ids', default='[]')
         orderpoint_required_locations = location_config_ids and self.env['stock.location']. \
             browse(eval(location_config_ids))
         self.env.cr.execute("""WITH product_product_restricted AS (
@@ -131,3 +131,13 @@ class StockLocationRoute(models.Model):
                                                         string=u"Required Orderpoint Location")
     product_ids = fields.Many2many('product.product', 'stock_route_product', 'route_id', 'product_id',
                                    string=u"Products")
+
+class SirailStockLocation(models.Model):
+    _inherit = 'stock.location'
+
+    warehouse_id = fields.Many2one('stock.warehouse', u"Warehouse of the top location", compute='_compute_warehouse')
+
+    @api.multi
+    def _compute_warehouse(self):
+        for rec in self:
+            rec.warehouse_id = rec.get_warehouse(location=rec)

@@ -23,6 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Knowledge',
+    'depends': [],
     'depends': ['knowledge'],
     'description': """
 Odoo Online Documentation
@@ -33,7 +34,6 @@ This modules allows Odoo Developpers to provide online technical documentation, 
     'data': [
         'security/ir.model.access.csv',
         'odoo_online_documentation.xml',
-        # 'cron.xml',
     ],
     'demo': [],
     'test': [],

@@ -44,6 +44,11 @@
                         <field name="body"/>
                         <separator string="Extra content"/>
                         <field name="extra_content"/>
+                        <notebook>
+                            <page string="Logs" id="log_ids">
+                                <field name="log_ids" nolabel="1"/>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
             </field>

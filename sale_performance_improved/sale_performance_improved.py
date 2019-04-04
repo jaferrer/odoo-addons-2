@@ -94,12 +94,14 @@ class SaleOrderImproved(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    compute_price_subtotal_sql = """SELECT sol.product_uom_qty * (sol.price_unit * (1 - (coalesce(sol.discount, 0)) / 100.0))::FLOAT AS price_subtotal
-FROM sale_order_line sol
-WHERE sol.id = $1.id"""
+    price_subtotal_store = fields.Float(compute='_compute_price_subtotal', store=True)
+    price_subtotal = fields.Float(related='price_subtotal_store', store=False)
 
-    price_subtotal_sql = fields.Float(compute_sql=compute_price_subtotal_sql)
-    price_subtotal = fields.Float(related='price_subtotal_sql', store=False)
+    @api.depends('product_uom_qty', 'price_unit', 'discount')
+    @api.multi
+    def _compute_price_subtotal(self):
+        for rec in self:
+            rec.price_subtotal_store = rec.product_uom_qty * rec.price_unit * (1 - float(rec.discount) / 100)
 
     @api.multi
     def read(self, fields=None, load='_classic_read'):
