@@ -24,7 +24,6 @@ from openerp import models, fields, api, _
 from openerp.addons.connector.queue.job import job
 from openerp.exceptions import Warning as UserError
 from openerp.addons.connector.session import ConnectorSession
-# from shareplum import Office365
 
 
 @job(default_channel='root')
@@ -85,27 +84,11 @@ class ExploreSharepointFolders(models.Model):
         authorization = u"Bearer " + access_token
 
         session.headers.update({
-            # 'Host': u"https://graph.microsoft.com",
             'Authorization': authorization,
             'accept': u"application/json;",
         })
 
         return session
-
-    # @api.multi
-    # def access_sharepoint(self):
-    #
-    #     username = self.env['knowledge.config.settings'].get_default_username_sharepoint(fields=None)[
-    #         'username_sharepoint']
-    #     password = self.env['knowledge.config.settings'].get_default_password_sharepoint(fields=None)[
-    #         'password_sharepoint']
-    #     authcookie = Office365('https://sirail.sharepoint.com', username=username, password=password)\
-    #         .GetCookies()
-    #     session = requests.Session()
-    #     session.cookies = authcookie
-    #     # session.headers.update({"Accept": "application/json"})
-    #     session.headers.update({'accept': 'application/json;'})
-    #     return session
 
     @api.multi
     def get_subdirectories(self, session, current_path=None):
@@ -282,7 +265,7 @@ class SharepointAccessIdConfig(models.TransientModel):
             'response_type': u"code",
             'redirect_uri': full_redirect_uri,
             'response_mode': u"query",
-            'scope': u"openid offline_access https://graph.microsoft.com/user.readwrite",
+            'scope': u"openid offline_access https://sirail.sharepoint.com/user.readwrite",
             'state': json.dumps({'d': dbname}),
         }
         encoded_params = urllib.urlencode(params)
@@ -308,7 +291,7 @@ class SharepointAccessIdConfig(models.TransientModel):
 
         data = {
             'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
-            'scope': u"openid offline_access https://graph.microsoft.com/user.readwrite",
+            'scope': u"openid offline_access https://sirail.sharepoint.com/user.readwrite",
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'grant_type': u"authorization_code",
@@ -337,7 +320,7 @@ class SharepointAccessIdConfig(models.TransientModel):
 
         data = {
             'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
-            'scope': u"openid offline_access https://graph.microsoft.com/user.readwrite",
+            'scope': u"openid offline_access https://sirail.sharepoint.com/user.readwrite",
             'refresh_token': sharepoint_refresh_token,
             'redirect_uri': redirect_uri,
             'grant_type': u"refresh_token",
