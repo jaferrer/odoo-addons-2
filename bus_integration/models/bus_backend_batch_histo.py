@@ -26,36 +26,33 @@ class BusBackendBatchHisto(models.Model):
 
     batch_id = fields.Many2one('bus.backend.batch', string=u"Batch")
     serial_id = fields.Integer(string=u"Serial ID")
-    name = fields.Char(u"Treatment")
-    state = fields.Selection([(u"running", u"En Cours"),
-                              (u"done", u"Réussi"),
-                              (u"error", u"Erreur")],
-                             string=u'Statut', compute="_compute_last_statut")
+    treatment = fields.Char(u"Treatment")
+    model = fields.Char(u"Model")
+    export_ids = fields.Char(u"Exported ids")
+    last_job_state = fields.Selection([('running', u"Running"), ('done', u"Done"), ('error', u"Error")],
+                                      string=u'Last job state', compute="_compute_last_job_state")
+    transfer_state = fields.Selection([('started', u"Started"), ('finished', u"Finished"), ('blocked', u"Blocked"),
+                                       ('error', u"Error")], default='started', string=u"Transfer state",
+                                      help=u"Set finished when return sync is ok")
+    log_ids = fields.One2many('bus.backend.batch.histo.log', 'histo_id', string=u"Logs")
 
     @api.multi
-    def _compute_last_statut(self):
+    def _compute_last_job_state(self):
         for rec in self:
-            histo = self.env['bus.backend.batch.histo.log'].search([('histo_id', '=', rec.id)],
-                                                                   order='create_date desc', limit=1)
-            rec.state = histo and histo.state or False
+            log = self.env['bus.backend.batch.histo.log'].search([('histo_id', '=', rec.id)],
+                                                                 order='create_date desc', limit=1)
+            rec.last_job_state = log and log.state or False
 
-    @api.model
-    def create_histo_if_needed(self, message_dict):
-        serial_id = message_dict.get('header', {}).get('serial_id')
-        histo = self.search([('serial_id', '=', serial_id)], limit=1)
-        if histo:
-            histo_logs = self.env['bus.backend.batch.histo.log'].search([('serial_id', '=', serial_id)])
-            histo_logs.write({'state': 'done'})
-        else:
-            histo = self.env['bus.backend.batch.histo'].create({
-                'serial_id': serial_id,
-                'name': u"%s : %s > %s - %s" % (serial_id,
-                                                message_dict.get('header').get('origin'),
-                                                message_dict.get('header').get('dest'),
-                                                message_dict.get('header').get('treatment')),
-                'state': 'running'
-            })
-        return histo
+    @api.multi
+    def add_log(self, message_id, job_uuid, log=""):
+        self.ensure_one()
+        histo_log = self.env['bus.backend.batch.histo.log'].create({
+            'histo_id': self.id,
+            'message_id': message_id,
+            'job_uuid': job_uuid,
+            'log': log
+        })
+        return histo_log
 
 
 class BusextendostoLog(models.Model):
@@ -64,11 +61,19 @@ class BusextendostoLog(models.Model):
     histo_id = fields.Many2one("bus.backend.batch.histo", string=u"History")
     serial_id = fields.Integer(u"Serial ID")
     log = fields.Char(u"Log")
-    job_uid = fields.Char(string=u"Job UUID")
+    job_uuid = fields.Char(string=u"Job UUID")
     state = fields.Selection([(u"running", u"Running"),
                               (u"done", u"Done"),
                               (u"error", u"Error")],
-                             string=u'Status')
+                             string=u'Status', compute='_get_job_state')
+    message_id = fields.Many2one('bus.message', string=u"Message")
+
+    @api.multi
+    def _get_job_state(self):
+        for rec in self:
+            job = self.env['queue.job'].search([('uuid', '=', rec.job_uuid)])
+            if job:
+                rec.state = job.state
 
     @api.model
     def check_state(self):

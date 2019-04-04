@@ -33,7 +33,7 @@ class MappingConfigurationHelper(models.TransientModel):
             helper_line_ids = False
             if rec.model_id:
                 rec.helper_line_ids = False
-                mapping = self.env['bus.object.mapping'].get_mapping(rec.model_id.name)
+                mapping = self.env['bus.object.mapping'].get_mapping(rec.model_name)
                 rec.key_xml_id = mapping.key_xml_id
                 rec.deactivated_sync = mapping.deactivated_sync
                 rec.deactivate_on_delete = mapping.deactivate_on_delete
@@ -58,8 +58,10 @@ class MappingConfigurationHelper(models.TransientModel):
     @api.multi
     def validate(self):
         self.ensure_one()
-        model_configuration_header = u"id,model_id:id,key_xml_id,deactivated_sync,deactivate_on_delete,is_exportable,is_importable"
-        fields_configuration_header = u"id,mapping_id:id,field_id:id,map_name,export_field,import_field,is_migration_key"
+        model_configuration_header = u"id,model_id:id,key_xml_id,deactivated_sync,deactivate_on_delete,is_exportable," \
+                                     u"is_importable"
+        fields_configuration_header = u"id,mapping_id:id,field_id:id,map_name,export_field,import_field," \
+                                      u"is_migration_key"
         model_mapping_xml_id = u"mapping_model_%s" % (self.model_id.model.replace('.', '_'))
         model_xml_id = self.model_id.get_external_id().get(self.model_id.id)
         model_configuration = u"%s,%s,%s,%s,%s,%s,%s" % (model_mapping_xml_id,
@@ -85,7 +87,7 @@ class MappingConfigurationHelper(models.TransientModel):
                 fields_configuration += u"""\n"""
         vals = {
             'model_configuration_header': model_configuration_header,
-            'model_configuration':  model_configuration,
+            'model_configuration': model_configuration,
             'fields_configuration_header': fields_configuration_header,
             'fields_configuration': fields_configuration,
         }
