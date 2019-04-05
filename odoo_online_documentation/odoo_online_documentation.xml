@@ -38,15 +38,22 @@
             <field name="model">odoo.online.documentation</field>
             <field name="arch" type="xml">
                 <form>
-                    <group col="4" colspan="2">
-                        <field name="name"/>
-                        <field name="seen_in_sales"/>
-                        <field name="nature"/>
-                        <field name="seen_in_purchases"/>
-                        <field name="doc_type_id"/>
-                        <field name="seen_in_prod"/>
-                        <field name="file"/>
-                    </group>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="nature"/>
+                                <field name="doc_type_id"/>
+                                <field name="file" attrs="{'invisible': [('nature', '!=', 'PJ')]}"/>
+                                <field name="path" attrs="{'invisible': [('nature', '!=', 'sharepoint')]}"/>
+                            </group>
+                            <group>
+                                <field name="seen_in_sales"/>
+                                <field name="seen_in_purchases"/>
+                                <field name="seen_in_prod"/>
+                            </group>
+                        </group>
+                    </sheet>
                 </form>
             </field>
         </record>

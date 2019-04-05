@@ -160,6 +160,7 @@ class ExploreSharepointFolders(models.Model):
         """
         Function to recursively get all files from all folders starting from a given 'root' folder.
         """
+
         session = self.access_sharepoint()
 
         for rec in self:

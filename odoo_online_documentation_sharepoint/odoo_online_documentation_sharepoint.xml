@@ -73,7 +73,7 @@
             <field name="help"></field>
         </record>
 
-        <menuitem action="act_window_sharepoint_folders" id="sharepoint_folders_menu"
+        <menuitem action="act_window_sharepoint_folders" id="sharepoint_folders_menu" name="Updating sharepoint folders"
                   parent="document.menu_document_management_configuration" sequence="10"/>
 
         <!-- Inherit knowledge view to enter access ids for sharepoint -->
