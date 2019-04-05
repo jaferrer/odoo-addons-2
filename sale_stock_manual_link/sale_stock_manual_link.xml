@@ -115,9 +115,9 @@ action = self.manual_consideration(cr, uid, context.get('active_ids'), context=c
             <field name="res_model">procurement.sale.link</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree</field>
-            <field name="domain">[]</field>
+            <field name="domain">[('product_id.type', '!=', 'service')]</field>
             <field name="context">{'search_default_procs_missing_on_lines': True, 'search_default_procs_no_lines': True, 'search_default_without_manual_consideration': True, 'display_line_no': True}</field>
-            <field name="help"></field>
+            <field name="help"/>
         </record>
 
         <menuitem id="menu_procurement_sale_link" name="Procurements/Sales Links" action="act_procurement_sale_link"
