@@ -18,29 +18,20 @@
 #
 
 {
-    'name': 'Database Unaccented Searches',
+    'name': 'Base Odoo Utilities',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': [],
+    'depends': ['base'],
     'description': """
-Database Unaccented Searches
-============================
-This module just creates the extension "unaccent" in the database to allow unaccented searches.
-
-Notes:
-------
-
-- You also need to start Odoo with the --unaccent option or set unaccent = True in the config file for
-unaccented searches to work.
-- Uninstalling the module does not reset accented search. You need to manually call "DROP EXTENSION 'unaccent';" on the
-database.
+Base Odoo Utilities
+===================
+see README.adoc
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'security/ir.model.access.csv',
-    ],
+    'data': [],
+    'qweb': [],
     'demo': [],
     'test': [],
     'installable': True,

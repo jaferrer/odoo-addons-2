@@ -123,9 +123,9 @@ class ShopBatchImporter(DirectBatchImporter):
     _model_name = 'prestashopextend.shop'
 
 
-@job(default_channel='root.prestashopextend')
+@job(default_channel='root.prestashop.pull.shop')
 def shop_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of Customer """
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(ShopBatchImporter)
-    importer.run(filters=filters)
+    importer.run(filters=filters or {})
