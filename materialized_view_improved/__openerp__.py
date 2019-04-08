@@ -32,7 +32,6 @@
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'data/materialized_view.xml',
-        'data/script.xml',
         "view/materialized_sql_view_improved.xml"
     ],
     'demo': [],

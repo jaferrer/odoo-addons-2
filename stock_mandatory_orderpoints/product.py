@@ -114,7 +114,7 @@ WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_loca
         if location.company_id:
             values['company_id'] = location.company_id.id
         values.update({
-            'warehouse_id': location.warehouse_id.id or values.get("warehouse_id"),
+            'warehouse_id': location.warehouse_id.id or values.get('warehouse_id'),
             'location_id': location.id,
             'product_id': self.id,
             'product_min_qty': 0,
@@ -131,3 +131,13 @@ class StockLocationRoute(models.Model):
                                                         string=u"Required Orderpoint Location")
     product_ids = fields.Many2many('product.product', 'stock_route_product', 'route_id', 'product_id',
                                    string=u"Products")
+
+class SirailStockLocation(models.Model):
+    _inherit = 'stock.location'
+
+    warehouse_id = fields.Many2one('stock.warehouse', u"Warehouse of the top location", compute='_compute_warehouse')
+
+    @api.multi
+    def _compute_warehouse(self):
+        for rec in self:
+            rec.warehouse_id = rec.get_warehouse(location=rec)
