@@ -114,7 +114,7 @@ WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_loca
         if location.company_id:
             values['company_id'] = location.company_id.id
         values.update({
-            'warehouse_id': location.warehouse_id.id or values.get("warehouse_id"),
+            'warehouse_id': location.warehouse_id.id or values.get('warehouse_id'),
             'location_id': location.id,
             'product_id': self.id,
             'product_min_qty': 0,
