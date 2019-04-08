@@ -718,6 +718,24 @@ WHERE nb_moves = 0""")
                                        }),
     }
 
+    @api.multi
+    def update_picking_type_codes(self):
+        for rec in self:
+            if rec.picking_type_code_store != rec.picking_type_id.code:
+                rec.picking_type_code_store = rec.picking_type_id.code
+
+    @api.multi
+    def write(self, vals):
+        result = super(StockPicking, self).write(vals)
+        self.update_picking_type_codes()
+        return result
+
+    @api.model
+    def create(self, vals):
+        result = super(StockPicking, self).create(vals)
+        result.update_picking_type_codes()
+        return result
+
 
 class StockMove(models.Model):
     _inherit = 'stock.move'
