@@ -23,7 +23,7 @@ from openerp import models, fields, api, exceptions, _
 class OdooOnlineDocumentation(models.Model):
     _name = 'odoo.online.documentation'
 
-    name = fields.Char(string=u"Name", required=True)
+    name = fields.Char(string=u"Document's name", required=True)
     path = fields.Char(string=u"Path", readonly=True)
     file = fields.Binary(string=u"File", attachment=True)
     doc_type_id = fields.Many2one('odoo.online.document.type', string=u"Document type")

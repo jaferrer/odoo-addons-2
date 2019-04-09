@@ -27,6 +27,16 @@ from openerp.addons.connector.session import ConnectorSession
 
 
 @job(default_channel='root')
+def job_get_refresh_token(session, model_name, context):
+    """
+    Job to get refresh the refresh token.
+    """
+
+    session.env[model_name].with_context(context).ropc_button_get_auth_code_sharepoint()
+    return "End update"
+
+
+@job(default_channel='root')
 def job_scan_sharepoint_folders(session, folder_ids, context):
     """
     Job to update selected sharepoint folders during the night.
@@ -253,6 +263,38 @@ class SharepointAccessIdConfig(models.TransientModel):
                 set_param('odoo_online_documentation_sharepoint.auth_code_url_sharepoint', rec.auth_code_url_sharepoint)
 
     @api.multi
+    def ropc_button_get_auth_code_sharepoint(self):
+        """
+        Getting refresh_token without having to log in. Second proposition less secured but can be done by a cron.
+        """
+
+        config_parameters = self.env['ir.config_parameter']
+        username = \
+            self.env['knowledge.config.settings'].get_default_username_sharepoint(fields=None)['username_sharepoint']
+        password = \
+            self.env['knowledge.config.settings'].get_default_password_sharepoint(fields=None)['password_sharepoint']
+        base_url = self.env['knowledge.config.settings']\
+            .get_default_auth_code_url_sharepoint(fields=None)['auth_code_url_sharepoint']
+
+        data = {
+            'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
+            'scope': u"openid offline_access https://sirail.sharepoint.com/user.read",
+            'username': username,
+            'password': password,
+            'grant_type': u"password",
+            'client_secret': u"Q:>QIg|I>+cE#&Vv:&=(5+ld{q[_LF%@o!=};{c1#3)",
+        }
+
+        url = base_url + u"/organizations/oauth2/v2.0/token?"
+
+        request_token = requests.post(url, data=data)
+        token_dico = request_token.json()
+
+        vals = {}
+        vals['sharepoint_refresh_token'] = token_dico.get('refresh_token')
+        config_parameters.set_param('sharepoint_refresh_token', token_dico.get('refresh_token'))
+
+    @api.multi
     def button_get_auth_code_sharepoint(self):
         """
         Request an authorization code for ndp@sirailgroup.com to microsoft to be able to do modifications on Sharepoint.
@@ -266,7 +308,7 @@ class SharepointAccessIdConfig(models.TransientModel):
             'response_type': u"code",
             'redirect_uri': full_redirect_uri,
             'response_mode': u"query",
-            'scope': u"openid offline_access https://sirail.sharepoint.com/user.readwrite",
+            'scope': u"openid offline_access https://sirail.sharepoint.com/user.read",
             'state': json.dumps({'d': dbname}),
         }
         encoded_params = urllib.urlencode(params)
@@ -292,7 +334,7 @@ class SharepointAccessIdConfig(models.TransientModel):
 
         data = {
             'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
-            'scope': u"openid offline_access https://sirail.sharepoint.com/user.readwrite",
+            'scope': u"openid offline_access https://sirail.sharepoint.com/user.read",
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'grant_type': u"authorization_code",
@@ -321,7 +363,7 @@ class SharepointAccessIdConfig(models.TransientModel):
 
         data = {
             'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
-            'scope': u"openid offline_access https://sirail.sharepoint.com/user.readwrite",
+            'scope': u"openid offline_access https://sirail.sharepoint.com/user.read",
             'refresh_token': sharepoint_refresh_token,
             'redirect_uri': redirect_uri,
             'grant_type': u"refresh_token",
@@ -334,3 +376,17 @@ class SharepointAccessIdConfig(models.TransientModel):
         sharepoint_token = token_dico.get('access_token')
 
         return sharepoint_token
+
+    @api.model
+    def cron_get_new_refresh_token(self, jobify=True):
+        """
+        Cron to refresh the refresh_token every month.
+        """
+
+        if jobify:
+            job_get_refresh_token.delay(ConnectorSession.from_env(self.env), 'knowledge.config.settings',
+                                        dict(self.env.context))
+
+        else:
+            job_get_refresh_token(ConnectorSession.from_env(self.env), 'knowledge.config.settings',
+                                  dict(self.env.context))
