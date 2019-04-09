@@ -203,9 +203,7 @@ class PurchaseOrderLineJustInTime(models.Model):
     _inherit = 'purchase.order.line'
     _order = 'order_id, line_no, id'
 
-
-
-    supplier_code = fields.Char(string="Supplier Code", compute='_compute_supplier_code')
+    supplier_code = fields.Char(string=u"Supplier Code", compute='_compute_supplier_code', store=True)
     ack_ref = fields.Char("Acknowledge Reference", help="Reference of the supplier's last reply to confirm the delivery"
                                                         " at the planned date")
     date_ack = fields.Date("Last Acknowledge Date",
@@ -215,7 +213,8 @@ class PurchaseOrderLineJustInTime(models.Model):
     children_number = fields.Integer(string="Number of children", readonly=True, compute='_compute_children_number')
 
     @api.multi
-    @api.depends('partner_id', 'product_id')
+    @api.depends('partner_id', 'product_id', 'product_id.seller_ids', 'product_id.seller_ids.name',
+                 'product_id.seller_ids.product_code')
     def _compute_supplier_code(self):
         for rec in self:
             supplierinfo = self.env['product.supplierinfo']. \

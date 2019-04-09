@@ -30,7 +30,6 @@ class TestOrderUpdate(common.TransactionCase):
 
         self.company = self.browse_ref('base.main_company')
         self.product_to_manufacture1 = self.browse_ref('mrp_manufacturing_order_update.product_to_manufacture1')
-        self.unit = self.browse_ref('product.product_uom_unit')
         self.location1 = self.browse_ref('stock.stock_location_stock')
         self.bom1 = self.browse_ref('mrp_manufacturing_order_update.bom1')
         self.assertTrue(self.bom1.bom_line_ids)
@@ -53,7 +52,7 @@ class TestOrderUpdate(common.TransactionCase):
             'name': 'mrp_production1',
             'product_id': self.product_to_manufacture1.id,
             'product_qty': 1,
-            'product_uom': self.unit.id,
+            'product_uom': self.uom_unit.id,
             'location_src_id': self.location1.id,
             'location_dest_id': self.location1.id,
             'date_planned': datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT),
@@ -66,7 +65,7 @@ class TestOrderUpdate(common.TransactionCase):
             'name': 'mrp_production2',
             'product_id': self.product_to_manufacture1.id,
             'product_qty': 1,
-            'product_uom': self.unit.id,
+            'product_uom': self.uom_unit.id,
             'location_src_id': self.location1.id,
             'location_dest_id': self.location1.id,
             'date_planned': datetime.now().strftime(DEFAULT_SERVER_DATETIME_FORMAT),
@@ -170,7 +169,7 @@ class TestOrderUpdate(common.TransactionCase):
             for item in list_line_to_delete:
                 item.unlink()
             for dict in list_line_to_add:
-                dict['product_uom'] = self.unit.id
+                dict['product_uom'] = self.uom_unit.id
                 dict['bom_id'] = self.bom1.id
                 self.env['mrp.bom.line'].create(dict)
             self.mrp_production1.button_update()
@@ -243,9 +242,9 @@ class TestOrderUpdate(common.TransactionCase):
         vals = {'product_lines': [[4, l1, False], [4, l2, False], [4, l3, False], [4, l4, False], [4, l5, False],
                                   [0, False, {'product_uos_qty': 0,
                                               'name': 'a',
-                                              'product_uom': 1,
+                                              'product_uom': self.uom_unit.id,
                                               'product_qty': 10,
-                                              'product_uos': False,
+                                              'product_uos': self.uom_unit.id,
                                               'product_id': self.product2.id}]]}
         self.mrp_production2.write(vals)
         test_quantities(self.mrp_production2)
