@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,22 +18,18 @@
 #
 
 {
-    'name': 'Milestone, Jalon dans les projets',
+    'name': 'Task timesheet utility',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'account_accountant', 'l10n_fr', 'web_timeline'],
+    'depends': ['project', 'hr_timesheet'],
     'description': """
-Milestone, Jalon dans les projets
-=================================
+Task amount invoiced to the customer
+====================================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'security/ir.model.access.csv',
-        'security/security.xml',
-        'project_milestones.xml',
-    ],
+    'data': ['project_task_sequence.xml'],
     'demo': [],
     'test': [],
     'installable': True,
