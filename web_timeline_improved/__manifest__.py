@@ -31,6 +31,7 @@ Add 'timeline' in selection of view mode of act window
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'views/templates.xml',
     ],
     'demo': [],
     'test': [],
