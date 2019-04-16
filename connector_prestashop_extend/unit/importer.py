@@ -43,7 +43,7 @@ RETRY_WHEN_CONCURRENT_DETECTED = 1 # seconds
 
 
 class prestashopextendImporter(Importer):
-    """ Base importer for magentoextendCommerce """
+    """ Base importer for Prestashop Commerce """
 
     def __init__(self, connector_env):
         """
@@ -62,7 +62,7 @@ class prestashopextendImporter(Importer):
         return False
 
     def _before_import(self):
-        """ Hook called before the import, when we have the magentoextendCommerce
+        """ Hook called before the import, when we have the Prestashop Commerce
         data"""
 
     def _import_dependency(self, prestashopextend_id, binding_model,
@@ -71,20 +71,20 @@ class prestashopextendImporter(Importer):
         """ Import a dependency.
 
         The importer class is a class or subclass of
-        :class:`magentoextendImporter`. A specific class can be defined.
+        :class:`PrestashopxtendImporter`. A specific class can be defined.
 
-        :param magentoextend_id: id of the related binding to import
+        :param prestashopextend_id: id of the related binding to import
         :param binding_model: name of the binding model for the relation
         :type binding_model: str | unicode
         :param importer_cls: :class:`openerp.addons.connector.\
                                      connector.ConnectorUnit`
                              class or parent class to use for the export.
-                             By default: magentoextendImporter
+                             By default: PrestashopImporter
         :type importer_cls: :class:`openerp.addons.connector.\
                                     connector.MetaConnectorUnit`
         :param always: if True, the record is updated even if it already
                        exists, note that it is still skipped if it has
-                       not been modified on magentoextendCommerce since the last
+                       not been modified on prestashopextend_id since the last
                        update. When False, it will import it only when
                        it does not yet exist.
         :type always: boolean
@@ -153,7 +153,7 @@ class prestashopextendImporter(Importer):
         # special check on data before import
         self._validate_data(data)
         binding.with_context(connector_no_export=True).write(data)
-        _logger.debug('%d updated from magentoextend %s', binding, self.prestashopextend_id)
+        _logger.debug('%d updated from Prestahop E-Commerce %s', binding, self.prestashopextend_id)
         return
 
     def _before_import(self):
@@ -199,7 +199,7 @@ class prestashopextendImporter(Importer):
     def run(self, prestashopextend_id, id_shop=None, **kwargs):
         """ Run the synchronization
 
-        :param magentoextend_id: identifier of the record on magentoextendCommerce
+        :param magentoextend_id: identifier of the record on Prestahop E-Commerce
         """
         self.prestashopextend_id = prestashopextend_id
         lock_name = 'import({}, {}, {}, {})'.format(
@@ -450,15 +450,17 @@ class DelayedBatchImporter(BatchImporter):
 
     def _import_record(self, record_ids, id_shop=None, **kwargs):
         """ Delay the import of the records"""
+        shop = self.env['prestashopextend.shop'].browse(id_shop)
         import_record.delay(self.session,
                             self.model._name,
                             self.backend_record.id,
                             record_ids,
                             id_shop=id_shop,
+                            description=u"""%s Shop %s""" % (self.backend_record.connector_id.display_name, shop.name),
                             **kwargs)
 
 
-@job(default_channel='root.prestashopextend')
+@job(default_channel='root.prestashop.pull')
 def import_batch(session, model_name, backend_id, filters=None, **kwargs):
     """ Prepare a batch import of records from PrestaShop """
     backend = session.env['prestashopextend.backend'].browse(backend_id)
@@ -467,10 +469,8 @@ def import_batch(session, model_name, backend_id, filters=None, **kwargs):
     importer.run(filters=filters, **kwargs)
 
 
-@job(default_channel='root.prestashopextend')
-def import_record(
-        session, model_name, backend_id, prestashop_ids, id_shop=None,
-        **kwargs):
+@job(default_channel='root.prestashop.pull')
+def import_record(session, model_name, backend_id, prestashop_ids, id_shop=None, **kwargs):
     """ Import a record from PrestaShop """
     backend = session.env['prestashopextend.backend'].browse(backend_id)
     env = get_environment(session, model_name, backend_id)

@@ -141,7 +141,7 @@ class ProductCombinationRecordImport(TranslatableRecordImporter):
     def run(self, prestashopextend_id, id_shop=None, **kwargs):
         """ Run the synchronization
 
-        :param magentoextend_id: identifier of the record on magentoextendCommerce
+        :param magentoextend_id: identifier of the record on Prestahop E-Commerce
         """
         self.prestashopextend_id = prestashopextend_id
         lock_name = 'import({}, {}, {}, {})'.format(
@@ -454,9 +454,9 @@ class ProductProductBatchImporter(DelayedBatchImporter):
     _prestashopextend_model = 'products'
 
 
-@job(default_channel='root.prestashopextend_pull_product_product')
+@job(default_channel='root.prestashop.pull.product_product')
 def product_import_batch(session, model_name, backend_id, filters=None):
-    """ Prepare the import of product modified on magentoextend """
+    """ Prepare the import of product modified on Prestashop """
     if filters is None:
         filters = {}
     env = get_environment(session, model_name, backend_id)
@@ -464,7 +464,7 @@ def product_import_batch(session, model_name, backend_id, filters=None):
     importer.run(filters=filters)
 
 
-@job(default_channel='root.prestashopextend_push_product_level')
+@job(default_channel='root.prestashop.push.product_level')
 def product_export_stock_level_batch(session, model_name, backend_id, filters=None):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(StockLevelExporter)

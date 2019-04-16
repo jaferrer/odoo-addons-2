@@ -195,7 +195,7 @@ class ProductCategoryImportMapper(ImportMapper):
             return {'parent_id': category_id, 'magentoextend_parent_id': magentoextend_cat_id}
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.magento')
 def category_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of category modified on magentoextendCommerce """
     env = get_environment(session, model_name, backend_id)

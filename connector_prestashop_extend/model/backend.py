@@ -101,7 +101,15 @@ class prestashopextend_backend(models.Model):
                     'date': '1'}
 
         customer_import_batch.delay(
-            session, 'prestashopextend.res.partner', backend_id, opts, priority=3)
+            session,
+            'prestashopextend.res.partner',
+            backend_id,
+            opts,
+            priority=3,
+            description=u"%s depuis le %s" % (
+                self.connector_id.display_name,
+                self.env.user.format_local_date(from_date),
+            ))
         _logger.info("Date chunk %s -> now", from_date)
         return True
 
@@ -140,12 +148,8 @@ class prestashopextend_backend(models.Model):
 
     @api.multi
     def import_product(self):
-        new_ctx = dict(self.env.context)
-        new_ctx['company_id'] = self.company_id.id
-        session = ConnectorSession(self.env.cr, self.env.uid,
-                                   context=new_ctx)
-        import_start_time = datetime.now()
-        backend_id = self.id
+        new_ctx = dict(self.env.context, company_id=self.company_id.id)
+        session = ConnectorSession(self.env.cr, self.env.uid, context=new_ctx)
         product = self.env['prestashopextend.product.product'].search([('backend_id', '=', self.id)], limit=1, order="updated_at desc")
         from_date = None
         opts = {}
@@ -153,7 +157,7 @@ class prestashopextend_backend(models.Model):
             from_date = product.updated_at
 
         if from_date:
-            opts = {"filter[date_upd]": '>[%s]' % (from_date),
+            opts = {"filter[date_upd]": '>[%s]' % from_date,
                     'date': '1',
                     'id_shop': '0'}
 
@@ -163,7 +167,14 @@ class prestashopextend_backend(models.Model):
         for shop in param.shops:
             opts['id_shop'] = shop.prestashopextend_id
             product_import_batch.delay(
-                session, 'prestashopextend.product.product', backend_id, opts, priority=3)
+                session, 'prestashopextend.product.product', self.id, opts,
+                priority=3,
+                description=u"""%s depuis le %s pour le Shop %s""" % (
+                    self.connector_id.display_.name,
+                    self.env.user.format_local_date(from_date),
+                    shop.name
+                )
+            )
 
         _logger.info("Date chunk %s -> now", from_date)
         return True
@@ -182,7 +193,12 @@ class prestashopextend_backend(models.Model):
                                    context=new_ctx)
         backend_id = self.id
         product_export_stock_level_batch.delay(
-            session, 'prestashopextend.product.product', backend_id, priority=3)
+            session,
+            'prestashopextend.product.product',
+            backend_id,
+            priority=3,
+            description=self.connector_id.display_name
+        )
         return True
 
     @api.model
@@ -195,11 +211,14 @@ class prestashopextend_backend(models.Model):
     def import_shop(self):
         new_ctx = dict(self.env.context)
         new_ctx['company_id'] = self.company_id.id
-        session = ConnectorSession(self.env.cr, self.env.uid,
-                                   context=new_ctx)
-        backend_id = self.id
+        session = ConnectorSession(self.env.cr, self.env.uid, context=new_ctx)
         shop_import_batch.delay(
-            session, 'prestashopextend.shop', backend_id, {}, priority=3)
+            session,
+            'prestashopextend.shop',
+            self.id,
+            priority=3,
+            description=self.connector_id.display_name
+        )
         return True
 
     @api.model
@@ -216,7 +235,12 @@ class prestashopextend_backend(models.Model):
                                    context=new_ctx)
         backend_id = self.id
         sale_state_import_batch.delay(
-            session, 'prestashopextend.sale.order.state', backend_id, {}, priority=3)
+            session,
+            'prestashopextend.sale.order.state',
+            backend_id,
+            priority=3,
+            description=self.connector_id.display_name
+        )
         return True
 
     @api.model

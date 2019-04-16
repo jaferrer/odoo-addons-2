@@ -51,6 +51,21 @@ class ConnectorHomeLine(models.Model):
     active = fields.Boolean('Actif', store=True, default=True)
 
     @api.multi
+    def name_get(self):
+        return [
+            (
+                rec.id,
+                u"%s [%s] %s %s" % (
+                    rec.line_id.type_id.name,
+                    rec.connector_id.name,
+                    rec.connector_id.comment,
+                    rec.home_id.partner_id.name,
+                )
+            )
+            for rec in self
+        ]
+
+    @api.multi
     def _compute_cron(self):
         for rec in self:
             cron = self.env['ir.cron'].search([('connector_id', '=', rec.id)])
@@ -237,4 +252,3 @@ class ConnectorTypeLocalParameter(models.Model):
     archive_path = fields.Char(string=u'archive path')
 
     line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
-

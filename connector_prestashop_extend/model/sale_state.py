@@ -131,7 +131,7 @@ class SaleOrderStateBatchImporter(DelayedBatchImporter):
     _prestashopextend_model = 'order_states'
 
 
-@job(default_channel='root.prestashopextend')
+@job(default_channel='root.prestashop.pull.sale_state')
 def sale_state_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of Customer """
     env = get_environment(session, model_name, backend_id)

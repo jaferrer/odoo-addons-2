@@ -95,7 +95,7 @@ def add_checkpoint(session, model_name, record_id, backend_id):
     :type model_name: str
     :param record_id: ID of the record to be reviewed
     :type record_id: int
-    :param backend_id: ID of the magentoextendCommerce Backend
+    :param backend_id: ID of the  Prestashop E-Commerce Backend
     :type backend_id: int
     """
     return checkpoint.add_checkpoint(session, model_name, record_id,
