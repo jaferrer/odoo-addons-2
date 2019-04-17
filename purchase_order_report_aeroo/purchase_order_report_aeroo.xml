@@ -12,7 +12,7 @@
 			<field name="auto" eval="True"/>
 			<field name="report_type">aeroo</field>
 			<field name="report_rml">purchase_order_report_aeroo/purchase_order_report.odt</field>
-            <field name="attachment">object.name.replace('/','')+'.pdf'</field>
+            <field name="attachment">object.name.replace('/','')</field>
 			<field name="tml_source">file</field>
 			<field name="in_format">oo-odt</field>
 			<field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
