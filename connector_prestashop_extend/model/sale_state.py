@@ -46,7 +46,7 @@ class SaleOrderState(models.Model):
     _name = 'sale.order.state'
 
     name = fields.Char('Name', translate=True)
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
+    owner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])
 
 
 class PrestashopShop(models.Model):
