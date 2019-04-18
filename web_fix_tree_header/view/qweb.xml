@@ -1,0 +1,9 @@
+<odoo>
+    <data>
+       <template id="assets_backend" name="web_fix_tree_header assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/web_fix_tree_header/static/src/css/web_fix_tree_header.css"/>
+            </xpath>
+        </template>
+    </data>
+</odoo>
