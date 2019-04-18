@@ -525,4 +525,4 @@ def import_record_product(session, model_name, backend_id, magentoextend_ids, fo
 class ResPartnerBackend(models.Model):
     _inherit = 'product.product'
 
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
+    owner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])

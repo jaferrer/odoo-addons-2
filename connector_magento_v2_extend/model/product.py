@@ -106,7 +106,7 @@ class ProductAttributev2(models.Model):
     _name = 'product.attribute.extend'
 
     name = fields.Char(string='Nom')
-    owner_id = fields.Many2one('res.partner', string=u'Propriétaire')
+    owner_id = fields.Many2one('res.partner', u'Propriétaire', domain=[('customer', '=', True)])
     fluxtendu_active = fields.Boolean(u'Active', default=False)
 
 
