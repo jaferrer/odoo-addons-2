@@ -17,4 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import purchase_delivery_tracking_dhl
+import purchase_delivery_tracking_ata

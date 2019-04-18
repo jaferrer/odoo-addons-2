@@ -27,6 +27,5 @@ class DhlTrackingTransporter(models.Model):
     def _compute_logo(self):
         super(DhlTrackingTransporter, self)._compute_logo()
         for rec in self:
-            if rec.name == 'ATA':
-                rec.logo = "/purchase_delivery_tracking_varillon/static/img/ATA.jpg"
-
+            if rec == self.env.ref('purchase_delivery_tracking_varillon.transporter_varillon'):
+                rec.logo = "/purchase_delivery_tracking_varillon/static/img/varillon.png"

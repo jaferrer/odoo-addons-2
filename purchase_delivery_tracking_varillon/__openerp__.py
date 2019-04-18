@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Purchase delivery tracking (DHL)',
+    'name': 'Purchase delivery tracking (Varillon)',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
@@ -30,10 +30,10 @@ Purchase delivery tracking (Varillon)
 This module allows to track the Varillon deliveries
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['purchase_delivery_tracking_dhl_data.xml'],
+    'data': ['purchase_delivery_tracking_varillon_data.xml'],
     'demo': [],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
