@@ -1,0 +1,11 @@
+table.o_list_view th {
+    position: sticky;
+    top: 0;
+    background-color: #e2e2e0;
+    z-index: 9999;
+}
+div.table-responsive{
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    width: auto !important;
+}
