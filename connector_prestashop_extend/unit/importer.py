@@ -450,7 +450,7 @@ class DelayedBatchImporter(BatchImporter):
 
     def _import_record(self, record_ids, id_shop=None, **kwargs):
         """ Delay the import of the records"""
-        shop = self.env['prestashopextend.shop'].browse(id_shop)
+        shop = self.env['prestashopextend.shop'].browse(int(id_shop))
         import_record.delay(self.session,
                             self.model._name,
                             self.backend_record.id,
