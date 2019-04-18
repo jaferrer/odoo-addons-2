@@ -58,7 +58,7 @@ class ConnectorHomeLine(models.Model):
                 u"%s [%s] %s %s" % (
                     rec.line_id.type_id.name,
                     rec.connector_id.name,
-                    rec.connector_id.comment,
+                    rec.connector_id.comment or u"",
                     rec.home_id.partner_id.name,
                 )
             )
