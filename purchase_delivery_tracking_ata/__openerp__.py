@@ -18,22 +18,22 @@
 #
 
 {
-    'name': 'Purchase delivery tracking (DHL)',
+    'name': 'Purchase delivery tracking (ATA)',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
     'depends': ['purchase_delivery_tracking'],
     'description': """
-Purchase delivery tracking (Varillon)
+Purchase delivery tracking (ATA)
 ================================
-This module allows to track the Varillon deliveries
+This module allows to track the ATA deliveries
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['purchase_delivery_tracking_dhl_data.xml'],
+    'data': ['purchase_delivery_tracking_ata_data.xml'],
     'demo': [],
     'test': [],
-    'installable': False,
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
