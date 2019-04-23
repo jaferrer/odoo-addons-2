@@ -20,7 +20,8 @@
 from openerp import models, fields
 
 
-class BackendPartner(models.Model):
-    _inherit = 'res.partner'
+class BusBase(models.Model):
+    _name = 'bus.base'
 
+    name = fields.Char(u"Name")
     bus_username = fields.Char(u"BUS user name")

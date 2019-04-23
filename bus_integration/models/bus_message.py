@@ -27,7 +27,7 @@ class BusMessage(models.Model):
     _order = 'create_date DESC'
 
     id_serial = fields.Char(string=u"Serial ID")
-    backend_id = fields.Many2one('bus.backend', string=u"Backend")
+    configuration_id = fields.Many2one('bus.configuration', string=u"Backend")
     done = fields.Boolean(u"Done")
     date_done = fields.Datetime(u"Date Done")
     header_param_ids = fields.One2many('bus.message.header.param', 'message_id', u"Header parameters")
@@ -51,7 +51,7 @@ class BusMessage(models.Model):
         return [(rec.id, u"Message %s on %s" % (rec.type, rec.create_date)) for rec in self]
 
     @api.model
-    def create_message(self, message_dict=None, type='', backend_id=0):
+    def create_message(self, message_dict=None, type='', configuration_id=0):
         # message_dict is a JSON loaded dict.
         if not message_dict:
             message_dict = {}
@@ -63,7 +63,7 @@ class BusMessage(models.Model):
             'type': type,
             'treatment': message_dict.get('header', {}).get('treatment'),
             'id_serial': message_dict.get('header', {}).get('serial_id'),
-            'backend_id': backend_id
+            'configuration_id': configuration_id
         })
         for key, value in message_dict.get('header', {}).iteritems():
             if key == 'treatment' or key == 'serial_id':

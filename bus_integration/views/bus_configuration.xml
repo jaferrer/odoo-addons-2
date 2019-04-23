@@ -3,8 +3,8 @@
     <data>
 
         <record model="ir.ui.view" id="bus_config_form">
-            <field name="name">bus.backend.form</field>
-            <field name="model">bus.backend</field>
+            <field name="name">bus.configuration.form</field>
+            <field name="model">bus.configuration</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form string="Object mapping">
@@ -26,7 +26,7 @@
                         </group>
                         <notebook>
                             <page>
-                                <field name="batch_ids"/>
+                                <field name="bus_configuration_export_ids"/>
                             </page>
                         </notebook>
                     </sheet>
@@ -34,9 +34,9 @@
             </field>
         </record>
 
-        <record model="ir.actions.act_window" id="act_window_bus_backend">
+        <record model="ir.actions.act_window" id="act_window_bus_configuration">
             <field name="name">Configuration</field>
-            <field name="res_model">bus.backend</field>
+            <field name="res_model">bus.configuration</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
@@ -45,7 +45,7 @@
         </record>
 
         <menuitem id="menu_bus_config_menu" name="Configuration"
-                  action="act_window_bus_backend" parent="menu_bus"
+                  action="act_window_bus_configuration" parent="menu_bus"
                   sequence="10"/>
 
     </data>

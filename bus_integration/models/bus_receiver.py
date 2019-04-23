@@ -30,7 +30,7 @@ class BusSynchronizationReceiver(models.AbstractModel):
     @api.model
     def receive_message(self, code, message_json, jobify=True):
         try:
-            backend = self.env['bus.backend'].search([('code', '=', code)])
+            backend = self.env['bus.configuration'].search([('code', '=', code)])
             if not backend:
                 raise exceptions.ValidationError(u"No bakcend found : %s" % code)
             dict_message = json.loads(message_json, encoding='utf-8')
@@ -83,7 +83,7 @@ class BusSynchronizationReceiver(models.AbstractModel):
         message = self.env['bus.message'].browse(message_id)
         message_dict = json.loads(message.message)
         serial_id = message_dict.get('header', {}).get('serial_id', False)
-        histo = self.env['bus.backend.batch.histo'].search([('serial_id', '=', serial_id)], order="create_date desc",
+        histo = self.env['bus.configuration.export.histo'].search([('serial_id', '=', serial_id)], order="create_date desc",
                                                            limit=1)
         return_res = message_dict.get('body', {}).get('return', {})
         result = return_res.get('result', False)

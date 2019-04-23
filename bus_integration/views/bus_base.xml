@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="bus_base_form">
+            <field name="name">bus_base_form</field>
+            <field name="model">bus.base</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1>
+                                <field name="name" placeholder="......"/>
+                            </h1>
+                            <h2>
+                                <field name="bus_username"/>
+                            </h2>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="bus_base_tree" model="ir.ui.view">
+            <field name="name">bus_base_tree</field>
+            <field name="model">bus.base</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="bus_username"/>
+                </tree>
+            </field>
+        </record>
+        <record id="bus_base_action" model="ir.actions.act_window">
+            <field name="name">bus_base_action</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">bus.base</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- This Menu Item must have a parent and an action -->
+        <menuitem id="bus_base_menu" name="Bus base" parent="menu_bus" action="bus_base_action" sequence="9"/>
+    </data>
+</openerp>

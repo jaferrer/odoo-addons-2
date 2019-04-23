@@ -12,7 +12,7 @@
             <field name="nextcall">2015-10-01 00:00:00</field>
             <field name="numbercall">-1</field>
             <field name="doall"/>
-            <field name="model">bus.backend.batch.histo.log</field>
+            <field name="model">bus.configuration.export.histo.log</field>
             <field name="function">check_state</field>
             <field name="args"/>
         </record>
