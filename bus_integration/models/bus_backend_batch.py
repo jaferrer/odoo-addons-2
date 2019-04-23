@@ -37,10 +37,11 @@ class BusextendBackendBatch(models.Model):
                                        ('DELETION_SYNCHRONIZATION', u"Deletion")],
                                       string=u"Treatment type", required=True)
     init_conf = fields.Boolean(u"Init conf")
-    last_transfer_state = fields.Selection([('running', u"Running"),
-                                            ('done', u"Done"),
-                                            ('error', u"Error"),
-                                            ('never_processed', u"Never processed")],
+    last_transfer_state = fields.Selection([('never_processed', u"Never processed"),
+                                            ('started', u"Started"),
+                                            ('finished', u"Finished"),
+                                            ('blocked', u"Blocked"),
+                                            ('error', u"Error")],
                                            string=u'Last transfer status', compute="_compute_last_transfer_state")
     serial_id = fields.Integer(u"Serial")
     chunk = fields.Integer(u"Export chunk size")

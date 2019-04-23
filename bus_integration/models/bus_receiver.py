@@ -80,5 +80,15 @@ class BusSynchronizationReceiver(models.AbstractModel):
 
     @api.model
     def register_synchro_return(self, message_id):
-        # TODO : To implement
-        pass
+        message = self.env['bus.message'].browse(message_id)
+        message_dict = json.loads(message.message)
+        serial_id = message_dict.get('header', {}).get('serial_id', False)
+        histo = self.env['bus.backend.batch.histo'].search([('serial_id', '=', serial_id)], order="create_date desc",
+                                                           limit=1)
+        return_res = message_dict.get('body', {}).get('return', {})
+        result = return_res.get('result', False)
+        if result:
+            histo.transfer_state = 'finished'
+            self.env['bus.importer'].import_bus_references(result)
+        else:
+            histo.transfer_state = 'error'

@@ -24,6 +24,7 @@ from openerp import models, fields, api
 
 class BusMessage(models.Model):
     _name = 'bus.message'
+    _order = 'create_date DESC'
 
     id_serial = fields.Char(string=u"Serial ID")
     backend_id = fields.Many2one('bus.backend', string=u"Backend")
