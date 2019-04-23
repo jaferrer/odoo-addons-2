@@ -67,8 +67,8 @@ class BusSendMessage(models.AbstractModel):
             raise FailedJobError(result)
         return (server, result, connection)
 
-
-    def send_odoo_message(self, model, function, message):
+    @api.multi
+    def send_odoo_message(self, model, function, code, message):
         server, result, login = self.try_connexion(raise_error=True)
         args = [
             self.recipient_subscriber_id.database,
@@ -76,6 +76,7 @@ class BusSendMessage(models.AbstractModel):
             self.recipient_subscriber_id.password,
             model,
             function,
+            code,
             message
         ]
         try:
