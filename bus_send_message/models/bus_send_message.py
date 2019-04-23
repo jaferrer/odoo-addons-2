@@ -50,6 +50,7 @@ class BusSendMessage(models.AbstractModel):
         self.ensure_one()
         url = "http://%s:%s/jsonrpc" % (self.recipient_subscriber_id.url, self.recipient_subscriber_id.port)
         server = jsonrpclib.Server(url)
+        connection = False
         result = 0
         try:
             args = [
