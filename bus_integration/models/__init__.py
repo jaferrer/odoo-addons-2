@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import res_partner
+from . import bus_base
 from . import bus_binder
 from . import bus_mapper
 from . import bus_receiver
@@ -25,9 +25,9 @@ from . import bus_importer
 from . import bus_exporter
 from . import bus_object_mapping
 from . import bus_receive_transfer
-from . import bus_backend
-from . import bus_backend_batch_histo
-from . import bus_backend_batch
+from . import bus_configuration
+from . import bus_configuration_export_histo
+from . import bus_configuration_export
 from . import bus_message
 from . import bus_message_log
 from . import ir_model

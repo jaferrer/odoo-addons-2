@@ -2,13 +2,13 @@
 <openerp>
     <data>
 
-        <record model="ir.ui.view" id="busextend_backend_batch_histo_tree">
-            <field name="name">busextend_backend_batch_histo_tree</field>
-            <field name="model">bus.backend.batch.histo</field>
+        <record model="ir.ui.view" id="bus_configuration_export_histo_tree">
+            <field name="name">bus_configuration_export_histo_tree</field>
+            <field name="model">bus.configuration.export.histo</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <tree create="false" edit="false" delete="false">
-                    <field name="batch_id"/>
+                    <field name="bus_configuration_export_id"/>
                     <field name="serial_id"/>
                     <field name="treatment"/>
                     <field name="model"/>
@@ -19,9 +19,9 @@
             </field>
         </record>
 
-        <record id="busextend_backend_batch_histo_form" model="ir.ui.view">
-            <field name="name">busextend_backend_batch_histo_form</field>
-            <field name="model">bus.backend.batch.histo</field>
+        <record id="bus_configuration_export_histo_form" model="ir.ui.view">
+            <field name="name">bus_configuration_export_histo_form</field>
+            <field name="model">bus.configuration.export.histo</field>
             <field name="arch" type="xml">
                 <form>
                     <sheet>
@@ -30,7 +30,7 @@
                         </header>
                         <group>
                             <group>
-                                <field name="batch_id"/>
+                                <field name="bus_configuration_export_id"/>
                                 <field name="serial_id"/>
                                 <field name="last_job_state" widget="statusbar"/>
                             </group>
@@ -50,9 +50,9 @@
             </field>
         </record>
 
-        <record model="ir.actions.act_window" id="act_window_busextend_backend_batch_histo">
+        <record model="ir.actions.act_window" id="act_window_bus_configuration_export_histo">
             <field name="name">Synchronized Historique</field>
-            <field name="res_model">bus.backend.batch.histo</field>
+            <field name="res_model">bus.configuration.export.histo</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
@@ -60,13 +60,13 @@
             <field name="help"/>
         </record>
 
-        <menuitem id="menu_busextend_backend_batch_histo" name="Synchronized Histo"
-                  action="act_window_busextend_backend_batch_histo" parent="menu_bus"
+        <menuitem id="menu_bus_configuration_export_histo" name="Synchronized Histo"
+                  action="act_window_bus_configuration_export_histo" parent="menu_bus"
                   sequence="100"/>
 
-        <record model="ir.ui.view" id="busextend_backend_batch_histo_log_tree">
-            <field name="name">busextend_backend_batch_histo_log_tree</field>
-            <field name="model">bus.backend.batch.histo.log</field>
+        <record model="ir.ui.view" id="bus_configuration_export_histo_log_tree">
+            <field name="name">bus_configuration_export_histo_log_tree</field>
+            <field name="model">bus.configuration.export.histo.log</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <tree create="false" edit="false" delete="false">
@@ -79,9 +79,9 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="busextend_backend_batch_histo_log_form">
-            <field name="name">busextend_backend_batch_histo_log_form</field>
-            <field name="model">bus.backend.batch.histo.log</field>
+        <record model="ir.ui.view" id="bus_configuration_export_histo_log_form">
+            <field name="name">bus_configuration_export_histo_log_form</field>
+            <field name="model">bus.configuration.export.histo.log</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form>
@@ -104,9 +104,9 @@
             </field>
         </record>
 
-        <record model="ir.actions.act_window" id="act_window_busextend_backend_batch_histo_log">
+        <record model="ir.actions.act_window" id="act_window_bus_configuration_export_histo_log">
             <field name="name">Synchronized logs</field>
-            <field name="res_model">bus.backend.batch.histo.log</field>
+            <field name="res_model">bus.configuration.export.histo.log</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
@@ -114,7 +114,7 @@
             <field name="help"/>
         </record>
         <menuitem id="menu_bus_model_extend_log" name="Synchronized Log"
-                  action="act_window_busextend_backend_batch_histo_log" parent="menu_bus"
+                  action="act_window_bus_configuration_export_histo_log" parent="menu_bus"
                   sequence="100"/>
 
     </data>

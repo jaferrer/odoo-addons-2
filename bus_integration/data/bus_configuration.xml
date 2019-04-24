@@ -2,7 +2,7 @@
 <openerp>
     <data noupdate="1">
 
-        <record model="bus.backend" id="backend">
+        <record model="bus.configuration" id="backend">
             <field name="name">Bus main backend</field>
             <field name="reception_treatment">simple_reception</field>
             <field name="code">ODOO_SYNCHRONIZATION</field>

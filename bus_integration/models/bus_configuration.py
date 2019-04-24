@@ -21,13 +21,13 @@
 from openerp import models, fields
 
 
-class Busextendbackend(models.Model):
-    _name = 'bus.backend'
+class BusConfiguration(models.Model):
+    _name = 'bus.configuration'
     _inherit = 'bus.send.message'
 
     name = fields.Char(u"Name")
-    sender_id = fields.Many2one('res.partner', u"Sender")
-    batch_ids = fields.One2many('bus.backend.batch', 'backend_id', string=u"Fields")
+    sender_id = fields.Many2one('bus.base', u"Sender")
+    bus_configuration_export_ids = fields.One2many('bus.configuration.export', 'configuration_id', string=u"Fields")
     reception_treatment = fields.Selection([('simple_reception', u"Simple reception")], u"Message Reception Treatment",
                                            required=True)
     code = fields.Selection([('ODOO_SYNCHRONIZATION', u"Odoo synchronization")], u"Code exchange", required=True)
