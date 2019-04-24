@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="vat_declaration_generator_form">
+            <field name="name">vat_declaration_generator_form</field>
+            <field name="model">vat.declaration.generator</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="article form">
+                    <group>
+                        <field name="date_start"/>
+                        <field name="date_end"/>
+                        <field name="journal_for_vat_declarations_id"/>
+                        <field name="account_vat_to_pay_id"/>
+                    </group>
+                    <separator string="Customer taxes accounts"/>
+                    <field name="customer_tax_account_ids">
+                        <tree>
+                            <field name="code"/>
+                            <field name="name"/>
+                        </tree>
+                    </field>
+                    <separator string="Supplier taxes accounts"/>
+                    <field name="supplier_tax_account_ids">
+                        <tree>
+                            <field name="code"/>
+                            <field name="name"/>
+                        </tree>
+                    </field>
+                    <footer>
+                        <button string="Generate VAT Declaration" type="object" name="generate_account_move" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_vat_declaration_generator">
+            <field name="name">Generate VAT Declaration</field>
+            <field name="res_model">vat.declaration.generator</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_vat_declaration_generator" name="Generate VAT Declaration"
+                  action="act_window_vat_declaration_generator"
+                  parent="account.menu_finance_entries" sequence="15"/>
+
+    </data>
+</openerp>
