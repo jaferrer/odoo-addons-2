@@ -1,0 +1,28 @@
+div.o_list_view tr.oe_list_header_columns th {
+    position: sticky;
+    top: 0;
+    background-color: #f0eeee;
+    z-index: 999;
+    border-bottom: 1px solid darkgrey;
+}
+
+div.o_list_view tr.oe_list_header_columns th:after {
+    content: '';
+    position: absolute;
+    display: block;
+    bottom: -3px;
+    width: 100%;
+    border: 1px inset darkgray;
+    height: 1px;
+    left: 0px;
+}
+
+.oe_form tr.oe_list_header_columns th:after {
+    display: none !important;
+}
+
+div.table-responsive {
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    width: auto !important;
+}

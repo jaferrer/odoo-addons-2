@@ -64,10 +64,13 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
                 this.timeline.fit();
             }
         },
+        recompute_window_size: function(){
+            $('.vis.timeline .vispanel.center').css('height',  $('.vis.timeline .vispanel.left').css('height'));
+            $('.vis.timeline .itemset').css('height',  $('.vis.timeline .vispanel.left').css('height'));
+        },
         view_loading: function (fv) {
             /* xml view timeline options */
             var attrs = fv.arch.attrs;
-            console.log("attrs", attrs);
             var self = this;
             this.fields_view = fv;
             this.parse_colors();
@@ -150,6 +153,7 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
                         localStorage.setItem('timeline_end', properties.end);
                         localStorage.setItem('timeline_start', properties.start);
                     }
+                    self.recompute_window_size()
                 });
 
 
@@ -236,7 +240,9 @@ odoo.define('web_timeline_ordered.TimelineView', function (require) {
                     domain: domains,
                     context: contexts
                 }).then(function (data) {
-                    return self.on_data_loaded(data, n_group_bys);
+                    var res = self.on_data_loaded(data, n_group_bys);
+                    self.recompute_window_size();
+                    return res;
                 })
             });
         },

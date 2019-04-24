@@ -19,22 +19,20 @@
 #
 #
 
+import StringIO
 import base64
+import csv
+import datetime as dt
 import logging
+import sys
 import urllib2
 import xmlrpclib
-import csv
-import StringIO
-import datetime as dt
+
 import ftputil
 import ftputil.session
-import sys
-
-from openerp import tools
-
 from openerp.addons.connector.exception import IDMissingInBackend
-from openerp.addons.connector.queue.job import job, related_action
 from openerp.addons.connector.exception import (JobError)
+from openerp.addons.connector.queue.job import job, related_action
 from openerp.addons.connector.unit.mapper import (mapping,
                                                   ImportMapper
                                                   )
@@ -45,10 +43,10 @@ from openerp import models, fields, api
 from openerp.tools import float_compare
 from ..backend import magentoextend
 from ..connector import get_environment
+from ..related_action import link
 from ..unit.backend_adapter import (GenericAdapter)
 from ..unit.import_synchronizer import (DelayedBatchImporter, magentoextendImporter)
 from ..unit.mapper import normalize_datetime
-from ..related_action import link
 
 _logger = logging.getLogger(__name__)
 
@@ -111,7 +109,7 @@ class ProductProductAdapter(GenericAdapter):
     _model_name = 'magentoextend.product.product'
     _magentoextend_model = 'catalog_product'
 
-    def _call(self, method, arguments):
+    def _call(self, method, *arguments):
         try:
             return super(ProductProductAdapter, self)._call(method, arguments)
         except xmlrpclib.Fault as err:
@@ -123,8 +121,7 @@ class ProductProductAdapter(GenericAdapter):
                 raise
 
     def update(self, el_id, arguments):
-        return self._call('%s.update' % "cataloginventory_stock_item",
-                          [el_id,arguments])
+        return self._call('%s.update' % "cataloginventory_stock_item", el_id, arguments)
 
     def search(self, filters=None, from_date=None, to_date=None):
         """ Search records according to some criteria and return a
@@ -172,7 +169,7 @@ class ProductProductAdapter(GenericAdapter):
             raise JobError('FTP Host and User have to be filled in settings')
 
         _logger.debug('Try to connect FTP server %s with login %s', host, user)
-        ftp_session_factory = ftputil.session.session_factory(use_passive_mode=False)
+        ftp_session_factory = ftputil.session.session_factory()
         with ftputil.FTPHost(host, user, pasw, session_factory=ftp_session_factory) as ftp_session:
             targetfile = '%s/%s' % (target, filename)
             with ftp_session.open(targetfile, 'w') as awa_file:
@@ -218,11 +215,14 @@ class ProductBatchImporter(DelayedBatchImporter):
 
     def _import_record(self, magentoextend_id, priority=None):
         """ Delay a job for the import """
-        import_record_product.delay(self.session,
-                            self.model._name,
-                            self.backend_record.id,
-                            magentoextend_id,
-                            priority=priority)
+        import_record_product.delay(
+            self.session,
+            self.model._name,
+            self.backend_record.id,
+            magentoextend_id,
+            priority=priority,
+            description=self.backend_record.connector_id.display_name
+        )
 
     def run(self, filters=None):
         """ Run the synchronization """
@@ -341,8 +341,9 @@ class ProductImageImporter(Importer):
         try:
             binding.write({'image': base64.b64encode(binary)})
         except IOError:
-            #fichier corrompu
+            # fichier corrompu
             pass
+
 
 @magentoextend
 class ProductProductImportMapper(ImportMapper):
@@ -415,12 +416,12 @@ class StockLevelExporter(Exporter):
             WHERE
               sl.usage = 'internal' AND sl.location_id = tp.loc_id
           )
-          select
+          SELECT
           product_id,
           magentoextend_id,
           default_code,
           sum(qty) qty
-          from (
+          FROM (
           SELECT
                sq.product_id,
                mpp.magentoextend_id,
@@ -432,13 +433,13 @@ class StockLevelExporter(Exporter):
                LEFT JOIN product_product pp ON mpp.openerp_id = pp.id
                LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
                LEFT JOIN stock_location sl ON sl.id = tp.top_parent_id
-             where mpp.backend_home_id = %s and sl.id =%s and sq.reservation_id is null
+             WHERE mpp.backend_home_id = %s AND sl.id =%s AND sq.reservation_id IS NULL
              GROUP BY
                sq.product_id,
                mpp.magentoextend_id,
                pp.default_code
 
-            union ALL
+            UNION ALL
 
             SELECT
                pp.id,
@@ -448,8 +449,8 @@ class StockLevelExporter(Exporter):
             FROM
                magentoextend_product_product mpp
                LEFT JOIN product_product pp ON mpp.openerp_id = pp.id
-            where mpp.backend_home_id = %s) rqx
-            group by
+            WHERE mpp.backend_home_id = %s) rqx
+            GROUP BY
             product_id,
             magentoextend_id,
             default_code
@@ -489,7 +490,7 @@ class StockLevelExporter(Exporter):
         return log
 
 
-@job(default_channel='root.magentoextend_pull_product_product')
+@job(default_channel='root.magento.pull.product_product')
 def product_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of product modified on magentoextend """
     if filters is None:
@@ -499,14 +500,14 @@ def product_import_batch(session, model_name, backend_id, filters=None):
     importer.run(filters=filters)
 
 
-@job(default_channel='root.magentoextend_push_product_level')
+@job(default_channel='root.magento.push.product_level')
 def product_export_stock_level_batch(session, model_name, backend_id, filters=None):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(StockLevelExporter)
     importer.run()
 
 
-@job(default_channel='root.magentoextend_pull_product_product')
+@job(default_channel='root.magento.pull.product_product')
 @related_action(action=link)
 def import_record_product(session, model_name, backend_id, magentoextend_ids, force=False):
     """ Import a record from magentoextend """
@@ -524,4 +525,4 @@ def import_record_product(session, model_name, backend_id, magentoextend_ids, fo
 class ResPartnerBackend(models.Model):
     _inherit = 'product.product'
 
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
+    owner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])

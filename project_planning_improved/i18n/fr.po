@@ -143,6 +143,36 @@ msgid "Expected end date"
 msgstr "Date de fin prévue"
 
 #. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_duration
+msgid "Expected duration (days)"
+msgstr "Durée réelle (jours)"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_notify_users_when_dates_change
+msgid "Notify users when dates change"
+msgstr "Notifier les utilisateurs lorsque les dates changent"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,help:project_planning_improved.field_project_task_notify_users_when_dates_change
+msgid "An additional list of users is defined in project configuration"
+msgstr "Une liste supplémentaire d'utilisateurs est définie dans la configuration du projet"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_config_settings_notify_date_changes_for_partner_ids
+msgid "Partners to notify for date modifications in tasks"
+msgstr "Contacts à notifier lors des changements de date dans les tâches"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,help:project_planning_improved.field_project_config_settings_notify_date_changes_for_partner_ids
+msgid "Only for tasks flaged as 'notify users when dates change'"
+msgstr "Les tâches prises en compte sont celles qui sont marquées via le champ 'notifier les utilisateurs lorsque les dates changent'"
+
+#. module: project_planning_improved
+#: view:project.config.settings:project_planning_improved.project_planning_improved_settings
+msgid "Users notification"
+msgstr "Notification des utilisateurs"
+
+#. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_start_date
 #: view:project.task:project_planning_improved.project_improved_task_search
 msgid "Expected start date"
@@ -238,6 +268,18 @@ msgstr "Tâche %s : impossible de définir la date de fin dans une période non 
 #, python-format
 msgid "Impossible to schedule task %s, because it is already taken into account"
 msgstr "Impossible de planifier la tâche %s, car elle est déjà prise en compte"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:799
+#, python-format
+msgid "Replanification of task %s in project %s"
+msgstr "Replanification de la tâche %s dans le projet %s"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:803
+#, python-format
+msgid "%s has changed the dates of task %s in project %s: expected start date %s, expected end date %s."
+msgstr "%s a changé les dates de la tâche %s dans le projet %s : date de début prévue %s, date de fin prévue %s."
 
 #. module: project_planning_improved
 #: code:addons\project_planning_improved\conflicts_tracking.py:77

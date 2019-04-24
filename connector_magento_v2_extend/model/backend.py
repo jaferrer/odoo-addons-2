@@ -49,8 +49,17 @@ class v2magentoextend_backend(models.Model):
         for chunk_from, chunk_to in self.dates_chunk(from_date, import_start_time, timedelta(days=60)):
             product_import_v2_batch.delay(
                 session, 'magentoextend2.product.product', backend_id,
-                {'from_date': chunk_from,
-                 'to_date': chunk_to}, priority=3)
+                {
+                    'from_date': chunk_from,
+                    'to_date': chunk_to
+                },
+                priority=3,
+                description=u"""%s modifié entre le %s et le %s""" % (
+                    self.connector_id.display_name,
+                    self.env.user.format_local_date(chunk_from),
+                    self.env.user.format_local_date(chunk_to),
+                )
+            )
             _logger.info("Date chunk %s -> %s", chunk_from, chunk_to)
         return True
 
@@ -68,7 +77,12 @@ class v2magentoextend_backend(models.Model):
                                    context=new_ctx)
         backend_id = self.id
         product_export_stock_level_v2_batch.delay(
-            session, 'magentoextend2.product.product', backend_id, priority=3)
+            session,
+            'magentoextend2.product.product',
+            backend_id,
+            priority=3,
+            description=self.connector_id.display_name
+        )
         return True
 
     @api.model
@@ -86,7 +100,11 @@ class v2magentoextend_backend(models.Model):
                                    context=new_ctx)
         backend_id = self.id
         product_attribute_import_v2_batch.delay(
-            session, 'magentoextend2.product.attribute', backend_id, priority=3)
+            session, 'magentoextend2.product.attribute',
+            backend_id,
+            priority=3,
+            description=u"%s 1/2" % self.connector_id.display_name
+        )
         return True
 
     @api.model

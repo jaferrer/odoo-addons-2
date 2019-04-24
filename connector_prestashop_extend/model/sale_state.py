@@ -46,7 +46,7 @@ class SaleOrderState(models.Model):
     _name = 'sale.order.state'
 
     name = fields.Char('Name', translate=True)
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
+    owner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])
 
 
 class PrestashopShop(models.Model):
@@ -131,7 +131,7 @@ class SaleOrderStateBatchImporter(DelayedBatchImporter):
     _prestashopextend_model = 'order_states'
 
 
-@job(default_channel='root.prestashopextend')
+@job(default_channel='root.prestashop.pull.sale_state')
 def sale_state_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of Customer """
     env = get_environment(session, model_name, backend_id)

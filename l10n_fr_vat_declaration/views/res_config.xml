@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="vat_declaration_account_config_form">
+            <field name="name">vat_declaration_account_config_form</field>
+            <field name="model">account.config.settings</field>
+            <field name="inherit_id" ref="account.view_account_config_settings"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form position="inside">
+                    <group string="VAT Declarations">
+                        <group>
+                            <field name="journal_for_vat_declarations_id"/>
+                            <field name="account_vat_to_pay_id"/>
+                        </group>
+                        <group/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>

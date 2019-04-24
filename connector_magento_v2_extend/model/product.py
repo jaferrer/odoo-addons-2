@@ -21,11 +21,9 @@
 
 import base64
 import logging
+import sys
 import urllib2
-import xmlrpclib
-import csv
-import StringIO
-import datetime as dt
+
 import ftputil
 import ftputil.session
 import sys
@@ -33,14 +31,11 @@ import sys
 from openerp import tools
 
 from openerp.addons.connector.exception import IDMissingInBackend
+from openerp.addons.connector.exception import JobError
 from openerp.addons.connector.queue.job import job, related_action
-from openerp.addons.connector.exception import (JobError)
-from openerp.addons.connector.unit.mapper import (mapping,
-                                                  only_create,
-                                                  ImportMapper
-                                                  )
-from openerp.addons.connector.unit.synchronizer import (Importer, Exporter
-                                                        )
+from openerp.addons.connector.unit.mapper import mapping, only_create, ImportMapper
+from openerp.addons.connector.unit.synchronizer import Importer, Exporter
+from openerp.addons.connector_magento_extend.backend import magentoextend
 
 from openerp import models, fields, api, _
 from openerp.tools import float_compare
@@ -48,7 +43,6 @@ from openerp.addons.connector_magento_extend.backend import magentoextend
 from ..connector import get_environment
 from ..unit.backend_adapter import (GenericAdapter)
 from ..unit.import_synchronizer import (DelayedBatchImporterV2, magentoextendImporterV2)
-from ..unit.mapper import normalize_datetime
 from ..related_action import link
 
 _logger = logging.getLogger(__name__)
@@ -112,7 +106,7 @@ class ProductAttributev2(models.Model):
     _name = 'product.attribute.extend'
 
     name = fields.Char(string='Nom')
-    owner_id = fields.Many2one('res.partner', string=u'Propriétaire')
+    owner_id = fields.Many2one('res.partner', u'Propriétaire', domain=[('customer', '=', True)])
     fluxtendu_active = fields.Boolean(u'Active', default=False)
 
 
@@ -172,8 +166,7 @@ class ProductProductAdapter(GenericAdapter):
     _magentoextend_model = 'products'
 
     def update(self, el_id, arguments):
-        return self._call('%s.update' % "cataloginventory_stock_item",
-                          [el_id,arguments])
+        return self._call('%s.update' % "cataloginventory_stock_item", [el_id, arguments])
 
     def search(self, filters=None, from_date=None, to_date=None):
         """ Search records according to some criteria and return a
@@ -248,7 +241,7 @@ class ProductProductAdapter(GenericAdapter):
             raise JobError('FTP Host and User have to be filled in settings')
 
         _logger.debug('Try to connect FTP server %s with login %s', host, user)
-        ftp_session_factory = ftputil.session.session_factory(use_passive_mode=False)
+        ftp_session_factory = ftputil.session.session_factory()
         with ftputil.FTPHost(host, user, pasw, session_factory=ftp_session_factory) as ftp_session:
             targetfile = '%s/%s' % (target, filename)
             with ftp_session.open(targetfile, 'w') as awa_file:
@@ -297,11 +290,17 @@ class ProductBatchImporterV2(DelayedBatchImporterV2):
 
     def _import_record(self, magentoextend_id, priority=None):
         """ Delay a job for the import """
-        import_record_product_v2.delay(self.session,
-                            self.model._name,
-                            self.backend_record.id,
-                            magentoextend_id,
-                            priority=priority)
+        import_record_product_v2.delay(
+            self.session,
+            self.model._name,
+            self.backend_record.id,
+            magentoextend_id,
+            priority=priority,
+            description=u"%s ID=%s" % (
+                self.backend_record.connector_id.display_name,
+                magentoextend_id
+            )
+        )
 
     def run(self, filters=None):
         """ Run the synchronization """
@@ -313,12 +312,9 @@ class ProductBatchImporterV2(DelayedBatchImporterV2):
             from_date=from_date,
             to_date=to_date,
         )
-        _logger.info('search for magentoextend Products %s returned %s',
-                     filters, record_ids)
-        while record_ids:
-            records = record_ids[:1000]
-            record_ids = record_ids[1000:]
-            self._import_record(records, 30)
+        _logger.info('search for magentoextend Products %s returned %s', filters, record_ids)
+        for record_id in record_ids:
+            self._import_record(record_id, 30)
 
 
 ProductBatchImporterV2 = ProductBatchImporterV2
@@ -328,10 +324,10 @@ ProductBatchImporterV2 = ProductBatchImporterV2
 class ProductAttributeImporterV2(magentoextendImporterV2):
     _model_name = ['magentoextend2.product.attribute']
 
-    def run(self, magentoextend_id, force=False):
-        self.magentoextend_id = magentoextend_id["attribute_code"]
+    def run(self, product_attribute, force=False):
+        self.magentoextend_id = product_attribute["attribute_code"]
         try:
-            self.magentoextend_record = magentoextend_id
+            self.magentoextend_record = product_attribute
         except IDMissingInBackend:
             return _('Record does no longer exist in magentoextendCommerce')
 
@@ -345,16 +341,18 @@ class ProductAttributeImporterV2(magentoextendImporterV2):
             return _('Already up-to-date.')
 
         map_record = self._map_data()
-
         if binding:
             record = self._update_data(map_record)
             self._update(binding, record)
+            msg = _(u"Attribute Code [%s] updated") % product_attribute["attribute_code"]
         else:
 
             record = self._create_data(map_record)
             record["backend_id"] = self.backend_record.id
             binding = self._create(record)
+            msg = _(u"Attribute Code [%s] created") % product_attribute["attribute_code"]
         self.binder.bind(self.magentoextend_id, binding)
+        return msg
 
 
 ProductAttributeImporterV2 = ProductAttributeImporterV2
@@ -384,7 +382,7 @@ class ProductProductImporterV2(magentoextendImporterV2):
     def _after_import(self, binding, sku):
         """ Hook called at the end of the import """
         image_importer = self.unit_for(ProductImageImporterV2)
-#        image_importer.run(self.magentoextend_id, binding.id, sku)
+        #        image_importer.run(self.magentoextend_id, binding.id, sku)
         return
 
     def run(self, magentoextend_id, force=False):
@@ -455,7 +453,7 @@ class ProductImageImporterV2(Importer):
     """
     _model_name = [
         'magentoextend2.product.product',
-                   ]
+    ]
 
     def _get_images(self, sku, storeview_id=None):
         return self.backend_adapter.get_images(sku)
@@ -490,7 +488,7 @@ class ProductImageImporterV2(Importer):
         try:
             param = self.env[self.backend_record.connector_id.line_id.type_id.model_name].search(
                 [('line_id', '=', self.backend_record.connector_id.line_id.id)])
-            request = urllib2.Request(param.url.replace("index.php/rest/V1", "media/catalog/product")+url)
+            request = urllib2.Request(param.url.replace("index.php/rest/V1", "media/catalog/product") + url)
             if param.use_http:
                 base64string = base64.b64encode(
                     '%s:%s' % (param.http_user,
@@ -632,12 +630,12 @@ class StockLevelExporter(Exporter):
             WHERE
               sl.usage = 'internal' AND sl.location_id = tp.loc_id
           )
-          select
+          SELECT
           product_id,
           magentoextend_id,
           default_code,
           sum(qty) qty
-          from (
+          FROM (
           SELECT
                sq.product_id,
                mpp.magentoextend_id,
@@ -649,13 +647,13 @@ class StockLevelExporter(Exporter):
                LEFT JOIN product_product pp ON mpp.openerp_id = pp.id
                LEFT JOIN top_parent tp ON tp.loc_id = sq.location_id
                LEFT JOIN stock_location sl ON sl.id = tp.top_parent_id
-             where mpp.backend_home_id = %s and sl.id =%s
+             WHERE mpp.backend_home_id = %s AND sl.id =%s
              GROUP BY
                sq.product_id,
                mpp.magentoextend_id,
                pp.default_code
 
-            union ALL
+            UNION ALL
 
             SELECT
                pp.id,
@@ -665,12 +663,12 @@ class StockLevelExporter(Exporter):
             FROM
                magentoextend2_product_product mpp
                LEFT JOIN product_product pp ON mpp.openerp_id = pp.id
-            where mpp.backend_home_id = %s) rqx
-            group by
+            WHERE mpp.backend_home_id = %s) rqx
+            GROUP BY
             product_id,
             magentoextend_id,
             default_code
-            order by qty asc
+            ORDER BY qty ASC
                     """, (self.backend_record.connector_id.home_id.id,
                           self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id,
                           self.backend_record.connector_id.home_id.id
@@ -702,8 +700,7 @@ class ProductProductAdapter(GenericAdapter):
     _magentoextend_model = 'products/attributes'
 
     def update(self, el_id, arguments):
-        return self._call('%s.update' % "cataloginventory_stock_item",
-                          [el_id,arguments])
+        return self._call('%s.update' % "cataloginventory_stock_item", [el_id, arguments])
 
     def search(self, filters=None, from_date=None, to_date=None):
         if filters is None:
@@ -726,7 +723,8 @@ class ProductProductAdapter(GenericAdapter):
                 break
 
         if products_resp:
-            return [{"attribute_code": row["attribute_code"], "options": str(row["options"])} for row in products_resp if row['scope'] == 'global' and row['options']]
+            return [{"attribute_code": row["attribute_code"], "options": str(row["options"])} for row in products_resp
+                    if row['scope'] == 'global' and row['options']]
         return products_resp
 
 
@@ -734,12 +732,15 @@ class ProductProductAdapter(GenericAdapter):
 class ProductAttributeBatchImporterV2(DelayedBatchImporterV2):
     _model_name = ['magentoextend2.product.attribute']
 
-    def _import_record(self, magentoextend_id, priority=None):
-        import_attribute_record_product_v2.delay(self.session,
-                                                 self.model._name,
-                                                 self.backend_record.id,
-                                                 magentoextend_id,
-                                                 priority=priority)
+    def _import_record(self, datas, priority=None):
+        import_attribute_record_product_v2.delay(
+            self.session,
+            self.model._name,
+            self.backend_record.id,
+            datas,
+            priority=priority,
+            description=u"%s 2/2 " % self.backend_record.connector_id.display_name
+        )
 
     def run(self, filters=None):
         record_ids = self.backend_adapter.search()
@@ -750,7 +751,7 @@ class ProductAttributeBatchImporterV2(DelayedBatchImporterV2):
 ProductAttributeBatchImporterV2 = ProductAttributeBatchImporterV2
 
 
-@job(default_channel='root.magentoextend_pull_product_product')
+@job(default_channel='root.magento.pull.product_product')
 def product_import_v2_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of product modified on magentoextend """
     if filters is None:
@@ -760,43 +761,37 @@ def product_import_v2_batch(session, model_name, backend_id, filters=None):
     importer.run(filters=filters)
 
 
-@job(default_channel='root.magentoextend_push_product_level')
+@job(default_channel='root.magento.push.product_level')
 def product_export_stock_level_v2_batch(session, model_name, backend_id, filters=None):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(StockLevelExporter)
     importer.run()
 
 
-@job(default_channel='root.magentoextend_pull_product_product')
+@job(default_channel='root.magento.pull.product_product')
 @related_action(action=link)
-def import_record_product_v2(session, model_name, backend_id, magentoextend_ids, force=False):
+def import_record_product_v2(session, model_name, backend_id, magentoextend_id, force=False):
     """ Import a record from magentoextend """
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(ProductProductImporterV2)
-    log = ""
-    for id in magentoextend_ids:
-        log = log + '\n' + str(id) + '\n' + '----------' + '\n'
-        resp = str(importer.run(id, force=force))
-        log = log + resp
-
-    return log
+    return importer.run(magentoextend_id, force=force)
 
 
-@job(default_channel='root.magentoextend_pull_product_product')
+@job(default_channel='root.magento.pull.product_product')
 def product_attribute_import_v2_batch(session, model_name, backend_id):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(ProductAttributeBatchImporterV2)
     importer.run()
 
 
-@job(default_channel='root.magentoextend_pull_product_product')
+@job(default_channel='root.magento.pull.product_product')
 @related_action(action=link)
-def import_attribute_record_product_v2(session, model_name, backend_id, magentoextend_ids, force=False):
+def import_attribute_record_product_v2(session, model_name, backend_id, product_attributes, force=False):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(ProductAttributeImporterV2)
     log = ""
-    for id in magentoextend_ids:
-        log = log + '\n' + str(id) + '\n' + '----------' + '\n'
-        resp = str(importer.run(id, force=force))
+    for product_attribute in product_attributes:
+        log = log + '\n' + str(product_attribute) + '\n' + '----------' + '\n'
+        resp = str(importer.run(product_attribute, force=force))
         log = log + resp
     return log
