@@ -4,8 +4,13 @@ table.o_list_view th {
     background-color: #e2e2e0;
     z-index: 999;
 }
-div.table-responsive{
+
+div.table-responsive {
     overflow-x: visible !important;
     overflow-y: visible !important;
     width: auto !important;
+}
+
+.o_web_client.navbar {
+    z-index: 9999;
 }
