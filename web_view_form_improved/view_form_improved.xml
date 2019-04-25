@@ -3,7 +3,7 @@
     <data>
         <template id="assets_view_form_improved" name="view form improved" inherit_id="web.assets_backend">
             <xpath expr="." position="inside">
-                <script type="text/javascript" src="/view_form_improved/static/src/js/view_form.js" />
+                <script type="text/javascript" src="/web_view_form_improved/static/src/js/view_form.js" />
             </xpath>
         </template>
     </data>

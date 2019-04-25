@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'View form improved',
+    'name': 'Web View form improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
