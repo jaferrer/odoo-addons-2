@@ -17,4 +17,6 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import purchase_delivery_tracking_ata
+from . import res_company
+from . import res_config
+from . import vat_declaration_generator

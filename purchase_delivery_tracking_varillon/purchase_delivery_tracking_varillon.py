@@ -17,4 +17,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import purchase_delivery_tracking_ata
+from openerp import models, api
+
+
+class DhlTrackingTransporter(models.Model):
+    _inherit = 'tracking.transporter'
+
+    @api.multi
+    def _compute_logo(self):
+        super(DhlTrackingTransporter, self)._compute_logo()
+        for rec in self:
+            if rec == self.env.ref('purchase_delivery_tracking_varillon.transporter_varillon'):
+                rec.logo = "/purchase_delivery_tracking_varillon/static/img/varillon.png"

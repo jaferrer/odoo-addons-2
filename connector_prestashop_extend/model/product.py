@@ -474,4 +474,4 @@ def product_export_stock_level_batch(session, model_name, backend_id, filters=No
 class ResPartnerBackend(models.Model):
     _inherit = 'product.product'
 
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
+    owner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])

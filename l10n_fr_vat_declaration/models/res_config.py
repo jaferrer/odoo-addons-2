@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,4 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import purchase_delivery_tracking_ata
+from openerp import models, fields
+
+
+class VatDeclarationConfig(models.TransientModel):
+    _inherit = 'account.config.settings'
+
+    journal_for_vat_declarations_id = fields.Many2one('account.journal', string=u"Default journal for VAT declarations",
+                                                      related='company_id.journal_for_vat_declarations_id')
+    account_vat_to_pay_id = fields.Many2one('account.account', string=u"Account for VAT to pay",
+                                            related='company_id.account_vat_to_pay_id')

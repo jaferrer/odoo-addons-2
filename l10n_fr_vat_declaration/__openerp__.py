@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,19 +18,23 @@
 #
 
 {
-    'name': 'Purchase delivery tracking (Varillon)',
-    'version': '0.1',
+    'name': 'France - VAT Declaration',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['purchase_delivery_tracking'],
+    'version': '1.0',
+    'category': 'Account',
+    'depends': ['account'],
+    'license': 'AGPL-3',
     'description': """
-Purchase delivery tracking (Varillon)
-================================
-This module allows to track the Varillon deliveries
-""",
+France - VAT Declaration
+========================
+
+This module adds a new menu to generate a draft account move corresponding to VAT declaration""",
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['purchase_delivery_tracking_varillon_data.xml'],
+    'data': [
+        'views/vat_declaration_generator.xml',
+        'views/res_config.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,

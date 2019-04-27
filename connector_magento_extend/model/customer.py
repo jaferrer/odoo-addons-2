@@ -585,4 +585,4 @@ def customer_import_batch(session, model_name, backend_id, filters=None):
 class ResPartnerBackend(models.Model):
     _inherit = 'res.partner'
 
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
+    owner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])

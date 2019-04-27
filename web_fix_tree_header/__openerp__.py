@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,5 +16,20 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+{
+    'name': "Web fix tree header",
 
-import purchase_delivery_tracking_ata
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Technical',
+    'depends': ['web'],
+    'description': """A module that fix tree headers
+        """,
+    'qweb': [
+    ],
+    'data': [
+        'view/qweb.xml',
+    ],
+    'installable': True,
+}

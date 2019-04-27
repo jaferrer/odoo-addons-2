@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -15,6 +15,25 @@
 #
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
 
-import purchase_delivery_tracking_ata
+{
+    'name': 'Job monitoring',
+    'version': '1.0',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'website': 'https://www.ndp-systemes.fr/',
+    'category': 'Connector',
+    'depends': ['connector'],
+    'data': [
+        'views/job_monitoring.xml',
+        'data/root_channel.xml',
+        'security/ir.model.access.csv'
+    ],
+    'description': """
+Job monitoring
+==============
+This module will show state of the jobs by canal. You must specify which channels you want to observe.""",
+    'license': 'AGPL-3',
+    'installable': True,
+    'auto_install': False,
+}

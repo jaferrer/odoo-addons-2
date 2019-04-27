@@ -50,6 +50,7 @@ class BusSendMessage(models.AbstractModel):
         self.ensure_one()
         url = "http://%s:%s/jsonrpc" % (self.recipient_subscriber_id.url, self.recipient_subscriber_id.port)
         server = jsonrpclib.Server(url)
+        connection = False
         result = 0
         try:
             args = [
@@ -67,8 +68,8 @@ class BusSendMessage(models.AbstractModel):
             raise FailedJobError(result)
         return (server, result, connection)
 
-
-    def send_odoo_message(self, model, function, message):
+    @api.multi
+    def send_odoo_message(self, model, function, code, message):
         server, result, login = self.try_connexion(raise_error=True)
         args = [
             self.recipient_subscriber_id.database,
@@ -76,6 +77,7 @@ class BusSendMessage(models.AbstractModel):
             self.recipient_subscriber_id.password,
             model,
             function,
+            code,
             message
         ]
         try:
