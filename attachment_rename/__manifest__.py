@@ -18,25 +18,22 @@
 #
 
 {
-    'name': 'Timeline - Improved',
+    'name': 'Attachment rename',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'web',
-    'depends': ['web_timeline'],
+    'category': 'Technical Settings',
+    'depends': [],
     'description': """
-Timeline improved
-=================
-Add 'timeline' in selection of view mode of act window
+Offers an interface to mass rename ir.attachment linked to a model
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/templates.xml',
+        'views/attachment_rename.xml',
     ],
     'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
-    'application': False,
 }

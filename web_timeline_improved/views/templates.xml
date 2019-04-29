@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="assets_backend" name="web_calendar_fixed_colors assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_timeline_improved/static/src/js/timeline_improved.js"></script>
+            </xpath>
+        </template>
+
+    </data>
+</odoo>

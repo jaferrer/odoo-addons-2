@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,27 +16,20 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Timeline - Improved',
+    'name': "Web fix tree header",
+
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'web',
-    'depends': ['web_timeline'],
-    'description': """
-Timeline improved
-=================
-Add 'timeline' in selection of view mode of act window
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/templates.xml',
+    'category': 'Technical',
+    'depends': ['web'],
+    'description': """A module that fix tree headers
+        """,
+    'qweb': [
     ],
-    'demo': [],
-    'test': [],
+    'data': [
+        'view/qweb.xml',
+    ],
     'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
 }
