@@ -140,20 +140,34 @@
                                 <field name="closed_by"/>
                             </group>
                         </group>
-                        <group string="Tâches" name="task_group">
-                            <field name="task_ids" nolabel="1">
-                                <tree nolabel="1" create="false" delete="false">
-                                    <field name="name"/>
-                                    <field name="user_id"/>
-                                    <field name="planned_hours"/>
-                                    <field name="priority" widget="priority"/>
-                                    <field name="stage_id"/>
-                                    <field name="tag_ids"/>
-                                </tree>
-                            </field>
-                        </group>
+                        <notebook>
+                            <page string="Tâches" name="task_page">
+                                <field name="task_ids" nolabel="1">
+                                    <tree nolabel="1" create="false" delete="false">
+                                        <field name="name"/>
+                                        <field name="user_id"/>
+                                        <field name="planned_hours"/>
+                                        <field name="priority" widget="priority"/>
+                                        <field name="stage_id"/>
+                                        <field name="tag_ids"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
+            </field>
+        </record>
+
+        <record id="project_milestone_timeline" model="ir.ui.view">
+            <field name="name">project.milestone.timeline</field>
+            <field name="model">project.milestone</field>
+            <field name="type">timeline</field>
+            <field name="arch" type="xml">
+                <timeline date_start="qualif_should_be_livred_at"
+                          date_stop="should_be_closed_at"
+                          default_group_by="project_id"
+                          colors="#ec7063: project_id == False;"/>
             </field>
         </record>
 
@@ -161,7 +175,7 @@
             <field name="name">Milestone</field>
             <field name="res_model">project.milestone</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,form,timeline</field>
             <field name="context">{'search_default_open': True}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">

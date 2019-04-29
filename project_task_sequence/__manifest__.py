@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,21 +18,18 @@
 #
 
 {
-    'name': 'Timeline - Improved',
+    'name': 'Task timesheet utility',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'web',
-    'depends': ['web_timeline'],
+    'category': 'Project',
+    'depends': ['project', 'hr_timesheet'],
     'description': """
-Timeline improved
-=================
-Add 'timeline' in selection of view mode of act window
+Task amount invoiced to the customer
+====================================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/templates.xml',
-    ],
+    'data': ['project_task_sequence.xml'],
     'demo': [],
     'test': [],
     'installable': True,

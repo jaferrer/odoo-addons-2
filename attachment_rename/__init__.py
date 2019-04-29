@@ -17,26 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Timeline - Improved',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'web',
-    'depends': ['web_timeline'],
-    'description': """
-Timeline improved
-=================
-Add 'timeline' in selection of view mode of act window
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/templates.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from . import wizard

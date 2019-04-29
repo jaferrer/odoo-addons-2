@@ -102,18 +102,20 @@
                             <field name="done_by_id"/>
                             <field name="done_effective_date"/>
                         </group>
-                        <group string="Tâches" name="task_group">
-                            <field name="task_ids" nolabel="1" attrs="{'invisible':[('project_id', '=', False)]}"
-                                   domain="[('project_id', '=', project_id)]">
-                                <tree nolabel="1">
-                                    <field name="name"/>
-                                    <field name="user_id"/>
-                                    <field name="priority" widget="priority"/>
-                                    <field name="stage_id"/>
-                                    <field name="tag_ids"/>
-                                </tree>
-                            </field>
-                        </group>
+                        <notebook>
+                            <page string="Tâches" name="task_page">
+                                <field name="task_ids" nolabel="1" attrs="{'invisible':[('project_id', '=', False)]}"
+                                       domain="[('project_id', '=', project_id)]">
+                                    <tree nolabel="1">
+                                        <field name="name"/>
+                                        <field name="user_id"/>
+                                        <field name="priority" widget="priority"/>
+                                        <field name="stage_id"/>
+                                        <field name="tag_ids"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
             </field>

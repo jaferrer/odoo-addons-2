@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,20 +18,20 @@
 #
 
 {
-    'name': 'Timeline - Improved',
+    'name': 'Multi company header fix',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'web',
-    'depends': ['web_timeline'],
+    'category': 'Web',
+    'depends': ['base_multi_company'],
     'description': """
-Timeline improved
-=================
-Add 'timeline' in selection of view mode of act window
+Multi company fix header
+========================
+This modules fix the return to the line of the companies' choice
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/templates.xml',
+        'views/qweb.xml',
     ],
     'demo': [],
     'test': [],

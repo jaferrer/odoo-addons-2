@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="assets_backend" name="web_analysis_board assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/web_analysis_board/static/src/less/web_analysis_board.less"/>
+                <script type="text/javascript" src="/web_analysis_board/static/src/js/web_analysis_board.js"/>
+            </xpath>
+        </template>
+
+    </data>
+</odoo>
