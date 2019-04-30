@@ -484,6 +484,26 @@ class StockWarehouseOrderPointJit(models.Model):
                 op.remove_unecessary_procurements(date_end)
 
     @api.model
+    def get_query_move_in(self, move_in_date_clause):
+        return ("""SELECT
+  sm.id,
+  sm.product_qty,
+  min(COALESCE(po.date_planned, sm.date)) AS date,
+  po.id
+FROM
+  stock_move sm
+  LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
+  LEFT JOIN procurement_order po ON sm.procurement_id = po.id
+WHERE
+  sm.product_id = %s
+  AND sm.state NOT IN ('cancel', 'done', 'draft')
+  AND sl.parent_left >= %s
+  AND sl.parent_left < %s""" +
+            move_in_date_clause +
+            """GROUP BY sm.id, po.id, sm.product_qty
+ORDER BY DATE""")
+
+    @api.model
     def compute_stock_levels_requirements(self, product_id, location, list_move_types, limit=1,
                                           parameter_to_sort='date', to_reverse=False, max_date=None):
         """
@@ -510,24 +530,7 @@ class StockWarehouseOrderPointJit(models.Model):
         first_date = False
         result = []
         intermediate_result = []
-        query_moves_in = """
-            SELECT
-                sm.id,
-                sm.product_qty,
-                min(COALESCE(po.date_planned, sm.date)) AS date,
-                po.id
-            FROM
-                stock_move sm
-                LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
-                LEFT JOIN procurement_order po ON sm.procurement_id = po.id
-            WHERE
-                sm.product_id = %s
-                AND sm.state NOT IN ('cancel', 'done', 'draft')
-                AND sl.parent_left >= %s
-                AND sl.parent_left < %s""" + \
-                         move_in_date_clause + \
-                         """GROUP BY sm.id, po.id, sm.product_qty
-                         ORDER BY DATE"""
+        query_moves_in = self.get_query_move_in(move_in_date_clause)
         self.env.cr.execute(query_moves_in, params)
         moves_in_tuples = self.env.cr.fetchall()
 
