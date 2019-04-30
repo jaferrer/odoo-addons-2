@@ -18,25 +18,20 @@
 #
 
 {
-    'name': 'Stock generate tracking labels',
+    'name': 'Stock Picking Complementary Binary',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['stock_delivery_tracking',
-                'generate_tracking_labels',
-                'package_weight',
-                'stock_picking_complementary_binary'],
+    'category': 'Inventory',
+    'depends': ['stock'],
     'description': """
-Stock generate tracking labels
+Stock Picking Complementary Binary'
 ==============================
-This module allows to generate tracking labels from pickings.
+This module adds a new tab to the picking's form view: Complementary Binary.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['stock_generate_tracking_labels.xml'],
-    'external_dependencies': {
-        'python': ['PyPDF2'],
-    },
+    'data': ['stock_picking_complementary_binary_views.xml'],
+    'external_dependencies': {},
     'demo': [],
     'test': [],
     'installable': True,
