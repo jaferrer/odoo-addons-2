@@ -83,7 +83,6 @@ class BusSendMessage(models.AbstractModel):
             result = server.call(service='object', method='execute', args=args)
             return result
         except jsonrpclib.ProtocolError:
-            print "_return_last_jsonrpclib_error : ", self._return_last_jsonrpclib_error()
             raise FailedJobError(self._return_last_jsonrpclib_error())
 
     def _return_last_jsonrpclib_error(self):

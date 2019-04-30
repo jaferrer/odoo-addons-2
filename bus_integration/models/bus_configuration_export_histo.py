@@ -22,9 +22,9 @@ from openerp import models, fields, api
 
 
 class BusBackendBatchHisto(models.Model):
-    _name = 'bus.backend.batch.histo'
+    _name = 'bus.configuration.export.histo'
 
-    batch_id = fields.Many2one('bus.backend.batch', string=u"Batch")
+    bus_configuration_export_id = fields.Many2one('bus.configuration.export', string=u"Batch")
     serial_id = fields.Integer(string=u"Serial ID")
     treatment = fields.Char(u"Treatment")
     model = fields.Char(u"Model")
@@ -34,19 +34,19 @@ class BusBackendBatchHisto(models.Model):
     transfer_state = fields.Selection([('started', u"Started"), ('finished', u"Finished"), ('blocked', u"Blocked"),
                                        ('error', u"Error")], default='started', string=u"Transfer state",
                                       help=u"Set finished when return sync is ok")
-    log_ids = fields.One2many('bus.backend.batch.histo.log', 'histo_id', string=u"Logs")
+    log_ids = fields.One2many('bus.configuration.export.histo.log', 'histo_id', string=u"Logs")
 
     @api.multi
     def _compute_last_job_state(self):
         for rec in self:
-            log = self.env['bus.backend.batch.histo.log'].search([('histo_id', '=', rec.id)],
+            log = self.env['bus.configuration.export.histo.log'].search([('histo_id', '=', rec.id)],
                                                                  order='create_date desc', limit=1)
             rec.last_job_state = log and log.state or False
 
     @api.multi
     def add_log(self, message_id, job_uuid, log=""):
         self.ensure_one()
-        histo_log = self.env['bus.backend.batch.histo.log'].create({
+        histo_log = self.env['bus.configuration.export.histo.log'].create({
             'histo_id': self.id,
             'message_id': message_id,
             'job_uuid': job_uuid,
@@ -56,9 +56,9 @@ class BusBackendBatchHisto(models.Model):
 
 
 class BusextendostoLog(models.Model):
-    _name = 'bus.backend.batch.histo.log'
+    _name = 'bus.configuration.export.histo.log'
 
-    histo_id = fields.Many2one("bus.backend.batch.histo", string=u"History")
+    histo_id = fields.Many2one("bus.configuration.export.histo", string=u"History")
     serial_id = fields.Integer(u"Serial ID")
     log = fields.Char(u"Log")
     job_uuid = fields.Char(string=u"Job UUID")
@@ -79,7 +79,7 @@ class BusextendostoLog(models.Model):
     def check_state(self):
         logs = self.search([('state', '=', 'running')])
         for log in logs:
-            if log.job_uid:
+            if log.job_uuid:
                 job = self.env['queue.job'].search([('uuid', '=', log.job_uid)])
                 if job.state == 'failed':
                     log.state = 'error'

@@ -47,3 +47,28 @@ class PurchaseProcurementStockMove(models.Model):
                 if end_loop:
                     break
         return result
+
+
+class PurchaseProcurementStockWarehouseOrderpoint(models.Model):
+    _inherit = 'stock.warehouse.orderpoint'
+
+    @api.model
+    def get_query_move_in(self, move_in_date_clause):
+        return ("""SELECT
+      sm.id,
+      sm.product_qty,
+      min(COALESCE(po.date_planned, sm.date)) AS date,
+      po.id
+    FROM
+      stock_move sm
+      LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
+      LEFT JOIN procurement_order po ON sm.procurement_id = po.id
+    WHERE
+      sm.product_id = %s
+      AND sm.state NOT IN ('cancel', 'done', 'draft')
+      AND sm.purchase_line_id IS NULL
+      AND sl.parent_left >= %s
+      AND sl.parent_left < %s""" +
+                move_in_date_clause +
+                """GROUP BY sm.id, po.id, sm.product_qty
+    ORDER BY DATE""")

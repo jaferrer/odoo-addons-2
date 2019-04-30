@@ -4,7 +4,7 @@
 
         <record id="bus_export_config_tree" model="ir.ui.view">
             <field name="name">bus_export_config_tree</field>
-            <field name="model">bus.backend.batch</field>
+            <field name="model">bus.configuration.export</field>
             <field name="arch" type="xml">
                 <tree string="Configuration of template exports">
                     <field name="recipient_id"/>
@@ -14,20 +14,20 @@
                     <field name="model"/>
                     <field name="serial_id"/>
                     <field name="last_transfer_state"/>
-                    <field name="init_conf" invisible="1"/>
+                    <field name="cron_created" invisible="1"/>
                     <button string="Init" name="create_cron" type="object"
-                            attrs="{'invisible':[('init_conf','=',True)]}"/>
+                            attrs="{'invisible':[('cron_created','=',True)]}"/>
                     <button string="Edit cron" name="edit_cron" type="object"
-                            attrs="{'invisible':[('init_conf','=',False)]}"/>
+                            attrs="{'invisible':[('cron_created','=',False)]}"/>
                     <button string="run" name="run_batch" type="object"
-                            attrs="{'invisible':[('init_conf','=',False)]}"/>
+                            attrs="{'invisible':[('cron_created','=',False)]}"/>
                 </tree>
             </field>
         </record>
 
         <record id="bus_export_config_form" model="ir.ui.view">
             <field name="name">bus_export_config_form</field>
-            <field name="model">bus.backend.batch</field>
+            <field name="model">bus.configuration.export</field>
             <field name="arch" type="xml">
                 <form>
                     <header>
@@ -46,7 +46,7 @@
                         <group>
 
                             <group>
-                                <field name="backend_id"/>
+                                <field name="configuration_id"/>
                                 <field name="recipient_id"/>
                                 <field name="bus_username"/>
                                 <field name="treatment_type"/>
@@ -56,7 +56,7 @@
                                 <field name="serial_id"/>
                                 <field name="model"/>
                                 <field name="domain"/>
-                                <field name="chunk"/>
+                                <field name="chunk_size"/>
                             </group>
                         </group>
                         <notebook>
@@ -71,7 +71,7 @@
 
         <record id="bus_export_config_search" model="ir.ui.view">
             <field name="name">bus_export_config_search</field>
-            <field name="model">bus.backend.batch</field>
+            <field name="model">bus.configuration.export</field>
             <field name="arch" type="xml">
                 <search string="Configuration of template exports">
                     <field name="recipient_id"/>
@@ -91,7 +91,7 @@
 
         <record model="ir.actions.act_window" id="act_window_bus_config_export">
             <field name="name">Configuration of template exports</field>
-            <field name="res_model">bus.backend.batch</field>
+            <field name="res_model">bus.configuration.export</field>
             <field name="view_mode">tree,form</field>
             <field name="help"/>
         </record>

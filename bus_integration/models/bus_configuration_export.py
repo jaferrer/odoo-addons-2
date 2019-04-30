@@ -23,12 +23,12 @@ from dateutil import relativedelta
 from openerp import models, fields, api, exceptions
 
 
-class BusextendBackendBatch(models.Model):
-    _name = 'bus.backend.batch'
+class BusConfigurationExport(models.Model):
+    _name = 'bus.configuration.export'
 
     name = fields.Char(u"Name", required=True)
-    backend_id = fields.Many2one('bus.backend', string=u"Backend")
-    recipient_id = fields.Many2one('res.partner', string=u"Recipient")
+    configuration_id = fields.Many2one('bus.configuration', string=u"Backend")
+    recipient_id = fields.Many2one('bus.base', string=u"Recipient")
     bus_username = fields.Char(u"BUS user name", related='recipient_id.bus_username', readonly=True, store=True)
     model = fields.Char(u"Model")
     bus_reception_treatment = fields.Selection([('simple_reception', u"Simple reception")],
@@ -36,27 +36,33 @@ class BusextendBackendBatch(models.Model):
     treatment_type = fields.Selection([('SYNCHRONIZATION', u"Synchronization"),
                                        ('DELETION_SYNCHRONIZATION', u"Deletion")],
                                       string=u"Treatment type", required=True)
-    init_conf = fields.Boolean(u"Init conf")
-    last_transfer_state = fields.Selection([('running', u"Running"),
-                                            ('done', u"Done"),
-                                            ('error', u"Error"),
-                                            ('never_processed', u"Never processed")],
-                                           string=u'Last transfer status', compute="_compute_last_transfer_state")
+    cron_created = fields.Boolean(u"Cron created", compute='_get_cron')
+    cron_active = fields.Boolean(u"Cron active", compute='_get_cron')
+    last_transfer_state = fields.Selection([('never_processed', u"Never processed"),
+                                            ('started', u"Started"),
+                                            ('finished', u"Finished"),
+                                            ('blocked', u"Blocked"),
+                                            ('error', u"Error")],
+                                           string=u'Last transfer status', compute="_compute_last_transfer")
+    last_transfer_id = fields.Many2one('bus.configuration.export.histo', string=u"Last transfer",
+                                       compute='_compute_last_transfer')
     serial_id = fields.Integer(u"Serial")
-    chunk = fields.Integer(u"Export chunk size")
+    chunk_size = fields.Integer(u"Export chunk size")
     domain = fields.Char(u"Domain", required=True, help=u"""
-        You can see the additional object/functions in the model bus.backend.batch.
+        You can see the additional object/functions in the model bus.configuration.export.
         You can acces to : relativedelta, self, context.
         For datetime use shorcut date, date_to_str to translate dates.
         last_send_date to get the last date of dispatch.""")
 
-    bach_histo_ids = fields.One2many('bus.backend.batch.histo', 'batch_id', string=u"Batch history")
+    bach_histo_ids = fields.One2many('bus.configuration.export.histo', 'bus_configuration_export_id',
+                                     string=u"Batch history")
 
     @api.multi
-    def _compute_last_transfer_state(self):
+    def _compute_last_transfer(self):
         for rec in self:
-            histo = self.env['bus.backend.batch.histo'].search([('serial_id', '=', rec.serial_id)],
-                                                               order="create_date desc", limit=1)
+            histo = self.env['bus.configuration.export.histo'].search([('serial_id', '=', rec.serial_id)],
+                                                                      order="create_date desc", limit=1)
+            rec.last_transfer_id = histo
             rec.last_transfer_state = histo and histo.transfer_state or 'never_processed'
 
     @api.multi
@@ -71,12 +77,12 @@ class BusextendBackendBatch(models.Model):
     @api.multi
     def create_cron(self):
         self.write({
-            'init_conf': True
+            'cron_created': True
         })
         item = {
-            'bus_bakend_id': self.id,
+            'bus_configuration_export_id': self.id,
             'name': u"batch d'export de type : %s -- > de %s pour %s --" % (self.display_name,
-                                                                            self.backend_id.sender_id.name,
+                                                                            self.configuration_id.sender_id.name,
                                                                             self.recipient_id.name),
             'user_id': 1,
             'priority': 100,
@@ -84,7 +90,7 @@ class BusextendBackendBatch(models.Model):
             'interval_number': 1,
             'numbercall': -1,
             'doall': False,
-            'model': 'bus.backend.batch',
+            'model': 'bus.configuration.export',
             'function': 'export_message_synchro',
             'args': "(%s)" % repr([self.id]),
             'active': True
@@ -95,7 +101,7 @@ class BusextendBackendBatch(models.Model):
     @api.multi
     def edit_cron(self):
         self.ensure_one()
-        cron = self.env['ir.cron'].search(['&', ('bus_bakend_id', '=', self.id),
+        cron = self.env['ir.cron'].search(['&', ('bus_configuration_export_id', '=', self.id),
                                            '|', ('active', '=', False), ('active', '=', True)])
         if not cron:
             cron = self._create_cron()
@@ -110,9 +116,16 @@ class BusextendBackendBatch(models.Model):
         }
 
     @api.multi
+    def _get_cron(self):
+        for rec in self:
+            cron = self.env['ir.cron'].search([('bus_configuration_export_id', '=', rec.id)], limit=1)
+            rec.cron_created = cron
+            rec.cron_active = cron and cron.active or False
+
+    @api.multi
     def get_serial(self, export_ids):
-        histo = self.env["bus.backend.batch.histo"].create({
-            'batch_id': self.id,
+        histo = self.env["bus.configuration.export.histo"].create({
+            'bus_configuration_export_id': self.id,
             'treatment': self.treatment_type,
             'model': self.model,
             'export_ids': export_ids,
@@ -136,8 +149,9 @@ class BusextendBackendBatch(models.Model):
     @api.multi
     def get_last_send_date(self):
         self.ensure_one()
-        histo = self.env['bus.backend.batch.histo'].search([('batch_id', '=', self.id)], order='create_date DESC',
-                                                           limit=1)
-        log = self.env['bus.backend.batch.histo.log'].search([('histo_id', '=', histo.id)],
-                                                             order='create_date DESC', limit=1)
+        histo = self.env['bus.configuration.export.histo'].search([('bus_configuration_export_id', '=', self.id)],
+                                                                  order='create_date DESC',
+                                                                  limit=1)
+        log = self.env['bus.configuration.export.histo.log'].search([('histo_id', '=', histo.id)],
+                                                                    order='create_date DESC', limit=1)
         return log.create_date

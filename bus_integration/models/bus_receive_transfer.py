@@ -34,7 +34,7 @@ class BusReceiveTransfer(models.Model):
 
     _sql_constraints = [
         # TODO : a revoir unique sur external key, surement rajouter model
-        ('bus_uniq', 'unique(external_key)', u"A binding already exists with the same external key."),
+        ('bus_uniq', 'unique(model, external_key)', u"A binding already exists with the same external key."),
         ('object_uniq', 'unique(model, local_id)', u"A binding already exists for this object"),
     ]
 

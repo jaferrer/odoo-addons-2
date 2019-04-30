@@ -24,7 +24,7 @@ class StockWarehouseBus(models.Model):
     _inherit = 'stock.warehouse'
 
     active = fields.Boolean(string=u"Active", default=True)
-    target_base_id = fields.Many2one('res.partner', string=u"Destination base",
+    target_base_id = fields.Many2one('bus.base', string=u"Destination base",
                                      domain=[('bus_username', '!=', False)])
     code_target_base = fields.Char(string=u"Code target base", related="target_base_id.bus_username", store=True,
                                    readonly=True)
