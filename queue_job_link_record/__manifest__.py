@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,22 +18,15 @@
 #
 
 {
-    'name': 'Task Auto sequence',
-    'version': '0.1',
+    'name': 'Link with the record from the Queue Job',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project', 'hr_timesheet'],
-    'description': """
-Task amount invoiced to the customer
-====================================
-""",
+    'category': 'Generic Modules',
+    'depends': ['queue_job'],
+    'description': "Link with the record from the Queue Job",
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_sequence.xml'],
-    'demo': [],
-    'test': [],
+    'data': ['queue_job_link_model.xml'],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
-    'application': False,
 }

@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Task Auto sequence',
+    'name': 'Task Type Personnal Fold',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
@@ -29,7 +29,7 @@ Task amount invoiced to the customer
 ====================================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_sequence.xml'],
+    'data': ['security/ir.model.access.csv'],
     'demo': [],
     'test': [],
     'installable': True,
