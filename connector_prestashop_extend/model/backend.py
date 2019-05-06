@@ -170,7 +170,7 @@ class prestashopextend_backend(models.Model):
                 session, 'prestashopextend.product.product', self.id, opts,
                 priority=3,
                 description=u"""%s depuis le %s pour le Shop %s""" % (
-                    self.connector_id.display_.name,
+                    self.connector_id.display_name,
                     self.env.user.format_local_date(from_date),
                     shop.name
                 )
