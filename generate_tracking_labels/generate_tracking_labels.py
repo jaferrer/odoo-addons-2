@@ -266,3 +266,13 @@ class TransporterContentType(models.Model):
     transporter_id = fields.Many2one('tracking.transporter', string=u"Transporteur")
     code = fields.Char(string=u"Code", readonly=True)
     used_by_default = fields.Boolean(string=u"Utilisé par défaut pour ce transporteur")
+
+
+class TrackingTransporter(models.Model):
+    _inherit = 'tracking.transporter'
+
+    type_produit_expedition_ids = fields.One2many('type.produit.expedition', 'transporter_id',
+                                                  string=u"Produit transporteur")
+    output_printing_type_ids = fields.One2many('output.printing.type', 'transporter_id', string=u"Format d'impression")
+    transporter_content_type_ids = fields.One2many('transporter.content.type', 'transporter_id',
+                                                   string=u"Format d'impression")

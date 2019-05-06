@@ -132,8 +132,8 @@ msgstr "Suivi express des livraisons"
 
 #. module: stock_delivery_tracking
 #: model:ir.ui.menu,name:stock_delivery_tracking.menu_tracking_by_transporter
-msgid "Tracking numbers by transporter"
-msgstr "Suivi par transporteur"
+msgid "Transporter"
+msgstr "Transporteur"
 
 #. module: stock_delivery_tracking
 #: model:ir.model,name:stock_delivery_tracking.model_stock_picking
