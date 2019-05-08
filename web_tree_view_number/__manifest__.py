@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,22 +18,26 @@
 #
 
 {
-    'name': 'Task Auto sequence',
+    'name': 'Web Tree View Number',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project', 'hr_timesheet'],
+    'category': 'web',
+    'depends': ['web'],
     'description': """
-Task amount invoiced to the customer
-====================================
+Web Tree View Number
+====================
+Align Right Header of Number column in tree view
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_sequence.xml'],
+    'data': [],
+    'qweb': [
+        "static/src/xml/qweb.xml",
+    ],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
 }

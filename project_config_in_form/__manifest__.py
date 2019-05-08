@@ -18,22 +18,22 @@
 #
 
 {
-    'name': 'Task Auto sequence',
+    'name': 'Project Config In Form',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'hr_timesheet'],
+    'depends': ['project', 'project_task_type_mono_project'],
     'description': """
-Task amount invoiced to the customer
-====================================
+Project Config In Form
+======================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_sequence.xml'],
+    'data': ['compat_views.xml'],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
 }

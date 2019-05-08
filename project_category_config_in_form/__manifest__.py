@@ -18,22 +18,22 @@
 #
 
 {
-    'name': 'Task Auto sequence',
+    'name': 'Project Category Config In Form Compat',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'hr_timesheet'],
+    'depends': ['project_task_category', 'project_config_in_form'],
     'description': """
-Task amount invoiced to the customer
-====================================
+Compatibility between project_portal and project_task_sequence
+==============================================================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_sequence.xml'],
+    'data': ['compat_views.xml'],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
 }

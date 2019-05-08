@@ -18,18 +18,18 @@
 #
 
 {
-    'name': 'Task Auto sequence',
+    'name': 'Task Invoicing',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'hr_timesheet'],
+    'depends': ['project', 'sale'],
     'description': """
-Task amount invoiced to the customer
-====================================
+Task Invoicing
+==============
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['project_task_sequence.xml'],
+    'data': ['project_task_invoicing.xml'],
     'demo': [],
     'test': [],
     'installable': True,

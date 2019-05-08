@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="project_task_tree">
+            <field name="name">project_task_tree</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_tree2"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree position="inside">
+                    <field name="time_spent"/>
+                    <field name="date_invoiced"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_task_search">
+            <field name="name">project_task_search</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_search_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <group expand="0" position="inside">
+                    <filter string="Invoice Date" name="group_date_invoiced" context="{'group_by':'date_invoiced:month'}"/>
+                </group>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="project_task_form_invoicing">
+            <field name="name">project_task_form_invoicing</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="Invoicing">
+                        <group>
+                            <field name="time_spent"/>
+                            <field name="date_invoiced"/>
+                            <field name="project_partner_id" invisible="1"/>
+                            <field name="initial_sale_line_id" domain="[('order_id.state', '!=', 'cancel'), ('order_id.partner_id', '=', project_partner_id)]"/>
+                            <field name="initial_sale_id"/>
+                        </group>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+    </data>
+</openerp>
