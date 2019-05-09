@@ -23,7 +23,7 @@ from openerp import models, fields, api, exceptions, _ as _t
 class BusObjectMappingAbstract(models.AbstractModel):
     _name = 'bus.object.mapping.abstract'
 
-    model_id = fields.Many2one('ir.model', u"Model", required=True)
+    model_id = fields.Many2one('ir.model', u"Model", required=True, context={'display_short_name': True})
     model_name = fields.Char(u"Model name", readonly=True, related='model_id.model', store=True)
     is_exportable = fields.Boolean(u"Is exportable")
     is_importable = fields.Boolean(u"Is importable")
@@ -42,13 +42,24 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
 
     field_id = fields.Many2one('ir.model.fields', u"Field", required=True,
                                context={'display_technical_field_names': True})
+    # related fields
     field_name = fields.Char(u"Field name", readonly=True, related='field_id.name', store=True)
     type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
     relation = fields.Char(string=u'Relation', related='field_id.relation', store=True, readonly=True)
+    is_computed = fields.Boolean(String=u"Computed", compute="_compute_is_computed")
+    # compute when model changes in mapping.field.configuration.helper
     map_name = fields.Char(u"Mapping name", required=True)
+    # set manually
     export_field = fields.Boolean(u"To export")
     import_field = fields.Boolean(u"To import")
     is_migration_key = fields.Boolean(u"Migration key", default=False)
+
+    @api.multi
+    @api.depends('field_id')
+    def _compute_is_computed(self):
+        for rec in self:
+            model_name = rec.field_id.model
+            rec.is_computed = model_name and self.env[model_name]._fields[rec.field_name].compute or False
 
 
 class BusObjectMapping(models.Model):

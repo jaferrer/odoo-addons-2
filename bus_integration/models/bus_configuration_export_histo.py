@@ -40,7 +40,7 @@ class BusBackendBatchHisto(models.Model):
     def _compute_last_job_state(self):
         for rec in self:
             log = self.env['bus.configuration.export.histo.log'].search([('histo_id', '=', rec.id)],
-                                                                 order='create_date desc', limit=1)
+                                                                        order='create_date desc', limit=1)
             rec.last_job_state = log and log.state or False
 
     @api.multi

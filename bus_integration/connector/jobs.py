@@ -28,7 +28,7 @@ def job_receive_message(session, model_name, message_id):
 @job(default_channel='root.send_response')
 def job_send_response(session, model_name, configuration_id, message):
     backend = session.env[model_name].browse(configuration_id)
-    return backend.send_odoo_message('bus.database.message', 'odoo_synchronization_bus', backend.reception_treatment,
+    return backend.send_odoo_message('bus.message', 'odoo_synchronization_bus', backend.reception_treatment,
                                      message)
 
 

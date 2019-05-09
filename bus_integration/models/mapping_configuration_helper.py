@@ -24,8 +24,7 @@ class MappingConfigurationHelper(models.TransientModel):
     _name = 'mapping.configuration.helper'
     _inherit = 'bus.object.mapping.abstract'
 
-    helper_line_ids = fields.One2many('mapping.configuration.helper.line', 'wizard_id',
-                                      u"Fields to parameter", required=True)
+    helper_line_ids = fields.One2many('mapping.configuration.helper.line', 'wizard_id', u"Fields to parameter")
 
     @api.onchange('model_id')
     def onchange_model_id(self):
@@ -54,6 +53,36 @@ class MappingConfigurationHelper(models.TransientModel):
                         'is_migration_key': mapping_field.is_migration_key,
                     })]
             rec.helper_line_ids = helper_line_ids
+
+    @api.multi
+    def add_all(self):
+        self.helper_line_ids = []
+        unwanted_fields = ('create_date', 'create_uid', '__last_update', 'write_date', 'write_uid', 'display_name')
+
+        fields = self.env['ir.model.fields'].search(['&',
+                                                     ('model_id', '=', self.model_id.id),
+                                                     ('name', 'not in', unwanted_fields)])
+
+        self.helper_line_ids = self.env['mapping.configuration.helper.line']
+        for field in fields:
+            self.helper_line_ids |= self.env['mapping.configuration.helper.line'].create({
+                'model_id': self.model_id.id,
+                'wizard_id': self.id,
+                'field_id': field.id,
+                'map_name': field.name,
+                'export_field': self.is_exportable,
+                'import_field': self.is_importable,
+                'is_migration_key': False,
+            })
+
+        return {
+            "type": "ir.actions.act_window",
+            "view_mode": "form",
+            'view_type': 'form',
+            "res_model": self._name,
+            "res_id": self.id,
+            "target": "new",
+        }
 
     @api.multi
     def validate(self):

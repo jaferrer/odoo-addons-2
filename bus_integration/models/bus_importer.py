@@ -86,7 +86,7 @@ class BusSynchronizationImporter(models.AbstractModel):
     def check_needed_dependency(self, record, model):
         external_key = record.get('external_key', False)
         record.get('external_key', False)
-        transfer, odoo_record = self.env['bus.binder'].get_record_by_external_key(external_key, model)
+        _, odoo_record = self.env['bus.binder'].get_record_by_external_key(external_key, model)
         if not odoo_record:
             return {'model': model, 'external_key': external_key, 'id': record.get('id', False)}
         return {}

@@ -20,6 +20,19 @@
 from openerp import models, api
 
 
+class Model(models.Model):
+    _inherit = 'ir.model'
+
+    @api.multi
+    def name_get(self):
+        if not self.env.context.get('display_short_name', False):
+            return super(Model, self).name_get()
+        result = []
+        for rec in self:
+            result.append((rec.id, rec.model))
+        return result
+
+
 class BusIrModelFields(models.Model):
     _inherit = 'ir.model.fields'
 

@@ -20,22 +20,23 @@
 from datetime import datetime
 from dateutil import relativedelta
 
-from openerp import models, fields, api, exceptions
+from openerp import models, fields, api
 
 
 class BusConfigurationExport(models.Model):
     _name = 'bus.configuration.export'
 
-    name = fields.Char(u"Name", required=True)
-    configuration_id = fields.Many2one('bus.configuration', string=u"Backend")
+    name = fields.Char(u"Name", required=True, compute="_compute_name")
+    configuration_id = fields.Many2one('bus.configuration', string=u"Backend",
+                                       default=lambda self: self.env['bus.configuration'].search([])[0])
     recipient_id = fields.Many2one('bus.base', string=u"Recipient")
     bus_username = fields.Char(u"BUS user name", related='recipient_id.bus_username', readonly=True, store=True)
-    model = fields.Char(u"Model")
+    model = fields.Char(u"Model", required=True)
     bus_reception_treatment = fields.Selection([('simple_reception', u"Simple reception")],
-                                               u"Treatment in BUS database", required=True)
+                                               u"Treatment in BUS database", default='simple_reception', required=True)
     treatment_type = fields.Selection([('SYNCHRONIZATION', u"Synchronization"),
                                        ('DELETION_SYNCHRONIZATION', u"Deletion")],
-                                      string=u"Treatment type", required=True)
+                                      string=u"Treatment type", default='SYNCHRONIZATION', required=True)
     cron_created = fields.Boolean(u"Cron created", compute='_get_cron')
     cron_active = fields.Boolean(u"Cron active", compute='_get_cron')
     last_transfer_state = fields.Selection([('never_processed', u"Never processed"),
@@ -48,7 +49,7 @@ class BusConfigurationExport(models.Model):
                                        compute='_compute_last_transfer')
     serial_id = fields.Integer(u"Serial")
     chunk_size = fields.Integer(u"Export chunk size")
-    domain = fields.Char(u"Domain", required=True, help=u"""
+    domain = fields.Char(u"Domain", required=True, default="[]", help=u"""
         You can see the additional object/functions in the model bus.configuration.export.
         You can acces to : relativedelta, self, context.
         For datetime use shorcut date, date_to_str to translate dates.
@@ -56,6 +57,15 @@ class BusConfigurationExport(models.Model):
 
     bach_histo_ids = fields.One2many('bus.configuration.export.histo', 'bus_configuration_export_id',
                                      string=u"Batch history")
+
+    @api.multi
+    @api.depends('recipient_id', 'model', 'domain')
+    def _compute_name(self):
+        for rec in self:
+            rec.name = "%s%s_to_%s" % (
+                rec.model or "[_]",
+                "" if rec.domain == "[]" else "[...]",
+                rec.recipient_id.name or "[_]")
 
     @api.multi
     def _compute_last_transfer(self):
@@ -68,11 +78,8 @@ class BusConfigurationExport(models.Model):
     @api.multi
     def run_batch(self):
         self.ensure_one()
-        if self.treatment_type == 'SYNCHRONIZATION':
-            return self.env['bus.exporter'].run_export(self.id)
-        if self.treatment_type == 'DELETION_SYNCHRONIZATION':
-            return self.env['bus.exporter'].run_export(self.id, deletion=True)
-        raise exceptions.ValidationError(u"No treatment Found")
+        is_deletion_treatment = self.treatment_type == 'DELETION_SYNCHRONIZATION'
+        return self.env['bus.exporter'].run_export(self.id, is_deletion_treatment)
 
     @api.multi
     def create_cron(self):

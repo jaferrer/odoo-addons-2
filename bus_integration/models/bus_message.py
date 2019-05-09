@@ -18,7 +18,6 @@
 #
 
 import json
-
 from openerp import models, fields, api
 
 
@@ -35,16 +34,48 @@ class BusMessage(models.Model):
     extra_content = fields.Text(u"Extra-content")
     message = fields.Text(u"Message")
     type = fields.Selection([('received', u"Received"), ('sent', u"Sent")], u"Message Type", required=True)
-    treatment = fields.Selection([('SYNCHRONIZATION', u"Synchronization"),
-                                  ('DEPENDENCY_SYNCHRONIZATION', u"Dependency synchronization"),
-                                  ('DEPENDENCY_DEMAND_SYNCHRONIZATION', u"Dependency demand sychronization"),
-                                  ('SYNCHRONIZATION_RETURN', u"Synchronization return"),
-                                  ('DELETION_SYNCHRONIZATION', u"Deletion synchronization"),
-                                  ('DELETION_SYNCHRONIZATION_RETURN', u"Deletion synchronization return"),
+    treatment = fields.Selection([('SYNCHRONIZATION', u"Synchronization request"),
+                                  ('DEPENDENCY_SYNCHRONIZATION', u"Dependency response"),
+                                  ('DEPENDENCY_DEMAND_SYNCHRONIZATION', u"Dependency request"),
+                                  ('SYNCHRONIZATION_RETURN', u"Synchronization response"),
+                                  ('DELETION_SYNCHRONIZATION', u"Deletion request"),
+                                  ('DELETION_SYNCHRONIZATION_RETURN', u"Deletion response"),
                                   ], u"Treatment", required=True)
     state = fields.Selection([('reception', u"Recetion"), ('send', u"Send"), ('error', u"Error"),
                               ('warning', u"Warning")], string=u"State")
     log_ids = fields.One2many('bus.message.log', 'message_id', string=u"Logs")
+
+    # computed fields
+    body_root_pretty_print = fields.Text(u"Body root", compute="_compute_body_pretty_print")
+    body_dependencies_pretty_print = fields.Text(u"Body dependencies", compute="_compute_body_pretty_print")
+    body_models = fields.Text(u"Models", compute="_compute_body_message_models")
+
+    @api.multi
+    def _compute_body_pretty_print(self):
+        for rec in self:
+            try:
+                message_dict = json.loads(rec.body, encoding='utf-8')
+                models_node = 'demand' if 'demand' in message_dict.keys() else 'root'
+                body_root = {models_node: message_dict.get(models_node, {})}
+                body_deps = {'dependency': message_dict.get('dependency', {})}
+                rec.body_root_pretty_print = json.dumps(body_root, indent=4)
+                rec.body_dependencies_pretty_print = json.dumps(body_deps, indent=4)
+            except ValueError:
+                rec.body_root_pretty_print = rec.body
+
+    @api.multi
+    def _compute_body_message_models(self):
+        for rec in self:
+            try:
+                message_dict = json.loads(rec.body, encoding='utf-8')
+                models_node = 'demand' if 'demand' in message_dict.keys() else 'root'
+                root = message_dict.get(models_node, {})
+                models_result = []
+                for model in root.keys():
+                    models_result.append(str(model))
+                rec.body_models = ', '.join(models_result)
+            except ValueError:
+                rec.body_models = 'could not parse message'
 
     @api.multi
     def name_get(self):
@@ -57,9 +88,9 @@ class BusMessage(models.Model):
             message_dict = {}
         extra_content_dict = {key: message_dict[key] for key in message_dict if key not in ['body', 'header']}
         message = self.create({
-            'body': message_dict.get('body', """"""),
-            'message': json.dumps(message_dict, indent=4),
-            'extra_content': extra_content_dict and json.dumps(extra_content_dict, indent=4) or """""",
+            'body': json.dumps(message_dict.get('body', """""")),
+            'message': json.dumps(message_dict),
+            'extra_content': extra_content_dict and json.dumps(extra_content_dict) or """""",
             'type': type,
             'treatment': message_dict.get('header', {}).get('treatment'),
             'id_serial': message_dict.get('header', {}).get('serial_id'),
