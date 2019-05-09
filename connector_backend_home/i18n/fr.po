@@ -1,0 +1,473 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* connector_backend_home
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 9.0c\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-07 10:37+0000\n"
+"PO-Revision-Date: 2019-05-07 10:37+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: connector_backend_home
+#: field:backend.connector.info.line,active:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_active
+msgid "Actif"
+msgstr "Actif"
+
+#. module: connector_backend_home
+#: field:backend.connector.info.line,connector_id:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_connector_id
+#: model:ir.ui.menu,name:connector_backend_home.menu_home_backend_root
+msgid "Backend Connector"
+msgstr "Connecteurs en Arrière-Plan"
+
+#. module: connector_backend_home
+#: model:ir.ui.menu,name:connector_backend_home.menu_home_backend
+msgid "Backend Home"
+msgstr "Serveurs Distants"
+
+#. module: connector_backend_home
+#: field:backend.connector.info.line,home_id:0
+#: field:backend.type.line,home_id:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_home_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_line_home_id
+msgid "Backend home"
+msgstr "Serveur distant"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,backend_type_id:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_backend_type_id
+msgid "Backend type"
+msgstr "Type de Serveur"
+
+#. module: connector_backend_home
+#: field:connector.type.odoo.parameter,db_odoo:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_db_odoo
+msgid "Base de données odoo"
+msgstr "Base de Données Odoo"
+
+#. module: connector_backend_home
+#: field:connector.type.magento.parameter,http_pwd:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_http_pwd
+msgid "Basic Auth. Password"
+msgstr "Mot de Passe d'Authentification HTTP"
+
+#. module: connector_backend_home
+#: field:connector.type.magento.parameter,http_user:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_http_user
+msgid "Basic Auth. Username"
+msgstr "Identifiant d'Authentification HTTP"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,comment:0
+#: field:backend.home,comment:0
+#: field:backend.type,comment:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_comment
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_comment
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_comment
+msgid "Comment"
+msgstr "Commentaire"
+
+#. module: connector_backend_home
+#: field:backend.home,type_ids:0
+#: field:backend.type.line,type_id:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_type_ids
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_line_type_id
+msgid "Connector Type"
+msgstr "Type de Connecteur"
+
+#. module: connector_backend_home
+#: field:backend.connector.info.line,line_id:0
+#: field:connector.type.ftp.parameter,line_id:0
+#: field:connector.type.local.parameter,line_id:0
+#: field:connector.type.magento.parameter,line_id:0
+#: field:connector.type.odoo.parameter,line_id:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_line_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_line_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_local_parameter_line_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_line_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_line_id
+msgid "Connector Type line"
+msgstr "Ligne de Connecteur"
+
+#. module: connector_backend_home
+#: field:backend.home,connector_pull_ids:0
+#: field:backend.home,connector_push_ids:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_connector_pull_ids
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_connector_push_ids
+msgid "Connectors"
+msgstr "Connecteurs"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,create_uid:0
+#: field:backend.connector.info.line,create_uid:0
+#: field:backend.home,create_uid:0
+#: field:backend.type,create_uid:0
+#: field:backend.type.line,create_uid:0
+#: field:connector.type.ftp.parameter,create_uid:0
+#: field:connector.type.local.parameter,create_uid:0
+#: field:connector.type.magento.parameter,create_uid:0
+#: field:connector.type.odoo.parameter,create_uid:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_create_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_create_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_create_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_create_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_line_create_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_create_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_local_parameter_create_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_create_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,create_date:0
+#: field:backend.connector.info.line,create_date:0
+#: field:backend.home,create_date:0
+#: field:backend.type,create_date:0
+#: field:backend.type.line,create_date:0
+#: field:connector.type.ftp.parameter,create_date:0
+#: field:connector.type.local.parameter,create_date:0
+#: field:connector.type.magento.parameter,create_date:0
+#: field:connector.type.odoo.parameter,create_date:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_create_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_create_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_create_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_create_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_line_create_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_create_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_local_parameter_create_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_create_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: connector_backend_home
+#: selection:connector.type.ftp.parameter,protocol:0
+msgid "Ftp"
+msgstr "FTP"
+
+#. module: connector_backend_home
+#: model:ir.actions.act_window,name:connector_backend_home.action_home_backend
+msgid "Home Backends"
+msgstr "Serveurs distants"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,id:0
+#: field:backend.connector.info.line,id:0
+#: field:backend.home,id:0
+#: field:backend.type,id:0
+#: field:backend.type.line,id:0
+#: field:connector.type.ftp.parameter,id:0
+#: field:connector.type.local.parameter,id:0
+#: field:connector.type.magento.parameter,id:0
+#: field:connector.type.odoo.parameter,id:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_line_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_local_parameter_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_id
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_id
+msgid "ID"
+msgstr "ID"
+
+#. module: connector_backend_home
+#: field:backend.connector.info.line,init_conf:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_init_conf
+msgid "Init conf"
+msgstr "Initialisation de la Configuration"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,write_uid:0
+#: field:backend.connector.info.line,write_uid:0
+#: field:backend.home,write_uid:0
+#: field:backend.type,write_uid:0
+#: field:backend.type.line,write_uid:0
+#: field:connector.type.ftp.parameter,write_uid:0
+#: field:connector.type.local.parameter,write_uid:0
+#: field:connector.type.magento.parameter,write_uid:0
+#: field:connector.type.odoo.parameter,write_uid:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_write_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_write_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_write_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_line_write_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_write_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_write_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_local_parameter_write_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_write_uid
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_write_uid
+msgid "Last Updated by"
+msgstr "Dernière MAJ par"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,write_date:0
+#: field:backend.connector.info.line,write_date:0
+#: field:backend.home,write_date:0
+#: field:backend.type,write_date:0
+#: field:backend.type.line,write_date:0
+#: field:connector.type.ftp.parameter,write_date:0
+#: field:connector.type.local.parameter,write_date:0
+#: field:connector.type.magento.parameter,write_date:0
+#: field:connector.type.odoo.parameter,write_date:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_write_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_write_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_write_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_line_write_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_write_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_write_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_local_parameter_write_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_write_date
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_write_date
+msgid "Last Updated on"
+msgstr "Dernière MAJ le"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,method_name:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_method_name
+msgid "Method Name"
+msgstr "Nom de Méthode"
+
+#. module: connector_backend_home
+#: field:connector.type.odoo.parameter,method_odoo:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_method_odoo
+msgid "Method Odoo"
+msgstr "Méthode Odoo"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,model_name:0
+#: field:backend.type,model_name:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_model_name
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_model_name
+msgid "Model Name"
+msgstr "Nom de Modèle"
+
+#. module: connector_backend_home
+#: field:connector.type.odoo.parameter,model_odoo:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_model_odoo
+msgid "Model Odoo"
+msgstr "Modèle Odoo"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,name:0
+#: field:backend.home,name:0
+#: field:backend.type,name:0
+#: field:backend.type.line,name:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_name
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_name
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_line_name
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_name
+msgid "Name"
+msgstr "Nom"
+
+#. module: connector_backend_home
+#: field:backend.home,partner_id:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_partner_id
+msgid "Owner"
+msgstr "Propriétaire"
+
+#. module: connector_backend_home
+#: field:connector.type.ftp.parameter,pwd:0
+#: field:connector.type.magento.parameter,api_pwd:0
+#: field:connector.type.odoo.parameter,api_pwd:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_pwd
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_api_pwd
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_api_pwd
+msgid "Password"
+msgstr "Mot de passe"
+
+#. module: connector_backend_home
+#: field:backend.connector.info,image:0
+#: field:backend.type,image:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_image
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_image
+msgid "Photo"
+msgstr "Image"
+
+#. module: connector_backend_home
+#: field:connector.type.ftp.parameter,protocol:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_protocol
+msgid "Protocol"
+msgstr "Protocole"
+
+#. module: connector_backend_home
+#: selection:backend.connector.info,type:0
+msgid "Pull Data"
+msgstr "Descendant"
+
+#. module: connector_backend_home
+#: selection:backend.connector.info,type:0P
+msgid "Push Data"
+msgstr "Ascendant"
+
+#. module: connector_backend_home
+#: selection:connector.type.ftp.parameter,protocol:0
+msgid "Sftp"
+msgstr "SFTP"
+
+#. module: connector_backend_home
+#: help:backend.connector.info,image:0
+#: help:backend.type,image:0
+#: model:ir.model.fields,help:connector_backend_home.field_backend_connector_info_image
+#: model:ir.model.fields,help:connector_backend_home.field_backend_type_image
+msgid "This field holds the image used as image for the cateogry, limited to 1024x1024px."
+msgstr "Ce champ contient l'image utilisée pour la Catégorie, limitée à 1024x1024px."
+
+#. module: connector_backend_home
+#: field:backend.connector.info,type:0
+#: field:backend.connector.info.line,type:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_type
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_type
+msgid "Type"
+msgstr "Type"
+
+#. module: connector_backend_home
+#: field:connector.type.magento.parameter,use_http:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_use_http
+msgid "Use HTTP Auth Basic"
+msgstr "Utiliser l'Authentification HTTP"
+
+#. module: connector_backend_home
+#: field:connector.type.ftp.parameter,user:0
+#: field:connector.type.magento.parameter,api_user:0
+#: field:connector.type.odoo.parameter,api_user:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_user
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_api_user
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_api_user
+msgid "Username"
+msgstr "Identifiant"
+
+#. module: connector_backend_home
+#: field:backend.home,warehouse_id:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_home_warehouse_id
+msgid "Warehouse"
+msgstr "Entrepôt"
+
+#. module: connector_backend_home
+#: field:connector.type.magento.parameter,url:0
+#: field:connector.type.odoo.parameter,url:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_magento_parameter_url
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_odoo_parameter_url
+msgid "api"
+msgstr "API"
+
+#. module: connector_backend_home
+#: field:connector.type.ftp.parameter,archive_path:0
+#: field:connector.type.local.parameter,archive_path:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_archive_path
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_local_parameter_archive_path
+msgid "archive path"
+msgstr "Chemin des Archives"
+
+#. module: connector_backend_home
+#: field:ir.cron,connector_id:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_ir_cron_connector_id
+msgid "connector line"
+msgstr "ligne de connecteur"
+
+#. module: connector_backend_home
+#: field:connector.type.ftp.parameter,url:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_url
+msgid "server"
+msgstr "serveur"
+
+#. module: connector_backend_home
+#: field:connector.type.ftp.parameter,target_path:0
+#: field:connector.type.local.parameter,target_path:0
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_ftp_parameter_target_path
+#: model:ir.model.fields,field_description:connector_backend_home.field_connector_type_local_parameter_target_path
+msgid "target path"
+msgstr "chemin cible"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_home_backend_form
+msgid "Parameters"
+msgstr "Paramètres"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_home_backend_form
+msgid "Connector Parameters"
+msgstr "Paramètres de Connecteur"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_home_backend_form
+msgid "Connector Pull Data"
+msgstr "Connecteur Descendant"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_home_backend_form
+msgid "Init"
+msgstr "Initialisation"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_home_backend_form
+msgid "Edit cron"
+msgstr "Modifier le Cron"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_home_backend_form
+msgid "run"
+msgstr "Exécuter"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_home_backend_form
+msgid "Connector Push Data"
+msgstr "Connecteur Ascendant"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_home_backend_tree
+msgid "Home Backend"
+msgstr "Serveur Distant"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_magento_parameter_form
+msgid "HTTP Authentication"
+msgstr "Authentification HTTP"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_magento_parameter_form
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_odoo_parameter_form
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_ftp_parameter_form
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_local_parameter_form
+msgid "Save"
+msgstr "Sauvegarder"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_magento_parameter_form
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_odoo_parameter_form
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_ftp_parameter_form
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_local_parameter_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: connector_backend_home
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_magento_parameter_form
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_odoo_parameter_form
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_ftp_parameter_form
+#: model:ir.ui.view,arch_db:connector_backend_home.view_type_local_parameter_form
+msgid "or"
+msgstr "ou"
+
+#. module: connector_backend_home
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_cron
+msgid "cron is active"
+msgstr "Cron Actif"
+
+#. module: connector_backend_home
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_connector_info_line_image
+msgid "Icon"
+msgstr "Image"
+
+#. module: connector_backend_home
+#: model:ir.model.fields,field_description:connector_backend_home.field_backend_type_line_image
+msgid "Photo"
+msgstr "Image"

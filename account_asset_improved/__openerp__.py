@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,25 +18,22 @@
 #
 
 {
-    'name': 'Stock generate tracking labels',
-    'version': '0.1',
+    'name': 'Account assets improved',
+    'summary': """Improves assets management""",
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['stock_delivery_tracking',
-                'generate_tracking_labels',
-                'package_weight',
-                'stock_picking_complementary_binary'],
+    'version': '1.0',
+    'category': 'Account',
+    'depends': ['account_asset'],
+    'license': 'AGPL-3',
     'description': """
-Stock generate tracking labels
-==============================
-This module allows to generate tracking labels from pickings.
-""",
+Account assets improved
+=======================
+
+This module improves assets management.
+    """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['stock_generate_tracking_labels.xml'],
-    'external_dependencies': {
-        'python': ['PyPDF2'],
-    },
+    'data': ['account_asset_improved.xml'],
     'demo': [],
     'test': [],
     'installable': True,
