@@ -39,7 +39,8 @@ class BusSynchronizationImporter(models.AbstractModel):
                 for record in root.get(model).values():
                     result = self.run_import(message_id, record, model, dependencies)
                     original_id = record.get('id', False)
-                    result.update({'bus_original_id': original_id})
+                    if result:
+                        result.update({'bus_original_id': original_id})
                     import_results[model][original_id] = result
         return import_results, demand
 
@@ -77,7 +78,7 @@ class BusSynchronizationImporter(models.AbstractModel):
                     }
                     self.env['bus.message.log'].create({
                         'message_id': message_id,
-                        'log': 'info',
+                        'type': 'info',
                         'information': u"Need record id : %s model : %s" % (str_id, needed_model)
                     })
         return demand

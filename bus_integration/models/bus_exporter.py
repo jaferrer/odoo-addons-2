@@ -301,6 +301,15 @@ class BusSynchronizationExporter(models.AbstractModel):
         resp['header']['dest'] = dest
         resp['header']['treatment'] = 'DEPENDENCY_SYNCHRONIZATION'
         demand = message_dict.get('body', {}).get('demand', {})
+        model_content, dependancy_content = self._generate_dependance_message(message_id, demand)
+        resp['body']['root'] = model_content
+        resp['body']['dependency'] = dependancy_content
+        self.env['bus.message'].create_message(resp, type='sent', configuration_id=message.configuration_id.id)
+        response = json.dumps(resp)
+        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration', message.configuration_id.id, response)
+        return True
+
+    def _generate_dependance_message(self, message_id, demand):
         model_content = {}
         dependency_content = {}
         for model_name in demand.keys():
@@ -309,7 +318,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             if len(exported_records) != len(record_ids):
                 self.env['bus.message.log'].create({
                     'message_id': message_id,
-                    'log': 'warning',
+                    'type': 'warning',
                     'information': u"All requested records not found : %s" % record_ids
                 })
             result = self._generate_msg_body(exported_records, model_name)
@@ -317,12 +326,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             for dep_model, dep_value in result.get('body', {}).get('dependency', {}).items():
                 dependency_content.setdefault(dep_model, dependency_content.get(dep_model, {}))
                 dependency_content[dep_model].update(dep_value)
-        resp['body']['root'] = model_content
-        resp['body']['dependency'] = dependency_content
-        self.env['bus.message'].create_message(resp, type='sent', configuration_id=message.configuration_id.id)
-        response = json.dumps(resp)
-        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration', message.configuration_id.id, response)
-        return True
+        return model_content, dependency_content
 
     @api.model
     def send_deletion_return_message(self, message_id, return_message):
