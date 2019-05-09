@@ -48,7 +48,7 @@ class AccountAssetDepreciationLineImproved(models.Model):
     def create(self, vals):
         depreciation_date = vals.get('depreciation_date')
         asset = self.env['account.asset.asset'].browse(vals['asset_id'])
-        if depreciation_date and asset.method_time == 'number' and asset.account_moves_end_period:
+        if depreciation_date and asset.method_time == 'number' and asset.account_moves_end_fiscalyear:
             vals['depreciation_date'] = asset.company_id. \
                 compute_fiscalyear_dates(fields.Date.from_string(depreciation_date))['date_to']
         return super(AccountAssetDepreciationLineImproved, self).create(vals)
