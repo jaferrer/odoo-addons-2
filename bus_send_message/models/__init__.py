@@ -17,4 +17,4 @@
 #    along with this
 #
 
-from . import bus_send_message
+from . import bus_connexion_abstract

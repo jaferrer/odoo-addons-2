@@ -22,25 +22,24 @@ import json
 import jsonrpclib
 import logging
 
-from openerp import fields, models, api, exceptions
-from openerp.tools.safe_eval import safe_eval
+from openerp import fields, models, api
 from openerp.addons.connector.exception import FailedJobError
 
 _logger = logging.getLogger(__name__)
 
 
-class BusSendMessage(models.AbstractModel):
-    _name = 'bus.send.message'
+class BusConnexionAbstract(models.AbstractModel):
+    _name = 'bus.connexion.abstract'
 
     url = fields.Char(u"Url")
     port = fields.Char(u"Port")
     database = fields.Char(u"Database")
     login = fields.Char(u"Login")
     password = fields.Char(u"Password")
-    connection_status = fields.Char(string=u"Connection status", compute="get_connexion")
+    connection_status = fields.Char(string=u"Connection status", compute="_compute_connexion_state")
 
     @api.multi
-    def get_connexion(self):
+    def _compute_connexion_state(self):
         for rec in self:
             server, res, connection = rec.try_connexion()
             rec.connection_status = res
@@ -48,15 +47,14 @@ class BusSendMessage(models.AbstractModel):
     @api.multi
     def try_connexion(self, raise_error=False):
         self.ensure_one()
-        url = "http://%s:%s/jsonrpc" % (self.recipient_subscriber_id.url, self.recipient_subscriber_id.port)
+        url = "http://%s:%s/jsonrpc" % (self.url, self.port)
         server = jsonrpclib.Server(url)
         connection = False
-        result = 0
         try:
             args = [
-                self.recipient_subscriber_id.database,
-                self.recipient_subscriber_id.login,
-                self.recipient_subscriber_id.password
+                self.database,
+                self.login,
+                self.password
             ]
             connection = server.call(service="common", method="login", args=args)
             result = u"Error Login/Password" if connection == 0 else u"OK"
@@ -66,15 +64,15 @@ class BusSendMessage(models.AbstractModel):
             result = self._return_last_jsonrpclib_error()
         if raise_error and result != "OK":
             raise FailedJobError(result)
-        return (server, result, connection)
+        return server, result, connection
 
     @api.multi
     def send_odoo_message(self, model, function, code, message):
         server, result, login = self.try_connexion(raise_error=True)
         args = [
-            self.recipient_subscriber_id.database,
+            self.database,
             login,
-            self.recipient_subscriber_id.password,
+            self.password,
             model,
             function,
             code,
