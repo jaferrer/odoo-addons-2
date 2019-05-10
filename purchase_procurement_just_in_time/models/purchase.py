@@ -118,6 +118,16 @@ WHERE pol.id = %s""", (order_line.id,))
         return ['approved']
 
     @api.multi
+    def action_picking_create(self):
+        """ set the stock picking company of the purchase order to the company of the purchase order
+        http://issues.ndp-systemes.fr/web/#id=3855&view_type=form&model=project.task&menu_id=102&action=148 """
+        self.ensure_one()  #  many records not managed by super().action_picking_create()
+        picking_id = super(PurchaseOrderJustInTime, self).action_picking_create()
+        picking = self.env['stock.picking'].browse(picking_id)
+        picking.company_id = self.company_id
+        return picking.id
+
+    @api.multi
     def action_cancel(self):
         order_line_ids = []
         for rec in self:
@@ -166,7 +176,7 @@ WHERE pol.id = %s""", (order_line.id,))
                     line.adjust_moves_qties(line.product_qty)
 
     @api.multi
-    def all_pickings_done_or_cancel(self):
+    def _all_pickings_done_or_cancel(self):
         for purchase in self:
             for picking in purchase.picking_ids:
                 if picking.state not in ['done', 'cancel']:
@@ -174,7 +184,7 @@ WHERE pol.id = %s""", (order_line.id,))
         return True
 
     @api.multi
-    def order_totally_received(self):
+    def _order_totally_received(self):
         for purchase in self:
             for order_line in purchase.order_line:
                 if float_compare(order_line.remaining_qty, 0, precision_rounding=order_line.product_uom.rounding) > 0:
@@ -184,8 +194,8 @@ WHERE pol.id = %s""", (order_line.id,))
     @api.multi
     def test_moves_done(self):
         """PO is done at the delivery side if all the pickings are done or cancel, and order not totally received."""
-        if self.all_pickings_done_or_cancel():
-            if self.order_totally_received():
+        if self._all_pickings_done_or_cancel():
+            if self._order_totally_received():
                 return True
         return False
 
@@ -193,8 +203,8 @@ WHERE pol.id = %s""", (order_line.id,))
     def test_moves_except(self):
         """PO is in exception at the delivery side if all the pickings are done or cancel, and order is not totally
         received."""
-        if self.all_pickings_done_or_cancel():
-            if not self.order_totally_received():
+        if self._all_pickings_done_or_cancel():
+            if not self._order_totally_received():
                 return True
         return False
 
