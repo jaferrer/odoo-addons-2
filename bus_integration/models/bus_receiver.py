@@ -83,8 +83,8 @@ class BusSynchronizationReceiver(models.AbstractModel):
         message = self.env['bus.message'].browse(message_id)
         message_dict = json.loads(message.message)
         serial_id = message_dict.get('header', {}).get('serial_id', False)
-        histo = self.env['bus.configuration.export.histo'].search([('serial_id', '=', serial_id)], order="create_date desc",
-                                                           limit=1)
+        histo = self.env['bus.configuration.export.histo'].search([('serial_id', '=', serial_id)],
+                                                                  order="create_date desc", limit=1)
         return_res = message_dict.get('body', {}).get('return', {})
         result = return_res.get('result', False)
         if result:
