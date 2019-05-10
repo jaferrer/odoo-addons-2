@@ -25,3 +25,8 @@ msgstr "Approvisionnement"
 msgid "Stock Move"
 msgstr "Mouvement de stock"
 
+#. module: stock_procurement_split
+#: field:procurement.order,split_from_id:0
+msgid "Split From"
+msgstr "Découpé depuis"
+

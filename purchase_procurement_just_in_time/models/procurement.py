@@ -297,6 +297,17 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
                 procs_for_first_line_ids += [proc['id']]
                 remaining_qty -= proc_qty_pol_uom
             else:
+                if float_compare(remaining_qty, 0, precision_rounding=pol.product_uom.rounding) > 0:
+                    pol_remaining_qty_proc_uom = self.env['product.uom']._compute_qty(pol.product_uom.id,
+                                                                                      remaining_qty,
+                                                                                      proc['product_uom'])
+                    old_proc = self.env['procurement.order'].search([("id", "=", proc['id'])])[0]
+                    new_proc = old_proc.split(pol_remaining_qty_proc_uom,
+                                              force_move_dest_id=old_proc.move_dest_id.id,
+                                              force_state=old_proc.state)
+                    procs_for_first_line_ids += [new_proc.id]
+                    proc['product_qty'] = old_proc.product_qty
+                    remaining_qty -= remaining_qty
                 break
         if not dict_procs_lines.get(pol.order_id.id):
             dict_procs_lines[pol.order_id.id] = {}

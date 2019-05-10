@@ -245,15 +245,23 @@ class TestPurchaseScheduler(common.TransactionCase):
         order_other_supplier = self.env['purchase.order'].create({'partner_id': self.supplier2.id,
                                                                   'location_id': self.location_a.id,
                                                                   'pricelist_id': self.ref('purchase.list0')})
-        self.env['purchase.order.line'].create({'name': "product 1",
-                                                'product_id': self.product1.id,
-                                                'date_planned': "2016-12-01",
-                                                'order_id': order_other_supplier.id,
-                                                'price_unit': 2,
-                                                'product_qty': 10})
+
+        pol = self.env['purchase.order.line'].create({'name': "product 1",
+                                                      'product_id': self.product1.id,
+                                                      'date_planned': "2016-12-01",
+                                                      'order_id': order_other_supplier.id,
+                                                      'price_unit': 2,
+                                                      'product_qty': 10})
+
+        before_split = self.proc1.product_qty
+
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_product_ids=self.product1,
                                                         jobify=False)
+
+        proc_split = self.env['procurement.order'].search([('purchase_line_id', '=', pol.id),
+                                                           ('state', 'not in', ['done', 'cancel'])])
+
         purchase1 = self.proc1.purchase_id
         purchase2 = self.proc2.purchase_id
         purchase3 = self.proc3.purchase_id
@@ -262,9 +270,14 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertTrue(purchase1)
         self.assertTrue(purchase2)
         self.assertFalse(purchase3)
-        self.assertFalse(purchase5)
+        self.assertTrue(purchase5)
 
-        self.assertEqual(purchase2, purchase1)
+        self.assertTrue(proc_split)
+        self.assertEqual(proc_split.split_from_id, self.proc1)
+        all_prod_qty = self.proc1.product_qty + proc_split.product_qty
+        self.assertEqual(before_split, all_prod_qty)
+
+        self.assertEqual(purchase2, purchase1, purchase5)
         self.assertEqual(purchase1.date_order[:10], '3003-08-22')
 
         other_draft_order = self.env['purchase.order'].search([('state', '=', 'draft'),
@@ -550,19 +563,28 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.assertIn(self.proc1, line1.procurement_ids)
         self.assertIn(self.proc2, line1.procurement_ids)
 
+        before_split = self.proc2.product_qty
+
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_product_ids=self.product1,
                                                         jobify=False)
-        # proc2 was removed from this line, and there is still only one move linked
-        self.assertEqual(line1.procurement_ids, self.proc1)
+        split_proc = self.env['procurement.order'].search([('split_from_id', '=', self.proc2.id)])
+        total_proc_split = split_proc.product_qty + self.proc2.product_qty
+        self.assertTrue(split_proc)
+        # proc2 was splited from this line, and there is still only one move linked
+        self.assertEqual(len(line1.procurement_ids), 2)
+        self.assertIn(self.proc1, line1.procurement_ids)
+        self.assertIn(split_proc, line1.procurement_ids)
+        self.assertEqual(before_split, total_proc_split)
         self.assertEqual(len(line1.move_ids), 1)
         self.assertEqual(line1.move_ids.product_qty, 35)
         self.assertFalse(line1.move_ids.procurement_id)
 
         line1.product_qty = 40
 
-        self.assertEqual(len(line1.procurement_ids), 1)
-        self.assertEqual(line1.procurement_ids, self.proc1)
+        self.assertEqual(len(line1.procurement_ids), 2)
+        self.assertIn(self.proc1, line1.procurement_ids)
+        self.assertIn(split_proc, line1.procurement_ids)
         self.assertEqual(len(line1.move_ids.filtered(lambda move: move.state != 'cancel')), 2)
         m1, m2 = [self.env['stock.move']] * 2
         for move in line1.move_ids.filtered(lambda move: move.state != 'cancel'):
@@ -590,9 +612,14 @@ class TestPurchaseScheduler(common.TransactionCase):
         self.env['procurement.order'].purchase_schedule(compute_all_products=False,
                                                         compute_product_ids=self.product1,
                                                         jobify=False)
-        self.assertEqual(len(line1.procurement_ids), 2)
+        self.assertEqual(len(line1.procurement_ids), 4)
         self.assertIn(self.proc1, line1.procurement_ids)
         self.assertIn(self.proc2, line1.procurement_ids)
+        self.assertIn(self.proc5, line1.procurement_ids)
+        self.assertIn(split_proc, line1.procurement_ids)
+        proc_line_total = self.proc5.product_qty + self.proc2.product_qty + \
+                          self.proc1.product_qty + split_proc.product_qty
+        self.assertEqual(proc_line_total, 40)
         self.assertNotIn(self.proc3, line1.procurement_ids)
 
     def test_24_move_change_running_procurement_of_order(self):
