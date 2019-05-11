@@ -25,9 +25,9 @@ from odoo import fields, models, api
 class GitlabSync(models.Model):
     _inherit = 'project.task'
 
-    effective_hours = fields.Float(string=u"Time spent")
-    remaining_hours = fields.Float(string=u"Remaining Time")
-    planned_hours = fields.Float(string=u"Planned Time")
+    effective_hours = fields.Float(u"Time spent")
+    remaining_hours = fields.Float(u"Remaining Time")
+    planned_hours = fields.Float(u"Planned Time")
 
     @api.multi
     def add_line_timesheet(self):
@@ -49,8 +49,7 @@ class TaskTimeSheetAmount(models.TransientModel):
     comment = fields.Char(u"Additionnal Comment")
     amount_days = fields.Float(u"Temps (Jours)",
                                compute='_compute_amount_days',
-                               inverse='_inverse_amount_days',
-                               required=True)
+                               inverse='_inverse_amount_days')
     amount_hours = fields.Float(u"Temps (Heures)", required=True)
     lissage = fields.Selection(
         [
