@@ -47,8 +47,10 @@ class TaskTimeSheetAmount(models.TransientModel):
 
     date = fields.Date(u"Date", default=fields.Date.context_today, required=True)
     comment = fields.Char(u"Additionnal Comment")
-    amount_days = fields.Float(u"Temps (Jours)", required=True)
-    amount_hours = fields.Float(u"Temps (Heure)", required=True)
+    amount_days = fields.Float(u"Temps (Jours)",
+                               compute='_compute_amount_days',
+                               inverse='_inverse_amount_days')
+    amount_hours = fields.Float(u"Temps (Heures)", required=True)
     lissage = fields.Selection(
         [
             ('none', u"Aucun lissage"),
@@ -60,13 +62,17 @@ class TaskTimeSheetAmount(models.TransientModel):
         default='none'
     )
 
-    @api.onchange('amount_days')
-    def _onchange_planned_days(self):
-        self.amount_hours = self.amount_days * 7
+    @api.multi
+    def _inverse_amount_days(self):
+        for rec in self:
+            if rec.amount_days > 0:
+                rec.amount_hours = rec.amount_days * 7
 
-    @api.onchange('amount_hours')
-    def _onchange_planned_hours(self):
-        self.amount_days = self.amount_hours / 7
+    @api.multi
+    def _compute_amount_days(self):
+        for rec in self:
+            if rec.amount_hours > 0:
+                rec.amount_days = rec.amount_hours / 7
 
     @api.multi
     def create_line(self):
