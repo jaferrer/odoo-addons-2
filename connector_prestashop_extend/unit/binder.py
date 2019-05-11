@@ -32,13 +32,13 @@ class PrestashopextendBinding(Binder):
 @prestashopextend
 class PrestashopextendBindingModelBinder(PrestashopextendBinding):
     """
-    Bindings are done directly on the binding model.magentoextend.product.category
+    Bindings are done directly on the binding model.prestashopextend.product.category
 
-    Binding models are models called ``magentoextend.{normal_model}``,
-    like ``magentoextend.res.partner`` or ``magentoextend.product.product``.
+    Binding models are models called ``prestashopextend.{normal_model}``,
+    like ``magentoextend.res.partner`` or ``prestashopextend.product.product``.
     They are ``_inherits`` of the normal models and contains
-    the magentoextend ID, the ID of the magentoextend Backend and the additional
-    fields belonging to the magentoextend instance.
+    the magentoextend ID, the ID of the prestashopextend Backend and the additional
+    fields belonging to the prestashopextend instance.
     """
     _model_name = [
         'prestashopextend.res.partner',
@@ -120,7 +120,7 @@ class PrestashopextendBindingModelBinder(PrestashopextendBinding):
             "external_id or binding_id missing, "
             "got: %s, %s" % (external_id, binding_id)
         )
-        # avoid to trigger the export when we modify the `magentoextend_id`
+        # avoid to trigger the export when we modify the `prestashopextend_id`
         now_fmt = openerp.fields.Datetime.now()
         if not isinstance(binding_id, openerp.models.BaseModel):
             binding_id = self.model.browse(binding_id)
@@ -132,7 +132,7 @@ class PrestashopextendBindingModelBinder(PrestashopextendBinding):
     def unwrap_binding(self, binding_id, browse=False):
         """ For a binding record, gives the normal record.
 
-        Example: when called with a ``magentoextend.product.product`` id,
+        Example: when called with a ``prestashopextend.product.product`` id,
         it will return the corresponding ``product.product`` id.
 
         :param browse: when True, returns a browse_record instance
@@ -151,7 +151,7 @@ class PrestashopextendBindingModelBinder(PrestashopextendBinding):
     def unwrap_model(self):
         """ For a binding model, gives the name of the normal model.
 
-        Example: when called on a binder for ``magentoextend.product.product``,
+        Example: when called on a binder for ``prestashopextend.product.product``,
         it will return ``product.product``.
 
         This binder assumes that the normal model lays in ``openerp_id`` since

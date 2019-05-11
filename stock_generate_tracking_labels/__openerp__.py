@@ -23,7 +23,10 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['stock_delivery_tracking', 'generate_tracking_labels', 'package_weight'],
+    'depends': ['stock_delivery_tracking',
+                'generate_tracking_labels',
+                'package_weight',
+                'stock_picking_complementary_binary'],
     'description': """
 Stock generate tracking labels
 ==============================

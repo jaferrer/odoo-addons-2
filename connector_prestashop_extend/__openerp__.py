@@ -18,15 +18,15 @@
 #
 
 {
-    'name': 'Connector Prestashop extend',
+    'name': 'Connector Prestashop',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
     'depends': ['connector_backend_home', 'stock'],
     'description': """
-"Connector Magento extends
-==========================
+Connector Prestashop E-Commerce
+===============================
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [

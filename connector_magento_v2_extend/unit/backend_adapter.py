@@ -31,9 +31,14 @@ from openerp.addons.connector.exception import (NetworkRetryableError,
                                                 RetryableJobError)
 from openerp.addons.connector.unit.backend_adapter import CRUDAdapter
 
+from ..exceptions import Magento2CallApiError, Magento2MaxRetryExceed
+
 _logger = logging.getLogger(__name__)
 
 recorder = {}
+
+
+
 
 
 def call_to_key(method, arguments):
@@ -142,18 +147,21 @@ class magentoextendCRUDAdapter(CRUDAdapter):
             head['Authorization'] = 'Basic ' + base64.encodestring(
                 self.magentoextend.param.http_user + ":" + self.magentoextend.param.http_pwd)
 
-        s = requests.Session()
+        request_session = requests.Session()
         url = proxy + "/integration/admin/token"
-        ret = s.post(url, data=data, headers=head)
+        request_result = request_session.post(url, data=data, headers=head)
 
-        self.token = ret.text.replace('"', '')
+        if not request_result.ok:
+            raise Magento2CallApiError(request_result.url, data, request_result.status_code, request_result.reason)
+
+        self.token = request_result.text.replace('"', '')
 
     def _call(self, method, arguments, meth="GET", retry=0):
+        url = self.magentoextend.param.url + '/' + method
+        if not self.token:
+            self._create_token()
         try:
             _logger.debug("Start calling magentoextend api %s numero %s", method, retry)
-
-            proxy = self.magentoextend.param.url
-
             head = {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
@@ -162,20 +170,17 @@ class magentoextendCRUDAdapter(CRUDAdapter):
             if self.magentoextend.param.use_http:
                 head['Authorization'] = 'Basic ' + base64.encodestring(self.magentoextend.param.http_user + ":" + self.magentoextend.param.http_pwd)
 
-            s = requests.Session()
-            if not self.token:
-                self._create_token()
-
+            request_session = requests.Session()
             start = datetime.now()
             head["Authorization"] = "Bearer %s" % (self.token)
             try:
                 if meth == "GET":
-                    result = s.get(proxy+'/'+method, params=arguments, headers=head)
+                    result = request_session.get(url, params=arguments, headers=head)
                     test = result.json()
                     if not isinstance(test, list) and test.get("message"):
                         _logger.error("api call failed %s %s %", method, arguments, test.get("message"))
                 else:
-                    result = s.post(proxy + '/' + method, data=json.dumps(arguments), headers=head)
+                    result = request_session.post(url, data=json.dumps(arguments), headers=head)
             except:
                 _logger.error("api.call(%s, %s) failed", method, arguments)
                 raise
@@ -191,7 +196,7 @@ class magentoextendCRUDAdapter(CRUDAdapter):
             if retry <= 5:
                 retry = retry + 1
                 return self._call(method, arguments, meth=meth, retry=retry)
-            raise err
+            raise Magento2MaxRetryExceed(url, arguments, 5)
 
 
 class GenericAdapter(magentoextendCRUDAdapter):

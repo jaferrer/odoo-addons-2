@@ -264,13 +264,14 @@ class DelayedBatchImporterV2(BatchImporterV2):
                             self.model._name,
                             self.backend_record.id,
                             record_id,
+                            description=self.backend_record.connector_id.display_name,
                             **kwargs)
 
 
 DelayedBatchImportV2 = DelayedBatchImporterV2
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.magento')
 @related_action(action=link)
 def import_record(session, model_name, backend_id, magentoextend_ids, force=False):
     """ Import a record from magentoextend """

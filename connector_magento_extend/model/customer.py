@@ -574,7 +574,7 @@ class CustomerImportMapper(ImportMapper):
         return {'owner_id': self.backend_record.connector_id.home_id.partner_id.id}
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.magento')
 def customer_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of Customer """
     env = get_environment(session, model_name, backend_id)
@@ -585,4 +585,4 @@ def customer_import_batch(session, model_name, backend_id, filters=None):
 class ResPartnerBackend(models.Model):
     _inherit = 'res.partner'
 
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
+    owner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])

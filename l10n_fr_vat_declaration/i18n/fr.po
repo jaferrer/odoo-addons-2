@@ -1,0 +1,84 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* l10n_fr_vat_declaration
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-09 17:09+0000\n"
+"PO-Revision-Date: 2015-12-09 17:09+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.ui.menu,name:l10n_fr_vat_declaration.menu_vat_declaration_generator
+#: model:ir.actions.act_window,name:l10n_fr_vat_declaration.act_window_vat_declaration_generator
+#: model:ir.ui.view,arch_db:l10n_fr_vat_declaration.vat_declaration_generator_form
+msgid "Generate VAT Declaration"
+msgstr "Générer déclaration TVA"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.model.fields,field_description:l10n_fr_vat_declaration.field_vat_declaration_generator_date_start
+msgid "Start period date"
+msgstr "Date de début de période"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.model.fields,field_description:l10n_fr_vat_declaration.field_vat_declaration_generator_date_end
+msgid "End period date"
+msgstr "Date de fin de période"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.model.fields,field_description:l10n_fr_vat_declaration.field_vat_declaration_generator_journal_for_vat_declarations_id
+msgid "Journal for VAT declaration"
+msgstr "Journal pour la déclaration de TVA"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.model.fields,field_description:l10n_fr_vat_declaration.field_res_company_journal_for_vat_declarations_id
+#: model:ir.model.fields,field_description:l10n_fr_vat_declaration.field_account_config_settings_journal_for_vat_declarations_id
+msgid "Default journal for VAT declarations"
+msgstr "Journal par défaut pour les déclarations de TVA"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.model.fields,field_description:l10n_fr_vat_declaration.field_vat_declaration_generator_account_vat_to_pay_id
+#: model:ir.model.fields,field_description:l10n_fr_vat_declaration.field_res_company_account_vat_to_pay_id
+#: model:ir.model.fields,field_description:l10n_fr_vat_declaration.field_account_config_settings_account_vat_to_pay_id
+msgid "Account for VAT to pay"
+msgstr "Compte pour la TVA à décaisser"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.model.fields,field_description:l10n_fr_vat_declaration.field_vat_declaration_generator_customer_tax_account_ids
+#: model:ir.ui.view,arch_db:l10n_fr_vat_declaration.vat_declaration_generator_form
+msgid "Customer taxes accounts"
+msgstr "Comptes de TVA collectées"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.model.fields,field_description:l10n_fr_vat_declaration.field_vat_declaration_generator_supplier_tax_account_ids
+#: model:ir.ui.view,arch_db:l10n_fr_vat_declaration.vat_declaration_generator_form
+msgid "Supplier taxes accounts"
+msgstr "Comptes de TVA déductibles"
+
+#. module: l10n_fr_vat_declaration
+#: code:addons/l10n_fr_vat_declaration/models/vatdeclaration_generator.py:66
+#, python-format
+msgid "VAT Declaration move"
+msgstr "Écriture de déclaration de TVA"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.ui.view,arch_db:l10n_fr_vat_declaration.vat_declaration_generator_form
+msgid "or"
+msgstr "ou"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.ui.view,arch_db:l10n_fr_vat_declaration.vat_declaration_generator_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: l10n_fr_vat_declaration
+#: model:ir.ui.view,arch_db:l10n_fr_vat_declaration.vat_declaration_account_config_form
+msgid "VAT Declarations"
+msgstr "Déclarations de TVA"
