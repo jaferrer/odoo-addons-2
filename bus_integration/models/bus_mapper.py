@@ -64,7 +64,7 @@ class BusSynchronizationMapper(models.AbstractModel):
     @api.model
     def get_relational_value(self, model, id, dependencies):
         external_key = dependencies.get(model, {}).get(str(id)).get('external_key')
-        _, sub_record = self.env['bus.binder'].get_record_by_exernal_key(external_key, model)
+        _, sub_record = self.env['bus.binder'].get_record_by_external_key(external_key, model)
         return sub_record and sub_record.id or False
 
     def get_multiple_relational_value(self, model, ids, dependencies):

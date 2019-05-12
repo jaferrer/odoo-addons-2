@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,10 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields
-
-
-class BackendPartner(models.Model):
-    _inherit = 'res.partner'
-
-    bus_username = fields.Char(u"BUS user name")
+from . import ir_values_improved

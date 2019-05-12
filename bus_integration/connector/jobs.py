@@ -26,12 +26,14 @@ def job_receive_message(session, model_name, message_id):
 
 
 @job(default_channel='root.send_response')
-def job_send_response(session, model_name, backend_id, message):
-    backend = session.env[model_name].browse(backend_id)
-    return backend.send_odoo_message('bus.database.message', 'odoo_synchronization_bus', backend.reception_treatment,
+def job_send_response(session, model_name, configuration_id, message):
+    backend = session.env[model_name].browse(configuration_id)
+    return backend.send_odoo_message('bus.message', 'odoo_synchronization_bus', backend.reception_treatment,
                                      message)
 
 
 @job(default_channel='root.generate_message')
-def job_generate_message(session, model_name, batch_id, export_msg, bus_reception_treatment=False, deletion=False):
-    return session.env[model_name].generate_message(batch_id, export_msg, bus_reception_treatment, deletion=deletion)
+def job_generate_message(session, model_name, bus_configuration_export_id, export_msg, bus_reception_treatment=False,
+                         deletion=False):
+    return session.env[model_name].generate_message(bus_configuration_export_id, export_msg, bus_reception_treatment,
+                                                    deletion=deletion)

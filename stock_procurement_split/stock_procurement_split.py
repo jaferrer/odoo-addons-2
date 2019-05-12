@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from openerp import models, api, fields
 
 
 class StockMove(models.Model):
@@ -43,6 +43,9 @@ class StockMove(models.Model):
 class ProcurementOrder(models.Model):
     _inherit = 'procurement.order'
 
+    split_from_id = fields.Many2one('procurement.order', string=u"Split From", readonly=True,
+                                 ondelete='set null')
+
     @api.multi
     def split(self, qty, force_move_dest_id=False, force_state=False):
         self.ensure_one()
@@ -51,6 +54,7 @@ class ProcurementOrder(models.Model):
                 'product_qty': qty,
                 'product_uos_qty': qty,
                 'move_dest_id': force_move_dest_id,
+                'split_from_id': self.id
             })
         self.write({
             'product_qty': self.product_qty - qty,

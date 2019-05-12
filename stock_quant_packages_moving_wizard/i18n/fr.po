@@ -450,3 +450,9 @@ msgstr "Est un colis"
 #: field:stock.product.line,product_name:0
 msgid "Product name"
 msgstr "Nom de l'article"
+
+#. module: stock_quant_packages_moving_wizard
+#: code:addons\stock_quant_packages_moving_wizard\models\stock.py:372
+#, python-format
+msgid "Picking '%s' could not be check!"
+msgstr "Le picking '%s' n'a pas pu être vérifié!"

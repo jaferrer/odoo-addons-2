@@ -23,4 +23,4 @@ from openerp import models, fields
 class BackendHomeCron(models.Model):
     _inherit = 'ir.cron'
 
-    bus_bakend_id = fields.Many2one('bus.backend.batch', string=u"Bus batch")
+    bus_configuration_export_id = fields.Many2one('bus.configuration.export', string=u"Bus batch")
