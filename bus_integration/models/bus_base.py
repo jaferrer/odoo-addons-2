@@ -26,3 +26,4 @@ class BusBase(models.Model):
     name = fields.Char(u"Name")
     bus_username = fields.Char(u"BUS user name")
     active = fields.Boolean(u"Active", default=True)
+    url = fields.Char(string=u"Url")

@@ -73,6 +73,8 @@ class BusSynchronizationReceiver(models.AbstractModel):
             self.env['bus.exporter'].send_deletion_return_message(message_id, result)
         elif message.treatment == 'DELETION_SYNCHRONIZATION_RETURN':
             self.env['bus.importer'].register_synchro_deletion_return(message_id)
+        elif message.treatment in ['CHECK_SYNCHRONIZATION_RETURN']:
+            self.env['bus.importer'].register_synchro_check_return(message_id)
         else:
             result = False
         message.write({'done': result, 'date_done': datetime.now()})

@@ -19,7 +19,7 @@
 
 import json
 from datetime import datetime
-from openerp import models, api
+from openerp import models, api, exceptions
 
 
 class BusSynchronizationImporter(models.AbstractModel):
@@ -41,6 +41,8 @@ class BusSynchronizationImporter(models.AbstractModel):
                     original_id = record.get('id', False)
                     if result:
                         result.update({'bus_original_id': original_id})
+                    else:
+                        result = {'id':original_id, 'result': result}
                     import_results[model][original_id] = result
         return import_results, demand
 
@@ -192,11 +194,17 @@ class BusSynchronizationImporter(models.AbstractModel):
             if binding_to_delete:
                 record_to_delete = self.env[model_to_delete].browse(binding_to_delete.local_id)
                 if record_to_delete:
-                    record_to_delete.write({'active': False})
-                    unlink = "Ok"
-                binding_to_delete.write({'to_deactivate': False})
-            else:
-                unlink = 'null'
+                    if 'active' in record_to_delete._fields:
+                        record_to_delete.write({'active': False})
+                        unlink = "Ok"
+                        binding_to_delete.write({'to_deactivate': False})
+                    else:
+                        try:
+                            record_to_delete.unlink()
+                            unlink = "Ok"
+                            binding_to_delete.write({'to_deactivate': False})
+                        except exceptions.except_orm:
+                            unlink = False
         return unlink
 
     @api.model
@@ -210,9 +218,34 @@ class BusSynchronizationImporter(models.AbstractModel):
                 transfer = self.env[model].browse(datas.get('id'))
                 if transfer:
                     transfer.write({
-                        'received_data': datas,
+                        'received_data': json.dumps(datas, indent=4),
                         'external_key': datas.get('external_key')
                     })
+        return True
+
+    @api.model
+    def register_synchro_check_return(self, message_id):
+        message = self.env['bus.message'].browse(message_id)
+        message_dict = json.loads(message.message, encoding='utf-8')
+        result = message_dict.get('body', {}).get('root', {})
+        for model in result.keys():
+            for id in result.get(model).keys():
+                datas = result.get(model).get(id)
+                check = self.env['bus.check.transfer'].browse(datas.get('check_id'))
+                if check and check.res_model == model and check.res_id == int(id):
+                    state = 'not_find'
+                    if datas.get('recipient_record_id'):
+                        state = 'find'
+                    check.write({
+                        'recipient_record_id': datas.get('recipient_record_id'),
+                        'external_key': datas.get('external_key'),
+                        'state': state,
+                        'date_response': datetime.now()
+                    })
+                if not check:
+                    error = u"Check not find : %s - %s(%s)" % (datas.get('check_id', False), model, id)
+                    self.env['bus.message.log'].create({'message_id': message.id, 'type': 'error',
+                                                        'information': error})
         return True
 
     @api.model
@@ -230,5 +263,5 @@ class BusSynchronizationImporter(models.AbstractModel):
                         'model': model,
                         'local_id': local_id,
                         'external_key': external_key,
-                        'received_data': datas
+                        'received_data': json.dumps(datas, indent=4)
                     })

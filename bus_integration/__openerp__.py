@@ -38,6 +38,7 @@ Connector to Odoo Databus
         'data/cron.xml',
         'data/bus_configuration.xml',
         'views/bus_receive_transfer.xml',
+        'views/bus_check_transfer.xml',
         'views/bus_configuration.xml',
         'views/bus_configuration_export.xml',
         'views/bus_configuration_export_histo.xml',

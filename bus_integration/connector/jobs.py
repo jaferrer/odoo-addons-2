@@ -33,7 +33,5 @@ def job_send_response(session, model_name, configuration_id, message):
 
 
 @job(default_channel='root.generate_message')
-def job_generate_message(session, model_name, bus_configuration_export_id, export_msg, bus_reception_treatment=False,
-                         deletion=False):
-    return session.env[model_name].generate_message(bus_configuration_export_id, export_msg, bus_reception_treatment,
-                                                    deletion=deletion)
+def job_generate_message(session, model_name, bus_configuration_export_id, export_msg, bus_reception_treatment=False):
+    return session.env[model_name].generate_message(bus_configuration_export_id, export_msg, bus_reception_treatment)

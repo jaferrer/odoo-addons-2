@@ -38,6 +38,18 @@ class BusReceiveTransfer(models.Model):
         ('object_uniq', 'unique(model, local_id)', u"A binding already exists for this object"),
     ]
 
+    @api.multi
+    def view_local_record(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': self.model,
+            'res_id': self.local_id,
+            'target': 'current',
+        }
+
     @api.model
     def remove_not_existing_fields(self, model, vals):
         return {key: vals[key] for key in vals.keys() if key in self.env[model]._fields}

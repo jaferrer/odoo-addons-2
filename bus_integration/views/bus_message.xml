@@ -53,7 +53,12 @@
                         <field name="extra_content"/>
                         <notebook>
                             <page string="Logs" id="log_ids">
-                                <field name="log_ids" nolabel="1"/>
+                                <field name="log_ids" nolabel="1">
+                                    <tree>
+                                        <field name="type"/>
+                                        <field name="information"/>
+                                    </tree>
+                                </field>
                             </page>
                         </notebook>
                     </sheet>
