@@ -20,7 +20,7 @@
 from openerp import fields, models, api, _
 
 
-class procurement_order_planning_improved(models.Model):
+class ProcurementOrderPlanningImproved(models.Model):
     _inherit = 'procurement.order'
 
     @api.multi
@@ -42,7 +42,7 @@ class procurement_order_planning_improved(models.Model):
                                                       move.date_expected != vals['date_expected']))).write(vals)
 
 
-class stock_move_planning_improved(models.Model):
+class StockMovePlanningImproved(models.Model):
     _inherit = 'stock.move'
 
     date = fields.Datetime(string="Due Date", help="Due date for this stock move to be on schedule.")
@@ -55,9 +55,9 @@ class stock_move_planning_improved(models.Model):
 
     @api.model
     def create(self, vals):
-        if (not 'date_expected' in vals) and ('date' in vals):
+        if not ('date_expected' in vals) and ('date' in vals):
             vals['date_expected'] = vals['date']
-        return super(stock_move_planning_improved, self).create(vals)
+        return super(StockMovePlanningImproved, self).create(vals)
 
     @api.multi
     def write(self, vals):
@@ -80,10 +80,16 @@ class stock_move_planning_improved(models.Model):
         if vals.get('state') and vals['state'] == 'done':
             vals['transferred_by_id'] = self.env.user.id
 
-        return super(stock_move_planning_improved, self).write(vals)
+        return super(StockMovePlanningImproved, self).write(vals)
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        new_order = ", ".join(orderby and groupby + [orderby] or groupby)
+        return super(StockMovePlanningImproved, self).read_group(
+            domain, fields, groupby, offset, limit=limit, context=self.env.context, orderby=new_order, lazy=lazy)
 
 
-class stock_picking_planning_improved(models.Model):
+class StockPickingPlanningImproved(models.Model):
     _inherit = 'stock.picking'
 
     date_due = fields.Datetime("Due Date", help="Date before which the first moves of this picking must be made so as "
