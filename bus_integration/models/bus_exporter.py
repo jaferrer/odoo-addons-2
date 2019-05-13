@@ -33,39 +33,50 @@ class BusSynchronizationExporter(models.AbstractModel):
 
     @api.model
     def run_export(self, backend_bus_configuration_export_id, deletion=False):
+        """
+        Create and send messages
+        :param backend_bus_configuration_export_id: models to export with their conf
+        :param deletion: treatment type deletion ?
+        :return: True or raise an exception
+        """
         batch = self.env['bus.configuration.export'].browse(backend_bus_configuration_export_id)
         object_mapping = self.env['bus.object.mapping'].search([('model_name', '=', batch.model)])
         if not object_mapping or not object_mapping.is_exportable:
             raise exceptions.ValidationError(u"Object mapping not configured for model : %s" % batch.model)
-        export_chunk = batch.chunk_size or False
+
         export_domain = batch.domain and safe_eval(batch.domain, batch.export_domain_keywords()) or []
         if not deletion and object_mapping.deactivated_sync and 'active' in self.env[batch.model]._fields:
             export_domain += ['|', ('active', '=', False), ('active', '=', True)]
+
         ids_to_export = self.env[batch.model].search(export_domain)
         message_list = []
+        message_dict = {
+            'header': {
+                'origin': batch.configuration_id.sender_id.bus_username,
+                'dest': batch.recipient_id.bus_username,
+                'treatment': batch.treatment_type,
+                'serial_id': batch.serial_id,
+            },
+            'export': None
+        }
+        export_chunk = batch.chunk_size or False
         if export_chunk:
             while ids_to_export:
                 chunk = ids_to_export[:export_chunk]
                 ids_to_export = ids_to_export[export_chunk:]
-                message_list.append({
-                    'header': {
-                        'origin': batch.configuration_id.sender_id.bus_username,
-                        'dest': batch.recipient_id.bus_username,
-                        'treatment': batch.treatment_type,
-                        'serial_id': batch.serial_id,
-                    },
-                    'export': {'model': chunk._name, 'ids': chunk.ids}
-                })
+                chunk_message = message_dict.copy()
+                chunk_message['export'] = {
+                    'model': chunk._name,
+                    'ids': chunk.ids
+                }
+                message_list.append(chunk_message)
         else:
-            message_list.append({
-                'header': {
-                    'origin': batch.configuration_id.sender_id.bus_username,
-                    'dest': batch.recipient_id.bus_username,
-                    'treatment': batch.treatment_type,
-                    'serial_id': batch.serial_id,
-                },
-                'export': {'model': ids_to_export._name, 'ids': ids_to_export.ids}
-            })
+            message_dict['export'] = {
+                'model': ids_to_export._name,
+                'ids': ids_to_export.ids
+            }
+            message_list.append(message_dict)
+
         for export_msg in message_list:
             job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id,
                                        export_msg, bus_reception_treatment=batch.bus_reception_treatment,
@@ -98,7 +109,7 @@ class BusSynchronizationExporter(models.AbstractModel):
                                                          configuration_id=batch.configuration_id.id)
         histo.add_log(message.id, self.env.context.get('job_uuid'))
         message_json = json.dumps(message_dict, encoding='utf-8')
-        batch.configuration_id.send_odoo_message('bus.database.message', 'odoo_synchronization_bus',
+        batch.configuration_id.send_odoo_message('bus.message', 'odoo_synchronization_bus',
                                                  bus_reception_treatment, message_json)
 
     def _generate_msg_body(self, exported_records, model_name):
@@ -260,7 +271,8 @@ class BusSynchronizationExporter(models.AbstractModel):
         }
         self.env['bus.message'].create_message(resp, type='sent', configuration_id=message.configuration_id.id)
         response = json.dumps(resp, encoding='utf-8')
-        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration', message.configuration_id.id, response)
+        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration',
+                                message.configuration_id.id, response)
 
     @api.model
     def send_dependancy_demand(self, message_id, demand):
@@ -281,7 +293,8 @@ class BusSynchronizationExporter(models.AbstractModel):
         resp['body']['demand'] = demand
         self.env['bus.message'].create_message(resp, type='sent', configuration_id=message.configuration_id.id)
         response = json.dumps(resp)
-        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration', message.configuration_id.id, response)
+        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration',
+                                message.configuration_id.id, response)
         return True
 
     @api.model
@@ -301,6 +314,16 @@ class BusSynchronizationExporter(models.AbstractModel):
         resp['header']['dest'] = dest
         resp['header']['treatment'] = 'DEPENDENCY_SYNCHRONIZATION'
         demand = message_dict.get('body', {}).get('demand', {})
+        model_content, dependancy_content = self._generate_dependance_message(message_id, demand)
+        resp['body']['root'] = model_content
+        resp['body']['dependency'] = dependancy_content
+        self.env['bus.message'].create_message(resp, type='sent', configuration_id=message.configuration_id.id)
+        response = json.dumps(resp)
+        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration',
+                                message.configuration_id.id, response)
+        return True
+
+    def _generate_dependance_message(self, message_id, demand):
         model_content = {}
         dependency_content = {}
         for model_name in demand.keys():
@@ -309,7 +332,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             if len(exported_records) != len(record_ids):
                 self.env['bus.message.log'].create({
                     'message_id': message_id,
-                    'log': 'warning',
+                    'type': 'warning',
                     'information': u"All requested records not found : %s" % record_ids
                 })
             result = self._generate_msg_body(exported_records, model_name)
@@ -317,12 +340,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             for dep_model, dep_value in result.get('body', {}).get('dependency', {}).items():
                 dependency_content.setdefault(dep_model, dependency_content.get(dep_model, {}))
                 dependency_content[dep_model].update(dep_value)
-        resp['body']['root'] = model_content
-        resp['body']['dependency'] = dependency_content
-        self.env['bus.message'].create_message(resp, type='sent', configuration_id=message.configuration_id.id)
-        response = json.dumps(resp)
-        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration', message.configuration_id.id, response)
-        return True
+        return model_content, dependency_content
 
     @api.model
     def send_deletion_return_message(self, message_id, return_message):
@@ -337,10 +355,11 @@ class BusSynchronizationExporter(models.AbstractModel):
         dest = message_dict.get('header').get('origin')
         origin = message_dict.get('header').get('dest')
         resp['header'] = message_dict.get('header')
-        resp['header']['dest'] = dest
         resp['header']['origin'] = origin
+        resp['header']['dest'] = dest
         resp['header']['treatment'] = 'DELETION_SYNCHRONIZATION_RETURN'
         resp['body']['return'] = return_message
         response = json.dumps(resp)
-        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration', message.configuration_id.id, response)
+        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration',
+                                message.configuration_id.id, response)
         return True

@@ -31,6 +31,17 @@
                 </tree>
             </field>
         </record>
+
+        <record id="course_search_view" model="ir.ui.view" >
+            <field name="name">bus_base_search</field>
+            <field name="model">bus.base</field>
+            <field name="arch" type="xml">
+                <search>
+                    <filter name="Inactive" string="Inactive" domain="[('active', '=', False)]"/>
+                </search>
+            </field>
+        </record>
+
         <record id="bus_base_action" model="ir.actions.act_window">
             <field name="name">bus_base_action</field>
             <field name="type">ir.actions.act_window</field>

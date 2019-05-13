@@ -10,10 +10,10 @@
                 <tree create="false" delete="false">
                     <field name="type"/>
                     <field name="treatment"/>
-                    <field name="create_date"/>
-                    <field name="create_uid"/>
+                    <field name="body_models" />
                     <field name="done"/>
                     <field name="date_done"/>
+                    <field name="create_date"/>
                 </tree>
             </field>
         </record>
@@ -41,7 +41,14 @@
                             </tree>
                         </field>
                         <separator string="Body"/>
-                        <field name="body"/>
+                        <notebook>
+                            <page string="root/demand">
+                                <field name="body_root_pretty_print"/>
+                            </page>
+                            <page string="dependencies">
+                                <field name="body_dependencies_pretty_print"/>
+                            </page>
+                        </notebook>
                         <separator string="Extra content"/>
                         <field name="extra_content"/>
                         <notebook>

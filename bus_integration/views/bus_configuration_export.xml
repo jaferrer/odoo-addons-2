@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-
         <record id="bus_export_config_tree" model="ir.ui.view">
             <field name="name">bus_export_config_tree</field>
             <field name="model">bus.configuration.export</field>
             <field name="arch" type="xml">
-                <tree string="Configuration of template exports">
-                    <field name="recipient_id"/>
-                    <field name="bus_username"/>
-                    <field name="treatment_type"/>
-                    <field name="bus_reception_treatment"/>
+                <tree string="Configuration of template exports" colors="
+                        grey: cron_created == False;
+                        orange: last_transfer_state == 'blocked';
+                        red: last_transfer_state == 'error';
+                        blue: last_transfer_state == 'started';">
                     <field name="model"/>
+                    <field name="recipient_id"/>
+                    <field name="treatment_type"/>
                     <field name="serial_id"/>
                     <field name="last_transfer_state"/>
                     <field name="cron_created" invisible="1"/>
