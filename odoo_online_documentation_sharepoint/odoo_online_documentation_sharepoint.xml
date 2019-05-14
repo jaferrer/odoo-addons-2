@@ -73,7 +73,7 @@
             <field name="help"></field>
         </record>
 
-        <menuitem action="act_window_sharepoint_folders" id="sharepoint_folders_menu"
+        <menuitem action="act_window_sharepoint_folders" id="sharepoint_folders_menu" name="Updating sharepoint folders"
                   parent="document.menu_document_management_configuration" sequence="10"/>
 
         <!-- Inherit knowledge view to enter access ids for sharepoint -->
@@ -87,6 +87,10 @@
                     <group>
                         <field name="username_sharepoint"/>
                         <field name="password_sharepoint" password="True"/>
+                        <field name="auth_code_url_sharepoint"/>
+                        <button name="button_get_auth_code_sharepoint" type="object" string="Authentication"/>
+                        <div/>
+                        <button name="ropc_button_get_auth_code_sharepoint" type="object" string="ROPC Authentication"/>
                     </group>
                 </xpath>
             </field>
