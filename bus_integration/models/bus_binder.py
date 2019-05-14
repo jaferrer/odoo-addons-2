@@ -86,6 +86,6 @@ class BusSynchronizationBinder(models.AbstractModel):
                         'model': model,
                         'local_id': odoo_record.id,
                         'external_key': external_key,
-                        'received_data': json.dumps(record)
+                        'received_data': json.dumps(record, indent=4)
                     })
         return transfer, odoo_record

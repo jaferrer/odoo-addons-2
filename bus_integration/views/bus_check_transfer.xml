@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="bus_check_transfer_tree" model="ir.ui.view">
+            <field name="name">Check transfer</field>
+            <field name="model">bus.check.transfer</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="res_model"/>
+                    <field name="res_id"/>
+                    <field name="external_key"/>
+                    <field name="recipient_record_id"/>
+                    <field name="recipient_id"/>
+                    <field name="date_request"/>
+                    <field name="date_response"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="bus_check_transfer_form" model="ir.ui.view">
+            <field name="name">Check transfer</field>
+            <field name="model">bus.check.transfer</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="view_local_record" class="oe_highlight" string="View local record" type="object"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="res_model"/>
+                                <field name="res_id"/>
+                                <field name="date_request"/>
+                                <field name="recipient_id"/>
+                            </group>
+                            <group>
+                                <field name="external_key"/>
+                                <field name="recipient_record_id"/>
+                                <field name="date_response"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="bus_check_transfer_search" model="ir.ui.view">
+            <field name="name">Check transfer</field>
+            <field name="model">bus.check.transfer</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="res_model"/>
+                    <field name="res_id"/>
+                    <field name="external_key"/>
+                    <field name="recipient_record_id"/>
+                    <field name="recipient_id"/>
+                    <field name="state"/>
+                    <field name="date_request"/>
+                    <field name="date_response"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Model" name="groupby_res_model" domain="[]"
+                                context="{'group_by':'res_model'}"/>
+                        <filter string="Recipient" name="groupby_recipient_id" domain="[]"
+                                context="{'group_by':'recipient_id'}"/>
+                        <filter name="groupby_state" string="State" domain="[]" context="{'group_by':'state'}"/>
+                        <filter string="Date request" name="groupby_date_request" domain="[]"
+                                context="{'group_by':'date_request'}" widget="date"/>
+                        <filter string="Date response" name="groupby_date_response" domain="[]"
+                                context="{'group_by':'date_response'}" widget="date"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="bus_check_transfer_action">
+            <field name="name">Check transfer</field>
+            <field name="res_model">bus.check.transfer</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="bus_check_transfer_menu" name="Check transfer" parent="menu_bus"
+                  action="bus_check_transfer_action" sequence="101"/>
+    </data>
+</openerp>

@@ -32,10 +32,12 @@ class BusConfigurationExport(models.Model):
     recipient_id = fields.Many2one('bus.base', string=u"Recipient")
     bus_username = fields.Char(u"BUS user name", related='recipient_id.bus_username', readonly=True, store=True)
     model = fields.Char(u"Model", required=True)
-    bus_reception_treatment = fields.Selection([('simple_reception', u"Simple reception")],
+    bus_reception_treatment = fields.Selection([('simple_reception', u"Simple reception"),
+                                                ('check_reception', u"Check reception")],
                                                u"Treatment in BUS database", default='simple_reception', required=True)
     treatment_type = fields.Selection([('SYNCHRONIZATION', u"Synchronization"),
-                                       ('DELETION_SYNCHRONIZATION', u"Deletion")],
+                                       ('DELETION_SYNCHRONIZATION', u"Deletion"),
+                                       ('CHECK_SYNCHRONIZATION', u"Check")],
                                       string=u"Treatment type", default='SYNCHRONIZATION', required=True)
     cron_created = fields.Boolean(u"Cron created", compute='_get_cron')
     cron_active = fields.Boolean(u"Cron active", compute='_get_cron')
@@ -78,8 +80,7 @@ class BusConfigurationExport(models.Model):
     @api.multi
     def run_batch(self):
         self.ensure_one()
-        is_deletion_treatment = self.treatment_type == 'DELETION_SYNCHRONIZATION'
-        return self.env['bus.exporter'].run_export(self.id, is_deletion_treatment)
+        return self.env['bus.exporter'].run_export(self.id)
 
     @api.multi
     def create_cron(self):

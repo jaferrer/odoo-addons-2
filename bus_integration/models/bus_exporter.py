@@ -18,6 +18,7 @@
 #
 
 import json
+import datetime
 from openerp import models, api, exceptions
 from openerp.tools import safe_eval
 from openerp.addons.connector.session import ConnectorSession
@@ -32,7 +33,7 @@ class BusSynchronizationExporter(models.AbstractModel):
     # TODO :  a vérifier :  'binary', 'reference', 'serialized]
 
     @api.model
-    def run_export(self, backend_bus_configuration_export_id, deletion=False):
+    def run_export(self, backend_bus_configuration_export_id):
         """
         Create and send messages
         :param backend_bus_configuration_export_id: models to export with their conf
@@ -45,7 +46,8 @@ class BusSynchronizationExporter(models.AbstractModel):
             raise exceptions.ValidationError(u"Object mapping not configured for model : %s" % batch.model)
 
         export_domain = batch.domain and safe_eval(batch.domain, batch.export_domain_keywords()) or []
-        if not deletion and object_mapping.deactivated_sync and 'active' in self.env[batch.model]._fields:
+        if batch.treatment_type != 'DELETION_SYNCHRONIZATION' and object_mapping.deactivated_sync and \
+                'active' in self.env[batch.model]._fields:
             export_domain += ['|', ('active', '=', False), ('active', '=', True)]
 
         ids_to_export = self.env[batch.model].search(export_domain)
@@ -79,12 +81,11 @@ class BusSynchronizationExporter(models.AbstractModel):
 
         for export_msg in message_list:
             job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id,
-                                       export_msg, bus_reception_treatment=batch.bus_reception_treatment,
-                                       deletion=deletion)
+                                       export_msg, bus_reception_treatment=batch.bus_reception_treatment)
         return True
 
     @api.model
-    def generate_message(self, bus_configuration_export_id, export_msg, bus_reception_treatment, deletion=False):
+    def generate_message(self, bus_configuration_export_id, export_msg, bus_reception_treatment):
         batch = self.env['bus.configuration.export'].browse(bus_configuration_export_id)
         message_dict = {
             'header': export_msg.get('header'),
@@ -100,8 +101,11 @@ class BusSynchronizationExporter(models.AbstractModel):
         message_dict['header']['serial_id'] = histo.id
         message_dict['header']['bus_configuration_export_id'] = batch.id
         exported_records = self.env[model_name].search([('id', 'in', ids)])
-        if deletion:
+        message_type = message_dict.get('header').get('treatment')
+        if message_type == 'DELETION_SYNCHRONIZATION':
             result = self._generate_msg_body_deletion(exported_records, model_name)
+        elif message_type == 'CHECK_SYNCHRONIZATION':
+            result = self._generate_check_msg_body(exported_records, model_name, message_dict['header']['dest'])
         else:
             result = self._generate_msg_body(exported_records, model_name)
         message_dict['body'] = result['body']
@@ -238,6 +242,35 @@ class BusSynchronizationExporter(models.AbstractModel):
                         message_dict['body']['dependency'][record.model][str(record.local_id)] = {'id': record.local_id}
         return message_dict
     # endregion
+
+    def _generate_check_msg_body(self, exported_records, model_name, dest):
+        message_dict = {
+            'body': {
+                'root': {},
+                'dependency': {},
+            }
+        }
+        recipient = self.env['bus.base'].search([('bus_username', '=', dest)])
+        for record in exported_records:
+            record_id = str(record.id)
+            check = self.get_check_transfer(model_name, record.id, recipient.id)
+            check.write({
+                'date_request': datetime.datetime.now(),
+                'state': 'request'
+            })
+            if model_name not in message_dict['body']['root']:
+                message_dict['body']['root'][model_name] = {}
+            message_dict['body']['root'][model_name][record_id] = {'id': record.id, 'check_id': check.id}
+        return message_dict
+
+    @api.model
+    def get_check_transfer(self, model_name, record_id, recipient_id):
+        check = self.env['bus.check.transfer'].search([('res_model', '=', model_name), ('res_id', '=', record_id),
+                                                       ('recipient_id', '=', recipient_id)], limit=1)
+        if not check:
+            check = self.env['bus.check.transfer'].create({'res_model': model_name, 'res_id': record_id,
+                                                           'recipient_id': recipient_id})
+        return check
 
     @api.model
     def send_synchro_return_message(self, parent_message_id, result):

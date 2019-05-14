@@ -40,6 +40,8 @@ class BusMessage(models.Model):
                                   ('SYNCHRONIZATION_RETURN', u"Synchronization response"),
                                   ('DELETION_SYNCHRONIZATION', u"Deletion request"),
                                   ('DELETION_SYNCHRONIZATION_RETURN', u"Deletion response"),
+                                  ('CHECK_SYNCHRONIZATION', u"Check request"),
+                                  ('CHECK_SYNCHRONIZATION_RETURN', u"Check response"),
                                   ], u"Treatment", required=True)
     state = fields.Selection([('reception', u"Recetion"),
                               ('send', u"Send"),
