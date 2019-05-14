@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="job_monitoring_dashboard" model="ir.ui.view">
+            <field name="name">dashboard_job_monitoring</field>
+            <field name="model">job.monitoring</field>
+            <field name="arch" type="xml">
+                <kanban class="oe_background_grey o_kanban_dashboard o_stock_kanban" create="0">
+                    <field name="name"/>
+                    <field name="color"/>
+                    <field name="channel"/>
+                    <field name="sequence"/>
+                    <field name="nb_started_jobs"/>
+                    <field name="nb_pending_jobs"/>
+                    <field name="nb_enqueued_jobs"/>
+                    <field name="nb_inprogress_jobs"/>
+                    <field name="nb_done_jobs"/>
+                    <field name="nb_error_jobs"/>
+                    <field name="nb_total_jobs"/>
+                    <field name="rate_started"/>
+                    <field name="rate_pending"/>
+                    <field name="rate_enqueued"/>
+                    <field name="rate_done"/>
+                    <field name="rate_error"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="#{kanban_color(record.color.raw_value)}">
+                                <div class="o_kanban_card_header">
+                                    <div class="o_kanban_card_header_title">
+                                        <div class="o_primary">
+                                            <field name="name"/>
+                                        </div>
+                                        <div class="o_secondary">
+                                            Channel :
+                                            <field name="channel"/>
+                                        </div>
+                                    </div>
+                                    <div class="o_kanban_manage_button_section">
+                                        <a name="view_messages" type="object">
+                                            Messages
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="container o_kanban_card_content o_visible">
+                                    <div class="row">
+                                        <div class="col-xs-6 o_kanban_primary_left">
+                                            <button class="btn btn-primary" name="view_datas"
+                                                    type="object" string="View datas">
+                                                <span>
+                                                    <field name="nb_started_jobs"/>
+                                                    En cours
+                                                </span>
+                                            </button>
+                                        </div>
+                                        <div class="col-xs-6 o_kanban_primary_right">
+                                            <div class="row">
+                                                <div class="col-xs-9">
+                                                    <a name="view_jobs" type="object">
+                                                        En attente
+                                                    </a>
+                                                </div>
+                                                <div class="col-xs-3">
+                                                    <field name="nb_pending_jobs"/>
+                                                </div>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-xs-9">
+                                                    <a name="view_jobs" type="object">
+                                                        Total en cours
+                                                    </a>
+                                                </div>
+                                                <div class="col-xs-3">
+                                                    <field name="nb_inprogress_jobs"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-6">
+                                            <span class="btn btn-primary btn-xs col-xs-6">
+                                                <field name="nb_total_jobs" class="col-xs-2">
+                                                    Done
+                                                </field>
+                                            </span>
+                                            <span class="btn btn-info btn-xs col-xs-6">
+                                                <field name="rate_done" class="col-xs-2">
+                                                    %
+                                                </field>
+                                            </span>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <span class="btn btn-primary btn-xs col-xs-6">
+                                                <field name="nb_started_jobs" class="col-xs-6">
+                                                    Started
+                                                </field>
+
+                                            </span>
+                                            <span class="btn btn-info btn-xs col-xs-6">
+                                                <field name="rate_started" class="col-xs-6">
+                                                    %
+                                                </field>
+                                            </span>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <span class="btn btn-primary btn-xs col-xs-6">
+                                                <field name="nb_pending_jobs" class="col-xs-6">
+                                                    % Pending
+                                                </field>
+
+                                            </span>
+                                            <span class="btn btn-info btn-xs col-xs-6">
+                                                <field name="rate_pending" class="col-xs-6">
+                                                    %
+                                                </field>
+                                            </span>
+
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <span class="btn btn-primary btn-xs col-xs-6">
+                                                <field name="nb_enqueued_jobs" class="col-xs-6">
+                                                    Enqueued
+                                                </field>
+
+                                            </span>
+                                            <span class="btn btn-info btn-xs col-xs-6">
+                                                <field name="rate_enqueued" class="col-xs-6">
+                                                    %
+                                                </field>
+                                            </span>
+
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <span class="btn btn-primary btn-xs col-xs-6">
+                                                <field name="nb_error_jobs" class="col-xs-6">
+                                                    Error
+                                                </field>
+
+                                            </span>
+                                            <span class="btn btn-info btn-xs col-xs-6">
+                                                <field name="rate_error" class="col-xs-6">
+                                                    %
+                                                </field>
+                                            </span>
+                                        </div>
+                                        <div class="col-xs-6">
+                                            <span class="btn btn-danger btn-xs col-xs-6">
+                                                <field name="nb_total_jobs" class="col-xs-6">
+                                                    Total
+                                                </field>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="job_monitoring_tree" model="ir.ui.view">
+            <field name="name">job_monitoring_tree</field>
+            <field name="model">job.monitoring</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="channel"/>
+                    <field name="sequence"/>
+                    <field name="nb_started_jobs"/>
+                    <field name="nb_pending_jobs"/>
+                    <field name="nb_enqueued_jobs"/>
+                    <field name="nb_inprogress_jobs"/>
+                    <field name="nb_done_jobs"/>
+                    <field name="nb_error_jobs"/>
+                    <field name="nb_total_jobs"/>
+                    <field name="rate_started"/>
+                    <field name="rate_pending"/>
+                    <field name="rate_enqueued"/>
+                    <field name="rate_done"/>
+                    <field name="rate_error"/>
+                    <button name="view_jobs" type="object" string="View jobs" class="oe_right"/>
+                    <button name="view_datas" type="object" string="View datas" class="oe_right"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_job_monitoring" model="ir.actions.act_window">
+            <field name="name">Jobs Monitoring</field>
+            <field name="res_model">job.monitoring</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">kanban,tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <menuitem id="queue_job_monitoring" name="Job monitoring" parent="connector.menu_queue"
+                  action="action_job_monitoring" sequence="19"/>
+    </data>
+</openerp>
