@@ -7,11 +7,12 @@
             <field name="model">bus.message</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree create="false" delete="false">
+                <tree create="false" delete="false" colors="red:state=='error';grey:date_done">
+                    <field name="state" invisible="True" />
+                    <field name="cross_id_str" />
                     <field name="type"/>
                     <field name="treatment"/>
                     <field name="body_models" />
-                    <field name="done"/>
                     <field name="date_done"/>
                     <field name="create_date"/>
                 </tree>
@@ -30,7 +31,6 @@
                             <field name="treatment"/>
                             <field name="create_date"/>
                             <field name="create_uid"/>
-                            <field name="done"/>
                             <field name="date_done"/>
                         </group>
                         <separator string="Header"/>
@@ -48,12 +48,20 @@
                             <page string="dependencies">
                                 <field name="body_dependencies_pretty_print"/>
                             </page>
+                            <page string="raw message">
+                                <field name="message"/>
+                            </page>
                         </notebook>
                         <separator string="Extra content"/>
                         <field name="extra_content"/>
                         <notebook>
                             <page string="Logs" id="log_ids">
-                                <field name="log_ids" nolabel="1"/>
+                                <field name="log_ids" nolabel="1">
+                                    <tree>
+                                        <field name="type"/>
+                                        <field name="information"/>
+                                    </tree>
+                                </field>
                             </page>
                         </notebook>
                     </sheet>
@@ -72,7 +80,8 @@
                     <field name="header_param_ids"/>
                     <field name="body"/>
                     <field name="extra_content"/>
-                    <filter name="running" string="Running" domain="[('done', '=', False)]"/>
+                    <filter name="running" string="Running" domain="[('date_done', '=', False)]" />
+                    <filter name="lasts24h" string="H-24" domain="[('create_date','&gt;', (context_today()-relativedelta(days=1)).strftime('%%Y-%%m-%%d'))]" />
                 </search>
             </field>
         </record>
@@ -83,7 +92,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
-            <field name="context">{'search_default_running': True}</field>
+            <field name="context">{'search_default_running': True, 'search_default_lasts24h' : True}</field>
         </record>
 
         <menuitem id="menu_bus_message" name="Bus Messages" action="act_window_bus_message"

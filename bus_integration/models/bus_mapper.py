@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+import json
 from openerp import models, api
 
 
@@ -29,7 +29,7 @@ class BusSynchronizationMapper(models.AbstractModel):
         binding_data = {
             'model': record_model,
             'external_key': external_key,
-            'received_data': record,
+            'received_data': json.dumps(record, indent=4),
         }
         record_data = {}
         all_importable_field = [field.map_name for field in model_mapping.field_ids if field.import_field]
