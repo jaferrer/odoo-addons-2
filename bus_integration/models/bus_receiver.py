@@ -77,7 +77,7 @@ class BusSynchronizationReceiver(models.AbstractModel):
                 self.env['bus.exporter'].send_dependancy_synchronization_demand(message_id, demand)
             else:
                 new_msg = self.env['bus.exporter'].send_synchro_return_message(message_id, result)
-                if new_msg and message.cross_id_origin_parent_id:  # replay the parent message
+                if new_msg and not new_msg.is_error() and message.cross_id_origin_parent_id:  # replays parent message
                     self.process_received_message(message.get_parent().id)
         # dependency request
         elif message.treatment == 'DEPENDENCY_DEMAND_SYNCHRONIZATION':

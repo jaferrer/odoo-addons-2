@@ -190,6 +190,15 @@ class BusMessage(models.Model):
                 return rec
         return False
 
+    @api.multi
+    def is_error(self):
+        self.ensure_one()
+        state = json.loads(self.message)\
+            .get('body', {})\
+            .get('return', {})\
+            .get('state', False)
+        return state == "error"
+
     @api.model
     def create(self, vals):
         if vals.get('done'):
