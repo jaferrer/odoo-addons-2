@@ -24,6 +24,29 @@ from ..connector.jobs import job_send_response
 
 
 class BusMessage(models.Model):
+    """
+    messages hierarchy example (sync data from mother to children)
+    -------------------------------------------------
+    <<lvl I - mother original request>>                     CROSS ID               parent
+    -------------------------------------------------
+    | -> #1 - SYNC REQUEST                                  Mere:1
+    | <- #2 - DEP REQUEST                                   Mere:1                  #1
+    | -----------------------------------------------
+    | <<lvl II - 1st mother dependency response>>
+    | -----------------------------------------------
+    |   | -> #3 - DEP RESPONSE                              Mere:1>Mere:3           #2
+    |   | <- #4 - DEP REQUEST                               Mere:1>Mere:3           #3
+    |   | --------------------------------------------
+    |   | <<lvl III - 2nd mother dependency response>>
+    |   | --------------------------------------------
+    |   |   | -> #5 - DEP RESPONSE                          Mere:3>Mere:5           #4
+    |   |   | <- #6 - DEP OK                                Mere:3>Mere:5           #5          ==> rerun #3
+    |   | --------------------------------------------
+    |   | <- #7 - DEP OK (from #3)                          Mere:1>Mere:3           #3           ==> rerun #1
+    | ------------------------------------------------
+    | <- #8 - SYNC OK                                       Mere:1                  #1
+    -------------------------------------------------
+    """
     _name = 'bus.message'
     _order = 'create_date DESC'
 
@@ -48,6 +71,9 @@ class BusMessage(models.Model):
                               ('error', u"Error"),
                               ('warning', u"Warning")], string=u"State")
     log_ids = fields.One2many('bus.message.log', 'message_id', string=u"Logs")
+
+    message_parent_id = fields.Many2one('bus.message', string=u"Parent message")
+    message_children_ids = fields.One2many('bus.message', 'message_parent_id', string=u"Children messages")
 
     # enable to identify a message across all the databases (mother/bus/child)
     # to know witch request is targeted by witch response
@@ -105,10 +131,22 @@ class BusMessage(models.Model):
 
     @api.multi
     def name_get(self):
-        return [(rec.id, u"Message %s on %s" % (rec.type, rec.create_date)) for rec in self]
+        def to_string(msg):
+            return "%s%d" % (u'↗' if msg.type == 'sent' else u'↘', msg.id)
+
+        results = []
+        for rec in self:
+            treatment_value = dict(self._fields['treatment'].selection).get(rec.treatment)
+            result = "%s [%s %s]" % (to_string(rec), treatment_value.lower(), rec.type.upper())
+            curr_msg = rec
+            while curr_msg.message_parent_id:
+                curr_msg = curr_msg.message_parent_id
+                result = u"%s %s" % (to_string(curr_msg), result)
+            results.append((rec.id, result))
+        return results
 
     @api.model
-    def create_message(self, message_dict, type_sent_or_received, configuration):
+    def create_message(self, message_dict, type_sent_or_received, configuration, parent_message_id=False):
         # message_dict is a JSON loaded dict.
         if not message_dict:
             message_dict = {}
@@ -120,11 +158,8 @@ class BusMessage(models.Model):
             'configuration_id': configuration.id,
         })
 
-        header_dict = message_dict.get('header', {})
-
-        cross_id_origin_base = header_dict.get('cross_id_origin_base', configuration.sender_id.bus_username)
-        cross_id_origin_id = header_dict.get('cross_id_origin_id', message.id)
-        cross_id_origin_parent_id = header_dict.get('cross_id_origin_parent_id', False)
+        cross_id_origin_base, cross_id_origin_id, cross_id_origin_parent_id = \
+            self._explode_cross_origin_base_id_parent(message_dict, configuration.sender_id.bus_username, message.id)
 
         message_dict['header']['cross_id_origin_base'] = cross_id_origin_base
         message_dict['header']['cross_id_origin_id'] = cross_id_origin_id
@@ -135,6 +170,7 @@ class BusMessage(models.Model):
             'cross_id_origin_base': cross_id_origin_base,
             'cross_id_origin_id': cross_id_origin_id,
             'cross_id_origin_parent_id': cross_id_origin_parent_id,
+            'message_parent_id': parent_message_id,
         })
 
         for key, value in message_dict.get('header', {}).iteritems():
@@ -146,6 +182,13 @@ class BusMessage(models.Model):
                 'value': value,
             })
         return message
+
+    @api.multi
+    def _get_first_sent_message(self):
+        for rec in self:
+            if rec.type == 'sent':
+                return rec
+        return False
 
     @api.model
     def create(self, vals):
@@ -159,17 +202,37 @@ class BusMessage(models.Model):
             vals['date_done'] = fields.Datetime.now()
         return super(BusMessage, self).write(vals)
 
-    @api.multi
-    def get_linked_messages(self):
+    @api.model
+    def _explode_cross_origin_base_id_parent(self, message_dict, default_base=False, default_msg_id=False):
+        header_dict = message_dict.get('header', {})
+        base = header_dict.get('cross_id_origin_base', default_base)
+        msg_id = header_dict.get('cross_id_origin_id', default_msg_id)
+        msg_parent_id = header_dict.get('cross_id_origin_parent_id', False)
+        return base, msg_id, msg_parent_id
+
+    @api.model
+    def get_parent_cross_id_messages(self, message_dict):
         """
-        :param message: response or request to find its children or parents
-        :return: messages with the same cross id (origin, parent_id and id) without the message param
+        search for the last sent message of the parent level
+        :param message_dict:
+        :return: the parent message or False
         """
-        self.ensure_one()
-        return self.search([('cross_id_origin_base', '=', self.cross_id_origin_base),
-                            ('cross_id_origin_parent_id', '=', self.cross_id_origin_parent_id),
-                            ('cross_id_origin_id', '=', self.cross_id_origin_id),
-                            ('id', '!=', self.id)])
+        origin_base, _, origin_parent_id = self._explode_cross_origin_base_id_parent(message_dict)
+        return self.env['bus.message'].search([('cross_id_origin_base', '=', origin_base),
+                                               ('cross_id_origin_id', '=', origin_parent_id),
+                                               ('type', '=', 'sent')], order='id desc')
+
+    @api.model
+    def get_same_cross_id_messages(self, message_dict):
+        """
+        :return: messages with the same cross id (origin, parent_id and id)
+        """
+        origin_base, origin_id, origin_parent_id = self._explode_cross_origin_base_id_parent(message_dict)
+        domain = [('cross_id_origin_base', '=', origin_base),
+                  ('cross_id_origin_id', '=', origin_id)]
+        if origin_parent_id:
+            domain.append(('cross_id_origin_parent_id', '=', origin_parent_id))
+        return self.search(domain, order='id desc')
 
     @api.multi
     def get_parent(self):
