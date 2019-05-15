@@ -38,6 +38,9 @@ class AbstractLiveI10N(models.AbstractModel):
         if self.env[model_name]._fields[field_name].type != 'char':
             return {}
 
+        if not self.env[model_name]._fields[field_name].translate:
+            return {}
+
         ctx = dict(self.env.context)
         ctx['translate_field'] = field_name
         ctx['translate_field_value'] = field_value
