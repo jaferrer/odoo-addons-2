@@ -19,6 +19,7 @@
 
 from openerp import models, api, fields
 
+
 class CheckTransfer(models.Model):
     _name = 'bus.check.transfer'
     _order = 'create_date DESC'

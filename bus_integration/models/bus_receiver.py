@@ -34,7 +34,18 @@ class BusSynchronizationReceiver(models.AbstractModel):
             if not backend:
                 raise exceptions.ValidationError(u"No bakcend found : %s" % code)
             dict_message = json.loads(message_json, encoding='utf-8')
-            message = self.env['bus.message'].create_message(dict_message, 'received', backend)
+
+            # search for a parent message id
+            #     1. look for a sent message with the same cross id origin (ex : mere:1>mere:3)
+            #     2. look for a sent message in the upper level of cross id origin (ex: mere:1)
+
+            parent_message = self.env['bus.message'].get_same_cross_id_messages(dict_message)._get_first_sent_message()
+            if not parent_message:
+                parent_message = self.env['bus.message'].get_parent_cross_id_messages(dict_message)\
+                    ._get_first_sent_message()
+            parent_message_id = parent_message.id if parent_message else False
+
+            message = self.env['bus.message'].create_message(dict_message, 'received', backend, parent_message_id)
             if jobify:
                 job_uiid = job_receive_message.delay(ConnectorSession.from_env(self.env), self._name, message.id)
             else:
@@ -66,7 +77,7 @@ class BusSynchronizationReceiver(models.AbstractModel):
                 self.env['bus.exporter'].send_dependancy_synchronization_demand(message_id, demand)
             else:
                 new_msg = self.env['bus.exporter'].send_synchro_return_message(message_id, result)
-                if new_msg and message.cross_id_origin_parent_id:  # replay the parent message
+                if new_msg and not new_msg.is_error() and message.cross_id_origin_parent_id:  # replays parent message
                     self.process_received_message(message.get_parent().id)
         # dependency request
         elif message.treatment == 'DEPENDENCY_DEMAND_SYNCHRONIZATION':
@@ -91,10 +102,10 @@ class BusSynchronizationReceiver(models.AbstractModel):
 
         successful_treatments = ('SYNCHRONIZATION_RETURN', 'DELETION_SYNCHRONIZATION_RETURN')
         if (message.treatment in successful_treatments) or (new_msg and new_msg.treatment in successful_treatments):
-            message.write({'date_done': datetime.now()})
-            linked_msgs = message.get_linked_messages()
+            date_done = datetime.now()
+            linked_msgs = message.get_same_cross_id_messages(json.loads(message.message))
             for msg in linked_msgs:
-                msg.write({'date_done': message.date_done})
+                msg.write({'date_done': date_done})
         return result
 
     @api.model

@@ -302,13 +302,14 @@ class BusSynchronizationExporter(models.AbstractModel):
             'log': log_message,
             'state': return_state,
         }
-        message = self.env['bus.message'].create_message(resp, 'sent', parent_message.configuration_id)
+        message = self.env['bus.message'].create_message(resp, 'sent', parent_message.configuration_id,
+                                                         parent_message_id)
         message.send(resp)
         return message
 
     @api.model
-    def send_dependancy_synchronization_demand(self, message_id, demand):
-        message = self.env['bus.message'].browse(message_id)
+    def send_dependancy_synchronization_demand(self, parent_message_id, demand):
+        message = self.env['bus.message'].browse(parent_message_id)
         message_dict = json.loads(message.message)
         resp = {
             'body': {
@@ -324,13 +325,13 @@ class BusSynchronizationExporter(models.AbstractModel):
         resp['header']['treatment'] = 'DEPENDENCY_DEMAND_SYNCHRONIZATION'
         resp['body']['demand'] = demand
 
-        message = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id)
-        message.send(resp)
-        return message
+        new_msg = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id, parent_message_id)
+        new_msg.send(resp)
+        return new_msg
 
     @api.model
-    def send_dependency_synchronization_response(self, message_id):
-        message = self.env['bus.message'].browse(message_id)
+    def send_dependency_synchronization_response(self, parent_message_id):
+        message = self.env['bus.message'].browse(parent_message_id)
         message_dict = json.loads(message.message)
         resp = {
             'body': {
@@ -345,14 +346,14 @@ class BusSynchronizationExporter(models.AbstractModel):
         resp['header']['dest'] = dest
         resp['header']['treatment'] = 'DEPENDENCY_SYNCHRONIZATION'
         demand = message_dict.get('body', {}).get('demand', {})
-        model_content, dependancy_content = self._generate_dependance_message(message_id, demand)
+        model_content, dependancy_content = self._generate_dependance_message(parent_message_id, demand)
         resp['body']['root'] = model_content
         resp['body']['dependency'] = dependancy_content
         resp['header'].pop('cross_id_origin_id')
         resp['header']['cross_id_origin_parent_id'] = message.cross_id_origin_id
 
-        message = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id)
-        message.send(resp)
+        new_msg = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id, parent_message_id)
+        new_msg.send(resp)
         return True
 
     def _generate_dependance_message(self, message_id, demand):
