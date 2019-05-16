@@ -24,7 +24,8 @@ class MappingConfigurationHelper(models.TransientModel):
     _name = 'mapping.configuration.helper'
     _inherit = 'bus.object.mapping.abstract'
 
-    field_ids = fields.One2many('mapping.configuration.helper.line', 'mapping_id', u"Fields to parameter")
+    field_ids = fields.One2many('mapping.configuration.helper.line', 'mapping_id', u"Fields to parameter",
+                                domain=[('type_field', '!=', 'one2many'), ('is_computed', '=', False)])
 
     @api.onchange('model_id')
     def onchange_model_id(self):
@@ -161,5 +162,5 @@ class MappingConfigurationHelperAnswer(models.TransientModel):
         for rec in self:
             rec.fields_configuration_header = u"id,mapping_id:id,field_id:id,map_name,export_field," \
                                               u"import_creatable_field,import_updatable_field,is_migration_key"
-            rec.model_configuration_header = u"id,model_id:id,is_exportable,is_importable,key_xml_id,deactivated_sync,"\
-                                             u"deactivate_on_delete"
+            rec.model_configuration_header = u"id,model_id:id,is_exportable,is_importable,key_xml_id," \
+                                             u"deactivated_sync,deactivate_on_delete"

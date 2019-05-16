@@ -42,9 +42,26 @@ class BusSynchronizationImporter(models.AbstractModel):
                     if result:
                         result.update({'bus_original_id': original_id})
                     else:
-                        result = {'id': original_id, 'result': result}
+                        error_log = self.get_syncrhonization_errors(message_id, model, original_id)
+                        result = {'id': original_id, 'result': result, 'error': error_log}
                     import_results[model][original_id] = result
         return import_results, demand
+
+    @api.model
+    def get_syncrhonization_errors(self, message_id, model, original_id):
+        message_logs = self.env['bus.message.log'].search([('message_id', '=', message_id), ('model', '=', model),
+                                                           ('sender_record_id', '=', original_id)])
+        nb_log = 0
+        error_log = {}
+        for log in message_logs:
+            error_log[nb_log] = {'message_id': message_id,
+                                 'type': log.type,
+                                 'information': log.information,
+                                 'model': log.model,
+                                 'sender_record_id': log.sender_record_id,
+                                 'external_key': log.external_key}
+            nb_log = nb_log + 1
+        return error_log
 
     @api.model
     def import_deletion_synchronization_message(self, message_id):
@@ -81,7 +98,9 @@ class BusSynchronizationImporter(models.AbstractModel):
                     self.env['bus.message.log'].create({
                         'message_id': message_id,
                         'type': 'info',
-                        'information': u"Need record id : %s model : %s" % (str_id, needed_model)
+                        'information': u"Record needed",
+                        'sender_record_id': str_id,
+                        'model': needed_model
                     })
         return demand
 
@@ -149,35 +168,51 @@ class BusSynchronizationImporter(models.AbstractModel):
         external_key = record.pop('external_key')
         translation = record.pop('translation', False)
         # remote_id = record.pop('id')
+        record_id = record.get('id')
         xml_id = record.pop('xml_id', False)
         model_mapping = self._get_object_mapping(model)
         if not model_mapping:
             self.env['bus.message.log'].create({
                 'message_id': message_id,
                 'type': 'error',
-                'information': u"Model %s not configured for import!" % model
+                'information': u"Model %s not configured for import!" % model,
+                'model': model,
+                'sender_record_id': record_id,
+                'external_key': external_key
             })
             return False
         transfer, odoo_record = self.env['bus.binder']\
             .process_binding(external_key, model, record, xml_id, model_mapping, dependencies)
         binding_data, record_data, errors = self.env['bus.mapper']\
             .process_mapping(record, model, external_key, model_mapping, dependencies, odoo_record)
-        no_error = True
-        for error in errors:
-            error_type, error_message = error
-            if error_type == 'error':
-                no_error = False
-            self.env['bus.message.log'].create({
-                'message_id': message_id,
-                'type': error_type,
-                'information': error_message
-            })
-        if no_error:
+        if len(odoo_record) > 1:
+            errors.append(('error', u"Too many record find for %s : %s" % (model, record_id)))
+        no_error = self.register_errors(errors, message_id, model, record.get('id', False), external_key)
+        if not no_error:
+            return False
+        else:
             transfer, odoo_record = transfer.import_datas(transfer, odoo_record, binding_data, record_data)
             if translation:
                 self._update_translation(transfer, translation)
             return {'external_key': external_key, 'id': transfer.local_id}
         return False
+
+    @api.model
+    def register_errors(self, errors, message_id, model, record_id, external_key):
+        no_error = True
+        for error in errors:
+            error_type, error_message = error
+            if error_type == 'error':
+                no_error = False
+                self.env['bus.message.log'].create({
+                    'message_id': message_id,
+                    'type': error_type,
+                    'information': error_message,
+                    'model': model,
+                    'sender_record_id': record_id,
+                    'external_key': external_key
+                })
+        return no_error
 
     @api.model
     def run_import_deletion(self, record, model, dependencies):
@@ -235,31 +270,65 @@ class BusSynchronizationImporter(models.AbstractModel):
                     if datas.get('recipient_record_id'):
                         state = 'find'
                     check.write({
-                        'recipient_record_id': datas.get('recipient_record_id'),
-                        'external_key': datas.get('external_key'),
+                        'recipient_record_id': datas.get('recipient_record_id', False),
+                        'external_key': datas.get('external_key', False),
                         'state': state,
                         'date_response': datetime.now()
                     })
                 if not check:
                     error = u"Check not find : %s - %s(%s)" % (datas.get('check_id', False), model, id)
-                    self.env['bus.message.log'].create({'message_id': message.id, 'type': 'error',
-                                                        'information': error})
+                    self.env['bus.message.log'].create({
+                        'message_id': message.id,
+                        'type': 'error',
+                        'information': error,
+                        'sender_record_id': id
+                    })
         return True
 
     @api.model
-    def import_bus_references(self, dict_result):
+    def import_bus_references(self, message_id, dict_result, return_state):
         if not dict_result:
             return True
         for model in dict_result.keys():
             for id in dict_result.get(model).keys():
                 datas = dict_result.get(model).get(id)
                 external_key = datas.get('external_key', False)
-                local_id = datas.get('bus_original_id', False)
-                transfer = self.env['bus.binder']._get_transfer(external_key, model)
-                if not transfer:
-                    self.env['bus.receive.transfer'].create({
-                        'model': model,
-                        'local_id': local_id,
-                        'external_key': external_key,
-                        'received_data': json.dumps(datas, indent=4)
-                    })
+                if return_state != 'error':
+                    self.create_receive_transfer(model, external_key, id, datas)
+                else:
+                    self.create_error_synchronization(message_id, model, id, external_key, datas)
+
+    @api.model
+    def create_receive_transfer(self, model, external_key, local_id, datas):
+        transfer = self.env['bus.binder']._get_transfer(external_key, model)
+        if not transfer:
+            self.env['bus.receive.transfer'].create({
+                'model': model,
+                'local_id': local_id,
+                'external_key': external_key,
+                'received_data': json.dumps(datas, indent=4)
+            })
+
+    @api.model
+    def create_error_synchronization(self, message_id, model, local_id, external_key, datas):
+        message = self.env['bus.message'].browse(message_id)
+        dict_message = json.loads(message.message)
+        origin = dict_message.get('header', {}).get('origin', False)
+        dest = dict_message.get('header', {}).get('dest', False)
+        recipient = False
+        sender = False
+        if origin:
+            recipient = self.env['bus.base'].search([('bus_username', '=', origin)])
+        if dest:
+            sender = self.env['bus.base'].search([('bus_username', '=', dest)])
+        for error in datas.get('error', {}).values():
+            self.env['bus.message.log'].create({
+                'message_id': message_id,
+                'model': model,
+                'sender_record_id': local_id,
+                'external_key': external_key,
+                'recipient_id': recipient and recipient.id or False,
+                'sender_id': sender and sender.id or False,
+                'type': error.get('type', ''),
+                'information': error.get('information', '')
+            })
