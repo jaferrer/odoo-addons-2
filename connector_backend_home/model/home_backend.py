@@ -204,16 +204,18 @@ class ConnectorTypeBackend(models.Model):
 class ConnectorTypeMagentoParameter(models.Model):
     _name = 'connector.type.magento.parameter'
 
-    url = fields.Char(string=u'api')
-    api_user = fields.Char(string=u'Username')
-    api_pwd = fields.Char(string=u'Password')
+    url = fields.Char(u'api')
+    api_user = fields.Char(u'Username')
+    api_pwd = fields.Char(u'Password')
 
     use_http = fields.Boolean(u"Use HTTP Auth Basic")
 
-    http_user = fields.Char(string=u'Basic Auth. Username')
-    http_pwd = fields.Char(string=u'Basic Auth. Password')
+    http_user = fields.Char(u'Basic Auth. Username')
+    http_pwd = fields.Char(u'Basic Auth. Password')
 
-    line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
+    stock_location_root_id = fields.Many2one('stock.location', u"Emplacement du stock")
+
+    line_id = fields.Many2one('backend.type.line', u"Connector Type line", required=True)
 
 
 class ConnectorTypeOdooParameter(models.Model):
