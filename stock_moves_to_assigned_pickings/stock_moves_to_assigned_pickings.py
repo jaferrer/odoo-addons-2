@@ -24,16 +24,66 @@ class StockMove(models.Model):
     _inherit = "stock.move"
 
     @api.multi
+    def action_confirm(self):
+        """ Full override of action_confirm to open this method + re-write in new style
+        _get_key_to_assign_move_to_picking = to customize how a move is grouped before assigning in a picking
+        """
+        states = {
+            'confirmed': self.env['stock.move'],
+            'waiting': self.env['stock.move'],
+        }
+        to_assign = {}
+        for rec in self:
+            self.env['stock.move'].attribute_price(rec)
+            state = 'confirmed'
+            #if the move is preceeded, then it's waiting (if preceeding move is done, then action_assign has been called already and its state is already available)
+            if rec.move_orig_ids:
+                state = 'waiting'
+            #if the move is split and some of the ancestor was preceeded, then it's waiting as well
+            elif rec.split_from:
+                move2 = rec.split_from
+                while move2 and state != 'waiting':
+                    if move2.move_orig_ids:
+                        state = 'waiting'
+                    move2 = move2.split_from
+            states[state] |= rec
+
+            if not rec.picking_id and rec.picking_type_id:
+                key = rec._get_key_to_assign_move_to_picking()
+                to_assign.setdefault(key, self.env['stock.move'])
+                to_assign[key] |= rec
+        moves = states['confirmed'].filtered(lambda move: move.procure_method == 'make_to_order')
+        self.env['stock.move']._create_procurements(moves)
+
+        for move in moves:
+            states['waiting'] |= move
+            states['confirmed'] |= move
+
+        for state, to_writes in states.items():
+            if to_writes:
+                to_writes.write({'state': state})
+        #assign picking in batch for all confirmed move that share the same details
+        for move_to_assign in to_assign.values():
+            move_to_assign._picking_assign()
+
+        self.env['stock.move']._push_apply(self)
+        return self.ids
+
+    @api.multi
+    def _get_key_to_assign_move_to_picking(self):
+        self.ensure_one()
+        return (self.group_id.id, self.location_id.id, self.location_dest_id.id)
+
+    @api.multi
     def _picking_assign(self):
         """Assign a picking on the given move_ids, which is a list of move supposed to share the same procurement_group,
         location_from and location_to (and company). Those attributes are also given as parameters.
         """
-        if len(self) == 0:
+        if not self:
             return True
 
         # Allow to extend easily this method, by adding parts to the request, and the according parameters
         query, params = self._get_stock_picking_query()
-
         self.env.cr.execute(query + " LIMIT 1", params)
         pick_id = (self.env.cr.fetchone() or [None])[0]
         if not pick_id:

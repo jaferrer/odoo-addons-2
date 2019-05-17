@@ -31,3 +31,8 @@ msgstr "Mouvement de stock"
 msgid "The picking type determines the picking view"
 msgstr "Le type de préparation détermine la vue de préparation"
 
+#. module: group_picking_by_owner
+#: field:procurment.order,restrict_partner_id:0
+msgid "Owner"
+msgstr "Propriétaire"
+
