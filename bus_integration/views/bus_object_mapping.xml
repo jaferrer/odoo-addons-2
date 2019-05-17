@@ -7,7 +7,7 @@
             <field name="model">bus.object.mapping</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree>
+                <tree default_order="model_id">
                     <field name="model_id"/>
                     <field name="is_exportable"/>
                     <field name="is_importable"/>
@@ -56,7 +56,11 @@
                         </group>
                         <notebook>
                             <page>
-                                <field name="field_ids" context="{'default_model_id': model_id, 'default_export_field': is_exportable, 'default_import_field': is_importable}">
+                                <field name="field_ids" context="{
+                                        'default_model_id': model_id,
+                                        'default_export_field': is_exportable,
+                                        'default_import_creatable_field': is_importable,
+                                        'default_import_updatable_field': is_importable}">
                                     <tree editable="bottom">
                                         <field name="model_id" invisible="1"/>
                                         <field name="field_id" domain="[('model_id', '=', model_id)]" options="{'no_create': True, 'no_open': True}"/>
@@ -64,7 +68,8 @@
                                         <field name="relation"/>
                                         <field name="map_name"/>
                                         <field name="export_field"/>
-                                        <field name="import_field"/>
+                                        <field name="import_creatable_field"/>
+                                        <field name="import_updatable_field"/>
                                         <field name="is_migration_key"/>
                                     </tree>
                                 </field>
@@ -81,7 +86,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
-            <field name="context">{'search_default_transmit_ok': True}</field>
+            <field name="context">{'display_technical_names': True}</field>
             <field name="help"/>
         </record>
 

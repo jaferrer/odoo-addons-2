@@ -9,7 +9,8 @@
                         grey: cron_created == False;
                         orange: last_transfer_state == 'blocked';
                         red: last_transfer_state == 'error';
-                        blue: last_transfer_state == 'started';">
+                        blue: last_transfer_state == 'started';"
+                      default_order="model">
                     <field name="model"/>
                     <field name="recipient_id"/>
                     <field name="treatment_type"/>
