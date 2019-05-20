@@ -42,7 +42,7 @@ class BusSynchronizationImporter(models.AbstractModel):
                     if result:
                         result.update({'bus_original_id': original_id})
                     else:
-                        result = {'id':original_id, 'result': result}
+                        result = {'id': original_id, 'result': result}
                     import_results[model][original_id] = result
         return import_results, demand
 

@@ -27,7 +27,7 @@ from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 
 
-@job(default_channel='root')
+@job(default_channel='root.fill_stock_pickings')
 def job_fill_new_picking_for_product(session, model_name, product_id, move_tuples, dest_location_id,
                                      picking_type_id, new_picking_id, context=None):
     quants_obj = session.env[model_name].with_context(context)
@@ -36,7 +36,7 @@ def job_fill_new_picking_for_product(session, model_name, product_id, move_tuple
     return "Picking correctly filled"
 
 
-@job(default_channel='root')
+@job(default_channel='root.fill_stock_pickings')
 def job_check_picking_one_by_one(session, picking_id, context):
     """
     Job to dissociate the check of each picking.

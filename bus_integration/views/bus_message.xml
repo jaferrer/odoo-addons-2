@@ -7,14 +7,17 @@
             <field name="model">bus.message</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree create="false" delete="false" colors="red:state=='error';grey:date_done">
+                <tree create="false" delete="false"
+                      colors="red:state=='error';grey:date_done"
+                      default_order="id desc">
                     <field name="state" invisible="True" />
+                    <field name="date_done" invisible="True" />
                     <field name="cross_id_str" />
-                    <field name="type"/>
-                    <field name="treatment"/>
+                    <field name="id" />
+                    <field name="display_name" />
                     <field name="body_models" />
-                    <field name="date_done"/>
-                    <field name="create_date"/>
+                    <field name="treatment"/>
+                    <field name="create_date" />
                 </tree>
             </field>
         </record>
@@ -27,11 +30,13 @@
                 <form>
                     <sheet>
                         <group>
+                            <field name="display_name" />
                             <field name="type"/>
                             <field name="treatment"/>
                             <field name="create_date"/>
                             <field name="create_uid"/>
                             <field name="date_done"/>
+                            <field name="message_parent_id" />
                         </group>
                         <separator string="Header"/>
                         <field name="header_param_ids">
@@ -92,7 +97,11 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
-            <field name="context">{'search_default_running': True, 'search_default_lasts24h' : True}</field>
+            <field name="context">{
+                    'search_default_running': True,
+                    'search_default_lasts24h' : True
+                }
+            </field>
         </record>
 
         <menuitem id="menu_bus_message" name="Bus Messages" action="act_window_bus_message"
