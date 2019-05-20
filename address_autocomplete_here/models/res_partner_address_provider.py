@@ -53,16 +53,16 @@ class ResPartnerHereAddress(models.Model):
 
     @api.multi
     def request_address(self, request):
-        url = self.env['ir.config_parameter'].get_param('aef_technical_model.url_address_provider')
+        url = self.env['ir.config_parameter'].get_param('address_autocomplete.url_address_provider')
         if not url:
             raise UserError(u"L'adresse du site de Géocoding Here n'est pas renseigné")
-        login = self.env['ir.config_parameter'].get_param('aef_technical_model.login_address_provider')
+        login = self.env['ir.config_parameter'].get_param('address_autocomplete.login_address_provider')
         if not login:
             raise UserError(u"L'identifiant du site de Géocoding Here n'est pas renseigné")
-        password = self.env['ir.config_parameter'].get_param('aef_technical_model.password_address_provider')
+        password = self.env['ir.config_parameter'].get_param('address_autocomplete.password_address_provider')
         if not password:
             raise UserError(u"Le mot de passe du site de Géocoding Here n'est pas renseigné")
-        pays = self.env['ir.config_parameter'].get_param('aef_technical_model.country_address_provider')
+        pays = self.env['ir.config_parameter'].get_param('address_autocomplete.country_address_provider')
         if not pays:
             raise UserError(u"Il n'y a pas de pays renseigné pour lequel appliquer la recherche")
 

@@ -32,7 +32,7 @@ class ConfigHerculePro(models.TransientModel):
     def get_default_url_address_provider(self, fields):
         url = u"http://autocomplete.geocoder.api.here.com/6.2/suggest.json"
         return {'url_address_provider': self.env['ir.config_parameter'].get_param(
-            'aef_technical_model.url_address_provider',
+            'address_autocomplete.url_address_provider',
             default=url
         )}
 
@@ -41,37 +41,37 @@ class ConfigHerculePro(models.TransientModel):
         for rec in self:
             url = u"http://autocomplete.geocoder.api.here.com/6.2/suggest.json"
             value = rec.url_address_provider
-            self.env['ir.config_parameter'].set_param('aef_technical_model.url_address_provider', value or url)
+            self.env['ir.config_parameter'].set_param('address_autocomplete.url_address_provider', value or url)
 
     @api.multi
     def get_default_login_address_provider(self, fields):
         return {'login_address_provider': self.env['ir.config_parameter'].get_param(
-            'aef_technical_model.login_address_provider')}
+            'address_autocomplete.login_address_provider')}
 
     @api.multi
     def set_default_login_address_provider(self):
         for rec in self:
             value = rec.login_address_provider
-            self.env['ir.config_parameter'].set_param('aef_technical_model.login_address_provider', value)
+            self.env['ir.config_parameter'].set_param('address_autocomplete.login_address_provider', value)
 
     @api.multi
     def get_default_password_address_provider(self, fields):
         return {'password_address_provider': self.env['ir.config_parameter'].get_param(
-            'aef_technical_model.password_address_provider')}
+            'address_autocomplete.password_address_provider')}
 
     @api.multi
     def set_default_password_address_provider(self):
         for rec in self:
             value = rec.password_address_provider
-            self.env['ir.config_parameter'].set_param('aef_technical_model.password_address_provider', value)
+            self.env['ir.config_parameter'].set_param('address_autocomplete.password_address_provider', value)
 
     @api.multi
     def get_default_country_address_provider(self, fields):
         return {'country_address_provider': self.env['ir.config_parameter'].get_param(
-            'aef_technical_model.country_address_provider')}
+            'address_autocomplete.country_address_provider')}
 
     @api.multi
     def set_default_country_address_provider(self):
         for rec in self:
             value = rec.country_address_provider
-            self.env['ir.config_parameter'].set_param('aef_technical_model.country_address_provider', value)
+            self.env['ir.config_parameter'].set_param('address_autocomplete.country_address_provider', value)
