@@ -140,7 +140,7 @@ class MappingConfigurationHelperLine(models.TransientModel):
 
     @api.onchange('field_id')
     @api.multi
-    def onchange_field_i(self):
+    def onchange_field_id(self):
         for rec in self:
             rec.map_name = rec.field_id and rec.field_id.name or u""
 

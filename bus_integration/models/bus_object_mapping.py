@@ -40,13 +40,13 @@ class BusObjectMappingAbstract(models.AbstractModel):
 class BusObjectMappingFieldAbstract(models.AbstractModel):
     _name = 'bus.object.mapping.field.abstract'
 
-    field_id = fields.Many2one('ir.model.fields', u"Field", required=True,
+    field_id = fields.Many2one('ir.model.fields', u"Field", required=True, domain=[('ttype', '!=', 'one2many')],
                                context={'display_technical_names': True})
     # related fields
     field_name = fields.Char(u"Field name", readonly=True, related='field_id.name', store=True)
     type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
     relation = fields.Char(string=u'Relation', related='field_id.relation', store=True, readonly=True)
-    is_computed = fields.Boolean(String=u"Computed", compute="_compute_is_computed")
+    is_computed = fields.Boolean(String=u"Computed", compute="_get_is_computed")
     # compute when model changes in mapping.field.configuration.helper
     map_name = fields.Char(u"Mapping name", required=True)
     # set manually
@@ -57,7 +57,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
 
     @api.multi
     @api.depends('field_id')
-    def _compute_is_computed(self):
+    def _get_is_computed(self):
         for rec in self:
             model_name = rec.field_id.model
             rec.is_computed = model_name and self.env[model_name]._fields[rec.field_name].compute or False
@@ -123,6 +123,19 @@ class BusObjectMappingField(models.Model):
     mapping_id = fields.Many2one('bus.object.mapping', string=u"Model")
     active = fields.Boolean(u"Active", default=True)
     model_id = fields.Many2one('ir.model', u"Model", related='mapping_id.model_id', readonly=True)
+    is_configured = fields.Boolean(String=u"Is configured", compute="_get_is_configured", store=True)
+
+    @api.multi
+    @api.depends('field_id')
+    def _get_is_configured(self):
+
+        for rec in self:
+            mapping = True
+            if rec.field_id.relation:
+                model_name = rec.field_id.relation
+                mapping = self.env['bus.object.mapping'].search([('model_name', '=', model_name)])
+            rec.is_configured = mapping
+
 
     _sql_constraints = [
         ('name_uniq_by_model', 'unique(field_id, mapping_id)', u"This field already exists for this model."),
