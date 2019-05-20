@@ -25,7 +25,8 @@ class Model(models.Model):
 
     @api.multi
     def name_get(self):
-        if not self.env.context.get('display_short_name', False):
+        display_technical_names = self.env.context.get('display_technical_names', False)
+        if not display_technical_names:
             return super(Model, self).name_get()
         result = []
         for rec in self:
@@ -38,6 +39,6 @@ class BusIrModelFields(models.Model):
 
     @api.multi
     def name_get(self):
-        if self.env.context.get('display_technical_field_names'):
+        if self.env.context.get('display_technical_names'):
             return [(rec.id, rec.name) for rec in self]
         return super(BusIrModelFields, self).name_get()

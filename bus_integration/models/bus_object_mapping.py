@@ -23,7 +23,7 @@ from openerp import models, fields, api, exceptions, _ as _t
 class BusObjectMappingAbstract(models.AbstractModel):
     _name = 'bus.object.mapping.abstract'
 
-    model_id = fields.Many2one('ir.model', u"Model", required=True, context={'display_short_name': True})
+    model_id = fields.Many2one('ir.model', u"Model", required=True, context={'display_technical_names': True})
     model_name = fields.Char(u"Model name", readonly=True, related='model_id.model', store=True)
     is_exportable = fields.Boolean(u"Is exportable")
     is_importable = fields.Boolean(u"Is importable")
@@ -41,7 +41,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     _name = 'bus.object.mapping.field.abstract'
 
     field_id = fields.Many2one('ir.model.fields', u"Field", required=True,
-                               context={'display_technical_field_names': True})
+                               context={'display_technical_names': True})
     # related fields
     field_name = fields.Char(u"Field name", readonly=True, related='field_id.name', store=True)
     type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
@@ -51,7 +51,8 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     map_name = fields.Char(u"Mapping name", required=True)
     # set manually
     export_field = fields.Boolean(u"To export")
-    import_field = fields.Boolean(u"To import")
+    import_creatable_field = fields.Boolean(u"Import - to create")
+    import_updatable_field = fields.Boolean(u"Import - to update")
     is_migration_key = fields.Boolean(u"Migration key", default=False)
 
     @api.multi
@@ -96,7 +97,7 @@ class BusObjectMapping(models.Model):
         return {
             'name': u"Mapping configuration helper",
             'type': 'ir.actions.act_window',
-            r'view_type': 'form',
+            'view_type': 'form',
             'view_mode': 'form',
             'res_model': 'mapping.configuration.helper',
             'res_id': wizard.id,
@@ -112,7 +113,7 @@ class BusObjectMapping(models.Model):
     @api.multi
     def get_field_to_import(self):
         self.ensure_one()
-        return [field for field in self.field_ids if field.import_field]
+        return [field for field in self.field_ids if field.import_creatable_field or field.import_updatable_field]
 
 
 class BusObjectMappingField(models.Model):
