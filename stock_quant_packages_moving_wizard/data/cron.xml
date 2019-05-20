@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <!--<data noupdate="1">-->
     <data>
 
         <record model="ir.cron" id="cron_check_pickings_filled">
@@ -16,6 +15,11 @@
             <field name="model">stock.picking</field>
             <field name="function">check_picking_one_by_one</field>
             <field name="args"/>
+        </record>
+
+        <record model="queue.job.channel" id="root_fill_stock_pickings">
+            <field name="name">fill_stock_pickings</field>
+            <field name="parent_id" ref="connector.channel_root"/>
         </record>
 
     </data>
