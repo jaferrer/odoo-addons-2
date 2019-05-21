@@ -258,7 +258,7 @@ WHERE (qj.id IS NULL OR qj.state IN ('done', 'failed')) AND sm.id IN %s"""
         query = """SELECT po.id
 FROM procurement_order po
   LEFT JOIN queue_job qj ON qj.uuid = po.run_or_confirm_job_uuid
-  WHERE (po.run_or_confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND
+  WHERE (qj.id IS NULL OR qj.state IN ('done', 'failed')) AND
                       po.state = %s AND
                       po.product_id IN %s"""
         if company_id:
