@@ -37,12 +37,11 @@ def job_fill_new_picking_for_product(session, model_name, product_id, move_tuple
 
 
 @job(default_channel='root.fill_stock_pickings')
-def job_check_picking_one_by_one(session, picking_id, context):
+def job_check_picking_one_by_one(session, model_name, ids, context):
     """
     Job to dissociate the check of each picking.
     """
-
-    session.env['stock.picking'].with_context(context).browse(picking_id).check_pickings_filled()
+    session.env[model_name].with_context(context).browse(ids).check_pickings_filled()
     return "Check done"
 
 
@@ -385,7 +384,7 @@ class StockPicking(models.Model):
 
         while pickings_to_check:
             chunk_picking = pickings_to_check[:1]
-            job_check_picking_one_by_one.delay(ConnectorSession.from_env(self.env), chunk_picking.id,
+            job_check_picking_one_by_one.delay(ConnectorSession.from_env(self.env), 'stock.picking', chunk_picking.ids,
                                                dict(self.env.context))
             pickings_to_check = pickings_to_check[1:]
 
