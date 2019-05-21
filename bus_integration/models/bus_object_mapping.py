@@ -25,6 +25,9 @@ class BusObjectMappingAbstract(models.AbstractModel):
 
     model_id = fields.Many2one('ir.model', u"Model", required=True, context={'display_technical_names': True})
     model_name = fields.Char(u"Model name", readonly=True, related='model_id.model', store=True)
+
+    field_ids = fields.One2many('bus.object.mapping.field.abstract', 'mapping_id', string=u"Fields")
+
     is_exportable = fields.Boolean(u"Is exportable")
     is_importable = fields.Boolean(u"Is importable")
     key_xml_id = fields.Boolean(string=u"Migration key on xml id",
@@ -36,12 +39,76 @@ class BusObjectMappingAbstract(models.AbstractModel):
     def name_get(self):
         return [(rec.id, u"Mapping of object %s" % rec.model_id.name) for rec in self]
 
+    @api.multi
+    def _get_mapping_as_csv(self):
+        self.ensure_one()
+        model_mapping_xml_id = u"mapping_model_%s" % (self.model_id.model.replace('.', '_'))
+        model_xml_id = self.model_id.get_external_id().get(self.model_id.id)
+        model_csv = u"%s,%s,%s,%s,%s,%s,%s" % (model_mapping_xml_id,
+                                               model_xml_id,
+                                               self.is_exportable,
+                                               self.is_importable,
+                                               self.key_xml_id,
+                                               self.deactivated_sync,
+                                               self.deactivate_on_delete)
+
+        fields_csv = u""""""
+        for my_field in self.field_ids:
+            field_mapping_xml_id = u"mapping_field_%s_%s" % (self.model_id.model.replace('.', '_'),
+                                                             my_field.field_id.name)
+            field_xml_id = my_field.field_id.get_external_id().get(my_field.field_id.id)
+            fields_csv += u"""%s,%s,%s,%s,%s,%s,%s,%s""" % (field_mapping_xml_id,
+                                                            model_mapping_xml_id,
+                                                            field_xml_id,
+                                                            my_field.map_name,
+                                                            my_field.export_field,
+                                                            my_field.import_creatable_field,
+                                                            my_field.import_updatable_field,
+                                                            my_field.is_migration_key)
+            if my_field != self.field_ids[-1]:
+                fields_csv += u"""\n"""
+
+        return model_csv, fields_csv
+
+    @api.multi
+    def display_config_popup(self):
+        model_configuration = u""""""
+        fields_configuration = u""""""
+        for rec in self:
+            if rec != self[0]:
+                model_configuration += u"""\n"""
+                fields_configuration += u"""\n"""
+
+            rec_model_csv, rec_fields_csv = rec._get_mapping_as_csv()
+            model_configuration += rec_model_csv
+            fields_configuration += rec_fields_csv
+
+        answer = self.env['mapping.configuration.helper.answer'].create({
+            'model_configuration': model_configuration,
+            'fields_configuration': fields_configuration,
+        })
+
+        return {
+            'name': u"Mapping configuration helper",
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'mapping.configuration.helper.answer',
+            'res_id': answer.id,
+            'target': 'new',
+            'context': self.env.context
+        }
+
 
 class BusObjectMappingFieldAbstract(models.AbstractModel):
     _name = 'bus.object.mapping.field.abstract'
 
     field_id = fields.Many2one('ir.model.fields', u"Field", required=True, domain=[('ttype', '!=', 'one2many')],
                                context={'display_technical_names': True})
+
+    mapping_id = fields.Many2one('bus.object.mapping.abstract', string=u"Model")
+    model_id = fields.Many2one('ir.model', u"Model", related='mapping_id.model_id', readonly=True)
+
     # related fields
     field_name = fields.Char(u"Field name", readonly=True, related='field_id.name', store=True)
     type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
@@ -83,10 +150,8 @@ class BusObjectMapping(models.Model):
                                         _t(u"This model must have the field 'active', (%s)" % self.model_id.model))
 
     @api.model
-    def get_mapping(self, model_name, only_transmit=False):
+    def get_mapping(self, model_name):
         domain = [('model_name', '=', model_name)]
-        if only_transmit:
-            only_transmit += [('is_exportable', '=', True)]
         return self.env['bus.object.mapping'].search(domain, limit=1)
 
     @api.multi
@@ -106,6 +171,10 @@ class BusObjectMapping(models.Model):
         }
 
     @api.multi
+    def export_config(self):
+        return super(BusObjectMapping, self).display_config_popup()
+
+    @api.multi
     def get_field_to_export(self):
         self.ensure_one()
         return [field for field in self.field_ids if field.export_field]
@@ -122,7 +191,6 @@ class BusObjectMappingField(models.Model):
 
     mapping_id = fields.Many2one('bus.object.mapping', string=u"Model")
     active = fields.Boolean(u"Active", default=True)
-    model_id = fields.Many2one('ir.model', u"Model", related='mapping_id.model_id', readonly=True)
     is_configured = fields.Boolean(String=u"Is configured", compute="_get_is_configured", store=True)
 
     @api.multi
@@ -135,7 +203,6 @@ class BusObjectMappingField(models.Model):
                 model_name = rec.field_id.relation
                 mapping = self.env['bus.object.mapping'].search([('model_name', '=', model_name)])
             rec.is_configured = mapping
-
 
     _sql_constraints = [
         ('name_uniq_by_model', 'unique(field_id, mapping_id)', u"This field already exists for this model."),
