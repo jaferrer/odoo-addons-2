@@ -158,12 +158,10 @@ class BusSynchronizationImporter(models.AbstractModel):
                 'information': u"Model %s not configured for import!" % model
             })
             return False
-        binding = self.env['bus.binder'].process_binding(external_key, model, record, xml_id,
-                                                         model_mapping, dependencies)
-        transfer, odoo_record = binding
-        mapping = self.env['bus.mapper'].process_mapping(record, model, external_key, model_mapping,
-                                                         dependencies)
-        binding_data, record_data, errors = mapping
+        transfer, odoo_record = self.env['bus.binder']\
+            .process_binding(external_key, model, record, xml_id, model_mapping, dependencies)
+        binding_data, record_data, errors = self.env['bus.mapper']\
+            .process_mapping(record, model, external_key, model_mapping, dependencies, odoo_record)
         no_error = True
         for error in errors:
             error_type, error_message = error

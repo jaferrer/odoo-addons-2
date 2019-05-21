@@ -24,14 +24,14 @@ class MappingConfigurationHelper(models.TransientModel):
     _name = 'mapping.configuration.helper'
     _inherit = 'bus.object.mapping.abstract'
 
-    helper_line_ids = fields.One2many('mapping.configuration.helper.line', 'wizard_id', u"Fields to parameter")
+    field_ids = fields.One2many('mapping.configuration.helper.line', 'mapping_id', u"Fields to parameter")
 
     @api.onchange('model_id')
     def onchange_model_id(self):
         for rec in self:
-            helper_line_ids = False
+            field_ids = False
             if rec.model_id:
-                rec.helper_line_ids = False
+                rec.field_ids = False
                 mapping = self.env['bus.object.mapping'].get_mapping(rec.model_name)
                 rec.key_xml_id = mapping.key_xml_id
                 rec.deactivated_sync = mapping.deactivated_sync
@@ -40,38 +40,40 @@ class MappingConfigurationHelper(models.TransientModel):
                 rec.is_importable = mapping.is_importable
                 fields = self.env['ir.model.fields'].search([('model_id', '=', rec.model_id.id)])
                 if fields:
-                    helper_line_ids = []
+                    field_ids = []
                 mapping_fields = self.env['bus.object.mapping.field'].search([('mapping_id', '=', mapping.id)])
                 for mapping_field in mapping_fields:
-                    helper_line_ids += [(0, 0, {
+                    field_ids += [(0, 0, {
                         'model_id': rec.model_id.id,
                         'wizard_id': rec.id,
                         'field_id': mapping_field.field_id.id,
                         'map_name': mapping_field.map_name,
                         'export_field': mapping_field.export_field,
-                        'import_field': mapping_field.import_field,
+                        'import_creatable_field': mapping_field.import_creatable_field,
+                        'import_updatable_field': mapping_field.import_updatable_field,
                         'is_migration_key': mapping_field.is_migration_key,
                     })]
-            rec.helper_line_ids = helper_line_ids
+            rec.field_ids = field_ids
 
     @api.multi
     def add_all(self):
-        self.helper_line_ids = []
+        self.field_ids = []
         unwanted_fields = ('create_date', 'create_uid', '__last_update', 'write_date', 'write_uid', 'display_name')
 
         fields = self.env['ir.model.fields'].search(['&',
                                                      ('model_id', '=', self.model_id.id),
                                                      ('name', 'not in', unwanted_fields)])
 
-        self.helper_line_ids = self.env['mapping.configuration.helper.line']
+        self.field_ids = self.env['mapping.configuration.helper.line']
         for field in fields:
-            self.helper_line_ids |= self.env['mapping.configuration.helper.line'].create({
+            self.field_ids |= self.env['mapping.configuration.helper.line'].create({
                 'model_id': self.model_id.id,
                 'wizard_id': self.id,
                 'field_id': field.id,
                 'map_name': field.name,
                 'export_field': self.is_exportable,
-                'import_field': self.is_importable,
+                'import_creatable_field': self.is_importable,
+                'import_updatable_field': self.is_importable,
                 'is_migration_key': False,
             })
 
@@ -87,39 +89,35 @@ class MappingConfigurationHelper(models.TransientModel):
     @api.multi
     def validate(self):
         self.ensure_one()
-        model_configuration_header = u"id,model_id:id,key_xml_id,deactivated_sync,deactivate_on_delete,is_exportable," \
-                                     u"is_importable"
-        fields_configuration_header = u"id,mapping_id:id,field_id:id,map_name,export_field,import_field," \
-                                      u"is_migration_key"
         model_mapping_xml_id = u"mapping_model_%s" % (self.model_id.model.replace('.', '_'))
         model_xml_id = self.model_id.get_external_id().get(self.model_id.id)
         model_configuration = u"%s,%s,%s,%s,%s,%s,%s" % (model_mapping_xml_id,
                                                          model_xml_id,
+                                                         self.is_exportable,
+                                                         self.is_importable,
                                                          self.key_xml_id,
                                                          self.deactivated_sync,
-                                                         self.deactivate_on_delete,
-                                                         self.is_exportable,
-                                                         self.is_importable)
+                                                         self.deactivate_on_delete)
         fields_configuration = u""""""
         for wizard_line in self.helper_line_ids:
             field_mapping_xml_id = u"mapping_field_%s_%s" % (self.model_id.model.replace('.', '_'),
                                                              wizard_line.field_id.name)
             field_xml_id = wizard_line.field_id.get_external_id().get(wizard_line.field_id.id)
-            fields_configuration += u"""%s,%s,%s,%s,%s,%s,%s""" % (field_mapping_xml_id,
-                                                                   model_mapping_xml_id,
-                                                                   field_xml_id,
-                                                                   wizard_line.map_name,
-                                                                   wizard_line.export_field,
-                                                                   wizard_line.import_field,
-                                                                   wizard_line.is_migration_key)
+            fields_configuration += u"""%s,%s,%s,%s,%s,%s,%s,%s""" % (field_mapping_xml_id,
+                                                                      model_mapping_xml_id,
+                                                                      field_xml_id,
+                                                                      wizard_line.map_name,
+                                                                      wizard_line.export_field,
+                                                                      wizard_line.import_creatable_field,
+                                                                      wizard_line.import_updatable_field,
+                                                                      wizard_line.is_migration_key)
             if wizard_line != self.helper_line_ids[-1]:
                 fields_configuration += u"""\n"""
         vals = {
-            'model_configuration_header': model_configuration_header,
             'model_configuration': model_configuration,
-            'fields_configuration_header': fields_configuration_header,
             'fields_configuration': fields_configuration,
         }
+
         answer = self.env['mapping.configuration.helper.answer'].create(vals)
         return {
             'name': u"Mapping configuration helper",
@@ -137,12 +135,11 @@ class MappingConfigurationHelperLine(models.TransientModel):
     _name = 'mapping.configuration.helper.line'
     _inherit = 'bus.object.mapping.field.abstract'
 
-    wizard_id = fields.Many2one('mapping.configuration.helper', u"Wizard")
-    model_id = fields.Many2one('ir.model', u"Model", related='wizard_id.model_id', readonly=True)
+    mapping_id = fields.Many2one('mapping.configuration.helper', u"Wizard")
 
     @api.onchange('field_id')
     @api.multi
-    def onchange_field_i(self):
+    def onchange_field_id(self):
         for rec in self:
             rec.map_name = rec.field_id and rec.field_id.name or u""
 
@@ -150,7 +147,19 @@ class MappingConfigurationHelperLine(models.TransientModel):
 class MappingConfigurationHelperAnswer(models.TransientModel):
     _name = 'mapping.configuration.helper.answer'
 
-    model_configuration_header = fields.Char(string=u"Model configuration header")
-    fields_configuration_header = fields.Char(string=u"Fields configuration header")
-    model_configuration = fields.Char(string=u"Model configuration")
+    model_configuration_header = fields.Char(string=u"Model configuration header",
+                                             compute="_compute_static_fields",
+                                             store=False, readonly=True)
+    fields_configuration_header = fields.Char(string=u"Fields configuration header",
+                                              compute="_compute_static_fields",
+                                              store=False, readonly=True)
+
+    model_configuration = fields.Text(string=u"Model configuration")
     fields_configuration = fields.Text(string=u"Fields configuration")
+
+    def _compute_static_fields(self):
+        for rec in self:
+            rec.fields_configuration_header = u"id,mapping_id:id,field_id:id,map_name,export_field," \
+                                              u"import_creatable_field,import_updatable_field,is_migration_key"
+            rec.model_configuration_header = u"id,model_id:id,is_exportable,is_importable,key_xml_id,deactivated_sync,"\
+                                             u"deactivate_on_delete"

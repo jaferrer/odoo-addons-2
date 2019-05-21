@@ -217,7 +217,7 @@ class ProcurementOrderAsync(models.Model):
                 query = """SELECT sm.id
 FROM stock_move sm
   LEFT JOIN queue_job qj ON qj.uuid = sm.confirm_job_uuid
-WHERE (sm.confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND sm.id IN %s"""
+WHERE (qj.id IS NULL OR qj.state IN ('done', 'failed')) AND sm.id IN %s"""
                 job_uuid = confirm_moves.delay(ConnectorSession.from_env(self.env), 'stock.move',
                                                group_draft_moves[draft_move_ids],
                                                dict(self.env.context))
@@ -258,7 +258,7 @@ WHERE (sm.confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND sm.id 
         query = """SELECT po.id
 FROM procurement_order po
   LEFT JOIN queue_job qj ON qj.uuid = po.run_or_confirm_job_uuid
-  WHERE (po.run_or_confirm_job_uuid IS NULL OR qj.state IN ('done', 'failed')) AND
+  WHERE (qj.id IS NULL OR qj.state IN ('done', 'failed')) AND
                       po.state = %s AND
                       po.product_id IN %s"""
         if company_id:
