@@ -24,14 +24,14 @@ class MappingConfigurationHelper(models.TransientModel):
     _name = 'mapping.configuration.helper'
     _inherit = 'bus.object.mapping.abstract'
 
-    helper_line_ids = fields.One2many('mapping.configuration.helper.line', 'wizard_id', u"Fields to parameter")
+    field_ids = fields.One2many('mapping.configuration.helper.line', 'mapping_id', u"Fields to parameter")
 
     @api.onchange('model_id')
     def onchange_model_id(self):
         for rec in self:
-            helper_line_ids = False
+            field_ids = False
             if rec.model_id:
-                rec.helper_line_ids = False
+                rec.field_ids = False
                 mapping = self.env['bus.object.mapping'].get_mapping(rec.model_name)
                 rec.key_xml_id = mapping.key_xml_id
                 rec.deactivated_sync = mapping.deactivated_sync
@@ -40,10 +40,10 @@ class MappingConfigurationHelper(models.TransientModel):
                 rec.is_importable = mapping.is_importable
                 fields = self.env['ir.model.fields'].search([('model_id', '=', rec.model_id.id)])
                 if fields:
-                    helper_line_ids = []
+                    field_ids = []
                 mapping_fields = self.env['bus.object.mapping.field'].search([('mapping_id', '=', mapping.id)])
                 for mapping_field in mapping_fields:
-                    helper_line_ids += [(0, 0, {
+                    field_ids += [(0, 0, {
                         'model_id': rec.model_id.id,
                         'wizard_id': rec.id,
                         'field_id': mapping_field.field_id.id,
@@ -53,20 +53,20 @@ class MappingConfigurationHelper(models.TransientModel):
                         'import_updatable_field': mapping_field.import_updatable_field,
                         'is_migration_key': mapping_field.is_migration_key,
                     })]
-            rec.helper_line_ids = helper_line_ids
+            rec.field_ids = field_ids
 
     @api.multi
     def add_all(self):
-        self.helper_line_ids = []
+        self.field_ids = []
         unwanted_fields = ('create_date', 'create_uid', '__last_update', 'write_date', 'write_uid', 'display_name')
 
         fields = self.env['ir.model.fields'].search(['&',
                                                      ('model_id', '=', self.model_id.id),
                                                      ('name', 'not in', unwanted_fields)])
 
-        self.helper_line_ids = self.env['mapping.configuration.helper.line']
+        self.field_ids = self.env['mapping.configuration.helper.line']
         for field in fields:
-            self.helper_line_ids |= self.env['mapping.configuration.helper.line'].create({
+            self.field_ids |= self.env['mapping.configuration.helper.line'].create({
                 'model_id': self.model_id.id,
                 'wizard_id': self.id,
                 'field_id': field.id,
@@ -135,8 +135,7 @@ class MappingConfigurationHelperLine(models.TransientModel):
     _name = 'mapping.configuration.helper.line'
     _inherit = 'bus.object.mapping.field.abstract'
 
-    wizard_id = fields.Many2one('mapping.configuration.helper', u"Wizard")
-    model_id = fields.Many2one('ir.model', u"Model", related='wizard_id.model_id', readonly=True)
+    mapping_id = fields.Many2one('mapping.configuration.helper', u"Wizard")
 
     @api.onchange('field_id')
     @api.multi
@@ -155,7 +154,7 @@ class MappingConfigurationHelperAnswer(models.TransientModel):
                                               compute="_compute_static_fields",
                                               store=False, readonly=True)
 
-    model_configuration = fields.Char(string=u"Model configuration")
+    model_configuration = fields.Text(string=u"Model configuration")
     fields_configuration = fields.Text(string=u"Fields configuration")
 
     def _compute_static_fields(self):

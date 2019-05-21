@@ -7,7 +7,7 @@
             <field name="model">bus.object.mapping</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree default_order="model_id">
+                <tree default_order="model_id" >
                     <field name="model_id"/>
                     <field name="is_exportable"/>
                     <field name="is_importable"/>
@@ -96,6 +96,20 @@
         <menuitem id="menu_object_mapping_menu" name="Object Mapping"
                   action="act_window_object_mapping" parent="menu_bus"
                   sequence="50"/>
+
+        <record model="ir.actions.server" id="ir_actions_server_bus_export_config">
+            <field name="name">Export to CSV</field>
+            <field name="model_id" ref="bus_integration.model_bus_object_mapping"/>
+            <field name="code">action = self.display_config_popup(cr, uid, context.get('active_ids'), False, context)</field>
+        </record>
+
+        <record model="ir.values" id="ir_value_bus_export_config">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">bus.object.mapping</field>
+            <field name="name">Export config.</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_bus_export_config)"/>
+        </record>
 
     </data>
 </openerp>

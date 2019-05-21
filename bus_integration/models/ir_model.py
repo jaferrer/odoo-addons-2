@@ -28,10 +28,7 @@ class Model(models.Model):
         display_technical_names = self.env.context.get('display_technical_names', False)
         if not display_technical_names:
             return super(Model, self).name_get()
-        result = []
-        for rec in self:
-            result.append((rec.id, rec.model))
-        return result
+        return [(rec.id, rec.model) for rec in self]
 
 
 class BusIrModelFields(models.Model):
