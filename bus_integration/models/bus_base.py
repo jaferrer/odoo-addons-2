@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields
+from openerp import models, fields, api
 
 
 class BusBase(models.Model):
@@ -27,3 +27,7 @@ class BusBase(models.Model):
     bus_username = fields.Char(u"BUS user name")
     active = fields.Boolean(u"Active", default=True)
     url = fields.Char(string=u"Url")
+
+    @api.multi
+    def name_get(self):
+        return [(rec.id, rec.bus_username.replace("base_", "") .upper() or "") for rec in self]
