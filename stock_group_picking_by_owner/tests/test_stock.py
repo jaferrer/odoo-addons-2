@@ -23,11 +23,11 @@ from openerp.tests import common
 class TestStock(common.TransactionCase):
     def setUp(self):
         super(TestStock, self).setUp()
-        self.picking_type = self.env.ref('group_picking_by_owner.default_picking_type')
-        self.move1 = self.env.ref('group_picking_by_owner.move1')
-        self.move2 = self.env.ref('group_picking_by_owner.move2')
-        self.partner1 = self.env.ref('group_picking_by_owner.partner1')
-        self.partner2 = self.env.ref('group_picking_by_owner.partner2')
+        self.picking_type = self.env.ref('stock_group_picking_by_owner.default_picking_type')
+        self.move1 = self.env.ref('stock_group_picking_by_owner.move1')
+        self.move2 = self.env.ref('stock_group_picking_by_owner.move2')
+        self.partner1 = self.env.ref('stock_group_picking_by_owner.partner1')
+        self.partner2 = self.env.ref('stock_group_picking_by_owner.partner2')
 
     def test_00_group_by_owner_when_same_owner(self):
         self.assertFalse(self.move1.picking_id)

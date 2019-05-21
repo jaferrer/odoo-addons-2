@@ -30,6 +30,18 @@ class StockMove(models.Model):
     _inherit = "stock.move"
 
     @api.multi
+    def _get_key_to_assign_move_to_picking(self):
+        result = super(StockMove, self)._get_key_to_assign_move_to_picking()
+        result += (self.restrict_partner_id.id, )
+        return result
+
+    @api.model
+    def _prepare_procurement_from_move(self, move):
+        values = super(StockMove, self)._prepare_procurement_from_move(move)
+        values['restrict_partner_id'] = move.restrict_partner_id and move.restrict_partner_id.id or False
+        return values
+
+    @api.multi
     def _get_stock_picking_query(self):
         """ If the stock.picking.type has `group_picking_by_owner`, restricts the stock.picking search to picking with
         same owner as this move
@@ -47,3 +59,23 @@ class StockMove(models.Model):
         values = super(StockMove, self)._prepare_picking_assign(move)
         values['owner_id'] = move.restrict_partner_id and move.restrict_partner_id.id or False
         return values
+
+class ProcurmentRule(models.Model):
+    _inherit = 'procurement.order'
+
+    restrict_partner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])
+
+    @api.model
+    def _run_move_create(self, procurement):
+        result = super(ProcurmentRule, self)._run_move_create(procurement)
+        result['restrict_partner_id'] = procurement.restrict_partner_id.id or False
+        return result
+
+    @api.model
+    def _prepare_orderpoint_procurement(self, orderpoint, product_qty):
+        result = super(ProcurmentRule, self)._prepare_orderpoint_procurement(orderpoint, product_qty)
+        product_id = result.get('product_id')
+        if product_id:
+            product = self.env['product.product'].browse(product_id)
+            result['restrict_partner_id'] = product.owner_id.id
+        return result
