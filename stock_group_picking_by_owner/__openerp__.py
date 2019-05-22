@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,25 +18,23 @@
 #
 
 {
-    'name': 'Connector Magento extend',
+    'name': 'Group picking by owner',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['connector_backend_home', 'stock'],
+    'depends': ['stock_moves_to_assigned_pickings'],
     'description': """
-"Connector Magento extends
-==========================
+Group picking_by_owner
+======================
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/flux-tendu_connector_pull.xml',
-        'data/flux-tendu_connector_push.xml',
-        'views/res_partner.xml',
-        'views/home_backend.xml',
-        'security/ir.model.access.csv',
+        'views/stock_picking_type.xml',
     ],
-    'demo': [],
+    'demo': [
+        'tests/test_stock.xml',
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,

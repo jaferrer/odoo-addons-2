@@ -195,3 +195,9 @@ class magentoextend_backend(models.Model):
         back = self.env['magentoextend.backend'].search([('id', '=', el_id)])
         if back:
             back.export_stock_level()
+
+    class ConnectorHome(models.Model):
+        _inherit = 'backend.home'
+
+        custom_partner_field_mapping = fields.One2many('res.partner.custom.field', 'partner_id',
+                                                       string=u"Mappage des champs personnalisés du partner")

@@ -496,7 +496,7 @@ class CustomerImportMapper(ImportMapper):
     @mapping
     def custom_field(self, record):
         result = {}
-        for it in self.backend_record.connector_id.home_id.partner_id.custom_field_mapping:
+        for it in self.backend_record.connector_id.home_id.custom_partner_field_mapping:
             if record.get(it.field_mapping, False):
                 result[it.field] = record.get(it.field_mapping, False)
             else:

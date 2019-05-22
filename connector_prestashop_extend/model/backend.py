@@ -253,17 +253,19 @@ class prestashopextend_backend(models.Model):
 class ConnectorTypePrestashopParameter(models.Model):
     _name = 'connector.type.prestashop.parameter'
 
-    location = fields.Char(string=u'url')
-    webservice_key = fields.Char(string=u'API KEY')
+    location = fields.Char(u"url")
+    webservice_key = fields.Char(u"API KEY")
 
-    line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
+    line_id = fields.Many2one('backend.type.line', u"Connector Type line", required=True)
     shops = fields.Many2many('prestashopextend.shop', string="Shops")
-    synchro_state_since = fields.Many2many('prestashopextend.sale.order.state', 'synchro_state_since_rel', string=u"Etats des Commandes à synchroniser")
+    synchro_state_since = fields.Many2many('prestashopextend.sale.order.state', 'synchro_state_since_rel',
+                                           string=u"Etats des Commandes à synchroniser")
     map_order_state_to_picking_state = fields.One2many(
         comodel_name='connector.type.prestashop.parameter.line', inverse_name='param_id',
         string="Mapping Picking")
+    stock_location_root_id = fields.Many2one('stock.location', u"Emplacement du stock")
 
-    manage_by_ref = fields.Boolean(string=u"Gestion par référence")
+    manage_by_ref = fields.Boolean(u"Gestion par référence")
 
 
 class ConnectorTypePrestashopParameter(models.Model):

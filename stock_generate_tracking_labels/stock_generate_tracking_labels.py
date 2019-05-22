@@ -46,8 +46,7 @@ class DeliveryTrackingStockPickingType(models.Model):
 class DeliveryTrackingStockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    use_tracking_labels = fields.Boolean(string="Use tracking labels",
-                                         related='picking_type_id.use_tracking_labels', store=True)
+    use_tracking_labels = fields.Boolean(string="Use tracking labels", related='picking_type_id.use_tracking_labels')
     tracking_defined = fields.Boolean(compute='_compute_tracking_defined', store=True)
     binary_label = fields.Binary(string="Label (binary)")
     tracking_label_attachment = fields.Many2one('ir.attachment', string="Label (attachment)")
