@@ -40,6 +40,17 @@ class BusObjectMappingAbstract(models.AbstractModel):
         return [(rec.id, u"Mapping of object %s" % rec.model_id.name) for rec in self]
 
     @api.multi
+    def view_datas(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': self.model_name,
+            'target': 'new',
+        }
+
+    @api.multi
     def _get_mapping_as_csv(self):
         self.ensure_one()
         model_mapping_xml_id = u"mapping_model_%s" % (self.model_id.model.replace('.', '_'))
