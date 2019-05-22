@@ -40,7 +40,7 @@
                             <field name="date_invoiced"/>
                             <field name="project_partner_id" invisible="1"/>
                             <field name="initial_sale_line_id" domain="[('order_id.state', '!=', 'cancel'), ('order_id.partner_id', '=', project_partner_id)]"/>
-                            <field name="initial_sale_id"/>
+                            <field name="initial_sale_id" domain="[('state', '!=', 'cancel'), ('partner_id', '=', project_partner_id)]"/>
                         </group>
                     </page>
                 </notebook>
