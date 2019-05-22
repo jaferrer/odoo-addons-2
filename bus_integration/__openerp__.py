@@ -44,6 +44,7 @@ Connector to Odoo Databus
         'views/bus_configuration_export_histo.xml',
         'views/bus_base.xml',
         'views/bus_message.xml',
+        'views/bus_message_log.xml',
         'views/bus_object_mapping.xml',
         'views/mapping_configuration_helper.xml',
     ],

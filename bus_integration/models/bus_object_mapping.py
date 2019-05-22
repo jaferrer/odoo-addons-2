@@ -133,13 +133,40 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
 class BusObjectMapping(models.Model):
     _name = 'bus.object.mapping'
     _inherit = 'bus.object.mapping.abstract'
+    _order = 'dependency_level ASC, model_name ASC'
 
     active = fields.Boolean(u"Active", default=True)
-    field_ids = fields.One2many('bus.object.mapping.field', 'mapping_id', string=u"Fields")
+    field_ids = fields.One2many('bus.object.mapping.field', 'mapping_id', string=u"Fields",
+                                domain=[('type_field', '!=', 'one2many'), ('is_computed', '=', False)])
+    dependency_level = fields.Integer(u"Dependency level", readonly=True)
 
     _sql_constraints = [
         ('model_id_uniq', 'unique(model_id)', u"A mapping object already exists with the same model."),
     ]
+
+    @api.multi
+    def get_dependency_level(self):
+        for rec in self:
+            dep_level = rec.calculate_dep_level()
+            rec.dependency_level = dep_level
+
+    @api.multi
+    def calculate_dep_level(self):
+        self.ensure_one()
+        init_dep_level = self.dependency_level
+        dep_level = 0
+        for field in self.field_ids:
+            if field.relation and field.type_field == 'many2one':
+                dep_level = 1
+                if field.relation != self.model_name:
+                    relation_mapping = self.env['bus.object.mapping'].search([('model_name', '=', field.relation)])
+                    related_dep_level = 1
+                    if relation_mapping:
+                        related_dep_level = relation_mapping.calculate_dep_level()
+                    dep_level = related_dep_level + dep_level
+            if dep_level > init_dep_level:
+                init_dep_level = dep_level
+        return init_dep_level
 
     @api.constrains('deactivate_on_delete', 'deactivated_sync')
     def _contrains_deactivate_on_delete(self):

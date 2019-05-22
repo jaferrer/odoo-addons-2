@@ -25,6 +25,7 @@ from openerp import models, fields, api
 
 class BusConfigurationExport(models.Model):
     _name = 'bus.configuration.export'
+    _order = 'dependency_level ASC, model ASC'
 
     name = fields.Char(u"Name", required=True, compute="_compute_name")
     configuration_id = fields.Many2one('bus.configuration', string=u"Backend",
@@ -56,9 +57,17 @@ class BusConfigurationExport(models.Model):
         You can acces to : relativedelta, self, context.
         For datetime use shorcut date, date_to_str to translate dates.
         last_send_date to get the last date of dispatch.""")
-
+    mapping_object_id = fields.Many2one('bus.object.mapping', u"Mapping", compute='_get_mapping_object', store=True)
+    dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True)
     bach_histo_ids = fields.One2many('bus.configuration.export.histo', 'bus_configuration_export_id',
                                      string=u"Batch history")
+
+    @api.multi
+    @api.depends('model')
+    def _get_mapping_object(self):
+        for rec in self:
+            mapping = self.env['bus.object.mapping'].search([('model_name', '=', rec.model)])
+            rec.mapping_object_id = mapping
 
     @api.multi
     @api.depends('recipient_id', 'model', 'domain')

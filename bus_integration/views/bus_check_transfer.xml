@@ -5,7 +5,7 @@
             <field name="name">Check transfer</field>
             <field name="model">bus.check.transfer</field>
             <field name="arch" type="xml">
-                <tree>
+                <tree colors="red:state=='error';purple:state=='not_find';green:state=='find';'blue:state=='requested'">
                     <field name="res_model"/>
                     <field name="res_id"/>
                     <field name="external_key"/>

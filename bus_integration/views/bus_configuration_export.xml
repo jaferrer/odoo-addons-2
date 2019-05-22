@@ -16,6 +16,8 @@
                     <field name="treatment_type"/>
                     <field name="serial_id"/>
                     <field name="last_transfer_state"/>
+                    <field name="mapping_object_id"/>
+                    <field name="dependency_level"/>
                     <field name="cron_created" invisible="1"/>
                     <button string="Init" name="create_cron" type="object"
                             attrs="{'invisible':[('cron_created','=',True)]}"/>
@@ -59,6 +61,8 @@
                                 <field name="model"/>
                                 <field name="domain"/>
                                 <field name="chunk_size"/>
+                                <field name="mapping_object_id"/>
+                                <field name="dependency_level"/>
                             </group>
                         </group>
                         <notebook>

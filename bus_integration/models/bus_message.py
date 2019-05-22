@@ -24,6 +24,7 @@ from ..connector.jobs import job_send_response
 
 
 class BusMessage(models.Model):
+
     """
     messages hierarchy example (sync data from mother to children)
     -------------------------------------------------
@@ -66,10 +67,6 @@ class BusMessage(models.Model):
                                   ('CHECK_SYNCHRONIZATION', u"Check request"),
                                   ('CHECK_SYNCHRONIZATION_RETURN', u"Check response"),
                                   ], u"Treatment", required=True)
-    state = fields.Selection([('reception', u"Recetion"),
-                              ('send', u"Send"),
-                              ('error', u"Error"),
-                              ('warning', u"Warning")], string=u"State")
     log_ids = fields.One2many('bus.message.log', 'message_id', string=u"Logs")
 
     message_parent_id = fields.Many2one('bus.message', string=u"Parent message")
@@ -88,6 +85,8 @@ class BusMessage(models.Model):
     body_dependencies_pretty_print = fields.Text(u"Body dependencies", compute="_compute_message_fields", readonly=True)
     body_models = fields.Text(u"Models", compute="_compute_message_fields", readonly=True)
     extra_content = fields.Text(u"Extra-content", compute="_compute_message_fields", readonly=True)
+    result_state = fields.Selection([('inprogress', u"In progress"), ('error', u"Error"), ('done', u"Done")],
+                                    string=u"Result state", default='inprogress', compute='_compute_result_state')
 
     @api.multi
     def _compute_cross_id_str(self):
@@ -190,26 +189,21 @@ class BusMessage(models.Model):
                 return rec
         return False
 
+    def _compute_result_state(self):
+        for rec in self:
+            if rec.date_done:
+                if rec.is_error():
+                    rec.result_state = 'error'
+                else:
+                    rec.result_state = 'done'
+            else:
+                rec.result_state = 'inprogress'
+
     @api.multi
     def is_error(self):
         self.ensure_one()
-        state = json.loads(self.message)\
-            .get('body', {})\
-            .get('return', {})\
-            .get('state', False)
+        state = json.loads(self.message).get('body', {}).get('return', {}).get('state', False)
         return state == "error"
-
-    @api.model
-    def create(self, vals):
-        if vals.get('done'):
-            vals['date_done'] = fields.Datetime.now()
-        return super(BusMessage, self).create(vals)
-
-    @api.multi
-    def write(self, vals):
-        if vals.get('done'):
-            vals['date_done'] = fields.Datetime.now()
-        return super(BusMessage, self).write(vals)
 
     @api.model
     def _explode_cross_origin_base_id_parent(self, message_dict, default_base=False, default_msg_id=False):

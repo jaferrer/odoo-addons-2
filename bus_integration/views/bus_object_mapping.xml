@@ -14,6 +14,7 @@
                     <field name="key_xml_id"/>
                     <field name="deactivated_sync"/>
                     <field name="deactivate_on_delete"/>
+                    <field name="dependency_level"/>
                 </tree>
             </field>
         </record>
@@ -46,6 +47,7 @@
                 <form string="Object mapping">
                     <header>
                         <button name="open_object_configuration" string="Mapping configuration helper" type="object"/>
+                        <button name="get_dependency_level" string="Update dependency level" type="object"/>
                     </header>
                     <sheet>
                         <group>
@@ -55,6 +57,7 @@
                             <field name="key_xml_id"/>
                             <field name="deactivated_sync"/>
                             <field name="deactivate_on_delete"/>
+                            <field name="dependency_level"/>
                         </group>
                         <notebook>
                             <page>
@@ -66,7 +69,8 @@
                                     <tree editable="bottom" colors="red:is_configured==False">
                                         <field name="model_id" invisible="1"/>
                                         <field name="is_configured"/>
-                                        <field name="field_id" domain="[('model_id', '=', model_id)]" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="field_id" domain="[('model_id', '=', model_id)]"
+                                               options="{'no_create': True, 'no_open': True}"/>
                                         <field name="type_field"/>
                                         <field name="relation"/>
                                         <field name="map_name"/>
@@ -111,5 +115,20 @@
             <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_bus_export_config)"/>
         </record>
 
+        <record model="ir.actions.server" id="ir_actions_update_dependency_level">
+            <field name="name">Update dependency level</field>
+            <field name="model_id" ref="bus_integration.model_bus_object_mapping"/>
+            <field name="code">
+                action = self.get_dependency_level(cr,uid,context.get('active_ids'),context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_update_dependency_level">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">bus.object.mapping</field>
+            <field name="name">Update dependency level</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_update_dependency_level)"/>
+        </record>
     </data>
 </openerp>
