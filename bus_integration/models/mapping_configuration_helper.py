@@ -100,7 +100,7 @@ class MappingConfigurationHelper(models.TransientModel):
                                                          self.deactivated_sync,
                                                          self.deactivate_on_delete)
         fields_configuration = u""""""
-        for wizard_line in self.helper_line_ids:
+        for wizard_line in self.field_ids:
             field_mapping_xml_id = u"mapping_field_%s_%s" % (self.model_id.model.replace('.', '_'),
                                                              wizard_line.field_id.name)
             field_xml_id = wizard_line.field_id.get_external_id().get(wizard_line.field_id.id)
@@ -112,7 +112,7 @@ class MappingConfigurationHelper(models.TransientModel):
                                                                       wizard_line.import_creatable_field,
                                                                       wizard_line.import_updatable_field,
                                                                       wizard_line.is_migration_key)
-            if wizard_line != self.helper_line_ids[-1]:
+            if wizard_line != self.field_ids[-1]:
                 fields_configuration += u"""\n"""
         vals = {
             'model_configuration': model_configuration,
