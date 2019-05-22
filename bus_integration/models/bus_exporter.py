@@ -46,12 +46,19 @@ class BusSynchronizationExporter(models.AbstractModel):
         if not object_mapping or not object_mapping.is_exportable:
             raise exceptions.ValidationError(u"Object mapping not configured for model : %s" % batch.model)
 
+        # last_send_date: limit the number models to synchronise, we only send models which have been updated after the
+        #                 last export bus.configuration.export domain should be set to
+        #                 [('write_date', '>', last_send_date)]
         export_domain = batch.domain and safe_eval(batch.domain, batch.export_domain_keywords()) or []
+
         if batch.treatment_type != 'DELETION_SYNCHRONIZATION' and object_mapping.deactivated_sync and \
                 'active' in self.env[batch.model]._fields:
             export_domain += ['|', ('active', '=', False), ('active', '=', True)]
 
         ids_to_export = self.env[batch.model].search(export_domain)
+        if not ids_to_export:
+            return True
+
         message_list = []
         message_dict = {
             'header': {

@@ -73,10 +73,10 @@ class BusConfigurationExport(models.Model):
     @api.depends('recipient_id', 'model', 'domain')
     def _compute_name(self):
         for rec in self:
-            rec.name = "%s%s_to_%s" % (
+            rec.name = u"%s%s→%s" % (
                 rec.model or "[_]",
                 "" if rec.domain == "[]" else "[...]",
-                rec.recipient_id.name or "[_]")
+                rec.recipient_id.display_name or "[_]")
 
     @api.multi
     def _compute_last_transfer(self):
@@ -166,9 +166,5 @@ class BusConfigurationExport(models.Model):
     @api.multi
     def get_last_send_date(self):
         self.ensure_one()
-        histo = self.env['bus.configuration.export.histo'].search([('bus_configuration_export_id', '=', self.id)],
-                                                                  order='create_date DESC',
-                                                                  limit=1)
-        log = self.env['bus.configuration.export.histo.log'].search([('histo_id', '=', histo.id)],
-                                                                    order='create_date DESC', limit=1)
-        return log.create_date
+        return self.last_transfer_id and self.last_transfer_id.write_date or fields.Datetime\
+            .to_string(datetime.strptime('1900', '%Y'))

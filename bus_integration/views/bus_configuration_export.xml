@@ -6,7 +6,7 @@
             <field name="model">bus.configuration.export</field>
             <field name="arch" type="xml">
                 <tree string="Configuration of template exports" colors="
-                        grey: cron_created == False;
+                        grey: last_transfer_state == 'never_processed';
                         orange: last_transfer_state == 'blocked';
                         red: last_transfer_state == 'error';
                         blue: last_transfer_state == 'started';"
