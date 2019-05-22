@@ -44,5 +44,5 @@ class ProjectTaskInvoice(models.Model):
 
     @api.onchange('initial_sale_id')
     def _onchange_initial_sale_id(self):
-        if self.initial_sale_id.order_id != self.initial_sale_id:
+        if self.initial_sale_line_id.order_id != self.initial_sale_id:
             self.initial_sale_line_id = False
