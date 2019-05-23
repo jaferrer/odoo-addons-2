@@ -235,11 +235,11 @@ class StockPicking(models.Model):
                     res[k] = {}
         for pick in self.browse(cr, uid, ids, context=context):
             result = res.get(pick.id, {})
-            if pick.min_date == result['min_date']:
+            if 'min_date' in result and pick.min_date == result['min_date']:
                 del res[pick.id]['min_date']
-            if pick.max_date == result['max_date']:
+            if 'max_date' in result and pick.max_date == result['max_date']:
                 del res[pick.id]['max_date']
-            if pick.priority == result['priority']:
+            if 'priority' in result and pick.priority == result['priority']:
                 del res[pick.id]['priority']
             if pick.id in res and not res.get(pick.id):
                 del res[pick.id]
