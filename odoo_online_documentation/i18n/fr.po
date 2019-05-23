@@ -76,3 +76,8 @@ msgstr "Doit être vu en production"
 #: view:odoo.online.documentation:odoo_online_documentation_tree.odoo_online_documentation_tree
 msgid "Open Documentation"
 msgstr "Ouvrir la documentation"
+
+#. module: odoo_online_documentation
+#: sql_constraint:odoo.online.document.type.name:0
+msgid "The type must be unique."
+msgstr "Le type doit être unique."
