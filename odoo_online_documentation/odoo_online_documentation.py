@@ -80,3 +80,5 @@ class OdooOnlineDocumentType(models.Model):
     _name = 'odoo.online.document.type'
 
     name = fields.Char(string=u"Document type")
+
+    _sql_constraints = [('type_unique', 'UNIQUE(name)', _(u"The type must be unique."))]

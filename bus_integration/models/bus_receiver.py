@@ -44,7 +44,6 @@ class BusSynchronizationReceiver(models.AbstractModel):
                 parent_message = self.env['bus.message'].get_parent_cross_id_messages(dict_message)\
                     ._get_first_sent_message()
             parent_message_id = parent_message.id if parent_message else False
-
             message = self.env['bus.message'].create_message(dict_message, 'received', backend, parent_message_id)
             if jobify:
                 job_uiid = job_receive_message.delay(ConnectorSession.from_env(self.env), self._name, message.id)
@@ -52,6 +51,9 @@ class BusSynchronizationReceiver(models.AbstractModel):
                 job_uiid = job_receive_message(ConnectorSession.from_env(self.env), self._name, message.id)
             result = u"Receive Message : %s in processing by the job %s" % (message.id, job_uiid)
             to_raise = False
+            histo_log = self.env['bus.configuration.export.histo.log'].search([('message_id', '=', parent_message_id)])
+            if histo_log:
+                histo_log.histo_id.add_log(message.id, job_uiid, log=result)
         except exceptions.ValidationError as error:
             result = error
             to_raise = True
@@ -96,10 +98,8 @@ class BusSynchronizationReceiver(models.AbstractModel):
             self.env['bus.importer'].register_synchro_check_return(message_id)
         else:
             result = False
-
         if not result:
             return False
-
         successful_treatments = ('SYNCHRONIZATION_RETURN', 'DELETION_SYNCHRONIZATION_RETURN')
         if (message.treatment in successful_treatments) or (new_msg and new_msg.treatment in successful_treatments):
             date_done = datetime.now()
@@ -117,9 +117,12 @@ class BusSynchronizationReceiver(models.AbstractModel):
                                                                   order="create_date desc", limit=1)
         return_res = message_dict.get('body', {}).get('return', {})
         result = return_res.get('result', False)
-        if result:
+        return_state = return_res.get('state', False)
+        if not return_state:
+            histo.transfer_state = 'error'
+            message.result = 'error'
+        else:
             histo.transfer_state = 'finished'
-            self.env['bus.importer'].import_bus_references(result)
-            return message
-        histo.transfer_state = 'error'
+            message.result = 'finished'
+        self.env['bus.importer'].import_bus_references(message.id, result, return_state)
         return False

@@ -24,7 +24,8 @@ class MappingConfigurationHelper(models.TransientModel):
     _name = 'mapping.configuration.helper'
     _inherit = 'bus.object.mapping.abstract'
 
-    field_ids = fields.One2many('mapping.configuration.helper.line', 'mapping_id', u"Fields to parameter")
+    field_ids = fields.One2many('mapping.configuration.helper.line', 'mapping_id', u"Fields to parameter",
+                                domain=[('type_field', '!=', 'one2many'), ('is_computed', '=', False)])
 
     @api.onchange('model_id')
     def onchange_model_id(self):
@@ -99,7 +100,7 @@ class MappingConfigurationHelper(models.TransientModel):
                                                          self.deactivated_sync,
                                                          self.deactivate_on_delete)
         fields_configuration = u""""""
-        for wizard_line in self.helper_line_ids:
+        for wizard_line in self.field_ids:
             field_mapping_xml_id = u"mapping_field_%s_%s" % (self.model_id.model.replace('.', '_'),
                                                              wizard_line.field_id.name)
             field_xml_id = wizard_line.field_id.get_external_id().get(wizard_line.field_id.id)
@@ -111,7 +112,7 @@ class MappingConfigurationHelper(models.TransientModel):
                                                                       wizard_line.import_creatable_field,
                                                                       wizard_line.import_updatable_field,
                                                                       wizard_line.is_migration_key)
-            if wizard_line != self.helper_line_ids[-1]:
+            if wizard_line != self.field_ids[-1]:
                 fields_configuration += u"""\n"""
         vals = {
             'model_configuration': model_configuration,
@@ -161,5 +162,5 @@ class MappingConfigurationHelperAnswer(models.TransientModel):
         for rec in self:
             rec.fields_configuration_header = u"id,mapping_id:id,field_id:id,map_name,export_field," \
                                               u"import_creatable_field,import_updatable_field,is_migration_key"
-            rec.model_configuration_header = u"id,model_id:id,is_exportable,is_importable,key_xml_id,deactivated_sync,"\
-                                             u"deactivate_on_delete"
+            rec.model_configuration_header = u"id,model_id:id,is_exportable,is_importable,key_xml_id," \
+                                             u"deactivated_sync,deactivate_on_delete"

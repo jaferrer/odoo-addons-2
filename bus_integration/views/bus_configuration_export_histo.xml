@@ -99,6 +99,11 @@
                                 <field name="message_id"/>
                             </group>
                         </group>
+                        <notebook>
+                            <page string="Log">
+                                <field name="log"/>
+                            </page>
+                        </notebook>
                     </sheet>
                 </form>
             </field>

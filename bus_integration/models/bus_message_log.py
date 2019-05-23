@@ -24,5 +24,12 @@ class BusMessage(models.Model):
     _name = 'bus.message.log'
 
     message_id = fields.Many2one('bus.message', string=u"Message")
-    type = fields.Selection([('warning', u"Warning"), ('error', u"Error"), ('info', u"Info")], string=u"Log type")
+    type = fields.Selection([('warning', u"Warning"), ('error', u"Error"), ('info', u"Info"),
+                             ('processed', u"Processed")], string=u"Log type")
     information = fields.Text(srtring=u"Log information")
+    model = fields.Char(u"Model")
+    sender_record_id = fields.Integer(u"Sender record id")
+    recipient_record_id = fields.Integer(u"Recipient record id")
+    external_key = fields.Integer(u"External key")
+    recipient_id = fields.Many2one('bus.base', u"Recipient base")
+    sender_id = fields.Many2one('bus.base', u"Sender base")
