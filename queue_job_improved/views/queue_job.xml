@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_queue_job_set_all_done" model="ir.actions.server">
+        <field name="name">Set all to done</field>
+        <field name="model_id" ref="queue_job.model_queue_job"/>
+        <field name="code">
+            records.button_done()
+        </field>
+    </record>
+
+    <record id="ir_values_queue_job_set_all_done" model="ir.values">
+        <field name="name">Set all to done</field>
+        <field name="model">queue.job</field>
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="value" eval="'ir.actions.server,' + str(ref('action_queue_job_set_all_done'))" />
+    </record>
+</odoo>
