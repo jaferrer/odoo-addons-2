@@ -17,6 +17,3 @@ runbot_depends:
 
 runbot:
   when: manual
-
-lint_flake8:
-  allow_failure: true
