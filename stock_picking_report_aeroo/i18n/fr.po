@@ -27,6 +27,7 @@ msgstr "Créé le"
 
 #. module: stock_picking_report_aeroo
 #: model:ir.actions.report.xml,name:stock_picking_report_aeroo.stock_picking_report_aeroo
+#: report:ir.actions.report.xml:stock_picking_report_aeroo.stock_picking_report_aeroo
 msgid "Delivery Slip"
 msgstr "Bon de livraison"
 

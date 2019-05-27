@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="address_provider_partner" model="ir.ui.view">
+        <field name="name">address_provider_partner</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <field name="street" position="before">
+                <field name="address_provider"
+                       placeholder="Complétion par adresse"
+                       create="false"
+                       class="oe_edit_only"/>
+            </field>
+        </field>
+    </record>
+</odoo>

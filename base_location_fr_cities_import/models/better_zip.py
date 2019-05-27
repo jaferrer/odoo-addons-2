@@ -45,7 +45,13 @@ class BetterZipWithUpdate(models.Model):
         for line in ans.readlines():
             line = line.strip()
             try:
-                code, _, name, city, city_complement, _ = line.split(';')
+                code, _, name, city, city_complement, coordinates = line.split(';')
+                latitude, longitude = (0, 0)
+                coordinates = coordinates and unicode(coordinates).replace(u" ", u"")
+                if coordinates:
+                    splitted_coordinates = coordinates.split(u",")
+                    if len(splitted_coordinates) == 2:
+                        [latitude, longitude] = splitted_coordinates
                 if city_complement:
                     city += " - %s" % city_complement
                 if (name, city) not in already_known:
@@ -54,6 +60,8 @@ class BetterZipWithUpdate(models.Model):
                         'code': code,
                         'city': city,
                         'country_id': france_id.id,
+                        'latitude': float(latitude),
+                        'longitude': float(longitude),
                     })
             except ValueError:
                 # If the current line's format is wrong
