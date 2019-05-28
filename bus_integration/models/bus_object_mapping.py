@@ -138,7 +138,9 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     def _get_is_computed(self):
         for rec in self:
             model_name = rec.field_id.model
-            rec.is_computed = model_name and self.env[model_name]._fields[rec.field_name].compute or False
+            rec.is_computed = model_name \
+                and self.env[model_name]._fields[rec.field_name] \
+                and self.env[model_name]._fields[rec.field_name].compute or False
 
 
 class BusObjectMapping(models.Model):
@@ -156,7 +158,7 @@ class BusObjectMapping(models.Model):
     ]
 
     @api.multi
-    def get_dependency_level(self):
+    def compute_dependency_level(self):
         for rec in self:
             dep_level = rec.calculate_dep_level()
             rec.dependency_level = dep_level
@@ -190,7 +192,10 @@ class BusObjectMapping(models.Model):
     @api.model
     def get_mapping(self, model_name):
         domain = [('model_name', '=', model_name)]
-        return self.env['bus.object.mapping'].search(domain, limit=1)
+        try:
+            return self.env['bus.object.mapping'].search(domain, limit=1)
+        except ValueError:  # catch exception to enable bus_integration uninstall
+            return self.env['bus.object.mapping']
 
     @api.multi
     def open_object_configuration(self):
