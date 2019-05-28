@@ -17,7 +17,27 @@ msgstr ""
 "Language: fr\n"
 "X-Generator: Poedit 2.0.4\n"
 
-#. module: project_milestone
+#. module: project_task_category
 #: model:ir.ui.view,arch_db:project_task_category.project_task_search
 msgid "Category"
 msgstr "Catégorie"
+
+#. module: project_task_category
+#: model:ir.model.fields,field_description:product.field_project_task_category_parent_left
+msgid "# Left Parent"
+msgstr "# Parent gauche"
+
+#. module: project_task_category
+#: model:ir.model.fields,field_description:product.field_project_task_category_parent_right
+msgid "# Right Parent"
+msgstr "# Parent à droite"
+
+#. module: project_task_category
+#: model:ir.model.fields,field_description:product.field_project_task_category_parent_id
+msgid "Parent Category"
+msgstr "Catégorie mère"
+
+#. module: project_task_category
+#: model:ir.model.fields,field_description:product.field_project_task_category_child_id
+msgid "Child Categories"
+msgstr "Catégories enfants"

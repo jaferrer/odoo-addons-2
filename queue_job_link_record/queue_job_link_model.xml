@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<odoo>
+    <record id="queue_job_link_record_view_queue_job_form" model="ir.ui.view">
+        <field name="name">queue_job_link_record_view_queue_job_form</field>
+        <field name="model">queue.job</field>
+        <field name="inherit_id" ref="queue_job.view_queue_job_form"/>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <button name="open_records" type="object" string="See records"/>
+            </header>
+        </field>
+    </record>
+</odoo>

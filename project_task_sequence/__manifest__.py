@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Task timesheet utility',
+    'name': 'Task Auto sequence',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',

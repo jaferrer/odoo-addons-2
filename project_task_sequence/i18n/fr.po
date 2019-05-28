@@ -1,0 +1,70 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* project_task_sequence
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-05 19:35+0000\n"
+"PO-Revision-Date: 2019-05-05 19:35+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: project_task_sequence
+#: code:addons/project_task_sequence/project_task_sequence.py:114
+#, python-format
+msgid " TASK SEQ"
+msgstr " TASK SEQ"
+
+#. module: project_task_sequence
+#: model:ir.ui.view,arch_db:project_task_sequence.project_task_sequence_view_task_form2
+msgid "Generate a number"
+msgstr "Générer un numero"
+
+#. module: project_task_sequence
+#: model:ir.model.fields,field_description:project_task_sequence.field_project_task_number
+msgid "Number"
+msgstr "Numéro"
+
+#. module: project_task_sequence
+#: model:ir.model,name:project_task_sequence.model_project_project
+msgid "Project"
+msgstr "Projet"
+
+#. module: project_task_sequence
+#: model:ir.model.fields,field_description:project_task_sequence.field_project_project_task_sequence_id
+#: model:ir.ui.view,arch_db:project_task_sequence.project_task_sequence_edit_project
+msgid "Sequence"
+msgstr "Séquence"
+
+#. module: project_task_sequence
+#: model:ir.model.fields,field_description:project_task_sequence.field_project_task_project_task_sequence_id
+msgid "Sequence for the task"
+msgstr "Séquence for the task"
+
+#. module: project_task_sequence
+#: model:ir.model,name:project_task_sequence.model_project_task
+msgid "Task"
+msgstr "Tâche"
+
+#. module: project_task_sequence
+#: model:ir.model.fields,field_description:project_task_sequence.field_project_project_use_sequence
+msgid "Use sequence for task"
+msgstr "Utilise des séquences"
+
+#. module: project_task_sequence
+#: model:ir.model.fields,field_description:project_task_sequence.field_project_project_auto_generate_number_id
+msgid "When the number is generated"
+msgstr "Qund le numéro est généré"
+
+#. module: project_task_sequence
+#: code:addons/project_task_sequence/project_task_sequence.py:40
+#, python-format
+msgid "Your project don't have sequence"
+msgstr "Votre projet n'a pas de séquence"
+
