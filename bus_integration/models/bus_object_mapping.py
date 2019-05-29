@@ -124,7 +124,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     field_name = fields.Char(u"Field name", readonly=True, related='field_id.name', store=True)
     type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
     relation = fields.Char(string=u'Relation', related='field_id.relation', store=True, readonly=True)
-    is_computed = fields.Boolean(String=u"Computed", compute="_get_is_computed")
+    is_computed = fields.Boolean(String=u"Computed", compute="_get_is_computed", store=True)
     # compute when model changes in mapping.field.configuration.helper
     map_name = fields.Char(u"Mapping name", required=True)
     # set manually
