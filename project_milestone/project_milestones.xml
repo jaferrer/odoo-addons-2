@@ -83,29 +83,6 @@
             </field>
         </record>
 
-        <record id="sub_milestone_tree_view" model="ir.ui.view">
-            <field name="name">sub_milestone_tree_view</field>
-            <field name="model">project.milestone</field>
-            <field name="arch" type="xml">
-                <tree>
-                    <field name="name"/>
-                    <field name="start_date"/>
-                    <field name="qualif_should_be_livred_at"/>
-                    <field name="should_be_closed_at"/>
-                    <field name="nb_days_tasks"/>
-                    <field name="state"/>
-                    <button name="set_to_livred_in_qualif" type="object" string="Is in Qualification"
-                            class="oe_link" attrs="{'invisible':[('state', '!=', 'open')]}"/>
-                    <button name="set_to_livred_in_prod" type="object" string="Is in Production"
-                            class="oe_link" attrs="{'invisible':[('state', '!=', 'in_qualif')]}"/>
-                    <button name="close_milestone" type="object" string="Close"
-                            class="oe_link" attrs="{'invisible':[('state', '!=', 'in_prod')]}"/>
-                    <button name="reopen" type="object" string="Re-open"
-                            class="oe_link" attrs="{'invisible':[('state', '!=', 'closed')]}"/>
-                </tree>
-            </field>
-        </record>
-
         <record model="ir.ui.view" id="project_milestone_form">
             <field name="name">project.milestone.form</field>
             <field name="model">project.milestone</field>
@@ -135,37 +112,34 @@
                             <field name="name" class="oe_inline"/>
                         </h1>
                         <group>
+                            <field name="referent_id"/>
                             <field name="project_id"/>
+                            <field name="parent_id" domain="[('project_id', '=', project_id)]"/>
+                            <field name="start_date"/>
                         </group>
-                        <group>
+                        <group col="3" class="label_30">
                             <group>
-                                <field name="start_date"/>
                                 <field name="qualif_should_be_livred_at"/>
                                 <field name="qualif_should_be_livred_at_internal"/>
+                            </group>
+                            <group>
                                 <field name="should_be_test_before"/>
+                            </group>
+                            <group>
                                 <field name="should_be_closed_at"/>
                             </group>
-                            <group>
-                                <field name="description"/>
-                                <field name="referent"/>
-                                <field name="parent_id"/>
-                            </group>
                         </group>
-                        <group>
+                        <group col="3" class="label_30">
                             <group>
                                 <field name="livred_in_qualif_at"/>
-                                <field name="livred_in_prod_at"/>
+                                <field name="livred_in_qualif_by"/>
                             </group>
                             <group>
-                                <field name="livred_in_qualif_by"/>
+                                <field name="livred_in_prod_at"/>
                                 <field name="livred_in_prod_by"/>
                             </group>
-                        </group>
-                        <group>
                             <group>
                                 <field name="closed_at"/>
-                            </group>
-                            <group>
                                 <field name="closed_by"/>
                             </group>
                         </group>
@@ -182,9 +156,29 @@
                                     </tree>
                                 </field>
                             </page>
+                            <page string="Description" name="description">
+                                <field name="description" nolabel="1"/>
+                            </page>
                             <page string="Sous milestone">
                                 <group>
-                                    <field name="child_id" nolabel="1" readonly="1" context="{'tree_view_ref': 'project_milestone.sub_milestone_tree_view'}"/>
+                                    <field name="child_id" nolabel="1" readonly="1">
+                                        <tree>
+                                            <field name="name"/>
+                                            <field name="start_date"/>
+                                            <field name="qualif_should_be_livred_at"/>
+                                            <field name="should_be_closed_at"/>
+                                            <field name="nb_days_tasks"/>
+                                            <field name="state"/>
+                                            <button name="set_to_livred_in_qualif" type="object" string="Is in Qualification"
+                                                    class="oe_link" attrs="{'invisible':[('state', '!=', 'open')]}"/>
+                                            <button name="set_to_livred_in_prod" type="object" string="Is in Production"
+                                                    class="oe_link" attrs="{'invisible':[('state', '!=', 'in_qualif')]}"/>
+                                            <button name="close_milestone" type="object" string="Close"
+                                                    class="oe_link" attrs="{'invisible':[('state', '!=', 'in_prod')]}"/>
+                                            <button name="reopen" type="object" string="Re-open"
+                                                    class="oe_link" attrs="{'invisible':[('state', '!=', 'closed')]}"/>
+                                        </tree>
+                                    </field>
                                 </group>
                             </page>
                         </notebook>

@@ -51,9 +51,10 @@ class ProjectMilestone(models.Model):
         ('in_prod', u"In Production"),
         ('closed', u"Closed")
     ], default='open', readonly=True, required=True)
-    description = fields.Text(u"Description")
+
+    description = fields.Html(u"Description", translate=True)
     qualif_should_be_livred_at_internal = fields.Date(u"Should be in technical test at (internal)")
-    referent = fields.Many2one('res.users', string=u"Référent", required=True, default=lambda self: self.env.user)
+    referent_id = fields.Many2one('res.users', string=u"Référent", required=True, default=lambda self: self.env.user)
 
     parent_id = fields.Many2one('project.milestone', string=u"Milestone parent", index=True, ondelete='cascade')
     child_id = fields.One2many('project.milestone', 'parent_id', string=u"Sous milestones")
@@ -65,12 +66,19 @@ class ProjectMilestone(models.Model):
         def get_names(mls):
             """ Return the list [mls.name, mls.parent_id.name, ...] """
             res = []
+            top_parent = mls and mls[0].project_id or self.env['project.project']
             while mls:
                 res.append(mls.name)
                 mls = mls.parent_id
-            return res
+                if mls:
+                    top_parent = mls.project_id
+            return top_parent, res
+        result = []
+        for rec in self:
+            project, names = get_names(rec)
+            result.append((rec.id, u"(%s) %s" % (project.name, u" / ".join(reversed(names)))))
 
-        return [(mls.id, " / ".join(reversed(get_names(mls)))) for mls in self]
+        return result
 
     @api.model
     def name_search(self, name, args=None, operator='ilike', limit=100):
