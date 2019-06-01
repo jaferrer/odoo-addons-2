@@ -111,10 +111,11 @@ class ProjectMilestone(models.Model):
 
     @api.constrains('start_date', 'qualif_should_be_livred_at', 'should_be_closed_at')
     def check_dates_coherence(self):
-        if self.start_date > self.qualif_should_be_livred_at:
-            raise ValidationError(_(u"Start date must be before test date."))
-        if self.should_be_closed_at and self.qualif_should_be_livred_at > self.should_be_closed_at:
-            raise ValidationError(_(u"Test date must be before prod date."))
+        for rec in self:
+            if rec.start_date > rec.qualif_should_be_livred_at:
+                raise ValidationError(_(u"Start date must be before test date."))
+            if rec.should_be_closed_at and rec.qualif_should_be_livred_at > rec.should_be_closed_at:
+                raise ValidationError(_(u"Test date must be before prod date."))
 
     @api.multi
     def _compute_nb_related(self):
