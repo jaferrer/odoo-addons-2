@@ -2,6 +2,18 @@ include: "https://gitlab.ndp-systemes.fr/odoo-addons/ci-files/raw/master/default
 
 variables:
   ODOO_VERSION: "10.0"
+  ODOO_IMG: "10.0"
   ODOO_DEPENDS: "odoo-addons/community-addons"
   ODOO_MODULE: "ALL"
   VERBOSE: "True"
+  BEFORE_ODOO_MODULE: "sale_timesheet"
+
+runbot_depends:
+  stage: test
+  script:
+    - /run.sh
+  tags:
+    - runbot
+
+runbot:
+  when: manual
