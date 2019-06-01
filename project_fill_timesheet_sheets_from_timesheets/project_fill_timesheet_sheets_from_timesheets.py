@@ -66,7 +66,8 @@ class TimesheetAutoFill(models.Model):
             self.env['hr_timesheet_sheet.sheet'].create({
                 'date_from': self.get_date_from_for_new_timesheet(date, user_id),
                 'date_to': self.get_date_to_for_new_timesheet(date, user_id),
-                'employee_id': employee.id
+                'employee_id': employee.id,
+                'department_id': employee.department_id and employee.department_id.id or False,
             })
 
     @api.model
