@@ -40,7 +40,7 @@ msgstr "Fermée"
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_closed_by
 msgid "Closed by"
-msgstr "Closed par"
+msgstr "Fermé par"
 
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_create_uid
@@ -177,6 +177,11 @@ msgstr "Ouverte"
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_should_be_closed_at
 msgid "Should be in Prod at"
 msgstr "Date de mise en Production"
+
+#. module: project_milestone
+#: model:ir.model.fields,field_description:project_milestone.field_project_milestone_qualif_should_be_livred_at_internal
+msgid "Should be in test at (internal)"
+msgstr "Date de mise en recette (interne)"
 
 #. module: project_milestone
 #: model:ir.model.fields,field_description:project_milestone.field_project_milestone_start_date
