@@ -91,7 +91,10 @@ class ExploreSharepointFolders(models.Model):
 
         session = requests.Session()
         access_token = self.env['knowledge.config.settings'].get_token()
-        authorization = u"Bearer " + access_token
+        if access_token:
+            authorization = u"Bearer " + access_token
+        else:
+            raise UserError(_(u"No access token, please check your access to Sharepoint."))
 
         session.headers.update({
             'Authorization': authorization,

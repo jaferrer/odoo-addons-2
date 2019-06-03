@@ -103,3 +103,8 @@ msgstr "Charger les dossiers enfants"
 #: view:odoo.online.documentation:odoo_online_documentation_sharepoint.knowledge_configuration_sharepoint
 msgid "Authentication"
 msgstr "Authentification"
+
+#. module: odoo_online_documentation_sharepoint
+#: code:addons/odoo_online_documentation_sharepoint/odoo_online_documentation_sharepoint.py:0
+msgid "No access token, please check your access to Sharepoint."
+msgstr "Pas d'access token, Veuillez vérifier votre accès à Sharepoint."
