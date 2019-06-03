@@ -63,7 +63,7 @@
                             <field name="parent_id"/>
                             <field name="project_id"/>
                             <label for="child_ids"/>
-                            <field name="child_ids" nolabel="1" context="{'default_parent_id':active_id}">
+                            <field name="child_ids" nolabel="1" context="{'default_parent_id':active_id, 'default_project_id':project_id}">
                                 <field name="name"/>
                             </field>
                         </group>
