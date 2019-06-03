@@ -58,17 +58,15 @@ class TimesheetAutoFill(models.Model):
             [('date_to', '>=', date), ('date_from', '<=', date),
              ('employee_id.user_id.id', '=', user_id),
              ('state', 'in', ['draft', 'new'])]):
-            employee = self.get_employee_for_new_timesheet(user_id)
-            if not employee:
-                user = self.env['res.users'].browse(user_id)
-                raise UserError(_(u"Impossible to create a timesheet, because user %s has no employee") %
-                                user.display_name)
-            self.env['hr_timesheet_sheet.sheet'].create({
+            data = {
                 'date_from': self.get_date_from_for_new_timesheet(date, user_id),
                 'date_to': self.get_date_to_for_new_timesheet(date, user_id),
-                'employee_id': employee.id,
-                'department_id': employee.department_id and employee.department_id.id or False,
-            })
+            }
+            employee = self.get_employee_for_new_timesheet(user_id)
+            if employee:
+                data['employee_id'] = employee.id
+                data['department_id'] = employee.department_id.id
+            self.env['hr_timesheet_sheet.sheet'].create(data)
 
     @api.model
     def create(self, vals):
