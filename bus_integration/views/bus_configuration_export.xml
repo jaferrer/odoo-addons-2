@@ -6,15 +6,18 @@
             <field name="model">bus.configuration.export</field>
             <field name="arch" type="xml">
                 <tree string="Configuration of template exports" colors="
-                        grey: cron_created == False;
+                        grey: last_transfer_state == 'never_processed';
                         orange: last_transfer_state == 'blocked';
                         red: last_transfer_state == 'error';
-                        blue: last_transfer_state == 'started';">
+                        blue: last_transfer_state == 'started';"
+                      default_order="model">
                     <field name="model"/>
                     <field name="recipient_id"/>
                     <field name="treatment_type"/>
                     <field name="serial_id"/>
                     <field name="last_transfer_state"/>
+                    <field name="mapping_object_id"/>
+                    <field name="dependency_level"/>
                     <field name="cron_created" invisible="1"/>
                     <button string="Init" name="create_cron" type="object"
                             attrs="{'invisible':[('cron_created','=',True)]}"/>
@@ -58,6 +61,8 @@
                                 <field name="model"/>
                                 <field name="domain"/>
                                 <field name="chunk_size"/>
+                                <field name="mapping_object_id"/>
+                                <field name="dependency_level"/>
                             </group>
                         </group>
                         <notebook>

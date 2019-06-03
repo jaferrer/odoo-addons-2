@@ -19,9 +19,49 @@ msgstr ""
 "X-Generator: Poedit 1.7.1\n"
 
 #. module: odoo_online_documentation_sharepoint
+#: field:odoo.online.documentation,path:0
+msgid "Path"
+msgstr "Emplacement"
+
+#. module: odoo_online_documentation_sharepoint
+#: field:odoo.online.documentation,parent_id:0
+msgid "Parent folder"
+msgstr "Dossier parent"
+
+#. module: odoo_online_documentation_sharepoint
+#: field:odoo.online.documentation,children_ids:0
+msgid "Son folders"
+msgstr "Dossiers enfants"
+
+#. module: odoo_online_documentation_sharepoint
+#: field:odoo.online.documentation,scannable:0
+msgid "To scan"
+msgstr "À scanner"
+
+#. module: odoo_online_documentation_sharepoint
+#: field:knowledge.config.settings,auth_code_url_sharepoint:0
+msgid "Authentication url"
+msgstr "Url d'authentification"
+
+#. module: odoo_online_documentation_sharepoint
+#: model:ir.actions.act_window,name:odoo_online_documentation_sharepoint.act_window_sharepoint_folders
+#: model:ir.ui.menu,name:odoo_online_documentation_sharepoint.sharepoint_folders_menu
+msgid "Updating sharepoint folders"
+msgstr "Mettre à jour les dossiers sharepoint"
+
+#. module: odoo_online_documentation_sharepoint
+#: view:odoo.online.documentation:sharepoint_folders_form
+msgid "Load children folders"
+msgstr "Charger les dossiers enfants"
+
+#. module: odoo_online_documentation_sharepoint
+#: view:odoo.online.documentation:odoo_online_documentation_sharepoint.knowledge_configuration_sharepoint
+msgid "Authentication"
+msgstr "Authentification"
+
 #: field:odoo.online.documentation,name:0
-msgid "Folder's name"
-msgstr "Nom du dossier"
+msgid "Document's name"
+msgstr "Nom du document"
 
 #. module: odoo_online_documentation_sharepoint
 #: field:odoo.online.documentation,path:0
@@ -44,11 +84,27 @@ msgid "To scan"
 msgstr "À scanner"
 
 #. module: odoo_online_documentation_sharepoint
+#: field:knowledge.config.settings,auth_code_url_sharepoint:0
+msgid "Authentication url"
+msgstr "Url d'authentification"
+
+#. module: odoo_online_documentation_sharepoint
+#: model:ir.actions.act_window,name:odoo_online_documentation_sharepoint.act_window_sharepoint_folders
 #: model:ir.ui.menu,name:odoo_online_documentation_sharepoint.sharepoint_folders_menu
 msgid "Updating sharepoint folders"
-msgstr "Updating sharepoint folders"
+msgstr "Mettre à jour les dossiers sharepoint"
 
 #. module: odoo_online_documentation_sharepoint
 #: view:odoo.online.documentation:sharepoint_folders_form
 msgid "Load children folders"
 msgstr "Charger les dossiers enfants"
+
+#. module: odoo_online_documentation_sharepoint
+#: view:odoo.online.documentation:odoo_online_documentation_sharepoint.knowledge_configuration_sharepoint
+msgid "Authentication"
+msgstr "Authentification"
+
+#. module: odoo_online_documentation_sharepoint
+#: code:addons/odoo_online_documentation_sharepoint/odoo_online_documentation_sharepoint.py:0
+msgid "No access token, please check your access to Sharepoint."
+msgstr "Pas d'access token, Veuillez vérifier votre accès à Sharepoint."

@@ -2,6 +2,16 @@
 <openerp>
     <data>
 
+        <record id="odoo_online_document_type_tree" model="ir.ui.view">
+            <field name="name">odoo_online_document_type_tree</field>
+            <field name="model">odoo.online.document.type</field>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
         <!--Menu "Type de document" dans knowledge-->
         <record model="ir.actions.act_window" id="act_window_odoo_online_document_type_knowledge">
             <field name="name">Document type</field>
@@ -10,7 +20,6 @@
             <field name="view_mode">tree</field>
             <field name="domain">[]</field>
             <field name="context">{}</field>
-            <field name="help"></field>
         </record>
 
         <menuitem action="act_window_odoo_online_document_type_knowledge" id="odoo_online_document_type_menu_knowledge"
@@ -38,15 +47,22 @@
             <field name="model">odoo.online.documentation</field>
             <field name="arch" type="xml">
                 <form>
-                    <group col="4" colspan="2">
-                        <field name="name"/>
-                        <field name="seen_in_sales"/>
-                        <field name="nature"/>
-                        <field name="seen_in_purchases"/>
-                        <field name="doc_type_id"/>
-                        <field name="seen_in_prod"/>
-                        <field name="file"/>
-                    </group>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="nature"/>
+                                <field name="doc_type_id"/>
+                                <field name="file" attrs="{'invisible': [('nature', '!=', 'PJ')]}"/>
+                                <field name="path" attrs="{'invisible': [('nature', '!=', 'sharepoint')]}"/>
+                            </group>
+                            <group>
+                                <field name="seen_in_sales"/>
+                                <field name="seen_in_purchases"/>
+                                <field name="seen_in_prod"/>
+                            </group>
+                        </group>
+                    </sheet>
                 </form>
             </field>
         </record>

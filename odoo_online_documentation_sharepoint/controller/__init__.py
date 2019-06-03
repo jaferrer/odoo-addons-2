@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,21 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import bus_base
-from . import bus_binder
-from . import bus_mapper
-from . import bus_receiver
-from . import bus_importer
-from . import bus_exporter
-from . import bus_object_mapping
-from . import bus_receive_transfer
-from . import bus_check_transfer
-from . import bus_configuration
-from . import bus_configuration_export_histo
-from . import bus_configuration_export
-from . import bus_message
-from . import bus_message_log
-from . import ir_model
-from . import ir_cron
-from . import mapping_configuration_helper
-# from . import access_rights
+from . import sharepoint_controller

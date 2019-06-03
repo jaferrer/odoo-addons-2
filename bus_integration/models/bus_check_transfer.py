@@ -17,19 +17,31 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields
+from openerp import models, api, fields
 
 
-class BusMessage(models.Model):
-    _name = 'bus.message.log'
+class CheckTransfer(models.Model):
+    _name = 'bus.check.transfer'
+    _order = 'create_date DESC'
 
-    message_id = fields.Many2one('bus.message', string=u"Message")
-    type = fields.Selection([('warning', u"Warning"), ('error', u"Error"), ('info', u"Info"),
-                             ('processed', u"Processed")], string=u"Log type")
-    information = fields.Text(srtring=u"Log information")
-    model = fields.Char(u"Model")
-    sender_record_id = fields.Integer(u"Sender record id")
+    res_model = fields.Char(u"Model")
+    res_id = fields.Integer(u"Local id")
     recipient_record_id = fields.Integer(u"Recipient record id")
     external_key = fields.Integer(u"External key")
-    recipient_id = fields.Many2one('bus.base', u"Recipient base")
-    sender_id = fields.Many2one('bus.base', u"Sender base")
+    recipient_id = fields.Many2one('bus.base', u"Recipient")
+    date_request = fields.Datetime(u"Request date")
+    date_response = fields.Datetime(u"Response date")
+    state = fields.Selection([('request', u"Requested"), ('find', u"Find"), ('not_find', u"Not find"),
+                              ('error', u"Error")], u"State")
+
+    @api.multi
+    def view_local_record(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': self.res_model,
+            'res_id': self.res_id,
+            'target': 'current',
+        }

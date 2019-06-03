@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+import json
 from openerp import models, api
 
 
@@ -24,23 +24,35 @@ class BusSynchronizationMapper(models.AbstractModel):
     _name = 'bus.mapper'
 
     @api.model
-    def process_mapping(self, record, record_model, external_key, model_mapping, dependencies):
+    def process_mapping(self, record, record_model, external_key, model_mapping, dependencies, odoo_record):
         error = []
         binding_data = {
             'model': record_model,
             'external_key': external_key,
-            'received_data': record,
+            'received_data': json.dumps(record, indent=4),
         }
         record_data = {}
-        all_importable_field = [field.map_name for field in model_mapping.field_ids if field.import_field]
-        required_fields = [field.map_name for field in model_mapping.field_ids if
-                           field.field_id.required and field.import_field]
-        all_importable_field.append('xml_id')
-        all_importable_field.append('id')
-        all_importable_field.append('translation')
-        all_importable_field.append('external_key')
+
+        importable_fields = []
+        required_fields = []
+        for field in model_mapping.field_ids:
+            if (field.import_creatable_field and not odoo_record) or (field.import_updatable_field and odoo_record):
+                importable_fields.append(field.map_name)
+                if field.field_id.required:
+                    required_fields.append(field.map_name)
+        if not importable_fields:
+            error_message = u"Error no field to import for %s, id:%s, external_key:%s" % \
+                            (record_model, record.get('id'), external_key)
+            return binding_data, {}, [('error', error_message)]
+        # add keys needed by bus to avoid warnings 'field %s not configured for import'
+        importable_fields.append('xml_id')
+        importable_fields.append('id')
+        importable_fields.append('translation')
+        importable_fields.append('external_key')
+        importable_fields.append('bus_sender_id')
+        importable_fields.append('bus_recipient_id')
         for field_key in record.keys():
-            if field_key not in all_importable_field:
+            if field_key not in importable_fields:
                 error.append(('warning', u"Error field %s not configured for import" % field_key))
             elif field_key in required_fields and not record.get(field_key):
                 error.append(('error', u"Error field %s is required, record id : %s" % (field_key, record.get('id'))))

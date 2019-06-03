@@ -25,6 +25,7 @@ from openerp import models, fields, api
 
 class BusConfigurationExport(models.Model):
     _name = 'bus.configuration.export'
+    _order = 'dependency_level ASC, model ASC'
 
     name = fields.Char(u"Name", required=True, compute="_compute_name")
     configuration_id = fields.Many2one('bus.configuration', string=u"Backend",
@@ -32,10 +33,12 @@ class BusConfigurationExport(models.Model):
     recipient_id = fields.Many2one('bus.base', string=u"Recipient")
     bus_username = fields.Char(u"BUS user name", related='recipient_id.bus_username', readonly=True, store=True)
     model = fields.Char(u"Model", required=True)
-    bus_reception_treatment = fields.Selection([('simple_reception', u"Simple reception")],
+    bus_reception_treatment = fields.Selection([('simple_reception', u"Simple reception"),
+                                                ('check_reception', u"Check reception")],
                                                u"Treatment in BUS database", default='simple_reception', required=True)
     treatment_type = fields.Selection([('SYNCHRONIZATION', u"Synchronization"),
-                                       ('DELETION_SYNCHRONIZATION', u"Deletion")],
+                                       ('DELETION_SYNCHRONIZATION', u"Deletion"),
+                                       ('CHECK_SYNCHRONIZATION', u"Check")],
                                       string=u"Treatment type", default='SYNCHRONIZATION', required=True)
     cron_created = fields.Boolean(u"Cron created", compute='_get_cron')
     cron_active = fields.Boolean(u"Cron active", compute='_get_cron')
@@ -54,18 +57,26 @@ class BusConfigurationExport(models.Model):
         You can acces to : relativedelta, self, context.
         For datetime use shorcut date, date_to_str to translate dates.
         last_send_date to get the last date of dispatch.""")
-
+    mapping_object_id = fields.Many2one('bus.object.mapping', u"Mapping", compute='_get_mapping_object', store=True)
+    dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True)
     bach_histo_ids = fields.One2many('bus.configuration.export.histo', 'bus_configuration_export_id',
                                      string=u"Batch history")
+
+    @api.multi
+    @api.depends('model')
+    def _get_mapping_object(self):
+        for rec in self:
+            mapping = self.env['bus.object.mapping'].search([('model_name', '=', rec.model)])
+            rec.mapping_object_id = mapping
 
     @api.multi
     @api.depends('recipient_id', 'model', 'domain')
     def _compute_name(self):
         for rec in self:
-            rec.name = "%s%s_to_%s" % (
+            rec.name = u"%s%s→%s" % (
                 rec.model or "[_]",
                 "" if rec.domain == "[]" else "[...]",
-                rec.recipient_id.name or "[_]")
+                rec.recipient_id.display_name or "[_]")
 
     @api.multi
     def _compute_last_transfer(self):
@@ -78,8 +89,7 @@ class BusConfigurationExport(models.Model):
     @api.multi
     def run_batch(self):
         self.ensure_one()
-        is_deletion_treatment = self.treatment_type == 'DELETION_SYNCHRONIZATION'
-        return self.env['bus.exporter'].run_export(self.id, is_deletion_treatment)
+        return self.env['bus.exporter'].run_export(self.id)
 
     @api.multi
     def create_cron(self):
@@ -156,9 +166,5 @@ class BusConfigurationExport(models.Model):
     @api.multi
     def get_last_send_date(self):
         self.ensure_one()
-        histo = self.env['bus.configuration.export.histo'].search([('bus_configuration_export_id', '=', self.id)],
-                                                                  order='create_date DESC',
-                                                                  limit=1)
-        log = self.env['bus.configuration.export.histo.log'].search([('histo_id', '=', histo.id)],
-                                                                    order='create_date DESC', limit=1)
-        return log.create_date
+        return self.last_transfer_id and self.last_transfer_id.write_date or fields.Datetime\
+            .to_string(datetime.strptime('1900', '%Y'))

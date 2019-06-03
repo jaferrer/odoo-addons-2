@@ -7,13 +7,17 @@
             <field name="model">bus.message</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree create="false" delete="false">
-                    <field name="type"/>
+                <tree create="false" delete="false"
+                      colors="red:result_state=='error';grey:result_state=='done'"
+                      default_order="id desc">
+                    <field name="date_done" invisible="True"/>
+                    <field name="cross_id_str"/>
+                    <field name="id"/>
+                    <field name="display_name"/>
+                    <field name="body_models"/>
                     <field name="treatment"/>
-                    <field name="body_models" />
-                    <field name="done"/>
-                    <field name="date_done"/>
                     <field name="create_date"/>
+                    <field name="result_state"/>
                 </tree>
             </field>
         </record>
@@ -26,12 +30,14 @@
                 <form>
                     <sheet>
                         <group>
+                            <field name="display_name"/>
                             <field name="type"/>
                             <field name="treatment"/>
                             <field name="create_date"/>
                             <field name="create_uid"/>
-                            <field name="done"/>
                             <field name="date_done"/>
+                            <field name="result_state"/>
+                            <field name="message_parent_id"/>
                         </group>
                         <separator string="Header"/>
                         <field name="header_param_ids">
@@ -40,20 +46,32 @@
                                 <field name="value"/>
                             </tree>
                         </field>
-                        <separator string="Body"/>
+                        <separator string="Information"/>
                         <notebook>
-                            <page string="root/demand">
+                            <page string="root/demand" name="root_demand">
                                 <field name="body_root_pretty_print"/>
                             </page>
-                            <page string="dependencies">
+                            <page string="dependencies" name="dependencies">
                                 <field name="body_dependencies_pretty_print"/>
                             </page>
-                        </notebook>
-                        <separator string="Extra content"/>
-                        <field name="extra_content"/>
-                        <notebook>
-                            <page string="Logs" id="log_ids">
-                                <field name="log_ids" nolabel="1"/>
+                            <page string="raw message" name="raw_message">
+                                <field name="message"/>
+                            </page>
+                            <page string="Logs" name="log_ids">
+                                <field name="log_ids" nolabel="1">
+                                    <tree>
+                                        <field name="message_id"/>
+                                        <field name="type"/>
+                                        <field name="information"/>
+                                        <field name="model"/>
+                                        <field name="sender_record_id"/>
+                                        <field name="external_key"/>
+                                        <field name="sender_id"/>
+                                    </tree>
+                                </field>
+                            </page>
+                            <page string="Extra content" name="extra_content">
+                                <field name="extra_content" nolabel="1"/>
                             </page>
                         </notebook>
                     </sheet>
@@ -72,7 +90,9 @@
                     <field name="header_param_ids"/>
                     <field name="body"/>
                     <field name="extra_content"/>
-                    <filter name="running" string="Running" domain="[('done', '=', False)]"/>
+                    <filter name="running" string="Running" domain="[('date_done', '=', False)]"/>
+                    <filter name="lasts24h" string="H-24"
+                            domain="[('create_date','&gt;', (context_today()-relativedelta(days=1)).strftime('%%Y-%%m-%%d'))]"/>
                 </search>
             </field>
         </record>
@@ -83,11 +103,16 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
-            <field name="context">{'search_default_running': True}</field>
+            <field name="context">{
+                'search_default_running': True,
+                'search_default_lasts24h' : True
+                }
+            </field>
         </record>
 
         <menuitem id="menu_bus_message" name="Bus Messages" action="act_window_bus_message"
                   parent="menu_bus" sequence="150"/>
+
 
     </data>
 </openerp>

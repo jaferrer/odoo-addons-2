@@ -229,10 +229,20 @@ class StockPicking(models.Model):
             move_ids = self.pool.get('stock.move').search(cr, uid, [('picking_id', '=', k)], limit=1, context=context)
             if move_ids:
                 defer = \
-                    self.pool.get('stock.move').read(cr, uid, move_ids, ['defer_picking_assign'], context=context)[0][
-                        'defer_picking_assign']
+                    self.pool.get('stock.move').read(cr, uid, move_ids, ['defer_picking_assign'],
+                                                     context=context)[0]['defer_picking_assign']
                 if defer:
                     res[k] = {}
+        for pick in self.browse(cr, uid, ids, context=context):
+            result = res.get(pick.id, {})
+            if 'min_date' in result and pick.min_date == result['min_date']:
+                del res[pick.id]['min_date']
+            if 'max_date' in result and pick.max_date == result['max_date']:
+                del res[pick.id]['max_date']
+            if 'priority' in result and pick.priority == result['priority']:
+                del res[pick.id]['priority']
+            if pick.id in res and not res.get(pick.id):
+                del res[pick.id]
         return res
 
     def process_operations_for_transfer(self, cr, uid, operations, need_rereserve, still_to_do, prod2move_ids,
