@@ -91,18 +91,12 @@ class product_pricelist_improved(models.Model):
                         price_uom_id = product.uom_id.id
                         if qty_uom_id != product.uom_id.id:
                             try:
-                                qty_in_product_uom = product_uom_obj._compute_qty(
-                                    context['uom'], qty, product.uom_id.id or product.uos_id.id)
+                                product_uom_obj._compute_qty(context['uom'], qty,
+                                                             product.uom_id.id or product.uos_id.id)
                             except except_orm:
                                 # Ignored - incompatible UoM in context, use default product UoM
                                 pass
-                        seller = False
-                        for seller_id in product.seller_ids:
-                            if (not partner) or (seller_id.name.id != partner):
-                                continue
-                            seller = seller_id
-                        if not seller and product.seller_ids:
-                            seller = product.seller_ids[0]
+                        seller = self.find_supplierinfo_for_product(product, partner)
                         if seller:
                             qty_in_seller_uom = qty
                             seller_uom = seller.product_uom.id
