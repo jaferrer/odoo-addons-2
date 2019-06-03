@@ -67,7 +67,7 @@ class OdooOnlineDocumentation(models.Model):
                 rec.remove_attachments()
                 attachment = rec.create_attachment(rec.file, rec.name)
                 if not attachment:
-                    raise exceptions.except_orm(_(u"Error!"), _(u"No file related to this documentation"))
+                    raise exceptions.except_orm(_(u"Error!"), _(u"No file related to this documentation."))
                 url = "/web/binary/saveas?model=ir.attachment&field=datas&id=%s&filename_field=name" % attachment.id
                 return {
                     "type": "ir.actions.act_url",
