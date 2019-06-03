@@ -18,9 +18,8 @@
 #
 
 from dateutil.relativedelta import relativedelta
-from odoo.exceptions import UserError
 
-from odoo import fields, models, api, _
+from odoo import fields, models, api
 
 
 class TimesheetAutoFill(models.Model):
@@ -48,27 +47,20 @@ class TimesheetAutoFill(models.Model):
             return (fields.Date.from_string(date) + relativedelta(day=31, month=12)).strftime('%Y-%m-%d')
         return date
 
-    def get_employee_for_new_timesheet(self, user_id):
-        emp_ids = self.env['hr.employee'].search([('user_id', '=', user_id)])
-        return emp_ids and emp_ids[0] or False
-
     @api.model
     def create_timesheet_if_needed(self, date, user_id):
-        if not self.env['hr_timesheet_sheet.sheet'].search(
-            [('date_to', '>=', date), ('date_from', '<=', date),
-             ('employee_id.user_id.id', '=', user_id),
-             ('state', 'in', ['draft', 'new'])]):
-            employee = self.get_employee_for_new_timesheet(user_id)
-            if not employee:
-                user = self.env['res.users'].browse(user_id)
-                raise UserError(_(u"Impossible to create a timesheet, because user %s has no employee") %
-                                user.display_name)
-            self.env['hr_timesheet_sheet.sheet'].create({
+        employee = self.env['hr.employee'].search([('user_id', '=', user_id)], limit=1)
+        if date and employee and not self.env['hr_timesheet_sheet.sheet'].search(
+                [('date_to', '>=', date), ('date_from', '<=', date),
+                 ('employee_id.user_id.id', '=', user_id),
+                 ('state', 'in', ['draft', 'new'])]):
+            data = {
                 'date_from': self.get_date_from_for_new_timesheet(date, user_id),
                 'date_to': self.get_date_to_for_new_timesheet(date, user_id),
                 'employee_id': employee.id,
-                'department_id': employee.department_id and employee.department_id.id or False,
-            })
+                'department_id': employee.department_id.id,
+            }
+            self.env['hr_timesheet_sheet.sheet'].create(data)
 
     @api.model
     def create(self, vals):
