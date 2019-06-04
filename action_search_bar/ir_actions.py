@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+import sys
 from openerp import models, api
 
 
@@ -26,17 +26,11 @@ class ir_actions_act_window(models.Model):
     @api.multi
     def open_act_window_tree_view(self):
         self.ensure_one()
+        menu = self.env['ir.ui.menu'].search([('action', '=', self.id)], limit=1)
+        menu_id = menu and menu.id or ""
+        url = "/web?#page=0&limit=80&view_type=list&model=%s&menu_id=%s&action=%s" % (self.res_model, menu_id, self.id)
         return {
-            'name': self.name,
-            'view_type': self.view_type,
-            'view_mode': self.view_mode,
-            'res_model': self.res_model,
-            'view_id': self.view_id.id,
-            'views': self.views,
-            'res_id': self.res_id,
-            'search_view_id': self.search_view_id.id,
-            'domain': self.domain,
-            'type': 'ir.actions.act_window',
-            'context': self.context,
-            'target': 'current'
+                "type": "ir.actions.act_url",
+                "url": url,
+                "target": "self"
         }

@@ -42,6 +42,22 @@ action = self.generate_procurements(cr, uid, context.get('active_ids'), context=
             <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_generate_procurements)"/>
         </record>
 
+        <record model="ir.actions.server" id="ir_actions_server_manual_consideration">
+            <field name="name">Manual consideration</field>
+            <field name="model_id" ref="sale_stock_manual_link.model_procurement_sale_link"/>
+            <field name="code">
+action = self.manual_consideration(cr, uid, context.get('active_ids'), context=context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_manual_consideration">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">procurement.sale.link</field>
+            <field name="name">Manual consideration</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_manual_consideration)"/>
+        </record>
+
         <record model="ir.ui.view" id="procurement_sale_link_tree">
             <field name="name">procurement_sale_link_tree</field>
             <field name="model">procurement.sale.link</field>
@@ -78,10 +94,18 @@ action = self.generate_procurements(cr, uid, context.get('active_ids'), context=
                     <field name="partner_id"/>
                     <field name="product_id"/>
                     <field name="origin"/>
+                    <field name="sale_warehouse_id"/>
                     <filter name="procs_missing_on_lines" string="Procurements missing on lines"
                             domain="[('procurement_id', '=', False)]"/>
                     <filter name="procs_no_lines" string="Procurements not linked to a line"
                             domain="[('scheduled_for_sale_line_id', '=', False)]"/>
+                    <filter name="with_manual_consideration" string="With manual consideration"
+                            domain="[('sol_manual_consideration', '=', True)]"/>
+                    <filter name="without_manual_consideration" string="Without manual consideration"
+                            domain="[('sol_manual_consideration', '=', False)]"/>
+                    <group expand="1" string="Group By...">
+                        <filter name="group_warehouse" string="Warehouse" domain="[]" context="{'group_by':'sale_warehouse_id'}"/>
+                    </group>
                 </search>
             </field>
         </record>
@@ -91,9 +115,9 @@ action = self.generate_procurements(cr, uid, context.get('active_ids'), context=
             <field name="res_model">procurement.sale.link</field>
             <field name="view_type">form</field>
             <field name="view_mode">tree</field>
-            <field name="domain">[]</field>
-            <field name="context">{'search_default_procs_missing_on_lines': True, 'search_default_procs_no_lines': True, 'display_line_no': True}</field>
-            <field name="help"></field>
+            <field name="domain">[('product_id.type', '!=', 'service')]</field>
+            <field name="context">{'search_default_procs_missing_on_lines': True, 'search_default_procs_no_lines': True, 'search_default_without_manual_consideration': True, 'display_line_no': True}</field>
+            <field name="help"/>
         </record>
 
         <menuitem id="menu_procurement_sale_link" name="Procurements/Sales Links" action="act_procurement_sale_link"

@@ -19,13 +19,83 @@
 
 import re
 
-from openerp import models, api, _
+from openerp import models, api, fields
 from openerp.osv import expression
+from openerp.osv import fields as old_api_fields
 from openerp.tools import float_round
+
+
+class ProductTemplateJit(models.Model):
+    _inherit = 'product.template'
+
+    _columns = {
+        'seller_id': old_api_fields.many2one('res.partner', string='Main Supplier',
+                                             help="Main Supplier who has highest priority in Supplier List."),
+    }
+
+    @api.multi
+    def get_main_supplierinfo(self, force_supplier=None, force_company=None):
+        self.ensure_one()
+        supplier_infos_domain = [('id', 'in', self.seller_ids.ids)]
+        if force_supplier:
+            supplier_infos_domain += [('name', '=', force_supplier.id)]
+        if force_company:
+            supplier_infos_domain += ['|', ('company_id', '=', force_company.id), ('company_id', '=', False)]
+        return self.env['product.supplierinfo'].search(supplier_infos_domain, order='sequence, id', limit=1)
+
+    @api.model
+    def update_seller_ids(self):
+        self.env.cr.execute("""WITH main_supplier_intermediate_table AS (
+    SELECT
+        pt.id            AS product_tmpl_id,
+        min(ps.sequence) AS sequence
+    FROM product_template pt
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pt.id
+    GROUP BY pt.id),
+
+        main_supplier_s AS (
+        SELECT
+            ps.product_tmpl_id,
+            ps.name,
+            ROW_NUMBER()
+            OVER (PARTITION BY ps.product_tmpl_id
+                ORDER BY ps.id ASC) AS constr
+        FROM
+            product_supplierinfo ps
+            INNER JOIN
+            main_supplier_intermediate_table ms
+                ON ps.product_tmpl_id = ms.product_tmpl_id AND ps.sequence = ms.sequence)
+
+SELECT
+    pt.id          AS product_tmpl_id,
+    res_partner.id AS new_seller_id
+FROM product_template pt
+    LEFT JOIN main_supplier_s ON main_supplier_s.product_tmpl_id = pt.id
+    LEFT JOIN res_partner ON res_partner.id = main_supplier_s.name
+    LEFT JOIN res_users ON res_partner.user_id = res_users.id
+WHERE (res_partner.id IS NULL OR main_supplier_s.constr = 1) AND
+      ((res_partner.id IS NULL AND pt.seller_id IS NOT NULL OR res_partner.id IS NOT NULL AND pt.seller_id IS NULL OR
+        res_partner.id != pt.seller_id))""")
+        for res_tuple in self.env.cr.fetchall():
+            product = self.browse(res_tuple[0])
+            supplier = self.env['res.partner'].browse(res_tuple[1])
+            product.seller_id = supplier
+        self.env['product.product'].update_seller_ids()
 
 
 class ProductLabelProductProduct(models.Model):
     _inherit = 'product.product'
+
+    seller_id = fields.Many2one(related='product_tmpl_id.seller_id', store=True, readonly=True)
+
+    @api.model
+    def update_seller_ids(self):
+        return False
+
+    @api.multi
+    def get_main_supplierinfo(self, force_supplier=None, force_company=None):
+        self.ensure_one()
+        return self.product_tmpl_id.get_main_supplierinfo(force_supplier=force_supplier, force_company=force_company)
 
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
@@ -62,26 +132,6 @@ class ProductLabelProductProduct(models.Model):
         result = products.name_get()
         return result
 
-    @api.multi
-    def open_moves_for_product(self):
-        self.ensure_one()
-        ctx = self.env.context.copy()
-        ctx['search_default_done'] = True
-        ctx['search_default_product_id'] = self.id
-        ctx['default_product_id'] = self.id
-        return {
-            'name': _("Moves for product %s") % self.name,
-            'type': 'ir.actions.act_window',
-            'view_type': 'form',
-            'view_mode': 'tree,form',
-            'res_model': 'stock.move',
-            'domain': ['|', ('location_id.company_id', '=', False),
-                       ('location_id.company_id', 'child_of', self.env.user.company_id.id),
-                       '|', ('location_dest_id.company_id', '=', False),
-                       ('location_dest_id.company_id', 'child_of', self.env.user.company_id.id)],
-            'context': ctx,
-        }
-
 
 class ProductUomImproved(models.Model):
     _inherit = 'product.uom'
@@ -92,7 +142,7 @@ class ProductUomImproved(models.Model):
             if round:
                 res_qty = float_round(res_qty, precision_rounding=to_unit.rounding, rounding_method=rounding_method)
             return res_qty
-        return super(ProductUomImproved, self).\
+        return super(ProductUomImproved, self). \
             _compute_qty_obj(cr, uid, from_unit, qty, to_unit, round, rounding_method, context)
 
     def _compute_price(self, cr, uid, from_uom_id, price, to_uom_id=False):
@@ -100,3 +150,26 @@ class ProductUomImproved(models.Model):
             return price
         return super(ProductUomImproved, self). \
             _compute_price(cr, uid, from_uom_id, price, to_uom_id)
+
+
+class ProductSupplierinfoImproved(models.Model):
+    _inherit = 'product.supplierinfo'
+
+    name = fields.Many2one(index=True)
+
+    @api.multi
+    def update_seller_ids_for_products(self):
+        templates = self.env['product.template'].search([('id', 'in', [rec.product_tmpl_id.id for rec in self])])
+        templates.update_seller_ids()
+
+    @api.model
+    def create(self, vals):
+        result = super(ProductSupplierinfoImproved, self).create(vals)
+        result.update_seller_ids_for_products()
+        return result
+
+    @api.multi
+    def write(self, vals):
+        result = super(ProductSupplierinfoImproved, self).write(vals)
+        self.update_seller_ids_for_products()
+        return result

@@ -23,7 +23,7 @@ from openerp import fields, models, api
 class purchase_jit_config(models.TransientModel):
     _inherit = 'purchase.config.settings'
 
-    nb_days_max_cover = fields.Integer(string=u"Maximal number days for cover")
+    nb_days_max_cover = fields.Integer(string=u"Maximal number days for cover (working days)")
 
     @api.multi
     def get_default_nb_days_max_cover(self):

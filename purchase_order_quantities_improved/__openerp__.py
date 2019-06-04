@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Product',
-    'depends': ['purchase'],
+    'depends': ['purchase', 'product_improved'],
     'description': """
 Improvement of purchase order quantities calculation
 ====================================================

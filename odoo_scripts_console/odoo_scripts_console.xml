@@ -78,7 +78,7 @@
             <field name="name">Watch</field>
             <field name="model_id" ref="odoo_scripts_console.model_odoo_script_watcher"/>
             <field name="code">
-self.watch(cr, uid, context.get('active_ids'), context=context)
+self.watch_multi(cr, uid, context.get('active_ids'), context=context)
             </field>
         </record>
 

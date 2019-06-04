@@ -7,6 +7,11 @@
             <field name="parent_id" ref="connector.channel_root"/>
         </record>
 
+        <record model="queue.job.channel" id="root_auto_delete_cancelled_moves_procs">
+            <field name="name">auto_delete_cancelled_moves_procs</field>
+            <field name="parent_id" ref="connector.channel_root"/>
+        </record>
+
     </data>
 
     <data noupdate="1">
@@ -38,6 +43,21 @@
             <field name="doall"/>
             <field name="model">stock.scheduler.controller</field>
             <field name="function">clean_scheduler_controller_lines</field>
+            <field name="args"/>
+        </record>
+
+        <record model="ir.cron" id="job_delete_cancelled_moves_and_procs">
+            <field name="name">Delete cancelled moves and procurements by the planner</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall">2019-01-01 08:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">procurement.order</field>
+            <field name="function">delete_cancelled_moves_and_procs</field>
             <field name="args"/>
         </record>
 

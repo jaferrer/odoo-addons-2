@@ -62,10 +62,14 @@ class PurchaseOrder(models.Model):
                     'remaining_invoice_qty': line.remaining_invoice_qty,
                     'purchase_line_id': line.id}) for line in self.order_line if
             line.is_service_to_invoice] or False
+        default_journal = self.env['account.journal'].search([('company_id', '=', self.company_id.id),
+                                                              ('type', '=', 'purchase')])
         context['active_model'] = 'stock.picking'
         context['active_ids'] = self.get_pickings_to_invoice().ids
         context['default_display_remaining_services'] = self.is_service_to_invoice
         context['default_service_line_ids'] = service_line_vals
+        context['default_journal_type'] = 'purchase'
+        context['default_journal_id'] = default_journal and default_journal.id or False
         context['invoice_purchase_order_id'] = self.id
         result['context'] = context
         return result

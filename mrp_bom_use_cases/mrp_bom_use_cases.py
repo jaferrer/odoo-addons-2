@@ -37,7 +37,7 @@ def job_compute_father_line_ids(session, model_name, context):
 
 
 class MrpBomLine(models.Model):
-    _inherit = "mrp.bom.line"
+    _inherit = 'mrp.bom.line'
 
     product_parent_id = fields.Many2one('product.product', string=u"Parent Product",
                                         related='bom_id.product_id')

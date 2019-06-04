@@ -54,6 +54,12 @@ def process_orderpoints(session, model_name, ids, context):
         line.set_to_done()
 
 
+@job(default_channel='root.auto_delete_cancelled_moves_procs')
+def job_delete_cancelled_moves_and_procs(session, model_name, ids):
+    objects_to_delete = session.env[model_name].search([('id', 'in', ids)])
+    objects_to_delete.unlink()
+
+
 class StockLocationSchedulerSequence(models.Model):
     _name = 'stock.location.scheduler.sequence'
 
@@ -84,7 +90,7 @@ class StockLocationRoute(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    procurement_id = fields.Many2one('procurement.order', index=True)
+    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
 
 
 class ProcurementOrderQuantity(models.Model):
@@ -93,6 +99,7 @@ class ProcurementOrderQuantity(models.Model):
     qty = fields.Float(string="Quantity", digits_compute=dp.get_precision('Product Unit of Measure'),
                        help='Quantity in the default UoM of the product', compute="_compute_qty", store=True)
     protected_against_scheduler = fields.Boolean(u"Protected Against Scheduler", track_visibility='onchange')
+    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
 
     @api.multi
     @api.depends('product_qty', 'product_uom')
@@ -100,6 +107,10 @@ class ProcurementOrderQuantity(models.Model):
         for m in self:
             qty = self.env['product.uom']._compute_qty_obj(m.product_uom, m.product_qty, m.product_id.uom_id)
             m.qty = qty
+
+    @api.model
+    def get_default_supplierinfos_for_orderpoint_confirm(self):
+        return self.env['product.supplierinfo'].search([('name', 'in', self.env.context['compute_supplier_ids'])])
 
     @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
@@ -115,9 +126,8 @@ class ProcurementOrderQuantity(models.Model):
         if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
             dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
         if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
-            supplierinfo_ids = self.env['product.supplierinfo']. \
-                search([('name', 'in', self.env.context['compute_supplier_ids'])])
-            read_supplierinfos = supplierinfo_ids.read(['id', 'product_tmpl_id'], load=False)
+            supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
+            read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
             dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
         orderpoints = orderpoint_env.search(dom)
         if run_procurements:
@@ -211,24 +221,21 @@ class ProcurementOrderQuantity(models.Model):
         self.check_can_be_canceled()
         result = super(ProcurementOrderQuantity, self).cancel()
         if self.env.context.get('unlink_all_chain'):
-            delete_moves_cancelled_by_planned = bool(self.env['ir.config_parameter'].get_param(
-                'stock_procurement_just_in_time.delete_moves_cancelled_by_planned', default=False))
-            if delete_moves_cancelled_by_planned:
-                moves_to_unlink = self.env['stock.move']
-                procurements_to_unlink = self.env['procurement.order']
-                for rec in self:
-                    parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
-                    for move in parent_moves:
-                        if move.state == 'cancel':
-                            moves_to_unlink += move
-                            if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
+            moves_to_unlink = self.env['stock.move']
+            procurements_to_unlink = self.env['procurement.order']
+            for rec in self:
+                parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
+                for move in parent_moves:
+                    if move.state == 'cancel':
+                        moves_to_unlink += move
+                        if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
                                 move.procurement_id.state == 'cancel' and \
-                                    not any([move.state == 'done' for move in move.procurement_id.move_ids]):
-                                procurements_to_unlink += move.procurement_id
-                if moves_to_unlink:
-                    moves_to_unlink.unlink()
-                if procurements_to_unlink:
-                    procurements_to_unlink.unlink()
+                                not any([move.state == 'done' for move in move.procurement_id.move_ids]):
+                            procurements_to_unlink += move.procurement_id
+
+            moves_to_unlink.write({'to_delete': True})
+            procurements_to_unlink.write({'to_delete': True})
+
         return result
 
     @api.model
@@ -282,6 +289,25 @@ class ProcurementOrderQuantity(models.Model):
         except ForbiddenCancelProtectedProcurement as e:
             _logger.info(e.value)
         return result
+
+    @api.model
+    def delete_cancelled_moves_and_procs(self, jobify=True):
+        procs_to_delete = self.search([('to_delete', '=', True)])
+        if jobify:
+            for proc in procs_to_delete:
+                job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
+                                                           'procurement.order', proc.ids)
+        else:
+            job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
+                                                 'procurement.order', procs_to_delete.ids)
+        moves_to_delete = self.env['stock.move'].search([('to_delete', '=', True)])
+        if jobify:
+            for moves in moves_to_delete:
+                job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
+                                                           'stock.move', moves.ids)
+        else:
+            job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
+                                                 'stock.move', moves_to_delete.ids)
 
 
 class StockMoveJustInTime(models.Model):
@@ -435,10 +461,12 @@ class StockWarehouseOrderPointJit(models.Model):
                     events_at_date, stock_after_event = op.process_events_at_date(event, events, stock_after_event)
                     done_dates += [event['date']]
                 if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned'] and event['proc_id']:
-                    procs_oversupply = self.env['procurement.order'].search([('id', 'in', [item['proc_id'] for item in events_at_date]),
-                                                                             ('state', '!=', 'done')])
+                    procs_oversupply = self.env[
+                        'procurement.order'].search([('id', 'in', [item['proc_id'] for item in events_at_date]),
+                                                     ('state', '!=', 'done')])
                     for proc_oversupply in procs_oversupply:
-                        qty_same_proc = sum([item['move_qty'] for item in events if item['proc_id'] == proc_oversupply.id])
+                        qty_same_proc = sum([item['move_qty']
+                                            for item in events if item['proc_id'] == proc_oversupply.id])
                         _logger.debug("Oversupply detected: deleting procurements %s " % proc_oversupply.id)
                         stock_after_event = proc_oversupply.cancel_procs_just_in_time(stock_after_event, qty_same_proc)
                     if op.is_under_stock_min(stock_after_event) and \
@@ -454,6 +482,26 @@ class StockWarehouseOrderPointJit(models.Model):
             if last_scheduled_date:
                 date_end = last_scheduled_date + relativedelta(minutes=+1)
                 op.remove_unecessary_procurements(date_end)
+
+    @api.model
+    def get_query_move_in(self, move_in_date_clause):
+        return ("""SELECT
+  sm.id,
+  sm.product_qty,
+  min(COALESCE(po.date_planned, sm.date)) AS date,
+  po.id
+FROM
+  stock_move sm
+  LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
+  LEFT JOIN procurement_order po ON sm.procurement_id = po.id
+WHERE
+  sm.product_id = %s
+  AND sm.state NOT IN ('cancel', 'done', 'draft')
+  AND sl.parent_left >= %s
+  AND sl.parent_left < %s""" +
+            move_in_date_clause +
+            """GROUP BY sm.id, po.id, sm.product_qty
+ORDER BY DATE""")
 
     @api.model
     def compute_stock_levels_requirements(self, product_id, location, list_move_types, limit=1,
@@ -482,24 +530,7 @@ class StockWarehouseOrderPointJit(models.Model):
         first_date = False
         result = []
         intermediate_result = []
-        query_moves_in = """
-            SELECT
-                sm.id,
-                sm.product_qty,
-                min(COALESCE(po.date_planned, sm.date)) AS date,
-                po.id
-            FROM
-                stock_move sm
-                LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
-                LEFT JOIN procurement_order po ON sm.procurement_id = po.id
-            WHERE
-                sm.product_id = %s
-                AND sm.state NOT IN ('cancel', 'done', 'draft')
-                AND sl.parent_left >= %s
-                AND sl.parent_left < %s""" + \
-                         move_in_date_clause + \
-                         """GROUP BY sm.id, po.id, sm.product_qty
-                         ORDER BY DATE"""
+        query_moves_in = self.get_query_move_in(move_in_date_clause)
         self.env.cr.execute(query_moves_in, params)
         moves_in_tuples = self.env.cr.fetchall()
 
@@ -836,6 +867,18 @@ class StockSchedulerController(models.Model):
                                                        ('run_procs', '=', False)])
 
                 if not controller_lines_no_run:
+                    controller_lines_no_run_blocked = self.search([('done', '=', False),
+                                                                   ('job_uuid', '!=', False),
+                                                                   ('location_sequence', '=', max_location_sequence),
+                                                                   ('route_sequence', '=', max_route_sequence),
+                                                                   ('run_procs', '=', False)])
+                    if controller_lines_no_run_blocked:
+                        for line_blocked in controller_lines_no_run_blocked:
+                            queue_job = self.env['queue.job'].search(
+                                [('uuid', '=', line_blocked.job_uuid), ('state', 'in', ['done', 'failed'])])
+                            if queue_job:
+                                line_blocked.done = True
+
                     controller_lines_run_procs = self.search([('done', '=', False),
                                                               ('location_sequence', '=', max_location_sequence),
                                                               ('route_sequence', '=', max_route_sequence),

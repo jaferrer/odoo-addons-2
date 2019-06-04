@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-extend="Sidebar">
+         <t t-jquery='li[class="oe_sidebar_add_attachment"] t span' t-operation="replace">
+            <span>Add... (&lt;=2Mo/2000Ko)</span>
+        </t>
+    </t>
+</templates>

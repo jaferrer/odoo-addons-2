@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': ['scheduler_async', 'stock', 'stock_moves_to_assigned_pickings', 'computed_field_database'],
+    'depends': ['scheduler_async', 'stock', 'stock_moves_to_assigned_pickings'],
     'description': """
 Stock Performance Improved
 ==========================
@@ -48,6 +48,7 @@ menus to finely control the scheduler:
     'data': [
         'security/ir.model.access.csv',
         'stock_performance_improved_view.xml',
+        'stock_performance_improved_config.xml',
         'stock_performance_improved_data.xml',
     ],
     'demo': [

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="bus.configuration" id="backend">
+            <field name="name">Bus main backend</field>
+            <field name="reception_treatment">simple_reception</field>
+            <field name="code">ODOO_SYNCHRONIZATION</field>
+            <field name="url">localhost</field>
+            <field name="database">bus</field>
+            <field name="login">admin</field>
+            <field name="password">admin</field>
+            <field name="port">8069</field>
+        </record>
+
+        <record model="res.partner" id="bus_partner">
+            <field name="is_company" eval="False"/>
+            <field name="name">Databus user</field>
+        </record>
+
+        <record model="res.users" id="bus_user">
+            <field name="partner_id" ref="bus_integration.bus_partner"/>
+            <field name="login">user_bus</field>
+            <field name="groups_id" eval="[(6,0,[
+                ref('base.group_partner_manager'),
+                ref('connector.group_connector_manager')])]"/>
+            <field name="password">123456</field>
+        </record>
+
+    </data>
+</openerp>

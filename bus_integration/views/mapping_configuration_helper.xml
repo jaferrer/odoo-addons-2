@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="mapping_configuration_helper_form">
+            <field name="name">mapping_configuration_helper_form</field>
+            <field name="model">mapping.configuration.helper</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="model_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="is_exportable"/>
+                            <field name="is_importable"/>
+                            <field name="key_xml_id"/>
+                            <field name="deactivated_sync"/>
+                            <field name="deactivate_on_delete"/>
+                        </group>
+                        <div  attrs="{'invisible': [('model_id', '=', False)]}">
+                            <separator string="Fields to configure"/>
+                            <button name="add_all" string="add all fields" type="object" class="oe_link" />
+                            <field name="field_ids" context="{
+                                    'default_model_id': model_id,
+                                    'default_export_field': is_exportable,
+                                    'default_import_creatable_field': is_importable,
+                                    'default_import_updatable_field': is_importable}">
+                                <tree editable="bottom" colors="red:is_computed">
+                                    <field name="model_id" invisible="1"/>
+                                    <field name="is_computed" invisible="1" />
+                                    <field name="field_id" domain="[('model_id', '=', model_id)]" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="type_field"/>
+                                    <field name="relation"/>
+                                    <field name="map_name"/>
+                                    <field name="export_field"/>
+                                    <field name="import_creatable_field"/>
+                                    <field name="import_updatable_field"/>
+                                    <field name="is_migration_key"/>
+                                </tree>
+                            </field>
+                            <small><span style="color:red;">Red</span>: computed fields</small><br />
+                        </div>
+
+                    </sheet>
+                    <footer>
+                        <button name="validate" string="Validate" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_mapping_configuration_helper">
+            <field name="name">Mapping Configuration Helper</field>
+            <field name="res_model">mapping.configuration.helper</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="domain">[]</field>
+            <field name="context">{'display_technical_names': True}</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_mapping_configuration_helper" name="Mapping Configuration Helper"
+                  action="act_window_mapping_configuration_helper"
+                  parent="menu_bus" sequence="200"/>
+
+        <record model="ir.ui.view" id="mapping_configuration_helper_answer_form">
+            <field name="name">mapping_configuration_helper_answer_form</field>
+            <field name="model">mapping.configuration.helper.answer</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet class="oe_form_sheet_full_screen">
+                        <separator string="Model"/>
+                        <group>
+                            <field name="model_configuration_header"/>
+                        </group>
+                         <field name="model_configuration"/>
+                        <separator string="Fields"/>
+                        <group>
+                            <field name="fields_configuration_header"/>
+                        </group>
+                        <field name="fields_configuration"/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>

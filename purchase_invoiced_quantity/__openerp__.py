@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'product_improved'],
+    'depends': ['purchase', 'product_improved', 'purchase_improved'],
     'description': """
 Purchase Invoiced Quantity
 ==========================

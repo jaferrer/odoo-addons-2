@@ -18,6 +18,7 @@ msgstr ""
 "X-Generator: Poedit 1.7.1\n"
 
 #. module: odoo_online_documentation
+#: model:ir.ui.view,name:odoo_online_documentation.odoo_online_documentation_search
 #: model:ir.actions.act_window,name:odoo_online_documentation.act_window_odoo_online_documentation
 #: model:ir.ui.menu,name:odoo_online_documentation.menu_odoo_online_documentation
 msgid "Online Documentation"
@@ -33,7 +34,60 @@ msgstr "Nom"
 msgid "Path"
 msgstr "Emplacement"
 
-#. module: odoo_online_documentation_tree
+#. module: odoo_online_documentation
+#: model:ir.actions.act_window,name:odoo_online_documentation.act_window_odoo_online_document_type_knowledge
+#: model:ir.ui.menu,name:odoo_online_documentation.odoo_online_document_type_menu_knowledge
+#: field:odoo.online.documentation,doc_type_id:0
+#: field:odoo.online.document.type,name:0
+msgid "Document type"
+msgstr "Type de document"
+
+#. module: odoo_online_documentation
+#: selection:odoo.online.documentation,nature:0
+msgid "Attached document"
+msgstr "Pièce jointe"
+
+#. module: odoo_online_documentation
+#: field:odoo.online.documentation,nature:0
+msgid "Nature"
+msgstr "Nature"
+
+#. module: odoo_online_documentation
+#: field:odoo.online.documentation,file:0
+msgid "File"
+msgstr "Fichier"
+
+#. module: odoo_online_documentation
+#: field:odoo.online.documentation,seen_in_sales:0
+msgid "Must be seen in sales"
+msgstr "Doit être vu dans les ventes"
+
+#. module: odoo_online_documentation
+#: field:odoo.online.documentation,seen_in_purchases:0
+msgid "Must be seen in purchases"
+msgstr "Doit être vu dans les achats"
+
+#. module: odoo_online_documentation
+#: field:odoo.online.documentation,seen_in_prod:0
+msgid "Must be seen in manufacturing"
+msgstr "Doit être vu en production"
+
+#. module: odoo_online_documentation
 #: view:odoo.online.documentation:odoo_online_documentation_tree.odoo_online_documentation_tree
 msgid "Open Documentation"
 msgstr "Ouvrir la documentation"
+
+#. module: odoo_online_documentation
+#: sql_constraint:odoo.online.document.type.name:0
+msgid "The type must be unique."
+msgstr "Le type doit être unique."
+
+#. module: odoo_online_documentation
+#: code:addons/odoo_online_documentation/odoo_online_documentation.py:0
+msgid "Error!"
+msgstr "Erreur!"
+
+#. module: odoo_online_documentation
+#: code:addons/odoo_online_documentation/odoo_online_documentation.py:0
+msgid "No file related to this documentation."
+msgstr "Pas de fichier lié à cette documentation."

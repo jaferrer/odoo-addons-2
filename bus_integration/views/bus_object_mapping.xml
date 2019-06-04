@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="object_mapping_tree">
+            <field name="name">bus.object.mapping.tree</field>
+            <field name="model">bus.object.mapping</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree default_order="model_id" >
+                    <field name="model_id"/>
+                    <field name="is_exportable"/>
+                    <field name="is_importable"/>
+                    <field name="key_xml_id"/>
+                    <field name="deactivated_sync"/>
+                    <field name="deactivate_on_delete"/>
+                    <field name="dependency_level"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="object_mapping_search">
+            <field name="name">bus.object.mapping.search</field>
+            <field name="model">bus.object.mapping</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search string="Object Mapping">
+                    <field name="model_id"/>
+                    <group expand="0" string="Filters">
+                        <filter name="is_exportable" string="is_exportable" domain="[('is_exportable','=', True)]"/>
+                        <filter name="is_importable" string="Mibrable" domain="[('is_importable','=', True)]"/>
+                        <filter name="key_xml_id" string="Key on xml id" domain="[('key_xml_id','!=', False)]"/>
+                        <filter name="deactivated_sync" string="Deactivated sync"
+                                domain="[('deactivated_sync','=', True)]"/>
+                        <filter name="deactivate_on_delete" string="Deactivate on delete"
+                                domain="[('deactivate_on_delete','=', True)]"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="object_mapping_form">
+            <field name="name">bus.object.mapping.form</field>
+            <field name="model">bus.object.mapping</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form string="Object mapping">
+                    <header>
+                        <button name="open_object_configuration" string="Mapping configuration helper" type="object"/>
+                        <button name="compute_dependency_level" string="Update dependency level" type="object"/>
+                        <button name="view_datas" string="View datas" type="object"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="model_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="is_exportable"/>
+                            <field name="is_importable"/>
+                            <field name="key_xml_id"/>
+                            <field name="deactivated_sync"/>
+                            <field name="deactivate_on_delete"/>
+                            <field name="dependency_level"/>
+                        </group>
+                        <notebook>
+                            <page>
+                                <field name="field_ids" context="{
+                                        'default_model_id': model_id,
+                                        'default_export_field': is_exportable,
+                                        'default_import_creatable_field': is_importable,
+                                        'default_import_updatable_field': is_importable}">
+                                    <tree editable="bottom" colors="red:is_configured==False">
+                                        <field name="model_id" invisible="1"/>
+                                        <field name="is_configured"/>
+                                        <field name="field_id" domain="[('model_id', '=', model_id)]"
+                                               options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="type_field"/>
+                                        <field name="relation"/>
+                                        <field name="map_name"/>
+                                        <field name="export_field"/>
+                                        <field name="import_creatable_field"/>
+                                        <field name="import_updatable_field"/>
+                                        <field name="is_migration_key"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_object_mapping">
+            <field name="name">Object Mapping</field>
+            <field name="res_model">bus.object.mapping</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{'display_technical_names': True}</field>
+            <field name="help"/>
+        </record>
+
+        <menuitem id="menu_object_mapping_menu" name="Object Mapping"
+                  action="act_window_object_mapping" parent="menu_bus"
+                  sequence="50"/>
+
+        <record model="ir.actions.server" id="ir_actions_server_bus_export_config">
+            <field name="name">Export to CSV</field>
+            <field name="model_id" ref="bus_integration.model_bus_object_mapping"/>
+            <field name="code">action = self.display_config_popup(cr, uid, context.get('active_ids'), False, context)</field>
+        </record>
+
+        <record model="ir.values" id="ir_value_bus_export_config">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">bus.object.mapping</field>
+            <field name="name">Export config.</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_bus_export_config)"/>
+        </record>
+
+        <record model="ir.actions.server" id="ir_actions_update_dependency_level">
+            <field name="name">Update dependency level</field>
+            <field name="model_id" ref="bus_integration.model_bus_object_mapping"/>
+            <field name="code">
+                action = self.compute_dependency_level(cr,uid,context.get('active_ids'),context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_update_dependency_level">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">bus.object.mapping</field>
+            <field name="name">Update dependency level</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_update_dependency_level)"/>
+        </record>
+    </data>
+</openerp>
