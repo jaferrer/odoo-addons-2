@@ -96,3 +96,9 @@ msgstr "Article %s dans l'OF %s : interdit d'annuler un mouvement qui a des quan
 #, python-format
 msgid "%s: impossible to change the quantity of a manufacturing order created by Odoo. Please create an extra manufacturing order or make stock scheduler cancel this one."
 msgstr "%s : impossible de changer la quantité d'un OF créé par Odoo. Veuillez créez manuellement un OF complémentaire, ou bien faites annuler celui-ci par le planificateur."
+
+#. module: mrp_manufacturing_order_update
+#: code:addons\mrp_manufacturing_order_update\mrp_manufacturing_order_update.py:0
+#, python-format
+msgid "You have already produced %s %s of the product : %s."
+msgstr "Vous avez déjà fabriqué %s %s du produit : %s."
