@@ -45,12 +45,18 @@ class TestPurchaseInvoicedQuantity(common.TransactionCase):
         self.line3 = line3
         self.assertFalse(self.purchase_order.is_service_to_invoice)
         self.assertFalse(self._is_invoice_button_visible())
+        self.line1.price_unit = 1
+        self.line2.price_unit = 2
+        self.line3.price_unit = 3
+        self.line1.product_qty = 1
+        self.line2.product_qty = 2
+        self.line3.product_qty = 3
         self.line4 = self.env['purchase.order.line'].create({
             'order_id': self.purchase_order.id,
             'product_id': self.product_service.id,
             'name': 'line_service',
-            'product_qty': 50,
-            'price_unit': 500,
+            'product_qty': 4,
+            'price_unit': 4,
             'date_planned': '2018-11-15 12:00:00',
         })
         self.env.invalidate_all()
@@ -59,8 +65,8 @@ class TestPurchaseInvoicedQuantity(common.TransactionCase):
             'order_id': self.purchase_order.id,
             'product_id': False,
             'name': 'line_no_product',
-            'product_qty': 30,
-            'price_unit': 800,
+            'product_qty': 5,
+            'price_unit': 5,
             'date_planned': '2018-11-15 12:00:00',
         })
         self.purchase_order.invoice_method = 'picking'
@@ -70,11 +76,11 @@ class TestPurchaseInvoicedQuantity(common.TransactionCase):
         self.assertEqual(len(self.reception_picking.move_lines), 3)
         self.assertTrue(self._is_invoice_button_visible())
         self.env.invalidate_all()
-        self.assertEqual(self.line1.remaining_invoice_qty, 15)
-        self.assertEqual(self.line2.remaining_invoice_qty, 5)
-        self.assertEqual(self.line3.remaining_invoice_qty, 4)
-        self.assertEqual(self.line4.remaining_invoice_qty, 50)
-        self.assertEqual(self.line5.remaining_invoice_qty, 30)
+        self.assertEqual(self.line1.remaining_invoice_qty, 1)
+        self.assertEqual(self.line2.remaining_invoice_qty, 2)
+        self.assertEqual(self.line3.remaining_invoice_qty, 3)
+        self.assertEqual(self.line4.remaining_invoice_qty, 4)
+        self.assertEqual(self.line5.remaining_invoice_qty, 5)
 
     def _is_invoice_button_visible(self):
         return self.purchase_order.invoice_method == 'picking' and (self.purchase_order.nb_picking_to_invoice != 0 or
@@ -105,63 +111,91 @@ class TestPurchaseInvoicedQuantity(common.TransactionCase):
         self.assertEqual(self.line1.remaining_invoice_qty, 0)
         self.assertEqual(self.line2.remaining_invoice_qty, 0)
         self.assertEqual(self.line3.remaining_invoice_qty, 0)
-        self.assertEqual(self.line4.remaining_invoice_qty, 50)
-        self.assertEqual(self.line5.remaining_invoice_qty, 30)
+        self.assertEqual(self.line4.remaining_invoice_qty, 4)
+        self.assertEqual(self.line5.remaining_invoice_qty, 5)
 
     def test_20_two_receptions_and_service(self):
         transfer = self.reception_picking.do_enter_transfer_details()
         transfer_details = self.env['stock.transfer_details'].browse(transfer['res_id'])
         for line in transfer_details.item_ids:
-            if line.quantity == 4:
-                line.quantity = 2
-            elif line.quantity == 5:
-                pass
-            else:
+            if line.quantity == 3:
+                line.quantity = 1
+            elif line.quantity != 2:
                 line.quantity = 0
         transfer_details.do_detailed_transfer()
         self.assertEqual(self.reception_picking.state, 'done')
+        self.assertEqual(self.line1.remaining_qty, 1)
+        self.assertEqual(self.line2.remaining_qty, 0)
+        self.assertEqual(self.line3.remaining_qty, 2)
+        self.assertEqual(self.line4.remaining_qty, 0)
+        self.assertEqual(self.line5.remaining_qty, 0)
+        self.assertEqual(self.line1.remaining_invoice_qty, 1)
+        self.assertEqual(self.line2.remaining_invoice_qty, 2)
+        self.assertEqual(self.line3.remaining_invoice_qty, 3)
+        self.assertEqual(self.line4.remaining_invoice_qty, 4)
+        self.assertEqual(self.line5.remaining_invoice_qty, 5)
+
         backorder = self.env['stock.picking'].search([('backorder_id', '=', self.reception_picking.id)])
         backorder.ensure_one()
         transfer = backorder.do_enter_transfer_details()
         transfer_details = self.env['stock.transfer_details'].browse(transfer['res_id'])
         for line in transfer_details.item_ids:
             if line.quantity == 2:
-                line.quantity = 0
-            elif line.quantity == 15:
-                line.quantity = 10
+                line.quantity = 1
         transfer_details.do_detailed_transfer()
         self.assertEqual(backorder.state, 'done')
+        self.assertEqual(self.line1.remaining_qty, 0)
+        self.assertEqual(self.line2.remaining_qty, 0)
+        self.assertEqual(self.line3.remaining_qty, 1)
+        self.assertEqual(self.line4.remaining_qty, 0)
+        self.assertEqual(self.line5.remaining_qty, 0)
+        self.assertEqual(self.line1.remaining_invoice_qty, 1)
+        self.assertEqual(self.line2.remaining_invoice_qty, 2)
+        self.assertEqual(self.line3.remaining_invoice_qty, 3)
+        self.assertEqual(self.line4.remaining_invoice_qty, 4)
+        self.assertEqual(self.line5.remaining_invoice_qty, 5)
+
         self.assertTrue(self._is_invoice_button_visible())
         invoice_wizard = self.get_invoice_wizard()
         self.assertEqual(len(invoice_wizard.service_line_ids), 2)
         for line in invoice_wizard.service_line_ids:
-            if line.invoice_qty == 50:
-                line.invoice_qty = 15
-            elif line.invoice_qty == 30:
-                line.invoice_qty = 10
+            if line.invoice_qty == 4:
+                line.invoice_qty = 2
+            elif line.invoice_qty == 5:
+                line.invoice_qty = 4
         invoice_wizard.open_invoice()
         self.env.invalidate_all()
         self.assertEqual(self.reception_picking.invoice_state, 'invoiced')
         self.assertEqual(backorder.invoice_state, 'invoiced')
-        self.assertEqual(self.line1.remaining_invoice_qty, 5)
+        self.assertEqual(self.line1.remaining_qty, 0)
+        self.assertEqual(self.line2.remaining_qty, 0)
+        self.assertEqual(self.line3.remaining_qty, 1)
+        self.assertEqual(self.line4.remaining_qty, 0)
+        self.assertEqual(self.line5.remaining_qty, 0)
+        self.assertEqual(self.line1.remaining_invoice_qty, 0)
         self.assertEqual(self.line2.remaining_invoice_qty, 0)
-        self.assertEqual(self.line3.remaining_invoice_qty, 2)
-        self.assertEqual(self.line4.remaining_invoice_qty, 35)
-        self.assertEqual(self.line5.remaining_invoice_qty, 20)
+        self.assertEqual(self.line3.remaining_invoice_qty, 1)
+        self.assertEqual(self.line4.remaining_invoice_qty, 2)
+        self.assertEqual(self.line5.remaining_invoice_qty, 1)
 
     def test_30_service_only(self):
         invoice_wizard = self.get_invoice_wizard()
         self.assertEqual(len(invoice_wizard.service_line_ids), 2)
         for line in invoice_wizard.service_line_ids:
-            if line.invoice_qty == 50:
-                line.invoice_qty = 15
-            elif line.invoice_qty == 30:
-                line.invoice_qty = 10
+            if line.invoice_qty == 4:
+                line.invoice_qty = 1
+            elif line.invoice_qty == 5:
+                line.invoice_qty = 3
         invoice_wizard.open_invoice()
         self.env.invalidate_all()
         self.assertNotEqual(self.reception_picking.invoice_state, 'invoiced')
-        self.assertEqual(self.line1.remaining_invoice_qty, 15)
-        self.assertEqual(self.line2.remaining_invoice_qty, 5)
-        self.assertEqual(self.line3.remaining_invoice_qty, 4)
-        self.assertEqual(self.line4.remaining_invoice_qty, 35)
-        self.assertEqual(self.line5.remaining_invoice_qty, 20)
+        self.assertEqual(self.line1.remaining_qty, 1)
+        self.assertEqual(self.line2.remaining_qty, 2)
+        self.assertEqual(self.line3.remaining_qty, 3)
+        self.assertEqual(self.line4.remaining_qty, 0)
+        self.assertEqual(self.line5.remaining_qty, 0)
+        self.assertEqual(self.line1.remaining_invoice_qty, 1)
+        self.assertEqual(self.line2.remaining_invoice_qty, 2)
+        self.assertEqual(self.line3.remaining_invoice_qty, 3)
+        self.assertEqual(self.line4.remaining_invoice_qty, 3)
+        self.assertEqual(self.line5.remaining_invoice_qty, 2)

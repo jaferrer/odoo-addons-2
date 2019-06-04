@@ -43,3 +43,13 @@ msgstr "N° Ligne"
 #, python-format
 msgid "Purchase Order Line: %s"
 msgstr "Ligne de commande d'achat: %s"
+
+#. module: purchase_line_numbers
+#: view:purchase.order:0
+msgid "Reset line numbers"
+msgstr "Numéroter les lignes"
+
+#. module: purchase_line_numbers
+#: view:purchase.order:0
+msgid "Are you sure you want to recompute all the line Numbers?"
+msgstr "Êtes-vous sûr de vouloir recalculer tous les numéros des lignes ?"

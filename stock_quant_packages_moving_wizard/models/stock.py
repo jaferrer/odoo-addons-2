@@ -22,17 +22,27 @@ from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 
 from openerp import models, fields, api, exceptions, osv, _
+from openerp.exceptions import except_orm
 from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 
 
-@job(default_channel='root')
+@job(default_channel='root.fill_stock_pickings')
 def job_fill_new_picking_for_product(session, model_name, product_id, move_tuples, dest_location_id,
                                      picking_type_id, new_picking_id, context=None):
     quants_obj = session.env[model_name].with_context(context)
     quants_obj.fill_new_picking_for_product(product_id, move_tuples, dest_location_id, picking_type_id,
                                             new_picking_id)
     return "Picking correctly filled"
+
+
+@job(default_channel='root.fill_stock_pickings')
+def job_check_picking_one_by_one(session, model_name, ids, context):
+    """
+    Job to dissociate the check of each picking.
+    """
+    session.env[model_name].with_context(context).browse(ids).check_pickings_filled()
+    return "Check done"
 
 
 class StockQuant(models.Model):
@@ -157,11 +167,14 @@ ORDER BY sm.priority DESC, sm.date ASC, sm.id ASC""", (tuple(move_ids), tuple(qu
         dict_reservation_target = {}
         full_moves = self.env['stock.move']
         moves_to_create = []
+        dest_loc_has_orderpoints = dest_location.has_orderpoint_for_product(product)
         for reservation_tuple in list_reservations:
             quant, target_qty = reservation_tuple
-            corresponding_move_ids = self. \
-                get_corresponding_move_ids(quant, location_from, dest_location, picking_type_id,
-                                           force_domain=[('id', 'not in', full_moves.ids)])
+            corresponding_move_ids = []
+            if not dest_loc_has_orderpoints:
+                corresponding_move_ids = self. \
+                    get_corresponding_move_ids(quant, location_from, dest_location, picking_type_id,
+                                               force_domain=[('id', 'not in', full_moves.ids)])
             if quant.reservation_id and quant.reservation_id.id not in corresponding_move_ids:
                 quant.reservation_id.do_unreserve()
             for move_id in corresponding_move_ids:
@@ -339,17 +352,41 @@ class StockPicking(models.Model):
         ),
     }
 
-    @api.model
+    @api.multi
     def check_pickings_filled(self):
+        """
+        Try/except added to have a security in case we want to launch the check with jobify = False.
+        """
+
+        for rec in self:
+
+            try:
+                products_not_filled = self.env['product.to.be.filled'].search([('picking_id', '=', rec.id),
+                                                                               ('filled', '=', False)])
+                if not products_not_filled:
+                    rec.do_prepare_partial()
+                    rec.picking_correctly_filled = True
+
+            except except_orm:
+                print(u"Picking '%s' could not be check!" % rec.name)
+
+    @api.model
+    def check_picking_one_by_one(self, jobify=True):
+        """
+        Apply 'check_pickings_filled' one picking by one. Thus, in case of problem we know which picking to look at.
+        """
+
         pickings_to_check = self.env['stock.picking'].search([('filled_by_jobs', '=', True),
                                                               ('picking_correctly_filled', '=', False),
                                                               ('state', 'not in', [('done', 'cancel')])])
-        for picking in pickings_to_check:
-            products_not_filled = self.env['product.to.be.filled'].search([('picking_id', '=', picking.id),
-                                                                           ('filled', '=', False)])
-            if not products_not_filled:
-                picking.do_prepare_partial()
-                picking.picking_correctly_filled = True
+        if not jobify:
+            return pickings_to_check.check_pickings_filled()
+
+        while pickings_to_check:
+            chunk_picking = pickings_to_check[:1]
+            job_check_picking_one_by_one.delay(ConnectorSession.from_env(self.env), 'stock.picking', chunk_picking.ids,
+                                               dict(self.env.context))
+            pickings_to_check = pickings_to_check[1:]
 
     @api.multi
     def get_picking_action(self, is_manual_op):
@@ -518,26 +555,31 @@ FROM
             """)
 
     @api.model
+    def get_wizard_line_vals(self):
+        self.ensure_one()
+        return {
+            'product_id': self.product_id.id,
+            'product_name': self.product_id.display_name,
+            'package_id': self.package_id and self.package_id.id or False,
+            'package_name': self.package_id and self.package_id.display_name or False,
+            'parent_id': self.parent_id and self.parent_id.id or False,
+            'lot_id': self.lot_id and self.lot_id.id or False,
+            'lot_name': self.lot_id and self.lot_id.display_name or False,
+            'available_qty': self.qty,
+            'qty': self.qty,
+            'uom_id': self.uom_id and self.uom_id.id or False,
+            'uom_name': self.uom_id and self.uom_id.display_name or False,
+            'location_id': self.location_id.id,
+            'location_name': self.location_id.display_name,
+            'created_from_id': self.id,
+        }
+
+    @api.model
     def get_default_lines_data_for_wizard(self):
         quant_lines = []
         package_lines = []
         for line in self:
-            line_dict = {
-                'product_id': line.product_id.id,
-                'product_name': line.product_id.display_name,
-                'package_id': line.package_id and line.package_id.id or False,
-                'package_name': line.package_id and line.package_id.display_name or False,
-                'parent_id': line.parent_id and line.parent_id.id or False,
-                'lot_id': line.lot_id and line.lot_id.id or False,
-                'lot_name': line.lot_id and line.lot_id.display_name or False,
-                'available_qty': line.qty,
-                'qty': line.qty,
-                'uom_id': line.uom_id and line.uom_id.id or False,
-                'uom_name': line.uom_id and line.uom_id.display_name or False,
-                'location_id': line.location_id.id,
-                'location_name': line.location_id.display_name,
-                'created_from_id': line.id,
-            }
+            line_dict = line.get_wizard_line_vals()
             if line.product_id or not line.package_id:
                 quant_lines.append(line_dict)
             else:
@@ -584,8 +626,6 @@ FROM
         if uom_ids:
             domain.append(('product_id.uom_id', 'in', uom_ids))
         return self.env['stock.quant'].search(domain, order='in_date, qty, id'), quants_packaged
-
-
 
 
 class ProductToBeFilled(models.Model):
@@ -648,3 +688,10 @@ class StockLocation(models.Model):
             return push_rule.location_dest_id, push_rule.picking_type_id
         else:
             return False, False
+
+    @api.multi
+    def has_orderpoint_for_product(self, product):
+        self.ensure_one()
+        product.ensure_one()
+        return bool(self.env['stock.warehouse.orderpoint'].search([('location_id', '=', self.id),
+                                                                   ('product_id', '=', product.id)]))

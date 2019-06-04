@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="bus_message_log_tree" model="ir.ui.view">
+            <field name="name">bus message log</field>
+            <field name="model">bus.message.log</field>
+            <field name="arch" type="xml">
+                <tree colors="red:type=='error';orange:type=='warning';dodgerblue:type=='info'">
+                    <field name="message_id"/>
+                    <field name="type"/>
+                    <field name="information"/>
+                    <field name="model"/>
+                    <field name="sender_record_id"/>
+                    <field name="external_key"/>
+                    <field name="sender_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="bus_message_log_form" model="ir.ui.view">
+            <field name="name">bus message log</field>
+            <field name="model">bus.message.log</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="type"/>
+                                <field name="sender_record_id"/>
+                                <field name="external_key"/>
+                                <field name="recipient_record_id"/>
+
+                            </group>
+                            <group>
+                                <field name="message_id"/>
+                                <field name="sender_id"/>
+                                <field name="recipient_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Information" name="information">
+                                <field name="information" nolabel="1"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="bus_message_log_search" model="ir.ui.view">
+            <field name="name">bus message log</field>
+            <field name="model">bus.message.log</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="message_id"/>
+                    <filter name="error" string="Error" domain="[('type', '=', 'error')]"/>
+                    <filter name="warning" string="Warning" domain="[('type', '=', 'warning')]"/>
+                    <filter name="Info" string="Info" domain="[('type', '=', 'info')]"/>
+                    <filter name="lasts24h" string="H-24"
+                            domain="[('create_date','&gt;', (context_today()-relativedelta(days=1)).strftime('%%Y-%%m-%%d'))]"/>
+                    <filter string="Type" name="groupby_type" domain="[]"
+                            context="{'group_by':'type'}"/>
+                    <filter string="Type" name="groupby_message_id" domain="[]"
+                            context="{'group_by':'message_id'}"/>
+
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_bus_message_log">
+            <field name="name">Bus Messages logs</field>
+            <field name="res_model">bus.message.log</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{'search_default_error': True, 'search_default_lasts24h' : True}</field>
+        </record>
+
+        <menuitem id="menu_bus_message_log" name="Bus Messages logs" action="act_window_bus_message_log"
+                  parent="menu_bus" sequence="151"/>
+    </data>
+</openerp>

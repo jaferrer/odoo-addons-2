@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <!--Cron to update selected sharepoint files in the selected folders during the night.-->
+        <record model="ir.cron" id="cron_folders_to_scan">
+            <field name="name">Update sharepoint files</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall">2019-01-01 03:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">explore.sharepoint.folders</field>
+            <field name="function">folders_to_scan</field>
+            <field name="args"/>
+        </record>
+
+    </data>
+</openerp>

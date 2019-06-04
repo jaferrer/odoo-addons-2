@@ -18,21 +18,22 @@
 #
 
 {
-    'name': 'Stock Product Improved',
+    'name': 'Product Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Stock',
-    'depends': ['stock'],
+    'category': 'Product',
+    'depends': ['product'],
     'description': """
-Stock Product Improved
-======================
+Product Improved
+================
 This module improves products management.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['product_improved.xml'],
+    'data': ['data.xml'],
+    'demo': ['demo.xml'],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
     'application': False,
 }

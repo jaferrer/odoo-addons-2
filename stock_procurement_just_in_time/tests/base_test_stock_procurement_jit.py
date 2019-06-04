@@ -44,8 +44,7 @@ class BaseTestStockProcurementJIT(common.TransactionCase):
         # Compute parent left and right for location so that test don't fail
         self.env['stock.location']._parent_store_compute()
         # Configure cancelled moves/procs deletion
-        wizard = self.env['stock.config.settings'].create({'delete_moves_cancelled_by_planned': True,
-                                                           'relative_stock_delta': 10,
+        wizard = self.env['stock.config.settings'].create({'relative_stock_delta': 10,
                                                            'absolute_stock_delta': 1,
                                                            'consider_end_contract_effect': True})
         wizard.execute()
@@ -68,8 +67,10 @@ class BaseTestStockProcurementJIT(common.TransactionCase):
                                   line.location_sequence, line.route_sequence, line.run_procs, line.done)
                                  for line in controller_lines]
         for op in orderpoints:
-            self.assertIn((op, op.product_id, op.location_id, 0, op.location_id.stock_scheduler_sequence,
-                           False, False), controller_lines_data)
+            for sequence in op.stock_scheduler_sequence_ids:
+                self.assertIn((op, op.product_id, op.location_id, 0, sequence.name,
+                               False, False), controller_lines_data)
+
         self.env['stock.scheduler.controller'].update_scheduler_controller(jobify=False, run_procurements=False)
         self.env['stock.scheduler.controller'].update_scheduler_controller(jobify=False, run_procurements=False)
         orderpoints = self.env['stock.warehouse.orderpoint'].search([('product_id', 'in', product_ids)])
@@ -80,5 +81,6 @@ class BaseTestStockProcurementJIT(common.TransactionCase):
                                   line.route_sequence, line.run_procs, line.job_uuid, line.done)
                                  for line in controller_lines]
         for op in orderpoints:
-            self.assertIn((op, op.product_id, op.location_id, 0, op.location_id.stock_scheduler_sequence,
-                           False, str(op.id), True), controller_lines_data)
+            for sequence in op.stock_scheduler_sequence_ids:
+                self.assertIn((op, op.product_id, op.location_id, 0, sequence.name,
+                               False, str(op.id), True), controller_lines_data)

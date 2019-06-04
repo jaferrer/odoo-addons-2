@@ -64,7 +64,7 @@ class StockChangeQuantValorisation(models.TransientModel):
     _name = 'stock.change.quant.valorisation'
 
     quant_ids = fields.Many2many('stock.quant', string=u"Quants", readonly=True, required=True)
-    new_cost = fields.Float(string=u"New unit cost", required=True)
+    new_cost = fields.Float(string=u"New unit cost", required=True, digits=(16, 4))
     description = fields.Char(string=u"Description", required=True)
 
     @api.multi
@@ -88,6 +88,6 @@ class QuantCostHistory(models.Model):
     quant_id = fields.Many2one('stock.quant', string=u"Quant", required=True)
     date = fields.Datetime(string=u"Date", required=True)
     previous_cost = fields.Float(string=u"Previous unit cost")
-    new_cost = fields.Float(string=u"New unit cost")
+    new_cost = fields.Float(string=u"New unit cost", digits=(16, 4))
     user_id = fields.Many2one('res.users', string=u"User", required=True)
     description = fields.Char(string=u"Description", required=True)

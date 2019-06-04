@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <menuitem id="menu_bus" name="Bus"
+                  parent="connector.menu_connector_root"
+                  sequence="50"/>
+
+        <record model="ir.ui.view" id="bus_model_extend_tree">
+            <field name="name">bus_model_extend_tree</field>
+            <field name="model">bus.receive.transfer</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false">
+                    <field name="display_name"/>
+                    <field name="model"/>
+                    <field name="external_key"/>
+                    <field name="local_id"/>
+                    <field name="to_deactivate"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="bus_model_extend_form">
+            <field name="name">bus_model_extend_form</field>
+            <field name="model">bus.receive.transfer</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="view_local_record" string="View local record"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="model"/>
+                                <field name="local_id"/>
+                                <field name="create_date"/>
+                            </group>
+                            <group>
+                                <field name="to_deactivate"/>
+                                <field name="external_key"/>
+                                <field name="write_date"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Received data" name="received_data">
+                                <field name="received_data"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="bus_model_extend_search">
+            <field name="name">bus_model_extend_search</field>
+            <field name="model">bus.receive.transfer</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search string="Synchronized Data">
+                    <field name="model"/>
+                    <field name="local_id"/>
+                    <field name="external_key"/>
+                    <group expand="0" string="Filters">
+                        <filter name="to_deactivate" string="To Deactivate"
+                                domain="[('to_deactivate','=', True)]"/>
+                        <filter name="no_to_deactivate" string="To not deactivate"
+                                domain="[('to_deactivate','=', False)]"/>
+                    </group>
+                    <group expand="0" string="Group By">
+                        <filter name="by_model" string="Model"
+                                context="{'group_by': 'model'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_bus_model_extend">
+            <field name="name">Synchronized Data</field>
+            <field name="res_model">bus.receive.transfer</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"/>
+        </record>
+
+        <menuitem id="menu_bus_model_extend" name="Synchronized Data"
+                  action="act_window_bus_model_extend" parent="menu_bus"
+                  sequence="100"/>
+
+    </data>
+</openerp>

@@ -17,8 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, _
-from openerp.tools.sql import drop_view_if_exists
+from openerp import fields, models, api, modules, _
 
 
 class StockInventorySpecific(models.Model):
@@ -87,7 +86,19 @@ class StockInventorySpecific(models.Model):
 
 class StockSpecificProductInventory(models.Model):
     _name = 'stock.specific.product.inventory'
+    _description = u"Stock specific inventory"
     _auto = False
+
+    _inherit = [
+        'abstract.materialized.sql.view',
+    ]
+
+    @property
+    def _sql_view_definition(self):
+        module_path = modules.get_module_path(self._module)
+        with open(module_path + '/sql/' + 'stock_specific_product_for_inventory_vm.sql') as sql_file:
+            sql_statement = sql_file.read()
+        return sql_statement
 
     stock_warehouse_id = fields.Many2one('stock.warehouse', readonly=True, index=True, string='Warehouse')
     product_id = fields.Many2one('product.product', readonly=True, index=True, string='Product')
@@ -96,57 +107,6 @@ class StockSpecificProductInventory(models.Model):
     invetory_date = fields.Datetime('Last Inventory Date', readonly=True)
     move_stock_date = fields.Datetime('Last Move Date', readonly=True)
     value_stock = fields.Float('Stock Value', readonly=True)
-
-    def init(self, cr):
-        drop_view_if_exists(cr, "stock_specific_product_inventory")
-        cr.execute("""CREATE OR REPLACE VIEW stock_specific_product_inventory AS (
-  WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
-    SELECT
-      sl.id AS loc_id,
-      sl.id AS top_parent_id
-    FROM
-      stock_location sl
-      LEFT JOIN stock_location slp ON sl.location_id = slp.id
-    WHERE
-      sl.usage = 'internal'
-    UNION
-    SELECT
-      sl.id AS loc_id,
-      tp.top_parent_id
-    FROM
-      stock_location sl, top_parent tp
-    WHERE
-      sl.usage = 'internal' AND sl.location_id = tp.loc_id
-  )
-  SELECT
-    stock_warehouse.id :: TEXT || '-' || product_product.id :: TEXT AS id,
-    stock_warehouse.id                                              AS stock_warehouse_id,
-    product_product.id                                              AS product_id,
-    product_category.name                                           AS category,
-    sum(stock_quant.qty)                                            AS qty,
-    sum(stock_quant.qty * stock_quant.cost)                         AS value_stock,
-    max(stock_inventory.date)                                       AS invetory_date,
-    max(stock_move.date)                                            AS move_stock_date
-  FROM stock_warehouse
-    INNER JOIN top_parent ON stock_warehouse.lot_stock_id = top_parent.top_parent_id
-    INNER JOIN stock_quant ON stock_quant.location_id = top_parent.loc_id
-    INNER JOIN product_product ON product_product.id = stock_quant.product_id
-    INNER JOIN product_template ON product_product.product_tmpl_id = product_template.id
-    INNER JOIN product_category ON product_template.categ_id = product_category.id
-    LEFT JOIN (SELECT
-                 location_id,
-                 max(date) AS date
-               FROM stock_inventory s
-               GROUP BY location_id) stock_inventory ON stock_inventory.location_id = top_parent.loc_id
-    LEFT JOIN (SELECT
-                 location_id,
-                 product_id,
-                 max(date) AS date
-               FROM stock_move m
-               GROUP BY location_id, product_id) stock_move
-      ON stock_move.location_id = top_parent.loc_id AND stock_move.product_id = product_product.id
-  GROUP BY stock_warehouse.id, product_product.id, product_category.name)
-        """)
 
     @api.model
     def create_inventory(self):

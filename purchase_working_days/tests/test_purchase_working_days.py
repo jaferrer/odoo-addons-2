@@ -26,6 +26,7 @@ class TestPurchaseWorkingDays(common.TransactionCase):
 
     def setUp(self):
         super(TestPurchaseWorkingDays, self).setUp()
+        self.env['product.template'].update_seller_ids()
 
     def test_10_default_calendar_schedule(self):
         """Test PO scheduling when no specific calendar is defined."""

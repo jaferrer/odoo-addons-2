@@ -26,9 +26,15 @@ class UpdateMovePricesStockMove(models.Model):
     @api.multi
     def write(self, vals):
         if vals.get('state') == 'done':
+            dict_moves_by_pol = {}
             for rec in self:
                 if rec.purchase_line_id:
-                    price_unit = rec.purchase_line_id.get_move_unit_price_from_line()
-                    rec.price_unit = price_unit
-                    rec.quant_ids.sudo().write({'cost': price_unit})
+                    if not dict_moves_by_pol.get(rec.purchase_line_id):
+                        dict_moves_by_pol[rec.purchase_line_id] = self.env['stock.move']
+                    dict_moves_by_pol[rec.purchase_line_id] |= rec
+            for pol in dict_moves_by_pol:
+                price_unit = pol.get_move_unit_price_from_line()
+                dict_moves_by_pol[pol].write({'price_unit': price_unit})
+                quants = self.env['stock.quant'].search([('history_ids', 'in', dict_moves_by_pol[pol].ids)])
+                quants.sudo().write({'cost': price_unit})
         return super(UpdateMovePricesStockMove, self).write(vals)

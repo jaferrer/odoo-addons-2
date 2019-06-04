@@ -77,13 +77,7 @@ class ProductLineMoveWizard(models.TransientModel):
         quants_packaged = self._get_quants_from_package()
         quants_no_packaged = self.env['stock.quant']
         for quant_line in self.quant_line_ids:
-            domain = [('product_id', '=', quant_line.product_id.id),
-                      ('location_id', '=', quant_line.location_id.id),
-                      ('package_id', '=', quant_line.package_id and quant_line.package_id.id or False),
-                      ('lot_id', '=', quant_line.lot_id and quant_line.lot_id.id or False),
-                      ('product_id.uom_id', '=', quant_line.uom_id and quant_line.uom_id.id or False),
-                      ('id', 'not in', quants_packaged.ids)]
-            quants_no_packaged |= self.env['stock.quant'].search(domain, order='in_date, qty')
+            quants_no_packaged |= quant_line._get_quants()
         return quants_no_packaged, quants_packaged
 
     @api.multi
@@ -105,13 +99,7 @@ class ProductLineMoveWizard(models.TransientModel):
             move_items = quant.partial_move(move_items, quant.product_id, quant.qty)
         # Let's move quant lines
         for quant_line in self.quant_line_ids:
-            domain = [('product_id', '=', quant_line.product_id.id),
-                      ('location_id', '=', quant_line.location_id.id),
-                      ('package_id', '=', quant_line.package_id and quant_line.package_id.id or False),
-                      ('lot_id', '=', quant_line.lot_id and quant_line.lot_id.id or False),
-                      ('product_id.uom_id', '=', quant_line.uom_id and quant_line.uom_id.id or False),
-                      ('id', 'not in', quants_to_move.ids)]
-            quants = self.env['stock.quant'].search(domain, order='in_date, qty')
+            quants = quant_line._get_quants(quants_to_move)
             if quants:
                 move_items = quants.partial_move(move_items, quant_line.product_id, quant_line.qty)
                 quants_to_move |= quants
@@ -187,3 +175,20 @@ class ProductLineMoveWizardLine(models.TransientModel):
             if rec.parent_id:
                 return True
         return False
+
+    @api.multi
+    def get_quants_domain_for_line(self, remove_quants=None):
+        self.ensure_one()
+        domain = [('product_id', '=', self.product_id.id),
+                ('location_id', '=', self.location_id.id),
+                ('package_id', '=', self.package_id and self.package_id.id or False),
+                ('lot_id', '=', self.lot_id and self.lot_id.id or False),
+                ('product_id.uom_id', '=', self.uom_id and self.uom_id.id or False)]
+        if remove_quants:
+            domain += [('id', 'not in', remove_quants.ids)]
+        return domain
+
+    @api.multi
+    def _get_quants(self, remove_quants=None):
+        self.ensure_one()
+        return self.env['stock.quant'].search(self.get_quants_domain_for_line(remove_quants), order='in_date, qty')

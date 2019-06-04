@@ -23,24 +23,9 @@ from openerp import models, fields, api
 class StockProcurementJitConfig(models.TransientModel):
     _inherit = 'stock.config.settings'
 
-    delete_moves_cancelled_by_planned = fields.Boolean(string=u"Delete moves and procurements cancelled "
-                                                              u"by planner")
     consider_end_contract_effect = fields.Boolean(string=u"Consider end contract effects")
     relative_stock_delta = fields.Float(string=u"Relative stock delta allowed (%)")
     absolute_stock_delta = fields.Float(string=u"Absolute stock delta allowed (product UoM)")
-
-    @api.multi
-    def get_default_delete_moves_cancelled_by_planned(self):
-        delete_moves_cancelled_by_planned = self.env['ir.config_parameter'].get_param(
-            "stock_procurement_just_in_time.delete_moves_cancelled_by_planned", default=False)
-        return {'delete_moves_cancelled_by_planned': bool(delete_moves_cancelled_by_planned)}
-
-    @api.multi
-    def set_delete_moves_cancelled_by_planned(self):
-        config_parameters = self.env["ir.config_parameter"]
-        for record in self:
-            config_parameters.set_param("stock_procurement_just_in_time.delete_moves_cancelled_by_planned",
-                                        record.delete_moves_cancelled_by_planned or '')
 
     @api.multi
     def get_default_consider_end_contract_effect(self):

@@ -46,21 +46,38 @@ class ForbiddenCancelProtectedProcurement(exceptions.except_orm):
 def process_orderpoints(session, model_name, ids, context):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    orderpoints = session.env[model_name].with_context(context).search([('id', 'in', ids)],
-                                                                       order='stock_scheduler_sequence desc')
+    orderpoints = session.env[model_name].with_context(context).search([('id', 'in', ids)])
     orderpoints.process()
     job_uuid = session.context.get('job_uuid')
     if job_uuid:
-        line = session.env['stock.scheduler.controller'].search([('job_uuid', '=', job_uuid),
-                                                                 ('done', '=', False)])
+        line = session.env['stock.scheduler.controller'].search([('job_uuid', '=', job_uuid), ('done', '=', False)])
         line.set_to_done()
+
+
+@job(default_channel='root.auto_delete_cancelled_moves_procs')
+def job_delete_cancelled_moves_and_procs(session, model_name, ids):
+    objects_to_delete = session.env[model_name].search([('id', 'in', ids)])
+    objects_to_delete.unlink()
+
+
+class StockLocationSchedulerSequence(models.Model):
+    _name = 'stock.location.scheduler.sequence'
+
+    name = fields.Char(string=u"Stock scheduler sequence", required=True)
+    location_id = fields.Many2one('stock.location', string=u"Location", ondelete='cascade')
+
+    _sql_constraints = [
+        ('location_sequence_unique', 'unique(location_id, name)',
+         _(u"Each sequence must be unique for the same location!")),
+    ]
 
 
 class StockLocation(models.Model):
     _inherit = 'stock.location'
 
-    stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence",
-                                              help=u"Same order as the logistic flow")
+    stock_scheduler_sequence_ids = fields.One2many('stock.location.scheduler.sequence', 'location_id',
+                                                   string=u"Stock scheduler sequence",
+                                                   help=u"Same order as the logistic flow")
 
 
 class StockLocationRoute(models.Model):
@@ -73,7 +90,7 @@ class StockLocationRoute(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    procurement_id = fields.Many2one('procurement.order', index=True)
+    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
 
 
 class ProcurementOrderQuantity(models.Model):
@@ -82,6 +99,7 @@ class ProcurementOrderQuantity(models.Model):
     qty = fields.Float(string="Quantity", digits_compute=dp.get_precision('Product Unit of Measure'),
                        help='Quantity in the default UoM of the product', compute="_compute_qty", store=True)
     protected_against_scheduler = fields.Boolean(u"Protected Against Scheduler", track_visibility='onchange')
+    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
 
     @api.multi
     @api.depends('product_qty', 'product_uom')
@@ -91,8 +109,12 @@ class ProcurementOrderQuantity(models.Model):
             m.qty = qty
 
     @api.model
+    def get_default_supplierinfos_for_orderpoint_confirm(self):
+        return self.env['product.supplierinfo'].search([('name', 'in', self.env.context['compute_supplier_ids'])])
+
+    @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
-        run_moves=True):
+                                    run_moves=True):
         """
         Create procurement based on orderpoint
 
@@ -104,9 +126,8 @@ class ProcurementOrderQuantity(models.Model):
         if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
             dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
         if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
-            supplierinfo_ids = self.env['product.supplierinfo']. \
-                search([('name', 'in', self.env.context['compute_supplier_ids'])])
-            read_supplierinfos = supplierinfo_ids.read(['id', 'product_tmpl_id'], load=False)
+            supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
+            read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
             dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
         orderpoints = orderpoint_env.search(dom)
         if run_procurements:
@@ -138,7 +159,7 @@ class ProcurementOrderQuantity(models.Model):
           op.id                                     AS orderpoint_id,
           op.product_id,
           op.location_id,
-          COALESCE(sl.stock_scheduler_sequence, 0)  AS location_sequence,
+          COALESCE(slss.name :: INTEGER, 0)         AS location_sequence ,
           COALESCE(slr.stock_scheduler_sequence, 0) AS route_sequence,
           FALSE                                     AS run_procs,
           FALSE                                     AS done,
@@ -149,12 +170,12 @@ class ProcurementOrderQuantity(models.Model):
           (SELECT user_id
            FROM user_id)                            AS write_uid
         FROM stock_warehouse_orderpoint op
-          LEFT JOIN stock_location sl ON sl.id = op.location_id
+          LEFT JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
           LEFT JOIN product_product pp ON pp.id = op.product_id
           LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
           LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
         WHERE op.id IN %s
-        GROUP BY op.id, sl.stock_scheduler_sequence, slr.stock_scheduler_sequence),
+        GROUP BY op.id, slr.stock_scheduler_sequence, slss.name),
 
       list_sequences AS (
         SELECT
@@ -200,24 +221,21 @@ class ProcurementOrderQuantity(models.Model):
         self.check_can_be_canceled()
         result = super(ProcurementOrderQuantity, self).cancel()
         if self.env.context.get('unlink_all_chain'):
-            delete_moves_cancelled_by_planned = bool(self.env['ir.config_parameter'].get_param(
-                'stock_procurement_just_in_time.delete_moves_cancelled_by_planned', default=False))
-            if delete_moves_cancelled_by_planned:
-                moves_to_unlink = self.env['stock.move']
-                procurements_to_unlink = self.env['procurement.order']
-                for rec in self:
-                    parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
-                    for move in parent_moves:
-                        if move.state == 'cancel':
-                            moves_to_unlink += move
-                            if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
+            moves_to_unlink = self.env['stock.move']
+            procurements_to_unlink = self.env['procurement.order']
+            for rec in self:
+                parent_moves = self.env['stock.move'].search([('procurement_id', '=', rec.id)])
+                for move in parent_moves:
+                    if move.state == 'cancel':
+                        moves_to_unlink += move
+                        if procurements_to_unlink not in procurements_to_unlink and move.procurement_id and \
                                 move.procurement_id.state == 'cancel' and \
                                 not any([move.state == 'done' for move in move.procurement_id.move_ids]):
-                                procurements_to_unlink += move.procurement_id
-                if moves_to_unlink:
-                    moves_to_unlink.unlink()
-                if procurements_to_unlink:
-                    procurements_to_unlink.unlink()
+                            procurements_to_unlink += move.procurement_id
+
+            moves_to_unlink.write({'to_delete': True})
+            procurements_to_unlink.write({'to_delete': True})
+
         return result
 
     @api.model
@@ -272,6 +290,25 @@ class ProcurementOrderQuantity(models.Model):
             _logger.info(e.value)
         return result
 
+    @api.model
+    def delete_cancelled_moves_and_procs(self, jobify=True):
+        procs_to_delete = self.search([('to_delete', '=', True)])
+        if jobify:
+            for proc in procs_to_delete:
+                job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
+                                                           'procurement.order', proc.ids)
+        else:
+            job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
+                                                 'procurement.order', procs_to_delete.ids)
+        moves_to_delete = self.env['stock.move'].search([('to_delete', '=', True)])
+        if jobify:
+            for moves in moves_to_delete:
+                job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
+                                                           'stock.move', moves.ids)
+        else:
+            job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
+                                                 'stock.move', moves_to_delete.ids)
+
 
 class StockMoveJustInTime(models.Model):
     _inherit = 'stock.move'
@@ -289,8 +326,8 @@ class StockMoveJustInTime(models.Model):
 class StockWarehouseOrderPointJit(models.Model):
     _inherit = 'stock.warehouse.orderpoint'
 
-    stock_scheduler_sequence = fields.Integer(string=u"Stock scheduler sequence", default=1000,
-                                              related='location_id.stock_scheduler_sequence', store=True, readonly=True)
+    stock_scheduler_sequence_ids = fields.One2many(string=u"Stock scheduler sequences",
+                                                   related='location_id.stock_scheduler_sequence_ids')
 
     @api.multi
     def get_list_events(self):
@@ -318,9 +355,10 @@ class StockWarehouseOrderPointJit(models.Model):
             if not consider_end_contract_effect:
                 product_max_qty += self.product_min_qty
         qty = max(max(self.product_min_qty, product_max_qty) - stock_after_event, 0)
-        reste = self.qty_multiple > 0 and qty % self.qty_multiple or 0.0
-        if float_compare(reste, 0.0, precision_rounding=self.product_uom.rounding) > 0:
-            qty += self.qty_multiple - reste
+        if self.qty_multiple > 1:
+            reste = qty % self.qty_multiple or 0.0
+            if float_compare(reste, 0.0, precision_rounding=self.product_uom.rounding) > 0:
+                qty += self.qty_multiple - reste
         qty = float_round(qty, precision_rounding=self.product_uom.rounding)
 
         if float_compare(qty, 0.0, precision_rounding=self.product_uom.rounding) > 0:
@@ -346,7 +384,7 @@ class StockWarehouseOrderPointJit(models.Model):
             list_move_types=['in', 'out', 'existing'], limit=1,
             parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
-              fields.Datetime.from_string(last_schedule[0].get('date')) or False
+            fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
 
     @api.multi
@@ -369,6 +407,7 @@ class StockWarehouseOrderPointJit(models.Model):
 
     @api.multi
     def get_max_allowed_qty(self, need):
+        # TODO: passer need en date
         self.ensure_one()
         product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
         if self.fill_strategy == 'duration':
@@ -376,7 +415,7 @@ class StockWarehouseOrderPointJit(models.Model):
                 'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
             if not consider_end_contract_effect:
                 product_max_qty += self.product_min_qty
-        if self.qty_multiple and product_max_qty % self.qty_multiple != 0:
+        if self.qty_multiple > 1 and product_max_qty % self.qty_multiple != 0:
             product_max_qty = (product_max_qty // self.qty_multiple + 1) * self.qty_multiple
         relative_stock_delta = float(self.env['ir.config_parameter'].get_param(
             'stock_procurement_just_in_time.relative_stock_delta', default=0))
@@ -421,15 +460,17 @@ class StockWarehouseOrderPointJit(models.Model):
                 if event['date'] not in done_dates:
                     events_at_date, stock_after_event = op.process_events_at_date(event, events, stock_after_event)
                     done_dates += [event['date']]
-                if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned']:
-                    proc_oversupply = self.env['procurement.order'].search([('id', '=', event['proc_id']),
-                                                                            ('state', '!=', 'done')])
-                    qty_same_proc = sum(item['move_qty'] for item in events if item['proc_id'] == event['proc_id'])
-                    if proc_oversupply:
-                        _logger.debug("Oversupply detected: deleting procurement %s " % proc_oversupply.id)
+                if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned'] and event['proc_id']:
+                    procs_oversupply = self.env[
+                        'procurement.order'].search([('id', 'in', [item['proc_id'] for item in events_at_date]),
+                                                     ('state', '!=', 'done')])
+                    for proc_oversupply in procs_oversupply:
+                        qty_same_proc = sum([item['move_qty']
+                                            for item in events if item['proc_id'] == proc_oversupply.id])
+                        _logger.debug("Oversupply detected: deleting procurements %s " % proc_oversupply.id)
                         stock_after_event = proc_oversupply.cancel_procs_just_in_time(stock_after_event, qty_same_proc)
                     if op.is_under_stock_min(stock_after_event) and \
-                        any([item['move_type'] == 'out' for item in events_at_date]):
+                            any([item['move_type'] == 'out' for item in events_at_date]):
                         new_proc = op.create_from_need(event, stock_after_event)
                         stock_after_event += new_proc and new_proc.product_qty or 0
                 elif op.is_under_stock_min(stock_after_event):
@@ -443,8 +484,28 @@ class StockWarehouseOrderPointJit(models.Model):
                 op.remove_unecessary_procurements(date_end)
 
     @api.model
+    def get_query_move_in(self, move_in_date_clause):
+        return ("""SELECT
+  sm.id,
+  sm.product_qty,
+  min(COALESCE(po.date_planned, sm.date)) AS date,
+  po.id
+FROM
+  stock_move sm
+  LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
+  LEFT JOIN procurement_order po ON sm.procurement_id = po.id
+WHERE
+  sm.product_id = %s
+  AND sm.state NOT IN ('cancel', 'done', 'draft')
+  AND sl.parent_left >= %s
+  AND sl.parent_left < %s""" +
+            move_in_date_clause +
+            """GROUP BY sm.id, po.id, sm.product_qty
+ORDER BY DATE""")
+
+    @api.model
     def compute_stock_levels_requirements(self, product_id, location, list_move_types, limit=1,
-        parameter_to_sort='date', to_reverse=False, max_date=None):
+                                          parameter_to_sort='date', to_reverse=False, max_date=None):
         """
         Computes stock level report
         :param product_id: int
@@ -469,24 +530,7 @@ class StockWarehouseOrderPointJit(models.Model):
         first_date = False
         result = []
         intermediate_result = []
-        query_moves_in = """
-            SELECT
-                sm.id,
-                sm.product_qty,
-                min(COALESCE(po.date_planned, sm.date)) AS date,
-                po.id
-            FROM
-                stock_move sm
-                LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
-                LEFT JOIN procurement_order po ON sm.procurement_id = po.id
-            WHERE
-                sm.product_id = %s
-                AND sm.state NOT IN ('cancel', 'done', 'draft')
-                AND sl.parent_left >= %s
-                AND sl.parent_left < %s""" + \
-                         move_in_date_clause + \
-                         """GROUP BY sm.id, po.id, sm.product_qty
-                         ORDER BY DATE"""
+        query_moves_in = self.get_query_move_in(move_in_date_clause)
         self.env.cr.execute(query_moves_in, params)
         moves_in_tuples = self.env.cr.fetchall()
 
@@ -823,6 +867,18 @@ class StockSchedulerController(models.Model):
                                                        ('run_procs', '=', False)])
 
                 if not controller_lines_no_run:
+                    controller_lines_no_run_blocked = self.search([('done', '=', False),
+                                                                   ('job_uuid', '!=', False),
+                                                                   ('location_sequence', '=', max_location_sequence),
+                                                                   ('route_sequence', '=', max_route_sequence),
+                                                                   ('run_procs', '=', False)])
+                    if controller_lines_no_run_blocked:
+                        for line_blocked in controller_lines_no_run_blocked:
+                            queue_job = self.env['queue.job'].search(
+                                [('uuid', '=', line_blocked.job_uuid), ('state', 'in', ['done', 'failed'])])
+                            if queue_job:
+                                line_blocked.done = True
+
                     controller_lines_run_procs = self.search([('done', '=', False),
                                                               ('location_sequence', '=', max_location_sequence),
                                                               ('route_sequence', '=', max_route_sequence),

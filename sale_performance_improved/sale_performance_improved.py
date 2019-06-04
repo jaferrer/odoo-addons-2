@@ -18,11 +18,34 @@
 #
 
 import openerp.addons.decimal_precision as dp
-from openerp.osv import fields, osv
-from openerp import models, api
+from openerp.osv import fields as old_api_fields
+from openerp import models, fields, api
 
 
-class Sale(osv.osv):
+class SaleOrderImproved(models.Model):
+    _inherit = 'sale.order'
+    _order = 'date_order desc, id desc'
+
+    def _amount_all(self, cr, uid, ids, field_name, arg, context=None):
+        cur_obj = self.pool.get('res.currency')
+        res = {}
+        for order in self.browse(cr, uid, ids, context=context):
+            res[order.id] = {
+                'amount_untaxed': 0.0,
+                'amount_tax': 0.0,
+                'amount_total': 0.0,
+            }
+            val = val1 = 0.0
+            cur = order.pricelist_id.currency_id
+            for line in order.order_line:
+                # We have to overwrite this function to compute last value of price subtotal
+                # (this field is now pseudo-store)
+                val1 += line._amount_line(None, None).get(line.id, 0)
+                val += self._amount_line_tax(cr, uid, line, context=context)
+            res[order.id]['amount_tax'] = cur_obj.round(cr, uid, cur, val)
+            res[order.id]['amount_untaxed'] = cur_obj.round(cr, uid, cur, val1)
+            res[order.id]['amount_total'] = res[order.id]['amount_untaxed'] + res[order.id]['amount_tax']
+        return res
 
     def _amount_all_improved(self, cr, uid, ids, field_name, arg, context=None):
         result = {}
@@ -41,32 +64,44 @@ class Sale(osv.osv):
         return result
 
     _columns = {
-        'amount_untaxed': fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'),
-                                          string='Untaxed Amount', store={
-            'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
-                                                      'product_uom', 'product_id', 'price_unit',
-                                                      'order_id'], 10),
-        }, multi="sums", help="The amount without tax", track_visibility='always'),
-        'amount_tax': fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'), string='Taxes',
-                                      store={
-            'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
-                                                      'product_uom', 'product_id', 'price_unit',
-                                                      'order_id'], 10),
-        }, multi="sums", help="The tax amount"),
-        'amount_total': fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'),
-                                        string='Total', store={
-            'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
-                                                      'product_uom', 'product_id', 'price_unit',
-                                                      'order_id'], 10),
-        }, multi="sums", help="The total amount")
+        'amount_untaxed': old_api_fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'),
+                                                  string='Untaxed Amount', store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
+                                                          'product_uom', 'product_id',
+                                                          'price_unit', 'order_id'], 10),
+            }, multi="sums", help="The amount without tax", track_visibility='always'),
+        'amount_tax': old_api_fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'),
+                                              string='Taxes',
+                                              store={
+                                                  'sale.order': (
+                                                      lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                                                  'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
+                                                                                            'product_uom', 'product_id',
+                                                                                            'price_unit', 'order_id'],
+                                                                      10),
+                                              }, multi="sums", help="The tax amount"),
+        'amount_total': old_api_fields.function(_amount_all_improved, digits_compute=dp.get_precision('Account'),
+                                                string='Total', store={
+                'sale.order': (lambda self, cr, uid, ids, c={}: ids, ['order_line'], 10),
+                'sale.order.line': (_get_order_improved, ['product_qty', 'taxes_id',
+                                                          'product_uom', 'product_id',
+                                                          'price_unit', 'order_id'], 10),
+            }, multi="sums", help="The total amount")
     }
-    _inherit = ['sale.order']
-    _description = "Sale Order"
-    _order = 'date_order desc, id desc'
 
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
+
+    price_subtotal_store = fields.Float(compute='_compute_price_subtotal', store=True)
+    price_subtotal = fields.Float(related='price_subtotal_store', store=False)
+
+    @api.depends('product_uom_qty', 'price_unit', 'discount')
+    @api.multi
+    def _compute_price_subtotal(self):
+        for rec in self:
+            rec.price_subtotal_store = rec.product_uom_qty * rec.price_unit * (1 - float(rec.discount) / 100)
 
     @api.multi
     def read(self, fields=None, load='_classic_read'):

@@ -17,6 +17,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.procurement import procurement
 from openerp.addons.scheduler_async import scheduler_async
@@ -25,16 +27,18 @@ from openerp import fields, models, api, osv, _
 from openerp.osv import fields as old_api_fields
 from openerp.tools import drop_view_if_exists, flatten, float_compare, float_round
 
+_logger = logging.getLogger(__name__)
+
 assign_moves = scheduler_async.assign_moves
 
 PRODUCT_CHUNK = 1
 
 
 class StockQuantPackageImproved(models.Model):
-    _inherit = "stock.quant.package"
+    _inherit = 'stock.quant.package'
 
     _sql_constraints = [
-        ('name_uniq', 'unique (name)', 'The name of the package must be unique!')
+        ('name_uniq', 'unique (name)', "The name of the package must be unique!")
     ]
 
     def _get_packages(self, cr, uid, ids, context=None):
@@ -129,7 +133,9 @@ class StockQuantPackageImproved(models.Model):
 
 
 class stock_pack_operation(models.Model):
-    _inherit = "stock.pack.operation"
+    _inherit = 'stock.pack.operation'
+
+    picking_id = fields.Many2one('stock.picking', index=True)
 
     def _get_remaining_prod_quantities(self, cr, uid, operation, context=None):
         '''Get the remaining quantities per product on an operation with a package.
@@ -194,30 +200,18 @@ class stock_pack_operation(models.Model):
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    location_id_compute = """SELECT sm.location_id::return_type
-FROM stock_move sm
-WHERE sm.picking_id = $1.id
-LIMIT 1"""
-
-    location_dest_id_compute = """SELECT sm.location_dest_id::return_type
-FROM stock_move sm
-WHERE sm.picking_id = $1.id
-LIMIT 1"""
-
-    picking_type_code_compute = """SELECT pt.code :: return_type
-FROM stock_picking_type pt
-WHERE pt.id = $1.picking_type_id
-LIMIT 1"""
-
-    location_id = fields.Many2one('stock.location', compute_sql=location_id_compute, readonly=True, store=True,
-                                  related=None)
-    location_dest_id = fields.Many2one('stock.location', compute_sql=location_dest_id_compute, readonly=True,
-                                       store=True, related=None)
-    picking_type_code = fields.Selection([('incoming', 'Suppliers'), ('outgoing', 'Customers'),
-                                          ('internal', 'Internal')],
-                                         string=u"Picking type code", store=True,
-                                         compute_sql=picking_type_code_compute, readonly=True,
-                                         related=None)
+    location_id_store = fields.Many2one('stock.location', related='move_lines.location_id', store=True)
+    location_id = fields.Many2one(related='location_id_store', readonly=True, store=False)
+    location_dest_id_store = fields.Many2one('stock.location', related='move_lines.location_dest_id', store=True)
+    location_dest_id = fields.Many2one(related='location_dest_id_store', readonly=True, store=False)
+    picking_type_code_store = fields.Selection([('incoming', 'Suppliers'),
+                                                ('outgoing', 'Customers'),
+                                                ('internal', 'Internal')],
+                                               string=u"Picking type code (store)", readonly=True)
+    picking_type_code = fields.Selection([('incoming', 'Suppliers'),
+                                          ('outgoing', 'Customers'),
+                                          ('internal', 'Internal')], string=u"Picking type code", readonly=True,
+                                         related='picking_type_code_store')
     picking_type_id = fields.Many2one('stock.picking.type', index=True)
 
     @api.model
@@ -235,10 +229,20 @@ LIMIT 1"""
             move_ids = self.pool.get('stock.move').search(cr, uid, [('picking_id', '=', k)], limit=1, context=context)
             if move_ids:
                 defer = \
-                    self.pool.get('stock.move').read(cr, uid, move_ids, ['defer_picking_assign'], context=context)[0][
-                        'defer_picking_assign']
+                    self.pool.get('stock.move').read(cr, uid, move_ids, ['defer_picking_assign'],
+                                                     context=context)[0]['defer_picking_assign']
                 if defer:
                     res[k] = {}
+        for pick in self.browse(cr, uid, ids, context=context):
+            result = res.get(pick.id, {})
+            if 'min_date' in result and pick.min_date == result['min_date']:
+                del res[pick.id]['min_date']
+            if 'max_date' in result and pick.max_date == result['max_date']:
+                del res[pick.id]['max_date']
+            if 'priority' in result and pick.priority == result['priority']:
+                del res[pick.id]['priority']
+            if pick.id in res and not res.get(pick.id):
+                del res[pick.id]
         return res
 
     def process_operations_for_transfer(self, cr, uid, operations, need_rereserve, still_to_do, prod2move_ids,
@@ -724,9 +728,31 @@ WHERE nb_moves = 0""")
                                        }),
     }
 
+    @api.multi
+    def update_picking_type_codes(self):
+        for rec in self:
+            if rec.picking_type_code_store != rec.picking_type_id.code:
+                rec.picking_type_code_store = rec.picking_type_id.code
+
+    @api.multi
+    def write(self, vals):
+        result = super(StockPicking, self).write(vals)
+        self.update_picking_type_codes()
+        return result
+
+    @api.model
+    def create(self, vals):
+        result = super(StockPicking, self).create(vals)
+        result.update_picking_type_codes()
+        return result
+
 
 class StockMove(models.Model):
     _inherit = 'stock.move'
+
+    procurement_id = fields.Many2one('procurement.order', index=True)
+    group_id = fields.Many2one('procurement.group', index=True)
+    picking_type_id = fields.Many2one('stock.picking.type', index=True)
 
     @api.multi
     def _check_package_from_moves(self):
@@ -846,6 +872,30 @@ class StockMove(models.Model):
             return super(StockMove, todo_moves)._picking_assign(procurement_group, location_from, location_to)
         else:
             return True
+
+    @api.multi
+    def assign_to_picking(self):
+        """Assign the moves to an appropriate picking (or not)."""
+        todo_map = {}
+        for move in self:
+            key = (move.group_id.id, move.location_id.id, move.location_dest_id.id, move.picking_type_id.id)
+            if key not in todo_map:
+                todo_map[key] = self.env['stock.move']
+            todo_map[key] |= move
+        for key, moves in todo_map.iteritems():
+            procurement_group, location_from, location_to, _ = key
+            moves._picking_assign(procurement_group, location_from, location_to)
+
+    @api.multi
+    def action_assign(self):
+        """ Checks the product type and accordingly writes the state.
+        Overridden here to also assign a picking if it is not done yet.
+        """
+        # moves_no_pick = self.filtered(lambda m: m.picking_type_id and not m.picking_id)
+        moves_no_pick = self.search([
+            ('id', 'in', self.ids), ('picking_type_id', '!=', False), ('picking_id', '=', False)])
+        moves_no_pick.assign_to_picking()
+        return super(StockMove, self).action_assign()
 
 
 class ProcurementRule(models.Model):
@@ -1090,14 +1140,6 @@ class StockPrereservation(models.Model):
         """)
 
 
-class ConfirmProcessPrereservations(models.TransientModel):
-    _name = 'confirm.process.prereservations'
-
-    @api.multi
-    def confirm(self):
-        self.env['stock.picking'].process_prereservations()
-
-
 class StockInventoryLine(models.Model):
     _inherit = 'stock.inventory.line'
 
@@ -1136,3 +1178,41 @@ class StockMoveOperationLinkImporved(models.Model):
 DELETE FROM stock_move_operation_link
 WHERE id IN (SELECT id
              FROM link_ids_to_delete);""")
+
+
+class StockPickingType(models.Model):
+    _inherit = 'stock.picking.type'
+
+    @api.multi
+    def update_picking_type_codes(self):
+        for rec in self:
+            pickings = self.env['stock.picking'].search([('picking_type_id', '=', rec.id),
+                                                         ('picking_type_code_store', '!=', rec.code)])
+            pickings.write({'picking_type_code_store': rec.code})
+
+    @api.multi
+    def write(self, vals):
+        result = super(StockPickingType, self).write(vals)
+        self.update_picking_type_codes()
+        return result
+
+    @api.model
+    def create(self, vals):
+        result = super(StockPickingType, self).create(vals)
+        result.update_picking_type_codes()
+        return result
+
+
+class StockPerformanceImprovedConfig(models.TransientModel):
+    _name = 'stock.performance.improved.config'
+
+    @api.model
+    def update_picking_type_codes(self):
+        picking_types = self.env['stock.picking.type'].search([])
+        nb_picking_types = len(picking_types)
+        index = 0
+        for picking_type in picking_types:
+            index += 1
+            _logger.info(u"Updating picking type codes for picking type %s (%s/%s)" %
+                         (picking_type.display_name, index, nb_picking_types))
+            picking_type.update_picking_type_codes()

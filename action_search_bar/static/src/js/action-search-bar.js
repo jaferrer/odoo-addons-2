@@ -21,7 +21,8 @@
             $('input.action_search_bar_searchbox').val("");
             self.rpc("/web/action/load", { action_id: "action_search_bar.action_search_bar_results" }).done(function(result) {
                 result.res_id =  instance.session.uid;
-                result.domain = "['|', ('name', 'ilike', '%"+search_value+"%'), " +
+                result.domain = "[ ('type', '=', 'ir.actions.act_window'),"  +
+                    "'|', ('name', 'ilike', '%" + search_value + "%'), " +
                     "('res_model', 'ilike', '%" + search_value + "%')]";
                 return openerp.client.action_manager.do_action(result);
             });
