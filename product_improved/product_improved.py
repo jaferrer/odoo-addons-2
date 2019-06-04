@@ -188,3 +188,17 @@ class PricelistImproved(models.Model):
         if not seller and product.seller_ids:
             seller = product.seller_ids[0]
         return seller
+
+
+    @api.model
+    def find_supplierinfos_for_product(self, product, partner_id):
+        """ :return: recordset of supplierinfo (fourniture d'achat
+        for this supplier """
+        sellers = []
+        for seller_id in product.seller_ids:
+            if partner_id and seller_id.name.id == partner_id:
+                sellers.append(seller_id)
+        if not sellers and product.seller_ids:
+            sellers = [product.seller_ids[0]]
+        return sellers
+
