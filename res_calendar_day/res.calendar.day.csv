@@ -1,8 +1,0 @@
-id,name,iso_week_day,week_day,is_weekend
-day_monday,Monday,1,0,0
-day_tuesday,Tuesday,2,1,0
-day_wednesday,Wednesday,3,2,0
-day_thursday,Thursday,4,3,0
-day_friday,Friday,5,4,0
-day_saturday,Saturday,6,5,1
-day_sunday,Sunday,7,6,1

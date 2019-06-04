@@ -1,2 +1,0 @@
-phonenumbers==8.10.10
-octopush==1.0.0

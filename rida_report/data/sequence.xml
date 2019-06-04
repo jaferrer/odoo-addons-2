@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <record model="ir.sequence" id="seq_on_call">
-        <field name="name">RIDA</field>
-        <field name="code">rida.report</field>
-        <field name="number_increment">1</field>
-    </record>
-</odoo>
