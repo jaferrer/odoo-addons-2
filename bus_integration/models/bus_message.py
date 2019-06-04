@@ -30,22 +30,22 @@ class BusMessage(models.Model):
     -------------------------------------------------
     <<lvl I - mother original request>>                     CROSS ID               parent
     -------------------------------------------------
-    | -> #1 - SYNC REQUEST                                  Mere:1
-    | <- #2 - DEP REQUEST                                   Mere:1                  #1
+    | -> #1 - SYNC REQUEST                                  master:1
+    | <- #2 - DEP REQUEST                                   master:1                  #1
     | -----------------------------------------------
     | <<lvl II - 1st mother dependency response>>
     | -----------------------------------------------
-    |   | -> #3 - DEP RESPONSE                              Mere:1>Mere:3           #2
-    |   | <- #4 - DEP REQUEST                               Mere:1>Mere:3           #3
+    |   | -> #3 - DEP RESPONSE                              master:1>master:3         #2
+    |   | <- #4 - DEP REQUEST                               master:1>master:3         #3
     |   | --------------------------------------------
     |   | <<lvl III - 2nd mother dependency response>>
     |   | --------------------------------------------
-    |   |   | -> #5 - DEP RESPONSE                          Mere:3>Mere:5           #4
-    |   |   | <- #6 - DEP OK                                Mere:3>Mere:5           #5          ==> rerun #3
+    |   |   | -> #5 - DEP RESPONSE                          master:3>master:5         #4
+    |   |   | <- #6 - DEP OK                                master:3>master:5         #5          ==> rerun #3
     |   | --------------------------------------------
-    |   | <- #7 - DEP OK (from #3)                          Mere:1>Mere:3           #3           ==> rerun #1
+    |   | <- #7 - DEP OK (from #3)                          master:1>master:3         #3           ==> rerun #1
     | ------------------------------------------------
-    | <- #8 - SYNC OK                                       Mere:1                  #1
+    | <- #8 - SYNC OK                                       master:1                  #1
     -------------------------------------------------
     """
     _name = 'bus.message'

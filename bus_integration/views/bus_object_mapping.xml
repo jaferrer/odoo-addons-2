@@ -47,7 +47,7 @@
                 <form string="Object mapping">
                     <header>
                         <button name="open_object_configuration" string="Mapping configuration helper" type="object"/>
-                        <button name="get_dependency_level" string="Update dependency level" type="object"/>
+                        <button name="compute_dependency_level" string="Update dependency level" type="object"/>
                         <button name="view_datas" string="View datas" type="object"/>
                     </header>
                     <sheet>
@@ -120,7 +120,7 @@
             <field name="name">Update dependency level</field>
             <field name="model_id" ref="bus_integration.model_bus_object_mapping"/>
             <field name="code">
-                action = self.get_dependency_level(cr,uid,context.get('active_ids'),context)
+                action = self.compute_dependency_level(cr,uid,context.get('active_ids'),context)
             </field>
         </record>
 

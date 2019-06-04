@@ -57,6 +57,10 @@ class BusSynchronizationExporter(models.AbstractModel):
 
         ids_to_export = self.env[batch.model].search(export_domain)
         if not ids_to_export:
+            histo = batch.get_histo(str(ids_to_export))
+            batch.serial_id = histo.id
+            histo.add_log(False, self.env.context.get('job_uuid'), log="no id to export")
+            histo.transfer_state = 'finished'
             return True
 
         message_list = []
@@ -103,7 +107,8 @@ class BusSynchronizationExporter(models.AbstractModel):
         }
         model_name = export_msg.get('export').get('model')
         ids = export_msg.get('export').get('ids')
-        histo = batch.get_serial(str(ids))
+        histo = batch.get_histo(str(ids))
+        batch.serial_id = histo.id
         message_dict['header']['serial_id'] = histo.id
         message_dict['header']['bus_configuration_export_id'] = batch.id
         exported_records = self.env[model_name].search([('id', 'in', ids)])
