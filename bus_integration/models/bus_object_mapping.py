@@ -249,4 +249,6 @@ class BusObjectMappingField(models.Model):
 
     _sql_constraints = [
         ('name_uniq_by_model', 'unique(field_id, mapping_id)', u"This field already exists for this model."),
+        ('check_type_field', "check(type_field <> 'one2many')", u"one2many fields can't be exported"),
+        ('check_not_computed', "check(is_computed = False)", u"one2many should not be computed fields"),
     ]
