@@ -18,33 +18,25 @@
 #
 
 {
-    'name': 'Database Unaccented Searches',
+    'name': 'Admin Config',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
-    'depends': [],
+    'depends': ['base', 'web'],
     'description': """
-Database Unaccented Searches
-============================
-This module just creates the extension "unaccent" in the database to allow unaccented searches.
-
-Notes:
-------
-
-- You also need to start Odoo with the --unaccent option or set unaccent = True in the config file for unaccented
-    searches to work.
-- Uninstalling the module does not reset accented search. You need to manually call "DROP EXTENSION 'unaccent';" on the
-    database.
-
-
+Admin Config
+============
+Implements a few configurations item which should help to administrate the ERP.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'security/ir.model.access.csv',
+    'data': ['admin_config.xml'],
+    'qweb': [
+        'static/src/xml/template.xml',
     ],
     'demo': [],
     'test': [],
+    'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
