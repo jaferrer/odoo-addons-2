@@ -107,9 +107,10 @@ class BusMessage(models.Model):
                 rec.extra_content = json.dumps(extra_content_dict)
 
                 body_dict = message_dict.get('body')
+                dependencies_dict = body_dict.pop('dependency', {})
                 rec.body = json.dumps(body_dict)
                 rec.body_root_pretty_print = json.dumps({'body': body_dict}, indent=4)
-                rec.body_dependencies_pretty_print = json.dumps({'dependency': body_dict.get('dependency', {})},
+                rec.body_dependencies_pretty_print = json.dumps({'dependency': dependencies_dict},
                                                                 indent=4)
 
                 if 'demand' in body_dict.keys():

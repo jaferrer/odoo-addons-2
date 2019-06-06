@@ -39,12 +39,11 @@ class MappingConfigurationHelper(models.TransientModel):
                 rec.deactivate_on_delete = mapping.deactivate_on_delete
                 rec.is_exportable = mapping.is_exportable
                 rec.is_importable = mapping.is_importable
-                fields = self.env['ir.model.fields'].search([('model_id', '=', rec.model_id.id)])
-                if fields:
-                    field_ids = []
+
+                field_ids = self.env['mapping.configuration.helper.line']
                 mapping_fields = self.env['bus.object.mapping.field'].search([('mapping_id', '=', mapping.id)])
                 for mapping_field in mapping_fields:
-                    field_ids += [(0, 0, {
+                    field_ids |= self.env['mapping.configuration.helper.line'].create({
                         'model_id': rec.model_id.id,
                         'wizard_id': rec.id,
                         'field_id': mapping_field.field_id.id,
@@ -53,7 +52,7 @@ class MappingConfigurationHelper(models.TransientModel):
                         'import_creatable_field': mapping_field.import_creatable_field,
                         'import_updatable_field': mapping_field.import_updatable_field,
                         'is_migration_key': mapping_field.is_migration_key,
-                    })]
+                    })
             rec.field_ids = field_ids
 
     @api.multi

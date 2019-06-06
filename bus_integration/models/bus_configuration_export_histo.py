@@ -73,7 +73,12 @@ class BusextendostoLog(models.Model):
         for rec in self:
             job = self.env['queue.job'].search([('uuid', '=', rec.job_uuid)])
             if job:
-                rec.state = job.state
+                if job.state == 'failed':
+                    rec.state = 'error'
+                elif job.state == 'done':
+                    rec.state = 'done'
+                else:  #  job.state =  'Pending' or 'Enqueued' or 'Started'
+                    rec.state = 'running'
 
     @api.model
     def check_state(self):
