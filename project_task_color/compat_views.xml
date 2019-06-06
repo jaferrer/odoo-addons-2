@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="project_color_edit_project" model="ir.ui.view">
+            <field name="name">project_color_edit_project</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="Color" name="color_settings">
+                        <field name="task_color_ids" no_label="1">
+                            <tree editable="top" context="{'default_project_id':active_id}">
+                                <field name="project_id" invisible="1"/>
+                                <field name="sequence" widget="handle"/>
+                                <field name="user_id"/>
+                                <field name="category_id"/>
+                                <field name="color" class="oe_kanban_colorpicker"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+    </data>
+</openerp>

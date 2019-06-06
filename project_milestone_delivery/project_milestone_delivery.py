@@ -35,6 +35,6 @@ class ProjectDeliveryMilestone(models.Model):
     def close_milestone(self):
         res = super(ProjectDeliveryMilestone, self).close_milestone()
         for delivery in self.delivery_ids:
-            if delivery.todo:
+            if delivery.state == 'todo':
                 raise exceptions.UserError(_("You can't close a Milestone linked to Delivery not done"))
         return res

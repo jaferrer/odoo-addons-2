@@ -17,18 +17,18 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models, api
+from odoo import fields, models, api, _
 from odoo.exceptions import UserError
 
 
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    number = fields.Char(u"Numéro")
+    number = fields.Char(u"Number")
 
     project_task_sequence_id = fields.Many2one(
         'ir.sequence',
-        string=u"Séquence pour les tâches",
+        string=u"Sequence for the task",
         related='project_id.task_sequence_id',
         readonly=True
     )
@@ -37,7 +37,7 @@ class ProjectTask(models.Model):
     def generate_number(self):
         for rec in self:
             if not rec.project_task_sequence_id:
-                raise UserError(u"Votre projet ne possede pas de sequence")
+                raise UserError(_(u"Your project don't have sequence"))
             vals = self.compute_number(self.project_id.id, self.stage_id.id, self.number, force=True)
             if vals:
                 rec.write(vals)
@@ -76,8 +76,8 @@ class ProjectTask(models.Model):
 
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
-        domain = ['|', ('number', operator, name), ('name', operator, name)]
-        return self.search(domain, limit=limit).name_get()
+        args = ['|', ('number', operator, name)] + (args or [])
+        return super(ProjectTask, self).name_search(name, args, operator, limit=100)
 
     @api.multi
     def name_get(self):
@@ -93,11 +93,11 @@ class ProjectTask(models.Model):
 class ProjectProject(models.Model):
     _inherit = 'project.project'
 
-    use_sequence = fields.Boolean(u"Utilise des sequences pour les Tâches")
-    task_sequence_id = fields.Many2one('ir.sequence', u"Séquence pour les tâches")
+    use_sequence = fields.Boolean(u"Use sequence for task")
+    task_sequence_id = fields.Many2one('ir.sequence', u"Sequence")
     auto_generate_number_id = fields.Many2one(
         'project.task.type',
-        u"A partir de quand le numéro de tâche est généré",
+        u"When the number is generated",
         domain="[('project_ids', 'in', [active_id])]")
 
 
@@ -111,9 +111,9 @@ class IrSequence(models.Model):
         if project_id:
             project = self.env['project.project'].browse(project_id)
             result.update({
-                'name': project.name.strip().upper() + u" TASK SEQ",
+                'name': project.name.strip().upper() + _(u" TASK SEQ"),
                 'code': project.name.replace(" ", "").strip().lower() + '_code',
-                'prefix': '%(y)s%(month)s%(day)s-',
+                'prefix': 'T',
                 'padding': 2
             })
         return result

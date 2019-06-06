@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <header position="inside">
                     <button name="generate_number"
-                            string="Générer un numero"
+                            string="Generate a number"
                             type="object"
                             attrs="{'invisible':[('project_task_sequence_id', '=', False)]}"/>
                 </header>
