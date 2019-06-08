@@ -14,14 +14,20 @@
                     <button name="generate_tracking_labels" type="object" string="Generate tracking label" class="oe_highlight" attrs="{'invisible': ['|', ('state', '!=', 'done'), '|', ('tracking_defined', '=', True), ('use_tracking_labels', '=', False)]}"/>
                     <button name="generate_tracking_labels" type="object" string="Replace tracking label" confirm="Are you sure you want to replace tracking label?" attrs="{'invisible': ['|', ('state', '!=', 'done'), '|', ('tracking_defined', '=', False), ('use_tracking_labels', '=', False)]}"/>
                 </button>
-                <notebook position="inside">
-                    <page string="Tracking label">
-                        <group string="Tracking label">
-                            <field name="binary_label" filename="data_fname" readonly="1"/>
-                            <field name="tracking_label_attachment" readonly="1"/>
-                        </group>
-                    </page>
-                </notebook>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="delivery_tracking_stock_picking_form_complementary_binary_tab">
+            <field name="name">delivery_tracking_stock_picking_form</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock_picking_complementary_binary.stock_picking_complementary_binary_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <page name="complementary_binary" position="inside">
+                    <group name="tracking_label" string="Tracking label">
+                        <field name="binary_label" filename="data_fname" readonly="1"/>
+                    </group>
+                </page>
             </field>
         </record>
 

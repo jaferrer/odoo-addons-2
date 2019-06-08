@@ -128,11 +128,16 @@
                                        attrs="{'invisible': [('use_http', '=', False)], 'required': [('use_http', '=', True)]}"/>
                             </group>
                         </page>
+                        <page string="Parametrage Synchro" name="sync">
+                            <group>
+                                <field name="stock_location_root_id"/>
+                            </group>
+                        </page>
                     </notebook>
                     <footer>
-                        <button name="write" string="Sauver" type="object" class="oe_highlight"/>
+                        <button name="write" string="Save" type="object" class="oe_highlight"/>
                         or
-                        <button string="Annuler" class="oe_link" special="cancel"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
             </field>
@@ -156,9 +161,9 @@
                         </page>
                     </notebook>
                     <footer>
-                        <button name="write" string="Sauver" type="object" class="oe_highlight"/>
+                        <button name="write" string="Save" type="object" class="oe_highlight"/>
                         or
-                        <button string="Annuler" class="oe_link" special="cancel"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
             </field>
@@ -178,9 +183,9 @@
                         <field name="archive_path" colspan="2"/>
                     </group>
                     <footer>
-                        <button name="write" string="Sauver" type="object" class="oe_highlight"/>
+                        <button name="write" string="Save" type="object" class="oe_highlight"/>
                         or
-                        <button string="Annuler" class="oe_link" special="cancel"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
             </field>
@@ -196,9 +201,9 @@
                         <field name="archive_path" colspan="2"/>
                     </group>
                     <footer>
-                        <button name="write" string="Sauver" type="object" class="oe_highlight"/>
+                        <button name="write" string="Save" type="object" class="oe_highlight"/>
                         or
-                        <button string="Annuler" class="oe_link" special="cancel"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
                     </footer>
                 </form>
             </field>

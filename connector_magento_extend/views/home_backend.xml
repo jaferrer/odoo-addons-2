@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_home_backend_form" model="ir.ui.view">
+        <field name="name">backend.home.extended</field>
+        <field name="model">backend.home</field>
+        <field name="inherit_id" ref="connector_backend_home.view_home_backend_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page name="partner_fields" string="Mapping des champs du partner">
+                    <field name="custom_partner_field_mapping"/>
+                </page>
+            </notebook>
+        </field>
+    </record>
+</odoo>

@@ -42,7 +42,7 @@ msgstr "N° client :"
 
 #. module: sale_order_report_aeroo
 #: report:ir.actions.report.xml:sale_order_report_aeroo.sale_order_report_aeroo
-msgid "TIN:"
+msgid "N° VAT"
 msgstr "N° TVA :"
 
 #. module: sale_order_report_aeroo

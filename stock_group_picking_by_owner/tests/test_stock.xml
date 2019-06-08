@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="default_sequence" model="ir.sequence">
+            <field name="name">Test sequence</field>
+            <field name="prefix">TST_SEQ/</field>
+            <field name="padding">5</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="product1" model="product.product">
+            <field name="name">Product #1</field>
+            <field name="default_code">PROD1</field>
+            <field name="type">product</field>
+            <field name="barcode"/>
+            <field name="weight" eval="0.42"/>
+            <field name="hs_code">1234567890</field>
+        </record>
+
+        <record id="product2" model="product.product">
+            <field name="name">Product #2</field>
+            <field name="default_code">PROD2</field>
+            <field name="type">product</field>
+            <field name="barcode"/>
+            <field name="weight" eval="0.42"/>
+            <field name="hs_code">0123456789</field>
+        </record>
+
+        <record id="source_location" model="stock.location">
+            <field name="name">Source location</field>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
+        <record id="target_location" model="stock.location">
+            <field name="name">Target location</field>
+            <field name="active">1</field>
+            <field name="usage">internal</field>
+        </record>
+
+        <record id="default_picking_type" model="stock.picking.type">
+            <field name="name">Bon de rangement</field>
+            <field name="code">internal</field>
+            <field name="default_location_src_id" ref="source_location"/>
+            <field name="default_location_dest_id" ref="target_location"/>
+            <field name="color">3</field>
+            <field name="sequence" eval="2"/>
+            <field name="sequence_id" ref="default_sequence"/>
+        </record>
+
+        <record id="move1" model="stock.move">
+            <field name="name">Move #1</field>
+            <field name="picking_id"/>
+            <field name="product_id" ref="product1"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="location_id" ref="source_location"/>
+            <field name="location_dest_id" ref="target_location"/>
+            <field name="picking_type_id" ref="default_picking_type"/>
+            <field name="product_uom_qty">7</field>
+            <field name="date">2012-12-21 13:37:00</field>
+            <field name="priority">1</field>
+        </record>
+
+        <record id="move2" model="stock.move">
+            <field name="name">Move #2</field>
+            <field name="picking_id"/>
+            <field name="product_id" ref="product1"/>
+            <field name="product_uom" ref="product.product_uom_unit"/>
+            <field name="location_id" ref="source_location"/>
+            <field name="location_dest_id" ref="target_location"/>
+            <field name="picking_type_id" ref="default_picking_type"/>
+            <field name="product_uom_qty">13</field>
+            <field name="date">2012-12-21 13:37:00</field>
+            <field name="priority">1</field>
+        </record>
+
+        <record id="partner1" model="res.partner">
+            <field name="name">Partner #1</field>
+        </record>
+
+        <record id="partner2" model="res.partner">
+            <field name="name">Partner #2</field>
+        </record>
+    </data>
+</openerp>

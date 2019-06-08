@@ -1,0 +1,38 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* group_picking_by_owner
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 9.0c\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-14 12:34+0000\n"
+"PO-Revision-Date: 2019-05-14 12:34+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: group_picking_by_owner
+#: model:ir.model.fields,field_description:group_picking_by_owner.field_stock_picking_type_group_picking_by_owner
+#: field:stock.picking.type,group_picking_by_owner:0
+msgid "Group picking by owner"
+msgstr "Regroupement de picking par propriétaire"
+
+#. module: group_picking_by_owner
+#: model:ir.model,name:group_picking_by_owner.model_stock_move
+msgid "Stock Move"
+msgstr "Mouvement de stock"
+
+#. module: group_picking_by_owner
+#: model:ir.model,name:group_picking_by_owner.model_stock_picking_type
+msgid "The picking type determines the picking view"
+msgstr "Le type de préparation détermine la vue de préparation"
+
+#. module: group_picking_by_owner
+#: field:procurment.order,restrict_partner_id:0
+msgid "Owner"
+msgstr "Propriétaire"
+
