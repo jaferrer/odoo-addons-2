@@ -307,7 +307,7 @@ msgstr "Descendant"
 #. module: connector_backend_home
 #: selection:backend.connector.info,type:0P
 msgid "Push Data"
-msgstr "Ascendant"
+msgstr "Pousser"
 
 #. module: connector_backend_home
 #: selection:connector.type.ftp.parameter,protocol:0
