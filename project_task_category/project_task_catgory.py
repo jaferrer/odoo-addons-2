@@ -27,15 +27,28 @@ class ProjectTaskCategory(models.Model):
     _parent_store = True
     _parent_order = 'name'
     _order = 'parent_left'
+    _separator = ' / '
 
     parent_id = fields.Many2one('project.task.category', u"Parent Category", index=True, ondelete='cascade')
-    child_id = fields.One2many('project.task.category', 'parent_id', u"Child Categories")
+    child_ids = fields.One2many('project.task.category', 'parent_id', u"Child Categories")
     parent_left = fields.Integer('# Left Parent', index=1)
     parent_right = fields.Integer('# Right Parent', index=1)
 
     name = fields.Char(u"Name")
     project_id = fields.Many2one('project.project', string=u"Project")
     active = fields.Boolean(u"Active", default=True)
+
+    @api.model
+    def name_create(self, name):
+        category_names = name.split(self._separator.strip())
+        parents = [category_name.strip() for category_name in category_names]
+        child = parents.pop()
+        if parents:
+            names_id = self.name_search(self._separator.join(parents), args=[], operator='=ilike', limit=1)
+            if names_id:
+                parent_id = names_id[0][0]
+                return super(ProjectTaskCategory, self.with_context(default_parent_id=parent_id)).name_create(child)
+        return super(ProjectTaskCategory, self).name_create(name)
 
     @api.multi
     def name_get(self):
@@ -46,8 +59,7 @@ class ProjectTaskCategory(models.Model):
                 res.append(cat.name)
                 cat = cat.parent_id
             return res
-
-        return [(cat.id, " / ".join(reversed(get_names(cat)))) for cat in self]
+        return [(cat.id, self._separator.join(reversed(get_names(cat)))) for cat in self]
 
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
@@ -55,12 +67,12 @@ class ProjectTaskCategory(models.Model):
             args = []
         if name:
             # Be sure name_search is symetric to name_get
-            category_names = name.split(' / ')
-            parents = list(category_names)
+            category_names = name.split(self._separator.strip())
+            parents = [category_name.strip() for category_name in category_names]
             child = parents.pop()
             domain = [('name', operator, child)]
             if parents:
-                names_ids = self.name_search(' / '.join(parents), args=args, operator='ilike', limit=limit)
+                names_ids = self.name_search(self._separator.join(parents), args=args, operator='ilike', limit=limit)
                 category_ids = [name_id[0] for name_id in names_ids]
                 if operator in expression.NEGATIVE_TERM_OPERATORS:
                     categories = self.search([('id', 'not in', category_ids)])
@@ -68,7 +80,7 @@ class ProjectTaskCategory(models.Model):
                 else:
                     domain = expression.AND([[('parent_id', 'in', category_ids)], domain])
                 for i in range(1, len(category_names)):
-                    domain = [[('name', operator, ' / '.join(category_names[-1 - i:]))], domain]
+                    domain = [[('name', operator, self._separator.join(category_names[-1 - i:]))], domain]
                     if operator in expression.NEGATIVE_TERM_OPERATORS:
                         domain = expression.AND(domain)
                     else:
