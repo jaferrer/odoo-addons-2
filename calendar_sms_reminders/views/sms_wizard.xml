@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="calendar_event_sms_wizard_view" model="ir.ui.view">
+            <field name="name">calendar.event.sms.wizard.view</field>
+            <field name="model">calendar.event.sms.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Send SMS">
+                    <div>
+                        <label for="sms_message"/>
+                        <h4><field name="sms_message" /></h4>
+                    </div>
+                    <hr />
+                    <field name="domain_attendee_ids" invisible="True" />
+                    <field name="attendee_to_notify_ids" domain="[('id', 'in', domain_attendee_ids[0][2])]" >
+                        <tree decoration-success="sms_date_sent" decoration-warning="is_mobile_phone_correct==False">
+                            <field name="common_name" />
+                            <field name="mobile" widget="phone" />
+                            <field name="is_mobile_phone_correct" invisible="True" />
+                            <field name="sms_date_sent" />
+                        </tree>
+                    </field>
+
+                    <footer>
+                        <button name="action_send_sms" string="Send SMS" type="object" class="oe_highlight"/>
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

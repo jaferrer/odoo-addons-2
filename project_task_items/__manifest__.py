@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Mini sous tâche',
+    'name': 'Project Task Item',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',

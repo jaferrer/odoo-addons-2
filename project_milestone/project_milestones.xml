@@ -32,7 +32,7 @@
             <field name="arch" type="xml">
                 <field name="project_id" position="after">
                     <field name="milestone_id" domain="[('project_id', '=', project_id), ('state', '!=', 'closed')]"
-                           context="{'default_project_id': project_id}"/>
+                           context="{'default_project_id': project_id, 'default_start_date': date_start}"/>
                 </field>
             </field>
         </record>
@@ -112,37 +112,40 @@
                             <field name="name" class="oe_inline"/>
                         </h1>
                         <group>
+                            <field name="referent_id"/>
                             <field name="project_id"/>
+                            <field name="parent_id" domain="[('project_id', '=', project_id)]"/>
+                            <field name="start_date"/>
                         </group>
-                        <group>
+                        <group col="3" class="label_30">
                             <group>
-                                <field name="start_date"/>
                                 <field name="qualif_should_be_livred_at"/>
+                                <field name="qualif_should_be_livred_at_internal"/>
+                            </group>
+                            <group>
                                 <field name="should_be_test_before"/>
+                            </group>
+                            <group>
                                 <field name="should_be_closed_at"/>
                             </group>
                         </group>
-                        <group>
+                        <group col="3" class="label_30">
                             <group>
                                 <field name="livred_in_qualif_at"/>
-                                <field name="livred_in_prod_at"/>
+                                <field name="livred_in_qualif_by"/>
                             </group>
                             <group>
-                                <field name="livred_in_qualif_by"/>
+                                <field name="livred_in_prod_at"/>
                                 <field name="livred_in_prod_by"/>
                             </group>
-                        </group>
-                        <group>
                             <group>
                                 <field name="closed_at"/>
-                            </group>
-                            <group>
                                 <field name="closed_by"/>
                             </group>
                         </group>
                         <notebook>
                             <page string="Tâches" name="task_page">
-                                <field name="task_ids" nolabel="1">
+                                <field name="task_ids" nolabel="1" context="{'default_project_id': project_id, 'default_milestone_id': active_id}">
                                     <tree nolabel="1" create="false" delete="false">
                                         <field name="name"/>
                                         <field name="user_id"/>
@@ -153,9 +156,46 @@
                                     </tree>
                                 </field>
                             </page>
+                            <page string="Description" name="description">
+                                <field name="description" nolabel="1"/>
+                            </page>
+                            <page string="Sous milestone">
+                                <group>
+                                    <field name="child_id" nolabel="1" readonly="1">
+                                        <tree>
+                                            <field name="name"/>
+                                            <field name="start_date"/>
+                                            <field name="qualif_should_be_livred_at"/>
+                                            <field name="should_be_closed_at"/>
+                                            <field name="nb_days_tasks"/>
+                                            <field name="state"/>
+                                            <button name="set_to_livred_in_qualif" type="object" string="Is in Qualification"
+                                                    class="oe_link" attrs="{'invisible':[('state', '!=', 'open')]}"/>
+                                            <button name="set_to_livred_in_prod" type="object" string="Is in Production"
+                                                    class="oe_link" attrs="{'invisible':[('state', '!=', 'in_qualif')]}"/>
+                                            <button name="close_milestone" type="object" string="Close"
+                                                    class="oe_link" attrs="{'invisible':[('state', '!=', 'in_prod')]}"/>
+                                            <button name="reopen" type="object" string="Re-open"
+                                                    class="oe_link" attrs="{'invisible':[('state', '!=', 'closed')]}"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
                         </notebook>
                     </sheet>
                 </form>
+            </field>
+        </record>
+
+        <record id="project_milestone_timeline" model="ir.ui.view">
+            <field name="name">project.milestone.timeline</field>
+            <field name="model">project.milestone</field>
+            <field name="type">timeline</field>
+            <field name="arch" type="xml">
+                <timeline date_start="qualif_should_be_livred_at"
+                          date_stop="should_be_closed_at"
+                          default_group_by="project_id"
+                          colors="#ec7063: project_id == False;"/>
             </field>
         </record>
 
@@ -163,7 +203,7 @@
             <field name="name">Milestone</field>
             <field name="res_model">project.milestone</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree,form</field>
+            <field name="view_mode">tree,form,timeline</field>
             <field name="context">{'search_default_open': True}</field>
             <field name="help" type="html">
                 <p class="oe_view_nocontent_create">

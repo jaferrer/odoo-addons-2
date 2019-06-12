@@ -24,12 +24,26 @@ class Base(models.AbstractModel):
     """ The base model, which is implicitly inherited by all models. """
     _inherit = 'base'
 
-    def first(self):
+    def first(self, func_filter=None):
         """Methode sans @api.multi ou model car compatible pour les deux
         Renvoi le premier element de self si plusieurs `ids` sinon renvoie self"""
-        return self and self[0] or self
+        if not func_filter:
+            return self and self[0] or self
+        if isinstance(func_filter, (unicode, str)):
+            func_filter = getattr(self, func_filter)
+        for rec in self:
+            if func_filter(rec):
+                return rec
+        return self.env[self._name]
 
-    def last(self):
+    def last(self, func_filter=None):
         """Methode sans @api.multi ou model car compatible pour les deux
         Renvoi le dernier element de self si plusieurs `ids` sinon renvoie self"""
-        return self and self[-1] or self
+        if not func_filter:
+            return self and self[-1] or self
+        if isinstance(func_filter, (unicode, str)):
+            func_filter = getattr(self, func_filter)
+        for rec in reversed(self):
+            if func_filter(rec):
+                return rec
+        return self.env[self._name]

@@ -207,6 +207,7 @@ msgstr "État de la ligne"
 #: model:ir.actions.act_window,name:rida_report.rida_line_action
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_line_ids
 #: model:ir.ui.view,arch_db:rida_report.rida_report_form
+#: model:ir.ui.menu,name:rida_report.rida_line_menu
 msgid "Lines"
 msgstr "Lignes"
 
@@ -219,11 +220,6 @@ msgstr "Faible"
 #: selection:rida.line,priority:0
 msgid "Medium"
 msgstr "Moyenne"
-
-#. module: rida_report
-#: model:ir.ui.menu,name:rida_report.rida_line_menu
-msgid "Lines"
-msgstr "Lignes"
 
 #. module: rida_report
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
