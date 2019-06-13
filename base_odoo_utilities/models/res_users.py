@@ -44,7 +44,7 @@ class ResUsers(models.Model):
     _inherit = 'res.users'
 
     def format_local_date(self, date=None):
-        self.partner_id.format_local_date(date)
+        return self.partner_id.format_local_date(date)
 
     def format_local_datetime(self, date=None):
-        self.partner_id.format_local_datetime(date)
+        return self.partner_id.format_local_datetime(date)
