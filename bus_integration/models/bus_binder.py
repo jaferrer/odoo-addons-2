@@ -71,21 +71,21 @@ class BusSynchronizationBinder(models.AbstractModel):
         return transfer, self.env[model].search([('id', '=', transfer and transfer.local_id or False)])
 
     @api.model
-    def process_binding(self, external_key, model, record, xml_id, model_mapping, dependencies):
+    def process_binding(self, record, model, external_key, model_mapping, dependencies, xml_id):
         transfer, odoo_record = self.get_record_by_external_key(external_key, model)
-        if not transfer:
+        if transfer:
+            transfer.local_id = odoo_record.id
+        else:
             if model_mapping.key_xml_id and xml_id:
                 odoo_record = self.get_record_by_xml(xml_id, model_mapping.model_name)
             if not model_mapping.key_xml_id or not odoo_record:
                 odoo_record = self.get_record_by_field_mapping(model_mapping, record, dependencies)
+
             if odoo_record and len(odoo_record) == 1:
-                if transfer:
-                    transfer.local_id = odoo_record.id
-                else:
-                    transfer = self.env['bus.receive.transfer'].create({
-                        'model': model,
-                        'local_id': odoo_record.id,
-                        'external_key': external_key,
-                        'received_data': json.dumps(record, indent=4)
-                    })
+                transfer = self.env['bus.receive.transfer'].create({
+                    'model': model,
+                    'local_id': odoo_record.id,
+                    'external_key': external_key,
+                    'received_data': json.dumps(record, indent=4)
+                })
         return transfer, odoo_record
