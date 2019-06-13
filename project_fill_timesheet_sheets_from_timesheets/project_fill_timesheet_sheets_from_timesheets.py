@@ -27,23 +27,23 @@ class TimesheetAutoFill(models.Model):
 
     def get_date_from_for_new_timesheet(self, date, user_id):
         user = self.env['res.users'].browse(user_id)
-        r = user.company_id and user.company_id.timesheet_range or 'month'
-        if r == 'month':
+        range = user.company_id and user.company_id.timesheet_range or 'month'
+        if range == 'month':
             return (fields.Date.from_string(date) + relativedelta(day=1)).strftime('%Y-%m-%d')
-        elif r == 'week':
+        elif range == 'week':
             return (fields.Date.from_string(date) + relativedelta(weekday=0, days=-6)).strftime('%Y-%m-%d')
-        elif r == 'year':
+        elif range == 'year':
             return (fields.Date.from_string(date) + relativedelta(day=1, month=1)).strftime('%Y-%m-%d')
         return date
 
     def get_date_to_for_new_timesheet(self, date, user_id):
         user = self.env['res.users'].browse(user_id)
-        r = user.company_id and user.company_id.timesheet_range or 'month'
-        if r == 'month':
+        range = user.company_id and user.company_id.timesheet_range or 'month'
+        if range == 'month':
             return (fields.Date.from_string(date) + relativedelta(months=+1, day=1, days=-1)).strftime('%Y-%m-%d')
-        elif r == 'week':
+        elif range == 'week':
             return (fields.Date.from_string(date) + relativedelta(weekday=6)).strftime('%Y-%m-%d')
-        elif r == 'year':
+        elif range == 'year':
             return (fields.Date.from_string(date) + relativedelta(day=31, month=12)).strftime('%Y-%m-%d')
         return date
 
