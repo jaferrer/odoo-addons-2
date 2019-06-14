@@ -17,26 +17,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, api, _
-from odoo.exceptions import UserError
+{
+    'name': 'web_odoo_iframe',
+    'version': '2.0',
+    'category': 'Marketing',
+    'description': """
+Hide header and footer when a odoo website page is call in iframe
+=================================================================
 
-
-class TimesheetSheetRequired(models.Model):
-    _inherit = 'account.analytic.line'
-
-    @api.multi
-    def check_timesheet_sheet(self):
-        if any([rec.project_id and not rec.sheet_id for rec in self]):
-            raise UserError(_(u"It is forbidden to create a timesheet with no sheet."))
-
-    @api.model
-    def create(self, vals):
-        result = super(TimesheetSheetRequired, self).create(vals)
-        result.check_timesheet_sheet()
-        return result
-
-    @api.multi
-    def write(self, vals):
-        result = super(TimesheetSheetRequired, self).write(vals)
-        self.check_timesheet_sheet()
-        return result
+Add in_frame paramater in url to hide header and footer in website page.
+    """,
+    'summary': 'Odoo iframe : hide header and footer',
+    'depends': ['website'],
+    'data': [
+        'views/odoo_iframe.xml',
+    ],
+    'installable': True,
+    'auto_install': False,
+    'application': False,
+    'sequence': 105,
+}

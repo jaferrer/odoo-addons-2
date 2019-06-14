@@ -16,27 +16,3 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-from odoo import models, api, _
-from odoo.exceptions import UserError
-
-
-class TimesheetSheetRequired(models.Model):
-    _inherit = 'account.analytic.line'
-
-    @api.multi
-    def check_timesheet_sheet(self):
-        if any([rec.project_id and not rec.sheet_id for rec in self]):
-            raise UserError(_(u"It is forbidden to create a timesheet with no sheet."))
-
-    @api.model
-    def create(self, vals):
-        result = super(TimesheetSheetRequired, self).create(vals)
-        result.check_timesheet_sheet()
-        return result
-
-    @api.multi
-    def write(self, vals):
-        result = super(TimesheetSheetRequired, self).write(vals)
-        self.check_timesheet_sheet()
-        return result
