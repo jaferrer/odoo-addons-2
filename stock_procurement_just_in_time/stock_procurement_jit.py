@@ -891,16 +891,12 @@ class StockSchedulerController(models.Model):
                         controller_lines_run_procs.set_to_done()
                 else:
                     if jobify:
-                        while controller_lines_no_run:
-                            chunk_line = controller_lines_no_run[:50]
-                            controller_lines_no_run = controller_lines_no_run[50:]
-                            orderpoints = chunk_line.mapped('orderpoint_id')
+                        for controller_line in controller_lines_no_run:
                             job_uuid = process_orderpoints. \
                                 delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                      orderpoints.ids, dict(self.env.context),
+                                      controller_line.orderpoint_id.ids, dict(self.env.context),
                                       description="Computing orderpoints")
-                            chunk_line.write({'job_uuid': job_uuid,
-                                              'job_creation_date': fields.Datetime.now()})
+                            controller_line.write({'job_uuid': job_uuid, 'job_creation_date': fields.Datetime.now()})
                     else:
                         for line in controller_lines_no_run:
                             line.job_uuid = str(line.orderpoint_id.id)
