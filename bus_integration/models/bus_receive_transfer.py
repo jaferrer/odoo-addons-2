@@ -33,10 +33,16 @@ class BusReceiveTransfer(models.Model):
     to_deactivate = fields.Boolean(string=u"To deactivate")
 
     _sql_constraints = [
-        # TODO : a revoir unique sur external key, surement rajouter model
         ('bus_uniq', 'unique(model, external_key)', u"A binding already exists with the same external key."),
         ('object_uniq', 'unique(model, local_id)', u"A binding already exists for this object"),
     ]
+
+    def name_get(self):
+        result = []
+        for rec in self:
+            local_record = self.env[rec.model].browse([rec.local_id])
+            result.append((rec.id, u"%s → %s" % (rec.model, local_record.display_name)))
+        return result
 
     @api.multi
     def view_local_record(self):

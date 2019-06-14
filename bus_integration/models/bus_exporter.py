@@ -57,6 +57,10 @@ class BusSynchronizationExporter(models.AbstractModel):
 
         ids_to_export = self.env[batch.model].search(export_domain)
         if not ids_to_export:
+            histo = batch.get_histo(str(ids_to_export))
+            batch.serial_id = histo.id
+            histo.add_log(False, self.env.context.get('job_uuid'), log="no id to export")
+            histo.transfer_state = 'finished'
             return True
 
         message_list = []
@@ -103,7 +107,8 @@ class BusSynchronizationExporter(models.AbstractModel):
         }
         model_name = export_msg.get('export').get('model')
         ids = export_msg.get('export').get('ids')
-        histo = batch.get_serial(str(ids))
+        histo = batch.get_histo(str(ids))
+        batch.serial_id = histo.id
         message_dict['header']['serial_id'] = histo.id
         message_dict['header']['bus_configuration_export_id'] = batch.id
         exported_records = self.env[model_name].search([('id', 'in', ids)])
@@ -131,6 +136,8 @@ class BusSynchronizationExporter(models.AbstractModel):
             }
         }
         object_mapping = self.env['bus.object.mapping'].get_mapping(model_name)
+        if not object_mapping:
+            raise exceptions.ValidationError('bus.object.mapping not defined for model %s ' % model_name)
         for record in exported_records:
             record_id = str(record.id)
             if model_name not in message_dict['body']['root']:
@@ -249,8 +256,6 @@ class BusSynchronizationExporter(models.AbstractModel):
                         message_dict['body']['dependency'][record.model][str(record.local_id)] = {'id': record.local_id}
         return message_dict
 
-    # endregion
-
     def _generate_check_msg_body(self, exported_records, model_name, dest):
         message_dict = {
             'body': {
@@ -270,6 +275,8 @@ class BusSynchronizationExporter(models.AbstractModel):
                 message_dict['body']['root'][model_name] = {}
             message_dict['body']['root'][model_name][record_id] = {'id': record.id, 'check_id': check.id}
         return message_dict
+
+    # endregion
 
     @api.model
     def get_check_transfer(self, model_name, record_id, recipient_id):
@@ -291,7 +298,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             if log.type == 'error':
                 return_state = 'error'
             log_message += u"%s : %s \n" % (log.type, log.information)
-            log_message = u"Synchronization OK"
+        log_message += u"Synchronization OK"
 
         dest = message_dict.get('header').get('origin')
         resp['header'] = message_dict.get('header')
@@ -350,9 +357,19 @@ class BusSynchronizationExporter(models.AbstractModel):
             'root': {},
         }
         demand = message_dict.get('body', {}).get('demand', {})
-        model_content, dependancy_content = self._generate_dependance_message(parent_message_id, demand)
-        resp['body']['root'] = model_content
-        resp['body']['dependency'] = dependancy_content
+        try:
+            model_content, dependancy_content = self._generate_dependance_message(parent_message_id, demand)
+            resp['body']['root'] = model_content
+            resp['body']['dependency'] = dependancy_content
+        except exceptions.ValidationError as validation_error:
+            # Add message.log
+            self.env['bus.message.log'].create({
+                'message_id': parent_message_id,
+                'type': 'error',
+                'information': validation_error.value
+            })
+            return False
+
         resp['header'].pop('cross_id_origin_id')
         resp['header']['cross_id_origin_parent_id'] = message.cross_id_origin_id
         new_msg = self.env['bus.message'].create_message(resp, 'sent', message.configuration_id, parent_message_id)

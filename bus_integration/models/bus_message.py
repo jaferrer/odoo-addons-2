@@ -30,22 +30,22 @@ class BusMessage(models.Model):
     -------------------------------------------------
     <<lvl I - mother original request>>                     CROSS ID               parent
     -------------------------------------------------
-    | -> #1 - SYNC REQUEST                                  Mere:1
-    | <- #2 - DEP REQUEST                                   Mere:1                  #1
+    | -> #1 - SYNC REQUEST                                  master:1
+    | <- #2 - DEP REQUEST                                   master:1                  #1
     | -----------------------------------------------
     | <<lvl II - 1st mother dependency response>>
     | -----------------------------------------------
-    |   | -> #3 - DEP RESPONSE                              Mere:1>Mere:3           #2
-    |   | <- #4 - DEP REQUEST                               Mere:1>Mere:3           #3
+    |   | -> #3 - DEP RESPONSE                              master:1>master:3         #2
+    |   | <- #4 - DEP REQUEST                               master:1>master:3         #3
     |   | --------------------------------------------
     |   | <<lvl III - 2nd mother dependency response>>
     |   | --------------------------------------------
-    |   |   | -> #5 - DEP RESPONSE                          Mere:3>Mere:5           #4
-    |   |   | <- #6 - DEP OK                                Mere:3>Mere:5           #5          ==> rerun #3
+    |   |   | -> #5 - DEP RESPONSE                          master:3>master:5         #4
+    |   |   | <- #6 - DEP OK                                master:3>master:5         #5          ==> rerun #3
     |   | --------------------------------------------
-    |   | <- #7 - DEP OK (from #3)                          Mere:1>Mere:3           #3           ==> rerun #1
+    |   | <- #7 - DEP OK (from #3)                          master:1>master:3         #3           ==> rerun #1
     | ------------------------------------------------
-    | <- #8 - SYNC OK                                       Mere:1                  #1
+    | <- #8 - SYNC OK                                       master:1                  #1
     -------------------------------------------------
     """
     _name = 'bus.message'
@@ -107,9 +107,10 @@ class BusMessage(models.Model):
                 rec.extra_content = json.dumps(extra_content_dict)
 
                 body_dict = message_dict.get('body')
+                dependencies_dict = body_dict.pop('dependency', {})
                 rec.body = json.dumps(body_dict)
                 rec.body_root_pretty_print = json.dumps({'body': body_dict}, indent=4)
-                rec.body_dependencies_pretty_print = json.dumps({'dependency': body_dict.get('dependency', {})},
+                rec.body_dependencies_pretty_print = json.dumps({'dependency': dependencies_dict},
                                                                 indent=4)
 
                 if 'demand' in body_dict.keys():

@@ -19,6 +19,9 @@
 
 import json
 from datetime import datetime
+
+from psycopg2._psycopg import IntegrityError
+
 from openerp import models, api, exceptions
 
 
@@ -181,21 +184,31 @@ class BusSynchronizationImporter(models.AbstractModel):
                 'external_key': external_key
             })
             return False
-        transfer, odoo_record = self.env['bus.binder']\
-            .process_binding(external_key, model, record, xml_id, model_mapping, dependencies)
-        binding_data, record_data, errors = self.env['bus.mapper']\
-            .process_mapping(record, model, external_key, model_mapping, dependencies, odoo_record)
-        if len(odoo_record) > 1:
-            errors.append(('error', u"Too many record find for %s : %s" % (model, record_id)))
-        no_error = self.register_errors(errors, message_id, model, record.get('id', False), external_key)
-        if not no_error:
+
+        errors = []
+        odoo_record = False
+        try:
+            with self.env.cr.savepoint():
+                transfer, odoo_record = self.env['bus.binder']\
+                    .process_binding(record, model, external_key, model_mapping, dependencies, xml_id)
+                binding_data, record_data, errors = self.env['bus.mapper'] \
+                    .process_mapping(record, model, external_key, model_mapping, dependencies, odoo_record)
+                if len(odoo_record) > 1:
+                    errors.append(('error', u"Too many record find for %s : %s" % (model, record_id)))
+        except IntegrityError as err:
+            fields_mapping = self.env['bus.object.mapping.field'].search([('is_migration_key', '=', True),
+                                                                          ('mapping_id', '=', model_mapping.id)])
+            fields_name = str([field.field_name for field in fields_mapping])
+            errors.append(('error', 'invalid migration_key on %s. multiple records found with migration_key %s, '
+                                    'detail: %s' % (fields_name, model, err)))
+
+        if not self.register_errors(errors, message_id, model, record.get('id', False), external_key):
             return False
         else:
             transfer, odoo_record = transfer.import_datas(transfer, odoo_record, binding_data, record_data)
             if translation:
                 self._update_translation(transfer, translation)
             return {'external_key': external_key, 'id': transfer.local_id}
-        return False
 
     @api.model
     def register_errors(self, errors, message_id, model, record_id, external_key):
