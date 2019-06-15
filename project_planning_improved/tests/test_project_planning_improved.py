@@ -508,3 +508,11 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         })
         self.assertEqual(self.project_task_7.expected_start_date, '2017-08-31 08:00:00')
         self.assertEqual(self.project_task_7.expected_end_date, '2017-09-01 18:00:00')
+
+    def test_97_schedule_task_on_one_day(self):
+        task = self.env['project.task'].create({
+            'name': "Test task",
+            'objective_duration': 1,
+            'objective_end_date': '2019-06-12 18:00:00'
+        })
+        self.assertEqual(task.objective_start_date, '2019-06-12 08:00:00')
