@@ -433,7 +433,9 @@ class ProjectImprovedTask(models.Model):
             duration = rec.objective_duration
             objective_start_date = rec.objective_end_date and \
                 rec.get_start_day_date(fields.Datetime.from_string(rec.objective_end_date)) or False
-            if duration:
+            # objective_start_date is at the beginning of a day and and objective_end_date as at the end of a day,
+            # so if the required duration is 1 day, whe have got nothing to to.
+            if duration != 1:
                 objective_start_date = objective_start_date and \
                     rec.schedule_get_date(objective_start_date, nb_days=-duration) or False
             objective_start_date = objective_start_date and \
