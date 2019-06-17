@@ -132,10 +132,18 @@ odoo.define('web_timeline_improved.TimelineView', function (require) {
             });
         },
 
+        parse_colors : function () {
+            this._super();
+            if (! this.hasOwnProperty('colors')) {
+                this.colors = [];
+            }
+
+        },
+
         event_data_transform : function (evt) {
             let result = this._super(evt);
-            if (evt.color && this.fields_view.arch.attrs.color_field) {
-                result.style = 'background-color: ' + evt.color + ';'
+            if (evt.hasOwnProperty(this.fields_view.arch.attrs.color_field)) {
+                result.style = 'background-color: ' + evt[this.fields_view.arch.attrs.color_field] + ';'
             }
             console.log(evt);
             console.log(result);
