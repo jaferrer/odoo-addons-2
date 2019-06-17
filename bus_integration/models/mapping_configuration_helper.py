@@ -159,7 +159,7 @@ class MappingConfigurationHelperAnswer(models.TransientModel):
 
     def _compute_static_fields(self):
         for rec in self:
-            rec.fields_configuration_header = u"id,mapping_id:id,field_id:id,map_name,export_field," \
+            rec.fields_configuration_header = u"id,mapping_id:id,field_id_name,map_name,export_field," \
                                               u"import_creatable_field,import_updatable_field,is_migration_key"
             rec.model_configuration_header = u"id,model_id:id,is_exportable,is_importable,key_xml_id," \
                                              u"deactivated_sync,deactivate_on_delete"
