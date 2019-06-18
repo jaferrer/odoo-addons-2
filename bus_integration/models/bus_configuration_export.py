@@ -170,5 +170,5 @@ class BusConfigurationExport(models.Model):
 
     @api.multi
     def compute_dependency_level(self):
-        bus_object_mappings = self.env['bus.object.mapping'].search(self.ids)
-        bus_object_mappings.compute_dependency_level()
+        for rec in self:
+            rec.mapping_object_id.compute_dependency_level()
