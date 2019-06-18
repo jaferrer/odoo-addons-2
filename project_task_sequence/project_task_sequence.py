@@ -92,6 +92,7 @@ class ProjectTask(models.Model):
                 result.append((rec.id, u"%s" % rec.name))
         return result
 
+
 class ProjectProject(models.Model):
     _inherit = 'project.project'
 
