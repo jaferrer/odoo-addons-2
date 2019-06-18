@@ -62,7 +62,6 @@ odoo_orm_improved/
 odoo_scripts_console/
 onchange_action/
 package_weight/
-pack_preference_for_moves_assignation/
 partner_vat_improved/
 portail_ndp/
 procurement_foresight_strategy/
@@ -141,7 +140,6 @@ stock_improved/
 stock_mandatory_orderpoints/
 stock_move_consu_no_quant/
 stock_moves_to_assigned_pickings/
-stock_multi_company/
 stock_no_recompute/
 stock_performance_improved/
 stock_picking_type_hide/
