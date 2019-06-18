@@ -246,7 +246,8 @@ class BusObjectMappingField(models.Model):
         if 'field_id_name' not in vals:
             return vals
         #  import from csv, required 'field_id' must be computed from field_id_name
-        field_data = self.env['ir.model.data'].search([('name', '=', vals['field_id_name'])])
+        field_data = self.env['ir.model.data'].search([('name', '=', vals['field_id_name']),
+                                                       ('model', '=', 'ir.model.fields')])
         vals['field_id'] = field_data.res_id
         return vals
 
