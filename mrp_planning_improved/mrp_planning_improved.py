@@ -58,17 +58,17 @@ class ManufacturingOrderPlanningImproved(models.Model):
                                move.raw_material_production_id.move_created_ids[0] or False
             rec.final_order_id = production
 
-    @api.model
-    def _make_production_produce_line(self, production):
-        """Overridden here so that the date of the produce stock move is the date of end of the production."""
-        move_id = super(ManufacturingOrderPlanningImproved, self)._make_production_produce_line(production)
-        date_move = fields.Datetime.to_string(production.location_dest_id.schedule_working_days(
-            production.product_id.produce_delay + 1,
-            fields.Datetime.from_string(production.date_planned)
+    @api.multi
+    def _get_produce_line_data(self):
+        self.ensure_one()
+        move_vals = super(ManufacturingOrderPlanningImproved, self)._get_produce_line_data()
+        date_move = fields.Datetime.to_string(self.location_dest_id.schedule_working_days(
+            self.product_id.produce_delay + 1,
+            fields.Datetime.from_string(self.date_planned)
         ))
-        move = self.env['stock.move'].browse(move_id)
-        move.write({'date_expected': date_move, 'date': date_move})
-        return move_id
+        move_vals['date_expected'] = date_move
+        move_vals['date'] = date_move
+        return move_vals
 
     @api.multi
     def get_date_expected_for_moves(self):
