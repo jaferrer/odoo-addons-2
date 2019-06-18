@@ -28,15 +28,22 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form>
+                    <header>
+                        <button name="deactive" type="object" string="Deactive"
+                                attrs="{'invisible': ['|', ('result_state', '!=', 'inprogress'), ('active', '=', False)]}"/>
+                        <button name="reactive" type="object" string="Reactive"
+                                attrs="{'invisible': ['|', ('result_state', '!=', 'inprogress'), ('active', '=', True)]}"/>
+                        <field name="result_state" widget="statusbar"/>
+                    </header>
                     <sheet>
                         <group>
+                            <field name="active" invisible="1"/>
                             <field name="display_name"/>
                             <field name="type"/>
                             <field name="treatment"/>
                             <field name="create_date"/>
                             <field name="create_uid"/>
                             <field name="date_done"/>
-                            <field name="result_state"/>
                             <field name="message_parent_id"/>
                         </group>
                         <separator string="Header"/>
@@ -90,6 +97,8 @@
                     <field name="header_param_ids"/>
                     <field name="body"/>
                     <field name="extra_content"/>
+                    <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                    <filter name="inactive" string="Inactive" domain="[('active', '=', False)]"/>
                     <filter name="running" string="Running" domain="[('date_done', '=', False)]"/>
                     <filter name="lasts24h" string="H-24"
                             domain="[('create_date','&gt;', (context_today()-relativedelta(days=1)).strftime('%%Y-%%m-%%d'))]"/>
