@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="assets_frontend" inherit_id="website.assets_frontend" name="Survey assets">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_odoo_iframe/static/src/js/odoo_iframe.js"/>
+            </xpath>
+        </template>
+    </data>
+</odoo>

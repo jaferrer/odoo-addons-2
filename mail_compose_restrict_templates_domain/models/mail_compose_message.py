@@ -17,26 +17,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, api, _
-from odoo.exceptions import UserError
+from odoo import models, fields, api
 
 
-class TimesheetSheetRequired(models.Model):
-    _inherit = 'account.analytic.line'
-
-    @api.multi
-    def check_timesheet_sheet(self):
-        if any([rec.project_id and not rec.sheet_id for rec in self]):
-            raise UserError(_(u"It is forbidden to create a timesheet with no sheet."))
+class MailComposeMessage(models.TransientModel):
+    _inherit = 'mail.compose.message'
 
     @api.model
-    def create(self, vals):
-        result = super(TimesheetSheetRequired, self).create(vals)
-        result.check_timesheet_sheet()
-        return result
+    def _get_template_id_domain(self):
+        allowed_template_ids = self.env.context.get('allowed_template_ids')
+        return allowed_template_ids and "[('model', '=', model), ('id', 'in', %s)]" % allowed_template_ids or \
+            "[('model', '=', model)]"
 
-    @api.multi
-    def write(self, vals):
-        result = super(TimesheetSheetRequired, self).write(vals)
-        self.check_timesheet_sheet()
-        return result
+    template_id = fields.Many2one('mail.template', domain=_get_template_id_domain)
