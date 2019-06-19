@@ -612,6 +612,12 @@ class StockLevelExporter(Exporter):
     def run(self):
         log = ""
 
+        params = self.env["connector.type.magento.parameter"].search([
+            ("line_id", "=", self.backend_record.connector_id.line_id.id)
+        ], limit=1)
+
+        stock_root = params.stock_location_root_id or self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id
+
         self.env.cr.execute(""" WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
             SELECT
               sl.id AS loc_id,
@@ -670,7 +676,7 @@ class StockLevelExporter(Exporter):
             default_code
             ORDER BY qty ASC
                     """, (self.backend_record.connector_id.home_id.id,
-                          self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id,
+                          stock_root.id,
                           self.backend_record.connector_id.home_id.id
                           ))
 
