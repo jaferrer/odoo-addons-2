@@ -251,6 +251,13 @@ WHERE (qj.id IS NULL OR qj.state IN ('done', 'failed')) AND sm.id IN %s"""
         self._do_procurements_run_or_check('confirmed', 'run', company_id)
 
     @api.model
+    def launch_run_or_check_jobs_for_ids(self, action_to_do, proc_ids):
+        job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env),
+                                                   'procurement.order', proc_ids, action_to_do, dict(self.env.context))
+        procs_for_job = self.search([('id', 'in', proc_ids)])
+        procs_for_job.write({'run_or_confirm_job_uuid': job_uuid})
+
+    @api.model
     def _do_procurements_run_or_check(self, state, action_to_do, company_id=None):
         """Launches the job to confirm all procurements."""
         products = self.env['product.product'].search([], limit=PRODUCT_CHUNK)
@@ -270,11 +277,11 @@ FROM procurement_order po
             self.env.cr.execute(query, params)
             proc_for_job_ids = [item[0] for item in self.env.cr.fetchall()]
             if self.env.context.get('jobify', False):
-                job_uuid = run_or_check_procurements.delay(ConnectorSession.from_env(self.env),
-                                                           'procurement.order', proc_for_job_ids,
-                                                           action_to_do, dict(self.env.context))
-                procs_for_job = self.search([('id', 'in', proc_for_job_ids)])
-                procs_for_job.write({'run_or_confirm_job_uuid': job_uuid})
+                if action_to_do == 'run':
+                    for proc_id in proc_for_job_ids:
+                        self.launch_run_or_check_jobs_for_ids(action_to_do, [proc_id])
+                else:
+                    self.launch_run_or_check_jobs_for_ids(action_to_do, [proc_for_job_ids])
             else:
                 run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', proc_for_job_ids,
                                           'run', dict(self.env.context))
