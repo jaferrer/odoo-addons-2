@@ -67,10 +67,13 @@ class BusObjectMappingAbstract(models.AbstractModel):
         for my_field in self.field_ids:
             field_mapping_xml_id = u"mapping_field_%s_%s" % (self.model_id.model.replace('.', '_'),
                                                              my_field.field_id.name)
-            field_xml_id = my_field.field_id.get_external_id().get(my_field.field_id.id)
+            # removes the module from the xml id to compose the field_id_name
+            field_id_name = my_field.field_id.get_external_id().get(my_field.field_id.id)
+            idx = field_id_name.index('.')
+            field_id_name = field_id_name[idx + 1:]
             fields_csv += u"""%s,%s,%s,%s,%s,%s,%s,%s""" % (field_mapping_xml_id,
                                                             model_mapping_xml_id,
-                                                            field_xml_id,
+                                                            field_id_name,
                                                             my_field.map_name,
                                                             my_field.export_field,
                                                             my_field.import_creatable_field,
@@ -233,13 +236,34 @@ class BusObjectMappingField(models.Model):
     _inherit = 'bus.object.mapping.field.abstract'
 
     mapping_id = fields.Many2one('bus.object.mapping', string=u"Model")
+    # "field_id_name" = temporary field used while importing data from CSV to compute "field_id"
+    field_id_name = fields.Text(string="field_name", store=False, compute=lambda x: [None for _ in x], required=False)
+
     active = fields.Boolean(u"Active", default=True)
     is_configured = fields.Boolean(String=u"Is configured", compute="_get_is_configured", store=True)
+
+    def _get_vals_with_field_id(self, vals):
+        if 'field_id_name' not in vals:
+            return vals
+        #  import from csv, required 'field_id' must be computed from field_id_name
+        field_data = self.env['ir.model.data'].search([('name', '=', vals['field_id_name']),
+                                                       ('model', '=', 'ir.model.fields')])
+        vals['field_id'] = field_data.res_id
+        return vals
+
+    @api.model
+    def create(self, vals):
+        vals = self._get_vals_with_field_id(vals)
+        return super(BusObjectMappingField, self).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        vals = self._get_vals_with_field_id(vals)
+        return super(BusObjectMappingField, self).write(vals)
 
     @api.multi
     @api.depends('field_id')
     def _get_is_configured(self):
-
         for rec in self:
             mapping = True
             if rec.field_id.relation:
@@ -250,5 +274,5 @@ class BusObjectMappingField(models.Model):
     _sql_constraints = [
         ('name_uniq_by_model', 'unique(field_id, mapping_id)', u"This field already exists for this model."),
         ('check_type_field', "check(type_field <> 'one2many')", u"one2many fields can't be exported"),
-        ('check_not_computed', "check(is_computed = False)", u"one2many should not be computed fields"),
+        ('check_not_computed', "check(is_computed = False)", u"fields must not be computed"),
     ]

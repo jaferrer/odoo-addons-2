@@ -19,7 +19,8 @@
                         </group>
                         <div  attrs="{'invisible': [('model_id', '=', False)]}">
                             <separator string="Fields to configure"/>
-                            <button name="add_all" string="add all fields" type="object" class="oe_link" />
+                            <button name="show_config" string="⇨ Show configured fields ⇦" type="object" class="oe_highlight" />
+                            <button name="add_all" string="⇨ Add all model fields ⇦" type="object" class="oe_link" />
                             <field name="field_ids" context="{
                                     'default_model_id': model_id,
                                     'default_export_field': is_exportable,
