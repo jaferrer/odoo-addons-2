@@ -24,3 +24,10 @@ class MrpPerformanceImprovedStockMove(models.Model):
     _inherit = 'stock.move'
 
     consumed_for = fields.Many2one('stock.move', index=True)
+
+
+
+class MrpPerformanceImprovedProcurementOrder(models.Model):
+    _inherit = 'procurement.order'
+
+    production_id = fields.Many2one('mrp.production', index=True)

@@ -87,6 +87,15 @@ class BusMessage(models.Model):
     extra_content = fields.Text(u"Extra-content", compute="_compute_message_fields", readonly=True)
     result_state = fields.Selection([('inprogress', u"In progress"), ('error', u"Error"), ('done', u"Done")],
                                     string=u"Result state", default='inprogress', compute='_compute_result_state')
+    active = fields.Boolean(u'Is active', default=True, index=True)
+
+    @api.multi
+    def deactive(self):
+        self.write({'active': False}) \
+
+    @api.multi
+    def reactive(self):
+        self.write({'active': True})
 
     @api.multi
     def _compute_cross_id_str(self):
