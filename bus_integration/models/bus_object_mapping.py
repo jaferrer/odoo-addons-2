@@ -37,7 +37,7 @@ class BusObjectMappingAbstract(models.AbstractModel):
 
     @api.multi
     def name_get(self):
-        return [(rec.id, u"Mapping of object %s" % rec.model_id.name) for rec in self]
+        return [(rec.id, u"%s mapping" % rec.model_id.model) for rec in self]
 
     @api.multi
     def view_datas(self):
@@ -126,8 +126,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     # related fields
     field_name = fields.Char(u"Field name", readonly=True, related='field_id.name', store=True)
     type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
-    relation = fields.Char(string=u'Relation', related='field_id.relation', store=True, readonly=True)
-    is_computed = fields.Boolean(String=u"Computed", compute="_get_is_computed", store=True)
+    is_computed = fields.Boolean(String=u"Computed", compute="_compute_depends_field_id", store=True)
     # compute when model changes in mapping.field.configuration.helper
     map_name = fields.Char(u"Mapping name", required=True)
     # set manually
@@ -136,14 +135,21 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     import_updatable_field = fields.Boolean(u"Import - to update")
     is_migration_key = fields.Boolean(u"Migration key", default=False)
 
+    relation_mapping = fields.Many2one('bus.object.mapping', string='many2one mapping',
+                                       compute="_compute_depends_field_id", store=True)
+
     @api.multi
     @api.depends('field_id')
-    def _get_is_computed(self):
+    def _compute_depends_field_id(self):
         for rec in self:
             model_name = rec.field_id.model
             rec.is_computed = model_name \
-                and self.env[model_name]._fields[rec.field_name] \
+                and rec.field_name in self.env[model_name]._fields \
                 and self.env[model_name]._fields[rec.field_name].compute or False
+
+            model_name = rec.field_id.relation
+            mapping = self.env['bus.object.mapping'].search([('model_name', '=', model_name)])
+            rec.relation_mapping = mapping
 
 
 class BusObjectMapping(models.Model):
@@ -240,7 +246,6 @@ class BusObjectMappingField(models.Model):
     field_id_name = fields.Text(string="field_name", store=False, compute=lambda x: [None for _ in x], required=False)
 
     active = fields.Boolean(u"Active", default=True)
-    is_configured = fields.Boolean(String=u"Is configured", compute="_get_is_configured", store=True)
 
     def _get_vals_with_field_id(self, vals):
         if 'field_id_name' not in vals:
@@ -260,16 +265,6 @@ class BusObjectMappingField(models.Model):
     def write(self, vals):
         vals = self._get_vals_with_field_id(vals)
         return super(BusObjectMappingField, self).write(vals)
-
-    @api.multi
-    @api.depends('field_id')
-    def _get_is_configured(self):
-        for rec in self:
-            mapping = True
-            if rec.field_id.relation:
-                model_name = rec.field_id.relation
-                mapping = self.env['bus.object.mapping'].search([('model_name', '=', model_name)])
-            rec.is_configured = mapping
 
     _sql_constraints = [
         ('name_uniq_by_model', 'unique(field_id, mapping_id)', u"This field already exists for this model."),
