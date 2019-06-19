@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,24 +18,19 @@
 #
 
 {
-    'name': 'Odoo Scripts for Console',
+    'name': 'Web Easy Download',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical',
-    'depends': ['base', 'connector', 'web_easy_download'],
+    'category': 'Web',
+    'depends': ['web'],
     'description': """
-Odoo Scripts for Console
-========================
-This modules allows to write scripts from frontend, and launch it manually.
-It is also optimized to be used in odoo console.
+web_easy_download
+=================
+This modules allows to download easily any binary content from frontend.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['security/groups.xml',
-             'security/ir.model.access.csv',
-             'odoo_scripts_console.xml',
-             'data.xml',
-             ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,
