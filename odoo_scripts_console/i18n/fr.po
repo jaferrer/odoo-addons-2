@@ -147,3 +147,36 @@ msgstr "Commande d'exécution du script"
 #: model:mail.message.subtype,name:mt_watcher_result
 msgid "Watcher result"
 msgstr "Résultat de l'analyse"
+
+#. module: odoo_scripts_console
+#: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
+msgid "Automatic"
+msgstr "Automatique"
+
+#. module: odoo_scripts_console
+#: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
+msgid "Manual"
+msgstr "Manuel"
+
+#. module: odoo_scripts_console
+#: field:odoo.script.watcher,is_automatic:0
+msgid "Is automatic"
+msgstr "Est automatique"
+
+#. module: odoo_scripts_console
+#: code:addons\odoo_scripts_console\odoo_scripts_console.py:129
+#, python-format
+msgid "No results to export!"
+msgstr "Pas de résultats à exporter!"
+
+#. module: odoo_scripts_console
+#: code:addons\odoo_scripts_console\odoo_scripts_console.py:160
+#, python-format
+msgid "True"
+msgstr "Vrai"
+
+#. module: odoo_scripts_console
+#: code:addons\odoo_scripts_console\odoo_scripts_console.py:162
+#, python-format
+msgid "False"
+msgstr "Faux"
