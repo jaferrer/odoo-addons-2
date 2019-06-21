@@ -44,11 +44,15 @@ class AllowedRecipientMailMail(models.Model):
                     message_vals_dict.append(mail.send_get_email_dict(partner=partner))
                 for values in message_vals_dict:
                     for recipient_email in values.get('email_to', []):
+                        is_recipient_allowed = False
                         for allowed_email in allowed_recipient_emails:
-                            if allowed_email not in recipient_email:
-                                mails_to_send -= mail
-                                mail.write({'state': 'exception',
-                                            'failure_reason': _(u"%s is not in the list of allowed recipients.") %
-                                                              recipient_email})
+                            if allowed_email in recipient_email:
+                                is_recipient_allowed = True
+                                break
+                        if not is_recipient_allowed:
+                            mails_to_send -= mail
+                            mail.write({'state': 'exception',
+                                        'failure_reason': _(u"%s is not in the list of allowed recipients.") %
+                                                          recipient_email})
         return super(AllowedRecipientMailMail, mails_to_send).send(auto_commit=auto_commit,
                                                                    raise_exception=raise_exception)
