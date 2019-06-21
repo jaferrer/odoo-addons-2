@@ -135,7 +135,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     import_updatable_field = fields.Boolean(u"Import - to update")
     is_migration_key = fields.Boolean(u"Migration key", default=False)
 
-    relation_mapping = fields.Many2one('bus.object.mapping', string='many2one mapping',
+    relation_mapping_id = fields.Many2one('bus.object.mapping', string='relation mapping',
                                        compute="_compute_depends_field_id", store=True)
 
     @api.multi
@@ -149,7 +149,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
 
             model_name = rec.field_id.relation
             mapping = self.env['bus.object.mapping'].search([('model_name', '=', model_name)])
-            rec.relation_mapping = mapping
+            rec.relation_mapping_id = mapping
 
 
 class BusObjectMapping(models.Model):
@@ -178,13 +178,11 @@ class BusObjectMapping(models.Model):
         init_dep_level = self.dependency_level
         dep_level = 0
         for field in self.field_ids:
-            if field.relation and field.type_field == 'many2one':
+            if field.relation_mapping_id and field.type_field == 'many2one':
                 dep_level = 1
-                if field.relation != self.model_name:
-                    relation_mapping = self.env['bus.object.mapping'].search([('model_name', '=', field.relation)])
+                if field.relation_mapping_id.model_name != self.model_name:
                     related_dep_level = 1
-                    if relation_mapping:
-                        related_dep_level = relation_mapping.calculate_dep_level()
+                    field.relation_mapping_id.calculate_dep_level()
                     dep_level = related_dep_level + dep_level
             if dep_level > init_dep_level:
                 init_dep_level = dep_level

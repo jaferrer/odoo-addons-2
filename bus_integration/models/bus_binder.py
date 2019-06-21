@@ -37,8 +37,8 @@ class BusSynchronizationBinder(models.AbstractModel):
         if value:
             if isinstance(value, dict):
                 external_id = str(value.get('id'))
-                external_key = dependencies.get(field.relation).get(external_id).get('external_key')
-                external_binding = self._get_transfer(external_key, field.relation)
+                external_key = dependencies.get(field.relation_mapping_id.model_name).get(external_id).get('external_key')
+                external_binding = self._get_transfer(external_key, field.relation_mapping_id.model_name)
                 domain_item = (field.field_name, '=', external_binding.local_id)
             else:
                 domain_item = (field.field_name, '=', value)
