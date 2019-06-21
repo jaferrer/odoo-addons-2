@@ -92,6 +92,12 @@ class BusConfigurationExport(models.Model):
         return self.env['bus.exporter'].run_export(self.id)
 
     @api.multi
+    def export_updated_records(self):
+        self.ensure_one()
+        force_domain = "[('write_date', '>', last_send_date)]"
+        return self.env['bus.exporter'].run_export(self.id, force_domain)
+
+    @api.multi
     def create_cron(self):
         self.write({
             'cron_created': True

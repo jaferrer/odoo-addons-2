@@ -34,7 +34,7 @@ class BusSynchronizationExporter(models.AbstractModel):
     # TODO :  a vérifier :  'binary', 'reference', 'serialized]
 
     @api.model
-    def run_export(self, backend_bus_configuration_export_id):
+    def run_export(self, backend_bus_configuration_export_id, force_domain=[]):
         """
         Create and send messages
         :param backend_bus_configuration_export_id: models to export with their conf
@@ -54,6 +54,9 @@ class BusSynchronizationExporter(models.AbstractModel):
         if batch.treatment_type != 'DELETION_SYNCHRONIZATION' and object_mapping.deactivated_sync and \
                 'active' in self.env[batch.model]._fields:
             export_domain += ['|', ('active', '=', False), ('active', '=', True)]
+        if force_domain:
+            force_domain = safe_eval(force_domain, batch.export_domain_keywords())
+            export_domain += force_domain
 
         ids_to_export = self.env[batch.model].search(export_domain)
         if not ids_to_export:
