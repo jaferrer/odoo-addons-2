@@ -18,13 +18,15 @@
 #
 
 import datetime
+import pytz
 
-from odoo import fields, models
+from odoo import fields, models, api
 
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
+    @api.multi
     def format_local_date(self, date=None):
         date_py = date or datetime.date.today()
         if isinstance(date_py, (str, unicode)):
@@ -32,6 +34,7 @@ class ResPartner(models.Model):
         lang = self.env['res.lang'].search([('code', '=', self.first().lang or self.env.user.lang)])
         return date_py.strftime(lang.date_format)
 
+    @api.multi
     def format_local_datetime(self, date=None):
         date_py = date or datetime.datetime.now()
         if isinstance(date_py, (str, unicode)):
@@ -39,12 +42,38 @@ class ResPartner(models.Model):
         lang = self.env['res.lang'].search([('code', '=', self.first().lang or self.env.user.lang)])
         return date_py.strftime("%s %s" % (lang.date_format, lang.time_format))
 
+    @api.multi
+    def utcize_date(self, date_dt):
+        """Return UTC date of given date (as dt)"""
+        self.ensure_one()
+        tz_info = fields.Datetime.context_timestamp(self, date_dt).tzinfo
+        dt_utc = date_dt.replace(tzinfo=tz_info).astimezone(pytz.UTC).replace(tzinfo=None)
+        return dt_utc
+
+    @api.multi
+    def localize_date(self, date_dt):
+        """Return TZ date of given UTC date (as dt)"""
+        self.ensure_one()
+        tz_info = fields.Datetime.context_timestamp(self, date_dt).tzinfo
+        dt_loc = date_dt.replace(tzinfo=pytz.UTC).astimezone(tz_info).replace(tzinfo=None)
+        return dt_loc
+
 
 class ResUsers(models.Model):
     _inherit = 'res.users'
 
+    @api.multi
     def format_local_date(self, date=None):
         return self.partner_id.format_local_date(date)
 
+    @api.multi
     def format_local_datetime(self, date=None):
         return self.partner_id.format_local_datetime(date)
+
+    @api.multi
+    def utcize_date(self, date_dt):
+        return self.partner_id.utcize_date(date_dt)
+
+    @api.multi
+    def localize_date(self, date_dt):
+        return self.partner_id.localize_date(date_dt)
