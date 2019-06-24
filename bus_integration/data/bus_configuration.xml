@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <data>
-
+    <data noupdate="1">
         <record model="bus.configuration" id="backend">
             <field name="name">Bus main backend</field>
             <field name="reception_treatment">simple_reception</field>

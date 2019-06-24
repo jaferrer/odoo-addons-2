@@ -183,11 +183,11 @@ class BusSynchronizationExporter(models.AbstractModel):
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = {
             'id': record[field.field_name].id,
-            'model': field.relation,
+            'model': field.relation_mapping_id.model_name,
             'type_field': 'many2one'
         }
         sub_record = record[field.field_name]
-        message_dict = self.fill_dependancy(message_dict, field.relation, sub_record)
+        message_dict = self.fill_dependancy(message_dict, field.relation_mapping_id.model_name, sub_record)
         return message_dict
 
     @api.model
@@ -195,11 +195,11 @@ class BusSynchronizationExporter(models.AbstractModel):
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = {
             'ids': record[field.field_name].ids,
-            'model': field.relation,
+            'model': field.relation_mapping_id.model_name,
             'type_field': 'many2many'
         }
         sub_records = record[field.field_name]
-        message_dict = self.fill_dependancy(message_dict, field.relation, sub_records)
+        message_dict = self.fill_dependancy(message_dict, field.relation_mapping_id.model_name, sub_records)
         return message_dict
 
     @api.model

@@ -67,12 +67,12 @@
                                         'default_export_field': is_exportable,
                                         'default_import_creatable_field': is_importable,
                                         'default_import_updatable_field': is_importable}">
-                                    <tree editable="bottom" colors="red:type_field == 'many2one' and relation_mapping == False">
+                                    <tree editable="bottom" colors="red:type_field == 'many2one' and relation_mapping_id == False">
                                         <field name="model_id" invisible="1"/>
                                         <field name="field_id" domain="[('model_id', '=', model_id)]"
                                                options="{'no_create': True, 'no_open': True}"/>
                                         <field name="type_field"/>
-                                        <field name="relation_mapping" widget="many2one_clickable" />
+                                        <field name="relation_mapping_id" widget="many2one_clickable" />
                                         <field name="map_name"/>
                                         <field name="export_field"/>
                                         <field name="import_creatable_field"/>
