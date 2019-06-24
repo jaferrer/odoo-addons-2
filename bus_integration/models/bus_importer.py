@@ -228,11 +228,11 @@ class BusSynchronizationImporter(models.AbstractModel):
 
     @api.model
     def register_errors(self, errors, message_id, model, record_id, external_key):
-        no_error = True
+        has_error = False
         for error in errors:
             error_type, error_message = error
             if error_type == 'error':
-                no_error = False
+                has_error = True
             self.env['bus.message.log'].create({
                 'message_id': message_id,
                 'type': error_type,
@@ -241,7 +241,7 @@ class BusSynchronizationImporter(models.AbstractModel):
                 'sender_record_id': record_id,
                 'external_key': external_key
             })
-        return no_error
+        return has_error
 
     @api.model
     def run_import_deletion(self, record, model, dependencies):
