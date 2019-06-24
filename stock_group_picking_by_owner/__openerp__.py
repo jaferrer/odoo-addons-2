@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,25 +18,23 @@
 #
 
 {
-    'name': 'Odoo Scripts for Console',
+    'name': 'Group picking by owner',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical',
-    'depends': ['base', 'connector', 'web_easy_download'],
+    'category': 'Technical Settings',
+    'depends': ['stock_moves_to_assigned_pickings'],
     'description': """
-Odoo Scripts for Console
-========================
-This modules allows to write scripts from frontend, and launch it manually.
-It is also optimized to be used in odoo console.
+Group picking_by_owner
+======================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['security/groups.xml',
-             'security/ir.model.access.csv',
-             'odoo_scripts_console.xml',
-             'data.xml',
-             ],
-    'demo': [],
+    'data': [
+        'views/stock_picking_type.xml',
+    ],
+    'demo': [
+        'tests/test_stock.xml',
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,

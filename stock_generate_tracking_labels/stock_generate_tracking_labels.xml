@@ -26,7 +26,6 @@
                 <page name="complementary_binary" position="inside">
                     <group name="tracking_label" string="Tracking label">
                         <field name="binary_label" filename="data_fname" readonly="1"/>
-                        <field name="tracking_label_attachment" readonly="1"/>
                     </group>
                 </page>
             </field>

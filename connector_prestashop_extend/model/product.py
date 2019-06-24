@@ -363,8 +363,11 @@ class StockLevelExporter(Exporter):
     def run(self):
         log = ""
 
-        url_default = self.env["connector.type.prestashop.parameter"].search(
-            [("line_id", "=", self.backend_record.connector_id.line_id.id)])[0].location
+        params = self.env["connector.type.prestashop.parameter"].search([
+            ("line_id", "=", self.backend_record.connector_id.line_id.id)
+        ], limit=1)
+        url_default = params.location
+        stock_root = params.stock_location_root_id or self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id
 
         self.env.cr.execute(""" WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
             SELECT
@@ -423,7 +426,7 @@ class StockLevelExporter(Exporter):
             prestashopextend_id,
             default_code
                     """, (self.backend_record.connector_id.home_id.id,
-                          self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id,
+                          stock_root.id,
                           self.backend_record.connector_id.home_id.id
                           ))
 
