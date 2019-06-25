@@ -51,7 +51,8 @@ class BusSynchronizationReceiver(models.AbstractModel):
                 job_uiid = job_receive_message(ConnectorSession.from_env(self.env), self._name, message.id)
             result = u"Receive Message : %s in processing by the job %s" % (message.id, job_uiid)
             to_raise = False
-            histo_log = self.env['bus.configuration.export.histo.log'].search([('message_id', '=', parent_message_id)])
+            histo_log = self.env['bus.configuration.export.histo.log'].search([('message_id', '=', parent_message_id)],
+                                                                              limit=1, order='id DESC')
             if histo_log:
                 histo_log.histo_id.add_log(message.id, job_uiid, log=result)
         except exceptions.ValidationError as error:
