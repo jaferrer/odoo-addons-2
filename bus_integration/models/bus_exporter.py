@@ -162,8 +162,8 @@ class BusSynchronizationExporter(models.AbstractModel):
 
     @api.model
     def get_xml_id(self, model, record_id):
-        ir_model_data = self.env['ir.model.data'].search([('model', '=', model),
-                                                          ('res_id', '=', record_id)])
+        ir_model_data = self.env['ir.model.data'].search([('model', '=', model), ('res_id', '=', record_id)], limit=1,
+                                                         order='id ASC')
         return ir_model_data and ir_model_data.complete_name or False
 
     @api.model
