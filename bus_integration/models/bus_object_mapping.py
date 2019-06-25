@@ -136,7 +136,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     is_migration_key = fields.Boolean(u"Migration key", default=False)
 
     relation_mapping_id = fields.Many2one('bus.object.mapping', string='relation mapping',
-                                       compute="_compute_depends_field_id", store=True)
+                                          compute="_compute_depends_field_id", store=True)
 
     @api.multi
     @api.depends('field_id')
@@ -169,24 +169,26 @@ class BusObjectMapping(models.Model):
     @api.multi
     def compute_dependency_level(self):
         for rec in self:
-            dep_level = rec.calculate_dep_level()
-            rec.dependency_level = dep_level
+            rec.dependency_level = 0  # reset value to re-calculate it
+            rec._calculate_dep_level(rec, 0)
 
     @api.multi
-    def calculate_dep_level(self):
+    def _calculate_dep_level(self, current_mapping, model_deps_seen=None):
         self.ensure_one()
-        init_dep_level = self.dependency_level
-        dep_level = 0
-        for field in self.field_ids:
-            if field.relation_mapping_id and field.type_field == 'many2one':
-                dep_level = 1
-                if field.relation_mapping_id.model_name != self.model_name:
-                    related_dep_level = 1
-                    field.relation_mapping_id.calculate_dep_level()
-                    dep_level = related_dep_level + dep_level
-            if dep_level > init_dep_level:
-                init_dep_level = dep_level
-        return init_dep_level
+
+        if not model_deps_seen:
+            model_deps_seen = [current_mapping.model_name]
+
+        # save current level in model if higher than the one we know
+        if len(model_deps_seen) - 1 > self.dependency_level:
+            self.dependency_level = len(model_deps_seen) - 1
+
+        for field in current_mapping.field_ids:
+            if field.relation_mapping_id and field.relation_mapping_id.model_name not in model_deps_seen:
+                # go deeper.. recursively
+                branch_models = list(model_deps_seen)
+                branch_models.append(field.relation_mapping_id.model_name)
+                self._calculate_dep_level(field.relation_mapping_id, branch_models)
 
     @api.constrains('deactivate_on_delete', 'deactivated_sync')
     def _contrains_deactivate_on_delete(self):
