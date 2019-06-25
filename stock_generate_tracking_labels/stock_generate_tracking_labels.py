@@ -48,8 +48,7 @@ class DeliveryTrackingStockPicking(models.Model):
 
     use_tracking_labels = fields.Boolean(string="Use tracking labels", related='picking_type_id.use_tracking_labels')
     tracking_defined = fields.Boolean(compute='_compute_tracking_defined', store=True)
-    binary_label = fields.Binary(string="Label (binary)")
-    tracking_label_attachment = fields.Many2one('ir.attachment', string="Label (attachment)")
+    binary_label = fields.Binary(string="Label (binary)", attachment=True)
     data_fname = fields.Char(string="Label name")
 
     @api.depends('tracking_ids')
@@ -154,21 +153,15 @@ class TrackingGenerateLabelsWizard(models.TransientModel):
                     merger.close()
                     myobj.close()
                     self.picking_id.binary_label = False
-                    if self.picking_id.tracking_label_attachment:
-                        self.picking_id.tracking_label_attachment.unlink()
                     if self.picking_id.tracking_ids:
                         self.picking_id.tracking_ids.unlink()
             elif len(list_files) == 1:
                 final_encoded_data = base64.encodestring(list_files[0])
             if final_encoded_data:
-                label_attachment = self.env['ir.attachment'].create({
-                    'name': outputfile,
-                    'datas': final_encoded_data,
-                    'datas_fname': outputfile,
+                self.picking_id.write({
+                    'binary_label': final_encoded_data,
+                    'data_fname': outputfile,
                 })
-                self.picking_id.write({'binary_label': final_encoded_data,
-                                       'data_fname': outputfile,
-                                       'tracking_label_attachment': label_attachment.id})
         return result
 
     @api.multi
