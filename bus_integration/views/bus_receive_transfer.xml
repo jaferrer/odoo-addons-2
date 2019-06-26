@@ -12,6 +12,7 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <tree create="false">
+                    <field name="display_name"/>
                     <field name="model"/>
                     <field name="external_key"/>
                     <field name="local_id"/>
@@ -69,8 +70,7 @@
                                 domain="[('to_deactivate','=', False)]"/>
                     </group>
                     <group expand="0" string="Group By">
-                        <filter name="by_model" string="Model"
-                                context="{'group_by': 'model'}"/>
+                        <filter name="by_model" string="Model" context="{'group_by': 'model'}"/>
                     </group>
                 </search>
             </field>
@@ -82,7 +82,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
-            <field name="context">{}</field>
+            <field name="context">{'search_default_by_model': True}</field>
             <field name="help"/>
         </record>
 

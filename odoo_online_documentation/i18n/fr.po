@@ -81,3 +81,13 @@ msgstr "Ouvrir la documentation"
 #: sql_constraint:odoo.online.document.type.name:0
 msgid "The type must be unique."
 msgstr "Le type doit être unique."
+
+#. module: odoo_online_documentation
+#: code:addons/odoo_online_documentation/odoo_online_documentation.py:0
+msgid "Error!"
+msgstr "Erreur!"
+
+#. module: odoo_online_documentation
+#: code:addons/odoo_online_documentation/odoo_online_documentation.py:0
+msgid "No file related to this documentation."
+msgstr "Pas de fichier lié à cette documentation."

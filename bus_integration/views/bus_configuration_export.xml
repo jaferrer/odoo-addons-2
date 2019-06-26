@@ -23,8 +23,7 @@
                             attrs="{'invisible':[('cron_created','=',True)]}"/>
                     <button string="Edit cron" name="edit_cron" type="object"
                             attrs="{'invisible':[('cron_created','=',False)]}"/>
-                    <button string="run" name="run_batch" type="object"
-                            attrs="{'invisible':[('cron_created','=',False)]}"/>
+                    <button string="run" name="run_batch" type="object" />
                 </tree>
             </field>
         </record>
@@ -36,6 +35,7 @@
                 <form>
                     <header>
                         <button name="run_batch" string="Run batch" class="oe_highlight" type="object"/>
+                        <button name="export_updated_records" string="Export updated records" class="oe_highlight" type="object"/>
                         <button name="edit_cron" string="Cron" class="oe_highlight" type="object"/>
                         <field name="last_transfer_state" widget="statusbar" statusbar_visible=""
                                statusbar_colors="{'done':'green', 'error': 'red'}"/>
@@ -105,6 +105,22 @@
         <menuitem id="menu_bus_config_export_menu" name="Configuration of template exports"
                   action="act_window_bus_config_export" parent="menu_bus"
                   sequence="15"/>
+
+        <record model="ir.actions.server" id="ir_actions_update_config_export_dependency_level">
+            <field name="name">Update dependency level</field>
+            <field name="model_id" ref="bus_integration.model_bus_configuration_export"/>
+            <field name="code">
+                action = self.compute_dependency_level(cr,uid,context.get('active_ids'),context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_update_config_export_dependency_level">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">bus.configuration.export</field>
+            <field name="name">Update dependency level</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_update_config_export_dependency_level)"/>
+        </record>
 
     </data>
 </openerp>

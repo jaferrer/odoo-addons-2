@@ -19,6 +19,9 @@
 
 import json
 from datetime import datetime
+
+from psycopg2._psycopg import IntegrityError
+
 from openerp import models, api, exceptions
 
 
@@ -142,32 +145,46 @@ class BusSynchronizationImporter(models.AbstractModel):
         return self.env['bus.object.mapping'].search([('model_name', '=', model), ('active', '=', True),
                                                       ('is_importable', '=', True)])
 
+    def _update_translation(self, transfer, translation, ir_translation_name, lang):
+        ir_translation = self.env['ir.translation'].search([('name', '=', ir_translation_name),
+                                                            ('type', '=', 'model'), ('lang', '=', lang),
+                                                            ('res_id', '=', transfer.local_id)])
+        translation.update({'comments': u"Set by BUS %s" % datetime.now()})
+        if ir_translation:
+            ir_translation.write(translation)
+        else:
+            translation.update({
+                'name': ir_translation_name,
+                'lang': lang,
+                'res_id': transfer.local_id,
+                'type': 'model'
+            })
+            self.env['ir.translation'].create(translation)
+
     @api.model
-    def _update_translation(self, transfer, translations):
+    def _update_translations(self, transfer, translations):
+        """
+        translate the model in the bus message to the subscriber language
+        :param transfer:
+        :param translations:
+        :return: warnings if any or []. translations errors are not critical.
+        """
+        warnings = []
         for field in translations:
             for lang in translations.get(field):
-                translation = translations.get(field).get(lang, "")
                 ir_translation_name = "%s,%s" % (transfer.model, field)
-                ir_translation = self.env['ir.translation'].search([('name', '=', ir_translation_name),
-                                                                    ('type', '=', 'model'), ('lang', '=', lang),
-                                                                    ('res_id', '=', transfer.local_id)])
-                translation.update({'comments': u"Set by BUS %s" % datetime.now()})
-                if ir_translation:
-                    ir_translation.write(translation)
+                if not self.env['res.lang'].search([('code', '=', lang)]):
+                    warnings .append(('warning', 'could not translate %s. lang %s is not installed' %
+                                      (ir_translation_name, lang)))
                 else:
-                    translation.update({
-                        'name': ir_translation_name,
-                        'lang': lang,
-                        'res_id': transfer.local_id,
-                        'type': 'model'
-                    })
-                    self.env['ir.translation'].create(translation)
+                    translation = translations.get(field).get(lang, "")
+                    self._update_translation(transfer, translation, ir_translation_name, lang)
+        return warnings
 
     @api.model
     def run_import(self, message_id, record, model, dependencies):
         external_key = record.pop('external_key')
         translation = record.pop('translation', False)
-        # remote_id = record.pop('id')
         record_id = record.get('id')
         xml_id = record.pop('xml_id', False)
         model_mapping = self._get_object_mapping(model)
@@ -181,38 +198,50 @@ class BusSynchronizationImporter(models.AbstractModel):
                 'external_key': external_key
             })
             return False
-        transfer, odoo_record = self.env['bus.binder']\
-            .process_binding(external_key, model, record, xml_id, model_mapping, dependencies)
-        binding_data, record_data, errors = self.env['bus.mapper']\
-            .process_mapping(record, model, external_key, model_mapping, dependencies, odoo_record)
-        if len(odoo_record) > 1:
-            errors.append(('error', u"Too many record find for %s : %s" % (model, record_id)))
-        no_error = self.register_errors(errors, message_id, model, record.get('id', False), external_key)
-        if not no_error:
-            return False
-        else:
+
+        errors = []
+        transfer = False
+        try:
+            with self.env.cr.savepoint():
+                transfer, odoo_record = self.env['bus.binder']\
+                    .process_binding(record, model, external_key, model_mapping, dependencies, xml_id)
+                binding_data, record_data, errors = self.env['bus.mapper'] \
+                    .process_mapping(record, model, external_key, model_mapping, dependencies, odoo_record)
+                if len(odoo_record) > 1:
+                    errors.append(('error', u"Too many record find for %s : %s" % (model, record_id)))
+        except IntegrityError as err:
+            fields_mapping = self.env['bus.object.mapping.field'].search([('is_migration_key', '=', True),
+                                                                          ('mapping_id', '=', model_mapping.id)])
+            fields_name = str([field.field_name for field in fields_mapping])
+            errors.append(('error', 'invalid migration_key on %s. multiple records found with migration_key %s, '
+                                    'detail: %s' % (fields_name, model, err)))
+        if not errors:
             transfer, odoo_record = transfer.import_datas(transfer, odoo_record, binding_data, record_data)
             if translation:
-                self._update_translation(transfer, translation)
-            return {'external_key': external_key, 'id': transfer.local_id}
-        return False
+                self._update_translations(transfer, translation)
+
+        has_critical_error = self.register_errors(errors, message_id, model, record.get('id', False), external_key)
+        if not transfer or has_critical_error:
+            return False
+
+        return {'external_key': external_key, 'id': transfer.local_id}
 
     @api.model
     def register_errors(self, errors, message_id, model, record_id, external_key):
-        no_error = True
+        has_error = False
         for error in errors:
             error_type, error_message = error
             if error_type == 'error':
-                no_error = False
-                self.env['bus.message.log'].create({
-                    'message_id': message_id,
-                    'type': error_type,
-                    'information': error_message,
-                    'model': model,
-                    'sender_record_id': record_id,
-                    'external_key': external_key
-                })
-        return no_error
+                has_error = True
+            self.env['bus.message.log'].create({
+                'message_id': message_id,
+                'type': error_type,
+                'information': error_message,
+                'model': model,
+                'sender_record_id': record_id,
+                'external_key': external_key
+            })
+        return has_error
 
     @api.model
     def run_import_deletion(self, record, model, dependencies):

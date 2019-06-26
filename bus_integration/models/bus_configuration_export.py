@@ -92,6 +92,12 @@ class BusConfigurationExport(models.Model):
         return self.env['bus.exporter'].run_export(self.id)
 
     @api.multi
+    def export_updated_records(self):
+        self.ensure_one()
+        force_domain = "[('write_date', '>', last_send_date)]"
+        return self.env['bus.exporter'].run_export(self.id, force_domain)
+
+    @api.multi
     def create_cron(self):
         self.write({
             'cron_created': True
@@ -140,7 +146,7 @@ class BusConfigurationExport(models.Model):
             rec.cron_active = cron and cron.active or False
 
     @api.multi
-    def get_serial(self, export_ids):
+    def get_histo(self, export_ids):
         histo = self.env["bus.configuration.export.histo"].create({
             'bus_configuration_export_id': self.id,
             'treatment': self.treatment_type,
@@ -148,7 +154,6 @@ class BusConfigurationExport(models.Model):
             'export_ids': export_ids,
         })
         histo.serial_id = histo.id
-        self.serial_id = histo.id
         return histo
 
     @api.multi
@@ -168,3 +173,8 @@ class BusConfigurationExport(models.Model):
         self.ensure_one()
         return self.last_transfer_id and self.last_transfer_id.write_date or fields.Datetime\
             .to_string(datetime.strptime('1900', '%Y'))
+
+    @api.multi
+    def compute_dependency_level(self):
+        for rec in self:
+            rec.mapping_object_id.compute_dependency_level()

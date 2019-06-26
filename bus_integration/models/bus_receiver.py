@@ -36,8 +36,8 @@ class BusSynchronizationReceiver(models.AbstractModel):
             dict_message = json.loads(message_json, encoding='utf-8')
 
             # search for a parent message id
-            #     1. look for a sent message with the same cross id origin (ex : mere:1>mere:3)
-            #     2. look for a sent message in the upper level of cross id origin (ex: mere:1)
+            #     1. look for a sent message with the same cross id origin (ex : master:1>master:3)
+            #     2. look for a sent message in the upper level of cross id origin (ex: master:1)
 
             parent_message = self.env['bus.message'].get_same_cross_id_messages(dict_message)._get_first_sent_message()
             if not parent_message:
@@ -51,7 +51,8 @@ class BusSynchronizationReceiver(models.AbstractModel):
                 job_uiid = job_receive_message(ConnectorSession.from_env(self.env), self._name, message.id)
             result = u"Receive Message : %s in processing by the job %s" % (message.id, job_uiid)
             to_raise = False
-            histo_log = self.env['bus.configuration.export.histo.log'].search([('message_id', '=', parent_message_id)])
+            histo_log = self.env['bus.configuration.export.histo.log'].search([('message_id', '=', parent_message_id)],
+                                                                              limit=1, order='id DESC')
             if histo_log:
                 histo_log.histo_id.add_log(message.id, job_uiid, log=result)
         except exceptions.ValidationError as error:

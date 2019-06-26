@@ -197,7 +197,9 @@ class PurchaseOrderLinePlanningImproved(models.Model):
 
     @api.model
     def cron_compute_coverage_state(self):
-        pol_coverage_to_recompute = self.search([('order_id.state', '!=', 'draft'), ('remaining_qty', '>', 0)])
+        pol_coverage_to_recompute = self.search([('order_id.state', 'not in', ['draft', 'done', 'cancel']),
+                                                 ('order_id.partner_id.active', '=', True),
+                                                 ('remaining_qty', '>', 0)])
         products_to_process_ids = list(set([line.product_id.id for line in pol_coverage_to_recompute if
                                             line.product_id]))
         if products_to_process_ids:
