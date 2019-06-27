@@ -46,12 +46,11 @@ odoo.define('pos_no_offline_payment.screens', function (require) {
         },
         show_connection: function () {
             console.log("show_connection");
-            if (navigator.onLine) {
-                $('.js_connected').removeClass('oe_hidden');
-                $('.js_disconnected').addClass('oe_hidden');
-            } else {
-                $('.js_connected').addClass('oe_hidden');
-                $('.js_disconnected').removeClass('oe_hidden');
+            if (!navigator.onLine) {
+                if ($('.js_synch .js_disconnected').hasClass('oe_hidden')) {
+                    $('.js_synch .js_disconnected').removeClass('oe_hidden')
+                    $('.js_synch .js_connected').addClass('oe_hidden')
+                }
             }
         },
         validate_order: function (force_validation) {

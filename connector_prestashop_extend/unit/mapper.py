@@ -20,12 +20,12 @@ def backend_to_m2o(field, binding=None):
     For a field from a backend which is an ID, search the corresponding
     binding in OpenERP and returns its ID.
     When the field's relation is not a binding (i.e. it does not point to
-    something like ``magento.*``), the binding model needs to be provided
+    something like ``prestashop.*``), the binding model needs to be provided
     in the ``binding`` keyword argument.
     Example::
-        direct = [(backend_to_m2o('country', binding='magento.res.country'),
+        direct = [(backend_to_m2o('country', binding='prestashop.res.country'),
                    'country_id'),
-                  (backend_to_m2o('country'), 'magento_country_id')]
+                  (backend_to_m2o('country'), 'prestashop_country_id')]
     :param field: name of the source field in the record
     :param binding: name of the binding model is the relation is not a binding
     """

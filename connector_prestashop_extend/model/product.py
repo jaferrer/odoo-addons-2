@@ -141,7 +141,7 @@ class ProductCombinationRecordImport(TranslatableRecordImporter):
     def run(self, prestashopextend_id, id_shop=None, **kwargs):
         """ Run the synchronization
 
-        :param magentoextend_id: identifier of the record on magentoextendCommerce
+        :param magentoextend_id: identifier of the record on Prestahop E-Commerce
         """
         self.prestashopextend_id = prestashopextend_id
         lock_name = 'import({}, {}, {}, {})'.format(
@@ -363,8 +363,11 @@ class StockLevelExporter(Exporter):
     def run(self):
         log = ""
 
-        url_default = self.env["connector.type.prestashop.parameter"].search(
-            [("line_id", "=", self.backend_record.connector_id.line_id.id)])[0].location
+        params = self.env["connector.type.prestashop.parameter"].search([
+            ("line_id", "=", self.backend_record.connector_id.line_id.id)
+        ], limit=1)
+        url_default = params.location
+        stock_root = params.stock_location_root_id or self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id
 
         self.env.cr.execute(""" WITH RECURSIVE top_parent(loc_id, top_parent_id) AS (
             SELECT
@@ -423,7 +426,7 @@ class StockLevelExporter(Exporter):
             prestashopextend_id,
             default_code
                     """, (self.backend_record.connector_id.home_id.id,
-                          self.backend_record.connector_id.home_id.warehouse_id.lot_stock_id.id,
+                          stock_root.id,
                           self.backend_record.connector_id.home_id.id
                           ))
 
@@ -454,9 +457,9 @@ class ProductProductBatchImporter(DelayedBatchImporter):
     _prestashopextend_model = 'products'
 
 
-@job(default_channel='root.prestashopextend_pull_product_product')
+@job(default_channel='root.prestashop.pull.product_product')
 def product_import_batch(session, model_name, backend_id, filters=None):
-    """ Prepare the import of product modified on magentoextend """
+    """ Prepare the import of product modified on Prestashop """
     if filters is None:
         filters = {}
     env = get_environment(session, model_name, backend_id)
@@ -464,7 +467,7 @@ def product_import_batch(session, model_name, backend_id, filters=None):
     importer.run(filters=filters)
 
 
-@job(default_channel='root.prestashopextend_push_product_level')
+@job(default_channel='root.prestashop.push.product_level')
 def product_export_stock_level_batch(session, model_name, backend_id, filters=None):
     env = get_environment(session, model_name, backend_id)
     importer = env.get_connector_unit(StockLevelExporter)
@@ -474,4 +477,4 @@ def product_export_stock_level_batch(session, model_name, backend_id, filters=No
 class ResPartnerBackend(models.Model):
     _inherit = 'product.product'
 
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
+    owner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])

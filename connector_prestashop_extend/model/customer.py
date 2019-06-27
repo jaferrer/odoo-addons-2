@@ -59,10 +59,8 @@ class customerResPartner(models.Model):
     _inherit = 'res.partner'
 
     final_customer = fields.Boolean(string='Final Customer')
-    customer_point = fields.Float(string='Customer Point')
     address_company_name = fields.Char(string="Nom de la boutique point relais")
     id_relais = fields.Char(string="Id point relais")
-    custom_field_mapping = fields.One2many('res.partner.custom.field', 'partner_id', string=u"'Mapping Custom Field'")
 
 
 class magentoextendResPartner(models.Model):
@@ -119,9 +117,9 @@ class MagentoAddress(models.Model):
                                  string='Partner',
                                  required=True,
                                  ondelete='cascade')
-    date_add = fields.Datetime(string='Created At (on Magento)',
+    date_add = fields.Datetime(string='Created At (on Prestahop E-Commerce)',
                                readonly=True)
-    date_upd = fields.Datetime(string='Updated At (on Magento)',
+    date_upd = fields.Datetime(string='Updated At (on Prestahop E-Commerce)',
                                readonly=True)
 
     prestashop_partner_id = fields.Many2one(comodel_name='prestashopextend.res.partner',
@@ -135,7 +133,7 @@ class MagentoAddress(models.Model):
         string='prestashopextend Backend',
         store=True,
         readonly=True,
-        # override 'magento.binding', can't be INSERTed if True:
+        # override 'prestashop.binding', can't be INSERTed if True:
         required=False,
     )
 
@@ -236,6 +234,7 @@ class ResPartnerRecordImport(prestashopextendImporter):
             self.backend_record.id,
             filters={'filter[id_customer]': '%s' % (ps_id)},
             priority=10,
+            description=self.backend_record.connector_id.display_name
         )
 
 
@@ -403,7 +402,7 @@ class CountryImporter(prestashopextendImporter):
     _model_name = 'prestashopextend.res.country'
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.prestashop.pull.partner')
 def customer_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of Customer """
     env = get_environment(session, model_name, backend_id)
@@ -414,4 +413,4 @@ def customer_import_batch(session, model_name, backend_id, filters=None):
 class ResPartnerBackend(models.Model):
     _inherit = 'res.partner'
 
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
+    owner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])

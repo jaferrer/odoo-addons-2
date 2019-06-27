@@ -374,7 +374,7 @@ class SaleOrderImportMapper(ImportMapper):
         return {'backend_id': self.backend_record.id}
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.magento')
 def sale_order_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of Sale Order modified on magentoextend """
     env = get_environment(session, model_name, backend_id)

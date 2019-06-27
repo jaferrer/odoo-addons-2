@@ -51,6 +51,21 @@ class ConnectorHomeLine(models.Model):
     active = fields.Boolean('Actif', store=True, default=True)
 
     @api.multi
+    def name_get(self):
+        return [
+            (
+                rec.id,
+                u"%s [%s] %s %s" % (
+                    rec.line_id.type_id.name,
+                    rec.connector_id.name,
+                    rec.connector_id.comment or u"",
+                    rec.home_id.partner_id.name,
+                )
+            )
+            for rec in self
+        ]
+
+    @api.multi
     def _compute_cron(self):
         for rec in self:
             cron = self.env['ir.cron'].search([('connector_id', '=', rec.id)])
@@ -189,16 +204,18 @@ class ConnectorTypeBackend(models.Model):
 class ConnectorTypeMagentoParameter(models.Model):
     _name = 'connector.type.magento.parameter'
 
-    url = fields.Char(string=u'api')
-    api_user = fields.Char(string=u'Username')
-    api_pwd = fields.Char(string=u'Password')
+    url = fields.Char(u'api')
+    api_user = fields.Char(u'Username')
+    api_pwd = fields.Char(u'Password')
 
     use_http = fields.Boolean(u"Use HTTP Auth Basic")
 
-    http_user = fields.Char(string=u'Basic Auth. Username')
-    http_pwd = fields.Char(string=u'Basic Auth. Password')
+    http_user = fields.Char(u'Basic Auth. Username')
+    http_pwd = fields.Char(u'Basic Auth. Password')
 
-    line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
+    stock_location_root_id = fields.Many2one('stock.location', u"Emplacement du stock")
+
+    line_id = fields.Many2one('backend.type.line', u"Connector Type line", required=True)
 
 
 class ConnectorTypeOdooParameter(models.Model):
@@ -237,4 +254,3 @@ class ConnectorTypeLocalParameter(models.Model):
     archive_path = fields.Char(string=u'archive path')
 
     line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
-

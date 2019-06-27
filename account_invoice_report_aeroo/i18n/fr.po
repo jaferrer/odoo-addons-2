@@ -32,7 +32,7 @@ msgstr "N° client :"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "TIN:"
+msgid "N° VAT"
 msgstr "N° TVA :"
 
 #. module: account_invoice_report_aeroo
@@ -87,8 +87,23 @@ msgstr "Prix Unitaire"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
-msgid "Price"
-msgstr "Prix"
+msgid "Untaxed Price"
+msgstr "Prix HT"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Net Total"
+msgstr "Total HT"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Discount (%)"
+msgstr "Remise (%)"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Currency:"
+msgstr "Devise :"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="job.monitoring" id="monitoring_root">
+            <field name="name">Root</field>
+            <field name="domain"></field>
+            <field name="res_model"></field>
+            <field name="channel">root</field>
+            <field name="sequence">99</field>
+            <field name="color">99</field>
+        </record>
+    </data>
+</odoo>

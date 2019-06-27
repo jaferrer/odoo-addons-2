@@ -122,7 +122,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                     <field name="image"/>
                     <templates>
                         <t t-name="kanban-box">
-                            <div class="oe_kanban_vignette oe_semantic_html_override">
+                            <div class="oe_kanban_vignette oe_semantic_html_override oe_kanban_global_click">
                                 <div class="o_kanban_image">
                                     <t t-if="record.image.raw_value">
                                         <img t-att-src="kanban_image('tracking.transporter', 'image', record.id.value)"/>
@@ -130,14 +130,8 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                                 </div>
                                 <div class="oe_kanban_details">
                                     <h4>
-                                        <a type="open">
-                                            <field name="name"/>
-                                        </a>
+                                        <field name="name"/>
                                     </h4>
-                                    <div name="transporters"/>
-                                    <a name="open_transporter_numbers" type="object">
-                                        <t t-esc="record.number_trackings.value"/> Deliveries
-                                    </a>
                                 </div>
                             </div>
                         </t>
@@ -190,7 +184,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="name">Tracking numbers by transporter</field>
             <field name="res_model">tracking.transporter</field>
             <field name="view_type">form</field>
-            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_mode">kanban,form</field>
             <field name="domain">[]</field>
             <field name="context">{}</field>
             <field name="help"></field>

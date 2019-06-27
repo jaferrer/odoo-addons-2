@@ -101,7 +101,15 @@ class prestashopextend_backend(models.Model):
                     'date': '1'}
 
         customer_import_batch.delay(
-            session, 'prestashopextend.res.partner', backend_id, opts, priority=3)
+            session,
+            'prestashopextend.res.partner',
+            backend_id,
+            opts,
+            priority=3,
+            description=u"%s depuis le %s" % (
+                self.connector_id.display_name,
+                self.env.user.format_local_date(from_date),
+            ))
         _logger.info("Date chunk %s -> now", from_date)
         return True
 
@@ -140,20 +148,16 @@ class prestashopextend_backend(models.Model):
 
     @api.multi
     def import_product(self):
-        new_ctx = dict(self.env.context)
-        new_ctx['company_id'] = self.company_id.id
-        session = ConnectorSession(self.env.cr, self.env.uid,
-                                   context=new_ctx)
-        import_start_time = datetime.now()
-        backend_id = self.id
-        product = self.env['prestashopextend.product.product'].search([], limit=1, order="updated_at desc")
+        new_ctx = dict(self.env.context, company_id=self.company_id.id)
+        session = ConnectorSession(self.env.cr, self.env.uid, context=new_ctx)
+        product = self.env['prestashopextend.product.product'].search([('backend_id', '=', self.id)], limit=1, order="updated_at desc")
         from_date = None
         opts = {}
         if product:
             from_date = product.updated_at
 
         if from_date:
-            opts = {"filter[date_upd]": '>[%s]' % (from_date),
+            opts = {"filter[date_upd]": '>[%s]' % from_date,
                     'date': '1',
                     'id_shop': '0'}
 
@@ -163,7 +167,14 @@ class prestashopextend_backend(models.Model):
         for shop in param.shops:
             opts['id_shop'] = shop.prestashopextend_id
             product_import_batch.delay(
-                session, 'prestashopextend.product.product', backend_id, opts, priority=3)
+                session, 'prestashopextend.product.product', self.id, opts,
+                priority=3,
+                description=u"""%s depuis le %s pour le Shop %s""" % (
+                    self.connector_id.display_name,
+                    self.env.user.format_local_date(from_date),
+                    shop.name
+                )
+            )
 
         _logger.info("Date chunk %s -> now", from_date)
         return True
@@ -182,7 +193,12 @@ class prestashopextend_backend(models.Model):
                                    context=new_ctx)
         backend_id = self.id
         product_export_stock_level_batch.delay(
-            session, 'prestashopextend.product.product', backend_id, priority=3)
+            session,
+            'prestashopextend.product.product',
+            backend_id,
+            priority=3,
+            description=self.connector_id.display_name
+        )
         return True
 
     @api.model
@@ -195,11 +211,14 @@ class prestashopextend_backend(models.Model):
     def import_shop(self):
         new_ctx = dict(self.env.context)
         new_ctx['company_id'] = self.company_id.id
-        session = ConnectorSession(self.env.cr, self.env.uid,
-                                   context=new_ctx)
-        backend_id = self.id
+        session = ConnectorSession(self.env.cr, self.env.uid, context=new_ctx)
         shop_import_batch.delay(
-            session, 'prestashopextend.shop', backend_id, {}, priority=3)
+            session,
+            'prestashopextend.shop',
+            self.id,
+            priority=3,
+            description=self.connector_id.display_name
+        )
         return True
 
     @api.model
@@ -216,7 +235,12 @@ class prestashopextend_backend(models.Model):
                                    context=new_ctx)
         backend_id = self.id
         sale_state_import_batch.delay(
-            session, 'prestashopextend.sale.order.state', backend_id, {}, priority=3)
+            session,
+            'prestashopextend.sale.order.state',
+            backend_id,
+            priority=3,
+            description=self.connector_id.display_name
+        )
         return True
 
     @api.model
@@ -229,17 +253,19 @@ class prestashopextend_backend(models.Model):
 class ConnectorTypePrestashopParameter(models.Model):
     _name = 'connector.type.prestashop.parameter'
 
-    location = fields.Char(string=u'url')
-    webservice_key = fields.Char(string=u'API KEY')
+    location = fields.Char(u"url")
+    webservice_key = fields.Char(u"API KEY")
 
-    line_id = fields.Many2one('backend.type.line', string=u"Connector Type line", required=True)
+    line_id = fields.Many2one('backend.type.line', u"Connector Type line", required=True)
     shops = fields.Many2many('prestashopextend.shop', string="Shops")
-    synchro_state_since = fields.Many2many('prestashopextend.sale.order.state', 'synchro_state_since_rel', string=u"Etats des Commandes à synchroniser")
+    synchro_state_since = fields.Many2many('prestashopextend.sale.order.state', 'synchro_state_since_rel',
+                                           string=u"Etats des Commandes à synchroniser")
     map_order_state_to_picking_state = fields.One2many(
         comodel_name='connector.type.prestashop.parameter.line', inverse_name='param_id',
         string="Mapping Picking")
+    stock_location_root_id = fields.Many2one('stock.location', u"Emplacement du stock")
 
-    manage_by_ref = fields.Boolean(string=u"Gestion par référence")
+    manage_by_ref = fields.Boolean(u"Gestion par référence")
 
 
 class ConnectorTypePrestashopParameter(models.Model):

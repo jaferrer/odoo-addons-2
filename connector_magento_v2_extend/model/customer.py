@@ -496,7 +496,7 @@ class CustomerImportMapper(ImportMapper):
     @mapping
     def custom_field(self, record):
         result = {}
-        for it in self.backend_record.connector_id.home_id.partner_id.custom_field_mapping:
+        for it in self.backend_record.connector_id.home_id.custom_partner_field_mapping:
             if record.get(it.field_mapping, False):
                 result[it.field] = record.get(it.field_mapping, False)
             else:
@@ -566,7 +566,7 @@ class CustomerImportMapper(ImportMapper):
         return {'owner_id': self.backend_record.connector_id.home_id.partner_id.id}
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.magento')
 def customer_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of Customer """
     env = get_environment(session, model_name, backend_id)

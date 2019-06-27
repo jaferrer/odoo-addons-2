@@ -25,9 +25,9 @@ from datetime import timedelta
 from openerp.addons.connector.session import ConnectorSession
 
 from openerp import models, api, fields
+from .customer import customer_import_batch
 # from .product_category import category_import_batch
 from .product import product_import_batch, product_export_stock_level_batch
-from .customer import customer_import_batch
 
 # from .sale import sale_order_import_batch
 
@@ -94,8 +94,15 @@ class magentoextend_backend(models.Model):
         for chunk_from, chunk_to in self.dates_chunk(from_date, import_start_time, timedelta(days=60)):
             customer_import_batch.delay(
                 session, 'magentoextend.res.partner', backend_id,
-                {'from_date': chunk_from,
-                 'to_date': chunk_to}, priority=3)
+                {
+                    'from_date': chunk_from,
+                    'to_date': chunk_to
+                }, priority=3,
+                description=u"""%s modifié entre le %s et le %s""" % (
+                    self.connector_id.display_name,
+                    self.env.user.format_local_date(chunk_from),
+                    self.env.user.format_local_date(chunk_to),
+                ))
             _logger.info("Date chunk %s -> %s", chunk_from, chunk_to)
         return True
 
@@ -147,8 +154,17 @@ class magentoextend_backend(models.Model):
         for chunk_from, chunk_to in self.dates_chunk(from_date, import_start_time, timedelta(days=60)):
             product_import_batch.delay(
                 session, 'magentoextend.product.product', backend_id,
-                {'from_date': chunk_from,
-                 'to_date': chunk_to}, priority=3)
+                {
+                    'from_date': chunk_from,
+                    'to_date': chunk_to
+                },
+                priority=3,
+                description=u"""%s modifié entre le %s et le %s""" % (
+                    self.connector_id.display_name,
+                    self.env.user.format_local_date(chunk_from),
+                    self.env.user.format_local_date(chunk_to),
+                )
+            )
             _logger.info("Date chunk %s -> %s", chunk_from, chunk_to)
         return True
 
@@ -166,7 +182,12 @@ class magentoextend_backend(models.Model):
                                    context=new_ctx)
         backend_id = self.id
         product_export_stock_level_batch.delay(
-            session, 'magentoextend.product.product', backend_id, priority=3)
+            session,
+            'magentoextend.product.product',
+            backend_id,
+            priority=3,
+            description=self.connector_id.display_name,
+        )
         return True
 
     @api.model
@@ -174,3 +195,9 @@ class magentoextend_backend(models.Model):
         back = self.env['magentoextend.backend'].search([('id', '=', el_id)])
         if back:
             back.export_stock_level()
+
+    class ConnectorHome(models.Model):
+        _inherit = 'backend.home'
+
+        custom_partner_field_mapping = fields.One2many('res.partner.custom.field', 'partner_id',
+                                                       string=u"Mappage des champs personnalisés du partner")

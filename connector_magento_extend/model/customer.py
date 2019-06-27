@@ -58,10 +58,8 @@ class customerResPartner(models.Model):
     _inherit = 'res.partner'
 
     final_customer = fields.Boolean(string='Final Customer')
-    customer_point = fields.Float(string='Customer Point')
     address_company_name = fields.Char(string="Nom de la boutique point relais")
     id_relais = fields.Char(string="Id point relais")
-    custom_field_mapping = fields.One2many('res.partner.custom.field', 'partner_id', string=u"'Mapping Custom Field'")
 
 
 class magentoextendResPartner(models.Model):
@@ -510,7 +508,7 @@ class CustomerImportMapper(ImportMapper):
     @mapping
     def custom_field(self, record):
         result = {}
-        for it in self.backend_record.connector_id.home_id.partner_id.custom_field_mapping:
+        for it in self.backend_record.connector_id.home_id.custom_partner_field_mapping:
             result[it.field] = record.get(it.field_mapping, False)
         return result
 
@@ -574,7 +572,7 @@ class CustomerImportMapper(ImportMapper):
         return {'owner_id': self.backend_record.connector_id.home_id.partner_id.id}
 
 
-@job(default_channel='root.magentoextend')
+@job(default_channel='root.magento')
 def customer_import_batch(session, model_name, backend_id, filters=None):
     """ Prepare the import of Customer """
     env = get_environment(session, model_name, backend_id)
@@ -585,4 +583,4 @@ def customer_import_batch(session, model_name, backend_id, filters=None):
 class ResPartnerBackend(models.Model):
     _inherit = 'res.partner'
 
-    owner_id = fields.Many2one('res.partner', string=u"Owner")
+    owner_id = fields.Many2one('res.partner', u"Owner", domain=[('customer', '=', True)])
