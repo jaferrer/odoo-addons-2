@@ -159,10 +159,7 @@ class ProjectImprovedProject(models.Model):
                                   u"is not defined.") % rec.display_name)
             end_date_dt = fields.Datetime.from_string(rec.reference_task_end_date)
             end_date_reference_task = fields.Datetime.to_string(reference_task.get_end_day_date(end_date_dt))
-            reference_task.write({
-                'objective_end_date': end_date_reference_task,
-                'taken_into_account': True,
-            })
+            reference_task.objective_end_date = end_date_reference_task
             previous_tasks = reference_task.previous_task_ids
             next_tasks = reference_task.next_task_ids
             planned_tasks = reference_task
@@ -260,6 +257,7 @@ class ProjectImprovedProject(models.Model):
                         'expected_start_date': start_date,
                         'expected_end_date': end_date,
                     })
+            rec.reference_task_id.taken_into_account = True
 
     @api.multi
     def set_tasks_not_tia(self, new_vals):
