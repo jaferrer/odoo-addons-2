@@ -146,6 +146,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
             rec.is_computed = model_name \
                 and rec.field_name in self.env[model_name]._fields \
                 and self.env[model_name]._fields[rec.field_name].compute \
+                and not self.env[model_name]._fields[rec.field_name].inverse \
                 and not self.env[model_name]._fields[rec.field_name].related or False
             model_name = rec.field_id.relation
             mapping = self.env['bus.object.mapping'].search([('model_name', '=', model_name)])
