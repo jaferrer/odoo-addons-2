@@ -11,6 +11,7 @@
         <record id="project_task_type_fold_simplified" model="ir.ui.view">
             <field name="name">project_task_type_fold_simple</field>
             <field name="model">project.task.type</field>
+            <field name="priority" eval="9999"/>
             <field name="arch" type="xml">
                 <form>
                     <group>
@@ -36,16 +37,16 @@
             <field name="target">new</field>
         </record>
 
-        <record id="project_task_fold_simple" model="ir.ui.view">
-            <field name="name">project_task_fold_simple</field>
-            <field name="model">project.task</field>
-            <field name="inherit_id" ref="project.view_task_kanban"/>
-            <field name="arch" type="xml">
-                <kanban position="attributes">
-                    <attribute name="on_edit_stage">web_kanban_fold.open_edit_task_type_simplified</attribute>
-                </kanban>
-            </field>
-        </record>
+<!--        <record id="project_task_fold_simple" model="ir.ui.view">-->
+<!--            <field name="name">project_task_fold_simple</field>-->
+<!--            <field name="model">project.task</field>-->
+<!--            <field name="inherit_id" ref="project.view_task_kanban"/>-->
+<!--            <field name="arch" type="xml">-->
+<!--                <kanban position="attributes">-->
+<!--                    <attribute name="on_edit_stage">web_kanban_fold.open_edit_task_type_simplified</attribute>-->
+<!--                </kanban>-->
+<!--            </field>-->
+<!--        </record>-->
 
 
     </data>

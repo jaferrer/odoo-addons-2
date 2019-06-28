@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,13 +18,16 @@
 #
 
 {
-    'name': 'Trigger a Write when Fold is called on the kanbanView',
+    'name': 'Allow to fold project.task.type for each user',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'technical',
     'depends': ['project'],
-    'description': "",
+    'description': """
+    Allow to fold project.task.type for each user
+    =============================================
+    """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'views/templates.xml',

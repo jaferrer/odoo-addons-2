@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 from odoo import fields, models, api
 
 
@@ -38,7 +39,7 @@ class ProjectTaskType(models.Model):
     @api.multi
     def _compute_fold(self):
         self_ctx = self
-        #Compute trigger as sudo or we want the real user behind the compute
+        # Compute trigger as sudo or we want the real user behind the compute
         if self.env.user == self.sudo().env.user and self.env.context.get('uid'):
             self_ctx = self.sudo(self.env.context.get('uid'))
         for rec in self:
@@ -61,16 +62,14 @@ class ProjectTaskType(models.Model):
 
     @api.model
     def _search_fold(self, operator, operand):
-        domain = [('folded', operator, operand)]
-        if self.env.context.get('params', {}).get('model') == 'project.project' and self.env.context.get('params', {}).get('id'):
-            domain += [('task_type_id.project_id', '=', self.env.context.get('params', {}).get('id'))]
-
-        all_mines = self.env['project.task.type.fold'].search([('user_id', '=', self.env.user.id)])
-        mines = self.env['project.task.type.fold'].search(domain + [('user_id', '=', self.env.user.id)])
-        other = self.env['project.task.type.fold'].search(domain + [('task_type_id', 'not in', all_mines.mapped('task_type_id').ids)])
-        print domain, all_mines, mines, other
-        return [('id', 'in', (mines | other).mapped('task_type_id').ids)]
-
+        domain = [('folded', operator, not operand)]
+        params = self.env.context.get('params', {})
+        if params.get('model') == 'project.project' and params.get('id'):
+            domain += [('task_type_id.project_id', '=', params.get('id'))]
+        mines_inverse = self.env['project.task.type.fold'].search(domain + [('user_id', '=', self.env.user.id)])
+        if not mines_inverse:
+            return []
+        return [('id', 'not in', mines_inverse.mapped('task_type_id').ids)]
 
 
 class ProjectTaskTypeFold(models.Model):
