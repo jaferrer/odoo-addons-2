@@ -102,5 +102,21 @@
             <field name="price" eval="5"/>
         </record>
 
+        <record id="pricelist11" model="pricelist.partnerinfo">
+            <field name="suppinfo_id" ref="supplierinfo1"/>
+            <field name="min_quantity" eval="10"/>
+            <field name="validity_date">2014-01-01</field>
+            <field name="end_validity_date">2015-12-01</field>
+            <field name="price" eval="12"/>
+        </record>
+
+        <record id="pricelist12" model="pricelist.partnerinfo">
+            <field name="suppinfo_id" ref="supplierinfo1"/>
+            <field name="min_quantity" eval="1"/>
+            <field name="validity_date">2014-01-01</field>
+            <field name="end_validity_date">2015-12-01</field>
+            <field name="price" eval="12"/>
+        </record>
+
     </data>
 </openerp>

@@ -34,18 +34,27 @@ class pricelist_partnerinfo_improved (models.Model):
     _inherit = "pricelist.partnerinfo"
     _order = 'min_quantity asc, validity_date asc'
 
-    validity_date = fields.Date("Validity date", help="Validity date from that date")
+    validity_date = fields.Date("Validity date", help=u"Validity date from that date")
+    end_validity_date = fields.Date(string=u"Expiration date", help=u"Valid until that date")
     active_line = fields.Boolean("True if this rule is used", store=True, compute="_is_active_line")
     force_inactive = fields.Boolean(string="Inactive Price")
 
     @api.multi
-    @api.depends('suppinfo_id.pricelist_ids', 'min_quantity', 'validity_date')
+    @api.depends('suppinfo_id.pricelist_ids', 'min_quantity', 'validity_date', 'end_validity_date')
     def _is_active_line(self):
         for rec in self:
             rec.active_line = rec.is_active()
 
     @api.multi
     def is_active(self, check_force_inactive=True):
+        """
+        a pricelist line is active if the start validity date is before tday
+        and the expiration date (end_validity_date) is not outpassed
+        if no start validity date is defined, it is active
+        if a more recent valid pricelist exist, it is inactive
+        :param check_force_inactive: true if force_inactive value must take into account
+        :return: true if line is active
+        """
         self.ensure_one()
         context = self.env.context or {}
         reference_date = context.get('date') or time.strftime('%Y-%m-%d')
@@ -58,8 +67,13 @@ class pricelist_partnerinfo_improved (models.Model):
                 list_line += [item]
         if self.validity_date and self.validity_date > reference_date:
             return False
+        if self.end_validity_date and self.end_validity_date < reference_date:
+                active = False
+        # if any other pricelist is valid and more recent, it makes this one inactive
         for item in list_line:
-            if item.validity_date and item.validity_date > self.validity_date and item.validity_date <= reference_date:
+            if item.validity_date and item.validity_date > self.validity_date \
+                    and item.validity_date <= reference_date\
+                    and item.end_validity_date >= reference_date:
                 active = False
                 break
         return active
@@ -114,12 +128,14 @@ class product_pricelist_improved(models.Model):
                                 qty_in_seller_uom = product_uom_obj._compute_qty(qty_uom_id, qty, to_uom_id=seller_uom)
                             price_uom_ids[suppinfo.id] = seller_uom  # stored in a dictionary to be able to retrive the one associated with the choosen supplier_info
                             # we retrieve valid price list = active, min quantity respected  and validity date ok
-                            valid_pricelists |= suppinfo.pricelist_ids.filtered(lambda pricelist: not pricelist.force_inactive
-                                                                                          and pricelist.active_line
-                                                                                          and pricelist.validity_date <= date
-                                                                                          and (pricelist.end_validity_date == False
-                                                                                               or pricelist.end_validity_date <= date)
-                                                                                          and pricelist.min_quantity <= qty_in_seller_uom)
+                            # note that pricelist_ids returns pricelist.partnerinfo object
+                            valid_pricelists |= \
+                                suppinfo.pricelist_ids.filtered(lambda pricelist: not pricelist.force_inactive
+                                                                                    and pricelist.active_line
+                                                                                    and pricelist.validity_date <= date
+                                                                                    and (pricelist.end_validity_date == False
+                                                                                        or pricelist.end_validity_date <= date)
+                                                                                    and pricelist.min_quantity <= qty_in_seller_uom)
                         # the right pricelist is the one with lower priority and newer validity_date
                         good_pricelist = valid_pricelists and valid_pricelists.sorted(key=lambda plist: plist.validity_date, reverse=True).sorted(key = lambda plist: plist.sequence)[0] or False
                         price = good_pricelist and good_pricelist.price or 0.0
