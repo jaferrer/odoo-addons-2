@@ -21,7 +21,7 @@
                   <field name="min_quantity" position="before">
                       <field name="validity_date"/>
                       <field name="end_validity_date"/>
-                      <field name="active_line" invisible="1">
+                      <field name="active_line" invisible="1" />
                   </field>
                   <tree string="Pricelist" position="inside">
                       <field name="force_inactive"/>
