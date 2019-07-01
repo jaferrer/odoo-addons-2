@@ -183,7 +183,7 @@ class TestSupplierPriceValidity(common.TransactionCase):
         test_active(7, False, date_today)
         test_active(8, False, date_today)
         test_active(9, True, date_today)
-
+        test_active(12, True, date_today)
         procurement_order_1.date_planned = "2017-05-04 15:00:00"
 
         test(1.0, 13)
@@ -212,3 +212,4 @@ class TestSupplierPriceValidity(common.TransactionCase):
         test_active(7, False, date_today)
         test_active(8, False, date_today)
         test_active(9, True, date_today)
+        test_active(11, False, date_today)
