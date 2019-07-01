@@ -46,6 +46,11 @@ msgid "OrderPoints Required For Location"
 msgstr "Règles de réassort obligatoires pour les emplacements"
 
 #. module: stock_location_orderpoint
+#: view:stock.location.route:stock_location_orderpoint.stock_location_orderpoint_rule
+msgid "Locations with no RSM"
+msgstr "Emplacements dispensés de règle de réassort"
+
+#. module: stock_location_orderpoint
 #: view:stock.config.settings:stock_location_orderpoint.stock_location_orderpoint_config
 msgid "Update Orderpoint"
 msgstr "Mettre à jour les règles obligatoires"
