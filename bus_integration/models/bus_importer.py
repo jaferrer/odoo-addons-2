@@ -213,13 +213,17 @@ class BusSynchronizationImporter(models.AbstractModel):
             fields_mapping = self.env['bus.object.mapping.field'].search([('is_migration_key', '=', True),
                                                                           ('mapping_id', '=', model_mapping.id)])
             fields_name = str([field.field_name for field in fields_mapping])
-            errors.append(('error', 'invalid migration_key on %s. multiple records found with migration_key %s, '
-                                    'detail: %s' % (fields_name, model, err)))
+            errors.append(('error', u"invalid migration_key on %s. multiple records found with migration_key %s, "
+                                    u"detail: %s" % (fields_name, model, err)))
         if not errors:
-            transfer, odoo_record = transfer.import_datas(transfer, odoo_record, binding_data, record_data)
-            if translation:
-                self._update_translations(transfer, translation)
-
+            try:
+                with self.env.cr.savepoint():
+                    transfer, odoo_record = transfer.import_datas(transfer, odoo_record, binding_data, record_data)
+                    if translation:
+                        self._update_translations(transfer, translation)
+            except (exceptions.ValidationError, exceptions.except_orm) as err:
+                errors.append(('error', u"Unable to import record mode: %s id: %s, external_key: %s, "
+                                        u"detail: %s" % (model, record_id, external_key, err)))
         has_critical_error = self.register_errors(errors, message_id, model, record.get('id', False), external_key)
         if not transfer or has_critical_error:
             return False
