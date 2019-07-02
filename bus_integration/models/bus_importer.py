@@ -326,21 +326,29 @@ class BusSynchronizationImporter(models.AbstractModel):
             for id in dict_result.get(model).keys():
                 datas = dict_result.get(model).get(id)
                 external_key = datas.get('external_key', False)
-                if return_state != 'error':
-                    self.create_receive_transfer(model, external_key, id, datas)
-                else:
+                errors = datas.get('error', False)
+                msg_error = ""
+                if errors:
+                    for error in errors:
+                        msg_error += error.get('information', "")
+                        msg_error += u"\n"
+                self.create_receive_transfer(model, external_key, id, datas, msg_error)
+                if return_state == 'error':
                     self.create_error_synchronization(message_id, model, id, external_key, datas)
 
     @api.model
-    def create_receive_transfer(self, model, external_key, local_id, datas):
+    def create_receive_transfer(self, model, external_key, local_id, datas, msg_error):
         transfer = self.env['bus.binder']._get_transfer(external_key, model)
         if not transfer:
             self.env['bus.receive.transfer'].create({
                 'model': model,
                 'local_id': local_id,
                 'external_key': external_key,
-                'received_data': json.dumps(datas, indent=4)
+                'received_data': json.dumps(datas, indent=4),
+                'msg_error': msg_error
             })
+        else:
+            transfer.write({'msg_error': msg_error})
 
     @api.model
     def create_error_synchronization(self, message_id, model, local_id, external_key, datas):

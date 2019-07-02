@@ -47,6 +47,9 @@
                             <page string="Received data" name="received_data">
                                 <field name="received_data"/>
                             </page>
+                            <page string="Errors" name="error">
+                                <field name="msg_error"/>
+                            </page>
                         </notebook>
                     </sheet>
 
@@ -68,6 +71,8 @@
                                 domain="[('to_deactivate','=', True)]"/>
                         <filter name="no_to_deactivate" string="To not deactivate"
                                 domain="[('to_deactivate','=', False)]"/>
+                        <filter name="has_error" string="Has errpr"
+                                domain="[('msg_error','!=', False)]"/>
                     </group>
                     <group expand="0" string="Group By">
                         <filter name="by_model" string="Model" context="{'group_by': 'model'}"/>

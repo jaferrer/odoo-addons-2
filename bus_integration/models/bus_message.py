@@ -24,7 +24,6 @@ from ..connector.jobs import job_send_response
 
 
 class BusMessage(models.Model):
-
     """
     messages hierarchy example (sync data from mother to children)
     -------------------------------------------------
@@ -83,7 +82,7 @@ class BusMessage(models.Model):
     body = fields.Text(u"body", compute="_compute_message_fields", readonly=True)
     body_root_pretty_print = fields.Text(u"Body root", compute="_compute_message_fields", readonly=True)
     body_dependencies_pretty_print = fields.Text(u"Body dependencies", compute="_compute_message_fields", readonly=True)
-    body_models = fields.Text(u"Models", compute="_compute_message_fields", readonly=True)
+    body_models = fields.Text(u"Models", compute="_compute_message_models", readonly=True, store=True)
     extra_content = fields.Text(u"Extra-content", compute="_compute_message_fields", readonly=True)
     result_state = fields.Selection([('inprogress', u"In progress"), ('error', u"Error"), ('done', u"Done")],
                                     string=u"Result state", default='inprogress', compute='_compute_result_state')
@@ -91,7 +90,7 @@ class BusMessage(models.Model):
 
     @api.multi
     def deactive(self):
-        self.write({'active': False}) \
+        self.write({'active': False})
 
     @api.multi
     def reactive(self):
@@ -108,6 +107,27 @@ class BusMessage(models.Model):
                 rec.cross_id_str = "{0:s}:{1:d}".format(rec.cross_id_origin_base, rec.cross_id_origin_id)
 
     @api.multi
+    @api.depends('message')
+    def _compute_message_models(self):
+        for rec in self:
+            try:
+                if rec.message:
+                    message_dict = json.loads(rec.message)
+                    body_dict = message_dict.get('body')
+                    if 'demand' in body_dict.keys():
+                        models_dict = body_dict.get('demand')
+                    elif 'result' in body_dict.get('return', {}).keys():
+                        models_dict = body_dict.get('return').get('result')
+                    else:
+                        models_dict = body_dict.get('root')
+                    models_result = []
+                    for model in models_dict.keys():
+                        models_result.append(str(model))
+                    rec.body_models = ', '.join(models_result)
+            except ValueError:
+                rec.body_models = ""
+
+    @api.multi
     def _compute_message_fields(self):
         for rec in self:
             try:
@@ -121,22 +141,10 @@ class BusMessage(models.Model):
                 rec.body_root_pretty_print = json.dumps({'body': body_dict}, indent=4)
                 rec.body_dependencies_pretty_print = json.dumps({'dependency': dependencies_dict},
                                                                 indent=4)
-
-                if 'demand' in body_dict.keys():
-                    models_dict = body_dict.get('demand')
-                elif 'result' in body_dict.get('return', {}).keys():
-                    models_dict = body_dict.get('return').get('result')
-                else:
-                    models_dict = body_dict.get('root')
-                models_result = []
-                for model in models_dict.keys():
-                    models_result.append(str(model))
-                rec.body_models = ', '.join(models_result)
             except ValueError:
                 rec.body = rec.message
                 rec.body_root_pretty_print = rec.message
                 rec.extra_content = ""
-                rec.body_models = ""
 
     @api.multi
     def name_get(self):
@@ -159,7 +167,6 @@ class BusMessage(models.Model):
         # message_dict is a JSON loaded dict.
         if not message_dict:
             message_dict = {}
-
         message = self.create({
             'type': type_sent_or_received,
             'treatment': message_dict.get('header', {}).get('treatment'),

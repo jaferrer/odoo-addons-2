@@ -31,6 +31,7 @@ class BusReceiveTransfer(models.Model):
     external_key = fields.Integer(string=u'External key')
     received_data = fields.Text(string=u"Received data (JSON-encoded)", required=True)
     to_deactivate = fields.Boolean(string=u"To deactivate")
+    msg_error = fields.Text(string=u"Error message")
 
     _sql_constraints = [
         ('bus_uniq', 'unique(model, external_key)', u"A binding already exists with the same external key."),
