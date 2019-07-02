@@ -37,7 +37,8 @@ class BusSynchronizationBinder(models.AbstractModel):
         if value:
             if isinstance(value, dict):
                 external_id = str(value.get('id'))
-                external_key = dependencies.get(field.relation_mapping_id.model_name).get(external_id).get('external_key')
+                external_key = dependencies.get(field.relation_mapping_id.model_name).get(external_id).\
+                    get('external_key')
                 external_binding = self._get_transfer(external_key, field.relation_mapping_id.model_name)
                 domain_item = (field.field_name, '=', external_binding.local_id)
             else:
@@ -51,7 +52,8 @@ class BusSynchronizationBinder(models.AbstractModel):
         module, name = xml_id.split(".")
         ir_model_data = self.env['ir.model.data'].search([('model', '=', model_name), ('module', '=', module),
                                                           ('name', '=', name)])
-        return self.env[model_name].search([('id', '=', ir_model_data and ir_model_data.res_id or False)])
+        return self.with_context(active_test=False).env[model_name].search([('id', '=', ir_model_data and
+                                                                             ir_model_data.res_id or False)])
 
     @api.model
     def get_record_by_field_mapping(self, model_mapping, record, dependencies):
@@ -63,7 +65,7 @@ class BusSynchronizationBinder(models.AbstractModel):
             for field in fields_mapping:
                 domain = self.get_domain(field, domain, record, dependencies)
             if domain:
-                odoo_record = odoo_record.search(domain)
+                odoo_record = odoo_record.with_context(active_test=False).search(domain)
         return odoo_record
 
     def get_record_by_external_key(self, external_key, model):
