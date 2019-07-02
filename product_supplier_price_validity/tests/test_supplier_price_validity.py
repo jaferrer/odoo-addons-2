@@ -41,6 +41,8 @@ class TestSupplierPriceValidity(common.TransactionCase):
         pricelist = self.browse_ref('purchase.list0')
         self.assertTrue(pricelist)
 
+        # order year 2015
+
         purchase_order_1 = self.env['purchase.order'].create({
             "name": 'Purchase order 1',
             "partner_id": supplier1.id,

@@ -114,7 +114,10 @@ class BusSynchronizationExporter(models.AbstractModel):
         batch.serial_id = histo.id
         message_dict['header']['serial_id'] = histo.id
         message_dict['header']['bus_configuration_export_id'] = batch.id
-        exported_records = self.env[model_name].search([('id', 'in', ids)])
+        domain = [('id', 'in', ids)]
+        if batch.mapping_object_id.deactivated_sync:
+            domain += ['|', ('active', '=', False), ('active', '=', True)]
+        exported_records = self.env[model_name].search(domain)
         message_type = message_dict.get('header').get('treatment')
         if message_type == 'DELETION_SYNCHRONIZATION':
             result = self._generate_msg_body_deletion(exported_records, model_name)
@@ -382,15 +385,30 @@ class BusSynchronizationExporter(models.AbstractModel):
     def _generate_dependance_message(self, message_id, demand):
         model_content = {}
         dependency_content = {}
+        # TODO:  Envoyer les logs au bus pour permettre de les identifiers directement dans le bus
         for model_name in demand.keys():
             record_ids = demand.get(model_name).keys()
-            exported_records = self.env[model_name].search([('id', 'in', record_ids)])
+            domain = [('id', 'in', record_ids)]
+            mapping = self.env['bus.object.mapping'].search([('model_name', '=', model_name)])
+            if mapping.deactivated_sync:
+                domain += ['|', ('active', '=', False), ('active', '=', True)]
+            exported_records = self.env[model_name].search(domain)
+            log = ""
             if len(exported_records) != len(record_ids):
-                self.env['bus.message.log'].create({
-                    'message_id': message_id,
-                    'type': 'warning',
-                    'information': u"All requested records not found : %s" % record_ids
-                })
+                if len(record_ids) == 0:
+                    log = u"No records found : %s" % (model_name, record_ids)
+                    self.env['bus.message.log'].create({
+                        'message_id': message_id,
+                        'type': 'error',
+                        'information': log
+                    })
+                else:
+                    log = u"All requested records not found : %s - %s" % (model_name, record_ids)
+                    self.env['bus.message.log'].create({
+                        'message_id': message_id,
+                        'type': 'warning',
+                        'information': log
+                    })
             result = self._generate_msg_body(exported_records, model_name)
             model_content[model_name] = result.get('body', {}).get('root', {}).get(model_name, {})
             for dep_model, dep_value in result.get('body', {}).get('dependency', {}).items():

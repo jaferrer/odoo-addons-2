@@ -64,7 +64,6 @@ class pricelist_partnerinfo_improved (models.Model):
             return False
         if self.end_validity_date and self.end_validity_date < reference_date:
                 active = False
-
         return active
 
 
