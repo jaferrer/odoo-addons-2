@@ -116,14 +116,15 @@ class BusSynchronizationReceiver(models.AbstractModel):
         serial_id = message_dict.get('header', {}).get('serial_id', False)
         histo = self.env['bus.configuration.export.histo'].search([('serial_id', '=', serial_id)],
                                                                   order="create_date desc", limit=1)
+
         return_res = message_dict.get('body', {}).get('return', {})
         result = return_res.get('result', False)
         return_state = return_res.get('state', False)
         if not return_state:
-            histo.transfer_state = 'error'
             message.result = 'error'
         else:
-            histo.transfer_state = 'finished'
             message.result = 'finished'
+        if histo:
+            histo.transfer_state = message.result
         self.env['bus.importer'].import_bus_references(message.id, result, return_state)
         return False
