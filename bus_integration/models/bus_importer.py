@@ -329,7 +329,7 @@ class BusSynchronizationImporter(models.AbstractModel):
                 errors = datas.get('error', False)
                 msg_error = ""
                 if errors:
-                    for error in errors:
+                    for error in errors.values():
                         msg_error += error.get('information', "")
                         msg_error += u"\n"
                 self.create_receive_transfer(model, external_key, id, datas, msg_error)
