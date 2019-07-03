@@ -70,7 +70,8 @@ class BusSynchronizationBinder(models.AbstractModel):
 
     def get_record_by_external_key(self, external_key, model):
         transfer = self._get_transfer(external_key, model)
-        return transfer, self.env[model].search([('id', '=', transfer and transfer.local_id or False)])
+        local_id = transfer and transfer.local_id or False
+        return transfer, self.with_context(active_test=False).env[model].search([('id', '=', local_id)])
 
     @api.model
     def process_binding(self, record, model, external_key, model_mapping, dependencies, xml_id):
