@@ -50,15 +50,15 @@ class BusSynchronizationExporter(models.AbstractModel):
         #                 last export bus.configuration.export domain should be set to
         #                 [('write_date', '>', last_send_date)]
         export_domain = batch.domain and safe_eval(batch.domain, batch.export_domain_keywords()) or []
+        active_test = True
+        if batch.treatment_type != 'DELETION_SYNCHRONIZATION' and object_mapping.deactivated_sync:
+            active_test = False
 
-        if batch.treatment_type != 'DELETION_SYNCHRONIZATION' and object_mapping.deactivated_sync and \
-                'active' in self.env[batch.model]._fields:
-            export_domain += ['|', ('active', '=', False), ('active', '=', True)]
         if force_domain:
             force_domain = safe_eval(force_domain, batch.export_domain_keywords())
             export_domain += force_domain
 
-        ids_to_export = self.env[batch.model].search(export_domain)
+        ids_to_export = self.with_context(active_test=active_test).env[batch.model].search(export_domain)
         if not ids_to_export:
             histo = batch.get_histo(str(ids_to_export))
             batch.serial_id = histo.id
@@ -114,10 +114,10 @@ class BusSynchronizationExporter(models.AbstractModel):
         batch.serial_id = histo.id
         message_dict['header']['serial_id'] = histo.id
         message_dict['header']['bus_configuration_export_id'] = batch.id
-        domain = [('id', 'in', ids)]
+        active_test = True
         if batch.mapping_object_id.deactivated_sync:
-            domain += ['|', ('active', '=', False), ('active', '=', True)]
-        exported_records = self.env[model_name].search(domain)
+            active_test = False
+        exported_records = self.with_context(active_test=active_test).env[model_name].search([('id', 'in', ids)])
         message_type = message_dict.get('header').get('treatment')
         if message_type == 'DELETION_SYNCHRONIZATION':
             result = self._generate_msg_body_deletion(exported_records, model_name)
