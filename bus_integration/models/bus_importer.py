@@ -40,13 +40,19 @@ class BusSynchronizationImporter(models.AbstractModel):
             for model in root.keys():
                 import_results[model] = {}
                 for record in root.get(model).values():
-                    result = self.run_import(message_id, record, model, dependencies)
                     original_id = record.get('id', False)
+                    external_key = record.get('external_key', False)
+                    result = self.run_import(message_id, record, model, dependencies)
                     if result:
                         result.update({'bus_original_id': original_id})
                     else:
                         error_log = self.get_syncrhonization_errors(message_id, model, original_id)
-                        result = {'id': original_id, 'result': result, 'error': error_log}
+                        result = {
+                            'id': original_id,
+                            'external_key': external_key,
+                            'result': result,
+                            'error': error_log
+                        }
                     import_results[model][original_id] = result
         return import_results, demand
 

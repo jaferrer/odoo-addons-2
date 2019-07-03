@@ -270,7 +270,7 @@ class BusMessage(models.Model):
     @api.multi
     def send(self, msg_content_dict):
         self.ensure_one()
-        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration',
+        return job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration',
                                 self.configuration_id.id, json.dumps(msg_content_dict))
 
 
