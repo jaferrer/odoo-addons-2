@@ -23,7 +23,7 @@ import collections
 from openerp import models, api, exceptions
 from openerp.tools import safe_eval
 from openerp.addons.connector.session import ConnectorSession
-from ..connector.jobs import job_generate_message
+from ..connector.jobs import job_generate_message, job_send_response
 
 
 class BusSynchronizationExporter(models.AbstractModel):
@@ -127,11 +127,8 @@ class BusSynchronizationExporter(models.AbstractModel):
             result = self._generate_msg_body(exported_records, model_name)
         message_dict['body'] = result['body']
         message = self.env['bus.message'].create_message(message_dict, 'sent', batch.configuration_id)
-
-        message_json = json.dumps(message_dict, encoding='utf-8')
-        send_result = batch.configuration_id.send_odoo_message('bus.message', 'odoo_synchronization_bus',
-                                                               bus_reception_treatment, message_json)
-        histo.add_log(message.id, self.env.context.get('job_uuid'), log=send_result)
+        send_jobuuid = message.send(message_dict)
+        histo.add_log(message.id, self.env.context.get('job_uuid'), log=u"Message send by job : %s" % send_jobuuid)
 
     # region def _generate_msg_body(self, exported_records, model_name):
     def _generate_msg_body(self, exported_records, model_name):
