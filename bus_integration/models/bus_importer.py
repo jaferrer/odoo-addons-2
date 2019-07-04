@@ -221,7 +221,8 @@ class BusSynchronizationImporter(models.AbstractModel):
             fields_name = str([field.field_name for field in fields_mapping])
             errors.append(('error', u"invalid migration_key on %s. multiple records found with migration_key %s, "
                                     u"detail: %s" % (fields_name, model, err)))
-        if not errors:
+        critical_error = [error for error in errors if error[0] == 'error']
+        if not critical_error:
             try:
                 with self.env.cr.savepoint():
                     transfer, odoo_record = transfer.import_datas(transfer, odoo_record, binding_data, record_data)
