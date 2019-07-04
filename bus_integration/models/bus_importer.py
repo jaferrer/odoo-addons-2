@@ -35,7 +35,7 @@ class BusSynchronizationImporter(models.AbstractModel):
         message_dict = json.loads(message.message, encoding='utf-8')
         root = message_dict.get('body', {}).get('root', {})
         dependencies = message_dict.get('body', {}).get('dependency', {})
-        demand = self.check_needed_dependencies(message_id, dependencies)
+        demand = self.check_needed_dependencies(message, dependencies)
         if not demand:
             for model in root.keys():
                 import_results[model] = {}
@@ -90,7 +90,7 @@ class BusSynchronizationImporter(models.AbstractModel):
                 }
         return result
 
-    def check_needed_dependencies(self, message_id, dependencies):
+    def check_needed_dependencies(self, message, dependencies):
         demand = {}
         for model in dependencies.keys():
             for record in dependencies.get(model).values():
@@ -104,13 +104,10 @@ class BusSynchronizationImporter(models.AbstractModel):
                         'external_key': needed.get('external_key'),
                         'id': str_id,
                     }
-                    self.env['bus.message.log'].create({
-                        'message_id': message_id,
-                        'type': 'info',
-                        'information': u"Record needed",
-                        'sender_record_id': str_id,
-                        'model': needed_model
-                    })
+                    log = message.add_log(u"Record needed", 'info')
+                    log.write({'sender_record_id': str_id,
+                               'model': needed_model
+                               })
         return demand
 
     def check_needed_dependency(self, record, model):
@@ -195,10 +192,9 @@ class BusSynchronizationImporter(models.AbstractModel):
         xml_id = record.pop('xml_id', False)
         model_mapping = self._get_object_mapping(model)
         if not model_mapping:
-            self.env['bus.message.log'].create({
-                'message_id': message_id,
-                'type': 'error',
-                'information': u"Model %s not configured for import!" % model,
+            message = self.env['bus.message'].browse(message_id)
+            log = message.add_log(u"Model %s not configured for import!" % model, 'error')
+            log.write({
                 'model': model,
                 'sender_record_id': record_id,
                 'external_key': external_key
@@ -243,10 +239,9 @@ class BusSynchronizationImporter(models.AbstractModel):
             error_type, error_message = error
             if error_type == 'error':
                 has_error = True
-            self.env['bus.message.log'].create({
-                'message_id': message_id,
-                'type': error_type,
-                'information': error_message,
+            message = self.env['bus.message'].browse(message_id)
+            log = message.add_log(error_message, error_type)
+            log.write({
                 'model': model,
                 'sender_record_id': record_id,
                 'external_key': external_key
@@ -316,12 +311,8 @@ class BusSynchronizationImporter(models.AbstractModel):
                     })
                 if not check:
                     error = u"Check not find : %s - %s(%s)" % (datas.get('check_id', False), model, id)
-                    self.env['bus.message.log'].create({
-                        'message_id': message.id,
-                        'type': 'error',
-                        'information': error,
-                        'sender_record_id': id
-                    })
+                    log = message.add_log(error, 'error')
+                    log.sender_record_id = id
         return True
 
     @api.model
@@ -369,13 +360,12 @@ class BusSynchronizationImporter(models.AbstractModel):
         if dest:
             sender = self.env['bus.base'].search([('bus_username', '=', dest)])
         for error in datas.get('error', {}).values():
-            self.env['bus.message.log'].create({
-                'message_id': message_id,
+            message = self.env['bus.message'].browse(message_id)
+            log = message.add_log(error.get('information', ''), error.get('type', ''))
+            log.write({
                 'model': model,
                 'sender_record_id': local_id,
                 'external_key': external_key,
                 'recipient_id': recipient and recipient.id or False,
                 'sender_id': sender and sender.id or False,
-                'type': error.get('type', ''),
-                'information': error.get('information', '')
             })

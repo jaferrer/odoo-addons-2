@@ -18,12 +18,13 @@
 #
 
 import json
+import uuid
 import datetime
 import collections
 from openerp import models, api, exceptions
 from openerp.tools import safe_eval
 from openerp.addons.connector.session import ConnectorSession
-from ..connector.jobs import job_generate_message, job_send_response
+from ..connector.jobs import job_generate_message
 
 
 class BusSynchronizationExporter(models.AbstractModel):
@@ -34,11 +35,11 @@ class BusSynchronizationExporter(models.AbstractModel):
     # TODO :  a vérifier :  'binary', 'reference', 'serialized]
 
     @api.model
-    def run_export(self, backend_bus_configuration_export_id, force_domain=[]):
+    def run_export(self, backend_bus_configuration_export_id, force_domain=False):
         """
         Create and send messages
         :param backend_bus_configuration_export_id: models to export with their conf
-        :param deletion: treatment type deletion ?
+        :param force_domain
         :return: True or raise an exception
         """
         batch = self.env['bus.configuration.export'].browse(backend_bus_configuration_export_id)
@@ -58,24 +59,17 @@ class BusSynchronizationExporter(models.AbstractModel):
             force_domain = safe_eval(force_domain, batch.export_domain_keywords())
             export_domain += force_domain
 
-        ids_to_export = self.with_context(active_test=active_test).env[batch.model].search(export_domain)
-        if not ids_to_export:
-            histo = batch.get_histo(str(ids_to_export))
-            batch.serial_id = histo.id
-            histo.add_log(False, self.env.context.get('job_uuid'), log="no id to export")
-            histo.transfer_state = 'finished'
-            return True
-
         message_list = []
         message_dict = {
             'header': {
                 'origin': batch.configuration_id.sender_id.bus_username,
                 'dest': batch.recipient_id.bus_username,
-                'treatment': batch.treatment_type,
-                'serial_id': batch.serial_id,
+                'treatment': batch.treatment_type
             },
             'export': None
         }
+
+        ids_to_export = self.with_context(active_test=active_test).env[batch.model].search(export_domain)
         export_chunk = batch.chunk_size or False
         if export_chunk:
             while ids_to_export:
@@ -94,13 +88,15 @@ class BusSynchronizationExporter(models.AbstractModel):
             }
             message_list.append(message_dict)
 
+        msgs_group_uuid = "%s %s" % (str(uuid.uuid4()), batch.display_name)
         for export_msg in message_list:
-            job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id,
-                                       export_msg, bus_reception_treatment=batch.bus_reception_treatment)
+            job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
+                                       msgs_group_uuid)
         return True
 
     @api.model
-    def generate_message(self, bus_configuration_export_id, export_msg, bus_reception_treatment):
+    def generate_message(self, bus_configuration_export_id, export_msg, msgs_group_uuid):
+        """ cron event or run batch btn click.. """
         batch = self.env['bus.configuration.export'].browse(bus_configuration_export_id)
         message_dict = collections.OrderedDict()
         message_dict['header'] = export_msg.get('header')
@@ -110,9 +106,6 @@ class BusSynchronizationExporter(models.AbstractModel):
         }
         model_name = export_msg.get('export').get('model')
         ids = export_msg.get('export').get('ids')
-        histo = batch.get_histo(str(ids))
-        batch.serial_id = histo.id
-        message_dict['header']['serial_id'] = histo.id
         message_dict['header']['bus_configuration_export_id'] = batch.id
         active_test = True
         if batch.mapping_object_id.deactivated_sync:
@@ -126,9 +119,20 @@ class BusSynchronizationExporter(models.AbstractModel):
         else:
             result = self._generate_msg_body(exported_records, model_name)
         message_dict['body'] = result['body']
-        message = self.env['bus.message'].create_message(message_dict, 'sent', batch.configuration_id)
-        send_jobuuid = message.send(message_dict)
-        histo.add_log(message.id, self.env.context.get('job_uuid'), log=u"Message send by job : %s" % send_jobuuid)
+
+        message = self.env['bus.message'].create_message_from_batch(message_dict, batch,
+                                                                    self.env.context['job_uuid'], msgs_group_uuid)
+
+        if not ids:
+            message.add_log(u"no models to export")
+            message.date_done = datetime.datetime.now()
+            return
+
+        send_msg_jobuuid = message.send(message_dict)
+        if send_msg_jobuuid:
+            message.add_log("message taken by job: %s" % send_msg_jobuuid)
+        else:
+            message.add_log(u"could not create send message job", 'error')
 
     # region def _generate_msg_body(self, exported_records, model_name):
     def _generate_msg_body(self, exported_records, model_name):
@@ -306,7 +310,6 @@ class BusSynchronizationExporter(models.AbstractModel):
         dest = message_dict.get('header').get('origin')
         resp['header'] = message_dict.get('header')
         resp['header']['origin'] = message_dict.get('header').get('dest')
-        resp['header']['serial_id'] = message_dict.get('header').get('serial_id', False)
         resp['header']['dest'] = dest
         resp['header']['treatment'] = 'SYNCHRONIZATION_RETURN'
         resp['header']['parent'] = message_dict.get('header').get('id')
@@ -361,16 +364,11 @@ class BusSynchronizationExporter(models.AbstractModel):
         }
         demand = message_dict.get('body', {}).get('demand', {})
         try:
-            model_content, dependancy_content = self._generate_dependance_message(parent_message_id, demand)
+            model_content, dependancy_content = self._generate_dependance_message(message, demand)
             resp['body']['root'] = model_content
             resp['body']['dependency'] = dependancy_content
         except exceptions.ValidationError as validation_error:
-            # Add message.log
-            self.env['bus.message.log'].create({
-                'message_id': parent_message_id,
-                'type': 'error',
-                'information': validation_error.value
-            })
+            message.add_log(validation_error.value, 'error')
             return False
 
         resp['header'].pop('cross_id_origin_id')
@@ -379,7 +377,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         new_msg.send(resp)
         return True
 
-    def _generate_dependance_message(self, message_id, demand):
+    def _generate_dependance_message(self, message, demand):
         model_content = {}
         dependency_content = {}
         # TODO:  Envoyer les logs au bus pour permettre de les identifiers directement dans le bus
@@ -390,22 +388,13 @@ class BusSynchronizationExporter(models.AbstractModel):
             if mapping.deactivated_sync:
                 domain += ['|', ('active', '=', False), ('active', '=', True)]
             exported_records = self.env[model_name].search(domain)
-            log = ""
             if len(exported_records) != len(record_ids):
-                if len(record_ids) == 0:
-                    log = u"No records found : %s" % (model_name, record_ids)
-                    self.env['bus.message.log'].create({
-                        'message_id': message_id,
-                        'type': 'error',
-                        'information': log
-                    })
+                if not record_ids:
+                    log = u"Model %s - No records found : %s" % (model_name, record_ids)
+                    message.add_log(log, 'error')
                 else:
                     log = u"All requested records not found : %s - %s" % (model_name, record_ids)
-                    self.env['bus.message.log'].create({
-                        'message_id': message_id,
-                        'type': 'warning',
-                        'information': log
-                    })
+                    message.add_log(log, 'warning')
             result = self._generate_msg_body(exported_records, model_name)
             model_content[model_name] = result.get('body', {}).get('root', {}).get(model_name, {})
             for dep_model, dep_value in result.get('body', {}).get('dependency', {}).items():

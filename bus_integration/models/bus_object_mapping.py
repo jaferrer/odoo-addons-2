@@ -254,6 +254,9 @@ class BusObjectMappingField(models.Model):
         #  import from csv, required 'field_id' must be computed from field_id_name
         field_data = self.env['ir.model.data'].search([('name', '=', vals['field_id_name']),
                                                        ('model', '=', 'ir.model.fields')])
+        if not field_data:
+            raise exceptions.ValidationError(
+                'bus.object.mapping.csv error : No model found with name: ' + vals['field_id_name'])
         vals['field_id'] = field_data.res_id
         return vals
 
