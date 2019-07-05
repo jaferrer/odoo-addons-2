@@ -51,10 +51,6 @@ class BusSynchronizationReceiver(models.AbstractModel):
                 job_uiid = job_receive_message(ConnectorSession.from_env(self.env), self._name, message.id)
             result = u"Receive Message : %s in processing by the job %s" % (message.id, job_uiid)
             to_raise = False
-            histo_log = self.env['bus.configuration.export.histo.log'].search([('message_id', '=', parent_message_id)],
-                                                                              limit=1, order='id DESC')
-            if histo_log:
-                histo_log.histo_id.add_log(message.id, job_uiid, log=result)
         except exceptions.ValidationError as error:
             result = error
             to_raise = True
@@ -113,18 +109,9 @@ class BusSynchronizationReceiver(models.AbstractModel):
     def register_synchro_return(self, message_id):
         message = self.env['bus.message'].browse(message_id)
         message_dict = json.loads(message.message)
-        serial_id = message_dict.get('header', {}).get('serial_id', False)
-        histo = self.env['bus.configuration.export.histo'].search([('serial_id', '=', serial_id)],
-                                                                  order="create_date desc", limit=1)
-
         return_res = message_dict.get('body', {}).get('return', {})
         result = return_res.get('result', False)
         return_state = return_res.get('state', False)
-        if not return_state:
-            message.result = 'error'
-        else:
-            message.result = 'finished'
-        if histo:
-            histo.transfer_state = message.result
+        message.result = 'error' if not return_state else 'finished'
         self.env['bus.importer'].import_bus_references(message.id, result, return_state)
         return False

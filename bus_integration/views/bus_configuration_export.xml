@@ -14,7 +14,6 @@
                     <field name="model"/>
                     <field name="recipient_id"/>
                     <field name="treatment_type"/>
-                    <field name="serial_id"/>
                     <field name="last_transfer_state"/>
                     <field name="mapping_object_id"/>
                     <field name="dependency_level"/>
@@ -57,7 +56,6 @@
                                 <field name="bus_reception_treatment"/>
                             </group>
                             <group>
-                                <field name="serial_id"/>
                                 <field name="model"/>
                                 <field name="domain"/>
                                 <field name="chunk_size"/>
@@ -67,7 +65,7 @@
                         </group>
                         <notebook>
                             <page id="histo" string="History">
-                                <field name="bach_histo_ids" nolabel="1"/>
+                                <field name="bus_message_ids" nolabel="1"/>
                             </page>
                         </notebook>
                     </sheet>
@@ -81,7 +79,6 @@
             <field name="arch" type="xml">
                 <search string="Configuration of template exports">
                     <field name="recipient_id"/>
-                    <field name="serial_id"/>
                     <field name="bus_username"/>
                     <field name="treatment_type"/>
                     <field name="bus_reception_treatment"/>

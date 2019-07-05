@@ -18,6 +18,7 @@
 #
 
 import json
+from datetime import datetime
 from openerp import models, fields, api
 from openerp.addons.connector.session import ConnectorSession
 from ..connector.jobs import job_send_response
@@ -50,9 +51,12 @@ class BusMessage(models.Model):
     _name = 'bus.message'
     _order = 'create_date DESC'
 
-    #  batch serial id
-    id_serial = fields.Char(string=u"Serial ID")
     configuration_id = fields.Many2one('bus.configuration', string=u"Backend")
+    batch_id = fields.Many2one('bus.configuration.export', string=u"Batch")
+    job_generate_uuid = fields.Char(u'Generate message job uuid')
+    job_send_uuid = fields.Char(u'Send message job uuid')
+    export_run_uuid = fields.Char(u'Message group unique identifier',
+                                  help='if export is chunked all generated msgs have the same uuid')
     date_done = fields.Datetime(u"Date Done")
     header_param_ids = fields.One2many('bus.message.header.param', 'message_id', u"Header parameters")
     message = fields.Text(u"Message")
@@ -163,6 +167,14 @@ class BusMessage(models.Model):
         return results
 
     @api.model
+    def create_message_from_batch(self, message_dict, batch, job_uuid, msgs_group_uuid):
+        msg = self.create_message(message_dict, 'sent', batch.configuration_id)
+        msg.batch_id = batch.id
+        msg.job_generate_uuid = job_uuid
+        msg.export_run_uuid = msgs_group_uuid
+        return msg
+
+    @api.model
     def create_message(self, message_dict, type_sent_or_received, configuration, parent_message_id=False):
         # message_dict is a JSON loaded dict.
         if not message_dict:
@@ -170,8 +182,7 @@ class BusMessage(models.Model):
         message = self.create({
             'type': type_sent_or_received,
             'treatment': message_dict.get('header', {}).get('treatment'),
-            'id_serial': message_dict.get('header', {}).get('serial_id'),
-            'configuration_id': configuration.id,
+            'configuration_id': configuration.id
         })
 
         cross_id_origin_base, cross_id_origin_id, cross_id_origin_parent_id = \
@@ -190,7 +201,7 @@ class BusMessage(models.Model):
         })
 
         for key, value in message_dict.get('header', {}).iteritems():
-            if key == 'treatment' or key == 'serial_id':
+            if key == 'treatment':
                 continue
             self.env['bus.message.header.param'].create({
                 'message_id': message.id,
@@ -219,8 +230,28 @@ class BusMessage(models.Model):
     @api.multi
     def is_error(self):
         self.ensure_one()
+        log_errors = self.env['bus.message.log'].search([('message_id', '=', self.id), ('type', '=', 'error')])
         state = json.loads(self.message).get('body', {}).get('return', {}).get('state', False)
-        return state == "error"
+        return log_errors or state == "error"
+
+    @api.multi
+    def add_log(self, message, log_type='info'):
+        """
+        Add a log to the message
+        set the message state to done when an error log is passed.
+        :param message: log message..
+        :param log_type: info|warning|error|processed
+        """
+        self.ensure_one()
+        log = self.env['bus.message.log'].create({
+            'message_id': self.id,
+            'type': log_type,
+            'information': message
+        })
+        # needed to change message state to done..
+        if type == 'error':
+            message.date_done = datetime.now()
+        return log
 
     @api.model
     def _explode_cross_origin_base_id_parent(self, message_dict, default_base=False, default_msg_id=False):
@@ -270,8 +301,9 @@ class BusMessage(models.Model):
     @api.multi
     def send(self, msg_content_dict):
         self.ensure_one()
-        return job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration',
-                                self.configuration_id.id, json.dumps(msg_content_dict))
+        self.job_send_uuid = job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration',
+                                                     self.configuration_id.id, json.dumps(msg_content_dict))
+        return self.job_send_uuid
 
 
 class BusMessageHearderParam(models.Model):

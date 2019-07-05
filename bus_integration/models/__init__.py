@@ -27,7 +27,6 @@ from . import bus_object_mapping
 from . import bus_receive_transfer
 from . import bus_check_transfer
 from . import bus_configuration
-from . import bus_configuration_export_histo
 from . import bus_configuration_export
 from . import bus_message
 from . import bus_message_log
