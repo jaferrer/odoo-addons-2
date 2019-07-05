@@ -9,13 +9,13 @@
                         grey: last_transfer_state == 'never_processed';
                         orange: last_transfer_state == 'blocked';
                         red: last_transfer_state == 'error';
-                        blue: last_transfer_state == 'started';"
-                      default_order="model">
+                        blue: last_transfer_state == 'started';">
                     <field name="model"/>
                     <field name="recipient_id"/>
                     <field name="treatment_type"/>
                     <field name="last_transfer_state"/>
                     <field name="mapping_object_id"/>
+                    <field name="sequence"/>
                     <field name="dependency_level"/>
                     <field name="cron_created" invisible="1"/>
                     <button string="Init" name="create_cron" type="object"
@@ -54,6 +54,7 @@
                                 <field name="bus_username"/>
                                 <field name="treatment_type"/>
                                 <field name="bus_reception_treatment"/>
+                                <field name="sequence"/>
                             </group>
                             <group>
                                 <field name="model"/>

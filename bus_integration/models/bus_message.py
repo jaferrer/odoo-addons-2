@@ -89,7 +89,8 @@ class BusMessage(models.Model):
     body_models = fields.Text(u"Models", compute="_compute_message_models", readonly=True, store=True)
     extra_content = fields.Text(u"Extra-content", compute="_compute_message_fields", readonly=True)
     result_state = fields.Selection([('inprogress', u"In progress"), ('error', u"Error"), ('done', u"Done")],
-                                    string=u"Result state", default='inprogress', compute='_compute_result_state')
+                                    string=u"Result state", default='inprogress', compute='_compute_result_state',
+                                    store=True)
     active = fields.Boolean(u'Is active', default=True, index=True)
 
     @api.multi
@@ -217,6 +218,7 @@ class BusMessage(models.Model):
                 return rec
         return False
 
+    @api.depends('date_done', 'message')
     def _compute_result_state(self):
         for rec in self:
             if rec.date_done:

@@ -25,7 +25,7 @@ from openerp import models, fields, api
 
 class BusConfigurationExport(models.Model):
     _name = 'bus.configuration.export'
-    _order = 'dependency_level ASC, model ASC'
+    _order = 'sequence ASC, dependency_level ASC'
 
     name = fields.Char(u"Name", required=True, compute="_compute_name")
     configuration_id = fields.Many2one('bus.configuration', string=u"Backend",
@@ -54,6 +54,7 @@ class BusConfigurationExport(models.Model):
         For datetime use shorcut date, date_to_str to translate dates.
         last_send_date to get the last date of dispatch.""")
     mapping_object_id = fields.Many2one('bus.object.mapping', u"Mapping", compute='_get_mapping_object', store=True)
+    sequence = fields.Integer(u"sequence", help=u"Order to launch export", default=99)
     dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True)
 
     bus_message_ids = fields.One2many('bus.message', 'batch_id', string=u"Messages")
