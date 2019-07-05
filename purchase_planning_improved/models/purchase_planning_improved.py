@@ -231,7 +231,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
         if need_cover_reset:
             vals['covering_state'] = 'unknown_coverage'
             vals['covering_date'] = False
-        if 'date_planned' in vals and not self.env.context.get('sirail_order_line'):
+        if 'date_planned' in vals and not self.env.context.get('order_line_variant'):
             for line in self:
                 if vals.get('state', line.state) == 'draft':
                     vals['requested_date'] = vals['date_planned']
