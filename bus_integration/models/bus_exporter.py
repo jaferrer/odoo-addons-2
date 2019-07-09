@@ -274,10 +274,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         for record in exported_records:
             record_id = str(record.id)
             check = self.get_check_transfer(model_name, record.id, recipient.id)
-            check.write({
-                'date_request': datetime.datetime.now(),
-                'state': 'request'
-            })
+            check.write({'date_request': datetime.datetime.now(), 'state': 'request'})
             if model_name not in message_dict['body']['root']:
                 message_dict['body']['root'][model_name] = {}
             message_dict['body']['root'][model_name][record_id] = {'id': record.id, 'check_id': check.id}
@@ -388,9 +385,9 @@ class BusSynchronizationExporter(models.AbstractModel):
             if mapping.deactivated_sync:
                 domain += ['|', ('active', '=', False), ('active', '=', True)]
             exported_records = self.env[model_name].search(domain)
-            if len(exported_records) != len(record_ids):
+            if exported_records.ids != record_ids:
                 if not record_ids:
-                    log = u"Model %s - No records found : %s" % (model_name, record_ids)
+                    log = u"Model %s - No records found : %s [%s]" % (model_name, record_ids)
                     message.add_log(log, 'error')
                 else:
                     log = u"All requested records not found : %s - %s" % (model_name, record_ids)
