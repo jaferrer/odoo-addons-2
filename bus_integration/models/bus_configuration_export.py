@@ -85,13 +85,15 @@ class BusConfigurationExport(models.Model):
     @api.multi
     def run_batch(self):
         self.ensure_one()
-        return self.env['bus.exporter'].run_export(self.id)
+        self.env['bus.exporter'].run_export(self.id)
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     @api.multi
     def export_updated_records(self):
         self.ensure_one()
         force_domain = "[('write_date', '>', last_send_date)]"
-        return self.env['bus.exporter'].run_export(self.id, force_domain)
+        self.env['bus.exporter'].run_export(self.id, force_domain)
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     @api.multi
     def create_cron(self):
