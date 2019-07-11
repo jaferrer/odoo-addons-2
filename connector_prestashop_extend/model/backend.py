@@ -267,6 +267,8 @@ class ConnectorTypePrestashopParameter(models.Model):
 
     manage_by_ref = fields.Boolean(u"Gestion par référence")
 
+    backend_home_id = fields.Many2one('backend.home', u"Backend home", related='line_id.home_id')
+
 
 class ConnectorTypePrestashopParameter(models.Model):
     _name = 'connector.type.prestashop.parameter.line'
@@ -281,3 +283,5 @@ class ConnectorTypePrestashopParameter(models.Model):
         ('done', u"done"),
         ('canceled', u"canceled")
     ], string="Picking State")
+
+    backend_home_id = fields.Many2one('backend.home', u"Backend home", related='param_id.line_id.home_id')
