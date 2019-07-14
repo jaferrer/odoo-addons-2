@@ -12,7 +12,7 @@ odoo.define('web_timeline_improved.TimelineView', function (require) {
 
         init_timeline: function () {
             var self = this;
-            let options= self._get_option_timeline();
+            let options = self._get_option_timeline();
 
             self.timeline = new vis.Timeline(self.$timeline.empty().get(0));
             self.timeline.setOptions(options);
@@ -65,21 +65,24 @@ odoo.define('web_timeline_improved.TimelineView', function (require) {
                     options['end'] = end;
                 } else {
                     this.mode = 'fit';
+                    start = new moment().startOf('day');
                 }
             }
 
-            if (this.fields_view.arch.attrs.exclude_hours) {
+            if (this.fields_view.arch.attrs.exclude_hours){
                 let tab_hours = this.fields_view.arch.attrs.exclude_hours.split("-");
                 let start_hours = tab_hours[0];
                 let end_hours = tab_hours[1];
                 console.log(start_hours, end_hours);
-                options.hiddenDates = [
-                    {
-                        start: start.hours(end_hours).format("YYYY-MM-DD HH:00:00"),
-                        end: start.add(1, 'day').hours(start_hours).format("YYYY-MM-DD HH:00:00"),
-                        repeat:"daily"
-                    },
-                ];
+                if (start !=  false){
+                    options.hiddenDates = [
+                        {
+                            start: start.hours(end_hours).format("YYYY-MM-DD HH:00:00"),
+                            end: start.add(1, 'day').hours(start_hours).format("YYYY-MM-DD HH:00:00"),
+                            repeat: "daily"
+                        },
+                    ];
+                }
             }
             if (this.fields_view.arch.attrs.min_zoom) {
                 options.zoomMin = this.fields_view.arch.attrs.min_zoom * 60000;
@@ -88,7 +91,7 @@ odoo.define('web_timeline_improved.TimelineView', function (require) {
             return options
         },
 
-        get_fields_to_read:function(n_group_bys){
+        get_fields_to_read: function (n_group_bys) {
             self = this;
             var fields = _.map(["date_start", "date_delay", "date_stop", "progress", "color_field"], function (key) {
                 return self.fields_view.arch.attrs[key] || '';
@@ -132,10 +135,18 @@ odoo.define('web_timeline_improved.TimelineView', function (require) {
             });
         },
 
+        parse_colors : function () {
+            this._super();
+            if (! this.hasOwnProperty('colors')) {
+                this.colors = [];
+            }
+
+        },
+
         event_data_transform : function (evt) {
             let result = this._super(evt);
-            if (evt.color && this.fields_view.arch.attrs.color_field) {
-                result.style = 'background-color: ' + evt.color + ';'
+            if (evt.hasOwnProperty(this.fields_view.arch.attrs.color_field)) {
+                result.style = 'background-color: ' + evt[this.fields_view.arch.attrs.color_field] + ';'
             }
             console.log(evt);
             console.log(result);
