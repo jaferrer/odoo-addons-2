@@ -387,7 +387,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             exported_records = self.env[model_name].search(domain)
             if exported_records.ids != record_ids:
                 if not record_ids:
-                    log = u"Model %s - No records found : %s [%s]" % (model_name, record_ids)
+                    log = u"Model %s - No records found : %s [%s]" % (model_name, record_ids, exported_records.ids)
                     message.add_log(log, 'error')
                 else:
                     log = u"All requested records not found : %s - %s" % (model_name, record_ids)
