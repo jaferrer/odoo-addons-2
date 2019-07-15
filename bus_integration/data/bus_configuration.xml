@@ -12,11 +12,6 @@
             <field name="port">8069</field>
         </record>
 
-        <record model="res.partner" id="bus_partner">
-            <field name="is_company" eval="False"/>
-            <field name="name">Databus user</field>
-        </record>
-
         <record model="res.users" id="bus_user">
             <field name="partner_id" ref="bus_integration.bus_partner"/>
             <field name="login">user_bus</field>

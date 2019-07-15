@@ -18,7 +18,7 @@
 #
 
 from openerp import models
-# from openerp import tools
+from openerp import tools
 
 # Skip right verification for the bus user
 SUPERUSER_ID = 1
@@ -27,27 +27,27 @@ SUPERUSER_ID = 1
 class IrModelAccess(models.Model):
     _inherit = 'ir.model.access'
 
-    # @tools.ormcache_context(accepted_keys=('lang',))
-    # def check(self, cr, uid, model, mode='read', raise_exception=True, context=None):
-    #     if uid == SUPERUSER_ID:
-    #         # User root have all accesses
-    #         return True
-    #     bus_user = self.pool.get('ir.model.data').xmlid_to_object(cr, SUPERUSER_ID,
-    #                                                               'bus_integration.res_utilisateur_bus_user',
-    #                                                               False, context)
-    #     if bus_user and uid == bus_user.id:
-    #         return True
-    #     return super(IrModelAccess, self).check(cr, uid, model, mode, raise_exception, context)
+    @tools.ormcache_context(accepted_keys=('lang',))
+    def check(self, cr, uid, model, mode='read', raise_exception=True, context=None):
+        if uid == SUPERUSER_ID:
+            # User root have all accesses
+            return True
+        bus_user = self.pool.get('ir.model.data').xmlid_to_object(cr, SUPERUSER_ID,
+                                                                  'bus_integration.bus_user',
+                                                                  False, context)
+        if bus_user and uid == bus_user.id:
+            return True
+        return super(IrModelAccess, self).check(cr, uid, model, mode, raise_exception, context)
 
 
 class IrRule(models.Model):
     _inherit = 'ir.rule'
 
-    # def domain_get(self, cr, uid, model_name, mode='read', context=None):
-    #     where, params, table = super(IrRule, self).domain_get(cr, uid, model_name, mode, context)
-    #     bus_user = self.pool.get('ir.model.data').xmlid_to_object(cr, SUPERUSER_ID,
-    #                                                               'bus_integration.res_utilisateur_bus_user',
-    #                                                               False, context)
-    #     if bus_user and uid == bus_user.id:
-    #         return False, params, table
-    #     return where, params, table
+    def domain_get(self, cr, uid, model_name, mode='read', context=None):
+        where, params, table = super(IrRule, self).domain_get(cr, uid, model_name, mode, context)
+        bus_user = self.pool.get('ir.model.data').xmlid_to_object(cr, SUPERUSER_ID,
+                                                                  'bus_integration.bus_user',
+                                                                  False, context)
+        if bus_user and uid == bus_user.id:
+            return False, params, table
+        return where, params, table
