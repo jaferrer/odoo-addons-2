@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_account_invoice_dunning,access_account_invoice_dunning,model_account_invoice_dunning,account.group_account_invoice,1,1,1,1
+access_account_invoice_dunning_type,access_account_invoice_dunning_type,model_account_invoice_dunning_type,account.group_account_invoice,1,0,0,0
+manager_account_invoice_dunning_type,manager_account_invoice_dunning_type,model_account_invoice_dunning_type,account.group_account_manager,1,1,1,1
