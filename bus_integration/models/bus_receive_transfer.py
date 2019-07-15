@@ -79,13 +79,15 @@ class BusReceiveTransfer(models.Model):
         change_vals = {}
         for val in vals:
             record_value = record[val]
+            vals_value = vals.get(val)
             if isinstance(record_value, models.Model):
                 if len(record_value) > 1:
-                    record_value = record_value.ids
+                    record_value = record_value.ids.sort()
+                    vals_value = vals_value.sort()
                 else:
                     record_value = record_value.id
-            if val in record and vals.get(val) != record_value:
-                change_vals[val] = vals.get(val)
+            if val in record and vals_value != record_value:
+                change_vals[val] = vals_value
         return change_vals
 
     def import_datas(self, transfer, odoo_record, transfer_vals, record_vals):
