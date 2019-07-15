@@ -226,8 +226,9 @@ class BusSynchronizationImporter(models.AbstractModel):
                     if translation:
                         self._update_translations(transfer, translation)
             except (exceptions.ValidationError, exceptions.except_orm, IntegrityError) as err:
-                errors.append(('error', u"Unable to import record mode: %s id: %s, external_key: %s, "
-                                        u"detail: %s" % (model, record_id, external_key, err)))
+                msg = u"Unable to import record model: %s id: %s, external_key: %s, " \
+                      u"detail: %s" % (model, record_id, external_key, err.__str__().decode('utf-8'))
+                errors.append(('error', msg))
         has_critical_error = self.register_errors(errors, message_id, model, record.get('id', False), external_key)
         if not transfer or has_critical_error:
             return False
