@@ -71,7 +71,7 @@ class BusMessage(models.Model):
                                   ('CHECK_SYNCHRONIZATION_RETURN', u"Check response"),
                                   ], u"Treatment", required=True)
     log_ids = fields.One2many('bus.message.log', 'message_id', string=u"Logs")
-
+    exported_ids = fields.Text(string=u"Exported ids", compute='get_export_eported_ids', store=True)
     message_parent_id = fields.Many2one('bus.message', string=u"Parent message")
     message_children_ids = fields.One2many('bus.message', 'message_parent_id', string=u"Children messages")
 
@@ -100,6 +100,20 @@ class BusMessage(models.Model):
     @api.multi
     def reactive(self):
         self.write({'active': True})
+
+    @api.multi
+    @api.depends('message')
+    def get_export_eported_ids(self):
+        for rec in self:
+            exported_ids = u""
+            if rec.message:
+                message_dict = json.loads(rec.message)
+                body_dict = message_dict.get('body', {}).get('root', {})
+                models = body_dict.keys()
+                for model in models:
+                    ids = body_dict.get(model).keys()
+                    exported_ids += u"%s : %s, " % (model, ids)
+            rec.exported_ids = exported_ids
 
     @api.multi
     def _compute_cross_id_str(self):

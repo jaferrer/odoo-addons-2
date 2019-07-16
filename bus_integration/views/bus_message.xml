@@ -49,6 +49,7 @@
                             <field name="date_done"/>
                             <field name="message_parent_id"/>
                             <field name="body_models"/>
+                            <field name="exported_ids"/>
                         </group>
                         <separator string="Header"/>
                         <field name="header_param_ids">
