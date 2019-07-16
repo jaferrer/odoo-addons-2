@@ -32,8 +32,9 @@ class ProductProduct(models.Model):
     _inherit = 'product.product'
 
     @api.model
-    def create_needed_orderpoints(self, jobify=True):
-        products = self.search([])
+    def create_needed_orderpoints(self, domain=None, jobify=True):
+        domain = domain or []
+        products = self.search(domain)
         if jobify:
             while products:
                 chunk_products = products[:100]
