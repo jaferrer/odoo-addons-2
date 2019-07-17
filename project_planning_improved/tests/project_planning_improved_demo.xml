@@ -187,5 +187,80 @@
             <field name="allocated_duration" eval="7"/>
         </record>
 
+        <record model="project.project" id="project_planning_improved_test_project_2">
+            <field name="name">Test project 2</field>
+            <field name="label_tasks">Tasks</field>
+            <field name="alias_model">project.task</field>
+        </record>
+
+        <record id="project_task_2_1" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="project_id" ref="project_planning_improved_test_project_2"/>
+            <field name="name">Task 1</field>
+            <field name="objective_duration" eval="1"/>
+            <field name="allocated_duration" eval="1"/>
+        </record>
+
+        <record id="project_task_2_2" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="project_id" ref="project_planning_improved_test_project_2"/>
+            <field name="name">Task 2</field>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_2_1')])]"/>
+            <field name="objective_duration" eval="4"/>
+            <field name="allocated_duration" eval="4"/>
+        </record>
+
+        <record id="project_task_2_3" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="project_id" ref="project_planning_improved_test_project_2"/>
+            <field name="name">Task 3</field>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_2_1')])]"/>
+            <field name="objective_duration" eval="1"/>
+            <field name="allocated_duration" eval="1"/>
+        </record>
+
+        <record id="project_task_2_4" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="project_id" ref="project_planning_improved_test_project_2"/>
+            <field name="name">Task 4</field>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_2_3')])]"/>
+            <field name="objective_duration" eval="1"/>
+            <field name="allocated_duration" eval="1"/>
+        </record>
+
+        <record id="project_task_2_5" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="project_id" ref="project_planning_improved_test_project_2"/>
+            <field name="name">Task 5</field>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_2_4')])]"/>
+            <field name="objective_duration" eval="1"/>
+            <field name="allocated_duration" eval="1"/>
+        </record>
+
+        <record id="project_task_2_6" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="project_id" ref="project_planning_improved_test_project_2"/>
+            <field name="name">Task 6</field>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_2_5')])]"/>
+            <field name="objective_duration" eval="1"/>
+            <field name="allocated_duration" eval="1"/>
+        </record>
+
+        <record id="project_task_2_7" model="project.task">
+            <field name="user_id" ref="base.user_demo"/>
+            <field name="priority">0</field>
+            <field name="project_id" ref="project_planning_improved_test_project_2"/>
+            <field name="name">Task 6</field>
+            <field name="previous_task_ids" eval="[(6, 0, [ref('project_task_2_2'), ref('project_task_2_6')])]"/>
+            <field name="objective_duration" eval="1"/>
+            <field name="allocated_duration" eval="1"/>
+        </record>
+
     </data>
 </openerp>
