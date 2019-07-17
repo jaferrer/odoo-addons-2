@@ -198,8 +198,8 @@ class ProjectImprovedProject(models.Model):
                     new_next_tasks |= next_task.next_task_ids. \
                         filtered(lambda task: task not in planned_tasks and
                                  not (task.critical_task and not next_task.critical_task))
-                previous_tasks = new_previous_tasks
-                next_tasks = new_next_tasks
+                previous_tasks = new_previous_tasks.filtered(lambda task: task not in planned_tasks)
+                next_tasks = new_next_tasks.filtered(lambda task: task not in planned_tasks)
 
     @api.multi
     def update_objective_dates_parent_tasks(self):
@@ -877,6 +877,7 @@ class ProjectImprovedTask(models.Model):
     def is_working_day(self, date):
         self.ensure_one()
         resource, calendar = self[0].get_default_calendar_and_resource()
+        list_intervals = False
         if calendar:
             list_intervals = calendar.get_working_intervals_of_day(start_dt=date.replace(hour=0, minute=0, second=0),
                                                                    compute_leaves=True,
@@ -887,6 +888,7 @@ class ProjectImprovedTask(models.Model):
     def get_working_intervals(self, date_start=None, date_end=None):
         self.ensure_one()
         resource, calendar = self[0].get_default_calendar_and_resource()
+        list_intervals = False
         if calendar:
             list_intervals = calendar.get_working_intervals_of_day(start_dt=date_start, end_dt=date_end,
                                                                    compute_leaves=True,
