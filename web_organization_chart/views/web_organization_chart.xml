@@ -45,7 +45,7 @@
         <field name="arch" type="xml">
             <div name="button_box" position="inside">
                 <button name="associated_res_partner" type="object" icon="fa-sitemap"
-                        class="oe_stat_button breadcrumbs-menu" string="Arborescence"
+                        class="oe_stat_button" string="Arborescence"
                         attrs="{'invisible':[('child_ids','=',[])]}">
                 </button>
             </div>
