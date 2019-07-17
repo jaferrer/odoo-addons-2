@@ -28,7 +28,7 @@ class BusReceiveTransfer(models.Model):
 
     model = fields.Char(string=u'Model', required=True, index=True)
     local_id = fields.Integer(string=u'Local ID')
-    external_key = fields.Integer(string=u'External key')
+    external_key = fields.Integer(string=u'External key', required=True)
     received_data = fields.Text(string=u"Received data (JSON-encoded)", required=True)
     to_deactivate = fields.Boolean(string=u"To deactivate")
     msg_error = fields.Text(string=u"Error message")
