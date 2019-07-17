@@ -110,6 +110,7 @@
                     <filter name="active" string="Active" domain="[('active', '=', True)]"/>
                     <filter name="inactive" string="Inactive" domain="[('active', '=', False)]"/>
                     <filter name="running" string="Running" domain="[('date_done', '=', False)]"/>
+                    <filter name="error" string="Errors" domain="[('result_state', '=', 'error')]"/>
                     <filter name="lasts24h" string="H-24"
                             domain="[('create_date','&gt;', (context_today()-relativedelta(days=1)).strftime('%%Y-%%m-%%d'))]"/>
                 </search>
@@ -124,6 +125,7 @@
             <field name="domain">[]</field>
             <field name="context">{
                 'search_default_running': True,
+                'search_default_error': True,
                 'search_default_lasts24h' : True
                 }
             </field>

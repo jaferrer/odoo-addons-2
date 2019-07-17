@@ -265,8 +265,8 @@ class BusMessage(models.Model):
             'information': message
         })
         # needed to change message state to done..
-        if type == 'error':
-            message.date_done = datetime.now()
+        if log_type == 'error':
+            self.date_done = fields.Datetime.now()
         return log
 
     @api.model
