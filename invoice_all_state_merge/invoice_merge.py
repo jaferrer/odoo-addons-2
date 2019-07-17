@@ -96,10 +96,10 @@ class InvoiceMergeExtends(models.TransientModel):
                     new_invoices |= rec
             res = super(InvoiceMergeExtends, self.with_context(active_ids=new_invoices.ids)).merge_invoices()
             merged_invoice_result = self.env['account.invoice'].browse(set(res['domain'][0][2]) - set(new_invoices.ids))
-
             for id_invoice, dict_value in merged_invoice_result._prepare_data_post_merge(new_invoices).iteritems():
                 self.env['account.invoice'].browse(id_invoice).write(dict_value)
-
+            # Let's unlink draft invoices created to generate the merged one
+            new_invoices.unlink()
             if self.auto_set_payment and self.only_invoice:
                 merged_invoice_result.signal_workflow('invoice_open')
                 merged_invoice_result.register_payment(payments_to_reconcile)
