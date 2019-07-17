@@ -110,7 +110,7 @@ class BusConfigurationExport(models.Model):
             'numbercall': -1,
             'doall': False,
             'model': 'bus.configuration.export',
-            'function': 'export_message_synchro',
+            'function': 'run_batch',
             'args': "(%s)" % repr([self.id]),
             'active': True
         }
