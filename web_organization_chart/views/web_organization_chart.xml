@@ -3,10 +3,10 @@
 
     <template id="assets_backend" name="web_organization_chart assets" inherit_id="web.assets_backend">
         <xpath expr="." position="inside">
-            <link rel="stylesheet" href="/web_organization_chart/static/lib/jquery_orgchart.css"/>
+            <link rel="stylesheet" href="/web_organization_chart/static/src/css/jquery_orgchart.css"/>
             <link rel="stylesheet" href="/web_organization_chart/static/src/css/web_organization_chart.css"/>
 
-            <script type="text/javascript" src="/web_organization_chart/static/lib/jquery_orgchart.js"/>
+            <script type="text/javascript" src="/web_organization_chart/static/src/js/jquery_orgchart.js"/>
             <script type="text/javascript" src="/web_organization_chart/static/src/js/organization_chart_view.js"/>
             <script type="text/javascript" src="/web_organization_chart/static/src/js/organization_chart_renderer.js"/>
             <script type="text/javascript"
