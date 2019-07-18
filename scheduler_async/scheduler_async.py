@@ -281,7 +281,7 @@ FROM procurement_order po
                     for proc_id in proc_for_job_ids:
                         self.launch_run_or_check_jobs_for_ids(action_to_do, [proc_id])
                 else:
-                    self.launch_run_or_check_jobs_for_ids(action_to_do, [proc_for_job_ids])
+                    self.launch_run_or_check_jobs_for_ids(action_to_do, proc_for_job_ids)
             else:
                 run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', proc_for_job_ids,
                                           'run', dict(self.env.context))

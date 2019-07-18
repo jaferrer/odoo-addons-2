@@ -17,11 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models
-from openerp import tools
-
-# Skip right verification for the bus user
-SUPERUSER_ID = 1
+from openerp import models, tools, SUPERUSER_ID
 
 
 class IrModelAccess(models.Model):
