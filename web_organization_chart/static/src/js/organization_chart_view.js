@@ -34,8 +34,8 @@ odoo.define('web_organization_chart.OrganizationChartView', function (require) {
     var OrganizationChartView = AbstractView.extend({
         display_name: _lt('Organization Chart'),
         icon: 'fa-sitemap',
-        jsLibs: ['/web_organization_chart/static/lib/jquery_orgchart.js'],
-        cssLibs: ['/web_organization_chart/static/lib/jquery_orgchart.css'],
+        jsLibs: ['/web_organization_chart/static/src/js/jquery_orgchart.js'],
+        cssLibs: ['/web_organization_chart/static/src/css/jquery_orgchart.css'],
         config: {
             Model: OrganizationChartModel,
             Controller: OrganizationChartController,
