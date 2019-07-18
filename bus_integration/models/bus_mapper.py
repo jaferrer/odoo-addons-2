@@ -53,9 +53,9 @@ class BusSynchronizationMapper(models.AbstractModel):
         importable_fields.append('bus_recipient_id')
         for field_key in record.keys():
             if field_key not in importable_fields:
-                error.append(('warning', u"Error field %s not configured for import" % field_key))
+                error.append(('warning', u"Field %s not configured for import" % field_key))
             elif field_key in required_fields and field_key not in record.keys():
-                error.append(('error', u"Error field %s is required, record id : %s" % (field_key, record.get('id'))))
+                error.append(('error', u"Field %s is required, record id : %s" % (field_key, record.get('id'))))
             else:
                 if isinstance(record.get(field_key), dict):
                     relational_values = False
