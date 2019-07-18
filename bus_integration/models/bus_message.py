@@ -18,7 +18,6 @@
 #
 
 import json
-from datetime import datetime
 from openerp import models, fields, api
 from openerp.addons.connector.session import ConnectorSession
 from ..connector.jobs import job_send_response

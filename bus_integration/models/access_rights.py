@@ -32,7 +32,6 @@ class IrModelAccess(models.Model):
         if uid == SUPERUSER_ID:
             # User root have all accesses
             return True
-
         bus_user = self.pool.get('ir.model.data').xmlid_to_object(cr, SUPERUSER_ID, 'bus_integration.bus_user', False,
                                                                   context)
         if bus_user and uid == bus_user.id:
