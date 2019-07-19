@@ -31,6 +31,8 @@ class PlanningImprovedTemplateTaskType(models.Model):
         result['critical_task'] = False
         result['objective_duration'] = task.objective_duration
         result['objective_end_date'] = False
+        result['expected_start_date'] = False
+        result['expected_end_date'] = False
         return result
 
     @api.multi
