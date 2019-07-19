@@ -43,3 +43,9 @@ msgstr "Configuration des exports des modèles"
 #: model:ir.ui.menu,name:bus_integration.menu_bus_model_extend
 msgid "Synchronized Data"
 msgstr "Données synchronisées"
+
+#. module: bus_integration
+#: code:addons/bus_integration/connector/override_unlink.py:42
+#, python-format
+msgid "Impossible to delete record on model %s, use for bus synchronisation"
+msgstr "Impossible de supprimer un enregistrement sur le modèle %s, utilisé par le bus"

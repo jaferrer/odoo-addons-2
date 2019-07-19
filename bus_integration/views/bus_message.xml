@@ -39,12 +39,17 @@
                         <group>
                             <field name="active" invisible="1"/>
                             <field name="display_name"/>
-                            <field name="type"/>
-                            <field name="treatment"/>
+
+                            <field name="job_generate_uuid" />
+                            <field name="job_send_uuid" />
+                            <field name="export_run_uuid" />
+
                             <field name="create_date"/>
                             <field name="create_uid"/>
                             <field name="date_done"/>
                             <field name="message_parent_id"/>
+                            <field name="body_models"/>
+                            <field name="exported_ids"/>
                         </group>
                         <separator string="Header"/>
                         <field name="header_param_ids">
@@ -97,9 +102,15 @@
                     <field name="header_param_ids"/>
                     <field name="body"/>
                     <field name="extra_content"/>
+                    <field name="body_models"/>
+                    <field name="result_state"/>
+                    <field name="cross_id_origin_base"/>
+                    <field name="cross_id_origin_id"/>
+                    <field name="cross_id_origin_parent_id"/>
                     <filter name="active" string="Active" domain="[('active', '=', True)]"/>
                     <filter name="inactive" string="Inactive" domain="[('active', '=', False)]"/>
                     <filter name="running" string="Running" domain="[('date_done', '=', False)]"/>
+                    <filter name="error" string="Errors" domain="[('result_state', '=', 'error')]"/>
                     <filter name="lasts24h" string="H-24"
                             domain="[('create_date','&gt;', (context_today()-relativedelta(days=1)).strftime('%%Y-%%m-%%d'))]"/>
                 </search>
@@ -114,6 +125,7 @@
             <field name="domain">[]</field>
             <field name="context">{
                 'search_default_running': True,
+                'search_default_error': True,
                 'search_default_lasts24h' : True
                 }
             </field>

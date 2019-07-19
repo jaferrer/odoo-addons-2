@@ -5,7 +5,8 @@
             <field name="name">bus message log</field>
             <field name="model">bus.message.log</field>
             <field name="arch" type="xml">
-                <tree colors="red:type=='error';orange:type=='warning';dodgerblue:type=='info'">
+                <tree colors="red:type=='error';orange:type=='warning';dodgerblue:type=='info'" default_order="id desc">
+                    <field name="create_date"/>
                     <field name="message_id"/>
                     <field name="type"/>
                     <field name="information"/>
@@ -13,6 +14,7 @@
                     <field name="sender_record_id"/>
                     <field name="external_key"/>
                     <field name="sender_id"/>
+                    <field name="id" invisible="True" />
                 </tree>
             </field>
         </record>
@@ -73,7 +75,7 @@
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
-            <field name="context">{'search_default_error': True, 'search_default_lasts24h' : True}</field>
+            <field name="context">{'search_default_error': True}</field>
         </record>
 
         <menuitem id="menu_bus_message_log" name="Bus Messages logs" action="act_window_bus_message_log"

@@ -25,7 +25,7 @@ from openerp import models, fields, api
 
 class BusConfigurationExport(models.Model):
     _name = 'bus.configuration.export'
-    _order = 'dependency_level ASC, model ASC'
+    _order = 'sequence ASC, dependency_level ASC'
 
     name = fields.Char(u"Name", required=True, compute="_compute_name")
     configuration_id = fields.Many2one('bus.configuration', string=u"Backend",
@@ -43,14 +43,10 @@ class BusConfigurationExport(models.Model):
     cron_created = fields.Boolean(u"Cron created", compute='_get_cron')
     cron_active = fields.Boolean(u"Cron active", compute='_get_cron')
     last_transfer_state = fields.Selection([('never_processed', u"Never processed"),
-                                            ('started', u"Started"),
-                                            ('finished', u"Finished"),
-                                            ('blocked', u"Blocked"),
-                                            ('error', u"Error")],
+                                            ('inprogress', u"In progress"), ('error', u"Error"), ('done', u"Done")],
                                            string=u'Last transfer status', compute="_compute_last_transfer")
-    last_transfer_id = fields.Many2one('bus.configuration.export.histo', string=u"Last transfer",
+    last_transfer_id = fields.Many2one('bus.message', string=u"Last message",
                                        compute='_compute_last_transfer')
-    serial_id = fields.Integer(u"Serial")
     chunk_size = fields.Integer(u"Export chunk size")
     domain = fields.Char(u"Domain", required=True, default="[]", help=u"""
         You can see the additional object/functions in the model bus.configuration.export.
@@ -58,9 +54,10 @@ class BusConfigurationExport(models.Model):
         For datetime use shorcut date, date_to_str to translate dates.
         last_send_date to get the last date of dispatch.""")
     mapping_object_id = fields.Many2one('bus.object.mapping', u"Mapping", compute='_get_mapping_object', store=True)
+    sequence = fields.Integer(u"sequence", help=u"Order to launch export", default=99)
     dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True)
-    bach_histo_ids = fields.One2many('bus.configuration.export.histo', 'bus_configuration_export_id',
-                                     string=u"Batch history")
+
+    bus_message_ids = fields.One2many('bus.message', 'batch_id', string=u"Messages")
 
     @api.multi
     @api.depends('model')
@@ -81,15 +78,20 @@ class BusConfigurationExport(models.Model):
     @api.multi
     def _compute_last_transfer(self):
         for rec in self:
-            histo = self.env['bus.configuration.export.histo'].search([('serial_id', '=', rec.serial_id)],
-                                                                      order="create_date desc", limit=1)
-            rec.last_transfer_id = histo
-            rec.last_transfer_state = histo and histo.transfer_state or 'never_processed'
+            message = self.env['bus.message'].search([('batch_id', '=', rec.id)], order="create_date desc", limit=1)
+            rec.last_transfer_id = message
+            rec.last_transfer_state = message and message.result_state or 'never_processed'
 
     @api.multi
     def run_batch(self):
         self.ensure_one()
-        return self.env['bus.exporter'].run_export(self.id)
+        self.env['bus.exporter'].run_export(self.id)
+
+    @api.multi
+    def export_updated_records(self):
+        self.ensure_one()
+        force_domain = "[('write_date', '>', last_send_date)]"
+        self.env['bus.exporter'].run_export(self.id, force_domain)
 
     @api.multi
     def create_cron(self):
@@ -108,7 +110,7 @@ class BusConfigurationExport(models.Model):
             'numbercall': -1,
             'doall': False,
             'model': 'bus.configuration.export',
-            'function': 'export_message_synchro',
+            'function': 'run_batch',
             'args': "(%s)" % repr([self.id]),
             'active': True
         }
@@ -138,17 +140,6 @@ class BusConfigurationExport(models.Model):
             cron = self.env['ir.cron'].search([('bus_configuration_export_id', '=', rec.id)], limit=1)
             rec.cron_created = cron
             rec.cron_active = cron and cron.active or False
-
-    @api.multi
-    def get_histo(self, export_ids):
-        histo = self.env["bus.configuration.export.histo"].create({
-            'bus_configuration_export_id': self.id,
-            'treatment': self.treatment_type,
-            'model': self.model,
-            'export_ids': export_ids,
-        })
-        histo.serial_id = histo.id
-        return histo
 
     @api.multi
     def export_domain_keywords(self):
