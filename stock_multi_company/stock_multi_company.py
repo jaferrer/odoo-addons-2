@@ -37,19 +37,50 @@ class StockQuant(models.Model):
         offset = 0
         while float_compare(quantity, 0, precision_rounding=product.uom_id.rounding) > 0:
             quants = self.search(domain, order=orderby, limit=10, offset=offset)
+
             if not quants:
                 res.append((None, quantity))
                 break
-            for quant in quants:
-                rounding = product.uom_id.rounding
-                if float_compare(quantity, abs(quant.qty), precision_rounding=rounding) >= 0:
-                    res += [(quant, abs(quant.qty))]
-                    quantity -= abs(quant.qty)
-                elif float_compare(quantity, 0.0, precision_rounding=rounding) != 0:
-                    res += [(quant, quantity)]
-                    quantity = 0
-                    break
+
+            if self.env.context.get('removal_strategy') == 'fifo':
+                # We want to discriminate quants by the in_date day not the exact time to the second.
+                # Also, when we have several quants with the same in_date day, choose quants from the same location.
+                self.env.cr.execute("""
+                    SELECT to_char(in_date, 'YYYY-MM-DD'),
+                           location_id,
+                           package_id,
+                           lot_id,
+                           id
+                    FROM stock_quant sq
+                    WHERE sq.id IN %s
+                    ORDER BY to_char(in_date, 'YYYY-MM-DD') ASC, location_id ASC, package_id ASC, lot_id ASC, id ASC;
+                                    """, (tuple(quants.ids),))
+                res_query = self.env.cr.fetchall()
+
+                for result in res_query:
+                    quant = quants.search([('id', '=', result[4])])
+                    rounding = product.uom_id.rounding
+                    if float_compare(quantity, abs(quant.qty), precision_rounding=rounding) >= 0:
+                        res += [(quant, abs(quant.qty))]
+                        quantity -= abs(quant.qty)
+                    elif float_compare(quantity, 0.0, precision_rounding=rounding) != 0:
+                        res += [(quant, quantity)]
+                        quantity = 0
+                        break
+            else:
+                for quant in quants:
+
+                    rounding = product.uom_id.rounding
+                    if float_compare(quantity, abs(quant.qty), precision_rounding=rounding) >= 0:
+                        res += [(quant, abs(quant.qty))]
+                        quantity -= abs(quant.qty)
+                    elif float_compare(quantity, 0.0, precision_rounding=rounding) != 0:
+                        res += [(quant, quantity)]
+                        quantity = 0
+                        break
+
             offset += 10
+
         return res
 
 

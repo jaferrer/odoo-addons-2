@@ -37,7 +37,7 @@ class BusObjectMappingAbstract(models.AbstractModel):
 
     @api.multi
     def name_get(self):
-        return [(rec.id, u"Mapping of object %s" % rec.model_id.name) for rec in self]
+        return [(rec.id, u"%s mapping" % rec.model_id.model) for rec in self]
 
     @api.multi
     def view_datas(self):
@@ -67,10 +67,13 @@ class BusObjectMappingAbstract(models.AbstractModel):
         for my_field in self.field_ids:
             field_mapping_xml_id = u"mapping_field_%s_%s" % (self.model_id.model.replace('.', '_'),
                                                              my_field.field_id.name)
-            field_xml_id = my_field.field_id.get_external_id().get(my_field.field_id.id)
+            # removes the module from the xml id to compose the field_id_name
+            field_id_name = my_field.field_id.get_external_id().get(my_field.field_id.id)
+            idx = field_id_name.index('.')
+            field_id_name = field_id_name[idx + 1:]
             fields_csv += u"""%s,%s,%s,%s,%s,%s,%s,%s""" % (field_mapping_xml_id,
                                                             model_mapping_xml_id,
-                                                            field_xml_id,
+                                                            field_id_name,
                                                             my_field.map_name,
                                                             my_field.export_field,
                                                             my_field.import_creatable_field,
@@ -123,8 +126,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     # related fields
     field_name = fields.Char(u"Field name", readonly=True, related='field_id.name', store=True)
     type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
-    relation = fields.Char(string=u'Relation', related='field_id.relation', store=True, readonly=True)
-    is_computed = fields.Boolean(String=u"Computed", compute="_get_is_computed", store=True)
+    is_computed = fields.Boolean(String=u"Computed", compute="_compute_depends_field_id", store=True)
     # compute when model changes in mapping.field.configuration.helper
     map_name = fields.Char(u"Mapping name", required=True)
     # set manually
@@ -133,14 +135,22 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     import_updatable_field = fields.Boolean(u"Import - to update")
     is_migration_key = fields.Boolean(u"Migration key", default=False)
 
+    relation_mapping_id = fields.Many2one('bus.object.mapping', string='relation mapping',
+                                          compute="_compute_depends_field_id", store=True)
+
     @api.multi
     @api.depends('field_id')
-    def _get_is_computed(self):
+    def _compute_depends_field_id(self):
         for rec in self:
             model_name = rec.field_id.model
             rec.is_computed = model_name \
-                and self.env[model_name]._fields[rec.field_name] \
-                and self.env[model_name]._fields[rec.field_name].compute or False
+                and rec.field_name in self.env[model_name]._fields \
+                and self.env[model_name]._fields[rec.field_name].compute \
+                and not self.env[model_name]._fields[rec.field_name].inverse \
+                and not self.env[model_name]._fields[rec.field_name].related or False
+            model_name = rec.field_id.relation
+            mapping = self.env['bus.object.mapping'].search([('model_name', '=', model_name)])
+            rec.relation_mapping_id = mapping
 
 
 class BusObjectMapping(models.Model):
@@ -160,26 +170,26 @@ class BusObjectMapping(models.Model):
     @api.multi
     def compute_dependency_level(self):
         for rec in self:
-            dep_level = rec.calculate_dep_level()
-            rec.dependency_level = dep_level
+            rec.dependency_level = 0  # reset value to re-calculate it
+            rec._calculate_dep_level(rec, 0)
 
     @api.multi
-    def calculate_dep_level(self):
+    def _calculate_dep_level(self, current_mapping, model_deps_seen=None):
         self.ensure_one()
-        init_dep_level = self.dependency_level
-        dep_level = 0
-        for field in self.field_ids:
-            if field.relation and field.type_field == 'many2one':
-                dep_level = 1
-                if field.relation != self.model_name:
-                    relation_mapping = self.env['bus.object.mapping'].search([('model_name', '=', field.relation)])
-                    related_dep_level = 1
-                    if relation_mapping:
-                        related_dep_level = relation_mapping.calculate_dep_level()
-                    dep_level = related_dep_level + dep_level
-            if dep_level > init_dep_level:
-                init_dep_level = dep_level
-        return init_dep_level
+
+        if not model_deps_seen:
+            model_deps_seen = [current_mapping.model_name]
+
+        # save current level in model if higher than the one we know
+        if len(model_deps_seen) - 1 > self.dependency_level:
+            self.dependency_level = len(model_deps_seen) - 1
+
+        for field in current_mapping.field_ids:
+            if field.relation_mapping_id and field.relation_mapping_id.model_name not in model_deps_seen:
+                # go deeper.. recursively
+                branch_models = list(model_deps_seen)
+                branch_models.append(field.relation_mapping_id.model_name)
+                self._calculate_dep_level(field.relation_mapping_id, branch_models)
 
     @api.constrains('deactivate_on_delete', 'deactivated_sync')
     def _contrains_deactivate_on_delete(self):
@@ -233,22 +243,35 @@ class BusObjectMappingField(models.Model):
     _inherit = 'bus.object.mapping.field.abstract'
 
     mapping_id = fields.Many2one('bus.object.mapping', string=u"Model")
+    # "field_id_name" = temporary field used while importing data from CSV to compute "field_id"
+    field_id_name = fields.Text(string="field_name", store=False, compute=lambda x: [None for _ in x], required=False)
+
     active = fields.Boolean(u"Active", default=True)
-    is_configured = fields.Boolean(String=u"Is configured", compute="_get_is_configured", store=True)
+
+    def _get_vals_with_field_id(self, vals):
+        if 'field_id_name' not in vals:
+            return vals
+        #  import from csv, required 'field_id' must be computed from field_id_name
+        field_data = self.env['ir.model.data'].search([('name', '=', vals['field_id_name']),
+                                                       ('model', '=', 'ir.model.fields')])
+        if not field_data:
+            raise exceptions.ValidationError(
+                'bus.object.mapping.csv error : No model found with name: ' + vals['field_id_name'])
+        vals['field_id'] = field_data.res_id
+        return vals
+
+    @api.model
+    def create(self, vals):
+        vals = self._get_vals_with_field_id(vals)
+        return super(BusObjectMappingField, self).create(vals)
 
     @api.multi
-    @api.depends('field_id')
-    def _get_is_configured(self):
-
-        for rec in self:
-            mapping = True
-            if rec.field_id.relation:
-                model_name = rec.field_id.relation
-                mapping = self.env['bus.object.mapping'].search([('model_name', '=', model_name)])
-            rec.is_configured = mapping
+    def write(self, vals):
+        vals = self._get_vals_with_field_id(vals)
+        return super(BusObjectMappingField, self).write(vals)
 
     _sql_constraints = [
         ('name_uniq_by_model', 'unique(field_id, mapping_id)', u"This field already exists for this model."),
         ('check_type_field', "check(type_field <> 'one2many')", u"one2many fields can't be exported"),
-        ('check_not_computed', "check(is_computed = False)", u"one2many should not be computed fields"),
+        ('check_not_computed', "check(is_computed = False)", u"fields must not be computed"),
     ]

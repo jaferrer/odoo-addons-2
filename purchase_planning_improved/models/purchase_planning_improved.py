@@ -71,9 +71,10 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     _inherit = 'purchase.order.line'
 
     confirm_date = fields.Datetime(string=u"Confirm date", readonly=True)
-    date_required = fields.Date(string=u"Required Date",
-                                help=u"Required date for this purchase line. Computed as planned date of the first proc"
-                                     u" - supplier purchase lead time - company purchase lead time", readonly=True)
+    date_required = fields.Date(string=u"Required Date", help=u"Required date for this purchase line. "
+                                                              u"Computed as planned date of the first proc - "
+                                                              u"supplier purchase lead time - "
+                                                              u"company purchase lead time", readonly=True)
     limit_order_date = fields.Date(string=u"Limit Order Date", help=u"Limit order date to be late :required date - "
                                                                     u"supplier delay", readonly=True)
     covering_date = fields.Date(string=u"Covered Date", readonly=True)
@@ -158,7 +159,8 @@ class PurchaseOrderLinePlanningImproved(models.Model):
             product_ids = products.ids
         with open(module_path + '/sql/' + 'covering_dates_query.sql') as sql_file:
             self.env.cr.execute(sql_file.read(), (tuple(product_ids),))
-            for result_line in self.env.cr.dictfetchall():
+            test = self.env.cr.dictfetchall()
+            for result_line in test:
                 line = self.env['purchase.order.line'].search([('id', '=', result_line['pol_id'])])
                 if line.product_id.type == 'product':
                     real_need_date = result_line['real_need_date'] or False
@@ -197,7 +199,9 @@ class PurchaseOrderLinePlanningImproved(models.Model):
 
     @api.model
     def cron_compute_coverage_state(self):
-        pol_coverage_to_recompute = self.search([('order_id.state', '!=', 'draft'), ('remaining_qty', '>', 0)])
+        pol_coverage_to_recompute = self.search([('order_id.state', 'not in', ['draft', 'done', 'cancel']),
+                                                 ('order_id.partner_id.active', '=', True),
+                                                 ('remaining_qty', '>', 0)])
         products_to_process_ids = list(set([line.product_id.id for line in pol_coverage_to_recompute if
                                             line.product_id]))
         if products_to_process_ids:
@@ -227,9 +231,9 @@ class PurchaseOrderLinePlanningImproved(models.Model):
         if need_cover_reset:
             vals['covering_state'] = 'unknown_coverage'
             vals['covering_date'] = False
-        if 'date_planned' in vals:
+        if 'date_planned' in vals and not self.env.context.get('order_line_variant'):
             for line in self:
-                if vals.get('stats', line.state) == 'draft':
+                if vals.get('state', line.state) == 'draft':
                     vals['requested_date'] = vals['date_planned']
         result = super(PurchaseOrderLinePlanningImproved, self).write(vals)
         if 'date_planned' in vals:

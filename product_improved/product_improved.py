@@ -173,3 +173,32 @@ class ProductSupplierinfoImproved(models.Model):
         result = super(ProductSupplierinfoImproved, self).write(vals)
         self.update_seller_ids_for_products()
         return result
+
+
+class PricelistImproved(models.Model):
+    _inherit = 'product.pricelist'
+
+    @api.model
+    def find_supplierinfo_for_product(self, product, partner_id):
+        seller = False
+        for seller_id in product.seller_ids:
+            if partner_id and seller_id.name.id == partner_id:
+                seller = seller_id
+                break
+        if not seller and product.seller_ids:
+            seller = product.seller_ids[0]
+        return seller
+
+
+    @api.model
+    def find_supplierinfos_for_product(self, product, partner_id):
+        """ :return: recordset of supplierinfo (fourniture d'achat
+        for this supplier """
+        sellers = []
+        for seller_id in product.seller_ids:
+            if partner_id and seller_id.name.id == partner_id:
+                sellers.append(seller_id)
+        if not sellers and product.seller_ids:
+            sellers = [product.seller_ids[0]]
+        return sellers
+

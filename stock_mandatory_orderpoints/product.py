@@ -32,8 +32,9 @@ class ProductProduct(models.Model):
     _inherit = 'product.product'
 
     @api.model
-    def create_needed_orderpoints(self, jobify=True):
-        products = self.search([])
+    def create_needed_orderpoints(self, domain=None, jobify=True):
+        domain = domain or []
+        products = self.search(domain)
         if jobify:
             while products:
                 chunk_products = products[:100]
@@ -131,6 +132,8 @@ class StockLocationRoute(models.Model):
                                                         string=u"Required Orderpoint Location")
     product_ids = fields.Many2many('product.product', 'stock_route_product', 'route_id', 'product_id',
                                    string=u"Products")
+    no_rsm_locations_ids = fields.Many2many('stock.location', 'stock_location_without_rsm', 'route_id',
+                                            string=u"Location with no rsm")
 
 class SirailStockLocation(models.Model):
     _inherit = 'stock.location'

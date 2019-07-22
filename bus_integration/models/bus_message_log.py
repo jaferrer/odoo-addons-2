@@ -20,7 +20,7 @@
 from openerp import models, fields
 
 
-class BusMessage(models.Model):
+class BusMessageLog(models.Model):
     _name = 'bus.message.log'
 
     message_id = fields.Many2one('bus.message', string=u"Message")
