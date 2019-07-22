@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+        <!-- tree -->
         <record id="bus_export_config_tree" model="ir.ui.view">
             <field name="name">bus_export_config_tree</field>
             <field name="model">bus.configuration.export</field>
@@ -17,25 +18,23 @@
                     <field name="mapping_object_id"/>
                     <field name="sequence"/>
                     <field name="dependency_level"/>
-                    <field name="cron_created" invisible="1"/>
-                    <button string="Init" name="create_cron" type="object"
-                            attrs="{'invisible':[('cron_created','=',True)]}"/>
-                    <button string="Edit cron" name="edit_cron" type="object"
-                            attrs="{'invisible':[('cron_created','=',False)]}"/>
-                    <button string="run" name="run_batch" type="object" />
+                    <button string="Sync. diff." name="run_batch" type="object" />
+                    <button string="Sync. ALL" name="run_batch" type="object" />
                 </tree>
             </field>
         </record>
 
+        <!-- form -->
         <record id="bus_export_config_form" model="ir.ui.view">
             <field name="name">bus_export_config_form</field>
             <field name="model">bus.configuration.export</field>
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button name="run_batch" string="Run batch" class="oe_highlight" type="object"/>
-                        <button name="export_updated_records" string="Export updated records" class="oe_highlight" type="object"/>
-                        <button name="edit_cron" string="Cron" class="oe_highlight" type="object"/>
+                        <button name="sync_all" string="Sync. ALL" class="oe_highlight" type="object"/>
+                        <button name="sync_diff" string="Sync. Diff" class="oe_highlight" type="object"/>
+                        <button name="create_cron_sync_all" string="Create cron: Sync. ALL" class="oe_button" type="object" attrs="{'invisible': [('cron_sync_all','!=',False)]}"/>
+                        <button name="create_cron_sync_diff" string="Create cron: Sync. diff." class="oe_button" type="object" attrs="{'invisible': [('cron_sync_diff','!=',False)]}"/>
                         <field name="last_transfer_state" widget="statusbar" statusbar_visible=""
                                statusbar_colors="{'done':'green', 'error': 'red'}"/>
                     </header>
@@ -62,6 +61,8 @@
                                 <field name="chunk_size"/>
                                 <field name="mapping_object_id"/>
                                 <field name="dependency_level"/>
+                                <field name="cron_sync_all" />
+                                <field name="cron_sync_diff" />
                             </group>
                         </group>
                         <notebook>
@@ -104,6 +105,25 @@
                   action="act_window_bus_config_export" parent="menu_bus"
                   sequence="15"/>
 
+        <!-- Create crons action -->
+        <record model="ir.actions.server" id="ir_actions_config_export_create_crons">
+            <field name="name">Auto generate crons</field>
+            <field name="model_id" ref="bus_integration.model_bus_configuration_export"/>
+            <field name="code">
+                action = self.auto_generate_crons(cr,uid,context.get('active_ids'),context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_config_export_create_crons">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">bus.configuration.export</field>
+            <field name="name">Auto generate crons</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_config_export_create_crons)"/>
+        </record>
+
+
+        <!-- Update dependency level action -->
         <record model="ir.actions.server" id="ir_actions_update_config_export_dependency_level">
             <field name="name">Update dependency level</field>
             <field name="model_id" ref="bus_integration.model_bus_configuration_export"/>

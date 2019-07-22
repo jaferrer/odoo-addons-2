@@ -225,7 +225,6 @@ class BusSynchronizationExporter(models.AbstractModel):
         if not message_dict['body']['root'][model][record_id]['translation'].get(field.map_name):
             message_dict['body']['root'][model][record_id]['translation'][field.map_name] = {}
             for translation in translations:
-                message_dict['body']['root'][model][record_id]['translation'][field.map_name] = {}
                 message_dict['body']['root'][model][record_id]['translation'][field.map_name][translation.lang] = {
                     'source': translation.source,
                     'value': translation.value
