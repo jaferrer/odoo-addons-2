@@ -18,7 +18,7 @@
 #
 
 import openerp
-from openerp import models
+from openerp import models, exceptions
 
 
 def is_module_installed(env, module_name):
@@ -36,25 +36,12 @@ UNLINK_ORIGINAL = models.BaseModel.unlink
 
 @openerp.api.multi
 def unlink(self):
-    ids = self.ids
-    res_unlink = UNLINK_ORIGINAL(self)
     if is_module_installed(self.env, 'bus_integration'):
         object_mapping = self.env['bus.object.mapping'].get_mapping(self._name)
-        if object_mapping.deactivate_on_delete:
-            recs = self.search([('id', 'in', ids)])
-            if not recs and res_unlink:
-                for id in ids:
-                    sync_histo = self.env['bus.receive.transfer'].search([('model', '=', self._name),
-                                                                          ('local_id', '=', id)])
-                    if sync_histo:
-                        sync_histo.write({'to_deactivate': True})
-                    else:
-                        self.env['bus.receive.transfer'].create({
-                            'model': self._name,
-                            'local_id': id,
-                            'to_deactivate': True,
-                            'received_data': u"Deleting %s, model : %s" % (id, self._name)
-                        })
+        if object_mapping:
+            raise exceptions.except_orm(u"Bus Error", u"Impossible to delete record on model %s, use for bus "
+                                                      u"synchronisation" % self._name)
+    res_unlink = UNLINK_ORIGINAL(self)
     return res_unlink
 
 

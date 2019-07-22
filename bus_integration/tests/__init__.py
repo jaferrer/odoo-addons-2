@@ -1,8 +1,8 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
-#    This program is free software: you can redistribute it and/or modify
+#    This program is free software: you can redistribute it and/or modifyf
 #    it under the terms of the GNU Affero General Public License as
 #    published by the Free Software Foundation, either version 3 of the
 #    License, or (at your option) any later version.
@@ -16,12 +16,3 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-from openerp import models, fields
-
-
-class BackendHomeCron(models.Model):
-    _inherit = 'ir.cron'
-
-    bus_configuration_export_id = fields.Many2one('bus.configuration.export', string=u"cron sync. ALL")
-    bus_configuration_export_diff_id = fields.Many2one('bus.configuration.export', string=u"cron sync. diff.")
