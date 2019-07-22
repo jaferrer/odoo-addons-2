@@ -48,7 +48,7 @@
                         <field name="date"
                                attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                         <field name="write_date" widget="date" readonly="True"/>
-                        <field name="date_done" readonly="True"/>
+                        <field name="date_done"/>
                     </group>
                     <group colspan="4">
                         <field name="comment"/>

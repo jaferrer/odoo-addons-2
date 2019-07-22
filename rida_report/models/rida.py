@@ -112,15 +112,15 @@ class RidaLine(models.Model):
         rida.line_cpt += 1
         vals['reference'] = u"%s - %d" % (rida.code, rida.line_cpt)
 
-        if vals.get('state', '') == 'done':
+        if vals.get('state', '') == 'done' and 'date_done' not in vals:
             vals['date_done'] = fields.Date.today()
 
         return super(RidaLine, self).create(vals)
 
     @api.multi
     def write(self, vals):
-        if vals.get('state', '') == 'done':
-            self.filtered(lambda r: r.state != 'done').write({'date_done': fields.Date.today()})
+        if vals.get('state', '') == 'done' and 'date_done' not in vals:
+            self.filtered(lambda r: not(r.state == 'done' or r.date_done)).write({'date_done': fields.Date.today()})
 
         return super(RidaLine, self).write(vals)
 
