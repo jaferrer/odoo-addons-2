@@ -17,11 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from dateutil.relativedelta import relativedelta
+import logging
 
+from dateutil.relativedelta import relativedelta
 from openerp import models, fields, api, _
 from openerp.exceptions import UserError
 from openerp.report import report_sxw
+
+_logger = logging.getLogger(__name__)
 
 
 class ProjectImprovedProject(models.Model):
@@ -278,7 +281,7 @@ class ProjectImprovedTask(models.Model):
     _inherit = 'project.task'
     _parent_name = 'parent_task_id'
 
-    parent_task_id = fields.Many2one('project.task', string=u"Parent task")
+    parent_task_id = fields.Many2one('project.task', string=u"Parent task", index=True)
     previous_task_ids = fields.Many2many('project.task', 'project_task_order_rel', 'next_task_id',
                                          'previous_task_id', string=u"Previous tasks")
     next_task_ids = fields.Many2many('project.task', 'project_task_order_rel', 'previous_task_id',
@@ -767,6 +770,9 @@ class ProjectImprovedTask(models.Model):
 
     @api.multi
     def write(self, vals):
+        if 'objective_end_date' in vals:
+            _logger.info(u"Scheduling task(s) %s for objective end date %s", u",".join([rec.name for rec in self]),
+                         vals.get('objective_end_date'))
         dates_changed = (vals.get('expected_start_date') or vals.get('expected_end_date')) and True or False
         propagate_dates = not self.env.context.get('do_not_propagate_dates')
         propagating_tasks = self.env.context.get('propagating_tasks')
