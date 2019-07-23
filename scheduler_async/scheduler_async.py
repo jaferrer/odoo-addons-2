@@ -341,6 +341,25 @@ FROM procurement_order po
         for proc_id in self.ids:
             job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', [proc_id], context)
 
+    @api.model
+    def restart_proc_in_exception(self, jobify=True):
+        """
+        quand on annule un OF, son proc passe en exception =>
+        ce cron relance les procurement en exception, par jobs de 100 procs, chaque nuit
+        """
+        proc_in_exception = self.env['procurement.order'].search([('state', '=', 'exception')])
+
+        buffer = 100
+        while proc_in_exception:
+            chunk_procs = [p.id for p in proc_in_exception[:buffer]]
+            if jobify:
+                run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order',
+                                                chunk_procs, 'run', dict(self.env.context))
+            else:
+                run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order',
+                                          chunk_procs, 'run', dict(self.env.context))
+            proc_in_exception = proc_in_exception[buffer:]
+
 
 class StockMoveAsync(models.Model):
     _inherit = 'stock.move'
