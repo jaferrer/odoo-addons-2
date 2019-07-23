@@ -8,6 +8,7 @@
             <field name="model">connector.type.prestashop.parameter</field>
             <field name="arch" type="xml">
                 <form>
+                    <field name="backend_home_id" invisible="1"/>
                     <notebook>
                         <page string="API" name="api">
                             <group colspan="4" col="4">
@@ -18,12 +19,16 @@
                         <page string="Parametrage Synchro" name="sync">
                             <group>
                                 <field name="manage_by_ref"></field>
+                                <field name="stock_location_root_id"/>
                                 <field name="shops" widget="many2many_tags"/>
-                                <field name="synchro_state_since" widget="many2many_tags"/>
+                                <field name="synchro_state_since" widget="many2many_tags"
+                                       domain="[('backend_home_id', '=', backend_home_id)]"/>
                                 <field name="map_order_state_to_picking_state">
                                     <tree editable="bottom">
+                                        <field name="backend_home_id" invisible="1"/>
                                         <field name="state_picking"/>
-                                        <field name="state" />
+                                        <field name="state"
+                                               domain="[('backend_home_id', '=', backend_home_id)]"/>
                                     </tree>
                                 </field>
                             </group>

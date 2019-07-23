@@ -55,11 +55,6 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                  <field name="number_trackings" position="after">
                      <field name="number_orders"/>
                  </field>
-                 <notebook position="inside">
-                     <page string="Purchase Orders">
-                         <field name="order_ids"/>
-                     </page>
-                 </notebook>
             </field>
         </record>
 
@@ -73,9 +68,6 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                 </field>
                 <div class="oe_kanban_details" position="inside">
                     <div name="orders"/>
-                    <a name="open_purchase_orders" type="object">
-                        <t t-esc="record.number_orders.value"/> Purchase Orders
-                    </a>
                 </div>
             </field>
         </record>

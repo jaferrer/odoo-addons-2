@@ -41,6 +41,14 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.project_task_9 = self.browse_ref('project_planning_improved.project_task_9')
         self.project_task_10 = self.browse_ref('project_planning_improved.project_task_10')
         self.project_task_11 = self.browse_ref('project_planning_improved.project_task_11')
+        self.test_project_2 = self.browse_ref('project_planning_improved.project_planning_improved_test_project_2')
+        self.project_task_2_1 = self.browse_ref('project_planning_improved.project_task_2_1')
+        self.project_task_2_2 = self.browse_ref('project_planning_improved.project_task_2_2')
+        self.project_task_2_3 = self.browse_ref('project_planning_improved.project_task_2_3')
+        self.project_task_2_4 = self.browse_ref('project_planning_improved.project_task_2_4')
+        self.project_task_2_5 = self.browse_ref('project_planning_improved.project_task_2_5')
+        self.project_task_2_6 = self.browse_ref('project_planning_improved.project_task_2_6')
+        self.project_task_2_7 = self.browse_ref('project_planning_improved.project_task_2_7')
 
     def test_10_critical_task(self):
         """Testing the calculation of field 'critical_task'."""
@@ -508,3 +516,31 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         })
         self.assertEqual(self.project_task_7.expected_start_date, '2017-08-31 08:00:00')
         self.assertEqual(self.project_task_7.expected_end_date, '2017-09-01 18:00:00')
+
+    def test_97_schedule_task_on_one_day(self):
+        task = self.env['project.task'].create({
+            'name': "Test task",
+            'objective_duration': 1,
+            'objective_end_date': '2019-06-12 18:00:00'
+        })
+        self.assertEqual(task.objective_start_date, '2019-06-12 08:00:00')
+
+    def test_98_task_reached_by_same_front(self):
+        """Task 5 is simultaneously reached by planification front, from the right and from the left."""
+        self.test_project_2.reference_task_id = self.project_task_2_1
+        self.test_project_2.reference_task_end_date = '2019-07-15 08:00:00'
+        self.test_project_2.start_auto_planning()
+        self.assertEqual(self.project_task_2_1.expected_start_date, '2019-07-15 08:00:00')
+        self.assertEqual(self.project_task_2_1.expected_end_date, '2019-07-15 18:00:00')
+        self.assertEqual(self.project_task_2_2.expected_start_date, '2019-07-16 08:00:00')
+        self.assertEqual(self.project_task_2_2.expected_end_date, '2019-07-19 18:00:00')
+        self.assertEqual(self.project_task_2_3.expected_start_date, '2019-07-16 08:00:00')
+        self.assertEqual(self.project_task_2_3.expected_end_date, '2019-07-16 18:00:00')
+        self.assertEqual(self.project_task_2_4.expected_start_date, '2019-07-17 08:00:00')
+        self.assertEqual(self.project_task_2_4.expected_end_date, '2019-07-17 18:00:00')
+        self.assertEqual(self.project_task_2_5.expected_start_date, '2019-07-18 08:00:00')
+        self.assertEqual(self.project_task_2_5.expected_end_date, '2019-07-18 18:00:00')
+        self.assertEqual(self.project_task_2_6.expected_start_date, '2019-07-19 08:00:00')
+        self.assertEqual(self.project_task_2_6.expected_end_date, '2019-07-19 18:00:00')
+        self.assertEqual(self.project_task_2_7.expected_start_date, '2019-07-22 08:00:00')
+        self.assertEqual(self.project_task_2_7.expected_end_date, '2019-07-22 18:00:00')

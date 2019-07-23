@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,10 +17,17 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp.addons.connector.session import ConnectorSession
-from openerp.addons.connector.queue.job import job
+import StringIO
+import base64
+import csv
+from io import BytesIO
 
-from openerp import models, fields, api, exceptions
+import xlsxwriter
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+import openerp
+from openerp import models, fields, api, exceptions, _
 
 FORBIDDEN_SQL_KEYWORDS = ["UPDATE", "INSERT", "ALTER", "DELETE", "GRANT", "DROP"]
 
@@ -63,17 +70,32 @@ class OdooScript(models.Model):
 
     @api.multi
     def execute(self, autocommit=False):
+        def _eval(code, glob, loc):
+            from opcode import opmap
+            from openerp.tools.safe_eval import _SAFE_OPCODES, safe_eval
+            print_opcode = {opmap['PRINT_EXPR'],
+                            opmap['PRINT_ITEM'],
+                            opmap['PRINT_NEWLINE'],
+                            opmap['PRINT_ITEM_TO']}
+            _SAFE_OPCODES |= print_opcode
+            safe_eval(code, glob, loc, mode='exec', locals_builtins=True)
+            _SAFE_OPCODES -= print_opcode
+
         self.ensure_one()
         glob = globals()
-        loc = locals()
+        env_script = self.sudo().env
+        loc = {
+            'openerp': openerp,
+            'self': env_script.user,
+            'env': env_script
+        }
         self.last_execution_begin = fields.Datetime.now()
-        exec (self.script, glob, loc)
+        _eval(self.script, glob, loc)
         self.last_execution_end = fields.Datetime.now()
         if autocommit:
             self.env.cr.commit()
-            print u"End of process, result committed"
-        else:
-            print u"End of process, you can commit or rollback"
+            return u"End of process, result committed"
+        return u"End of process, you can commit or rollback"
 
 
 class OdooScriptWatcher(models.Model):
@@ -97,6 +119,12 @@ class OdooScriptWatcher(models.Model):
     nb_lines = fields.Integer(string=u"Number of lines detected", track_visibility='onchange', readonly=True,
                               copy=False)
     script_id = fields.Many2one('odoo.script', string=u"Linked script", copy=False)
+    is_automatic = fields.Boolean(string=u"Is automatic", default=True)
+
+    @api.multi
+    def watch_multi(self):
+        for rec in self:
+            rec.watch()
 
     @api.multi
     def watch(self):
@@ -105,17 +133,130 @@ class OdooScriptWatcher(models.Model):
         for forbidden_keyword in FORBIDDEN_SQL_KEYWORDS:
             if forbidden_keyword in query_upper:
                 raise exceptions.except_orm(u"Error!", u"Forbidden keyword %s in watcher query" % forbidden_keyword)
-        self.env.cr.execute("""%s""" % self.query)
-        res = self.env.cr.fetchall()
-        if res:
-            if self.nb_lines != len(res) or not self.has_result:
-                self.write({'has_result': True, 'nb_lines': len(res)})
+
+        query_with_header = "COPY (%s) TO STDOUT WITH CSV HEADER" % self.query.rstrip(';')
+        output = StringIO.StringIO()
+        self.env.cr.copy_expert(query_with_header, output)
+        output.seek(0)
+        res = csv.reader(output)
+        rows_with_header = [row for row in res]
+        len_row_without_header = len(rows_with_header) - 1
+        if len_row_without_header:
+            if self.nb_lines != len_row_without_header or not self.has_result:
+                self.sudo().write({'has_result': True, 'nb_lines': len_row_without_header})
         elif self.has_result:
-            self.write({'has_result': False, 'nb_lines': 0})
+            self.sudo().write({'has_result': False, 'nb_lines': 0})
+        return rows_with_header
+
+    @api.multi
+    def export(self):
+        self.ensure_one()
+        rows_with_header = self.watch()
+
+        if not self.has_result:
+            raise exceptions.Warning(_(u"No results to export!"))
+
+        file_name = 'export_resultat_watcher_%i_du_%s' % (self.id, fields.Datetime.now())
+        output = BytesIO()
+        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        style_title, style_text = self.define_styles(workbook)
+        column_number = 0
+
+        worksheet = workbook.add_worksheet(u"Resultats")
+
+        # Création de la première ligne d'entête
+        for head in rows_with_header[0]:
+            head = unicode(head.decode('utf-8'))
+            column_number = self.fill_column(worksheet, column_number, style_title, head)
+
+        rows_with_header.pop(0)
+
+        # Remplissage des lignes
+        line_no = 0
+        for row in rows_with_header:
+            line_no += 1
+            column_number = 0
+            for value in row:
+                value = unicode(value.decode('utf-8'))
+                if value == 't':
+                    value = _(u"True")
+                elif value == 'f':
+                    value = _(u"False")
+                column_number = self.fill_line(worksheet, line_no, column_number, style_text, value or "")
+
+        # Élargissement des colonnes
+        worksheet.set_column(0, column_number, 30, None)
+
+        # On fige la première ligne
+        worksheet.freeze_panes(1, 0)
+
+        workbook.close()
+        data = output.getvalue()
+
+        watcher_attachements = self.env['ir.attachment'].sudo().search(
+            [('res_model', '=', self._name), ('res_id', '=', self.id), ('name', 'like', 'export_resultat_watcher_%')])
+
+        if watcher_attachements:
+            watcher_attachements.unlink()
+
+        attachment = self.create_attachment(base64.encodestring(data), file_name + '.xlsx')
+        url = "/web/binary/saveas?model=ir.attachment&field=datas&id=%s&filename_field=name" % attachment.id
+        return {
+            "type": "ir.actions.act_url",
+            "url": url,
+            "target": "self"
+        }
+
+    @api.multi
+    def create_attachment(self, binary, name):
+        self.ensure_one()
+        if not binary:
+            return False
+        return self.env['ir.attachment'].sudo().create({
+            'type': 'binary',
+            'res_model': self._name,
+            'res_name': name,
+            'datas_fname': name,
+            'name': name,
+            'datas': binary,
+            'res_id': self.id,
+        })
+
+    @api.model
+    def define_styles(self, workbook):
+        style_title = workbook.add_format({
+            'font_name': 'Arial Narrow',
+            'font_size': 12,
+            'valign': 'vcenter',
+            'align': 'center',
+            'text_wrap': True,
+            'border': True,
+            'bold': True,
+        })
+        style_text = workbook.add_format({
+            'font_name': 'Arial Narrow',
+            'font_size': 12,
+            'valign': 'vcenter',
+            'align': 'left',
+            'text_wrap': True,
+            'border': True,
+        })
+
+        return style_title, style_text
+
+    @api.multi
+    def fill_column(self, worksheet, column_number, style, name):
+        worksheet.write(0, column_number, name, style)
+        return column_number + 1
+
+    @api.multi
+    def fill_line(self, worksheet, line_no, column_number, style, value):
+        worksheet.write(line_no, column_number, value, style)
+        return column_number + 1
 
     @api.model
     def launch_jobs_watch_lines(self):
-        watchers = self.search([])
+        watchers = self.search([('is_automatic', '=', True)])
         for watcher in watchers:
             session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
             job_launch_watchers.delay(session, 'odoo.script.watcher', watcher.ids,

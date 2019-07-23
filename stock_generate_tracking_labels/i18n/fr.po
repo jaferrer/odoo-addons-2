@@ -118,11 +118,6 @@ msgid "Packages"
 msgstr "Colis"
 
 #. module: stock_generate_tracking_labels
-#: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_picking_tracking_label_attachment
-msgid "Label (attachment)"
-msgstr "Etiquette (pièce jointe)"
-
-#. module: stock_generate_tracking_labels
 #: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_picking_type_use_tracking_labels
 #: model:ir.model.fields,field_description:stock_generate_tracking_labels.field_stock_picking_use_tracking_labels
 msgid "Use tracking labels"

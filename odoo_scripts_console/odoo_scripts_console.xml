@@ -78,7 +78,7 @@
             <field name="name">Watch</field>
             <field name="model_id" ref="odoo_scripts_console.model_odoo_script_watcher"/>
             <field name="code">
-self.watch(cr, uid, context.get('active_ids'), context=context)
+                self.watch_multi(cr, uid, context.get('active_ids'), context=context)
             </field>
         </record>
 
@@ -90,6 +90,19 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
             <field name="value" eval="'ir.actions.server,'+str(act_server_script_watcher)"/>
         </record>
 
+        <record model="ir.ui.view" id="odoo_script_watcher_search">
+            <field name="name">odoo_script_watcher_search</field>
+            <field name="model">odoo.script.watcher</field>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="query"/>
+                    <filter string="Automatic" name="auto" domain="[('is_automatic', '=', True)]"/>
+                    <filter string="Manual" name="manual" domain="[('is_automatic', '=', False)]"/>
+                </search>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="odoo_script_watcher_form">
             <field name="name">odoo_script_watcher_form</field>
             <field name="model">odoo.script.watcher</field>
@@ -97,7 +110,8 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button name="watch" type="object" string="Watch" class="oe_highlight"/>
+                        <button name="watch" type="object" string="Watch" class="oe_highlight" groups="odoo_scripts_console.group_sripts_user_watcher"/>
+                        <button name="export" type="object" string="Export" groups="odoo_scripts_console.group_sripts_user_watcher"/>
                     </header>
                     <sheet>
                         <group>
@@ -106,6 +120,9 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
                             <field name="has_result"/>
                             <field name="nb_lines"/>
                             <field name="script_id"/>
+                            <field name="is_automatic"/>
+                            <field name="create_uid" readonly="1"/>
+                            <field name="write_uid" readonly="1"/>
                         </group>
                         <notebook>
                             <page string="SQL query to execute">
@@ -127,12 +144,10 @@ self.watch(cr, uid, context.get('active_ids'), context=context)
             <field name="view_type">form</field>
             <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
-            <field name="context">{}</field>
-            <field name="help"></field>
         </record>
 
         <menuitem id="menu_odoo_script_watcher" name="Odoo Script Watchers" action="act_window_odoo_script_watcher"
-                  parent="base.menu_custom" sequence="6"/>
+                  parent="connector.menu_connector" sequence="6"/>
 
     </data>
 </openerp>

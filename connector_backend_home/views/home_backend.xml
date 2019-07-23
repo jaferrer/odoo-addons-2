@@ -128,6 +128,11 @@
                                        attrs="{'invisible': [('use_http', '=', False)], 'required': [('use_http', '=', True)]}"/>
                             </group>
                         </page>
+                        <page string="Parametrage Synchro" name="sync">
+                            <group>
+                                <field name="stock_location_root_id"/>
+                            </group>
+                        </page>
                     </notebook>
                     <footer>
                         <button name="write" string="Save" type="object" class="oe_highlight"/>

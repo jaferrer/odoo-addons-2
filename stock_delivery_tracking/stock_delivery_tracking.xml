@@ -46,23 +46,6 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             </field>
         </record>
 
-        <record model="ir.ui.view" id="tracking_transporter_form">
-            <field name="name">tracking.transporter.form</field>
-            <field name="model">tracking.transporter</field>
-            <field name="inherit_id" ref="base_delivery_tracking.tracking_transporter_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                 <field name="number_trackings" position="after">
-                     <field name="number_pickings"/>
-                 </field>
-                 <notebook position="inside">
-                     <page string="Stock Pickings">
-                         <field name="picking_ids"/>
-                     </page>
-                 </notebook>
-            </field>
-        </record>
-
         <record model="ir.ui.view" id="tracking_transporter_kanban">
             <field name="name">tracking.transporter.kanban</field>
             <field name="model">tracking.transporter</field>
@@ -73,9 +56,6 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                 </field>
                 <div class="oe_kanban_details" position="inside">
                     <div name="pickings"/>
-                    <a name="open_pickings" type="object">
-                        <t t-esc="record.number_pickings.value"/> Stock Pickings
-                    </a>
                 </div>
             </field>
         </record>
@@ -132,9 +112,9 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
                   action="base_delivery_tracking.act_window_tracking_number"
                   parent="menu_delivery_tracking" sequence="20"/>
 
-        <menuitem id="menu_tracking_by_transporter" name="Tracking numbers by transporter"
+        <menuitem id="menu_tracking_by_transporter" name="Transporter"
                   action="base_delivery_tracking.act_window_tracking_number_by_transporter"
-                  parent="menu_delivery_tracking" sequence="30"/>
+                  parent="base.menu_sale_config" sequence="30"/>
 
     </data>
 </openerp>
