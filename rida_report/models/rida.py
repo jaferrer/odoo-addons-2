@@ -93,6 +93,8 @@ class RidaLine(models.Model):
         ('medium', u"Medium"),
         ('high', u"High"),
     ], u"Priority", default='low')
+    contributor_ids = fields.Many2many('res.users', 'rel_rida_lines_contributors', 'line_id', 'user_id',
+                                       u"Contributors")
 
     @api.onchange('type')
     def onchange_type(self):

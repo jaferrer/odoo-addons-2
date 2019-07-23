@@ -54,6 +54,9 @@
                         <field name="comment"/>
                     </group>
                     <group colspan="4">
+                        <field name="contributor_ids" widget="many2many_tags"/>
+                    </group>
+                    <group colspan="4">
                         <field name="attachment_ids" widget="many2many_binary"/>
                     </group>
                 </sheet>
@@ -150,20 +153,27 @@
         <field name="model">rida.line</field>
         <field name="arch" type="xml">
             <search>
+                <field name="reference"/>
+                <field name="report_id"/>
+                <field name="user_id"/>
+                <field name="comment"/>
+                <field name="contributor_ids"/>
                 <filter name="information_only" string="Informations only" domain="[('type', '=', 'information')]"/>
                 <filter name="decision_only" string="Decisions only" domain="[('type', '=', 'decision')]"/>
                 <filter name="action_only" string="Actions only" domain="[('type', '=', 'action')]"/>
                 <separator/>
-                <filter name="all_action_todo" string="All actions to do"
-                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'open')]"/>
-                <filter name="all_action_done" string="All actions done"
-                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
-                <filter name="my_action_todo" string="My actions to do"
-                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'open')]"/>
-                <filter name="my_action_done" string="My actions done"
-                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="my_lines" string="My Lines"
+                        domain="['|', ('user_id', '=', uid), ('contributor_ids', '=', uid)]"/>
+                <filter name="own_lines" string="Lines for which I am responsible"
+                        domain="[('user_id', '=', uid)]"/>
+                <filter name="my_contributions" string="My contributions"
+                        domain="[('contributor_ids', '=', uid)]"/>
                 <separator/>
-                <filter name="own_lines" string="My lines" domain="[('user_id', '=', uid), ]"/>
+                <filter name="actions_todo" string="Actions to do"
+                        domain="[('type', '=', 'action'), ('state', '=', 'open')]"/>
+                <filter name="actions_done" string="Actions done"
+                        domain="[('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <separator/>
                 <group expand="0" string="Group By">
                     <filter string="RIDA" domain="[]" context="{'group_by': 'report_id'}"/>
                     <filter string="Type" domain="[]" context="{'group_by': 'type'}"/>
@@ -184,7 +194,7 @@
         <field name="name">Lines</field>
         <field name="res_model">rida.line</field>
         <field name="view_mode">tree</field>
-        <field name="context">{'search_default_my_action_todo': 1}</field>
+        <field name="context">{'search_default_my_lines': 1, 'search_default_actions_todo': 1}</field>
     </record>
 
     <!-- menuitems -->
