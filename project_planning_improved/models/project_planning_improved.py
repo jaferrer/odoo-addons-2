@@ -281,7 +281,7 @@ class ProjectImprovedTask(models.Model):
     _inherit = 'project.task'
     _parent_name = 'parent_task_id'
 
-    parent_task_id = fields.Many2one('project.task', string=u"Parent task")
+    parent_task_id = fields.Many2one('project.task', string=u"Parent task", index=True)
     previous_task_ids = fields.Many2many('project.task', 'project_task_order_rel', 'next_task_id',
                                          'previous_task_id', string=u"Previous tasks")
     next_task_ids = fields.Many2many('project.task', 'project_task_order_rel', 'previous_task_id',
