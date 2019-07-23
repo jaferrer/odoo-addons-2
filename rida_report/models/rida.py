@@ -32,7 +32,6 @@ class RidaReport(models.Model):
     theme_id = fields.Many2one('res.partner', u"Theme", index=True)
     project_id = fields.Many2one('project.project', u"Related project", index=True)
     creation_date = fields.Date(u"Creation date", required=True, default=fields.Date.today)
-    line_ids = fields.One2many('rida.line', 'report_id', u"Lines")
     auth_mode = fields.Selection([('public', u"Tout le monde"), ('private', u"Les utilisateurs invités")],
                                  string=u"Utilisateurs autorisés", required=True, default='private')
     user_ids = fields.Many2many('res.users', string=u"Utilisateurs invités", default=_get_default_user_ids)
@@ -41,6 +40,10 @@ class RidaReport(models.Model):
         ('archived', u"Archived"),
     ], u"Status", compute='_compute_state', inverse='_inverse_state')
     line_cpt = fields.Integer(default=0)
+    active_line_ids = fields.One2many('rida.line', 'report_id', u"Active lines",
+                                      domain=[('state', 'in', ('open', 'done'))])
+    inactive_line_ids = fields.One2many('rida.line', 'report_id', u"Inactive lines",
+                                        domain=[('state', 'in', ('closed', 'duplicate', 'cancel'))])
 
     @api.multi
     def _compute_state(self):
@@ -82,7 +85,6 @@ class RidaLine(models.Model):
     attachment_ids = fields.Many2many('ir.attachment', string=u"Attachments")
     state = fields.Selection([
         ('open', u"Open"),
-        ('info', u"Information"),
         ('done', u"Done"),
         ('closed', u"Closed"),
         ('duplicate', u"Duplicate"),
@@ -96,14 +98,11 @@ class RidaLine(models.Model):
 
     @api.onchange('type')
     def onchange_type(self):
-        if not self.type:
-            self.state = 'open'
-            self.priority = False
-        elif self.type == 'action':
+        if self.type == 'action':
             self.state = 'open'
             self.priority = 'low'
         else:
-            self.state = 'info'
+            self.state = 'open'
             self.priority = False
 
     @api.model
