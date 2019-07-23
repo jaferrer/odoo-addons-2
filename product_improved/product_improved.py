@@ -45,6 +45,9 @@ class ProductTemplateJit(models.Model):
 
     @api.model
     def update_seller_ids(self):
+        restrict_to_template_ids = self.env.context.get('restrict_to_template_ids', [])
+        if not restrict_to_template_ids:
+            restrict_to_template_ids = self.search([]).ids
         self.env.cr.execute("""WITH main_supplier_intermediate_table AS (
     SELECT
         pt.id            AS product_tmpl_id,
@@ -75,7 +78,7 @@ FROM product_template pt
     LEFT JOIN res_users ON res_partner.user_id = res_users.id
 WHERE (res_partner.id IS NULL OR main_supplier_s.constr = 1) AND
       ((res_partner.id IS NULL AND pt.seller_id IS NOT NULL OR res_partner.id IS NOT NULL AND pt.seller_id IS NULL OR
-        res_partner.id != pt.seller_id))""")
+        res_partner.id != pt.seller_id)) AND pt.ID IN %s""", (tuple(restrict_to_template_ids),))
         for res_tuple in self.env.cr.fetchall():
             product = self.browse(res_tuple[0])
             supplier = self.env['res.partner'].browse(res_tuple[1])
@@ -160,7 +163,8 @@ class ProductSupplierinfoImproved(models.Model):
     @api.multi
     def update_seller_ids_for_products(self):
         templates = self.env['product.template'].search([('id', 'in', [rec.product_tmpl_id.id for rec in self])])
-        templates.update_seller_ids()
+        if templates:
+            self.env['product.template'].with_context(restrict_to_template_ids=templates.ids).update_seller_ids()
 
     @api.model
     def create(self, vals):
