@@ -37,6 +37,8 @@ class ProjectTaskCharge(models.Model):
     duration_per_day = fields.Float(u"Duration of the task per day")
     duration = fields.Integer(u"Spacing the task in days")
     planned_hours = fields.Float(u"Planned hours")
+    total_hours_spent = fields.Float(u"Total hours spent")
+    remaining_hours = fields.Float(u"Remaining hours")
     date_start = fields.Datetime(u"Start date")
     date_end = fields.Datetime(u"End date")
     is_template_task = fields.Boolean(u"Template task")
@@ -82,7 +84,9 @@ class ProjectTaskCharge(models.Model):
                 pt.date_start,
                 pt.date_end,
                 pt.is_template_task,
-                planned_hours
+                planned_hours,
+                total_hours_spent,
+                remaining_hours
          FROM project_task pt
          WHERE is_template_task IS NOT TRUE
      )
@@ -98,6 +102,8 @@ SELECT (to_char(days.date, 'yyyymmdd') || lpad(COALESCE(td.user_id::TEXT, '')::T
              td.duration_per_day AS duration_per_day,
              td.duration AS duration,
              td.planned_hours AS planned_hours,
+             td.total_hours_spent AS total_hours_spent,
+             td.remaining_hours AS remaining_hours,
              td.date_start AS date_start,
              td.date_end AS date_end
     FROM days

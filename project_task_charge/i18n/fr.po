@@ -87,6 +87,16 @@ msgid "Planned hours"
 msgstr "Heures prévues"
 
 #. module: project_task_charge
+#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_total_hours_spent
+msgid "Total hours spent"
+msgstr "Total heures passés"
+
+#. module: project_task_charge
+#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_remaining_hours
+msgid "Remaining hours"
+msgstr "Heures restantes"
+
+#. module: project_task_charge
 #: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_date_start
 msgid "Start date"
 msgstr "Date de début"
