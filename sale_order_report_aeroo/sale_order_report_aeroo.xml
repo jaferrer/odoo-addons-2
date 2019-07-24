@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+		<record id="sale_order_report_aeroo" model="ir.actions.report">
+			<field name="name">Sale Order</field>
+			<field name="type">ir.actions.report</field>
+			<field name="model">sale.order</field>
+			<field name="report_name">sale.order.report.aeroo</field>
+			<field name="report_type">aeroo</field>
+			<field name="report_file">sale_order_report_aeroo/sale_order_report.odt</field>
+            <field name="attachment">object.name.replace('/','')</field>
+			<field name="tml_source">file</field>
+			<field name="in_format">oo-odt</field>
+			<field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+		</record>
+
+        <function model="sale.order.delete.report" name="link_report_with_mail"/>
+
+</odoo>
