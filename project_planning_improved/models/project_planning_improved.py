@@ -292,8 +292,8 @@ class ProjectImprovedTask(models.Model):
     objective_end_date = fields.Datetime(string=u"Objective end date", readonly=True)
     objective_start_date = fields.Datetime(string=u"Objective start date", compute='_compute_objective_start_date',
                                            store=True)
-    expected_start_date = fields.Datetime(string=u"Expected start date")
-    expected_end_date = fields.Datetime(string=u"Expected end date")
+    expected_start_date = fields.Datetime(string=u"Expected start date", index=True)
+    expected_end_date = fields.Datetime(string=u"Expected end date", index=True)
     expected_duration = fields.Float(string=u"Expected duration (days)", compute='_compute_expected_duration',
                                      store=True)
     allocated_duration = fields.Float(string=u"Allocated duration", help=u"In project time unit of the company")
@@ -304,7 +304,7 @@ class ProjectImprovedTask(models.Model):
                                               help=u"In project time unit of the comany")
     taken_into_account = fields.Boolean(string=u"Taken into account")
     conflict = fields.Boolean(string=u"Conflict")
-    is_milestone = fields.Boolean(string="Is milestone", compute="_get_is_milestone", store=True, default=False)
+    is_milestone = fields.Boolean(string="Is milestone", compute='_get_is_milestone', store=True, default=False)
     ready_for_execution = fields.Boolean(string=u"Ready for execution", readonly=True, track_visibility=True)
     notify_users_when_dates_change = fields.Boolean(string=u"Notify users when dates change",
                                                     help=u"An additional list of users is defined in project "
