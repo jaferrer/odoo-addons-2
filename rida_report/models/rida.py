@@ -62,6 +62,7 @@ class RidaReport(models.Model):
 
 class RidaLine(models.Model):
     _name = 'rida.line'
+    _order = 'priority asc, date asc'
 
     type = fields.Selection([
         ('information', u"Information"),
@@ -89,10 +90,10 @@ class RidaLine(models.Model):
         ('cancel', u"Cancelled")
     ], u"Line state", default='open', required=True)
     priority = fields.Selection([
-        ('low', u"Low"),
-        ('medium', u"Medium"),
-        ('high', u"High"),
-    ], u"Priority", default='low')
+        ('p1', u"P1 High"),
+        ('p2', u"P2 Medium"),
+        ('p3', u"P3 Low"),
+    ], u"Priority", default='p3')
 
     @api.onchange('type')
     def onchange_type(self):
@@ -101,7 +102,7 @@ class RidaLine(models.Model):
             self.priority = False
         elif self.type == 'action':
             self.state = 'open'
-            self.priority = 'low'
+            self.priority = 'p3'
         else:
             self.state = 'info'
             self.priority = False
