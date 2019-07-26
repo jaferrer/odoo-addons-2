@@ -36,6 +36,12 @@ msgid "Actions only"
 msgstr "Actions seulement"
 
 #. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_active_line_ids
+#: model:ir.ui.view,arch_db:rida_report.rida_report_form
+msgid "Active lines"
+msgstr "Lignes actives"
+
+#. module: rida_report
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
 msgid "Actions to do"
 msgstr "Actions à faire"
@@ -161,8 +167,8 @@ msgstr "Grouper par"
 
 #. module: rida_report
 #: selection:rida.line,priority:0
-msgid "High"
-msgstr "Élevée"
+msgid "P1 High"
+msgstr "P1 Élevée"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_id
@@ -171,7 +177,12 @@ msgid "ID"
 msgstr "ID"
 
 #. module: rida_report
-#: selection:rida.line,state:0
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_inactive_line_ids
+#: model:ir.ui.view,arch_db:rida_report.rida_report_form
+msgid "Inactive lines"
+msgstr "Lignes inactives"
+
+#. module: rida_report
 #: selection:rida.line,type:0
 msgid "Information"
 msgstr "Information"
@@ -239,13 +250,18 @@ msgstr "Lignes dont je suis responsable"
 
 #. module: rida_report
 #: selection:rida.line,priority:0
-msgid "Low"
-msgstr "Faible"
+msgid "P3 Low"
+msgstr "P3 Faible"
 
 #. module: rida_report
 #: selection:rida.line,priority:0
-msgid "Medium"
-msgstr "Moyenne"
+msgid "P2 Medium"
+msgstr "P2 Moyenne"
+
+#. module: rida_report
+#: model:ir.ui.menu,name:rida_report.rida_line_menu
+msgid "My Lines"
+msgstr "Mes Lignes"
 
 #. module: rida_report
 #: model:ir.ui.menu,name:rida_report.rida_line_menu

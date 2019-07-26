@@ -32,7 +32,6 @@ class RidaReport(models.Model):
     theme_id = fields.Many2one('res.partner', u"Theme", index=True)
     project_id = fields.Many2one('project.project', u"Related project", index=True)
     creation_date = fields.Date(u"Creation date", required=True, default=fields.Date.today)
-    line_ids = fields.One2many('rida.line', 'report_id', u"Lines")
     auth_mode = fields.Selection([('public', u"Tout le monde"), ('private', u"Les utilisateurs invités")],
                                  string=u"Utilisateurs autorisés", required=True, default='private')
     user_ids = fields.Many2many('res.users', string=u"Utilisateurs invités", default=_get_default_user_ids)
@@ -41,6 +40,10 @@ class RidaReport(models.Model):
         ('archived', u"Archived"),
     ], u"Status", compute='_compute_state', inverse='_inverse_state')
     line_cpt = fields.Integer(default=0)
+    active_line_ids = fields.One2many('rida.line', 'report_id', u"Active lines",
+                                      domain=[('state', 'in', ('open', 'done'))])
+    inactive_line_ids = fields.One2many('rida.line', 'report_id', u"Inactive lines",
+                                        domain=[('state', 'in', ('closed', 'duplicate', 'cancel'))])
 
     @api.multi
     def _compute_state(self):
@@ -62,6 +65,7 @@ class RidaReport(models.Model):
 
 class RidaLine(models.Model):
     _name = 'rida.line'
+    _order = 'priority asc, date asc'
 
     type = fields.Selection([
         ('information', u"Information"),
@@ -82,30 +86,26 @@ class RidaLine(models.Model):
     attachment_ids = fields.Many2many('ir.attachment', string=u"Attachments")
     state = fields.Selection([
         ('open', u"Open"),
-        ('info', u"Information"),
         ('done', u"Done"),
         ('closed', u"Closed"),
         ('duplicate', u"Duplicate"),
         ('cancel', u"Cancelled")
     ], u"Line state", default='open', required=True)
     priority = fields.Selection([
-        ('low', u"Low"),
-        ('medium', u"Medium"),
-        ('high', u"High"),
-    ], u"Priority", default='low')
+        ('p1', u"P1 High"),
+        ('p2', u"P2 Medium"),
+        ('p3', u"P3 Low"),
+    ], u"Priority", default='p3')
     contributor_ids = fields.Many2many('res.users', 'rel_rida_lines_contributors', 'line_id', 'user_id',
                                        u"Contributors")
 
     @api.onchange('type')
     def onchange_type(self):
-        if not self.type:
+        if self.type == 'action':
             self.state = 'open'
-            self.priority = False
-        elif self.type == 'action':
-            self.state = 'open'
-            self.priority = 'low'
+            self.priority = 'p3'
         else:
-            self.state = 'info'
+            self.state = 'open'
             self.priority = False
 
     @api.model
@@ -114,15 +114,15 @@ class RidaLine(models.Model):
         rida.line_cpt += 1
         vals['reference'] = u"%s - %d" % (rida.code, rida.line_cpt)
 
-        if vals.get('state', '') == 'done':
+        if vals.get('state', '') == 'done' and 'date_done' not in vals:
             vals['date_done'] = fields.Date.today()
 
         return super(RidaLine, self).create(vals)
 
     @api.multi
     def write(self, vals):
-        if vals.get('state', '') == 'done':
-            self.filtered(lambda r: r.state != 'done').write({'date_done': fields.Date.today()})
+        if vals.get('state', '') == 'done' and 'date_done' not in vals:
+            self.filtered(lambda r: not(r.state == 'done' or r.date_done)).write({'date_done': fields.Date.today()})
 
         return super(RidaLine, self).write(vals)
 
