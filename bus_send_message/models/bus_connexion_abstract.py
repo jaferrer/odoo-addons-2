@@ -47,7 +47,7 @@ class BusConnexionAbstract(models.AbstractModel):
     @api.multi
     def try_connexion(self, raise_error=False):
         self.ensure_one()
-        url = "http://%s:%s/jsonrpc" % (self.url, self.port)
+        url = "%s:%s/jsonrpc" % (self.url, self.port)
         server = jsonrpclib.Server(url)
         connection = False
         try:
