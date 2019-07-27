@@ -54,6 +54,7 @@ class BusConnexionAbstract(models.AbstractModel):
                 self.login,
                 self.password
             ]
+            _logger.info(u"Connectiong to URL %s, on database %s", url, self.database)
             connection = server.call(service="common", method="login", args=args)
             result = u"Error Login/Password" if connection == 0 else u"OK"
         except socket.error as e:
