@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Hidden',
-    'depends': [],
+    'depends': ['web'],
     'description': """
 Improved GroupBy for Boolean Fields
 ===================================
