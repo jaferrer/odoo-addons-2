@@ -38,6 +38,7 @@
                             <field name="method_name"/>
                             <field name="asynchronous"/>
                             <field name="file"/>
+                            <field name="nb_columns"/>
                         </group>
                         <notebook>
                             <page string="Logs">

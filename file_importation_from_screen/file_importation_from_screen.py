@@ -30,12 +30,14 @@ _logger = logging.getLogger(__name__)
 
 class CustomerFileToImport(models.Model):
     _name = 'customer.file.to.import'
+    _order = 'sequence, id'
 
     name = fields.Char(string=u"Nom", required=True, readonly=True)
     model_id = fields.Many2one('ir.model', string=u"Model", required=True, readonly=True)
     method_name = fields.Char(string=u"Method name", readonly=True)
     asynchronous = fields.Boolean(string=u"Asynchronous importation", readonly=True)
     file = fields.Binary(string=u"File to import", required=True, attachment=True)
+    nb_columns = fields.Integer(string=u"Number of columns", readonly=True)
     logs = fields.Text(string=u"Logs", readonly=True)
     state = fields.Selection([('draft', u"Never imported"),
                               ('processing', u"Processing"),
@@ -43,6 +45,7 @@ class CustomerFileToImport(models.Model):
                               ('done', u"Done")], string=u"State", required=True, default='draft')
     csv_file_ids = fields.One2many('customer.generated.csv.file', 'import_id', string=u"Generated CSV files",
                                    readonly=True)
+    sequence = fields.Integer(string=u"Séquence")
 
     @api.multi
     def generate_out_csv_files(self):
@@ -121,7 +124,6 @@ class CustomerFileToImport(models.Model):
             raise exceptions.UserError(u"Impossible de générer un ID XML pour l'objet %s" % object)
         return xlml_id
 
-
     @api.multi
     def save_generated_csv_file(self, model, fields_to_import, areas_dict_result, sequence=0):
         self.ensure_one()
@@ -139,6 +141,14 @@ class CustomerFileToImport(models.Model):
                                                             'sequence': sequence,
                                                             'generated_csv_file': base64.b64encode(tmpfile.read()),
                                                             'fields_to_import': str(['id'] + fields_to_import)})
+
+    @api.multi
+    def check_line_length(self, iterable):
+        self.ensure_one()
+        if len(iterable) != self.nb_columns:
+            self.log_error(u"Importation file should have %s columns, not %s" % (self.nb_columns, len(iterable)))
+            return False
+        return True
 
 
 class CustomerGeneratedCsvFile(models.Model):
