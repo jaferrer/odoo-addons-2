@@ -1,0 +1,73 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* mrp_bom_use_cases
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-04 13:39+0000\n"
+"PO-Revision-Date: 2019-07-04 13:39+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: mrp_bom_use_cases
+#: model:ir.model.fields,field_description:mrp_bom_use_cases.field_mrp_bom_line_type
+msgid "BoM Type"
+msgstr "Type de nomenclature"
+
+#. module: mrp_bom_use_cases
+#: model:ir.model.fields,field_description:mrp_bom_use_cases.field_mrp_bom_line_father_line_ids
+msgid "Father lines"
+msgstr "Father lines"
+
+#. module: mrp_bom_use_cases
+#: model:ir.model.fields,help:mrp_bom_use_cases.field_mrp_bom_line_product_parent_id
+msgid "If a product variant is defined the BOM is available only for this product."
+msgstr "Si une variante d'article est définie, la nomenclature n'est disponible que pour cet article."
+
+#. module: mrp_bom_use_cases
+#: model:ir.model.fields,help:mrp_bom_use_cases.field_mrp_bom_line_type
+msgid "Kit (Phantom): When processing a sales order for this product, the delivery order will contain the raw materials, instead of the finished product."
+msgstr "Kit (fantôme): quand une commande client est générée avec ce produit, le bon de livraison contient les composants de cette nomenclature à la place du produit fini."
+
+#. module: mrp_bom_use_cases
+#: model:ir.model.fields,field_description:mrp_bom_use_cases.field_product_product_use_case_count
+#: model:ir.model.fields,field_description:mrp_bom_use_cases.field_product_template_use_case_count
+msgid "Number of use cases"
+msgstr "Number of use cases"
+
+#. module: mrp_bom_use_cases
+#: model:ir.model.fields,field_description:mrp_bom_use_cases.field_mrp_bom_line_product_parent_id
+msgid "Parent Product"
+msgstr "Produit parent"
+
+#. module: mrp_bom_use_cases
+#: model:ir.model,name:mrp_bom_use_cases.model_product_product
+msgid "Product"
+msgstr "Article"
+
+#. module: mrp_bom_use_cases
+#: model:ir.model,name:mrp_bom_use_cases.model_product_template
+msgid "Product Template"
+msgstr "Modèle d'article"
+
+#. module: mrp_bom_use_cases
+#: model:ir.actions.act_window,name:mrp_bom_use_cases.act_window_mrp_bom_inverted
+msgid "Product Use Cases in BoMs"
+msgstr "Cas d'emploi"
+
+#. module: mrp_bom_use_cases
+#: model:ir.ui.view,arch_db:mrp_bom_use_cases.product_product_form_use_cases
+#: model:ir.ui.view,arch_db:mrp_bom_use_cases.product_template_form_use_cases
+msgid "Use Cases"
+msgstr "Cas d'emploi"
+
+#. module: mrp_bom_use_cases
+#: model:ir.model,name:mrp_bom_use_cases.model_mrp_bom_line
+msgid "mrp.bom.line"
+msgstr "mrp.bom.line"

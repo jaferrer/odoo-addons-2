@@ -76,8 +76,11 @@ class ProjectTask(models.Model):
 
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
-        args = ['|', ('number', operator, name)] + (args or [])
-        return super(ProjectTask, self).name_search(name, args, operator, limit=100)
+        args = args or []
+        result = dict(super(ProjectTask, self).name_search(name, args, operator, limit))
+        if name:
+            result.update(dict(self.search([('number', operator, name)] + args, limit=limit).name_get()))
+        return result
 
     @api.multi
     def name_get(self):

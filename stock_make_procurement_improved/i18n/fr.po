@@ -1,0 +1,106 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_make_procurement_improved
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-07-18 09:18+0000\n"
+"PO-Revision-Date: 2019-07-18 09:18+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_id
+msgid "ID"
+msgstr "ID"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_make_procurement_line_ids
+msgid "Make Procurement Line"
+msgstr "Variantes"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model,name:stock_make_procurement_improved.model_make_procurement
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_make_procurement_id
+#: code:addons/stock_make_procurement_improved/make_procurement.py:103
+#, python-format
+msgid "Make Procurements"
+msgstr "Réaliser les approvisionnements"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_default_line_date_planned
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_date_planned
+msgid "Planned date"
+msgstr "Date planifiée"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model,name:stock_make_procurement_improved.model_product_template
+msgid "Product Template"
+msgstr "Modèle d'article"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_qty
+msgid "Quantity"
+msgstr "Quantité"
+
+#. module: stock_make_procurement_improved
+#: model:ir.ui.view,arch_db:stock_make_procurement_improved.view_make_procurment_wizard_hamac
+msgid "Total quantity"
+msgstr "Quantité totale"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_uom_id
+msgid "Unit of Measure"
+msgstr "Unité de mesure"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_name
+msgid "Variant"
+msgstr "Variante"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model,name:stock_make_procurement_improved.model_make_procurement_line
+msgid "make.procurement.line"
+msgstr "make.procurement.line"
+
+#. module: stock_make_procurement_improved
+#: code:addons/stock_make_procurement_improved/make_procurement.py:84
+#, python-format
+msgid "Procurements creates"
+msgstr "Approvisionnements créés"
