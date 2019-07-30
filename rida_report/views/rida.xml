@@ -38,6 +38,19 @@
         </field>
     </record>
 
+    <record id="rida_line_tree_embed_no_create" model="ir.ui.view">
+        <field name="name">rida_line_tree_embed_no_create</field>
+        <field name="model">rida.line</field>
+        <field name="inherit_id" ref="rida_report.rida_line_tree_embed"/>
+        <field name="mode">primary</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <tree position="attributes">
+                <attribute name="create">0</attribute>
+            </tree>
+        </field>
+    </record>
+
     <record id="rida_line_form" model="ir.ui.view">
         <field name="name">rida.line.form</field>
         <field name="model">rida.line</field>
@@ -133,7 +146,7 @@
                         <page name="inactive_lines" string="Inactive lines">
                             <group col="1" string="Inactive lines">
                                 <field name="inactive_line_ids"
-                                       context="{'tree_view_ref': 'rida_report.rida_line_tree_embed'}"
+                                       context="{'tree_view_ref': 'rida_report.rida_line_tree_embed_no_create'}"
                                        nolabel="1"/>
                             </group>
                         </page>
