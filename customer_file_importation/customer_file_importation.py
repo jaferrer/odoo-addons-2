@@ -86,7 +86,7 @@ class CustomerFileToImport(models.Model):
             _logger.warning(msg)
         elif type == 'ERROR':
             _logger.error(msg)
-        logs = u"""%s""" % self.logs
+        logs = u"""%s""" % (self.logs or u"")
         if logs:
             logs += u"""\n"""
         logs += u"""%s: %s""" % (type, msg)
