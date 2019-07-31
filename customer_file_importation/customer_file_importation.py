@@ -30,10 +30,11 @@ _logger = logging.getLogger(__name__)
 
 class CustomerFileToImport(models.Model):
     _name = 'customer.file.to.import'
-    _order = 'sequence, id'
+    _order = 'sequence,id'
 
     name = fields.Char(string=u"Nom", required=True, readonly=True)
     asynchronous = fields.Boolean(string=u"Asynchronous importation", readonly=True)
+    chunk_size = fields.Integer(string=u"Chunk size for asynchronous importation")
     file = fields.Binary(string=u"File to import", required=True, attachment=True)
     nb_columns = fields.Integer(string=u"Number of columns", readonly=True)
     logs = fields.Text(string=u"Logs", readonly=True)
@@ -43,7 +44,14 @@ class CustomerFileToImport(models.Model):
                               ('done', u"Done")], string=u"State", required=True, default='draft')
     csv_file_ids = fields.One2many('customer.generated.csv.file', 'import_id', string=u"Generated CSV files",
                                    readonly=True)
-    sequence = fields.Integer(string=u"Séquence")
+    sequence = fields.Integer(string=u"Séquence", readonly=True)
+    extension = fields.Char(string=u"Extension", readonly=True, help=u"Example : '.xls', '.csv' or '.txt'")
+    datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
+
+    @api.multi
+    def _compute_datas_fname(self):
+        for rec in self:
+            rec.datas_fname = u"%s%s" % (rec.name, rec.extension)
 
     @api.multi
     def generate_out_csv_files_multi(self):
@@ -61,27 +69,8 @@ class CustomerFileToImport(models.Model):
 
     @api.multi
     def import_actual_files(self):
-        for file in self.csv_file_ids:
-            wizard = self.env['base_import.import'].create({
-                'res_model': file.model,
-                'file': file.generated_csv_file.decode('base64'),
-                'file_name': file.datas_fname,
-                'file_type': 'text/csv',
-            })
-            options = {u'datetime_format': u'',
-                       u'date_format': u'',
-                       u'keep_matches': False,
-                       u'encoding': u'utf-8',
-                       u'fields': [],
-                       u'quoting': u'"',
-                       u'headers': True,
-                       u'separator': u',',
-                       u'float_thousand_separator': u',',
-                       u'float_decimal_separator': u'.',
-                       u'advanced': True}
-            if self.asynchronous:
-                options[u'use_queue'] = True
-            wizard.do(fields=eval(file.fields_to_import), options=options)
+        # TODO: coder un connecteur pour ordonner les traitements
+        self.csv_file_ids.action_import()
 
     @api.multi
     def generate_csv_files_and_import(self):
@@ -97,7 +86,7 @@ class CustomerFileToImport(models.Model):
             _logger.warning(msg)
         elif type == 'ERROR':
             _logger.error(msg)
-        logs = u"""%s""" % self.logs
+        logs = u"""%s""" % (self.logs or u"")
         if logs:
             logs += u"""\n"""
         logs += u"""%s: %s""" % (type, msg)
@@ -129,16 +118,16 @@ class CustomerFileToImport(models.Model):
         return xlml_id
 
     @api.multi
-    def save_generated_csv_file(self, model, fields_to_import, areas_dict_result, sequence=0):
+    def save_generated_csv_file(self, model, fields_to_import, table_dict_result, sequence=0):
         self.ensure_one()
         file_path = os.tempnam() + '.csv'
         _logger.info(u"Importation file opened at path %s", file_path)
         with open(file_path, 'w') as out_file:
             out_file_csv = csv.writer(out_file)
             out_file_csv.writerow(['id'] + fields_to_import)
-            for area_id in areas_dict_result:
-                out_file_csv.writerow([area_id] + [areas_dict_result[area_id].get(field_name, '') for
-                                                   field_name in fields_to_import])
+            for record_id in table_dict_result:
+                out_file_csv.writerow([record_id] + [table_dict_result[record_id].get(field_name, '') for
+                                                     field_name in fields_to_import])
         with open(file_path, 'r') as tmpfile:
             self.env['customer.generated.csv.file'].create({'import_id': self.id,
                                                             'model': model,
@@ -170,3 +159,28 @@ class CustomerGeneratedCsvFile(models.Model):
     def _compute_datas_fname(self):
         for rec in self:
             rec.datas_fname = u"%s.csv" % rec.model
+
+    @api.multi
+    def action_import(self):
+        for rec in self:
+            wizard = self.env['base_import.import'].create({
+                'res_model': rec.model,
+                'file': rec.generated_csv_file.decode('base64'),
+                'file_name': rec.datas_fname,
+                'file_type': 'text/csv',
+            })
+            options = {u'datetime_format': u'',
+                       u'date_format': u'',
+                       u'keep_matches': False,
+                       u'encoding': u'utf-8',
+                       u'fields': [],
+                       u'quoting': u'"',
+                       u'headers': True,
+                       u'separator': u',',
+                       u'float_thousand_separator': u',',
+                       u'float_decimal_separator': u'.',
+                       u'advanced': True}
+            if rec.import_id.asynchronous:
+                options[u'use_queue'] = True
+                options[u'chunk_size'] = rec.import_id.chunk_size
+            wizard.do(fields=eval(rec.fields_to_import), options=options)
