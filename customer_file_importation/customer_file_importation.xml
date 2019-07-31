@@ -47,8 +47,9 @@ model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi
                     <sheet>
                         <group>
                             <field name="name"/>
+                            <field name="extension"/>
                             <field name="asynchronous"/>
-                            <field name="file"/>
+                            <field name="file"  filename="datas_fname"/>
                             <field name="nb_columns"/>
                         </group>
                         <notebook>

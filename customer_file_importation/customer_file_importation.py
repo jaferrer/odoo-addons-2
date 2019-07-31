@@ -43,7 +43,14 @@ class CustomerFileToImport(models.Model):
                               ('done', u"Done")], string=u"State", required=True, default='draft')
     csv_file_ids = fields.One2many('customer.generated.csv.file', 'import_id', string=u"Generated CSV files",
                                    readonly=True)
-    sequence = fields.Integer(string=u"Séquence")
+    sequence = fields.Integer(string=u"Séquence", readonly=True)
+    extension = fields.Char(string=u"Extension", readonly=True, help=u"Example : '.xls', '.csv' or '.txt'")
+    datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
+
+    @api.multi
+    def _compute_datas_fname(self):
+        for rec in self:
+            rec.datas_fname = u"%s%s" % (rec.name, rec.extension)
 
     @api.multi
     def generate_out_csv_files_multi(self):
