@@ -11,6 +11,8 @@
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
+                    <field name="sequence"/>
+                    <field name="asynchronous"/>
                     <field name="state"/>
                 </tree>
             </field>
@@ -47,8 +49,10 @@ model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi
                     <sheet>
                         <group>
                             <field name="name"/>
+                            <field name="sequence"/>
                             <field name="extension"/>
                             <field name="asynchronous"/>
+                            <field name="chunk_size" attrs="{'invisible': [('asynchronous', '=', False)]}"/>
                             <field name="file"  filename="datas_fname"/>
                             <field name="nb_columns"/>
                         </group>
@@ -62,6 +66,7 @@ model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi
                                         <field name="model"/>
                                         <field name="generated_csv_file" filename="datas_fname"/>
                                         <field name="fields_to_import"/>
+                                        <button name="action_import" string="Launch Importation" type="object"/>
                                     </tree>
                                 </field>
                             </page>

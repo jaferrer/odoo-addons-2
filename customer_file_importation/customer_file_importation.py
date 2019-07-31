@@ -30,10 +30,11 @@ _logger = logging.getLogger(__name__)
 
 class CustomerFileToImport(models.Model):
     _name = 'customer.file.to.import'
-    _order = 'sequence, id'
+    _order = 'sequence,id'
 
     name = fields.Char(string=u"Nom", required=True, readonly=True)
     asynchronous = fields.Boolean(string=u"Asynchronous importation", readonly=True)
+    chunk_size = fields.Integer(string=u"Chunk size for asynchronous importation")
     file = fields.Binary(string=u"File to import", required=True, attachment=True)
     nb_columns = fields.Integer(string=u"Number of columns", readonly=True)
     logs = fields.Text(string=u"Logs", readonly=True)
@@ -68,27 +69,8 @@ class CustomerFileToImport(models.Model):
 
     @api.multi
     def import_actual_files(self):
-        for file in self.csv_file_ids:
-            wizard = self.env['base_import.import'].create({
-                'res_model': file.model,
-                'file': file.generated_csv_file.decode('base64'),
-                'file_name': file.datas_fname,
-                'file_type': 'text/csv',
-            })
-            options = {u'datetime_format': u'',
-                       u'date_format': u'',
-                       u'keep_matches': False,
-                       u'encoding': u'utf-8',
-                       u'fields': [],
-                       u'quoting': u'"',
-                       u'headers': True,
-                       u'separator': u',',
-                       u'float_thousand_separator': u',',
-                       u'float_decimal_separator': u'.',
-                       u'advanced': True}
-            if self.asynchronous:
-                options[u'use_queue'] = True
-            wizard.do(fields=eval(file.fields_to_import), options=options)
+        # TODO: coder un connecteur pour ordonner les traitements
+        self.csv_file_ids.action_import()
 
     @api.multi
     def generate_csv_files_and_import(self):
@@ -177,3 +159,28 @@ class CustomerGeneratedCsvFile(models.Model):
     def _compute_datas_fname(self):
         for rec in self:
             rec.datas_fname = u"%s.csv" % rec.model
+            
+    @api.multi
+    def action_import(self):
+        for rec in self:
+            wizard = self.env['base_import.import'].create({
+                'res_model': rec.model,
+                'file': rec.generated_csv_file.decode('base64'),
+                'file_name': rec.datas_fname,
+                'file_type': 'text/csv',
+            })
+            options = {u'datetime_format': u'',
+                       u'date_format': u'',
+                       u'keep_matches': False,
+                       u'encoding': u'utf-8',
+                       u'fields': [],
+                       u'quoting': u'"',
+                       u'headers': True,
+                       u'separator': u',',
+                       u'float_thousand_separator': u',',
+                       u'float_decimal_separator': u'.',
+                       u'advanced': True}
+            if rec.import_id.asynchronous:
+                options[u'use_queue'] = True
+                options[u'chunk_size'] = rec.import_id.chunk_size
+            wizard.do(fields=eval(rec.fields_to_import), options=options)
