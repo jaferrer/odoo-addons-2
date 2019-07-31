@@ -16,6 +16,22 @@
             </field>
         </record>
 
+        <record model="ir.actions.server" id="action_generate_out_csv_files_multi">
+            <field name="name">Update CSV Filess</field>
+            <field name="model_id" ref="customer_file_importation.model_customer_file_to_import"/>
+            <field name="code">
+model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi()
+            </field>
+        </record>
+
+        <record model="ir.values" id="value_generate_out_csv_files_multi">
+            <field name="name">Update CSV Files</field>
+            <field name="value" eval="'ir.actions.server,' + str(ref('action_generate_out_csv_files_multi'))"/>
+            <field name="key">action</field>
+            <field name="model">customer.file.to.import</field>
+            <field name="key2">client_action_multi</field>
+        </record>
+
         <record model="ir.ui.view" id="customer_file_to_import_form">
             <field name="name">customer_file_to_import_form</field>
             <field name="model">customer.file.to.import</field>

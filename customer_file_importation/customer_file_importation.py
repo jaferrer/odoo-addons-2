@@ -46,9 +46,15 @@ class CustomerFileToImport(models.Model):
     sequence = fields.Integer(string=u"Séquence")
 
     @api.multi
+    def generate_out_csv_files_multi(self):
+        for rec in self:
+            rec.generate_out_csv_files()
+
+    @api.multi
     def generate_out_csv_files(self):
         """Method to overwrite for each model"""
         self.ensure_one()
+        self.log_info(u"Generating CSV file for %s" % self.name)
         self.logs = False
         self.state = 'draft'
         self.csv_file_ids.unlink()
