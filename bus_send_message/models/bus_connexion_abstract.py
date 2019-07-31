@@ -41,8 +41,11 @@ class BusConnexionAbstract(models.AbstractModel):
     @api.multi
     def _compute_connexion_state(self):
         for rec in self:
-            server, res, connection = rec.try_connexion()
-            rec.connection_status = res
+            try:
+                server, res, connection = rec.try_connexion()
+                rec.connection_status = res
+            except IOError as ex:
+                rec.connection_status = ex
 
     @api.multi
     def try_connexion(self, raise_error=False):
