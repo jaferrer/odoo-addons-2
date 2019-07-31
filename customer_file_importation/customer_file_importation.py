@@ -159,7 +159,7 @@ class CustomerGeneratedCsvFile(models.Model):
     def _compute_datas_fname(self):
         for rec in self:
             rec.datas_fname = u"%s.csv" % rec.model
-            
+
     @api.multi
     def action_import(self):
         for rec in self:
