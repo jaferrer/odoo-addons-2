@@ -111,3 +111,9 @@ msgstr "Date de fin"
 #: model:ir.ui.menu,name:project_task_charge.menu_project_task_charge
 msgid "Task charge"
 msgstr "Charges de travail"
+
+#. module: project_task_charge
+#: model:ir.actions.act_window,name:project_task_charge.charge_task_template_action
+#: model:ir.ui.menu,name:project_task_charge.project_task_charge_template_menu
+msgid "Template task"
+msgstr "Tâche modèle"
