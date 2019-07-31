@@ -11,9 +11,6 @@
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
-                    <field name="model_id"/>
-                    <field name="method_name"/>
-                    <field name="asynchronous"/>
                     <field name="state"/>
                 </tree>
             </field>
@@ -34,8 +31,6 @@
                     <sheet>
                         <group>
                             <field name="name"/>
-                            <field name="model_id"/>
-                            <field name="method_name"/>
                             <field name="asynchronous"/>
                             <field name="file"/>
                             <field name="nb_columns"/>

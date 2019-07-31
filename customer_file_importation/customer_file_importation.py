@@ -33,8 +33,6 @@ class CustomerFileToImport(models.Model):
     _order = 'sequence, id'
 
     name = fields.Char(string=u"Nom", required=True, readonly=True)
-    model_id = fields.Many2one('ir.model', string=u"Model", required=True, readonly=True)
-    method_name = fields.Char(string=u"Method name", readonly=True)
     asynchronous = fields.Boolean(string=u"Asynchronous importation", readonly=True)
     file = fields.Binary(string=u"File to import", required=True, attachment=True)
     nb_columns = fields.Integer(string=u"Number of columns", readonly=True)
