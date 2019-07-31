@@ -17,4 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import file_importation_from_screen
+from . import customer_file_importation

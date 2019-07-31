@@ -32,7 +32,7 @@ This modules adds a few utilities for customer files importation.
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
-        'file_importation_from_screen.xml',
+        'customer_file_importation.xml',
     ],
     'demo': [],
     'test': [],
