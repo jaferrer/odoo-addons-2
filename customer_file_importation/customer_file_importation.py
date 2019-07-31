@@ -86,7 +86,7 @@ class CustomerFileToImport(models.Model):
             _logger.warning(msg)
         elif type == 'ERROR':
             _logger.error(msg)
-        logs = u"""%s""" % self.logs
+        logs = u"""%s""" % (self.logs or u"")
         if logs:
             logs += u"""\n"""
         logs += u"""%s: %s""" % (type, msg)
@@ -118,16 +118,16 @@ class CustomerFileToImport(models.Model):
         return xlml_id
 
     @api.multi
-    def save_generated_csv_file(self, model, fields_to_import, areas_dict_result, sequence=0):
+    def save_generated_csv_file(self, model, fields_to_import, table_dict_result, sequence=0):
         self.ensure_one()
         file_path = os.tempnam() + '.csv'
         _logger.info(u"Importation file opened at path %s", file_path)
         with open(file_path, 'w') as out_file:
             out_file_csv = csv.writer(out_file)
             out_file_csv.writerow(['id'] + fields_to_import)
-            for area_id in areas_dict_result:
-                out_file_csv.writerow([area_id] + [areas_dict_result[area_id].get(field_name, '') for
-                                                   field_name in fields_to_import])
+            for record_id in table_dict_result:
+                out_file_csv.writerow([record_id] + [table_dict_result[record_id].get(field_name, '') for
+                                                     field_name in fields_to_import])
         with open(file_path, 'r') as tmpfile:
             self.env['customer.generated.csv.file'].create({'import_id': self.id,
                                                             'model': model,
@@ -159,7 +159,7 @@ class CustomerGeneratedCsvFile(models.Model):
     def _compute_datas_fname(self):
         for rec in self:
             rec.datas_fname = u"%s.csv" % rec.model
-            
+
     @api.multi
     def action_import(self):
         for rec in self:
