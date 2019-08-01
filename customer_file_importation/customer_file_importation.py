@@ -158,7 +158,7 @@ class CustomerGeneratedCsvFile(models.Model):
     @api.multi
     def get_default_option(self):
         self.ensure_one()
-        return {u'datetime_format': u'',
+        return {u'datetime_format': u'%Y-%m-%d %H:%M:%S',
                 u'date_format': u"%Y-%m-%d",
                 u'keep_matches': False,
                 u'encoding': u'utf-8',
