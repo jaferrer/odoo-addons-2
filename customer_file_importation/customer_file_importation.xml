@@ -57,7 +57,12 @@ model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi
                         </group>
                         <notebook>
                             <page string="Logs">
-                                <field name="logs"/>
+                                <field name="log_line_ids">
+                                    <tree>
+                                        <field name="type"/>
+                                        <field name="message"/>
+                                    </tree>
+                                </field>
                             </page>
                             <page string="Generated CSV files">
                                 <field name="csv_file_ids">
