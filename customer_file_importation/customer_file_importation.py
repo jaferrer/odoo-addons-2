@@ -179,7 +179,7 @@ class CustomerGeneratedCsvFile(models.Model):
             'file_name': self.datas_fname,
             'file_type': 'text/csv',
         }
-    
+
     @api.model
     def raise_error_if_needed(self, importation_result):
         if importation_result:
