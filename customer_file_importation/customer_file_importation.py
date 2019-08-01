@@ -73,11 +73,6 @@ class CustomerFileToImport(models.Model):
         self.csv_file_ids.action_import()
 
     @api.multi
-    def generate_csv_files_and_import(self):
-        self.button_generate_out_csv_files()
-        self.button_import_actual_files()
-
-    @api.multi
     def _log(self, msg, type='INFO'):
         self.ensure_one()
         if type == 'INFO':
@@ -161,26 +156,55 @@ class CustomerGeneratedCsvFile(models.Model):
             rec.datas_fname = u"%s.csv" % rec.model
 
     @api.multi
+    def get_default_option(self):
+        self.ensure_one()
+        return {u'datetime_format': u'%Y-%m-%d %H:%M:%S',
+                u'date_format': u"%Y-%m-%d",
+                u'keep_matches': False,
+                u'encoding': u'utf-8',
+                u'fields': [],
+                u'quoting': u'"',
+                u'headers': True,
+                u'separator': u',',
+                u'float_thousand_separator': u',',
+                u'float_decimal_separator': u'.',
+                u'advanced': True}
+
+    @api.multi
+    def get_default_values_for_importation_wizard(self):
+        self.ensure_one()
+        return {
+            'res_model': self.model,
+            'file': self.generated_csv_file.decode('base64'),
+            'file_name': self.datas_fname,
+            'file_type': 'text/csv',
+        }
+
+    @api.model
+    def raise_error_if_needed(self, importation_result):
+        if importation_result:
+            msg_unknown_error = u"""Unknown error"""
+            error_msg = u""""""
+            error = False
+            for item in importation_result:
+                if item.get('type') == 'error':
+                    error = True
+                    if error_msg:
+                        error_msg += u"""\r"""
+                    error_msg += u"""%s""" % item.get('message', msg_unknown_error)
+            if error:
+                if not error_msg:
+                    error_msg = msg_unknown_error
+                raise exceptions.UserError(u"""Importation failed\r%s""" % error_msg)
+
+    @api.multi
     def action_import(self):
         for rec in self:
-            wizard = self.env['base_import.import'].create({
-                'res_model': rec.model,
-                'file': rec.generated_csv_file.decode('base64'),
-                'file_name': rec.datas_fname,
-                'file_type': 'text/csv',
-            })
-            options = {u'datetime_format': u'',
-                       u'date_format': u'',
-                       u'keep_matches': False,
-                       u'encoding': u'utf-8',
-                       u'fields': [],
-                       u'quoting': u'"',
-                       u'headers': True,
-                       u'separator': u',',
-                       u'float_thousand_separator': u',',
-                       u'float_decimal_separator': u'.',
-                       u'advanced': True}
+            default_values_for_importation_wizard = rec.get_default_values_for_importation_wizard()
+            wizard = self.env['base_import.import'].create(default_values_for_importation_wizard)
+            options = rec.get_default_option()
             if rec.import_id.asynchronous:
                 options[u'use_queue'] = True
                 options[u'chunk_size'] = rec.import_id.chunk_size
-            wizard.do(fields=eval(rec.fields_to_import), options=options)
+            importation_result = wizard.do(fields=eval(rec.fields_to_import), options=options)
+            self.raise_error_if_needed(importation_result)
