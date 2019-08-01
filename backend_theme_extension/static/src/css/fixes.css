@@ -1,0 +1,9 @@
+/* Fix pour le bouton delete des tree views */
+
+table.o_list_view.table-condensed > thead > tr:after {
+    content: '';
+}
+
+table.o_list_view.table-condensed > tfoot > tr:after {
+    content: '';
+}
