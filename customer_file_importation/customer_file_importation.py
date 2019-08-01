@@ -105,7 +105,7 @@ class CustomerFileToImport(models.Model):
         self._log(msg, type='ERROR')
 
     @api.model
-    def get_extarnal_id_or_create_one(self, object):
+    def get_external_id_or_create_one(self, object):
         object.ensure_one()
         xlml_id = object.get_external_id()[object.id]
         if not xlml_id:
