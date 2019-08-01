@@ -35,7 +35,7 @@ UNLINK_ORIGINAL = models.BaseModel.unlink
 
 
 @openerp.api.multi
-def unlink(self):
+def unlink_bus(self):
     if is_module_installed(self.env, 'bus_integration'):
         object_mapping = self.env['bus.object.mapping'].get_mapping(self._name)
         if object_mapping:
@@ -45,4 +45,31 @@ def unlink(self):
     return res_unlink
 
 
-models.BaseModel.unlink = unlink
+models.BaseModel.unlink = unlink_bus
+
+FIELDS_GET_ORIGINAL = models.BaseModel.fields_get
+
+
+@openerp.api.model
+def fields_get_bus(self, allfields=None, context=None, write_access=True, attributes=None):
+    """
+    Override to inform is the field si imported or exported and set readonly if update is prohibited when import
+    ⇐ : &lArr;
+    ⇒ : &rArr;
+    """
+    res = FIELDS_GET_ORIGINAL(self, allfields=allfields, context=context, write_access=write_access,
+                              attributes=attributes)
+    if is_module_installed(self.env, 'bus_integration'):
+        mapping_fields = self.env['bus.object.mapping.field'].search([('mapping_id.model_name', '=', self._name)])
+        for mapping_field in mapping_fields:
+            if mapping_field.field_name in res:
+                if mapping_field.mapping_id.is_exportable:
+                    res[mapping_field.field_name]['string'] = u"⇐ %s" % (res[mapping_field.field_name]['string'])
+                elif mapping_field.mapping_id.is_importable:
+                    res[mapping_field.field_name]['string'] = u"⇒ %s" % (res[mapping_field.field_name]['string'])
+                if mapping_field.mapping_id.is_importable and mapping_field.mapping_id.update_prohibited:
+                    res[mapping_field.field_name]['readonly'] = True
+    return res
+
+
+models.BaseModel.fields_get = fields_get_bus

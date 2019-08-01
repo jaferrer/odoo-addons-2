@@ -17,5 +17,5 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import override_unlink
+from . import override_basemodel
 from . import jobs
