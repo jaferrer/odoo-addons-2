@@ -54,6 +54,7 @@ class BetterZipWithUpdate(models.Model):
                         [latitude, longitude] = splitted_coordinates
                 if city_complement:
                     city += " - %s" % city_complement
+                _logger.info(u"Creating zip %s - %s from 'La Poste' API", name, city)
                 if (name, city) not in already_known:
                     self.env['res.better.zip'].create({
                         'name': name,

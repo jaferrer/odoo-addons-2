@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <menuitem id="top_menu_importation" name="Importation" sequence="1000"/>
+
+        <record model="ir.ui.view" id="customer_file_to_import_tree">
+            <field name="name">customer_file_to_import_tree</field>
+            <field name="model">customer.file.to.import</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="sequence"/>
+                    <field name="name"/>
+                    <field name="asynchronous"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.server" id="action_generate_out_csv_files_multi">
+            <field name="name">Update CSV Files</field>
+            <field name="model_id" ref="customer_file_importation.model_customer_file_to_import"/>
+            <field name="code">
+model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi()
+            </field>
+        </record>
+
+        <record model="ir.values" id="value_generate_out_csv_files_multi">
+            <field name="name">Update CSV Files</field>
+            <field name="value" eval="'ir.actions.server,' + str(ref('action_generate_out_csv_files_multi'))"/>
+            <field name="key">action</field>
+            <field name="model">customer.file.to.import</field>
+            <field name="key2">client_action_multi</field>
+        </record>
+
+        <record model="ir.ui.view" id="customer_file_to_import_form">
+            <field name="name">customer_file_to_import_form</field>
+            <field name="model">customer.file.to.import</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="generate_out_csv_files" string="Update CSV Files" confirm="Are-you sure? This will overwrite old generated CSV files" type="object"/>
+                        <button name="import_actual_files" string="Import actual files" confirm="Are-you sure? This will overwrite current database data" type="object"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                            <field name="extension"/>
+                            <field name="asynchronous"/>
+                            <field name="chunk_size" attrs="{'invisible': [('asynchronous', '=', False)]}"/>
+                            <field name="file"  filename="datas_fname"/>
+                            <field name="nb_columns"/>
+                        </group>
+                        <notebook>
+                            <page string="Logs">
+                                <field name="logs"/>
+                            </page>
+                            <page string="Generated CSV files">
+                                <field name="csv_file_ids">
+                                    <tree>
+                                        <field name="model"/>
+                                        <field name="generated_csv_file" filename="datas_fname"/>
+                                        <field name="fields_to_import"/>
+                                        <button name="action_import" string="Launch Importation" type="object"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_customer_file_to_import">
+            <field name="name">Customer File To Import</field>
+            <field name="res_model">customer.file.to.import</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <menuitem id="menu_customer_file_to_import" name="Customer File To Import"
+                  action="act_window_customer_file_to_import"
+                  parent="top_menu_importation" sequence="10"/>
+
+    </data>
+</openerp>
