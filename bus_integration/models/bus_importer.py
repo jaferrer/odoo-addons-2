@@ -222,7 +222,10 @@ class BusSynchronizationImporter(models.AbstractModel):
         if not critical_error:
             try:
                 with self.env.cr.savepoint():
-                    transfer, odoo_record = transfer.import_datas(transfer, odoo_record, binding_data, record_data)
+                    transfer, odoo_record, error_tuple = transfer \
+                        .import_datas(transfer, odoo_record, binding_data, record_data)
+                    if error_tuple:
+                        errors.append(error_tuple)
                     if translation:
                         self._update_translations(transfer, translation)
             except (exceptions.ValidationError, exceptions.except_orm, IntegrityError) as err:

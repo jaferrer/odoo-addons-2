@@ -51,6 +51,7 @@ class BusSynchronizationMapper(models.AbstractModel):
         importable_fields.append('external_key')
         importable_fields.append('bus_sender_id')
         importable_fields.append('bus_recipient_id')
+        importable_fields.append('write_date')
         for field_key in record.keys():
             if field_key not in importable_fields:
                 error.append(('warning', u"Field %s not configured for import" % field_key))
