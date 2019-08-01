@@ -73,11 +73,6 @@ class CustomerFileToImport(models.Model):
         self.csv_file_ids.action_import()
 
     @api.multi
-    def generate_csv_files_and_import(self):
-        self.button_generate_out_csv_files()
-        self.button_import_actual_files()
-
-    @api.multi
     def _log(self, msg, type='INFO'):
         self.ensure_one()
         if type == 'INFO':
@@ -105,7 +100,7 @@ class CustomerFileToImport(models.Model):
         self._log(msg, type='ERROR')
 
     @api.model
-    def get_extarnal_id_or_create_one(self, object):
+    def get_external_id_or_create_one(self, object):
         object.ensure_one()
         xlml_id = object.get_external_id()[object.id]
         if not xlml_id:
