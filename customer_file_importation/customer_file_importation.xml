@@ -43,7 +43,6 @@ model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi
                     <header>
                         <button name="generate_out_csv_files" string="Update CSV Files" confirm="Are-you sure? This will overwrite old generated CSV files" type="object"/>
                         <button name="import_actual_files" string="Import actual files" confirm="Are-you sure? This will overwrite current database data" type="object"/>
-                        <button name="generate_csv_files_and_import" string="Update CSV Files Anfd Import" confirm="Are-you sure? This will overwrite old generated CSV files and current database data" type="object"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <sheet>
