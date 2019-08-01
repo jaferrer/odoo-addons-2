@@ -37,11 +37,11 @@ class CustomerFileToImport(models.Model):
     chunk_size = fields.Integer(string=u"Chunk size for asynchronous importation")
     file = fields.Binary(string=u"File to import", required=True, attachment=True)
     nb_columns = fields.Integer(string=u"Number of columns", readonly=True)
-    logs = fields.Text(string=u"Logs", readonly=True)
     state = fields.Selection([('draft', u"Never imported"),
                               ('processing', u"Processing"),
                               ('error', u"Error"),
                               ('done', u"Done")], string=u"State", required=True, default='draft')
+    log_line_ids = fields.One2many('customer.importation.log.line', 'import_id', string=u"Log lines")
     csv_file_ids = fields.One2many('customer.generated.csv.file', 'import_id', string=u"Generated CSV files",
                                    readonly=True)
     sequence = fields.Integer(string=u"Séquence", readonly=True)
@@ -63,8 +63,8 @@ class CustomerFileToImport(models.Model):
         """Method to overwrite for each model"""
         self.ensure_one()
         self.log_info(u"Generating CSV file for %s" % self.name)
-        self.logs = False
         self.state = 'draft'
+        self.log_line_ids.unlink()
         self.csv_file_ids.unlink()
 
     @api.multi
@@ -81,11 +81,11 @@ class CustomerFileToImport(models.Model):
             _logger.warning(msg)
         elif type == 'ERROR':
             _logger.error(msg)
-        logs = u"""%s""" % (self.logs or u"")
-        if logs:
-            logs += u"""\n"""
-        logs += u"""%s: %s""" % (type, msg)
-        self.logs = logs
+        self.env['customer.importation.log.line'].create({
+            'import_id': self.id,
+            'type': type,
+            'message': msg,
+        })
 
     @api.multi
     def log_info(self, msg):
@@ -137,6 +137,15 @@ class CustomerFileToImport(models.Model):
             self.log_error(u"Importation file should have %s columns, not %s" % (self.nb_columns, len(iterable)))
             return False
         return True
+
+
+class CustomerImportationLogLine(models.Model):
+    _name = 'customer.importation.log.line'
+
+    import_id = fields.Many2one('customer.file.to.import', string=u"File to import", readonly=True, required=True)
+    type = fields.Selection([('ERROR', u"ERROR"), ('WARNING', u"WARNING"), ('INFO', u"INFO")],
+                            string=u"Type", readonly=True, required=True)
+    message = fields.Char(string=u"Message", readonly=True, required=True)
 
 
 class CustomerGeneratedCsvFile(models.Model):
