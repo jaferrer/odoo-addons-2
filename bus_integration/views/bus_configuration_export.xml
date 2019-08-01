@@ -18,8 +18,8 @@
                     <field name="mapping_object_id"/>
                     <field name="sequence"/>
                     <field name="dependency_level"/>
-                    <button string="Sync. diff." name="run_batch" type="object" />
-                    <button string="Sync. ALL" name="run_batch" type="object" />
+                    <button string="Sync. diff." name="sync_diff" type="object" />
+                    <button string="Sync. ALL" name="sync_all" type="object" />
                 </tree>
             </field>
         </record>

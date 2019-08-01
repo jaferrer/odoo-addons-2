@@ -26,5 +26,9 @@
             <field name="password">123456</field>
         </record>
 
+        <record model="res.partner" id="bus_partner">
+            <field name="email">user_bus@ndp-systemes.fr</field>
+        </record>
+
     </data>
 </openerp>
