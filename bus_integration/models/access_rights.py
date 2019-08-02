@@ -44,3 +44,14 @@ class IrRule(models.Model):
         if bus_user and uid == bus_user.id:
             return super(IrRule, self).domain_get(cr, SUPERUSER_ID, model_name, mode, context)
         return super(IrRule, self).domain_get(cr, uid, model_name, mode, context)
+
+
+class MailMessage(models.Model):
+    _inherit = 'mail.message'
+
+    def check_access_rule(self, cr, uid, ids, operation, context=None):
+        bus_user = self.pool.get('ir.model.data').xmlid_to_object(cr, SUPERUSER_ID, 'bus_integration.bus_user', False,
+                                                                  context)
+        if bus_user and uid == bus_user.id:
+            return
+        return super(MailMessage, self).check_access_rule(cr, uid, ids, operation, context=context)

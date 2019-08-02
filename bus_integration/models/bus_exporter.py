@@ -176,6 +176,9 @@ class BusSynchronizationExporter(models.AbstractModel):
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = record[field.field_name]
         if field.field_id.ttype == 'char' and field.field_id.translate:
+            # makes sure all fields are translated. before export.
+            # Actually if the translation form has never been opened ir_translation records are not create
+            self.env['ir.translation'].translate_fields(record._name, record.id, field=field.field_name)
             translation_name = "%s,%s" % (record._name, field.field_name)
             translations = self.env['ir.translation'].search([('name', '=', translation_name),
                                                               ('res_id', '=', record.id)])
