@@ -4,12 +4,35 @@
 
         <menuitem id="top_menu_importation" name="Importation" sequence="1000"/>
 
+        <record model="ir.ui.view" id="customer_importation_log_line_tree">
+            <field name="name">customer_importation_log_line_tree</field>
+            <field name="model">customer.importation.log.line</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" edit="false" delete="false">
+                    <field name="type"/>
+                    <field name="message"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="customer_importation_log_line_search">
+            <field name="name">customer_importation_log_line_search</field>
+            <field name="model">customer.importation.log.line</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <filter name="group_by_type" string="Type" domain="[]" context="{'group_by':'type'}"/>
+                </search>
+            </field>
+        </record>
+
         <record model="ir.ui.view" id="customer_file_to_import_tree">
             <field name="name">customer_file_to_import_tree</field>
             <field name="model">customer.file.to.import</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree>
+                <tree create="false" delete="false">
                     <field name="sequence"/>
                     <field name="name"/>
                     <field name="asynchronous"/>
@@ -18,34 +41,27 @@
             </field>
         </record>
 
-        <record model="ir.actions.server" id="action_generate_out_csv_files_multi">
-            <field name="name">Update CSV Files</field>
-            <field name="model_id" ref="customer_file_importation.model_customer_file_to_import"/>
-            <field name="code">
-model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi()
-            </field>
-        </record>
-
-        <record model="ir.values" id="value_generate_out_csv_files_multi">
-            <field name="name">Update CSV Files</field>
-            <field name="value" eval="'ir.actions.server,' + str(ref('action_generate_out_csv_files_multi'))"/>
-            <field name="key">action</field>
-            <field name="model">customer.file.to.import</field>
-            <field name="key2">client_action_multi</field>
-        </record>
-
         <record model="ir.ui.view" id="customer_file_to_import_form">
             <field name="name">customer_file_to_import_form</field>
             <field name="model">customer.file.to.import</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <form>
+                <form create="false" delete="false">
                     <header>
                         <button name="generate_out_csv_files" string="Update CSV Files" confirm="Are-you sure? This will overwrite old generated CSV files" type="object"/>
-                        <button name="import_actual_files" string="Import actual files" confirm="Are-you sure? This will overwrite current database data" type="object"/>
+                        <button name="import_actual_files" string="Import actual files" confirm="Are-you sure? This will overwrite current database data" type="object"
+                                attrs="{'invisible': [('csv_file_ids', '=', False)]}"/>
                         <field name="state" widget="statusbar"/>
                     </header>
                     <sheet>
+                        <field name="id" invisible="1"/>
+                        <div class="oe_button_box" name="button_box">
+                            <button class="oe_stat_button" type="object" name="open_log_lines" icon="fa-pencil">
+                                <div class="o_stat_info">
+                                    <field name="log_lines_count" class="o_stat_value"/>Log Lines
+                                </div>
+                            </button>
+                        </div>
                         <group>
                             <field name="name"/>
                             <field name="sequence"/>
@@ -57,12 +73,7 @@ model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi
                         </group>
                         <notebook>
                             <page string="Logs">
-                                <field name="log_line_ids">
-                                    <tree>
-                                        <field name="type"/>
-                                        <field name="message"/>
-                                    </tree>
-                                </field>
+                                <field name="log_line_ids"/>
                             </page>
                             <page string="Generated CSV files">
                                 <field name="csv_file_ids">
@@ -70,6 +81,7 @@ model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi
                                         <field name="model"/>
                                         <field name="generated_csv_file" filename="datas_fname"/>
                                         <field name="fields_to_import"/>
+                                        <field name="state"/>
                                         <button name="action_import" string="Launch Importation" type="object"/>
                                     </tree>
                                 </field>
@@ -92,6 +104,81 @@ model.search([('id', 'in', context['active_ids'])]).generate_out_csv_files_multi
         <menuitem id="menu_customer_file_to_import" name="Customer File To Import"
                   action="act_window_customer_file_to_import"
                   parent="top_menu_importation" sequence="10"/>
+
+        <record model="ir.ui.view" id="customer_imported_csv_file_tree">
+            <field name="name">customer_imported_csv_file_tree</field>
+            <field name="model">customer.imported.csv.file</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" delete="false" edit="false" colors="red:error;green:done;blue:not error and not done">
+                    <field name="sequence"/>
+                    <field name="create_uid"/>
+                    <field name="create_date"/>
+                    <field name="model"/>
+                    <field name="csv_file" filename="datas_fname"/>
+                    <field name="asynchronous"/>
+                    <field name="chunk_size"/>
+                    <field name="fields_to_import"/>
+                    <field name="original_file_id"/>
+                    <button name="view_jobs" string="View jobs" type="object"/>
+                    <field name="error" invisible="True"/>
+                    <field name="done" invisible="True"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="customer_imported_csv_file_form">
+            <field name="name">customer_imported_csv_file_form</field>
+            <field name="model">customer.imported.csv.file</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form create="false" delete="false" edit="false">
+                    <sheet>
+                        <group>
+                            <field name="id" invisible="1"/>
+                            <field name="sequence"/>
+                            <field name="create_uid"/>
+                            <field name="create_date"/>
+                            <field name="model"/>
+                            <field name="csv_file" filename="datas_fname"/>
+                            <field name="asynchronous"/>
+                            <field name="chunk_size"/>
+                            <field name="fields_to_import"/>
+                            <field name="original_file_id"/>
+                            <field name="error" invisible="True"/>
+                            <field name="done" invisible="True"/>
+                            <field name="error_msg"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="customer_imported_csv_file_search">
+            <field name="name">customer_imported_csv_file_search</field>
+            <field name="model">customer.imported.csv.file</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <filter name="to_import" string="To Import" domain="[('error', '=', False), ('done', '=', False)]"/>
+                    <filter name="error" string="Error during importation" domain="[('error', '=', True)]"/>
+                    <filter name="done" string="Imported" domain="[('done', '=', True)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_customer_imported_csv_file">
+            <field name="name">Imported CSV Files</field>
+            <field name="res_model">customer.imported.csv.file</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+            <field name="context">{'search_default_to_import': True, 'search_default_error': True}</field>
+        </record>
+
+        <menuitem id="menu_customer_imported_csv_file" name="Imported CSV Files"
+                  action="act_window_customer_imported_csv_file"
+                  parent="top_menu_importation" sequence="20"/>
 
     </data>
 </openerp>
