@@ -192,12 +192,32 @@ class CustomerGeneratedCsvFile(models.Model):
     state = fields.Selection([('draft', u"To import"),
                               ('importing', u"Importing"),
                               ('error', u"Error during importation"),
-                              ('done', u"Done")], string=u"State", required=True, default='draft', readonly=True)
+                              ('done', u"Done")], string=u"State", compute='_compute_state')
+    imported = fields.Boolean(string=u"Imported")
+    imported_file_ids = fields.One2many('customer.imported.csv.file', 'original_file_id', string=u"Imported files")
 
     @api.multi
     def _compute_datas_fname(self):
         for rec in self:
             rec.datas_fname = u"%s.csv" % rec.model
+
+    @api.multi
+    @api.depends('imported_file_ids', 'imported_file_ids.done', 'imported_file_ids.error')
+    def _compute_state(self):
+        for rec in self:
+            last_imported_file = self.env['customer.imported.csv.file']. \
+                search([('id', 'in', rec.imported_file_ids.ids)], order='id desc', limit=1)
+            print 'last_imported_file', last_imported_file, last_imported_file.done, last_imported_file.error
+            state = 'draft'
+            if rec.imported:
+                state = 'done'
+            elif last_imported_file and last_imported_file.error:
+                state = 'error'
+            elif last_imported_file and last_imported_file.done:
+                state = 'done'
+            elif last_imported_file:
+                state = 'importing'
+            rec.state = state
 
     @api.multi
     def name_get(self):
@@ -215,10 +235,8 @@ class CustomerGeneratedCsvFile(models.Model):
                 'original_file_id': rec.id,
                 'chunk_size': rec.import_id.chunk_size,
             })
-            if rec.import_id.asynchronous:
-                rec.state = 'importing'
-            else:
-                rec.state = 'done'
+            if not rec.import_id.asynchronous:
+                rec.imported = True
 
 class CustomerGeneratedCsvFileSequenced(models.Model):
     _name = 'customer.imported.csv.file'
@@ -361,4 +379,34 @@ class BaseImportImport(models.TransientModel):
             new_jobs.write({
                 'imported_file_id': original_job.imported_file_id and original_job.imported_file_id.id or False,
             })
+        return result
+
+
+class CustomerFileQueueJob(models.Model):
+    _inherit = 'queue.job'
+
+    @api.multi
+    def update_importation_file_states(self):
+        files_to_update = self.env['customer.imported.csv.file']
+        for rec in self:
+            files_to_update |= rec.imported_file_id
+        for file_to_update in files_to_update:
+            files_to_update.error = False
+            files_to_update.done = False
+            if self.search([('imported_file_id', '=', file_to_update.id), ('state', '=', 'failed')]):
+                files_to_update.error = True
+            elif not self.search([('imported_file_id', '=', file_to_update.id), ('state', '!=', 'done')]):
+                files_to_update.done = True
+
+    @api.model
+    def create(self, vals):
+        result = super(CustomerFileQueueJob, self).create(vals)
+        result.update_importation_file_states()
+        return result
+
+    @api.multi
+    def write(self, vals):
+        result = super(CustomerFileQueueJob, self).write(vals)
+        if vals.get('state'):
+            self.update_importation_file_states()
         return result
