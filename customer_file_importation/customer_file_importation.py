@@ -238,6 +238,7 @@ class CustomerGeneratedCsvFile(models.Model):
             if not rec.import_id.asynchronous:
                 rec.imported = True
 
+
 class CustomerGeneratedCsvFileSequenced(models.Model):
     _name = 'customer.imported.csv.file'
     _order = 'id desc'
@@ -255,6 +256,7 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
     done = fields.Boolean(string=u"Imported")
     error_msg = fields.Text(string=u"Message d'erreur")
     generated_job_ids = fields.One2many('queue.job', 'imported_file_id', string=u"Generated jobs")
+    processed = fields.Boolean(string=u"Traité")
 
     @api.multi
     def _compute_datas_fname(self):
@@ -323,7 +325,6 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
                 options[u'chunk_size'] = rec.chunk_size
                 existing_attachment_ids = self.env['ir.attachment'].search([('res_model', '=', 'queue.job')]).ids
             importation_result = wizard.do(fields=eval(rec.fields_to_import), options=options)
-            # TODO: récupérer le statut des jobs pour mettre à jour les statuts des imports
             if rec.asynchronous:
                 new_attachments = self.env['ir.attachment'].search([('res_model', '=', 'queue.job'),
                                                                     ('id', 'not in', existing_attachment_ids)])
@@ -333,24 +334,20 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
             self.raise_error_if_needed(importation_result)
 
     @api.model
-    def view_jobs(self):
-        self.ensure_one()
-        res = {
-            'name': u"Jobs for %s" % self.display_name,
-            'view_type': 'form',
-            'view_mode': 'tree,form',
-            'res_model': 'queue.job',
-            'type': 'ir.actions.act_window',
-            'domain': [('id', 'in', self.generated_job_ids.ids)],
-            'context': dict(self.env.context),
-        }
-        return res
-
-    @api.model
     def create(self, vals):
         result = super(CustomerGeneratedCsvFileSequenced, self).create(vals)
         result.launch_importation()
         return result
+
+    @api.model
+    def process_files_to_import(self):
+        if self.env['queue.job'].search([('state', '!=', 'done')]):
+            return
+        not_processed_files = self.search([('processed', '=', False)])
+        min_sequence = min([file.sequence for file in not_processed_files])
+        files_to_process = self.search([('processed', '=', False), ('sequence', '=', min_sequence)])
+        files_to_process.launch_importation()
+        print 'files_to_process', files_to_process
 
 
 class CustomerFileImportationQueueJob(models.Model):

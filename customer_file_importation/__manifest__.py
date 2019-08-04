@@ -33,6 +33,7 @@ This modules adds a few utilities for customer files importation.
     'data': [
         'security/ir.model.access.csv',
         'customer_file_importation.xml',
+        'data/cron.xml',
     ],
     'demo': [],
     'test': [],

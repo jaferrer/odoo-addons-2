@@ -120,7 +120,6 @@
                     <field name="chunk_size"/>
                     <field name="fields_to_import"/>
                     <field name="original_file_id"/>
-                    <button name="view_jobs" string="View jobs" type="object"/>
                     <field name="error" invisible="True"/>
                     <field name="done" invisible="True"/>
                 </tree>
@@ -133,9 +132,6 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form create="false" delete="false" edit="false">
-                    <header>
-                        <button name="view_jobs" string="View jobs" type="object"/>
-                    </header>
                     <sheet>
                         <group>
                             <field name="id" invisible="1"/>
