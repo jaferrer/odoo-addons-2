@@ -36,7 +36,7 @@ class CustomerFileToImport(models.Model):
     name = fields.Char(string=u"Nom", required=True, readonly=True)
     asynchronous = fields.Boolean(string=u"Asynchronous importation", readonly=True)
     chunk_size = fields.Integer(string=u"Chunk size for asynchronous importation")
-    file = fields.Binary(string=u"File to import", required=True, attachment=True)
+    file = fields.Binary(string=u"File to import", attachment=True)
     nb_columns = fields.Integer(string=u"Number of columns", readonly=True)
     state = fields.Selection([('draft', u"To import"),
                               ('csv_generated', u"CSV generated"),
