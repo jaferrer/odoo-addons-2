@@ -207,7 +207,6 @@ class CustomerGeneratedCsvFile(models.Model):
         for rec in self:
             last_imported_file = self.env['customer.imported.csv.file']. \
                 search([('id', 'in', rec.imported_file_ids.ids)], order='id desc', limit=1)
-            print 'last_imported_file', last_imported_file, last_imported_file.done, last_imported_file.error
             state = 'draft'
             if rec.imported:
                 state = 'done'
@@ -347,7 +346,6 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
         min_sequence = min([file.sequence for file in not_processed_files])
         files_to_process = self.search([('processed', '=', False), ('sequence', '=', min_sequence)])
         files_to_process.launch_importation()
-        print 'files_to_process', files_to_process
 
 
 class CustomerFileImportationQueueJob(models.Model):
