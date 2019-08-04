@@ -133,6 +133,9 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <form create="false" delete="false" edit="false">
+                    <header>
+                        <button name="view_jobs" string="View jobs" type="object"/>
+                    </header>
                     <sheet>
                         <group>
                             <field name="id" invisible="1"/>
@@ -179,6 +182,18 @@
         <menuitem id="menu_customer_imported_csv_file" name="Imported CSV Files"
                   action="act_window_customer_imported_csv_file"
                   parent="top_menu_importation" sequence="20"/>
+
+        <record model="ir.ui.view" id="queue_job_form">
+            <field name="name">queue_job_form</field>
+            <field name="model">queue.job</field>
+            <field name="inherit_id" ref="queue_job.view_queue_job_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="channel" position="after">
+                    <field name="imported_file_id"/>
+                </field>
+            </field>
+        </record>
 
     </data>
 </openerp>

@@ -24,6 +24,7 @@ import os
 import unicodecsv as csv
 from odoo import exceptions
 from odoo import models, fields, api
+from odoo.addons.queue_job.job import job, related_action
 
 _logger = logging.getLogger(__name__)
 
@@ -243,6 +244,10 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
             rec.datas_fname = u"%s.csv" % rec.model
 
     @api.multi
+    def name_get(self):
+        return [(rec.id, u"CSV file importation of model %s" % rec.model) for rec in self]
+
+    @api.multi
     def get_default_importation_options(self):
         self.ensure_one()
         return {u'datetime_format': u'%Y-%m-%d %H:%M:%S',
@@ -306,9 +311,22 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
                                                                     ('id', 'not in', existing_attachment_ids)])
                 job_ids = [attachment.res_id for attachment in new_attachments]
                 jobs = self.env['queue.job'].search([('id', 'in', job_ids)])
-                print 'jobs_found', len(jobs)
                 jobs.write({'imported_file_id': rec.id})
             self.raise_error_if_needed(importation_result)
+
+    @api.model
+    def view_jobs(self):
+        self.ensure_one()
+        res = {
+            'name': u"Jobs for %s" % self.display_name,
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'queue.job',
+            'type': 'ir.actions.act_window',
+            'domain': [('id', 'in', self.generated_job_ids.ids)],
+            'context': dict(self.env.context),
+        }
+        return res
 
     @api.model
     def create(self, vals):
@@ -320,4 +338,27 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
 class CustomerFileImportationQueueJob(models.Model):
     _inherit = 'queue.job'
 
-    imported_file_id = fields.Many2one('customer.imported.csv.file', string=u"Job généré pour le fichier")
+    imported_file_id = fields.Many2one('customer.imported.csv.file', string=u"Job généré pour le fichier",
+                                       readonly=True)
+
+
+class BaseImportImport(models.TransientModel):
+    _inherit = 'base_import.import'
+
+    @api.model
+    @job
+    @related_action('_related_action_attachment')
+    def _split_file(self, model_name, translated_model_name, att_id, options, file_name="file.csv"):
+        existing_job_ids = self.env['queue.job'].search([]).ids
+        result = super(BaseImportImport, self)._split_file(model_name, translated_model_name, att_id, options,
+                                                           file_name=file_name)
+        job_uuid = self.env.context.get('job_uuid')
+        if job_uuid:
+            original_job = self.env['queue.job'].search([('uuid', '=', job_uuid)])
+            if len(original_job) != 1:
+                raise exceptions.UserError(u"Impossible to find job for UUID %s" % job_uuid)
+            new_jobs = self.env['queue.job'].search([('id', 'not in', existing_job_ids)])
+            new_jobs.write({
+                'imported_file_id': original_job.imported_file_id and original_job.imported_file_id.id or False,
+            })
+        return result
