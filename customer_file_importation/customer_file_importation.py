@@ -331,11 +331,12 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
                 jobs = self.env['queue.job'].search([('id', 'in', job_ids)])
                 jobs.write({'imported_file_id': rec.id})
             rec.raise_error_if_needed(importation_result)
+            rec.processed = True
 
     @api.model
     def create(self, vals):
         result = super(CustomerGeneratedCsvFileSequenced, self).create(vals)
-        result.launch_importation()
+        self.process_files_to_import()
         return result
 
     @api.model
