@@ -2,7 +2,8 @@
 <openerp>
     <data>
 
-        <menuitem id="top_menu_importation" name="Importation" sequence="1000"/>
+        <menuitem id="top_menu_importation" name="Importation" sequence="1000"
+                  groups="customer_file_importation.group_customer_file_importation"/>
 
         <record model="ir.ui.view" id="customer_importation_log_line_tree">
             <field name="name">customer_importation_log_line_tree</field>
