@@ -24,6 +24,7 @@ import os
 import unicodecsv as csv
 from odoo import exceptions
 from odoo import models, fields, api
+from odoo.addons.queue_job.job import job, related_action
 
 _logger = logging.getLogger(__name__)
 
@@ -37,11 +38,13 @@ class CustomerFileToImport(models.Model):
     chunk_size = fields.Integer(string=u"Chunk size for asynchronous importation")
     file = fields.Binary(string=u"File to import", required=True, attachment=True)
     nb_columns = fields.Integer(string=u"Number of columns", readonly=True)
-    state = fields.Selection([('draft', u"Never imported"),
-                              ('processing', u"Processing"),
-                              ('error', u"Error"),
-                              ('done', u"Done")], string=u"State", required=True, default='draft')
-    log_line_ids = fields.One2many('customer.importation.log.line', 'import_id', string=u"Log lines")
+    state = fields.Selection([('draft', u"To import"),
+                              ('csv_generated', u"CSV generated"),
+                              ('importing', u"Importing"),
+                              ('error', u"Error during importation"),
+                              ('done', u"Done")], string=u"State", compute='_compute_state')
+    log_line_ids = fields.One2many('customer.importation.log.line', 'import_id', string=u"Log lines", readonly=True)
+    log_lines_count = fields.Integer(string=u"Number of log lines", compute='_compute_log_lines_count')
     csv_file_ids = fields.One2many('customer.generated.csv.file', 'import_id', string=u"Generated CSV files",
                                    readonly=True)
     sequence = fields.Integer(string=u"Séquence", readonly=True)
@@ -54,9 +57,23 @@ class CustomerFileToImport(models.Model):
             rec.datas_fname = u"%s%s" % (rec.name, rec.extension)
 
     @api.multi
-    def generate_out_csv_files_multi(self):
+    def _compute_log_lines_count(self):
         for rec in self:
-            rec.generate_out_csv_files()
+            rec.log_lines_count = len(rec.log_line_ids)
+
+    @api.multi
+    def _compute_state(self):
+        for rec in self:
+            state = 'draft'
+            if any([file.state == 'importing' for file in rec.csv_file_ids]):
+                state = 'importing'
+            elif any([file.state == 'error' for file in rec.csv_file_ids]):
+                state = 'error'
+            elif rec.csv_file_ids and all([file.state == 'done' for file in rec.csv_file_ids]):
+                state = 'done'
+            elif rec.csv_file_ids:
+                state = 'csv_generated'
+            rec.state = state
 
     @api.multi
     def generate_out_csv_files(self):
@@ -69,7 +86,6 @@ class CustomerFileToImport(models.Model):
 
     @api.multi
     def import_actual_files(self):
-        # TODO: coder un connecteur pour ordonner les traitements
         self.csv_file_ids.action_import()
 
     @api.multi
@@ -138,6 +154,21 @@ class CustomerFileToImport(models.Model):
             return False
         return True
 
+    @api.multi
+    def open_log_lines(self):
+        self.ensure_one()
+        ctx = dict(self.env.context)
+        ctx['search_default_group_by_type'] = True
+        return {
+            'name': u"Log lines for CSV files generation of %s" % self.display_name,
+            'view_type': 'form',
+            'view_mode': 'tree',
+            'res_model': 'customer.importation.log.line',
+            'type': 'ir.actions.act_window',
+            'domain': [('id', 'in', self.log_line_ids.ids)],
+            'context': ctx,
+        }
+
 
 class CustomerImportationLogLine(models.Model):
     _name = 'customer.importation.log.line'
@@ -153,11 +184,17 @@ class CustomerGeneratedCsvFile(models.Model):
     _order = 'sequence, id'
 
     import_id = fields.Many2one('customer.file.to.import', string=u"File to import", readonly=True, required=True)
-    generated_csv_file = fields.Binary(string=u"Generated CSV File", readonly=True, required=True)
+    generated_csv_file = fields.Binary(string=u"Generated CSV File", readonly=True, required=True, attachment=True)
     model = fields.Char(string=u"Model", readonly=True, required=True)
     sequence = fields.Integer(string=u"Sequence", readonly=True)
     datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
     fields_to_import = fields.Char(string=u"Fields to import", readonly=True)
+    state = fields.Selection([('draft', u"To import"),
+                              ('importing', u"Importing"),
+                              ('error', u"Error during importation"),
+                              ('done', u"Done")], string=u"State", compute='_compute_state')
+    imported = fields.Boolean(string=u"Imported")
+    imported_file_ids = fields.One2many('customer.imported.csv.file', 'original_file_id', string=u"Imported files")
 
     @api.multi
     def _compute_datas_fname(self):
@@ -165,7 +202,72 @@ class CustomerGeneratedCsvFile(models.Model):
             rec.datas_fname = u"%s.csv" % rec.model
 
     @api.multi
-    def get_default_option(self):
+    @api.depends('imported_file_ids', 'imported_file_ids.done', 'imported_file_ids.error')
+    def _compute_state(self):
+        for rec in self:
+            last_imported_file = self.env['customer.imported.csv.file']. \
+                search([('id', 'in', rec.imported_file_ids.ids)], order='id desc', limit=1)
+            state = 'draft'
+            if rec.imported:
+                state = 'done'
+            elif last_imported_file and last_imported_file.error:
+                state = 'error'
+            elif last_imported_file and last_imported_file.done:
+                state = 'done'
+            elif last_imported_file:
+                state = 'importing'
+            rec.state = state
+
+    @api.multi
+    def name_get(self):
+        return [(rec.id, u"%s, model %s" % (rec.model, rec.import_id.name)) for rec in self]
+
+    @api.multi
+    def action_import(self):
+        for rec in self:
+            self.env['customer.imported.csv.file'].create({
+                'model': rec.model,
+                'csv_file': rec.generated_csv_file,
+                'asynchronous': rec.import_id.asynchronous,
+                'sequence': rec.sequence,
+                'fields_to_import': rec.fields_to_import,
+                'original_file_id': rec.id,
+                'chunk_size': rec.import_id.chunk_size,
+            })
+            if not rec.import_id.asynchronous:
+                rec.imported = True
+
+
+class CustomerGeneratedCsvFileSequenced(models.Model):
+    _name = 'customer.imported.csv.file'
+    _order = 'id desc'
+
+    model = fields.Char(string=u"Model", readonly=True, required=True)
+    csv_file = fields.Binary(string=u"Generated CSV File", readonly=True, required=True, attachment=True)
+    asynchronous = fields.Boolean(string=u"Asynchronous importation", readonly=True)
+    chunk_size = fields.Integer(string=u"Chunk size for asynchronous importation")
+    sequence = fields.Integer(string=u"Sequence", readonly=True)
+    datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
+    fields_to_import = fields.Char(string=u"Fields to import", readonly=True)
+    original_file_id = fields.Many2one('customer.generated.csv.file', string=u"Original generated CSV file")
+    error = fields.Boolean(string=u"Error during importation")
+    started = fields.Boolean(string=u"Importation started")
+    done = fields.Boolean(string=u"Imported")
+    error_msg = fields.Text(string=u"Message d'erreur")
+    generated_job_ids = fields.One2many('queue.job', 'imported_file_id', string=u"Generated jobs")
+    processed = fields.Boolean(string=u"Traité")
+
+    @api.multi
+    def _compute_datas_fname(self):
+        for rec in self:
+            rec.datas_fname = u"%s.csv" % rec.model
+
+    @api.multi
+    def name_get(self):
+        return [(rec.id, u"CSV file importation of model %s" % rec.model) for rec in self]
+
+    @api.multi
+    def get_default_importation_options(self):
         self.ensure_one()
         return {u'datetime_format': u'%Y-%m-%d %H:%M:%S',
                 u'date_format': u"%Y-%m-%d",
@@ -184,13 +286,14 @@ class CustomerGeneratedCsvFile(models.Model):
         self.ensure_one()
         return {
             'res_model': self.model,
-            'file': self.generated_csv_file.decode('base64'),
+            'file': self.csv_file.decode('base64'),
             'file_name': self.datas_fname,
             'file_type': 'text/csv',
         }
 
     @api.model
     def raise_error_if_needed(self, importation_result):
+        self.ensure_one()
         if importation_result:
             msg_unknown_error = u"""Unknown error"""
             error_msg = u""""""
@@ -203,17 +306,102 @@ class CustomerGeneratedCsvFile(models.Model):
                     error_msg += u"""%s""" % item.get('message', msg_unknown_error)
             if error:
                 if not error_msg:
-                    error_msg = msg_unknown_error
-                raise exceptions.UserError(u"""Importation failed\r%s""" % error_msg)
+                    self.error_msg = msg_unknown_error
+                else:
+                    self.error_msg = error_msg
+                self.error = True
 
     @api.multi
-    def action_import(self):
+    def launch_importation(self):
         for rec in self:
+            rec.started = True
             default_values_for_importation_wizard = rec.get_default_values_for_importation_wizard()
             wizard = self.env['base_import.import'].create(default_values_for_importation_wizard)
-            options = rec.get_default_option()
-            if rec.import_id.asynchronous:
+            options = rec.get_default_importation_options()
+            existing_attachment_ids = []
+            if rec.asynchronous:
                 options[u'use_queue'] = True
-                options[u'chunk_size'] = rec.import_id.chunk_size
+                options[u'chunk_size'] = rec.chunk_size
+                existing_attachment_ids = self.env['ir.attachment'].search([('res_model', '=', 'queue.job')]).ids
             importation_result = wizard.do(fields=eval(rec.fields_to_import), options=options)
+            if rec.asynchronous:
+                new_attachments = self.env['ir.attachment'].search([('res_model', '=', 'queue.job'),
+                                                                    ('id', 'not in', existing_attachment_ids)])
+                job_ids = [attachment.res_id for attachment in new_attachments]
+                jobs = self.env['queue.job'].search([('id', 'in', job_ids)])
+                jobs.write({'imported_file_id': rec.id})
             self.raise_error_if_needed(importation_result)
+
+    @api.model
+    def create(self, vals):
+        result = super(CustomerGeneratedCsvFileSequenced, self).create(vals)
+        result.launch_importation()
+        return result
+
+    @api.model
+    def process_files_to_import(self):
+        if self.env['queue.job'].search([('state', '!=', 'done')]):
+            return
+        not_processed_files = self.search([('processed', '=', False)])
+        min_sequence = min([file.sequence for file in not_processed_files])
+        files_to_process = self.search([('processed', '=', False), ('sequence', '=', min_sequence)])
+        files_to_process.launch_importation()
+
+
+class CustomerFileImportationQueueJob(models.Model):
+    _inherit = 'queue.job'
+
+    imported_file_id = fields.Many2one('customer.imported.csv.file', string=u"Job généré pour le fichier",
+                                       readonly=True)
+
+
+class BaseImportImport(models.TransientModel):
+    _inherit = 'base_import.import'
+
+    @api.model
+    @job
+    @related_action('_related_action_attachment')
+    def _split_file(self, model_name, translated_model_name, att_id, options, file_name="file.csv"):
+        existing_job_ids = self.env['queue.job'].search([]).ids
+        result = super(BaseImportImport, self)._split_file(model_name, translated_model_name, att_id, options,
+                                                           file_name=file_name)
+        job_uuid = self.env.context.get('job_uuid')
+        if job_uuid:
+            original_job = self.env['queue.job'].search([('uuid', '=', job_uuid)])
+            if len(original_job) != 1:
+                raise exceptions.UserError(u"Impossible to find job for UUID %s" % job_uuid)
+            new_jobs = self.env['queue.job'].search([('id', 'not in', existing_job_ids)])
+            new_jobs.write({
+                'imported_file_id': original_job.imported_file_id and original_job.imported_file_id.id or False,
+            })
+        return result
+
+
+class CustomerFileQueueJob(models.Model):
+    _inherit = 'queue.job'
+
+    @api.multi
+    def update_importation_file_states(self):
+        files_to_update = self.env['customer.imported.csv.file']
+        for rec in self:
+            files_to_update |= rec.imported_file_id
+        for file_to_update in files_to_update:
+            files_to_update.error = False
+            files_to_update.done = False
+            if self.search([('imported_file_id', '=', file_to_update.id), ('state', '=', 'failed')]):
+                files_to_update.error = True
+            elif not self.search([('imported_file_id', '=', file_to_update.id), ('state', '!=', 'done')]):
+                files_to_update.done = True
+
+    @api.model
+    def create(self, vals):
+        result = super(CustomerFileQueueJob, self).create(vals)
+        result.update_importation_file_states()
+        return result
+
+    @api.multi
+    def write(self, vals):
+        result = super(CustomerFileQueueJob, self).write(vals)
+        if vals.get('state'):
+            self.update_importation_file_states()
+        return result
