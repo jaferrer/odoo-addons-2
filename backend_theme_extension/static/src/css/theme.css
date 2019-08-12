@@ -1,0 +1,16 @@
+/* Boutton minimalistes associés au titres h2 */
+/* .btn-minimalist */
+
+button.oe_stat_button.btn-minimalist:first-of-type {
+    margin-left: 15px;
+}
+
+button.oe_stat_button.btn-minimalist {
+    margin-right: 7px;
+    padding: 2px 4px 2px 5px;
+    font-size: 15px;
+}
+
+button.oe_stat_button.btn-minimalist > span {
+    display: none;
+}
