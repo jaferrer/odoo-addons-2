@@ -1,8 +1,9 @@
 /* Boutton minimalistes associés au titres h2 */
 /* .btn-minimalist */
+/* <div class="o_horizontal_separator"><span>TITRE</span><button class="oe_stat_button btn-minimalist" ... */
 
-button.oe_stat_button.btn-minimalist:first-of-type {
-    margin-left: 15px;
+.o_horizontal_separator > span:first-child {
+    margin-right: 12px;
 }
 
 button.oe_stat_button.btn-minimalist {

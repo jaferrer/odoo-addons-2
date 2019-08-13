@@ -1,7 +1,7 @@
 # coding: utf-8
 
 {
-    'name': 'Backend Theme Extension classes and fixes',
+    'name': 'Backend Theme Extension',
     'version': '1.0',
     'author': 'NDP Systèmes',
     'website': 'http://www.m14.fr',
