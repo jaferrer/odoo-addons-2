@@ -12,7 +12,7 @@
                 <xpath expr="//field[@name='partner_id']" position="after">
                     <field name="reference_task_id" context="{'default_project_id': id}"
                            domain="[('project_id', '=', id)]" options="{'no_create': True}"/>
-                    <field name="reference_task_end_date" widget="date"/>
+                    <field name="reference_task_end_date"/>
                 </xpath>
                 <group name="misc" position="before">
                     <button name="open_task_planning" string="Open tasks planning" type="object"/>
@@ -201,7 +201,6 @@ self.update_ready_for_execution(cr, uid, context.get('active_ids'), False, conte
             <field name="view_mode">tree</field>
             <field name="domain">[]</field>
             <field name="context">{}</field>
-            <field name="help"></field>
             <field name="view_id" ref="project_improved_task_tree"/>
         </record>
 
@@ -215,8 +214,8 @@ self.update_ready_for_execution(cr, uid, context.get('active_ids'), False, conte
             <field name="type">timeline</field>
             <field name="arch" type="xml">
                 <timeline position="attributes">
-                    <attribute name="date_start">expected_start_date</attribute>
-                    <attribute name="date_stop">expected_end_date</attribute>
+                    <attribute name="date_start">expected_start_date_display</attribute>
+                    <attribute name="date_stop">expected_end_date_display</attribute>
                     <attribute name="colors">#2ecb71: kanban_state == 'done'; #ff5c33: conflict == true; #ec7063: kanban_state == 'blocked'; #fa58d0: taken_into_account == true;</attribute>
                     <attribute name="order_by">parent_task_id</attribute>
                     <attribute name="className">"macro_tache": macro_tache == true;</attribute>
