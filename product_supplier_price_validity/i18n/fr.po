@@ -95,3 +95,13 @@ msgstr "green:active"
 #: model:ir.model,name:product_supplier_price_validity.model_pricelist_partnerinfo
 msgid "pricelist.partnerinfo"
 msgstr "pricelist.partnerinfo"
+
+#. module: product_supplier_price_validity
+#: field:product.supplierinfo,end_validity_date:0
+msgid "Expiration date"
+msgstr "Date de fin de validité"
+
+#. module: product_supplier_price_validity
+#: field:product.supplierinfo,end_validity_date:0
+msgid "Valid until that date"
+msgstr "Date de fin de validité"

@@ -113,7 +113,6 @@ class BusSynchronizationImporter(models.AbstractModel):
 
     def check_needed_dependency(self, record, model):
         external_key = record.get('external_key', False)
-        record.get('external_key', False)
         _, odoo_record = self.env['bus.binder'].get_record_by_external_key(external_key, model)
         if not odoo_record:
             return {'model': model, 'external_key': external_key, 'id': record.get('id', False)}
@@ -222,7 +221,10 @@ class BusSynchronizationImporter(models.AbstractModel):
         if not critical_error:
             try:
                 with self.env.cr.savepoint():
-                    transfer, odoo_record = transfer.import_datas(transfer, odoo_record, binding_data, record_data)
+                    transfer, odoo_record, error_tuple = transfer \
+                        .import_datas(transfer, odoo_record, binding_data, record_data)
+                    if error_tuple:
+                        errors.append(error_tuple)
                     if translation:
                         self._update_translations(transfer, translation)
             except (exceptions.ValidationError, exceptions.except_orm, IntegrityError) as err:

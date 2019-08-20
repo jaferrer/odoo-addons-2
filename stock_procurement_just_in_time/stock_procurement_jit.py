@@ -873,11 +873,17 @@ class StockSchedulerController(models.Model):
                                                                    ('route_sequence', '=', max_route_sequence),
                                                                    ('run_procs', '=', False)])
                     if controller_lines_no_run_blocked:
+                        any_line_to_relaunch = False
                         for line_blocked in controller_lines_no_run_blocked:
                             queue_job = self.env['queue.job'].search(
                                 [('uuid', '=', line_blocked.job_uuid), ('state', 'in', ['done', 'failed'])])
                             if queue_job:
                                 line_blocked.done = True
+                            elif not self.env['queue.job'].search([('uuid', '=', line_blocked.job_uuid)]):
+                                line_blocked.job_uuid = False
+                                any_line_to_relaunch = True
+                        if any_line_to_relaunch:
+                            return
 
                     controller_lines_run_procs = self.search([('done', '=', False),
                                                               ('location_sequence', '=', max_location_sequence),

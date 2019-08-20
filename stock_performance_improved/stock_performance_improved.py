@@ -197,6 +197,15 @@ class stock_pack_operation(models.Model):
         return prod2move_ids.get(self.product_id.id, [])[:]
 
 
+class StockQuantIndex(models.Model):
+    _inherit = 'stock.quant'
+
+    negative_move_id = fields.Many2one('stock.move', 'Move Negative Quant',
+                                       help='If this is a negative quant, this will be the move that caused this '
+                                            'negative quant.',
+                                       readonly=True, index=True)
+
+
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 

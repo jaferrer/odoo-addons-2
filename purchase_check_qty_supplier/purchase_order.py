@@ -88,46 +88,27 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
                 rec.order_id._check_qty_for_product(rec.product_id)
         return result
 
-    def onchange_product_id(self, cr, uid, ids, pricelist_id, product_id, qty, uom_id,
-                            partner_id, date_order=False, fiscal_position_id=False, date_planned=False,
-                            name=False, price_unit=False, state='draft', context=None):
-
-        product_product = self.pool.get('product.product')
-        res_partner = self.pool.get('res.partner')
-
-        result = super(CheckQtySupplierPurchaseOrderLine, self).onchange_product_id(cr, uid, ids,
-                                                                                    pricelist_id, product_id, qty,
-                                                                                    uom_id,
-                                                                                    partner_id,
-                                                                                    date_order, fiscal_position_id,
-                                                                                    date_planned,
-                                                                                    name, price_unit, state,
-                                                                                    context=context)
-        context_partner = context.copy()
-        if partner_id:
-            lang = res_partner.browse(cr, uid, partner_id).lang
-            context_partner.update({'lang': lang, 'partner_id': partner_id})
-        product = product_product.browse(cr, uid, product_id, context=context_partner)
-        precision = self.pool.get('decimal.precision').precision_get(cr, uid, 'Product Unit of Measure')
-
-        # Ugly patch to remove the warning if the qty is less than  the main supplier minimal qty
-        # The check is done inside the write method inside purchase.order to check if all qty inside the line is ok
-        # You can now create two line with the same supplier with the sum qty is more than the min_qty of the supplier
-        if result.get('warning', False) and result['warning']['title'] == _('Warning!'):
-            for supplier in product.seller_ids:
-                if partner_id and (supplier.name.id == partner_id):
-                    supplierinfo = supplier
-                    min_qty = self.pool.get('product.uom')._compute_qty(cr, uid,
-                                                                        supplierinfo.product_uom.id,
-                                                                        supplierinfo.min_qty, to_uom_id=uom_id)
-                    if float_compare(min_qty, qty, precision_digits=precision) == 1 and qty:
-                        message = _(
-                            'The selected supplier has a minimal quantity set to %s %s, you should not purchase less.') \
-                            % (supplierinfo.min_qty, supplierinfo.product_uom.name)
-                        if result['warning']['message'] == message:
-                            del result['warning']
-                            result['value'].update({'product_qty': qty})
-        return result
+    @api.model
+    def raise_if_not_valid_qty(self, product, partner_id, uom_id, res, qty):
+        # Fonction re-écrite pour :
+        # - ne pré-remplir la quantité que s'il n'y en a pas de fournie
+        # - enlever le message d'erreur (vérification à la commande et non plus à la ligne)
+        # - prendre en compte uniquement la première fourniture correspondant au fournisseur choisi, s'il y en a
+        # plusieurs (ajout du "break").
+        for supplier in product.seller_ids:
+            if partner_id and (supplier.name.id == partner_id):
+                supplierinfo = supplier
+                if supplierinfo.product_uom.id != uom_id:
+                    res['warning'] = {'title': _('Warning!'),
+                                      'message': _('The selected supplier only sells this product by %s') %
+                                                 supplierinfo.product_uom.name }
+                min_qty = self.env['product.uom']._compute_qty(supplierinfo.product_uom.id,
+                                                               supplierinfo.min_qty,
+                                                               to_uom_id=uom_id)
+                if not qty:
+                    qty = min_qty
+                break
+        return res, qty
 
 
 class CheckQtySupplierInfo(models.Model):

@@ -12,7 +12,7 @@
                       <p groups="product.group_purchase_pricelist" class="oe_grey">If the validity date field is filled, the rule is used only if the order date is later than it. If it is empty, the rule is considered as valuable since always.</p>
                       <p groups="product.group_purchase_pricelist" class="oe_grey">Each active rule is green colored.</p>
                       <group>
-                          <field name="validity_date_2"/>
+                          <field name="validity_date_2" invisible="1"/>
                       </group>
                   </p>
                   <tree string="Pricelist" position="attributes">
@@ -20,7 +20,8 @@
                   </tree>
                   <field name="min_quantity" position="before">
                       <field name="validity_date"/>
-                      <field name="active_line" invisible="1"/>
+                      <field name="end_validity_date"/>
+                      <field name="active_line" invisible="1" />
                   </field>
                   <tree string="Pricelist" position="inside">
                       <field name="force_inactive"/>

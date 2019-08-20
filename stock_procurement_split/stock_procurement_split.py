@@ -44,7 +44,7 @@ class ProcurementOrder(models.Model):
     _inherit = 'procurement.order'
 
     split_from_id = fields.Many2one('procurement.order', string=u"Split From", readonly=True,
-                                 ondelete='set null')
+                                    ondelete='set null', index=True)
 
     @api.multi
     def split(self, qty, force_move_dest_id=False, force_state=False):

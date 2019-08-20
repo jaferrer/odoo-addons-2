@@ -27,6 +27,8 @@
                     <sheet position="inside">
                         <separator string="OrderPoints Required For Location"/>
                         <field name="required_orderpoint_location_ids" widget="many2many_tags"/>
+                        <separator string="Locations with no RSM"/>
+                        <field name="no_rsm_locations_ids" widget="many2many_tags"/>
                     </sheet>
                 </data>
             </field>
