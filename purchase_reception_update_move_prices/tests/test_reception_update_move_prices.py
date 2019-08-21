@@ -70,7 +70,7 @@ class TestPurchaseReceptionUpdatePrices(common.TransactionCase):
         self.env['res.currency.rate'].create({'currency_id': self.usd.id,
                                               'name': '2010-01-02 00:00:00',
                                               'rate': 2})
-        self.env['currency.rate.update.service']._run_currency_update()
+
         move.action_done()
         self.assertEqual(move.price_unit, 0.5)
         moved_quant = move.quant_ids
