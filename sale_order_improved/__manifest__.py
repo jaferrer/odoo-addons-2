@@ -18,19 +18,18 @@
 #
 
 {
-    'name': 'Stock Improved',
+    'name': 'Sale Order Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical Settings',
     'depends': [
-        'stock',
+        'sale',
     ],
     'description': """
-Stock Improved
-==============
-This module correct a problem of action_done in 'stock.picking' and 'stock.move' which makes impossible to validate
-more than one picking at a time (Cf line 1145 in odoo->addons->stock->model->stock_move.py).
+Sale Order Improved
+===================
+This module divide the method '_get_invoiced' in several blocks easier to overload.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
