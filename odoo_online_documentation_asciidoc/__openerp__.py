@@ -18,34 +18,19 @@
 #
 
 {
-    'name': 'Extra Group Operators',
+    'name': 'Odoo Online Documentation Asciidoc',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['base'],
+    'category': 'Knowledge',
+    'depends': ['odoo_online_documentation'],
     'description': """
-Extra Group Operators
-=====================
-This module implements new aggregate functions in PostgreSQL to be used in group_operator parameter of fields.
-
-Currently implements:
-
-- first: This operator will return the first row of the group as the result for the group
-- last: This operator will return the last row of the group as the result for the group
-
-'first' and 'last' function may prove particularly useful when dealing with cumulative fields inside the database,
-particularly in DB views.
-
-Note:
-
-This module removes and adds again the aggregate function in the database, so make sure that all modules using these new
-aggregate functions depend from this module so that they get updated.
+Odoo Online Documentation Asciidoc
+==================================
+This modules allows Odoo Developpers to provide online technical documentation, with auto-update after each delivery.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'security/ir.model.access.csv',
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,

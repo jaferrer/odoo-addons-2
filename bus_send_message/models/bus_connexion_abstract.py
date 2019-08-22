@@ -36,16 +36,8 @@ class BusConnexionAbstract(models.AbstractModel):
     database = fields.Char(u"Database")
     login = fields.Char(u"Login")
     password = fields.Char(u"Password")
-    connection_status = fields.Char(string=u"Connection status", compute="_compute_connexion_state")
-
-    @api.multi
-    def _compute_connexion_state(self):
-        for rec in self:
-            try:
-                server, res, connection = rec.try_connexion()
-                rec.connection_status = res
-            except IOError as ex:
-                rec.connection_status = ex
+    # TODO: écrire un cron pour mettre à jour ce statut régulièrement
+    connection_status = fields.Char(string=u"Connection status", readonly=True)
 
     @api.multi
     def try_connexion(self, raise_error=False):
@@ -62,6 +54,7 @@ class BusConnexionAbstract(models.AbstractModel):
                 self.login,
                 self.password
             ]
+            _logger.info(u"Connectiong to URL %s, on database %s", url, self.database)
             connection = server.call(service="common", method="login", args=args)
             result = u"Error Login/Password" if connection == 0 else u"OK"
         except socket.error as e:
@@ -70,6 +63,7 @@ class BusConnexionAbstract(models.AbstractModel):
             result = self._return_last_jsonrpclib_error()
         if raise_error and result != "OK":
             raise FailedJobError(result)
+        self.connection_status = result
         return server, result, connection
 
     @api.multi
