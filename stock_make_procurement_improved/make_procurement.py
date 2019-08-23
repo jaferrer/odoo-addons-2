@@ -24,6 +24,7 @@ class MakeProcurementLine(models.TransientModel):
     _name = 'make.procurement.line'
 
     name = fields.Many2one('product.product', u"Variant", required=True, readonly=True)
+    variant = fields.Many2many(related='name.attribute_value_ids')
     make_procurement_id = fields.Many2one(
         'make.procurement', u"Make Procurements", required=True, readonly=True)
     qty = fields.Float(
@@ -48,21 +49,17 @@ class MakeProcurementImproved(models.TransientModel):
     def create(self, values):
         res = super(MakeProcurementImproved, self).create(values)
         if res.product_tmpl_id:
-            if len(res.product_tmpl_id.product_variant_ids) > 1:
-                for product in res.product_tmpl_id.product_variant_ids:
-                    self.env['make.procurement.line'].create({
-                        'name': product.id,
-                        'make_procurement_id': res.id,
-                        'uom_id': product.uom_id.id,
-                        'date_planned': res.date_planned,
-                    })
+            for product in res.product_tmpl_id.product_variant_ids:
+                self.env['make.procurement.line'].create({
+                    'name': product.id,
+                    'make_procurement_id': res.id,
+                    'uom_id': product.uom_id.id,
+                    'date_planned': res.date_planned,
+                })
         return res
 
     @api.multi
     def make_procurement(self):
-        if self.product_variant_count <= 1:
-            return super(MakeProcurementImproved, self).make_procurement()
-
         for wizard in self:
             procurements_creates = []
             for line in wizard.make_procurement_line_ids:
@@ -108,3 +105,12 @@ class ProductTmplImproved(models.Model):
             'view_id': self.env.ref('stock.view_make_procurment_wizard').id,
             'target': 'new',
         }
+
+
+class ProductProductImproved(models.Model):
+    _inherit = 'product.product'
+
+    @api.multi
+    def launch_make_procurement_wizard(self):
+        self.ensure_one()
+        return self.product_tmpl_id.launch_make_procurement_wizard()
