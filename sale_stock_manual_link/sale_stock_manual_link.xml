@@ -103,6 +103,9 @@ action = self.manual_consideration(cr, uid, context.get('active_ids'), context=c
                             domain="[('sol_manual_consideration', '=', True)]"/>
                     <filter name="without_manual_consideration" string="Without manual consideration"
                             domain="[('sol_manual_consideration', '=', False)]"/>
+                    <separator/>
+                    <filter name="lettrable" string="Lettrable"
+                            domain="[('lettrable', '=', True)]"/>
                     <group expand="1" string="Group By...">
                         <filter name="group_warehouse" string="Warehouse" domain="[]" context="{'group_by':'sale_warehouse_id'}"/>
                     </group>

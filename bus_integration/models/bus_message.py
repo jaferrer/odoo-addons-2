@@ -24,7 +24,6 @@ from ..connector.jobs import job_send_response
 
 
 class BusMessage(models.Model):
-
     """
     messages hierarchy example (sync data from mother to children)
     -------------------------------------------------
@@ -51,9 +50,12 @@ class BusMessage(models.Model):
     _name = 'bus.message'
     _order = 'create_date DESC'
 
-    #  batch serial id
-    id_serial = fields.Char(string=u"Serial ID")
     configuration_id = fields.Many2one('bus.configuration', string=u"Backend")
+    batch_id = fields.Many2one('bus.configuration.export', string=u"Batch")
+    job_generate_uuid = fields.Char(u'Generate message job uuid')
+    job_send_uuid = fields.Char(u'Send message job uuid')
+    export_run_uuid = fields.Char(u'Message group unique identifier',
+                                  help='if export is chunked all generated msgs have the same uuid')
     date_done = fields.Datetime(u"Date Done")
     header_param_ids = fields.One2many('bus.message.header.param', 'message_id', u"Header parameters")
     message = fields.Text(u"Message")
@@ -68,7 +70,7 @@ class BusMessage(models.Model):
                                   ('CHECK_SYNCHRONIZATION_RETURN', u"Check response"),
                                   ], u"Treatment", required=True)
     log_ids = fields.One2many('bus.message.log', 'message_id', string=u"Logs")
-
+    exported_ids = fields.Text(string=u"Exported ids", compute='get_export_eported_ids', store=True)
     message_parent_id = fields.Many2one('bus.message', string=u"Parent message")
     message_children_ids = fields.One2many('bus.message', 'message_parent_id', string=u"Children messages")
 
@@ -83,10 +85,34 @@ class BusMessage(models.Model):
     body = fields.Text(u"body", compute="_compute_message_fields", readonly=True)
     body_root_pretty_print = fields.Text(u"Body root", compute="_compute_message_fields", readonly=True)
     body_dependencies_pretty_print = fields.Text(u"Body dependencies", compute="_compute_message_fields", readonly=True)
-    body_models = fields.Text(u"Models", compute="_compute_message_fields", readonly=True)
+    body_models = fields.Text(u"Models", compute="_compute_message_models", readonly=True, store=True)
     extra_content = fields.Text(u"Extra-content", compute="_compute_message_fields", readonly=True)
     result_state = fields.Selection([('inprogress', u"In progress"), ('error', u"Error"), ('done', u"Done")],
-                                    string=u"Result state", default='inprogress', compute='_compute_result_state')
+                                    string=u"Result state", default='inprogress', compute='_compute_result_state',
+                                    store=True)
+    active = fields.Boolean(u'Is active', default=True, index=True)
+
+    @api.multi
+    def deactive(self):
+        self.write({'active': False})
+
+    @api.multi
+    def reactive(self):
+        self.write({'active': True})
+
+    @api.multi
+    @api.depends('message')
+    def get_export_eported_ids(self):
+        for rec in self:
+            exported_ids = u""
+            if rec.message:
+                message_dict = json.loads(rec.message)
+                body_dict = message_dict.get('body', {}).get('root', {})
+                models = body_dict.keys()
+                for model in models:
+                    ids = body_dict.get(model).keys()
+                    exported_ids += u"%s : %s, " % (model, ids)
+            rec.exported_ids = exported_ids
 
     @api.multi
     def _compute_cross_id_str(self):
@@ -99,6 +125,27 @@ class BusMessage(models.Model):
                 rec.cross_id_str = "{0:s}:{1:d}".format(rec.cross_id_origin_base, rec.cross_id_origin_id)
 
     @api.multi
+    @api.depends('message')
+    def _compute_message_models(self):
+        for rec in self:
+            try:
+                if rec.message:
+                    message_dict = json.loads(rec.message)
+                    body_dict = message_dict.get('body')
+                    if 'demand' in body_dict.keys():
+                        models_dict = body_dict.get('demand')
+                    elif 'result' in body_dict.get('return', {}).keys():
+                        models_dict = body_dict.get('return').get('result')
+                    else:
+                        models_dict = body_dict.get('root')
+                    models_result = []
+                    for model in models_dict.keys():
+                        models_result.append(str(model))
+                    rec.body_models = ', '.join(models_result)
+            except ValueError:
+                rec.body_models = ""
+
+    @api.multi
     def _compute_message_fields(self):
         for rec in self:
             try:
@@ -107,26 +154,15 @@ class BusMessage(models.Model):
                 rec.extra_content = json.dumps(extra_content_dict)
 
                 body_dict = message_dict.get('body')
+                dependencies_dict = body_dict.pop('dependency', {})
                 rec.body = json.dumps(body_dict)
                 rec.body_root_pretty_print = json.dumps({'body': body_dict}, indent=4)
-                rec.body_dependencies_pretty_print = json.dumps({'dependency': body_dict.get('dependency', {})},
+                rec.body_dependencies_pretty_print = json.dumps({'dependency': dependencies_dict},
                                                                 indent=4)
-
-                if 'demand' in body_dict.keys():
-                    models_dict = body_dict.get('demand')
-                elif 'result' in body_dict.get('return', {}).keys():
-                    models_dict = body_dict.get('return').get('result')
-                else:
-                    models_dict = body_dict.get('root')
-                models_result = []
-                for model in models_dict.keys():
-                    models_result.append(str(model))
-                rec.body_models = ', '.join(models_result)
             except ValueError:
                 rec.body = rec.message
                 rec.body_root_pretty_print = rec.message
                 rec.extra_content = ""
-                rec.body_models = ""
 
     @api.multi
     def name_get(self):
@@ -145,16 +181,22 @@ class BusMessage(models.Model):
         return results
 
     @api.model
+    def create_message_from_batch(self, message_dict, batch, job_uuid, msgs_group_uuid):
+        msg = self.create_message(message_dict, 'sent', batch.configuration_id)
+        msg.batch_id = batch.id
+        msg.job_generate_uuid = job_uuid
+        msg.export_run_uuid = msgs_group_uuid
+        return msg
+
+    @api.model
     def create_message(self, message_dict, type_sent_or_received, configuration, parent_message_id=False):
         # message_dict is a JSON loaded dict.
         if not message_dict:
             message_dict = {}
-
         message = self.create({
             'type': type_sent_or_received,
             'treatment': message_dict.get('header', {}).get('treatment'),
-            'id_serial': message_dict.get('header', {}).get('serial_id'),
-            'configuration_id': configuration.id,
+            'configuration_id': configuration.id
         })
 
         cross_id_origin_base, cross_id_origin_id, cross_id_origin_parent_id = \
@@ -173,7 +215,7 @@ class BusMessage(models.Model):
         })
 
         for key, value in message_dict.get('header', {}).iteritems():
-            if key == 'treatment' or key == 'serial_id':
+            if key == 'treatment':
                 continue
             self.env['bus.message.header.param'].create({
                 'message_id': message.id,
@@ -189,6 +231,7 @@ class BusMessage(models.Model):
                 return rec
         return False
 
+    @api.depends('date_done', 'message')
     def _compute_result_state(self):
         for rec in self:
             if rec.date_done:
@@ -202,8 +245,28 @@ class BusMessage(models.Model):
     @api.multi
     def is_error(self):
         self.ensure_one()
+        log_errors = self.env['bus.message.log'].search([('message_id', '=', self.id), ('type', '=', 'error')])
         state = json.loads(self.message).get('body', {}).get('return', {}).get('state', False)
-        return state == "error"
+        return log_errors or state == "error"
+
+    @api.multi
+    def add_log(self, message, log_type='info'):
+        """
+        Add a log to the message
+        set the message state to done when an error log is passed.
+        :param message: log message..
+        :param log_type: info|warning|error|processed
+        """
+        self.ensure_one()
+        log = self.env['bus.message.log'].create({
+            'message_id': self.id,
+            'type': log_type,
+            'information': message
+        })
+        # needed to change message state to done..
+        if log_type == 'error':
+            self.date_done = fields.Datetime.now()
+        return log
 
     @api.model
     def _explode_cross_origin_base_id_parent(self, message_dict, default_base=False, default_msg_id=False):
@@ -253,8 +316,9 @@ class BusMessage(models.Model):
     @api.multi
     def send(self, msg_content_dict):
         self.ensure_one()
-        job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration',
-                                self.configuration_id.id, json.dumps(msg_content_dict))
+        self.job_send_uuid = job_send_response.delay(ConnectorSession.from_env(self.env), 'bus.configuration',
+                                                     self.configuration_id.id, json.dumps(msg_content_dict))
+        return self.job_send_uuid
 
 
 class BusMessageHearderParam(models.Model):

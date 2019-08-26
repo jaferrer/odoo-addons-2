@@ -22,7 +22,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Init',
-    'depends': [],
+    'depends': ['base'],
     'description': """
 Utility For Sql View
 ====================

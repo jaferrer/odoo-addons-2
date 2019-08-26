@@ -35,6 +35,8 @@ class purchase_jit_config(models.TransientModel):
     config_sellers_manually = fields.Boolean(string="Configure purchase scheduler manually for each supplier")
     order_group_period = fields.Many2one('procurement.time.frame', "Default order grouping period")
     nb_max_draft_orders = fields.Integer(string="Default maximal number of draft purchase orders for each new supplier")
+    orders_filling_mode = fields.Selection([('fixed_date_delivery', u"Delivery on a fixed date"),
+                                            ('scalable_delivery', u"Scalable delivery")], string=u"Orders filling strategy")
     nb_days_scheduler_frequency = fields.Integer(string="Default scheduler frequency (in days)")
 
     @api.multi
@@ -128,6 +130,19 @@ class purchase_jit_config(models.TransientModel):
         for record in self:
             config_parameters.set_param("purchase_procurement_just_in_time.nb_max_draft_orders",
                                         record.nb_max_draft_orders or '0')
+
+    @api.multi
+    def get_default_orders_filling_mode(self):
+        orders_filling_mode = self.env['ir.config_parameter'].get_param(
+            "purchase_procurement_just_in_time.orders_filling_mode", default='fixed_date_delivery')
+        return {'orders_filling_mode': str(orders_filling_mode)}
+
+    @api.multi
+    def set_orders_filling_mode(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("purchase_procurement_just_in_time.orders_filling_mode",
+                                        record.orders_filling_mode or 'fixed_date_delivery')
 
     @api.multi
     def get_default_nb_days_scheduler_frequency(self):

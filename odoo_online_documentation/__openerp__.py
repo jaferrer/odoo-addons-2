@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Knowledge',
-    'depends': [],
+    'depends': ['base'],
     'depends': ['knowledge'],
     'description': """
 Odoo Online Documentation

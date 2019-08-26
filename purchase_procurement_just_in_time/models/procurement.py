@@ -387,12 +387,17 @@ WHERE po.state NOT IN %s AND
         return dict_procs_lines, not_assigned_proc_ids
 
     @api.multi
-    def get_end_date_for_procs_grouping_period(self, seller, purchase_date, company):
+    def get_end_date_for_procs_grouping_period(self, seller, purchase_date, company, date_ref):
         self.ensure_one()
+        orders_filling_mode = self.env['ir.config_parameter']. \
+            get_param('purchase_procurement_just_in_time.orders_filling_mode') or 'fixed_date_delivery'
         frame = seller.get_effective_order_group_period()
         date_end = False
         if frame and frame.period_type:
-            date_end = frame.get_date_end_period(purchase_date)
+            if orders_filling_mode == 'fixed_date_delivery':
+                _, date_end = frame.get_start_end_dates(purchase_date, date_ref=date_ref)
+            else:
+                date_end = frame.get_date_end_period(purchase_date)
         end_date_planned = False
         if date_end:
             end_schedule_date = self._get_purchase_order_date(self, company, date_end, reverse=True)
@@ -430,12 +435,12 @@ WHERE po.state NOT IN %s AND
         return procurements_grouping_period, next_proc_group_planned_date
 
     @api.model
-    def get_purchase_line_procurements(self, procurement_dicts, purchase_date, company, seller, order_by):
+    def get_purchase_line_procurements(self, procurement_dicts, purchase_date, company, seller, order_by, date_ref):
         """Returns procurements that must be integrated in the same purchase order line as first_proc, by
         taking all procurements of the same product as first_proc between the date of first proc and date_end.
         """
         first_proc = self.browse(procurement_dicts[0]['id'])
-        end_date_planned = first_proc.get_end_date_for_procs_grouping_period(seller, purchase_date, company)
+        end_date_planned = first_proc.get_end_date_for_procs_grouping_period(seller, purchase_date, company, date_ref)
         procurements_grouping_period = procurement_dicts
         if end_date_planned:
             procurements_grouping_period = [proc for proc in procurement_dicts if
@@ -550,7 +555,8 @@ WHERE po.state NOT IN %s AND
                         _get_purchase_order_date(first_proc, company, schedule_date)
                     purchase_date = max(purchase_date, date_ref)
                 pol_procurement_ids, next_proc_group_planned_date = self.env['procurement.order']. \
-                    get_purchase_line_procurements(procurement_dicts, purchase_date, company, seller, order_by)
+                    get_purchase_line_procurements(procurement_dicts, purchase_date, company,
+                                                   seller, order_by, date_ref)
                 forbid_creation = bool(seller.nb_max_draft_orders)
                 draft_order = first_proc.with_context(forbid_creation=forbid_creation). \
                     get_corresponding_draft_order(seller, purchase_date)
@@ -569,6 +575,9 @@ WHERE po.state NOT IN %s AND
                     else:
                         dict_lines_to_create[draft_order.id][product.id]['procurement_ids'] += pol_procurement_ids
                     not_assigned_procs -= self.browse(pol_procurement_ids)
+                    if forbid_creation and nb_draft_orders == seller.nb_max_draft_orders:
+                        procurement_dicts = []
+                        continue
                 if not draft_order and forbid_creation:
                     procurement_dicts = []
                 else:
