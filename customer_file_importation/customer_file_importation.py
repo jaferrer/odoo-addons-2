@@ -158,6 +158,8 @@ class CustomerFileToImport(models.Model):
     def open_log_lines(self):
         self.ensure_one()
         ctx = dict(self.env.context)
+        ctx['search_default_warning'] = True
+        ctx['search_default_error'] = True
         ctx['search_default_group_by_type'] = True
         return {
             'name': u"Log lines for CSV files generation of %s" % self.display_name,
@@ -172,6 +174,7 @@ class CustomerFileToImport(models.Model):
 
 class CustomerImportationLogLine(models.Model):
     _name = 'customer.importation.log.line'
+    _order = 'type'
 
     import_id = fields.Many2one('customer.file.to.import', string=u"File to import", readonly=True, required=True)
     type = fields.Selection([('ERROR', u"ERROR"), ('WARNING', u"WARNING"), ('INFO', u"INFO")],

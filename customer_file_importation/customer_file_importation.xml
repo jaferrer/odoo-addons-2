@@ -23,6 +23,9 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <search>
+                    <filter name="info" string="Info" domain="[('type', '=', 'INFO')]"/>
+                    <filter name="warning" string="Warning" domain="[('type', '=', 'WARNING')]"/>
+                    <filter name="error" string="Error" domain="[('type', '=', 'ERROR')]"/>
                     <filter name="group_by_type" string="Type" domain="[]" context="{'group_by':'type'}"/>
                 </search>
             </field>
