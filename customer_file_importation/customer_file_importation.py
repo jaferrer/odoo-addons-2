@@ -344,6 +344,8 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
         if self.env['queue.job'].search([('state', '!=', 'done')]):
             return
         not_processed_files = self.search([('processed', '=', False)])
+        if not not_processed_files:
+            return
         min_sequence = min([file.sequence for file in not_processed_files])
         files_to_process = self.search([('processed', '=', False), ('sequence', '=', min_sequence)])
         files_to_process.launch_importation()
