@@ -87,8 +87,12 @@ class BusConfigurationExport(models.Model):
         """  compute local fields cron_sync_all & cron_sync_diff """
         env_ir_cron = self.env['ir.cron']
         for rec in self:
-            rec.cron_sync_all = env_ir_cron.search([('bus_configuration_export_id', '=', rec.id)], limit=1)
-            rec.cron_sync_diff = env_ir_cron.search([('bus_configuration_export_diff_id', '=', rec.id)], limit=1)
+            rec.cron_sync_all = env_ir_cron\
+                .with_context(active_test=False)\
+                .search([('bus_configuration_export_id', '=', rec.id)], limit=1)
+            rec.cron_sync_diff = env_ir_cron\
+                .with_context(active_test=False)\
+                .search([('bus_configuration_export_diff_id', '=', rec.id)], limit=1)
 
     @api.multi
     def sync_all(self):

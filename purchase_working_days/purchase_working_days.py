@@ -38,6 +38,17 @@ class res_partner_with_calendar(models.Model):
                                         default=_get_default_purchase_lead_time)
 
     @api.multi
+    def get_resource_and_calendar_for_supplier(self):
+        self.ensure_one()
+        calendar = False
+        resource = self.resource_id
+        if resource:
+            calendar = resource.calendar_id
+        if not calendar:
+            calendar = self.env.ref('stock_working_days.default_calendar')
+        return resource, calendar
+
+    @api.multi
     def schedule_working_days(self, nb_days, day_date):
         """Returns the date that is nb_days working days after day_date in the context of the current supplier.
 
@@ -52,12 +63,7 @@ class res_partner_with_calendar(models.Model):
         if nb_days == 0:
             return day_date
 
-        calendar = False
-        resource = self.resource_id
-        if resource:
-            calendar = resource.calendar_id
-        if not calendar:
-            calendar = self.env.ref("stock_working_days.default_calendar")
+        resource, calendar = self.get_resource_and_calendar_for_supplier()
 
         newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date,
                                                   resource_id=resource and resource.id or False,

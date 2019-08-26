@@ -136,6 +136,7 @@ class stock_pack_operation(models.Model):
     _inherit = 'stock.pack.operation'
 
     picking_id = fields.Many2one('stock.picking', index=True)
+    lot_id = fields.Many2one('stock.production.lot', index=True)
 
     def _get_remaining_prod_quantities(self, cr, uid, operation, context=None):
         '''Get the remaining quantities per product on an operation with a package.
@@ -1225,3 +1226,15 @@ class StockPerformanceImprovedConfig(models.TransientModel):
             _logger.info(u"Updating picking type codes for picking type %s (%s/%s)" %
                          (picking_type.display_name, index, nb_picking_types))
             picking_type.update_picking_type_codes()
+
+
+class StockProductionLotPerformanceImproved(models.Model):
+    _inherit = 'stock.production.lot'
+
+    @api.model
+    def create(self, vals):
+        # The creation message is useless
+        return super(StockProductionLotPerformanceImproved,
+                     self.with_context(mail_notrack=True,
+                                       mail_create_nolog=True,
+                                       do_not_subscribe_anybody=True)).create(vals)
