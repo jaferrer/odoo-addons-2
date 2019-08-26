@@ -30,6 +30,7 @@ from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 
 ORDERPOINT_CHUNK = 1
+POP_PROCESS_CHUNK = 100
 
 _logger = logging.getLogger(__name__)
 
@@ -40,6 +41,14 @@ class ForbiddenCancelProtectedProcurement(exceptions.except_orm):
         self.proc_id = proc_id
         super(ForbiddenCancelProtectedProcurement, self).__init__(_(u"Error!"),
                                                                   _(u"You can't cancel a protected procurement"))
+
+
+@job(default_channel='root.procurement_just_in_time_chunk')
+def pop_sub_process_orderpoints(session, model_name, ids, context):
+    """Processes the given orderpoints."""
+    _logger.info("<<Started chunk of %s pop computing orderpoints to process" % POP_PROCESS_CHUNK)
+    controller_stock = session.env[model_name].with_context(context).search([('id', 'in', ids)])
+    controller_stock.pop_job_orderpoint_process()
 
 
 @job(default_channel='root.procurement_just_in_time')
@@ -851,10 +860,28 @@ class StockSchedulerController(models.Model):
     def set_to_done(self):
         self.write({'done': True, 'date_done': fields.Datetime.now()})
 
+    @api.multi
+    def pop_job_orderpoint_process(self):
+        for controller_line in self:
+            job_uuid = process_orderpoints. \
+                delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                      controller_line.orderpoint_id.ids, dict(self.env.context),
+                      description="Computing orderpoints")
+            controller_line.write({'job_uuid': job_uuid, 'job_creation_date': fields.Datetime.now()})
+
+    @api.model
+    def is_not_pop_orderpoints_process_running_ok(self):
+        return not self.env['queue.job']. \
+            search(
+            [('job_function_id.name', '=',
+              'openerp.addons.stock_procurement_just_in_time.stock_procurement_jit.pop_sub_process_orderpoints'),
+             ('state', 'not in', ('done', 'failed'))], limit=1)
+
     @api.model
     def update_scheduler_controller(self, jobify=True, run_procurements=True):
+
         max_sequence = self.search([('done', '=', False)], order='location_sequence desc, route_sequence desc', limit=1)
-        if max_sequence:
+        if max_sequence and self.is_not_pop_orderpoints_process_running_ok():
             max_location_sequence = max_sequence.location_sequence
             max_route_sequence = max_sequence.route_sequence
             is_procs_confirmation_ok = self.env['procurement.order'].is_procs_confirmation_ok()
@@ -897,12 +924,13 @@ class StockSchedulerController(models.Model):
                         controller_lines_run_procs.set_to_done()
                 else:
                     if jobify:
-                        for controller_line in controller_lines_no_run:
-                            job_uuid = process_orderpoints. \
-                                delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                      controller_line.orderpoint_id.ids, dict(self.env.context),
-                                      description="Computing orderpoints")
-                            controller_line.write({'job_uuid': job_uuid, 'job_creation_date': fields.Datetime.now()})
+                        while controller_lines_no_run:
+                            chunk_line = controller_lines_no_run[:POP_PROCESS_CHUNK]
+                            controller_lines_no_run = controller_lines_no_run[POP_PROCESS_CHUNK:]
+                            pop_sub_process_orderpoints. \
+                                delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
+                                      chunk_line.ids, dict(self.env.context),
+                                      description="Pop job Computing orderpoints")
                     else:
                         for line in controller_lines_no_run:
                             line.job_uuid = str(line.orderpoint_id.id)
