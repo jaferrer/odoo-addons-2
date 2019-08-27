@@ -23,6 +23,7 @@
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
                 <search>
+                    <field name="message"/>
                     <filter name="info" string="Info" domain="[('type', '=', 'INFO')]"/>
                     <filter name="warning" string="Warning" domain="[('type', '=', 'WARNING')]"/>
                     <filter name="error" string="Error" domain="[('type', '=', 'ERROR')]"/>
