@@ -17,11 +17,11 @@
                 <group name="misc" position="before">
                     <button name="open_task_planning" string="Open tasks planning" type="object"/>
                     <button name="open_tasks_timeline" type="object" string="Open tasks timeline"/>
-                    <button name="start_auto_planning" type="object" string="Start auto-planning"
-                            confirm="Are you sure?"/>
-                    <button name="set_tasks_not_tia" type="object" string="Set tasks to 'not taken into account'"
-                            confirm="Are you sure?"/>
                     <button name="reset_scheduling" type="object" string="Reset scheduling"
+                            confirm="Are you sure?" attrs="{'invisible': [('reset_scheduling_available', '=', False)]}"/>
+                    <button name="start_auto_planning" type="object" string="Start auto-planning"
+                            confirm="Are you sure?"  attrs="{'invisible': [('start_auto_planning_available', '=', False)]}" class="oe_highlight"/>
+                    <button name="set_tasks_not_tia" type="object" string="Set tasks to 'not taken into account'"
                             confirm="Are you sure?"/>
                 </group>
             </field>
@@ -106,8 +106,6 @@ self.update_ready_for_execution(cr, uid, context.get('active_ids'), False, conte
                     <separator/>
                     <filter name="taken_into_account" string="Taken into account"
                             domain="[('taken_into_account', '=', True)]"/>
-                    <filter name="filter_without_milestone" string="Without milestones"
-                            domain="[('is_milestone', '=', False)]"/>
                     <separator/>
                     <filter name="next_month" string="Next month"
                             domain="[('expected_start_date','&lt;=', (context_today() + datetime.timedelta(days=31)).strftime('%%Y-%%m-%%d'))]"/>
