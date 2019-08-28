@@ -46,6 +46,23 @@
             </field>
         </record>
 
+        <record id="action_set_to_import" model="ir.actions.server">
+            <field name="name">Set "to import"</field>
+            <field name="model_id" ref="customer_file_importation.model_customer_file_to_import"/>
+            <field name="state">code</field>
+            <field name="code">
+                action = model.browse(context['active_ids']).set_to_import()
+            </field>
+        </record>
+
+        <record id="value_set_to_import" model="ir.values">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">customer.file.to.import</field>
+            <field name="name">Set "to import"</field>
+            <field name="value" eval="'ir.actions.server,' + str(action_set_to_import)"/>
+        </record>
+
         <record model="ir.ui.view" id="customer_file_to_import_form">
             <field name="name">customer_file_to_import_form</field>
             <field name="model">customer.file.to.import</field>
