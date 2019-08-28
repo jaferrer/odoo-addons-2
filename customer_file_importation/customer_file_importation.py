@@ -155,6 +155,11 @@ class CustomerFileToImport(models.Model):
         return True
 
     @api.multi
+    def set_to_import(self):
+        for rec in self:
+            rec.csv_file_ids.unlink()
+
+    @api.multi
     def open_log_lines(self):
         self.ensure_one()
         ctx = dict(self.env.context)
