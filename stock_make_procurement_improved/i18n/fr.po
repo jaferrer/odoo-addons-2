@@ -80,7 +80,7 @@ msgid "Quantity"
 msgstr "Quantité"
 
 #. module: stock_make_procurement_improved
-#: model:ir.ui.view,arch_db:stock_make_procurement_improved.view_make_procurment_wizard_hamac
+#: model:ir.ui.view,arch_db:stock_make_procurement_improved.view_make_procurement_improved_wizard
 msgid "Total quantity"
 msgstr "Quantité totale"
 
@@ -90,9 +90,14 @@ msgid "Unit of Measure"
 msgstr "Unité de mesure"
 
 #. module: stock_make_procurement_improved
-#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_name
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_variant
 msgid "Variant"
 msgstr "Variante"
+
+#. module: stock_make_procurement_improved
+#: model:ir.model.fields,field_description:stock_make_procurement_improved.field_make_procurement_line_name
+msgid "Product"
+msgstr "Article"
 
 #. module: stock_make_procurement_improved
 #: model:ir.model,name:stock_make_procurement_improved.model_make_procurement_line
