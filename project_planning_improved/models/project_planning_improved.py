@@ -160,11 +160,6 @@ class ProjectImprovedProject(models.Model):
                 raise UserError(_(u"Impossible to update objective dates for project %s if reference task or its date "
                                   u"is not defined.") % rec.display_name)
             reference_task.objective_end_date = rec.reference_task_end_date
-            print 'vals_ref_task', {
-                'objective_start_date': reference_task.
-                    schedule_get_date(rec.reference_task_end_date, -reference_task.objective_duration + 1),
-                'objective_end_date': rec.reference_task_end_date,
-            }
             reference_task.write({
                 'objective_start_date': reference_task.
                     schedule_get_date(rec.reference_task_end_date, -reference_task.objective_duration + 1),
@@ -181,7 +176,6 @@ class ProjectImprovedProject(models.Model):
                         search([('id', 'in', previous_task.next_task_ids.ids), ('objective_start_date', '!=', False)])
                     objective_end_date = min([task.objective_start_date for task in next_tasks_with_start_dates] or
                                              [False])
-                    print 'previous', previous_task.name, objective_end_date
                     if objective_end_date:
                         objective_end_date = previous_task.schedule_get_date(objective_end_date, -1)
                     objective_start_date = objective_end_date and previous_task. \
@@ -190,7 +184,6 @@ class ProjectImprovedProject(models.Model):
                         'objective_start_date': objective_start_date,
                         'objective_end_date': objective_end_date,
                     }
-                    print 'vals_previous_task', vals_previous_task
                     previous_task.write(vals_previous_task)
                     planned_tasks |= previous_task
                     new_previous_tasks |= previous_task.previous_task_ids. \
@@ -204,7 +197,6 @@ class ProjectImprovedProject(models.Model):
                         search([('id', 'in', next_task.previous_task_ids.ids), ('objective_end_date', '!=', False)])
                     objective_start_date = max([task.objective_end_date for task in previous_tasks_with_end_dates] or
                                                [False])
-                    print 'next', next_task.name, objective_start_date
                     if objective_start_date:
                         objective_start_date = next_task.schedule_get_date(objective_start_date, 1)
                     objective_end_date = objective_start_date and next_task.\
@@ -213,7 +205,6 @@ class ProjectImprovedProject(models.Model):
                         'objective_start_date': objective_start_date,
                         'objective_end_date': objective_end_date,
                     }
-                    print 'vals_next_task', vals_next_task
                     next_task.write(vals_next_task)
                     planned_tasks |= next_task
                     new_previous_tasks |= next_task.previous_task_ids. \
@@ -233,7 +224,6 @@ class ProjectImprovedProject(models.Model):
                                                             ('objective_end_date', '=', False)])
             for parent_task in parent_tasks:
                 children_tasks = self.env['project.task'].search([('id', 'child_of', parent_task.id)])
-                print 'update_objective_dates_parent_tasks', parent_task.name, children_tasks
                 if children_tasks:
                     min_objective_start_date = min([task.objective_start_date for
                                                     task in children_tasks if task.objective_start_date] or [False])
@@ -511,7 +501,6 @@ class ProjectImprovedTask(models.Model):
     @api.multi
     def propagate_dates(self, start_date_changed=True, end_date_changed=True):
         self.ensure_one()
-        print 'propagate_dates', self.name, start_date_changed, end_date_changed
         if end_date_changed and self.expected_end_date:
             next_tasks_to_reschedule = self.env['project.task']
             for task in self.next_task_ids:
@@ -537,7 +526,6 @@ class ProjectImprovedTask(models.Model):
                 '|', ('next_task_ids', '=', False),
                 ('next_task_ids.parent_task_id', '!=', self.id),
             ], order='expected_end_date desc'):
-                print 'schedule_tasks_before_date', task.name, self.expected_start_date
                 task.schedule_tasks_before_date(self.expected_end_date, same_day=True)
         if start_date_changed:
             for task in self.env['project.task'].search([
@@ -546,7 +534,6 @@ class ProjectImprovedTask(models.Model):
                 '|', ('previous_task_ids', '=', False),
                 ('previous_task_ids.parent_task_id', '!=', self.id),
             ], order='expected_start_date asc'):
-                print 'schedule_tasks_after_date', task.name, self.expected_start_date
                 task.schedule_tasks_after_date(self.expected_start_date, same_day=True)
         if start_date_changed or end_date_changed:
             self.reschedule_parent_dates()
@@ -554,13 +541,11 @@ class ProjectImprovedTask(models.Model):
     @api.multi
     def reschedule_parent_dates(self):
         self.ensure_one()
-        print 'reschedule_parent_dates', self.name, self.parent_task_id.name
         if self.parent_task_id.expected_end_date and \
                 self.parent_task_id.expected_end_date < self.expected_end_date:
             vals = {'expected_end_date': self.expected_end_date}
             if self.expected_end_date < self.parent_task_id.expected_start_date:
                 vals['expected_start_date'] = self.expected_end_date
-            print 'reschedule_parent_dates_1', self.parent_task_id.name, vals
             self.parent_task_id.write(vals)
         if self.parent_task_id.expected_start_date and \
                 self.parent_task_id.expected_start_date > self.expected_start_date:
@@ -568,7 +553,6 @@ class ProjectImprovedTask(models.Model):
             vals = {'expected_start_date': self.expected_start_date}
             if self.expected_start_date > self.parent_task_id.expected_end_date:
                 vals['expected_end_date'] = self.expected_start_date
-            print 'reschedule_parent_dates_2', self.parent_task_id.name, vals
             self.parent_task_id.write(vals)
 
     @api.multi
@@ -589,7 +573,6 @@ class ProjectImprovedTask(models.Model):
                          vals.get('objective_end_date'))
         dates_changed = (vals.get('expected_start_date') or vals.get('expected_end_date')) and True or False
         propagate_dates = not self.env.context.get('do_not_propagate_dates')
-        print 'write', [(rec.id, rec.name) for rec in self], vals, propagate_dates, dates_changed
         propagating_tasks = self.env.context.get('propagating_tasks')
         slide_tasks = self.get_slide_tasks(vals)
         for rec in self:
