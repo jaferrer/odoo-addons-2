@@ -353,7 +353,8 @@ class ProjectImprovedTask(models.Model):
     @api.depends('expected_start_date', 'expected_end_date')
     def _compute_expected_duration(self):
         for rec in self:
-            rec.expected_duration = rec.get_task_number_open_days()
+            rec.expected_duration = rec.expected_start_date and rec.expected_end_date and \
+                rec.get_task_number_open_days() or 0
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
     @api.multi
