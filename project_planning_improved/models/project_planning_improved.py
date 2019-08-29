@@ -42,7 +42,7 @@ class ProjectImprovedProject(models.Model):
     @api.multi
     def _get_buttons_available(self):
         for rec in self:
-            rec.reset_scheduling_available = any([task.task.taken_into_account or
+            rec.reset_scheduling_available = any([task.taken_into_account or
                                                   task.objective_start_date or
                                                   task.objective_end_date or
                                                   task.expected_start_date or
