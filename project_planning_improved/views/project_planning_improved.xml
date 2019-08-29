@@ -15,6 +15,7 @@
                     <field name="reference_task_end_date"/>
                 </xpath>
                 <group name="misc" position="before">
+                    <field name="reset_scheduling_available" invisible="1"/>
                     <button name="open_task_planning" string="Open tasks planning" type="object"/>
                     <button name="open_tasks_timeline" type="object" string="Open tasks timeline"/>
                     <button name="reset_scheduling" type="object" string="Reset scheduling"
