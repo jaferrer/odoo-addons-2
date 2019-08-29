@@ -47,7 +47,7 @@ class ProjectImprovedProject(models.Model):
                                                   task.objective_end_date or
                                                   task.expected_start_date or
                                                   task.expected_end_date for task in rec.task_ids])
-            rec.reset_scheduling_available = not rec.start_auto_planning_available
+            rec.start_auto_planning_available = not rec.start_auto_planning_available
 
     @api.multi
     def check_modification_reference_task_allowed(self):
