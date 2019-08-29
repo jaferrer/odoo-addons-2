@@ -36,6 +36,18 @@ class ProjectImprovedProject(models.Model):
     reference_task_id = fields.Many2one('project.task', string=u"Reference task",
                                         domain=[('children_task_ids', '=', False)])
     reference_task_end_date = fields.Date(string=u"Reference task end date")
+    reset_scheduling_available = fields.Boolean(string=u"Reset scheduling available", compute='_get_buttons_available')
+    start_auto_planning_available = fields.Boolean(string=u"Scheduling available", compute='_get_buttons_available')
+
+    @api.multi
+    def _get_buttons_available(self):
+        for rec in self:
+            rec.reset_scheduling_available = any([task.task.taken_into_account or
+                                                  task.objective_start_date or
+                                                  task.objective_end_date or
+                                                  task.expected_start_date or
+                                                  task.expected_end_date for task in rec.task_ids])
+            rec.reset_scheduling_available = not rec.start_auto_planning_available
 
     @api.multi
     def check_modification_reference_task_allowed(self):
@@ -328,8 +340,6 @@ class ProjectImprovedTask(models.Model):
     notify_users_when_dates_change = fields.Boolean(string=u"Notify users when dates change",
                                                     help=u"An additional list of users is defined in project "
                                                          u"configuration")
-    reset_scheduling_available = fields.Boolean(string=u"Reset scheduling available", compute='_get_buttons_available')
-    start_auto_planning_available = fields.Boolean(string=u"Scheduling available", compute='_get_buttons_available')
 
     @api.constrains('expected_start_date', 'expected_end_date')
     def constraint_dates_consistency(self):
@@ -385,17 +395,6 @@ class ProjectImprovedTask(models.Model):
     def _set_expected_end_date_display(self):
         for rec in self:
             rec.expected_end_date = rec.expected_end_date_display and rec.expected_end_date_display[:10] or False
-
-    @api.multi
-    def _get_buttons_available(self):
-        for rec in self:
-            rec.reset_scheduling_available = any([task.task.taken_into_account or
-                                                  task.objective_start_date or
-                                                  task.objective_end_date or
-                                                  task.expected_start_date or
-                                                  task.expected_end_date for task in rec.task_ids])
-            rec.reset_scheduling_available = not rec.start_auto_planning_available
-
 
     @api.onchange('expected_start_date', 'expected_end_date')
     @api.multi
