@@ -127,7 +127,7 @@ msgstr "Relances"
 #. module: account_invoice_dunning
 #: model:ir.model.fields,field_description:account_invoice_dunning.field_res_config_settings_sending_validity_duration
 msgid "Duration of validity of the sendings"
-msgstr "Durée de validité des envois"
+msgstr "Période des relances"
 
 #. module: account_invoice_dunning
 #: model:ir.model,name:account_invoice_dunning.model_mail_compose_message
@@ -256,7 +256,7 @@ msgstr "Envoyer un message"
 #. module: account_invoice_dunning
 #: model:ir.model.fields,field_description:account_invoice_dunning.field_res_company_sending_validity_duration
 msgid "Sending Validity Duration"
-msgstr "Sending Validity Duration"
+msgstr "Période des relances"
 
 #. module: account_invoice_dunning
 #: selection:account.invoice.dunning,state:0
