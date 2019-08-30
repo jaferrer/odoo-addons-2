@@ -263,13 +263,17 @@ class PurchaseOrderPlanningImproved(models.Model):
   min(pol.limit_order_date) AS new_limit_order_date
 FROM purchase_order po
   INNER JOIN purchase_order_line pol ON pol.order_id = po.id AND pol.limit_order_date IS NOT NULL
+WHERE po.state in ('draft', 'sent', 'bid', 'confirmed')
 GROUP BY po.id
-ORDER BY po.id""")
+ORDER BY po.id
+""")
         result = self.env.cr.dictfetchall()
         order_with_limit_dates_ids = []
         for item in result:
             order = self.search([('id', '=', item['order_id'])])
-            _, calendar = order.company_id.partner_id.get_resource_and_calendar_for_supplier()
+            calendar = order.company_id.calendar_id
+            if not calendar:
+                _, calendar = order.company_id.partner_id.get_resource_and_calendar_for_supplier()
             jours_fermeture = calendar and calendar.leave_ids or []
             # If Sirail is closed at the 'limit order date', choose the soonest date when Sirail is open.
             for jour in jours_fermeture:
@@ -280,7 +284,6 @@ ORDER BY po.id""")
             if order.limit_order_date != item['new_limit_order_date']:
                 order.limit_order_date = item['new_limit_order_date']
             order_with_limit_dates_ids += [item['order_id']]
-        self.search([('id', 'not in', order_with_limit_dates_ids)]).write({'limit_order_date': False})
 
     @api.multi
     def compute_coverage_state(self):
