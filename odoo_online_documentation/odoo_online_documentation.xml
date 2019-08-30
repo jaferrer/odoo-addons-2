@@ -2,16 +2,82 @@
 <openerp>
     <data>
 
+        <record id="odoo_online_document_type_tree" model="ir.ui.view">
+            <field name="name">odoo_online_document_type_tree</field>
+            <field name="model">odoo.online.document.type</field>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <!--Menu "Type de document" dans knowledge-->
+        <record model="ir.actions.act_window" id="act_window_odoo_online_document_type_knowledge">
+            <field name="name">Document type</field>
+            <field name="res_model">odoo.online.document.type</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <menuitem action="act_window_odoo_online_document_type_knowledge" id="odoo_online_document_type_menu_knowledge"
+        parent="knowledge.menu_document_configuration" sequence="10"/>
+
+        <!--document.menu_document_management_configuration-->
         <record model="ir.ui.view" id="odoo_online_documentation_tree">
             <field name="name">odoo_online_documentation_tree</field>
             <field name="model">odoo.online.documentation</field>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <tree create="false" edit="false" delete="false">
+                <tree import="False">
                     <field name="name"/>
+                    <field name="doc_type_id"/>
+                    <field name="nature"/>
                     <field name="path"/>
                     <button name="open_documentation" type="object" string="Open Documentation"/>
                 </tree>
+            </field>
+        </record>
+
+        <!--From view to create attached documents-->
+        <record id="odoo_online_documentation_form" model="ir.ui.view">
+            <field name="name">odoo_online_documentation_form</field>
+            <field name="model">odoo.online.documentation</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="nature"/>
+                                <field name="doc_type_id"/>
+                                <field name="file" attrs="{'invisible': [('nature', '!=', 'PJ')]}"/>
+                                <field name="path" attrs="{'invisible': [('nature', '!=', 'sharepoint')]}"/>
+                            </group>
+                            <group>
+                                <field name="seen_in_sales"/>
+                                <field name="seen_in_purchases"/>
+                                <field name="seen_in_prod"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="odoo_online_documentation_search">
+            <field name="name">odoo_online_documentation_search</field>
+            <field name="model">odoo.online.documentation</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search string="Online documentation">
+                    <field name="name"/>
+                    <field name="doc_type_id"/>
+                    <field name="nature"/>
+                    <field name="path"/>
+                </search>
             </field>
         </record>
 
@@ -19,10 +85,9 @@
             <field name="name">Online Documentation</field>
             <field name="res_model">odoo.online.documentation</field>
             <field name="view_type">form</field>
-            <field name="view_mode">tree</field>
+            <field name="view_mode">tree,form</field>
             <field name="domain">[]</field>
             <field name="context">{}</field>
-            <field name="help"></field>
         </record>
 
         <menuitem id="menu_odoo_online_documentation" name="Online Documentation"

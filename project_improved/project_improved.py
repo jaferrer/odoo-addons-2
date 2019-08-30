@@ -21,7 +21,7 @@ from openerp import fields, models, api, _
 
 
 class ProjectTask(models.Model):
-    _inherit = "project.task"
+    _inherit = 'project.task'
 
     issue_ids = fields.One2many('project.issue', 'task_id', string=u"Issues")
     tag_ids = fields.Many2many('project.tags',
@@ -34,6 +34,10 @@ class ProjectTask(models.Model):
             for rec in self:
                 rec.issue_ids.write({'stage_id': vals['stage_id']})
         return super(ProjectTask, self).write(vals)
+
+    @api.multi
+    def name_get(self):
+        return [(item['id'], item['name']) for item in self.read(['name'], load='no_name')]
 
 
 class ProjectIssue(models.Model):
