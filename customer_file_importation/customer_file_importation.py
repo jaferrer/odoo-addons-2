@@ -176,6 +176,11 @@ class CustomerFileToImport(models.Model):
             'context': ctx,
         }
 
+    @api.model
+    def create(self, vals):
+        _logger.info(u"Creating file %s" % vals.get('name', ''))
+        return super(CustomerFileToImport, self).create(vals)
+
 
 class CustomerImportationLogLine(models.Model):
     _name = 'customer.importation.log.line'
