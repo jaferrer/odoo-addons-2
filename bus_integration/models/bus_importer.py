@@ -94,24 +94,22 @@ class BusSynchronizationImporter(models.AbstractModel):
     def check_needed_dependencies(self, message, dependencies):
         demand = {}
         for model in dependencies.keys():
-            for record in dependencies.get(model).values():
-                needed = self.check_needed_dependency(record, model)
+            for record_id in dependencies[model].keys():
+                needed = self.check_needed_dependency(dependencies[model][record_id], model)
                 if needed:
                     needed_model = needed.get('model', '')
                     if needed_model not in demand:
                         demand[needed_model] = {}
-                    str_id = str(record.get('id'))
-                    demand[needed_model][str_id] = {
-                        'external_key': needed.get('external_key'),
-                        'id': str_id,
-                    }
+                    demand[needed_model][record_id] = {'external_key': needed.get('external_key')}
                     log = message.add_log(u"Record needed", 'info')
-                    log.write({'sender_record_id': str_id,
-                               'model': needed_model
-                               })
+                    log.write({'sender_record_id': record_id, 'model': needed_model})
         return demand
 
     def check_needed_dependency(self, record, model):
+        # no dependance required if transform_rule is applied by the bus. bus_recipient_id is the local id
+        if "transform_rule" in record:
+            return {}
+
         external_key = record.get('external_key', False)
         _, odoo_record = self.env['bus.binder'].get_record_by_external_key(external_key, model)
         if not odoo_record:

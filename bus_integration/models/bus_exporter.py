@@ -163,6 +163,7 @@ class BusSynchronizationExporter(models.AbstractModel):
                 elif field.type_field in self.authorize_field_type:
                     message_dict = self.fill_field(message_dict, record, field)
             message_dict['body']['root'][record._name][record_id]['write_date'] = record.write_date
+            message_dict['body']['root'][record._name][record_id]['display_name'] = record.display_name or ""
         return message_dict
 
     @api.model
@@ -194,11 +195,11 @@ class BusSynchronizationExporter(models.AbstractModel):
             return message_dict
         message_dict['body']['root'][record._name][record_id][field.map_name] = {
             'id': record[field.field_name].id,
-            'model': field.relation_mapping_id.model_name,
+            'model': field.field_id.relation,
             'type_field': 'many2one'
         }
         sub_record = record[field.field_name]
-        message_dict = self.fill_dependancy(message_dict, field.relation_mapping_id.model_name, sub_record)
+        message_dict = self.fill_dependancy(message_dict, field, sub_record)
         return message_dict
 
     @api.model
@@ -206,23 +207,22 @@ class BusSynchronizationExporter(models.AbstractModel):
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = {
             'ids': record[field.field_name].ids,
-            'model': field.relation_mapping_id.model_name,
+            'model': field.field_id.relation,
             'type_field': 'many2many'
         }
         sub_records = record[field.field_name]
-        message_dict = self.fill_dependancy(message_dict, field.relation_mapping_id.model_name, sub_records)
+        message_dict = self.fill_dependancy(message_dict, field, sub_records)
         return message_dict
 
     @api.model
-    def fill_dependancy(self, message_dict, model_name, records):
+    def fill_dependancy(self, message_dict, field, records):
+        model_name = field.field_id.relation
         if not message_dict['body']['dependency'].get(model_name):
             message_dict['body']['dependency'][model_name] = {}
         for sub_record in records:
             sub_record_id = str(sub_record.id)
             if not message_dict['body']['dependency'][model_name].get(sub_record_id):
-                message_dict['body']['dependency'][model_name][sub_record_id] = {
-                    'id': sub_record.id
-                }
+                message_dict['body']['dependency'][model_name][sub_record_id] = {}
         return message_dict
 
     @api.model
