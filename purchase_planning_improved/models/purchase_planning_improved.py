@@ -269,7 +269,9 @@ ORDER BY po.id""")
         order_with_limit_dates_ids = []
         for item in result:
             order = self.search([('id', '=', item['order_id'])])
-            _, calendar = order.company_id.partner_id.get_resource_and_calendar_for_supplier()
+            calendar = order.company_id.calendar_id
+            if not calendar:
+                _, calendar = order.company_id.partner_id.get_resource_and_calendar_for_supplier()
             jours_fermeture = calendar and calendar.leave_ids or []
             # If Sirail is closed at the 'limit order date', choose the soonest date when Sirail is open.
             for jour in jours_fermeture:
