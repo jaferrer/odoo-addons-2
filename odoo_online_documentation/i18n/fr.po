@@ -18,22 +18,76 @@ msgstr ""
 "X-Generator: Poedit 1.7.1\n"
 
 #. module: odoo_online_documentation
+#: model:ir.ui.view,name:odoo_online_documentation.odoo_online_documentation_search
 #: model:ir.actions.act_window,name:odoo_online_documentation.act_window_odoo_online_documentation
 #: model:ir.ui.menu,name:odoo_online_documentation.menu_odoo_online_documentation
 msgid "Online Documentation"
 msgstr "Documentation en ligne"
 
 #. module: odoo_online_documentation
-#: field:odoo.online.documentation,name:0
+#: model:ir.model.fields,field_description:odoo_online_documentation.field_odoo_online_documentation_name
 msgid "Name"
 msgstr "Nom"
 
 #. module: odoo_online_documentation
-#: field:odoo.online.documentation,path:0
+#: model:ir.model.fields,field_description:odoo_online_documentation.field_odoo_online_documentation_path
 msgid "Path"
-msgstr "Emplacement"
+msgstr "Chemin"
 
-#. module: odoo_scripts_console
-#: view:odoo.script.watcher:odoo_scripts_console.odoo_script_watcher_form
+#. module: odoo_online_documentation
+#: model:ir.actions.act_window,name:odoo_online_documentation.act_window_odoo_online_document_type_knowledge
+#: model:ir.ui.menu,name:odoo_online_documentation.odoo_online_document_type_menu_knowledge
+#: model:ir.model.fields,field_description:odoo_online_documentation.field_odoo_online_documentation_doc_type_id
+#: model:ir.model.fields,field_description:odoo_online_documentation.field_odoo_online_documentation_type_name
+msgid "Document type"
+msgstr "Type de document"
+
+#. module: odoo_online_documentation
+#: selection:odoo.online.documentation,nature:0
+msgid "Attached document"
+msgstr "Pièce jointe"
+
+#. module: odoo_online_documentation
+#: model:ir.model.fields,field_description:odoo_online_documentation.field_odoo_online_documentation_nature
+msgid "Nature"
+msgstr "Nature"
+
+#. module: odoo_online_documentation
+#: model:ir.model.fields,field_description:odoo_online_documentation.field_odoo_online_documentation_file
+msgid "File"
+msgstr "Fichier"
+
+#. module: odoo_online_documentation
+#: model:ir.model.fields,field_description:odoo_online_documentation.field_odoo_online_documentation_seen_in_sales
+msgid "Must be seen in sales"
+msgstr "Doit être vu dans les ventes"
+
+#. module: odoo_online_documentation
+#: model:ir.model.fields,field_description:odoo_online_documentation.field_odoo_online_documentation_seen_in_purchases
+msgid "Must be seen in purchases"
+msgstr "Doit être vu dans les achats"
+
+#. module: odoo_online_documentation
+#: model:ir.model.fields,field_description:odoo_online_documentation.field_odoo_online_documentation_seen_in_prod
+msgid "Must be seen in manufacturing"
+msgstr "Doit être vu en production"
+
+#. module: odoo_online_documentation
+#: view:odoo.online.documentation:odoo_online_documentation_tree.odoo_online_documentation_tree
 msgid "Open Documentation"
 msgstr "Ouvrir la documentation"
+
+#. module: odoo_online_documentation
+#: sql_constraint:odoo.online.document.type.name:0
+msgid "The type must be unique."
+msgstr "Le type doit être unique."
+
+#. module: odoo_online_documentation
+#: code:addons/odoo_online_documentation/odoo_online_documentation.py:0
+msgid "Error!"
+msgstr "Erreur!"
+
+#. module: odoo_online_documentation
+#: code:addons/odoo_online_documentation/odoo_online_documentation.py:0
+msgid "No file related to this documentation."
+msgstr "Pas de fichier lié à cette documentation."
