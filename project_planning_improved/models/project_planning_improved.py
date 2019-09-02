@@ -321,11 +321,9 @@ class ProjectImprovedTask(models.Model):
     expected_start_date = fields.Date(string=u"Expected start date", index=True)
     expected_end_date = fields.Date(string=u"Expected end date", index=True)
     expected_start_date_display = fields.Datetime(string=u"Expected start date (display)",
-                                                  compute='_compute_expected_start_date_display', store=True,
-                                                  inverse='_set_expected_start_date_display')
+                                                  compute='_compute_expected_start_date_display', store=True)
     expected_end_date_display = fields.Datetime(string=u"Expected end date (display)",
-                                                compute='_compute_expected_end_date_display', store=True,
-                                                inverse='_set_expected_end_date_display')
+                                                compute='_compute_expected_end_date_display', store=True)
     expected_duration = fields.Float(string=u"Expected duration (days)", compute='_compute_expected_duration',
                                      store=True)
     allocated_duration = fields.Float(string=u"Allocated duration (days)")
@@ -386,16 +384,6 @@ class ProjectImprovedTask(models.Model):
             end_date_string = ' 18:00:00'
             rec.expected_end_date_display = rec.expected_end_date and (rec.expected_end_date +
                                                                        end_date_string) or False
-
-    @api.multi
-    def _set_expected_start_date_display(self):
-        for rec in self:
-            rec.expected_start_date = rec.expected_start_date_display and rec.expected_start_date_display[:10] or False
-
-    @api.multi
-    def _set_expected_end_date_display(self):
-        for rec in self:
-            rec.expected_end_date = rec.expected_end_date_display and rec.expected_end_date_display[:10] or False
 
     @api.onchange('expected_start_date', 'expected_end_date')
     @api.multi
@@ -571,6 +559,14 @@ class ProjectImprovedTask(models.Model):
         if 'objective_end_date' in vals:
             _logger.info(u"Scheduling task(s) %s for objective end date %s", u",".join([rec.name for rec in self]),
                          vals.get('objective_end_date'))
+        expected_start_date_display = vals.get('expected_start_date_display')
+        if expected_start_date_display:
+            vals.pop('expected_start_date_display')
+            vals['expected_start_date'] = expected_start_date_display[:10]
+        expected_end_date_display = vals.get('expected_end_date_display')
+        if expected_end_date_display:
+            vals.pop('expected_end_date_display')
+            vals['expected_end_date'] = expected_end_date_display[:10]
         dates_changed = (vals.get('expected_start_date') or vals.get('expected_end_date')) and True or False
         propagate_dates = not self.env.context.get('do_not_propagate_dates')
         propagating_tasks = self.env.context.get('propagating_tasks')
@@ -599,6 +595,7 @@ class ProjectImprovedTask(models.Model):
                 msg = msg % tuple(args)
                 _logger.info(msg)
             super(ProjectImprovedTask, rec).write(vals_copy)
+            self.env.invalidate_all()
             if rec.expected_start_date and rec.expected_end_date and propagate_dates and dates_changed:
                 rec.with_context(propagating_tasks=True).propagate_dates(start_date_changed, end_date_changed)
         self.notify_users_if_needed(vals)
