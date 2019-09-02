@@ -47,5 +47,5 @@ msgstr "Données synchronisées"
 #. module: bus_integration
 #: code:addons/bus_integration/connector/override_unlink.py:42
 #, python-format
-msgid "Impossible to delete record on model %s, use for bus synchronisation"
-msgstr "Impossible de supprimer un enregistrement sur le modèle %s, utilisé par le bus"
+msgid "Impossible to delete record on model %s, use for bus synchronisation, please deactivate the record in the sending instance"
+msgstr "Impossible de supprimer un enregistrement sur le modèle %s, utilisé par le bus, merci de désactivé l'enregistrement dans l'instance émettrice"
