@@ -29,10 +29,10 @@ class TestPlanningImprovedByHours(common.TransactionCase):
         self.day_unit = self.browse_ref('product.product_uom_day')
         self.company.project_time_mode_id = self.half_day_unit
         self.test_project = self.browse_ref('project_planning_improved.project_planning_improved_test_project')
-        self.parent_task_0 = self.browse_ref('project_planning_improved.parent_task_0')
         self.parent_task_1 = self.browse_ref('project_planning_improved.parent_task_1')
         self.parent_task_2 = self.browse_ref('project_planning_improved.parent_task_2')
         self.parent_task_3 = self.browse_ref('project_planning_improved.parent_task_3')
+        self.parent_task_4 = self.browse_ref('project_planning_improved.parent_task_4')
         self.project_task_1 = self.browse_ref('project_planning_improved.project_task_1')
         self.project_task_2 = self.browse_ref('project_planning_improved.project_task_2')
         self.project_task_3 = self.browse_ref('project_planning_improved.project_task_3')
@@ -162,15 +162,15 @@ class TestPlanningImprovedByHours(common.TransactionCase):
             self.assertEqual(task.objective_end_date, task.expected_end_date)
 
         # Checking TIA update
-        self.parent_task_0.expected_start_date = '2017-08-15 18:00:00'
-        self.assertTrue(self.parent_task_0.taken_into_account)
-        self.parent_task_3.expected_end_date = '2017-09-25 18:00:00'
-        self.assertTrue(self.parent_task_3.taken_into_account)
+        self.parent_task_1.expected_start_date = '2017-08-15 18:00:00'
+        self.assertTrue(self.parent_task_1.taken_into_account)
+        self.parent_task_4.expected_end_date = '2017-09-25 18:00:00'
+        self.assertTrue(self.parent_task_4.taken_into_account)
 
         # New auto_planning should not update these dates
         self.test_project.start_auto_planning()
-        self.assertEqual(self.parent_task_0.expected_start_date, '2017-08-15 18:00:00')
-        self.assertEqual(self.parent_task_3.expected_end_date, '2017-09-25 18:00:00')
+        self.assertEqual(self.parent_task_1.expected_start_date, '2017-08-15 18:00:00')
+        self.assertEqual(self.parent_task_4.expected_end_date, '2017-09-25 18:00:00')
 
         # Checking that expected_start_date is always before expected_end_date
         self.assertEqual(self.project_task_11.expected_end_date[:10], '2017-09-18')
@@ -187,9 +187,9 @@ class TestPlanningImprovedByHours(common.TransactionCase):
         self.project_task_2.taken_into_account = True
         self.project_task_4.taken_into_account = True
         with self.assertRaises(UserError):
-            self.parent_task_1.expected_start_date = '2017-09-23 08:00:00'
+            self.parent_task_2.expected_start_date = '2017-09-23 08:00:00'
         with self.assertRaises(UserError):
-            self.parent_task_1.expected_end_date = '2017-08-31 18:00:00'
+            self.parent_task_2.expected_end_date = '2017-08-31 18:00:00'
 
     def test_20_auto_planning_by_hours(self):
         """Testing the automatic planification of tasks by days : it still should work."""

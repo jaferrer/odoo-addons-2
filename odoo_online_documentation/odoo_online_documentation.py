@@ -17,19 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import base64
-import os
-import subprocess
-from urllib import quote
-
-from openerp import modules, models, fields, api
+from openerp import models, fields, api, exceptions, _
 
 
 class OdooOnlineDocumentation(models.Model):
     _name = 'odoo.online.documentation'
 
-    name = fields.Char(string=u"Name", required=True)
-    path = fields.Char(string=u"Path", required=True)
+    name = fields.Char(string=u"Document's name", required=True)
+    path = fields.Char(string=u"Path", readonly=True)
+    file = fields.Binary(string=u"File", attachment=True)
+    doc_type_id = fields.Many2one('odoo.online.document.type', string=u"Document type")
+    nature = fields.Selection([('PJ', _(u"Attached document"))], string=u"Nature", default='PJ', readonly=True)
+    seen_in_sales = fields.Boolean(string=u"Must be seen in sales", default=False)
+    seen_in_purchases = fields.Boolean(string=u"Must be seen in purchases", default=False)
+    seen_in_prod = fields.Boolean(string=u"Must be seen in manufacturing", default=False)
+    product_product_id = fields.Many2one('product.product', string=u"Related product")
+
+    _sql_constraints = [('path_unique_per_file', 'unique(path)',
+                         _(u"You cannot have twice the same file."))]
 
     @api.multi
     def remove_attachments(self):
@@ -52,25 +57,28 @@ class OdooOnlineDocumentation(models.Model):
 
     @api.multi
     def open_documentation(self):
+        """
+        Function to open an attached document, can call other functions depending on the 'nature' of the document.
+        """
+
         for rec in self:
-            split_path = rec.path.split(os.sep)
-            module_name = len(split_path) > 1 and split_path[0] or ''
-            file_name_total = len(split_path) > 1 and split_path[-1] or ''
-            file_name_split = file_name_total and file_name_total.split(os.extsep) or False
-            file_name = len(file_name_split) > 1 and file_name_split[0] or ''
-            module_path = modules.get_module_path(module_name)
-            path_from_module = len(split_path) > 1 and os.sep.join(split_path[1:]) or ''
-            total_path = os.sep.join([module_path, path_from_module])
-            cmd = subprocess.Popen("asciidoctor-pdf -D /tmp " + total_path,
-                                   stderr=subprocess.STDOUT, shell=True, stdout=subprocess.PIPE)
-            cmd.wait()
-            with open('/tmp/' + file_name + '.pdf', 'rb') as file:
-                content = file.read()
+            # L'ouverture de base se fait à partir d'un fichier en pièce jointe
+            if rec.nature == u"PJ":
                 rec.remove_attachments()
-                attachment = rec.create_attachment(base64.encodestring(content), rec.name + '.pdf')
-                url = "/web/content/%s/%s/datas" % (quote('ir.attachment'), attachment.id)
+                attachment = rec.create_attachment(rec.file, rec.name)
+                if not attachment:
+                    raise exceptions.except_orm(_(u"Error!"), _(u"No file related to this documentation."))
+                url = "/web/binary/saveas?model=ir.attachment&field=datas&id=%s&filename_field=name" % attachment.id
                 return {
                     "type": "ir.actions.act_url",
                     "url": url,
                     "target": "self"
                 }
+
+
+class OdooOnlineDocumentType(models.Model):
+    _name = 'odoo.online.document.type'
+
+    name = fields.Char(string=u"Document type")
+
+    _sql_constraints = [('type_unique', 'UNIQUE(name)', _(u"The type must be unique."))]
