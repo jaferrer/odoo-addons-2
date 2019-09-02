@@ -587,6 +587,17 @@ class ProjectImprovedTask(models.Model):
                 vals_copy['expected_start_date'] != rec.expected_start_date and True or False
             end_date_changed = vals.get('expected_end_date') and \
                 vals_copy['expected_end_date'] != rec.expected_end_date and True or False
+            if start_date_changed or end_date_changed:
+                msg = u"Task %s rescheduled: "
+                args = [rec.name]
+                if start_date_changed:
+                    msg += u"start date %s"
+                    args += [vals_copy.get('expected_start_date', rec.expected_start_date)]
+                if end_date_changed:
+                    msg += ((start_date_changed and u", " or u"") +  u"end date %s")
+                    args += [vals_copy.get('expected_end_date', rec.expected_end_date)]
+                msg = msg % tuple(args)
+                _logger.info(msg)
             super(ProjectImprovedTask, rec).write(vals_copy)
             if rec.expected_start_date and rec.expected_end_date and propagate_dates and dates_changed:
                 rec.with_context(propagating_tasks=True).propagate_dates(start_date_changed, end_date_changed)
