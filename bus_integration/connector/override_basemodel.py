@@ -40,7 +40,8 @@ def unlink_bus(self):
         object_mapping = self.env['bus.object.mapping'].get_mapping(self._name)
         if object_mapping:
             raise exceptions.except_orm(u"Bus Error", u"Impossible to delete record on model %s, use for bus "
-                                                      u"synchronisation" % self._name)
+                                                      u"synchronisation, please deactivate the record in the sending "
+                                                      u"instance" % self._name)
     res_unlink = UNLINK_ORIGINAL(self)
     return res_unlink
 
