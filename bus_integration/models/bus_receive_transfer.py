@@ -84,8 +84,9 @@ class BusReceiveTransfer(models.Model):
             vals_value = vals.get(val)
             if isinstance(record_value, models.Model):
                 if len(record_value) > 1:
-                    record_value = record_value.ids.sort()
-                    vals_value = vals_value.sort()
+                    record_value = record_value.ids
+                    record_value.sort()
+                    vals_value.sort()
                 else:
                     record_value = record_value.id
             if val in record and vals_value != record_value:
