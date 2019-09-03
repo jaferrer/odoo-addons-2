@@ -176,6 +176,17 @@ class CustomerFileToImport(models.Model):
             'context': ctx,
         }
 
+    @api.model
+    def create(self, vals):
+        _logger.info(u"Creating file %s", vals.get('name', ''))
+        return super(CustomerFileToImport, self).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        for rec in self:
+            _logger.info(u"Editing file %s", vals.get('name', rec.name))
+        return super(CustomerFileToImport, self).write(vals)
+
 
 class CustomerImportationLogLine(models.Model):
     _name = 'customer.importation.log.line'
@@ -364,6 +375,17 @@ class CustomerFileImportationQueueJob(models.Model):
 
     imported_file_id = fields.Many2one('customer.imported.csv.file', string=u"Job généré pour le fichier",
                                        readonly=True)
+
+
+class CustomerFileImportationIrAttachment(models.Model):
+    _inherit = 'ir.attachment'
+
+    res_model = fields.Char(index=True)
+    res_field = fields.Char(index=True)
+    res_name = fields.Char(index=True)
+    datas_fname = fields.Char(index=True)
+    res_id = fields.Integer(index=True)
+    company_id = fields.Many2one('res.company', index=True)
 
 
 class BaseImportImport(models.TransientModel):
