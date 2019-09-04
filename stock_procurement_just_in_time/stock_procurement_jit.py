@@ -218,7 +218,8 @@ class ProcurementOrderQuantity(models.Model):
     @api.multi
     def check_can_be_canceled(self, raise_error=True):
         for rec in self:
-            if rec.protected_against_scheduler and self.env.context.get('is_scheduler'):
+            if rec.protected_against_scheduler and self.env.context.get('is_scheduler') and not \
+                    self.env.context.get('propagation_cancel'):
                 if raise_error:
                     raise ForbiddenCancelProtectedProcurement(rec.id)
                 else:
@@ -259,7 +260,8 @@ class ProcurementOrderQuantity(models.Model):
             # Keep proc with new qty if some moves are already done
             procurement.remove_done_moves()
         return super(ProcurementOrderQuantity,
-                     self.sudo().with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
+                     self.sudo().with_context(ignore_move_ids=ignore_move_ids, propagation_cancel=True)).\
+            propagate_cancel(procurement)
 
     @api.model
     def remove_done_moves(self):
