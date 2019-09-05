@@ -58,6 +58,7 @@ class BusConfigurationExport(models.Model):
     bus_message_ids = fields.One2many('bus.message', 'batch_id', string=u"Messages")
     cron_sync_all = fields.Many2one('ir.cron', compute="_compute_cron")
     cron_sync_diff = fields.Many2one('ir.cron', compute="_compute_cron")
+    active = fields.Boolean(u"Active", related='recipient_id.active', store=True)
 
     @api.multi
     @api.depends('model')
