@@ -583,13 +583,11 @@ ORDER BY pt.expected_end_date DESC""", (tuple(children_task_ids), self.expected_
         if expected_end_date_display:
             vals.pop('expected_end_date_display')
             vals['expected_end_date'] = expected_end_date_display[:10]
-        dates_changed = (vals.get('expected_start_date') or vals.get('expected_end_date')) and True or False
         propagate_dates = not self.env.context.get('do_not_propagate_dates')
         propagating_tasks = self.env.context.get('propagating_tasks')
         slide_tasks = self.get_slide_tasks(vals)
         for rec in self:
-            if dates_changed and 'taken_into_account' not in vals and not self.env.context.get('force_update_tia'):
-                self.check_not_tia()
+
             vals_copy = vals.copy()
             if slide_tasks[rec] and not propagating_tasks:
                 nb_working_days_task = rec.get_task_number_open_days()
@@ -618,6 +616,10 @@ ORDER BY pt.expected_end_date DESC""", (tuple(children_task_ids), self.expected_
                 start_date = vals_copy.get('expected_start_date', rec.expected_start_date)
                 end_date = vals_copy.get('expected_end_date', rec.expected_end_date)
                 vals_copy['expected_duration'] = rec.get_task_number_open_days(start_date, end_date)
+            dates_changed = (vals_copy.get('expected_start_date') or
+                             vals_copy.get('expected_end_date')) and True or False
+            if dates_changed and 'taken_into_account' not in vals and not self.env.context.get('force_update_tia'):
+                self.check_not_tia()
             super(ProjectImprovedTask, rec).write(vals_copy)
             self.env.invalidate_all()
             if rec.expected_start_date and rec.expected_end_date and propagate_dates and dates_changed:
