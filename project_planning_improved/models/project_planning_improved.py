@@ -335,6 +335,35 @@ class ProjectImprovedTask(models.Model):
     notify_users_when_dates_change = fields.Boolean(string=u"Notify users when dates change",
                                                     help=u"An additional list of users is defined in project "
                                                          u"configuration")
+    
+    @api.multi
+    def get_children_task_ids(self, include_self=True):
+        self.ensure_one()
+        self.env.cr.execute("""WITH RECURSIVE top_parent(task_id, top_parent_task_id) AS (
+  SELECT
+    pt.id AS task_id,
+    pt.id AS top_parent_task_id
+  FROM
+    project_task pt
+      LEFT JOIN project_task ptp ON pt.parent_task_id = ptp.id
+  WHERE
+      pt.project_id = %s
+  UNION
+  SELECT
+    pt.id AS task_id,
+    tp.top_parent_task_id
+  FROM
+    project_task pt, top_parent tp
+  WHERE
+      pt.parent_task_id = tp.task_id
+)
+
+SELECT *
+FROM top_parent where top_parent_task_id = %s""", (self.project_id.id, self.id,))
+        result = [item[0] for item in self.env.cr.fetchall()]
+        if not include_self:
+            result = [item for item in result if item != self.id]
+        return result
 
     @api.constrains('expected_start_date', 'expected_end_date')
     def constraint_dates_consistency(self):
@@ -481,22 +510,32 @@ class ProjectImprovedTask(models.Model):
                 if self.expected_start_date <= task.expected_end_date:
                     previous_tasks_to_reschedule |= task
             previous_tasks_to_reschedule.schedule_tasks_before_date(self.expected_start_date)
-        if end_date_changed:
-            for task in self.env['project.task'].search([
-                ('id', 'child_of', self.children_task_ids.ids),
-                ('expected_end_date', '>', self.expected_end_date),
-                '|', ('next_task_ids', '=', False),
-                ('next_task_ids.parent_task_id', '!=', self.id),
-            ], order='expected_end_date desc'):
-                task.schedule_tasks_before_date(self.expected_end_date, same_day=True)
-        if start_date_changed:
-            for task in self.env['project.task'].search([
-                ('id', 'child_of', self.children_task_ids.ids),
-                ('expected_start_date', '<', self.expected_start_date),
-                '|', ('previous_task_ids', '=', False),
-                ('previous_task_ids.parent_task_id', '!=', self.id),
-            ], order='expected_start_date asc'):
-                task.schedule_tasks_after_date(self.expected_start_date, same_day=True)
+        if end_date_changed or start_date_changed:
+            children_task_ids = self.get_children_task_ids(include_self=False)
+            if children_task_ids and end_date_changed:
+                self.env.cr.execute("""SELECT pt.id
+FROM project_task pt
+       LEFT JOIN project_task_order_rel rel ON rel.previous_task_id = pt.id
+       LEFT JOIN project_task next_task ON next_task.id = rel.next_task_id
+WHERE pt.id IN %s
+  AND pt.expected_end_date > %s
+  AND (next_task.id IS NULL OR next_task.parent_task_id != %s)
+ORDER BY pt.expected_end_date DESC""", (tuple(children_task_ids), self.expected_end_date, self.id,))
+                task_ids = [item[0] for item in self.env.cr.fetchall()]
+                for task_id in task_ids:
+                    self.browse(task_id).schedule_tasks_before_date(self.expected_end_date, same_day=True)
+            if children_task_ids and start_date_changed:
+                self.env.cr.execute("""SELECT pt.id
+    FROM project_task pt
+           LEFT JOIN project_task_order_rel rel ON rel.next_task_id = pt.id
+           LEFT JOIN project_task previous_task ON previous_task.id = rel.previous_task_id
+    WHERE pt.id IN %s
+      AND pt.expected_start_date < %s
+      AND (previous_task.id IS NULL OR previous_task.parent_task_id != %s)
+    ORDER BY pt.expected_start_date ASC""", (tuple(children_task_ids), self.expected_start_date, self.id,))
+                task_ids = [item[0] for item in self.env.cr.fetchall()]
+                for task_id in task_ids:
+                    self.browse(task_id).schedule_tasks_after_date(self.expected_start_date, same_day=True)
         if start_date_changed or end_date_changed:
             self.reschedule_parent_dates()
 
@@ -512,10 +551,13 @@ class ProjectImprovedTask(models.Model):
         if self.parent_task_id.expected_start_date and \
                 self.parent_task_id.expected_start_date > self.expected_start_date:
             self.parent_task_id.expected_start_date = self.expected_start_date
-            vals = {'expected_start_date': self.expected_start_date}
+            vals = {}
+            if self.parent_task_id.expected_start_date != self.expected_start_date:
+                vals = {'expected_start_date': self.expected_start_date}
             if self.expected_start_date > self.parent_task_id.expected_end_date:
                 vals['expected_end_date'] = self.expected_start_date
-            self.parent_task_id.write(vals)
+            if vals:
+                self.parent_task_id.write(vals)
 
     @api.multi
     def check_not_tia(self):
