@@ -490,9 +490,11 @@ FROM top_parent where top_parent_task_id = %s""", (self.project_id.id, self.id,)
             rec.write(task_data)
 
     @api.multi
-    def propagate_dates(self, start_date_changed=True, end_date_changed=True):
+    def propagate_dates(self):
         self.ensure_one()
-        if end_date_changed and self.expected_end_date:
+        propagate_to_the_future = self.env.context.get('propagate_to_the_future')
+        propagate_to_the_past = self.env.context.get('propagate_to_the_past')
+        if propagate_to_the_future and self.expected_end_date:
             next_tasks_to_reschedule = self.env['project.task']
             for task in self.next_task_ids:
                 if not task.expected_start_date:
@@ -500,8 +502,9 @@ FROM top_parent where top_parent_task_id = %s""", (self.project_id.id, self.id,)
                     continue
                 if self.expected_end_date >= task.expected_start_date:
                     next_tasks_to_reschedule |= task
-            next_tasks_to_reschedule.schedule_tasks_after_date(self.expected_end_date)
-        if start_date_changed and self.expected_start_date:
+            if next_tasks_to_reschedule:
+                next_tasks_to_reschedule.schedule_tasks_after_date(self.expected_end_date)
+        if propagate_to_the_past and self.expected_start_date:
             previous_tasks_to_reschedule = self.env['project.task']
             for task in self.previous_task_ids:
                 if not task.expected_end_date:
@@ -509,34 +512,34 @@ FROM top_parent where top_parent_task_id = %s""", (self.project_id.id, self.id,)
                     continue
                 if self.expected_start_date <= task.expected_end_date:
                     previous_tasks_to_reschedule |= task
-            previous_tasks_to_reschedule.schedule_tasks_before_date(self.expected_start_date)
-        if end_date_changed or start_date_changed:
-            children_task_ids = self.get_children_task_ids(include_self=False)
-            if children_task_ids and end_date_changed:
-                self.env.cr.execute("""SELECT pt.id
+            if previous_tasks_to_reschedule:
+                previous_tasks_to_reschedule.schedule_tasks_before_date(self.expected_start_date)
+        children_task_ids = self.get_children_task_ids(include_self=False)
+        if children_task_ids and propagate_to_the_past:
+            self.env.cr.execute("""SELECT pt.id
 FROM project_task pt
-       LEFT JOIN project_task_order_rel rel ON rel.previous_task_id = pt.id
-       LEFT JOIN project_task next_task ON next_task.id = rel.next_task_id
+   LEFT JOIN project_task_order_rel rel ON rel.previous_task_id = pt.id
+   LEFT JOIN project_task next_task ON next_task.id = rel.next_task_id
 WHERE pt.id IN %s
-  AND pt.expected_end_date > %s
-  AND (next_task.id IS NULL OR next_task.parent_task_id != %s)
+AND pt.expected_end_date > %s
+AND (next_task.id IS NULL OR next_task.parent_task_id != %s)
 ORDER BY pt.expected_end_date DESC""", (tuple(children_task_ids), self.expected_end_date, self.id,))
-                task_ids = [item[0] for item in self.env.cr.fetchall()]
-                for task_id in task_ids:
-                    self.browse(task_id).schedule_tasks_before_date(self.expected_end_date, same_day=True)
-            if children_task_ids and start_date_changed:
-                self.env.cr.execute("""SELECT pt.id
-    FROM project_task pt
-           LEFT JOIN project_task_order_rel rel ON rel.next_task_id = pt.id
-           LEFT JOIN project_task previous_task ON previous_task.id = rel.previous_task_id
-    WHERE pt.id IN %s
-      AND pt.expected_start_date < %s
-      AND (previous_task.id IS NULL OR previous_task.parent_task_id != %s)
-    ORDER BY pt.expected_start_date ASC""", (tuple(children_task_ids), self.expected_start_date, self.id,))
-                task_ids = [item[0] for item in self.env.cr.fetchall()]
-                for task_id in task_ids:
-                    self.browse(task_id).schedule_tasks_after_date(self.expected_start_date, same_day=True)
-        if start_date_changed or end_date_changed:
+            task_ids = [item[0] for item in self.env.cr.fetchall()]
+            for task_id in task_ids:
+                self.browse(task_id).schedule_tasks_before_date(self.expected_end_date, same_day=True)
+        if children_task_ids and propagate_to_the_future:
+            self.env.cr.execute("""SELECT pt.id
+FROM project_task pt
+       LEFT JOIN project_task_order_rel rel ON rel.next_task_id = pt.id
+       LEFT JOIN project_task previous_task ON previous_task.id = rel.previous_task_id
+WHERE pt.id IN %s
+  AND pt.expected_start_date < %s
+  AND (previous_task.id IS NULL OR previous_task.parent_task_id != %s)
+ORDER BY pt.expected_start_date ASC""", (tuple(children_task_ids), self.expected_start_date, self.id,))
+            task_ids = [item[0] for item in self.env.cr.fetchall()]
+            for task_id in task_ids:
+                self.browse(task_id).schedule_tasks_after_date(self.expected_start_date, same_day=True)
+        if propagate_to_the_past or propagate_to_the_future:
             self.reschedule_parent_dates()
 
     @api.multi
@@ -571,6 +574,53 @@ ORDER BY pt.expected_end_date DESC""", (tuple(children_task_ids), self.expected_
         return self.env.context.get('params', {}).get('view_type') == 'timeline'
 
     @api.multi
+    def get_vals_for_task(self, vals, propagating_tasks, slide_tasks):
+        self.ensure_one()
+        vals_copy = vals.copy()
+        if slide_tasks[self] and not propagating_tasks:
+            nb_working_days_task = self.get_task_number_open_days()
+            vals_copy['expected_end_date'] = self.schedule_get_date(vals_copy['expected_start_date'],
+                                                                   nb_working_days_task - 1)
+        start_date_changed = vals.get('expected_start_date') and \
+                             vals_copy['expected_start_date'] != self.expected_start_date and True or False
+        end_date_changed = vals.get('expected_end_date') and \
+                           vals_copy['expected_end_date'] != self.expected_end_date and True or False
+        if start_date_changed or end_date_changed:
+            msg = u"Task %s rescheduled: "
+            args = [self.name]
+            if start_date_changed:
+                msg += u"start date %s"
+                args += [vals_copy.get('expected_start_date', self.expected_start_date)]
+            if end_date_changed:
+                msg += ((start_date_changed and u", " or u"") +  u"end date %s")
+                args += [vals_copy.get('expected_end_date', self.expected_end_date)]
+            msg = msg % tuple(args)
+            _logger.info(msg)
+        if vals_copy.get('expected_start_date'):
+            vals_copy['expected_start_date_display'] = vals_copy.get('expected_start_date') + ' 08:00:00'
+        if vals_copy.get('expected_end_date'):
+            vals_copy['expected_end_date_display'] = vals_copy.get('expected_end_date') + ' 18:00:00'
+        if start_date_changed or end_date_changed:
+            start_date = vals_copy.get('expected_start_date', self.expected_start_date)
+            end_date = vals_copy.get('expected_end_date', self.expected_end_date)
+            vals_copy['expected_duration'] = self.get_task_number_open_days(start_date, end_date)
+        return vals_copy, start_date_changed, end_date_changed
+
+    @api.multi
+    def propagate_to_the_past_or_to_the_future(self, vals, start_date_changed, end_date_changed):
+        self.ensure_one()
+        propagate_to_the_future = self.env.context.get('propagate_to_the_future', False)
+        propagate_to_the_past = self.env.context.get('propagate_to_the_past', False)
+        if not self.env.context.get('propagating_tasks'):
+            if start_date_changed and vals['expected_start_date'] < self.expected_start_date or \
+                    end_date_changed and vals['expected_end_date'] < self.expected_end_date:
+                propagate_to_the_past = True
+            if start_date_changed and vals['expected_start_date'] > self.expected_start_date or \
+                    end_date_changed and vals['expected_end_date'] > self.expected_end_date:
+                propagate_to_the_future = True
+        return propagate_to_the_future, propagate_to_the_past
+
+    @api.multi
     def write(self, vals):
         if 'objective_end_date' in vals:
             _logger.info(u"Scheduling task(s) %s for objective end date %s", u",".join([rec.name for rec in self]),
@@ -587,43 +637,20 @@ ORDER BY pt.expected_end_date DESC""", (tuple(children_task_ids), self.expected_
         propagating_tasks = self.env.context.get('propagating_tasks')
         slide_tasks = self.get_slide_tasks(vals)
         for rec in self:
-
-            vals_copy = vals.copy()
-            if slide_tasks[rec] and not propagating_tasks:
-                nb_working_days_task = rec.get_task_number_open_days()
-                vals_copy['expected_end_date'] = rec.schedule_get_date(vals_copy['expected_start_date'],
-                                                                       nb_working_days_task - 1)
-            start_date_changed = vals.get('expected_start_date') and \
-                vals_copy['expected_start_date'] != rec.expected_start_date and True or False
-            end_date_changed = vals.get('expected_end_date') and \
-                vals_copy['expected_end_date'] != rec.expected_end_date and True or False
-            if start_date_changed or end_date_changed:
-                msg = u"Task %s rescheduled: "
-                args = [rec.name]
-                if start_date_changed:
-                    msg += u"start date %s"
-                    args += [vals_copy.get('expected_start_date', rec.expected_start_date)]
-                if end_date_changed:
-                    msg += ((start_date_changed and u", " or u"") +  u"end date %s")
-                    args += [vals_copy.get('expected_end_date', rec.expected_end_date)]
-                msg = msg % tuple(args)
-                _logger.info(msg)
-            if vals_copy.get('expected_start_date'):
-                vals_copy['expected_start_date_display'] = vals_copy.get('expected_start_date') + ' 08:00:00'
-            if vals_copy.get('expected_end_date'):
-                vals_copy['expected_end_date_display'] = vals_copy.get('expected_end_date') + ' 18:00:00'
-            if start_date_changed or end_date_changed:
-                start_date = vals_copy.get('expected_start_date', rec.expected_start_date)
-                end_date = vals_copy.get('expected_end_date', rec.expected_end_date)
-                vals_copy['expected_duration'] = rec.get_task_number_open_days(start_date, end_date)
-            dates_changed = (vals_copy.get('expected_start_date') or
-                             vals_copy.get('expected_end_date')) and True or False
+            vals_copy, start_date_changed, end_date_changed = rec. \
+                get_vals_for_task(vals, propagating_tasks, slide_tasks)
+            dates_changed = start_date_changed or end_date_changed
             if dates_changed and 'taken_into_account' not in vals and not self.env.context.get('force_update_tia'):
                 self.check_not_tia()
+            propagate_to_the_future, propagate_to_the_past = rec. \
+                propagate_to_the_past_or_to_the_future(vals_copy, start_date_changed, end_date_changed)
             super(ProjectImprovedTask, rec).write(vals_copy)
             self.env.invalidate_all()
             if rec.expected_start_date and rec.expected_end_date and propagate_dates and dates_changed:
-                rec.with_context(propagating_tasks=True).propagate_dates(start_date_changed, end_date_changed)
+                if propagate_to_the_future:
+                    rec.with_context(propagating_tasks=True, propagate_to_the_future=True).propagate_dates()
+                if propagate_to_the_past:
+                    rec.with_context(propagating_tasks=True, propagate_to_the_past=True).propagate_dates()
         self.notify_users_if_needed(vals)
         return True
 
