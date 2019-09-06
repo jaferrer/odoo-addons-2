@@ -11,9 +11,11 @@
             <field name="attachment">object.name.replace('/','')</field>
 			<field name="tml_source">file</field>
 			<field name="in_format">oo-odt</field>
+			<field name="binding_model_id" ref="sale.model_sale_order"/>
 			<field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
 		</record>
 
         <function model="sale.order.delete.report" name="link_report_with_mail"/>
+        <function model="sale.order.delete.report" name="hide_odoo_report"/>
 
 </odoo>

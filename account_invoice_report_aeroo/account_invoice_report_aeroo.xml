@@ -11,8 +11,12 @@
 		<field name="attachment">(object.state in ('open','paid')) and ('INV'+(object.number or '').replace('/','')+'.pdf')</field>
 		<field name="tml_source">file</field>
 		<field name="in_format">oo-odt</field>
+		<field name="binding_model_id" ref="account.model_account_invoice"/>
 		<field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
 	</record>
+
+	<function model="account.invoice.delete.report" name="link_report_with_mail"/>
+	<function model="account.invoice.delete.report" name="hide_odoo_report"/>
 
 	<record model="ir.ui.view" id="account_invoice_report_aeroo_res_company_form">
 		<field name="name">account_invoice_report_aeroo_res_company_form</field>
