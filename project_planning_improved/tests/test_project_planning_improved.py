@@ -42,7 +42,6 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.project_task_9 = self.browse_ref('project_planning_improved.project_task_9')
         self.project_task_10 = self.browse_ref('project_planning_improved.project_task_10')
         self.project_task_11 = self.browse_ref('project_planning_improved.project_task_11')
-        self.test_project_2 = self.browse_ref('project_planning_improved.project_planning_improved_test_project_2')
 
     def test_01_critical_task(self):
         """Testing the calculation of field 'critical_task'."""
