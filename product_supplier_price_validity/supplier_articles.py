@@ -21,6 +21,13 @@ import time
 
 from openerp.exceptions import except_orm
 from openerp import fields, models, api, _
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+
+@job
+def job_update_active_line(session, model_name):
+    session.env[model_name].update_active_line_for_all_lines()
 
 
 class productSupplierinfoImproved (models.Model):
@@ -32,41 +39,43 @@ class productSupplierinfoImproved (models.Model):
 
 
 class pricelist_partnerinfo_improved (models.Model):
-    _inherit = "pricelist.partnerinfo"
+    _inherit = 'pricelist.partnerinfo'
     _order = 'min_quantity asc, validity_date asc'
 
-    validity_date = fields.Date("Validity date", help=u"Validity date from that date")
+    validity_date = fields.Date("Validity date", help=u"Validity date from that date", required=True,
+                                default=fields.Date.today)
     end_validity_date = fields.Date(string=u"Expiration date", help=u"Valid until that date")
-    active_line = fields.Boolean("True if this rule is used", store=True, compute="_is_active_line")
+    active_line = fields.Boolean("True if this rule is used", readonly=True)
     force_inactive = fields.Boolean(string="Inactive Price")
     supplierinfo_sequence = fields.Integer(string=u"Supplierinfo sequence", related='suppinfo_id.sequence', store=True)
 
-    @api.multi
-    @api.depends('suppinfo_id.pricelist_ids', 'min_quantity', 'validity_date', 'end_validity_date')
-    def _is_active_line(self):
-        for rec in self:
-            rec.active_line = rec.is_active()
+    @api.model
+    def cron_update_active_line(self, jobify=True):
+        if jobify:
+            job_update_active_line.delay(ConnectorSession.from_env(self.env), 'pricelist.partnerinfo')
+        else:
+            job_update_active_line(ConnectorSession.from_env(self.env), 'pricelist.partnerinfo')
 
-    @api.multi
-    def is_active(self, check_force_inactive=True):
-        """
-        a pricelist line is active if the start validity date is before tday
-        and the expiration date (end_validity_date) is not outpassed
-        if no start validity date is defined, it is active
-        :param check_force_inactive: true if force_inactive value must take into account
-        :return: true if line is active
-        """
-        self.ensure_one()
-        context = self.env.context or {}
-        reference_date = context.get('date') or time.strftime('%Y-%m-%d')
-        active = True
-        if check_force_inactive and self.force_inactive:
-            return False
-        if self.validity_date and self.validity_date > reference_date:
-            return False
-        if self.end_validity_date and self.end_validity_date < reference_date:
-                active = False
-        return active
+    @api.model
+    def update_active_line_for_all_lines(self):
+        reference_date = self.env.context.get('force_date_for_partnerinfo_validity', fields.Date.today())
+        lines_to_deactivate = self.env['pricelist.partnerinfo']
+        lines_to_deactivate += self.search([('force_inactive', '=', True),
+                                            ('active_line', '=', True)])
+        lines_to_deactivate += self.search([('validity_date', '!=', False),
+                                            ('validity_date', '>', reference_date),
+                                            ('active_line', '=', True)])
+        lines_to_deactivate += self.search([('end_validity_date', '!=', False),
+                                            ('end_validity_date', '<', reference_date),
+                                            ('active_line', '=', True)])
+        lines_to_deactivate.write({'active_line': False})
+        lines_to_activate = self.search([('force_inactive', '=', False),
+                                         '|', ('validity_date', '=', False),
+                                         ('validity_date', '<=', reference_date),
+                                         '|', ('end_validity_date', '=', False),
+                                         ('end_validity_date', '>=', reference_date),
+                                         ('active_line', '=', False)])
+        lines_to_activate.write({'active_line': True})
 
 
 class product_pricelist_improved(models.Model):
@@ -124,8 +133,8 @@ class product_pricelist_improved(models.Model):
                                                                 and pricelist.min_quantity <= qty_in_seller_uom)
                         # the right pricelist is the one with highest priority, higher quantity and newer validity_date
                         good_pricelist = valid_pricelists.search([('id', 'in', valid_pricelists.ids)],
-                                                                 order='validity_date desc, min_quantity desc, '
-                                                                       'supplierinfo_sequence',
+                                                                 order='supplierinfo_sequence asc, suppinfo_id asc, '
+                                                                       'min_quantity desc, validity_date desc',
                                                                  limit=1)
                         price = good_pricelist and good_pricelist.price or 0.0
                         price_uom_id = price_uom_ids and good_pricelist and \
@@ -143,8 +152,9 @@ class procurement_order(models.Model):
 
     @api.model
     def _get_po_line_values_from_proc(self, procurement, partner, company, schedule_date):
-        date = fields.Date.to_string(schedule_date)
-        result = super(procurement_order, self.with_context(date=date))._get_po_line_values_from_proc(procurement,
-                                                                                                      partner, company,
-                                                                                                      schedule_date)
+        context = dict(self.env.context)
+        if 'force_date_for_partnerinfo_validity' not in context:
+            context['force_date_for_partnerinfo_validity'] = fields.Date.to_string(schedule_date)
+        result = super(procurement_order, self.with_context(context)). \
+            _get_po_line_values_from_proc(procurement, partner, company, schedule_date)
         return result
