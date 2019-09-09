@@ -82,7 +82,6 @@ class product_pricelist_improved(models.Model):
         """
         results = super(product_pricelist_improved, self)._price_rule_get_multi(pricelist, products_by_qty_by_partner)
         context = self.env.context or {}
-        date = context.get('date') or time.strftime('%Y-%m-%d')
         for product_id in results.keys():
             price = False
             price_uom_id = False
@@ -94,7 +93,7 @@ class product_pricelist_improved(models.Model):
             if rule.base == -2:
                 for product2, qty, partner in products_by_qty_by_partner:
                     if product2 == product:
-                        results[product.id] = 0.0
+                        results[product.id] = (0.0, -2)
                         qty_uom_id = context.get('uom') or product.uom_id.id
                         if qty_uom_id != product.uom_id.id:
                             try:
@@ -107,21 +106,20 @@ class product_pricelist_improved(models.Model):
                         valid_pricelists = self.env['pricelist.partnerinfo']
                         price_uom_ids = {}
 
-                        for suppinfo in suppinfos: # we iterate over supplier_info (fourniture achat) because they may be many for one supplier
+                        for suppinfo in suppinfos:  # we iterate over supplier_info (fourniture achat) because they
+                            # may be many for one supplier
                             qty_in_seller_uom = qty
                             seller_uom = suppinfo.product_uom.id
                             if qty_uom_id != seller_uom:
                                 qty_in_seller_uom = product_uom_obj._compute_qty(qty_uom_id, qty, to_uom_id=seller_uom)
-                            price_uom_ids[suppinfo.id] = seller_uom  # stored in a dictionary to be able to retrive the one associated with the choosen supplier_info
+                            price_uom_ids[suppinfo.id] = seller_uom  # stored in a dictionary to be able to retrive
+                            # the one associated with the choosen supplier_info
                             # we retrieve valid price list = active, min quantity respected  and validity date ok
                             # note that pricelist_ids returns pricelist.partnerinfo object
                             valid_pricelists |= \
                                 suppinfo.pricelist_ids.filtered(lambda pricelist: not pricelist.force_inactive
-                                                                                    and pricelist.active_line
-                                                                                    and pricelist.validity_date <= date
-                                                                                    and (pricelist.end_validity_date == False
-                                                                                        or pricelist.end_validity_date <= date)
-                                                                                    and pricelist.min_quantity <= qty_in_seller_uom)
+                                                                and pricelist.active_line
+                                                                and pricelist.min_quantity <= qty_in_seller_uom)
                         # the right pricelist is the one with highest priority, higher quantity and newer validity_date
                         good_pricelist = valid_pricelists.search([('id', 'in', valid_pricelists.ids)],
                                                                  order='validity_date desc,min_quantity desc,sequence',
