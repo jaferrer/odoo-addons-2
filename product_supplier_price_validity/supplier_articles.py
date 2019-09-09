@@ -95,9 +95,7 @@ class product_pricelist_improved(models.Model):
                 for product2, qty, partner in products_by_qty_by_partner:
                     if product2 == product:
                         results[product.id] = 0.0
-                        price = False
                         qty_uom_id = context.get('uom') or product.uom_id.id
-                        price_uom_id = product.uom_id.id
                         if qty_uom_id != product.uom_id.id:
                             try:
                                 product_uom_obj._compute_qty(context['uom'], qty,
@@ -125,12 +123,12 @@ class product_pricelist_improved(models.Model):
                                                                                         or pricelist.end_validity_date <= date)
                                                                                     and pricelist.min_quantity <= qty_in_seller_uom)
                         # the right pricelist is the one with highest priority, higher quantity and newer validity_date
-                        good_pricelist = valid_pricelists and \
-                                         valid_pricelists.sorted(key=lambda plist: plist.validity_date, reverse=True)\
-                                         .sorted(key=lambda plist: plist.min_quantity, reverse=True) \
-                                             .sorted(key = lambda plist: plist.suppinfo_id.sequence)[0] or False
+                        good_pricelist = valid_pricelists.search([('id', 'in', valid_pricelists.ids)],
+                                                                 order='validity_date desc,min_quantity desc,sequence',
+                                                                 limit=1)
                         price = good_pricelist and good_pricelist.price or 0.0
-                        price_uom_id = price_uom_ids and price_uom_ids[good_pricelist.suppinfo_id.id] or False
+                        price_uom_id = price_uom_ids and good_pricelist and \
+                            price_uom_ids[good_pricelist.suppinfo_id.id] or False
                         break
 
                 if price_uom_id and qty_uom_id and rule_id:
