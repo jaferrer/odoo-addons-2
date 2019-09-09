@@ -8,8 +8,8 @@
         <field name="model">rida.line</field>
         <field name="arch" type="xml">
             <tree editable="top"
-                  decoration-warning="state not in ('closed', 'duplicate', 'cancel') and priority == 'medium'"
-                  decoration-danger="state not in ('closed', 'duplicate', 'cancel') and priority == 'high'"
+                  decoration-warning="state not in ('closed', 'duplicate', 'cancel') and priority == 'p2'"
+                  decoration-danger="state not in ('closed', 'duplicate', 'cancel') and priority == 'p1'"
                   decoration-muted="state in ('closed', 'duplicate', 'cancel')">
                 <field name="reference"/>
                 <field name="report_id"/>
