@@ -557,7 +557,8 @@ WHERE po.state NOT IN %s AND
                 if draft_order and pol_procurement_ids:
                     force_fiscal_position_id = draft_order.fiscal_position and draft_order.fiscal_position.id or False
                     line_vals = self.env['procurement.order']. \
-                        with_context(force_fiscal_position_id=force_fiscal_position_id). \
+                        with_context(force_fiscal_position_id=force_fiscal_position_id,
+                                     force_date_for_partnerinfo_validity=fields.Date.today()). \
                         _get_po_line_values_from_proc(first_proc, seller, company, schedule_date)
                     line_vals.update(order_id=draft_order.id, product_qty=0)
                     if not dict_lines_to_create.get(draft_order.id):
