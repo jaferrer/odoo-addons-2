@@ -25,6 +25,7 @@ from openerp import fields, models, api, _
 
 class productSupplierinfoImproved (models.Model):
     _inherit = "product.supplierinfo"
+
     validity_date_2 = fields.Date(
         "Validity date",
         help="Price list validity end date. Does not have any affect on the price calculation.")
@@ -38,6 +39,7 @@ class pricelist_partnerinfo_improved (models.Model):
     end_validity_date = fields.Date(string=u"Expiration date", help=u"Valid until that date")
     active_line = fields.Boolean("True if this rule is used", store=True, compute="_is_active_line")
     force_inactive = fields.Boolean(string="Inactive Price")
+    supplierinfo_sequence = fields.Integer(string=u"Supplierinfo sequence", related='suppinfo_id.sequence', store=True)
 
     @api.multi
     @api.depends('suppinfo_id.pricelist_ids', 'min_quantity', 'validity_date', 'end_validity_date')
@@ -122,7 +124,8 @@ class product_pricelist_improved(models.Model):
                                                                 and pricelist.min_quantity <= qty_in_seller_uom)
                         # the right pricelist is the one with highest priority, higher quantity and newer validity_date
                         good_pricelist = valid_pricelists.search([('id', 'in', valid_pricelists.ids)],
-                                                                 order='validity_date desc,min_quantity desc,sequence',
+                                                                 order='validity_date desc, min_quantity desc, '
+                                                                       'supplierinfo_sequence',
                                                                  limit=1)
                         price = good_pricelist and good_pricelist.price or 0.0
                         price_uom_id = price_uom_ids and good_pricelist and \
