@@ -61,16 +61,18 @@ class TestSupplierPriceValidity(common.TransactionCase):
         })
 
         def unit_price(line):
+            self.env['pricelist.partnerinfo']. \
+                with_context(force_date_for_partnerinfo_validity=line.order_id.date_order). \
+                cron_update_active_line(jobify=False)
             results = line.onchange_product_id(line.order_id.pricelist_id.id,
-                                                              line.product_id.id,
-                                                              line.product_qty,
-                                                              line.product_uom.id,
-                                                              line.order_id.partner_id.id,
-                                                              line.order_id.date_order)
+                                               line.product_id.id,
+                                               line.product_qty,
+                                               line.product_uom.id,
+                                               line.order_id.partner_id.id,
+                                               line.order_id.date_order)
             return (results['value'])['price_unit']
 
         self.assertEquals(unit_price(purchase_order_line), 14)
-
         purchase_order_line.product_qty = 11.0
         self.assertEquals(unit_price(purchase_order_line), 12)
         purchase_order_line.product_qty = 101.0
@@ -144,10 +146,14 @@ class TestSupplierPriceValidity(common.TransactionCase):
             return procurement_order_1
 
         def test(qty, result):
+            self.env['pricelist.partnerinfo']. \
+                with_context(force_date_for_partnerinfo_validity=procurement_order_1.date_planned). \
+                cron_update_active_line(jobify=False)
             procurement_order_1.product_qty = qty
             procurement_order_1.run()
             self.assertEqual(procurement_order_1.state, u'running')
-            purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=', procurement_order_1.product_id.id)])
+            purchase_order_line = self.env['purchase.order.line']. \
+                search([('product_id', '=', procurement_order_1.product_id.id)])
             self.assertTrue(purchase_order_line)
             # po price_unit should be equal to result:
             self.assertEqual(purchase_order_line.price_unit, result)
@@ -156,7 +162,9 @@ class TestSupplierPriceValidity(common.TransactionCase):
         def test_active(number, value, date_today):
             # get the pricelist.partnerinfo using the xml ID to avoid concern when ids not in same order as xml
             price_list = self.env.ref("product_supplier_price_validity.pricelist{}".format(number))
-            self.assertEqual(price_list.with_context({'date': date_today}).is_active(), value)
+            self.env['pricelist.partnerinfo'].with_context(force_date_for_partnerinfo_validity=date_today). \
+                cron_update_active_line(jobify=False)
+            self.assertEqual(price_list.active_line, value)
 
         # demo procurement order
         procurement_order_1 = create_proc_1()
