@@ -13,10 +13,11 @@
                             <h1>
                                 <field name="name" placeholder="......"/>
                             </h1>
-                            <h2>
-                                <field name="bus_username"/>
-                            </h2>
                         </div>
+                        <group>
+                            <field name="bus_username"/>
+                            <field name="active"/>
+                        </group>
                     </sheet>
                 </form>
             </field>
@@ -28,11 +29,12 @@
                 <tree>
                     <field name="name"/>
                     <field name="bus_username"/>
+                    <field name="active"/>
                 </tree>
             </field>
         </record>
 
-        <record id="course_search_view" model="ir.ui.view" >
+        <record id="course_search_view" model="ir.ui.view">
             <field name="name">bus_base_search</field>
             <field name="model">bus.base</field>
             <field name="arch" type="xml">
