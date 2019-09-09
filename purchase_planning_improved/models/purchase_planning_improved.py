@@ -263,8 +263,10 @@ class PurchaseOrderPlanningImproved(models.Model):
   min(pol.limit_order_date) AS new_limit_order_date
 FROM purchase_order po
   INNER JOIN purchase_order_line pol ON pol.order_id = po.id AND pol.limit_order_date IS NOT NULL
+WHERE po.state in ('draft', 'sent', 'bid', 'confirmed')
 GROUP BY po.id
-ORDER BY po.id""")
+ORDER BY po.id
+""")
         result = self.env.cr.dictfetchall()
         order_with_limit_dates_ids = []
         for item in result:
@@ -282,7 +284,6 @@ ORDER BY po.id""")
             if order.limit_order_date != item['new_limit_order_date']:
                 order.limit_order_date = item['new_limit_order_date']
             order_with_limit_dates_ids += [item['order_id']]
-        self.search([('id', 'not in', order_with_limit_dates_ids)]).write({'limit_order_date': False})
 
     @api.multi
     def compute_coverage_state(self):

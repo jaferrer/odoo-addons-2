@@ -32,5 +32,6 @@ from . import bus_message
 from . import bus_message_log
 from . import ir_model
 from . import ir_cron
+from . import ir_ui_view
 from . import mapping_configuration_helper
 from . import access_rights
