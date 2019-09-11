@@ -78,11 +78,6 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     limit_order_date = fields.Date(string=u"Limit Order Date", help=u"Limit order date to be late :required date - "
                                                                     u"supplier delay", readonly=True)
     covering_date = fields.Date(string=u"Covered Date", readonly=True)
-    covering_state = fields.Selection([
-        ('all_covered', u"All Need Covered"),
-        ('coverage_computed', u"Computed Coverage"),
-        ('unknown_coverage', u"Not Calculated State")
-    ], string=u"Covered State", default='unknown_coverage', required=True, readonly=True)
     requested_date = fields.Date("Requested date", help="The line was required to the supplier at that date",
                                  default=fields.Date.context_today, states={'sent': [('readonly', True)],
                                                                             'bid': [('readonly', True)],
