@@ -323,11 +323,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         self.ensure_one()
         product = self.env['product.product'].browse(vals.get('product_id', self.product_id.id))
         uom = self.env['product.uom'].browse(vals.get('product_uom', self.product_uom.id))
-        self.env.cr.execute("""SELECT sum(sm.product_qty)
-FROM purchase_order_line pol
-LEFT JOIN stock_move sm ON sm.purchase_line_id = pol.id AND sm.state = 'done'
-WHERE pol.id = %s""", (self.id,))
-        qty_done = self.env.cr.fetchall()[0][0] or 0
+        qty_done = self.product_qty - self.remaining_qty
         qty_done_pol_uom = self.env['product.uom']._compute_qty(product.uom_id.id, qty_done, uom.id)
         if vals['product_qty'] < qty_done_pol_uom:
             raise exceptions.except_orm(_(u"Error!"), _(u"Impossible to cancel moves at state done."))
