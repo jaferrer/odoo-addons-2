@@ -1,0 +1,60 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* user_copy_right
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-28 15:29+0000\n"
+"PO-Revision-Date: 2015-05-28 15:29+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: user_copy_right
+#: field:user.copy.rights,user_model_id:0
+msgid "User template"
+msgstr "utilisateur modèle"
+
+#. module: user_copy_right
+#: field:user.copy.rights,group_ids:0
+#: view:user.copy.rights:user_copy_right.user_copy_rights_form
+msgid "Groups"
+msgstr "Groupes"
+
+#. module: user_copy_right
+#: field:user.copy.rights,user_ids:0
+msgid "Users to modify"
+msgstr "Utilisateurs à modifier"
+
+#. module: user_copy_right
+#: code:addons/user_copy_right/wizard/user_copy_right.py:37
+#: view:user.copy.rights:user_copy_right.user_copy_rights_form
+msgid "Users"
+msgstr "Utilisateurs"
+
+#. module: user_copy_right
+#: code:addons/user_copy_right/models/res_users.py:30
+msgid "Change user rights"
+msgstr "Changer les droits des utilisateurs"
+
+#. module: user_copy_right
+#: view:ir.values:user_copy_right.ir_value_res_user_copy_rights
+#: model:ir.actions.server,name:user_copy_right.ir_actions_server_res_user_copy_rights
+#: model:ir.actions.act_window,name:user_copy_right.ir_actions_server_res_user_copy_rights
+msgid "Copy user rights"
+msgstr "Copier les droits utilisateurs"
+
+#. module: user_copy_right
+#: view:user.copy.rights:user_copy_right.user_copy_rights_form
+msgid "Validate"
+msgstr "Valider"
+
+#. module: user_copy_right
+#: view:user.copy.rights:user_copy_right.user_copy_rights_form
+msgid "Cancel"
+msgstr "Annuler"
