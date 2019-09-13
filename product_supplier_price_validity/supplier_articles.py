@@ -136,9 +136,9 @@ class product_pricelist_improved(models.Model):
                                                                  order='supplierinfo_sequence asc, suppinfo_id asc, '
                                                                        'min_quantity desc, validity_date desc',
                                                                  limit=1)
-                        price = good_pricelist and good_pricelist.price or 0.0
-                        price_uom_id = price_uom_ids and good_pricelist and \
-                            price_uom_ids[good_pricelist.suppinfo_id.id] or False
+                        if price_uom_ids and good_pricelist and good_pricelist.suppinfo_id:
+                            price = good_pricelist.price
+                            price_uom_id = price_uom_ids[good_pricelist.suppinfo_id.id]
                         break
 
                 if price_uom_id and qty_uom_id and rule_id:
