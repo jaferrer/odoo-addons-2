@@ -295,8 +295,9 @@ class ProcurementOrderQuantity(models.Model):
         try:
             with self.env.cr.savepoint():
                 self.with_context(unlink_all_chain=True, cancel_procurement=True, is_scheduler=True).cancel()
-                self.unlink()
-                result = stock_qty - qty
+                if self.state == 'cancel':
+                    self.unlink()
+                    result = stock_qty - qty
         except ForbiddenCancelProtectedProcurement as e:
             _logger.info(e.value)
         return result
