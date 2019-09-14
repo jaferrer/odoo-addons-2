@@ -634,7 +634,7 @@ WHERE po.state NOT IN %s AND
       FROM product_supplierinfo
       WHERE product_tmpl_id IN (SELECT id
                                 FROM product_template_restricted) AND
-            name = %s),"""
+            name = %s AND COALESCE(active, FALSE) IS TRUE),"""
 
     @api.multi
     def get_first_date_planned_by_delay(self, seller):
@@ -810,7 +810,7 @@ GROUP BY location_id""", (tuple(self.ids),))
 FROM procurement_order po
   LEFT JOIN product_product pp ON pp.id = po.product_id
   LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
-WHERE po.id IN %s AND (ps.name IS NULL OR ps.name != %s)
+WHERE po.id IN %s AND (ps.name IS NULL OR ps.name != %s) AND COALESCE(ps.active, FALSE) IS TRUE
 GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
         for line in self.env.cr.dictfetchall():
             proc = self.browse(line['procurement_id'])
