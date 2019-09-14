@@ -948,6 +948,7 @@ class ProcurementOrder(models.Model):
     location_id = fields.Many2one('stock.location', index=True)
     move_dest_id = fields.Many2one('stock.move', index=True)
     state = fields.Selection(index=True, track_visibility=False)
+    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', index=True)
 
     @api.model
     def _run_move_create(self, procurement):
