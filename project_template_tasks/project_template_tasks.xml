@@ -15,11 +15,12 @@
                 <notebook position="inside">
                     <page string="Project Task Types">
                         <field name="id" invisible="1"/>
+                        <button name="add_task_types" type="object" string="Add Task Types"/>
                         <button name="synchronize_default_tasks" type="object" string="Synchronize tasks" class="oe_highlight"/>
                         <field name="use_task_type_ids" context="{'project_id': id}">
-                            <tree>
+                            <tree editable="bottom">
                                 <field name="sequence" widget="handle"/>
-                                <field name="name"/>
+                                <field name="type_id"/>
                                 <button name="synchronize_default_tasks" type="object" string="Synchronize tasks"/>
                             </tree>
                         </field>
@@ -87,12 +88,31 @@
             <field name="view_mode">tree,form</field>
             <field name="domain">[('is_template', '=', True)]</field>
             <field name="context">{}</field>
-            <field name="help"></field>
+            <field name="help"/>
             <field name="view_id" ref="project.view_task_tree2"/>
         </record>
 
         <menuitem id="menu_open_template_tasks" name="Template tasks" action="act_window_open_template_tasks"
                   parent="project.menu_project_config" sequence="6"/>
+
+        <record model="ir.ui.view" id="project_add_task_types_form">
+            <field name="name">project_add_task_types_form</field>
+            <field name="model">project.add.task.types</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="project_id" invisible="1"/>
+                        <field name="use_task_type_ids" options="{'no_create': True}"/>
+                    </group>
+                    <footer>
+                        <button name="add" string="Add" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
 
     </data>
 </openerp>

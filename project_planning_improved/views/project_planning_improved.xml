@@ -130,6 +130,11 @@ self.update_ready_for_execution(cr, uid, context.get('active_ids'), False, conte
             <field name="inherit_id" ref="project.view_task_form2"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
+                <field name="stage_id" position="before">
+                    <field name="forced_duration_one_day" invisible="1"/>
+                    <button name="set_task_on_one_day" type="object" string="Mask in timeline view" confirm="Are you sure? This will set the duration of this task and all its children to one day." attrs="{'invisible': [('forced_duration_one_day', '=', True)]}"/>
+                    <button name="unset_task_on_one_day" type="object" string="Display in timeline view" confirm="Are you sure? This will recompute dates for this task and its children from objective durations." attrs="{'invisible': [('forced_duration_one_day', '=', False)]}"/>
+                </field>
                 <sheet position="attributes">
                     <attribute name="class">oe_form_sheet_full_screen</attribute>
                 </sheet>
@@ -234,6 +239,10 @@ self.update_ready_for_execution(cr, uid, context.get('active_ids'), False, conte
                     <attribute name="date_delay">expected_end_date</attribute>
                 </calendar>
             </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="project.action_view_task">
+            <field name="domain">[('forced_duration_one_day', '=', False)]</field>
         </record>
 
     </data>
