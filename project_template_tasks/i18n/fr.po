@@ -45,8 +45,48 @@ msgstr "Phases du projet"
 
 #. module: project_template_tasks
 #: model:ir.ui.view,arch_db:project_template_tasks.reanova_project_project_form
+msgid "Add Task Types"
+msgstr "Ajouter des phases"
+
+#. module: project_template_tasks
+#: model:ir.ui.view,arch_db:project_template_tasks.reanova_project_project_form
 msgid "Synchronize tasks"
 msgstr "Synchroniser les tâches"
+
+#. module: project_template_tasks
+#: model:ir.model.fields,field_description:project_template_tasks.field_project_task_type_rel_project_id
+msgid "Project"
+msgstr "Projet"
+
+#. module: project_template_tasks
+#: model:ir.model.fields,field_description:project_template_tasks.field_project_task_type_rel_type_id
+msgid "Task Type"
+msgstr "Phase"
+
+#. module: project_template_tasks
+#: model:ir.model.fields,field_description:project_template_tasks.field_project_add_task_types_project_id
+msgid "Project"
+msgstr "Projet"
+
+#. module: project_template_tasks
+#: model:ir.model.fields,field_description:project_template_tasks.field_project_add_task_types_use_task_type_ids
+msgid "Project Task Types"
+msgstr "Phases"
+
+#. module: project_template_tasks
+#: model:ir.ui.view,arch_db:project_template_tasks.project_add_task_types_form
+msgid "Add"
+msgstr "Ajouter"
+
+#. module: project_template_tasks
+#: model:ir.ui.view,arch_db:project_template_tasks.project_add_task_types_form
+msgid "or"
+msgstr "ou"
+
+#. module: project_template_tasks
+#: model:ir.ui.view,arch_db:project_template_tasks.project_add_task_types_form
+msgid "Cancel"
+msgstr "Annuler"
 
 #. module: project_template_tasks
 #: model:ir.model.fields,field_description:project_template_tasks.field_project_task_type_use_default_for_all_projects

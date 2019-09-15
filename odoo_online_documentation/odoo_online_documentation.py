@@ -31,10 +31,8 @@ class OdooOnlineDocumentation(models.Model):
     seen_in_sales = fields.Boolean(string=u"Must be seen in sales", default=False)
     seen_in_purchases = fields.Boolean(string=u"Must be seen in purchases", default=False)
     seen_in_prod = fields.Boolean(string=u"Must be seen in manufacturing", default=False)
-    product_product_id = fields.Many2one('product.product', string=u"Related product")
 
-    _sql_constraints = [('path_unique_per_file', 'unique(path)',
-                         _(u"You cannot have twice the same file."))]
+    _sql_constraints = [('path_unique_per_file', 'unique(path)', _(u"You cannot have twice the same file."))]
 
     @api.multi
     def remove_attachments(self):

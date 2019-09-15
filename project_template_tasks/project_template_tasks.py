@@ -30,16 +30,140 @@ class ProjectTemplateProject(models.Model):
 
     def _get_default_task_type_ids(self):
         default_types = self.env['project.task.type'].search([('use_default_for_all_projects', '=', True)])
-        return default_types and default_types.ids or False
+        return [(0, 0, {'project_id': self.id, 'type_id': type.id}) for type in default_types]
 
-    use_task_type_ids = fields.Many2many('project.task.type', 'project_task_type_rel', 'project_id', 'type_id',
-                                         string="Project Task Types", default=_get_default_task_type_ids,
-                                         ondelete='set null')
+    use_task_type_ids = fields.One2many('project.task.type.rel', 'project_id', string=u"Project Task Types",
+                                        default=_get_default_task_type_ids)
 
     @api.multi
     def synchronize_default_tasks(self):
         for rec in self:
             rec.use_task_type_ids.with_context(project_id=rec.id).synchronize_default_tasks()
+
+    @api.multi
+    def get_task_types(self):
+        self.ensure_one()
+        return self.env['project.task.type'].browse([item.type_id.id for item in self.use_task_type_ids])
+
+    @api.multi
+    def add_task_types(self):
+        self.ensure_one()
+        ctx = dict(self.env.context)
+        ctx['default_project_id'] = self.id
+        return {
+            'name': _(u"Add a Task Type"),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'project.add.task.types',
+            'target': 'new',
+            'context': ctx,
+        }
+
+
+class ProjectAddTaskTypes(models.TransientModel):
+    _name = 'project.add.task.types'
+
+    project_id = fields.Many2one('project.project', string=u"Project", required=True)
+    use_task_type_ids = fields.Many2many('project.task.type', string=u"Project Task Types", required=True)
+
+    @api.onchange('project_id')
+    def onchange_project_id(self):
+        self.ensure_one()
+        existing_task_types = self.project_id.get_task_types()
+        return {'domain': {'use_task_type_ids': [('id', 'not in', existing_task_types.ids)]}}
+
+    @api.multi
+    def add(self):
+        self.ensure_one()
+        existing_task_types = self.project_id.get_task_types()
+        max_sequence = max([line.sequence for line in self.project_id.use_task_type_ids] or [0])
+        for task_type in self.use_task_type_ids:
+            if task_type in existing_task_types:
+                continue
+            self.env['project.task.type.rel'].create({'project_id': self.project_id.id,
+                                                      'type_id': task_type.id,
+                                                      'sequence': max_sequence})
+
+class ProjectTaskTypeRel(models.Model):
+    _name = 'project.task.type.rel'
+
+    sequence = fields.Integer(string=u"Sequence")
+    project_id = fields.Many2one('project.project', string=u"Project", required=True)
+    type_id = fields.Many2one('project.task.type', string=u"Task Type", required=True)
+
+    def init(self, cr):
+        """Overwriten to change table project_task_type_rel to a classical model table"""
+        cr.execute("""SELECT COLUMN_NAME
+FROM information_schema.COLUMNS
+WHERE TABLE_NAME = 'project_task_type_rel'
+  AND column_name = 'id';""")
+        result = cr.fetchall()
+        if not result or not result[0]:
+            # Add column ID
+            cr.execute("""ALTER TABLE project_task_type_rel ADD COLUMN id INTEGER;""")
+            # Fill column ID
+            cr.execute("""WITH data AS (
+  SELECT project_id,
+         type_id,
+         ROW_NUMBER()
+         OVER () AS id
+  FROM project_task_type_rel)
+
+UPDATE project_task_type_rel
+SET id = data.id
+FROM data
+WHERE data.project_id = project_task_type_rel.project_id
+  AND data.type_id = project_task_type_rel.type_id;""")
+            # Add primary key
+            cr.execute("""ALTER TABLE project_task_type_rel ADD PRIMARY KEY (id);""")
+            # Add sequence on column ID if needed
+            cr.execute("""SELECT sequence_name
+FROM information_schema.sequences
+WHERE sequence_name LIKE 'project_task_type_rel%';""")
+            result = cr.fetchall()
+            if not result or not result[0]:
+                cr.execute("""CREATE SEQUENCE project_task_type_rel_id_seq;""")
+                # Get max ID to parameter sequence
+                cr.execute("""SELECT max(id) + 1
+    FROM project_task_type_rel;""")
+                result = cr.fetchall()
+                max_id = result and result[0] and result[0][0] or 0
+                # Parameter next number for ID sequence
+                cr.execute("""ALTER SEQUENCE project_task_type_rel_id_seq RESTART WITH %s;""", (max_id,))
+
+    @api.multi
+    def get_values_new_task(self, task, project):
+        self.ensure_one()
+        return {'name': task.name,
+                'is_template': False,
+                'project_id': project.id,
+                'stage_id': self.type_id.id,
+                'user_id': project.user_id and project.user_id.id or False,
+                'date_start': False,
+                'generated_from_template_id': task.id}
+
+    @api.multi
+    def synchronize_default_tasks(self):
+        result = {}
+        for rec in self:
+            generated_tasks = self.env['project.task']
+            tasks_for_stage = self.env['project.task'].search([('id', 'in', rec.project_id.tasks.ids),
+                                                               ('stage_id', '=', rec.type_id.id)])
+            if tasks_for_stage:
+                result[rec.type_id] = tasks_for_stage
+            else:
+                nb_tasks = len(rec.type_id.task_ids)
+                index = 0
+                for task in rec.type_id.task_ids:
+                    index += 1
+                    vals_copy = rec.get_values_new_task(task, rec.project_id)
+                    _logger.info(u"Generating task %s for project %s (%s/%s for stage %s)" %
+                                 (task.display_name, rec.project_id.display_name, index, nb_tasks,
+                                  rec.type_id.display_name))
+                    generated_tasks |= task.with_context(mail_notrack=True).copy(vals_copy)
+                result[rec.type_id] = generated_tasks
+        return result
 
 
 class ProjectTemplateTask(models.Model):
@@ -69,41 +193,6 @@ class ProjectTemplateTaskType(models.Model):
     use_default_for_all_projects = fields.Boolean(string="Default use for all projects")
     task_ids = fields.One2many('project.task', 'stage_id', string="Default tasks for this type",
                                domain=[('is_template', '=', True)])
-
-    @api.multi
-    def get_values_new_task(self, task, project):
-        self.ensure_one()
-        return {'name': task.name,
-                'is_template': False,
-                'project_id': project.id,
-                'stage_id': self.id,
-                'user_id': project.user_id and project.user_id.id or False,
-                'date_start': False,
-                'generated_from_template_id': task.id}
-
-    @api.multi
-    def synchronize_default_tasks(self):
-        project_id = self.env.context.get('project_id')
-        result = {}
-        if project_id:
-            project = self.env['project.project'].browse(project_id)
-            for rec in self:
-                generated_tasks = self.env['project.task']
-                tasks_for_stage = self.env['project.task'].search([('id', 'in', project.tasks.ids),
-                                                                   ('stage_id', '=', rec.id)])
-                if tasks_for_stage:
-                    result[rec] = tasks_for_stage
-                else:
-                    nb_tasks = len(rec.task_ids)
-                    index = 0
-                    for task in rec.task_ids:
-                        index += 1
-                        vals_copy = rec.get_values_new_task(task, project)
-                        _logger.info(u"Generating task %s for project %s (%s/%s for stage %s)" %
-                                     (task.display_name, project.display_name, index, nb_tasks, rec.display_name))
-                        generated_tasks |= task.with_context(mail_notrack=True).copy(vals_copy)
-                    result[rec] = generated_tasks
-        return result
 
 
 class ProjectTemplateTaskReport(models.Model):
