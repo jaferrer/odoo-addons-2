@@ -47,8 +47,6 @@ class ProjectImprovedProject(models.Model):
                                                                    task.objective_end_date or
                                                                    task.expected_start_date or
                                                                    task.expected_end_date for task in rec.task_ids])
-            for task in rec.task_ids:
-                print task.taken_into_account, task.objective_start_date, task.objective_end_date, task.expected_start_date, task.expected_end_date, task.name, task.project_id.name
             rec.start_auto_planning_available = rec.task_ids and not rec.start_auto_planning_available
 
     @api.multi
