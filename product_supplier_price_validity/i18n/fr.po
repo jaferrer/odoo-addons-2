@@ -105,3 +105,9 @@ msgstr "Date de fin de validité"
 #: field:product.supplierinfo,end_validity_date:0
 msgid "Valid until that date"
 msgstr "Date de fin de validité"
+
+#. module: product_supplier_price_validity
+#: model:ir.actions.server,name:product_supplier_price_validity.ir_actions_server_update_active_line
+#: model:ir.values,name:product_supplier_price_validity.ir_value_update_active_line
+msgid "Update active price lists"
+msgstr "Mettre à jour les listes de prix actives"
