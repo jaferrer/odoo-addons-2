@@ -133,7 +133,8 @@ def assign_moves(session, model_name, ids, context):
 @job
 def job_cancel_procurement(session, model_name, ids):
     """Cancel procurements"""
-    procs = session.env[model_name].browse(ids)
+    procs = session.env[model_name].search[('id', 'in', ids),
+                                           ('state', '!=', 'cancel')]
     procs.cancel()
 
 
