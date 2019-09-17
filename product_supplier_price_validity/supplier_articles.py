@@ -27,7 +27,7 @@ from openerp.addons.connector.session import ConnectorSession
 
 @job
 def job_update_active_line(session, model_name):
-    session.env[model_name].update_active_line_for_all_lines()
+    session.env[model_name].update_active_lines()
 
 
 class productSupplierinfoImproved (models.Model):
@@ -36,6 +36,17 @@ class productSupplierinfoImproved (models.Model):
     validity_date_2 = fields.Date(
         "Validity date",
         help="Price list validity end date. Does not have any affect on the price calculation.")
+
+    @api.multi
+    def update_active_line(self):
+        self.env['pricelist.partnerinfo'].search([('suppinfo_id', 'in', self.ids)]).update_active_lines()
+
+    @api.multi
+    def write(self, vals):
+        result = super(productSupplierinfoImproved, self).write(vals)
+        if 'pricelist_ids' in vals:
+            self.update_active_line()
+        return result
 
 
 class pricelist_partnerinfo_improved (models.Model):
@@ -56,26 +67,40 @@ class pricelist_partnerinfo_improved (models.Model):
         else:
             job_update_active_line(ConnectorSession.from_env(self.env), 'pricelist.partnerinfo')
 
-    @api.model
-    def update_active_line_for_all_lines(self):
+    @api.multi
+    def update_active_lines(self):
         reference_date = self.env.context.get('force_date_for_partnerinfo_validity', fields.Date.today())
         lines_to_deactivate = self.env['pricelist.partnerinfo']
-        lines_to_deactivate += self.search([('force_inactive', '=', True),
+        domain_lines = []
+        if self:
+            domain_lines = [('id', 'in', self.ids)]
+        lines_to_deactivate += self.search(domain_lines +
+                                           [('force_inactive', '=', True),
                                             ('active_line', '=', True)])
-        lines_to_deactivate += self.search([('validity_date', '!=', False),
+        lines_to_deactivate += self.search(domain_lines +
+                                           [('validity_date', '!=', False),
                                             ('validity_date', '>', reference_date),
                                             ('active_line', '=', True)])
-        lines_to_deactivate += self.search([('end_validity_date', '!=', False),
+        lines_to_deactivate += self.search(domain_lines +
+                                           [('end_validity_date', '!=', False),
                                             ('end_validity_date', '<', reference_date),
                                             ('active_line', '=', True)])
         lines_to_deactivate.write({'active_line': False})
-        lines_to_activate = self.search([('force_inactive', '=', False),
+        lines_to_activate = self.search(domain_lines +
+                                        [('force_inactive', '=', False),
                                          '|', ('validity_date', '=', False),
                                          ('validity_date', '<=', reference_date),
                                          '|', ('end_validity_date', '=', False),
                                          ('end_validity_date', '>=', reference_date),
                                          ('active_line', '=', False)])
         lines_to_activate.write({'active_line': True})
+
+    @api.multi
+    def write(self, vals):
+        result = super(pricelist_partnerinfo_improved, self).write(vals)
+        if 'force_inactive' in vals:
+            self.update_active_lines()
+        return result
 
 
 class product_pricelist_improved(models.Model):
