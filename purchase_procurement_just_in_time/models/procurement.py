@@ -898,6 +898,8 @@ GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
         for order_id in dict_procs_lines.keys():
             for pol_id in dict_procs_lines[order_id].keys():
                 pol = self.env['purchase.order.line'].search([('id', '=', pol_id)])
+                if not pol:
+                    continue
                 procurements = self.search([('id', 'in', dict_procs_lines[order_id][pol_id])])
                 for proc in procurements:
                     if proc not in pol.procurement_ids:
