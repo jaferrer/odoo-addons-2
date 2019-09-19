@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from openerp import exceptions
 import logging
 
 from openerp.addons.connector.session import ConnectorSession
@@ -567,7 +568,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                     raise Warning(_('The destination location must be the same for all the moves of the picking.'))
                 location_dest_id = move.location_dest_id.id
                 if location_id and move.location_id.id != location_id:
-                    raise Warning(_('The source location must be the same for all the moves of the picking.'))
+                    raise exceptions.ValidationError(_('The source location must be the same for all the moves of the picking.'))
                 location_id = move.location_id.id
 
         vals = []
