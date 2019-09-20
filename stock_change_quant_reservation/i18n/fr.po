@@ -46,7 +46,8 @@ msgid "Impossible to reserve quants of different products."
 msgstr "Impossible de réserver ensemble des quants correspondant à des produits différents."
 
 #. module: stock_change_quant_reservation
-#: model:ir.actions.act_window,name:stock_change_quant_reservation.action_change_quants
+#: model:ir.actions.act_window,name:stock_change_quant_reservation.ir_act_window_change_quants_reservation
+#: model:ir.values,name:stock_change_quant_reservation.ir_value_change_quants_reservation
 msgid "Affect Quant"
 msgstr "Affecter les quants"
 
