@@ -266,16 +266,18 @@ ORDER BY po.id
         order_with_limit_dates_ids = []
         for item in result:
             order = self.search([('id', '=', item['order_id'])])
-            calendar = order.company_id.calendar_id
-            if not calendar:
-                _, calendar = order.company_id.partner_id.get_resource_and_calendar_for_supplier()
-            jours_fermeture = calendar and calendar.leave_ids or []
-            # If Sirail is closed at the 'limit order date', choose the soonest date when Sirail is open.
-            for jour in jours_fermeture:
-                if jour.date_from <= item['new_limit_order_date'] <= jour.date_to:
-                    item['new_limit_order_date'] = fields.Date.to_string(
-                        fields.Date.from_string(jour.date_from) + timedelta(days=-1))
-                    break
+            delivery_location = order.picking_type_id.default_location_dest_id
+            if delivery_location:
+                calendar = order.company_id.calendar_id
+                if not calendar:
+                    _, calendar = delivery_location.get_resource_and_calendar_for_location()
+                jours_fermeture = calendar and calendar.leave_ids or []
+                # If Sirail is closed at the 'limit order date', choose the soonest date when Sirail is open.
+                for jour in jours_fermeture:
+                    if jour.date_from <= item['new_limit_order_date'] <= jour.date_to:
+                        item['new_limit_order_date'] = delivery_location. \
+                            schedule_working_days(-1, fields.Datetime.from_string(item['new_limit_order_date']))
+                        break
             if order.limit_order_date != item['new_limit_order_date']:
                 order.limit_order_date = item['new_limit_order_date']
             order_with_limit_dates_ids += [item['order_id']]
