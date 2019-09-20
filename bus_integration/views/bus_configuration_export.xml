@@ -88,7 +88,7 @@
                     <filter string="Active" name="active" domain="[('active', '=', True)]"/>
                     <filter string="Inactive" name="inactive" domain="[('active', '=', False)]"/>
                     <group expand="0" string="Group By">
-                        <filter string="Recipient" domain="[]" context="{'group_by':'recipient_id'}"/>
+                        <filter string="Recipient" name="group_by_recipient" domain="[]" context="{'group_by':'recipient_id'}"/>
                         <filter string="BUS user name" domain="[]" context="{'group_by':'bus_username'}"/>
                         <filter string="Type traitement" domain="[]" context="{'group_by':'treatment_type'}"/>
                     </group>
@@ -101,6 +101,7 @@
             <field name="res_model">bus.configuration.export</field>
             <field name="view_mode">tree,form</field>
             <field name="help"/>
+            <field name="context">{'search_default_group_by_recipient': 1}</field>
         </record>
 
         <menuitem id="menu_bus_config_export_menu" name="Configuration of template exports"

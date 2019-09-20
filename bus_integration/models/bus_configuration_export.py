@@ -25,7 +25,7 @@ from openerp import models, fields, api
 
 class BusConfigurationExport(models.Model):
     _name = 'bus.configuration.export'
-    _order = 'sequence ASC, dependency_level ASC'
+    _order = 'model ASC'
 
     name = fields.Char(u"Name", required=True, compute="_compute_name")
     configuration_id = fields.Many2one('bus.configuration', string=u"Backend",
