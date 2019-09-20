@@ -95,6 +95,7 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
         # - enlever le message d'erreur (vérification à la commande et non plus à la ligne)
         # - prendre en compte uniquement la première fourniture correspondant au fournisseur choisi, s'il y en a
         # plusieurs (ajout du "break").
+        supplierinfo = False
         for supplier in product.seller_ids:
             if partner_id and (supplier.name.id == partner_id):
                 supplierinfo = supplier
@@ -108,7 +109,7 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
                 if not qty:
                     qty = min_qty
                 break
-        return res, qty
+        return res, qty, supplierinfo
 
 
 class CheckQtySupplierInfo(models.Model):
