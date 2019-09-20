@@ -376,6 +376,12 @@ class StockPicking(models.Model):
         Apply 'check_pickings_filled' one picking by one. Thus, in case of problem we know which picking to look at.
         """
 
+        if self.env['queue.job']. \
+                search([('job_function_id.name', '=',
+                         'openerp.addons.stock_quant_packages_moving_wizard.models.stock.job_check_picking_one_by_one'),
+                        ('state', 'not in', ('done', 'failed'))], limit=1):
+            return
+
         pickings_to_check = self.env['stock.picking'].search([('filled_by_jobs', '=', True),
                                                               ('picking_correctly_filled', '=', False),
                                                               ('state', 'not in', [('done', 'cancel')])])

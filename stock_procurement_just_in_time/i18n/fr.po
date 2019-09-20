@@ -369,3 +369,8 @@ msgstr "Séquence de la route"
 #: model:ir.ui.menu,name:stock_procurement_just_in_time.menu_stock_scheduler_controller
 msgid "Stock Scheduler Controller"
 msgstr "Contrôle du planificateur stock"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.warehouse.orderpoint:stock_procurement_just_in_time.stock_warehouse_orderpoint_form
+msgid "Process"
+msgstr "Lancer"

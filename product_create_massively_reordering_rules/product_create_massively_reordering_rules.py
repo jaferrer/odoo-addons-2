@@ -23,7 +23,8 @@ from openerp import models, fields, api, _
 class MassReorderingRulesWizard(models.TransientModel):
     _name = 'mass.reordering.rules.wizard'
 
-    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Copy Reordering Rule", required=True)
+    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Copy Reordering Rule", required=True,
+                                    index=True)
     product_ids = fields.Many2many('product.product', string=u"For Products", required=True)
 
     @api.multi

@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from openerp import exceptions
 import logging
 
 from openerp.addons.connector.session import ConnectorSession
@@ -136,6 +137,7 @@ class stock_pack_operation(models.Model):
     _inherit = 'stock.pack.operation'
 
     picking_id = fields.Many2one('stock.picking', index=True)
+    lot_id = fields.Many2one('stock.production.lot', index=True)
 
     def _get_remaining_prod_quantities(self, cr, uid, operation, context=None):
         '''Get the remaining quantities per product on an operation with a package.
@@ -197,13 +199,63 @@ class stock_pack_operation(models.Model):
         return prod2move_ids.get(self.product_id.id, [])[:]
 
 
+class StockQuantIndex(models.Model):
+    _inherit = 'stock.quant'
+
+    negative_move_id = fields.Many2one('stock.move', 'Move Negative Quant',
+                                       help='If this is a negative quant, this will be the move that caused this '
+                                            'negative quant.',
+                                       readonly=True, index=True)
+
+
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    location_id_store = fields.Many2one('stock.location', related='move_lines.location_id', store=True)
-    location_id = fields.Many2one(related='location_id_store', readonly=True, store=False)
-    location_dest_id_store = fields.Many2one('stock.location', related='move_lines.location_dest_id', store=True)
-    location_dest_id = fields.Many2one(related='location_dest_id_store', readonly=True, store=False)
+    def _get_location_id_store(self, cr, uid, ids, field_name, arg, context):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            if line.move_lines:
+                if line.location_id_store != line.move_lines[0].location_id:
+                    res[line.id] = line.move_lines[0].location_id
+        return res
+
+    def _get_location_dest_id_store(self, cr, uid, ids, field_name, arg, context):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            if line.move_lines:
+                if line.location_dest_id_store != line.move_lines[0].location_dest_id:
+                    res[line.id] = line.move_lines[0].location_dest_id
+        return res
+
+    def _get_pickings(self, cr, uid, ids, context=None):
+        res = set()
+        for sm in self.browse(cr, uid, ids, context=context):
+            if sm.picking_id:
+                res.add(sm.picking_id.id)
+        return list(res)
+
+    _columns = {
+        'location_id_store': old_api_fields.function(_get_location_id_store, type='many2one', relation='stock.location',
+                                                     string=u"Location",
+                                                     store={
+                                                         'stock.move': (
+                                                             _get_pickings,
+                                                             ['picking_id', 'location_id'], 10)
+                                                     }, readonly=True, select=True),
+        'location_dest_id_store': old_api_fields.function(_get_location_dest_id_store, type='many2one',
+                                                          relation='stock.location',
+                                                          string=u"Destination location",
+                                                          store={
+                                                              'stock.move': (
+                                                                  _get_pickings,
+                                                                  ['picking_id', 'location_dest_id'], 10)
+                                                          }, readonly=True, select=True),
+        'location_id': old_api_fields.related(
+            'location_id_store', type='many2one', string=u"Location", relation='stock.location'),
+        'location_dest_id': old_api_fields.related(
+            'location_dest_id_store', type='many2one', string=u"Destination location", relation='stock.location'),
+    }
+
     picking_type_code_store = fields.Selection([('incoming', 'Suppliers'),
                                                 ('outgoing', 'Customers'),
                                                 ('internal', 'Internal')],
@@ -516,7 +568,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                     raise Warning(_('The destination location must be the same for all the moves of the picking.'))
                 location_dest_id = move.location_dest_id.id
                 if location_id and move.location_id.id != location_id:
-                    raise Warning(_('The source location must be the same for all the moves of the picking.'))
+                    raise exceptions.ValidationError(_('The source location must be the same for all the moves of the picking.'))
                 location_id = move.location_id.id
 
         vals = []
@@ -938,6 +990,7 @@ class ProcurementOrder(models.Model):
     location_id = fields.Many2one('stock.location', index=True)
     move_dest_id = fields.Many2one('stock.move', index=True)
     state = fields.Selection(index=True, track_visibility=False)
+    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', index=True)
 
     @api.model
     def _run_move_create(self, procurement):
@@ -1216,3 +1269,15 @@ class StockPerformanceImprovedConfig(models.TransientModel):
             _logger.info(u"Updating picking type codes for picking type %s (%s/%s)" %
                          (picking_type.display_name, index, nb_picking_types))
             picking_type.update_picking_type_codes()
+
+
+class StockProductionLotPerformanceImproved(models.Model):
+    _inherit = 'stock.production.lot'
+
+    @api.model
+    def create(self, vals):
+        # The creation message is useless
+        return super(StockProductionLotPerformanceImproved,
+                     self.with_context(mail_notrack=True,
+                                       mail_create_nolog=True,
+                                       do_not_subscribe_anybody=True)).create(vals)

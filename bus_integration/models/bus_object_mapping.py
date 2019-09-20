@@ -34,6 +34,8 @@ class BusObjectMappingAbstract(models.AbstractModel):
                                 help=u"if XML id not find, is_importable on key in fields")
     deactivated_sync = fields.Boolean(string=u"Synchronize inactive items")
     deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
+    deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
+    update_prohibited = fields.Boolean(string=u"Update prohibited", help=u"When field are importable", default=True)
 
     @api.multi
     def name_get(self):
@@ -256,7 +258,7 @@ class BusObjectMappingField(models.Model):
                                                        ('model', '=', 'ir.model.fields')])
         if not field_data:
             raise exceptions.ValidationError(
-                'bus.object.mapping.csv error : No model found with name: ' + vals['field_id_name'])
+                'bus.object.mapping.csv error : No field found with name: ' + vals['field_id_name'])
         vals['field_id'] = field_data.res_id
         return vals
 

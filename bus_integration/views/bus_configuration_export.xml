@@ -46,7 +46,6 @@
                             </h1>
                         </div>
                         <group>
-
                             <group>
                                 <field name="configuration_id"/>
                                 <field name="recipient_id"/>
@@ -54,6 +53,7 @@
                                 <field name="treatment_type"/>
                                 <field name="bus_reception_treatment"/>
                                 <field name="sequence"/>
+                                <field name="active"/>
                             </group>
                             <group>
                                 <field name="model"/>
@@ -85,6 +85,8 @@
                     <field name="treatment_type"/>
                     <field name="bus_reception_treatment"/>
                     <field name="model"/>
+                    <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                    <filter string="Inactive" name="inactive" domain="[('active', '=', False)]"/>
                     <group expand="0" string="Group By">
                         <filter string="Recipient" domain="[]" context="{'group_by':'recipient_id'}"/>
                         <filter string="BUS user name" domain="[]" context="{'group_by':'bus_username'}"/>

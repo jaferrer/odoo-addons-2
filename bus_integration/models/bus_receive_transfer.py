@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
+import json
 from openerp import api, models
 from openerp import fields
 
@@ -29,6 +29,8 @@ class BusReceiveTransfer(models.Model):
     model = fields.Char(string=u'Model', required=True, index=True)
     local_id = fields.Integer(string=u'Local ID')
     external_key = fields.Integer(string=u'External key', required=True)
+    # used to check if data received from sender are new than local data
+    origin_write_date = fields.Datetime(string=u"Sender write date")
     received_data = fields.Text(string=u"Received data (JSON-encoded)", required=True)
     to_deactivate = fields.Boolean(string=u"To deactivate")
     msg_error = fields.Text(string=u"Error message")
@@ -82,8 +84,9 @@ class BusReceiveTransfer(models.Model):
             vals_value = vals.get(val)
             if isinstance(record_value, models.Model):
                 if len(record_value) > 1:
-                    record_value = record_value.ids.sort()
-                    vals_value = vals_value.sort()
+                    record_value = record_value.ids
+                    record_value.sort()
+                    vals_value.sort()
                 else:
                     record_value = record_value.id
             if val in record and vals_value != record_value:
@@ -91,12 +94,25 @@ class BusReceiveTransfer(models.Model):
         return change_vals
 
     def import_datas(self, transfer, odoo_record, transfer_vals, record_vals):
+        received_record_write_date = json.loads(transfer_vals['received_data'])['write_date']
         if not transfer:
+            # creates bus_receive_transfer record
+            transfer_vals['origin_write_date'] = received_record_write_date
             transfer = self.create(self.remove_not_existing_fields(self._name, transfer_vals))
+        else:
+            if transfer.origin_write_date and fields.Datetime.from_string(transfer.origin_write_date) \
+                    > fields.Datetime.from_string(received_record_write_date):
+                # local data newer than received data.
+                error_message = u'record %s not updated - external_key: %d - local data (%s) newer than ' \
+                                'data received (%s)' % (transfer.display_name, transfer.external_key,
+                                                        transfer.origin_write_date, received_record_write_date)
+                return transfer, odoo_record, ('info', error_message)
+            transfer.origin_write_date = received_record_write_date
+
         vals = self.sanitize_vals(odoo_record, record_vals)
         if not odoo_record:
             odoo_record = odoo_record.create(vals)
         elif vals:
             odoo_record.write(vals)
         transfer.local_id = odoo_record.id
-        return transfer, odoo_record
+        return transfer, odoo_record, False

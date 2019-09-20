@@ -218,7 +218,8 @@ class ProcurementOrderQuantity(models.Model):
     @api.multi
     def check_can_be_canceled(self, raise_error=True):
         for rec in self:
-            if rec.protected_against_scheduler and self.env.context.get('is_scheduler'):
+            if rec.protected_against_scheduler and self.env.context.get('is_scheduler') and not \
+                    self.env.context.get('propagation_cancel'):
                 if raise_error:
                     raise ForbiddenCancelProtectedProcurement(rec.id)
                 else:
@@ -259,7 +260,8 @@ class ProcurementOrderQuantity(models.Model):
             # Keep proc with new qty if some moves are already done
             procurement.remove_done_moves()
         return super(ProcurementOrderQuantity,
-                     self.sudo().with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
+                     self.sudo().with_context(ignore_move_ids=ignore_move_ids, propagation_cancel=True)).\
+            propagate_cancel(procurement)
 
     @api.model
     def remove_done_moves(self):
@@ -293,8 +295,9 @@ class ProcurementOrderQuantity(models.Model):
         try:
             with self.env.cr.savepoint():
                 self.with_context(unlink_all_chain=True, cancel_procurement=True, is_scheduler=True).cancel()
-                self.unlink()
-                result = stock_qty - qty
+                if self.state == 'cancel':
+                    self.unlink()
+                    result = stock_qty - qty
         except ForbiddenCancelProtectedProcurement as e:
             _logger.info(e.value)
         return result
@@ -844,7 +847,7 @@ class StockSchedulerController(models.Model):
     _name = 'stock.scheduler.controller'
     _order = 'orderpoint_id'
 
-    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Orderpoint")
+    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Orderpoint", index=True)
     product_id = fields.Many2one('product.product', string=u"Product", readonly=True)
     location_id = fields.Many2one('stock.location', string=u"Location", readonly=True)
     location_sequence = fields.Integer(string=u"Location sequence", readonly=True)
@@ -900,11 +903,17 @@ class StockSchedulerController(models.Model):
                                                                    ('route_sequence', '=', max_route_sequence),
                                                                    ('run_procs', '=', False)])
                     if controller_lines_no_run_blocked:
+                        any_line_to_relaunch = False
                         for line_blocked in controller_lines_no_run_blocked:
                             queue_job = self.env['queue.job'].search(
                                 [('uuid', '=', line_blocked.job_uuid), ('state', 'in', ['done', 'failed'])])
                             if queue_job:
                                 line_blocked.done = True
+                            elif not self.env['queue.job'].search([('uuid', '=', line_blocked.job_uuid)]):
+                                line_blocked.job_uuid = False
+                                any_line_to_relaunch = True
+                        if any_line_to_relaunch:
+                            return
 
                     controller_lines_run_procs = self.search([('done', '=', False),
                                                               ('location_sequence', '=', max_location_sequence),

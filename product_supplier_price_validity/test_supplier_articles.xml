@@ -37,7 +37,7 @@
         <record id="pricelist1" model="pricelist.partnerinfo">
             <field name="suppinfo_id" ref="supplierinfo1"/>
             <field name="min_quantity" eval="1"/>
-            <field name="validity_date">2014-01-01</field>
+            <field name="validity_date">2014-01-02</field>
             <field name="price" eval="14"/>
         </record>
 
@@ -51,7 +51,7 @@
         <record id="pricelist3" model="pricelist.partnerinfo">
             <field name="suppinfo_id" ref="supplierinfo1"/>
             <field name="min_quantity" eval="10"/>
-            <field name="validity_date">2014-01-01</field>
+            <field name="validity_date">2014-01-02</field>
             <field name="price" eval="12"/>
         </record>
 
@@ -65,6 +65,7 @@
         <record id="pricelist5" model="pricelist.partnerinfo">
             <field name="suppinfo_id" ref="supplierinfo1"/>
             <field name="min_quantity" eval="100"/>
+            <field name="validity_date">2010-01-01</field>
             <field name="price" eval="10"/>
         </record>
 
@@ -85,6 +86,7 @@
         <record id="pricelist8" model="pricelist.partnerinfo">
             <field name="suppinfo_id" ref="supplierinfo1"/>
             <field name="min_quantity" eval="1000"/>
+            <field name="validity_date">2010-01-01</field>
             <field name="price" eval="7"/>
         </record>
 
@@ -100,6 +102,22 @@
             <field name="min_quantity" eval="10000"/>
             <field name="validity_date">2014-06-01</field>
             <field name="price" eval="5"/>
+        </record>
+
+        <record id="pricelist11" model="pricelist.partnerinfo">
+            <field name="suppinfo_id" ref="supplierinfo1"/>
+            <field name="min_quantity" eval="10"/>
+            <field name="validity_date">2014-01-01</field>
+            <field name="end_validity_date">2015-12-01</field>
+            <field name="price" eval="15"/>
+        </record>
+
+        <record id="pricelist12" model="pricelist.partnerinfo">
+            <field name="suppinfo_id" ref="supplierinfo1"/>
+            <field name="min_quantity" eval="1"/>
+            <field name="validity_date">2014-01-01</field>
+            <field name="end_validity_date">2015-12-01</field>
+            <field name="price" eval="16"/>
         </record>
 
     </data>

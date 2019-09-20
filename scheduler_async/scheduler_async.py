@@ -131,10 +131,22 @@ def assign_moves(session, model_name, ids, context):
 
 
 @job
-def job_cancel_procurement(session, model_name, ids, context):
+def job_cancel_procurement(session, model_name, ids):
     """Cancel procurements"""
-    procs = session.env[model_name].with_context(context).browse(ids)
+    procs = session.env[model_name].search([('id', 'in', ids),
+                                            ('state', '!=', 'cancel')])
     procs.cancel()
+
+
+@job
+def job_reconfirm_procurement(session, model_name, ids, vals):
+    """Reconfirm procurements with new vals (if provided)"""
+    procs = session.env[model_name].browse(ids)
+    procs.cancel()
+    procs.reset_to_confirmed()
+    if vals:
+        procs.write(vals)
+    procs.run()
 
 
 @job
@@ -281,7 +293,7 @@ FROM procurement_order po
                     for proc_id in proc_for_job_ids:
                         self.launch_run_or_check_jobs_for_ids(action_to_do, [proc_id])
                 else:
-                    self.launch_run_or_check_jobs_for_ids(action_to_do, [proc_for_job_ids])
+                    self.launch_run_or_check_jobs_for_ids(action_to_do, proc_for_job_ids)
             else:
                 run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order', proc_for_job_ids,
                                           'run', dict(self.env.context))
@@ -337,9 +349,33 @@ FROM procurement_order po
 
     @api.multi
     def launch_job_cancel_procurement(self):
-        context = dict(self.env.context)
         for proc_id in self.ids:
-            job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', [proc_id], context)
+            job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', [proc_id])
+
+    @api.multi
+    def launch_job_reconfirm_procurement(self, vals=None):
+        for proc_id in self.ids:
+            job_reconfirm_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order',
+                                            [proc_id], vals or {})
+
+    @api.model
+    def restart_proc_in_exception(self, jobify=True):
+        """
+        quand on annule un OF, son proc passe en exception =>
+        ce cron relance les procurement en exception, par jobs de 100 procs, chaque nuit
+        """
+        proc_in_exception = self.env['procurement.order'].search([('state', '=', 'exception')])
+
+        buffer = 100
+        while proc_in_exception:
+            chunk_procs = [p.id for p in proc_in_exception[:buffer]]
+            if jobify:
+                run_or_check_procurements.delay(ConnectorSession.from_env(self.env), 'procurement.order',
+                                                chunk_procs, 'run', dict(self.env.context))
+            else:
+                run_or_check_procurements(ConnectorSession.from_env(self.env), 'procurement.order',
+                                          chunk_procs, 'run', dict(self.env.context))
+            proc_in_exception = proc_in_exception[buffer:]
 
 
 class StockMoveAsync(models.Model):

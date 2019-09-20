@@ -156,12 +156,13 @@ class BusSynchronizationExporter(models.AbstractModel):
                     message_dict['body']['root'][model_name][record_id]['xml_id'] = xml_id
             list_export_field = object_mapping.get_field_to_export()
             for field in list_export_field:
-                if field.type_field == 'many2many' and record[field.field_name].ids:
+                if field.type_field == 'many2many':
                     message_dict = self.fill_many2many(message_dict, record, field)
-                if field.type_field == 'many2one' and record[field.field_name].id:
+                if field.type_field == 'many2one':
                     message_dict = self.fill_many2one(message_dict, record, field)
                 elif field.type_field in self.authorize_field_type:
                     message_dict = self.fill_field(message_dict, record, field)
+            message_dict['body']['root'][record._name][record_id]['write_date'] = record.write_date
         return message_dict
 
     @api.model
@@ -188,6 +189,9 @@ class BusSynchronizationExporter(models.AbstractModel):
     @api.model
     def fill_many2one(self, message_dict, record, field):
         record_id = str(record.id)
+        if not record[field.field_name].id:
+            message_dict['body']['root'][record._name][record_id][field.map_name] = False
+            return message_dict
         message_dict['body']['root'][record._name][record_id][field.map_name] = {
             'id': record[field.field_name].id,
             'model': field.relation_mapping_id.model_name,

@@ -55,10 +55,10 @@ class BusConfigurationExport(models.Model):
     mapping_object_id = fields.Many2one('bus.object.mapping', u"Mapping", compute='_get_mapping_object', store=True)
     sequence = fields.Integer(u"sequence", help=u"Order to launch export", default=99)
     dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True)
-
     bus_message_ids = fields.One2many('bus.message', 'batch_id', string=u"Messages")
     cron_sync_all = fields.Many2one('ir.cron', compute="_compute_cron")
     cron_sync_diff = fields.Many2one('ir.cron', compute="_compute_cron")
+    active = fields.Boolean(u"Active", related='recipient_id.active', store=True)
 
     @api.multi
     @api.depends('model')
@@ -88,14 +88,24 @@ class BusConfigurationExport(models.Model):
         """  compute local fields cron_sync_all & cron_sync_diff """
         env_ir_cron = self.env['ir.cron']
         for rec in self:
-            rec.cron_sync_all = env_ir_cron.search([('bus_configuration_export_id', '=', rec.id)], limit=1)
-            rec.cron_sync_diff = env_ir_cron.search([('bus_configuration_export_diff_id', '=', rec.id)], limit=1)
+            rec.cron_sync_all = env_ir_cron\
+                .with_context(active_test=False)\
+                .search([('bus_configuration_export_id', '=', rec.id)], limit=1)
+            rec.cron_sync_diff = env_ir_cron\
+                .with_context(active_test=False)\
+                .search([('bus_configuration_export_diff_id', '=', rec.id)], limit=1)
 
     @api.multi
     def sync_all(self):
         """ run the batch, exports all self.model's records matching self.domain"""
         self.ensure_one()
         self.env['bus.exporter'].run_export(self.id)
+
+    @api.multi
+    def export_updated_records(self):
+        self.ensure_one()
+        force_domain = "[('write_date', '>', last_send_date)]"
+        self.env['bus.exporter'].run_export(self.id, force_domain)
 
     @api.multi
     def sync_diff(self):

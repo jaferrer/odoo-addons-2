@@ -13,7 +13,8 @@ WITH po_to_process AS (
         min(ps.sequence) AS min_ps_sequence
       FROM procurement_order po
         LEFT JOIN product_product pp ON pp.id = po.product_id
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id AND
+          COALESCE(ps.active, FALSE) IS TRUE
       WHERE po.id IN (SELECT po_to_process.id
                       FROM po_to_process) AND
             (ps.company_id = po.company_id OR ps.company_id IS NULL)
@@ -26,7 +27,8 @@ WITH po_to_process AS (
         min(ps.id) AS min_ps_id_for_sequence
       FROM procurement_order po
         LEFT JOIN product_product pp ON pp.id = po.product_id
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id AND
+          COALESCE(ps.active, FALSE) IS TRUE
         LEFT JOIN min_ps_sequences mps ON mps.procurement_order_id = po.id
       WHERE po.id IN (SELECT po_to_process.id
                       FROM po_to_process) AND
@@ -44,7 +46,7 @@ SELECT
   po.product_id
 FROM procurement_order po
   LEFT JOIN product_product pp ON pp.id = po.product_id
-  LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id
+  LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pp.product_tmpl_id AND COALESCE(ps.active, FALSE) IS TRUE
   LEFT JOIN min_ps_sequences_and_id mps ON mps.procurement_order_id = po.id
 WHERE po.id IN (SELECT po_to_process.id
                 FROM po_to_process) AND
