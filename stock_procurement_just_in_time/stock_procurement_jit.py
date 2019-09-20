@@ -295,8 +295,9 @@ class ProcurementOrderQuantity(models.Model):
         try:
             with self.env.cr.savepoint():
                 self.with_context(unlink_all_chain=True, cancel_procurement=True, is_scheduler=True).cancel()
-                self.unlink()
-                result = stock_qty - qty
+                if self.state == 'cancel':
+                    self.unlink()
+                    result = stock_qty - qty
         except ForbiddenCancelProtectedProcurement as e:
             _logger.info(e.value)
         return result
@@ -846,7 +847,7 @@ class StockSchedulerController(models.Model):
     _name = 'stock.scheduler.controller'
     _order = 'orderpoint_id'
 
-    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Orderpoint")
+    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Orderpoint", index=True)
     product_id = fields.Many2one('product.product', string=u"Product", readonly=True)
     location_id = fields.Many2one('stock.location', string=u"Location", readonly=True)
     location_sequence = fields.Integer(string=u"Location sequence", readonly=True)

@@ -131,10 +131,22 @@ def assign_moves(session, model_name, ids, context):
 
 
 @job
-def job_cancel_procurement(session, model_name, ids, context):
+def job_cancel_procurement(session, model_name, ids):
     """Cancel procurements"""
-    procs = session.env[model_name].with_context(context).browse(ids)
+    procs = session.env[model_name].search([('id', 'in', ids),
+                                            ('state', '!=', 'cancel')])
     procs.cancel()
+
+
+@job
+def job_reconfirm_procurement(session, model_name, ids, vals):
+    """Reconfirm procurements with new vals (if provided)"""
+    procs = session.env[model_name].browse(ids)
+    procs.cancel()
+    procs.reset_to_confirmed()
+    if vals:
+        procs.write(vals)
+    procs.run()
 
 
 @job
@@ -337,9 +349,14 @@ FROM procurement_order po
 
     @api.multi
     def launch_job_cancel_procurement(self):
-        context = dict(self.env.context)
         for proc_id in self.ids:
-            job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', [proc_id], context)
+            job_cancel_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order', [proc_id])
+
+    @api.multi
+    def launch_job_reconfirm_procurement(self, vals=None):
+        for proc_id in self.ids:
+            job_reconfirm_procurement.delay(ConnectorSession.from_env(self.env), 'procurement.order',
+                                            [proc_id], vals or {})
 
     @api.model
     def restart_proc_in_exception(self, jobify=True):

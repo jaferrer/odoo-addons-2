@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,25 +18,25 @@
 #
 
 {
-    'name': 'Validity Dates for Supplier Prices',
+    'name': 'File Importation From File',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Product',
-    'depends': ['purchase_improved', 'stock', 'connector'],
+    'category': 'Technical',
+    'depends': ['connector', 'base_import_async'],
     'description': """
-Validity Dates for Supplier Prices
-==================================
-Makes prices dependant on time, not only on purchase quantity.
+File Importation From File
+==========================
+This modules adds a few utilities for customer files importation.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'cron.xml',
-        'supplier_articles.xml',
+        'security/ir.model.access.csv',
+        'security/security.xml',
+        'customer_file_importation.xml',
+        'data/cron.xml',
     ],
-    'demo': [
-        'test_supplier_articles.xml'
-    ],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

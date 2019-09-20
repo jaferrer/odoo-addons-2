@@ -19,13 +19,19 @@
 
 import openerp.addons.decimal_precision as dp
 
-from openerp import models, api
+from openerp import models, api, fields
 from openerp.osv import fields as old_api_fields
 from openerp.tools import float_round
 
 
 class PurchaseOrderLinePlanningImproved(models.Model):
     _inherit = 'purchase.order.line'
+
+    covering_state = fields.Selection([
+        ('all_covered', u"All Need Covered"),
+        ('coverage_computed', u"Computed Coverage"),
+        ('unknown_coverage', u"Not Calculated State")
+    ], string=u"Covered State", default='unknown_coverage', required=True, readonly=True)
 
     @api.cr_uid_ids_context
     def _get_remaining_qty(self, cr, uid, ids, field_name, arg, context=None):

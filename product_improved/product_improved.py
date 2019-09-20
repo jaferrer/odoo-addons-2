@@ -53,7 +53,7 @@ class ProductTemplateJit(models.Model):
         pt.id            AS product_tmpl_id,
         min(ps.sequence) AS sequence
     FROM product_template pt
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pt.id
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pt.id AND COALESCE(ps.active, FALSE) IS TRUE
     GROUP BY pt.id),
 
         main_supplier_s AS (
@@ -67,7 +67,8 @@ class ProductTemplateJit(models.Model):
             product_supplierinfo ps
             INNER JOIN
             main_supplier_intermediate_table ms
-                ON ps.product_tmpl_id = ms.product_tmpl_id AND ps.sequence = ms.sequence)
+                ON ps.product_tmpl_id = ms.product_tmpl_id AND ps.sequence = ms.sequence
+        WHERE COALESCE(ps.active, FALSE) IS TRUE)
 
 SELECT
     pt.id          AS product_tmpl_id,
@@ -159,6 +160,7 @@ class ProductSupplierinfoImproved(models.Model):
     _inherit = 'product.supplierinfo'
 
     name = fields.Many2one(index=True)
+    active = fields.Boolean(u"Active", default=True)
 
     @api.multi
     def update_seller_ids_for_products(self):

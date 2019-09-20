@@ -137,6 +137,18 @@ class stock_warehouse_with_calendar(models.Model):
 class stock_working_days_location(models.Model):
     _inherit = 'stock.location'
 
+    @api.multi
+    def get_resource_and_calendar_for_location(self):
+        warehouse = self.env['stock.warehouse'].browse(self.get_warehouse(self))
+        resource = warehouse and warehouse.resource_id or False
+        if resource:
+            calendar = resource.calendar_id
+        else:
+            calendar = self.company_id.calendar_id
+        if not calendar:
+            calendar = self.env.ref("stock_working_days.default_calendar")
+        return resource, calendar
+
     @api.model
     def get_warehouse(self, location):
         """
@@ -175,14 +187,7 @@ class stock_working_days_location(models.Model):
         assert isinstance(day_date, datetime)
         if nb_days == 0:
             return day_date
-        warehouse = self.env['stock.warehouse'].browse(self.get_warehouse(self))
-        resource = warehouse and warehouse.resource_id or False
-        if resource:
-            calendar = resource.calendar_id
-        else:
-            calendar = self.company_id.calendar_id
-        if not calendar:
-            calendar = self.env.ref("stock_working_days.default_calendar")
+        resource, calendar = self.get_resource_and_calendar_for_location()
         newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date,
                                                   resource_id=resource and resource.id or False,
                                                   compute_leaves=True)

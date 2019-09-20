@@ -212,12 +212,26 @@
             <field name="view_mode">tree</field>
             <field name="domain">[]</field>
             <field name="context">{'search_default_running': True}</field>
-            <field name="help"></field>
+            <field name="help"/>
         </record>
 
         <menuitem id="menu_stock_scheduler_controller" name="Stock Scheduler Controller"
                   action="act_window_stock_scheduler_controller"
                   parent="stock.menu_stock_sched" sequence="30"/>
+
+        <record model="ir.ui.view" id="stock_warehouse_orderpoint_form">
+            <field name="name">stock_warehouse_orderpoint_form</field>
+            <field name="model">stock.warehouse.orderpoint</field>
+            <field name="inherit_id" ref="stock.view_warehouse_orderpoint_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <sheet position="before">
+                    <header>
+                        <button name="process" type="object" string="Process" class="oe_highlight"/>
+                    </header>
+                </sheet>
+            </field>
+        </record>
 
     </data>
 </openerp>

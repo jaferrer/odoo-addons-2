@@ -258,7 +258,7 @@ class BusObjectMappingField(models.Model):
                                                        ('model', '=', 'ir.model.fields')])
         if not field_data:
             raise exceptions.ValidationError(
-                'bus.object.mapping.csv error : No model found with name: ' + vals['field_id_name'])
+                'bus.object.mapping.csv error : No field found with name: ' + vals['field_id_name'])
         vals['field_id'] = field_data.res_id
         return vals
 
