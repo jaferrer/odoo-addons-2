@@ -374,3 +374,23 @@ msgstr "Contrôle du planificateur stock"
 #: view:stock.warehouse.orderpoint:stock_procurement_just_in_time.stock_warehouse_orderpoint_form
 msgid "Process"
 msgstr "Lancer"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.location.scheduler.sequence,name:0
+msgid "Stock scheduler sequence"
+msgstr "Séquence pour le planificateur stock"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.location.scheduler.sequence,location_id:0
+msgid "Location"
+msgstr "Emplacement"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.location.scheduler.sequence,exclude_non_manufactured_products:0
+msgid "Exclude non-manufactured products"
+msgstr "Exclure les produits non fabriqués"
+
+#. module: stock_procurement_just_in_time
+#: help:stock.location.scheduler.sequence,exclude_non_manufactured_products:0
+msgid "If this option is checked, the scheduler whill process only products that can be manufactured in the location of the orderpoint."
+msgstr "Si cette option est activée, le planificateur ne traitera que les articles qui peuvent être produits dans l'emplacement de la règle de réassort."
