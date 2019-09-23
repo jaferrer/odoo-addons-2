@@ -28,13 +28,14 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="stock_location_scheduler_sequence_form">
-            <field name="name">stock_location_scheduler_sequence_form</field>
+        <record model="ir.ui.view" id="stock_location_scheduler_sequence_tree">
+            <field name="name">stock_location_scheduler_sequence_tree</field>
             <field name="model">stock.location.scheduler.sequence</field>
+            <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <form>
+                <tree editable="bottom">
                     <field name="name"/>
-                </form>
+                </tree>
             </field>
         </record>
 
