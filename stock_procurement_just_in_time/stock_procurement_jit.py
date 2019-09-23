@@ -71,9 +71,14 @@ def job_delete_cancelled_moves_and_procs(session, model_name, ids):
 
 class StockLocationSchedulerSequence(models.Model):
     _name = 'stock.location.scheduler.sequence'
+    _order = 'name,id'
 
     name = fields.Char(string=u"Stock scheduler sequence", required=True)
     location_id = fields.Many2one('stock.location', string=u"Location", ondelete='cascade')
+    exclude_non_manufactured_products = fields.Boolean(string=u"Exclude non-manufactured products",
+                                                       help=u"If this option is checked, the scheduler whill process "
+                                                            u"only products that can be manufactured in the location "
+                                                            u"of the orderpoint.")
 
     _sql_constraints = [
         ('location_sequence_unique', 'unique(location_id, name)',
@@ -161,58 +166,86 @@ class ProcurementOrderQuantity(models.Model):
  create_uid,
  write_uid)
 
-  WITH user_id AS (SELECT %s AS user_id),
+WITH user_id AS (SELECT %s AS user_id),
 
-      orderpoints_to_insert AS (
-        SELECT
-          op.id                                     AS orderpoint_id,
-          op.product_id,
-          op.location_id,
-          COALESCE(slss.name :: INTEGER, 0)         AS location_sequence ,
-          COALESCE(slr.stock_scheduler_sequence, 0) AS route_sequence,
-          FALSE                                     AS run_procs,
-          FALSE                                     AS done,
-          CURRENT_TIMESTAMP                         AS create_date,
-          CURRENT_TIMESTAMP                         AS write_date,
-          (SELECT user_id
-           FROM user_id)                            AS create_uid,
-          (SELECT user_id
-           FROM user_id)                            AS write_uid
-        FROM stock_warehouse_orderpoint op
-          LEFT JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
-          LEFT JOIN product_product pp ON pp.id = op.product_id
-          LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
-          LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
-        WHERE op.id IN %s
-        GROUP BY op.id, slr.stock_scheduler_sequence, slss.name),
+     manufactured_products_by_location AS (
+       SELECT pp.id          AS product_id,
+              pr.location_id AS manufactured_in_location_id,
+              TRUE           AS is_manufactured_product_for_location
+       FROM product_product pp
+              INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
+              INNER JOIN stock_location_route_categ rel ON rel.categ_id = pt.categ_id
+              INNER JOIN stock_location_route route ON route.id = rel.route_id AND coalesce(route.active, FALSE) IS TRUE
+              INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
+                                                coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
+       WHERE coalesce(pp.active, FALSE) IS TRUE
+       GROUP BY pp.id, pr.location_id
 
-      list_sequences AS (
-        SELECT
-          location_sequence,
-          route_sequence
-        FROM orderpoints_to_insert
-        GROUP BY location_sequence, route_sequence)
+       UNION ALL
 
-  SELECT *
-  FROM orderpoints_to_insert
+       SELECT pp.id          AS product_id,
+              pr.location_id AS manufactured_in_location_id,
+              TRUE           AS is_manufactured_product_for_location
+       FROM product_product pp
+              INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
+              INNER JOIN stock_route_product rel ON rel.product_id = pt.id
+              INNER JOIN stock_location_route route ON route.id = rel.route_id AND coalesce(route.active, FALSE) IS TRUE
+              INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
+                                                coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
+       WHERE coalesce(pp.active, FALSE) IS TRUE
+       GROUP BY pp.id, pr.location_id),
 
-  UNION ALL
+     orderpoints_to_insert AS (
+       SELECT op.id                                     AS orderpoint_id,
+              op.product_id,
+              op.location_id,
+              COALESCE(slss.name :: INTEGER, 0)         AS location_sequence,
+              COALESCE(slr.stock_scheduler_sequence, 0) AS route_sequence,
+              FALSE                                     AS run_procs,
+              FALSE                                     AS done,
+              CURRENT_TIMESTAMP                         AS create_date,
+              CURRENT_TIMESTAMP                         AS write_date,
+              (SELECT user_id
+               FROM user_id)                            AS create_uid,
+              (SELECT user_id
+               FROM user_id)                            AS write_uid
+       FROM stock_warehouse_orderpoint op
+              LEFT JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
+              LEFT JOIN product_product pp ON pp.id = op.product_id
+              LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
+              LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
+              LEFT JOIN manufactured_products_by_location mpbl ON mpbl.product_id = op.product_id AND
+                                                                  mpbl.manufactured_in_location_id = op.location_id
+       WHERE op.id IN %s
+         AND (coalesce(slss.exclude_non_manufactured_products, FALSE) IS FALSE
+         OR coalesce(mpbl.is_manufactured_product_for_location, FALSE) IS TRUE)
+       GROUP BY op.id, slr.stock_scheduler_sequence, slss.name),
 
-  SELECT
-    NULL              AS orderpoint_id,
-    NULL              AS product_id,
-    NULL              AS location_id,
-    location_sequence,
-    route_sequence,
-    TRUE              AS run_procs,
-    FALSE             AS done,
-    CURRENT_TIMESTAMP AS create_date,
-    CURRENT_TIMESTAMP AS write_date,
-    (SELECT user_id
-     FROM user_id)    AS create_uid,
-    (SELECT user_id
-     FROM user_id)    AS write_uid
-  FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
+     list_sequences AS (
+       SELECT location_sequence,
+              route_sequence
+       FROM orderpoints_to_insert
+       GROUP BY location_sequence, route_sequence)
+
+SELECT *
+FROM orderpoints_to_insert
+
+UNION ALL
+
+SELECT NULL              AS orderpoint_id,
+       NULL              AS product_id,
+       NULL              AS location_id,
+       location_sequence,
+       route_sequence,
+       TRUE              AS run_procs,
+       FALSE             AS done,
+       CURRENT_TIMESTAMP AS create_date,
+       CURRENT_TIMESTAMP AS write_date,
+       (SELECT user_id
+        FROM user_id)    AS create_uid,
+       (SELECT user_id
+        FROM user_id)    AS write_uid
+FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
         return {}
 
     @api.multi
