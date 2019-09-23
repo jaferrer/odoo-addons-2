@@ -17,26 +17,7 @@ msgstr ""
 "Language: fr\n"
 "X-Generator: Poedit 2.0.4\n"
 
-#. module: project_task_charge
-#: model:ir.model.fields,field_description:project_task.field_project_task_is_template_task
-#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_is_template_task
-msgid "Is template task"
-msgstr "Est une tâche modèle"
 
-#. module: project_task_charge
-#: model:ir.model.fields,help:project_task.field_project_task_is_template_task
-msgid "Use to create sub task from this"
-msgstr "Permet de créer des tâches depuis cette tâche"
-
-#. module: project_task_charge
-#: model:ir.model.fields,field_description:project_task.field_project_task_template_task_id
-msgid "Template task"
-msgstr "Tâche modèle"
-
-#. module: project_task_charge
-#: model:ir.model.fields,field_description:project_task.field_project_task_children_task_ids
-msgid "Children tasks"
-msgstr "Tâches enfants"
 
 #. module: project_task_charge
 #: model:ir.model.fields,field_description:project_task.field_project_task_duration
@@ -112,8 +93,3 @@ msgstr "Date de fin"
 msgid "Task charge"
 msgstr "Charges de travail"
 
-#. module: project_task_charge
-#: model:ir.actions.act_window,name:project_task_charge.charge_task_template_action
-#: model:ir.ui.menu,name:project_task_charge.project_task_charge_template_menu
-msgid "Template task"
-msgstr "Tâche modèle"
