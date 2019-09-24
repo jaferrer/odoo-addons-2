@@ -22,6 +22,10 @@ from odoo import models, fields, api
 class PurchaseOrderProjectImproved(models.Model):
     _inherit = 'purchase.order'
 
+    analytic_account_id = fields.Many2one('account.analytic.account',
+                                          string=u"Compte analytique",
+                                          readonly=True,
+                                          states={'draft': [('readonly', False)], 'sent': [('readonly', False)]})
     project_id = fields.Many2one('project.project',
                                  string="Projet",
                                  required=True,
@@ -34,17 +38,12 @@ class PurchaseOrderProjectImproved(models.Model):
         Attention : Ne fonctionne PAS à la Création dans le sens analytic_account_id -> project_id.
         """
         for rec in self:
-            project = self.env['project.project'].search([('analytic_account_id', '=', rec.analytic_account_id.id)],
-                                                         limit=1)
-            rec.project_id = project
+            rec.project_id = rec.analytic_account_id.project_ids[:1]
 
     @api.multi
     def _inverse_project_id(self):
-
         for rec in self:
-            analytic_account = self.env['account.analytic.account'].search(
-                [('project_ids', 'ilike', rec.project_id.id)])
-            rec.analytic_account_id = analytic_account
+            rec.analytic_account_id = rec.project_id.analytic_account_id
 
     @api.model
     def default_get(self, fields):
