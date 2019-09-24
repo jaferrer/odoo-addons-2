@@ -37,7 +37,7 @@ class BusSendMessage(models.AbstractModel):
     database = fields.Char(u"Database")
     login = fields.Char(u"Login")
     password = fields.Char(u"Password")
-    connection_status = fields.Char(string=u"Connection status", compute="get_connexion")
+    connection_status = fields.Char(string=u"Connection status")
 
     @api.multi
     def get_connexion(self):
@@ -48,7 +48,10 @@ class BusSendMessage(models.AbstractModel):
     @api.multi
     def try_connexion(self, raise_error=False):
         self.ensure_one()
-        url = "http://%s:%s/jsonrpc" % (self.url, self.port)
+        if self.port:
+            url = "%s:%s/jsonrpc" % (self.url, self.port)
+        else:
+            url = "%s/jsonrpc" % (self.url)
         server = jsonrpclib.Server(url)
         connection = False
         try:
