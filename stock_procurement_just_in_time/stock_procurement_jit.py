@@ -79,6 +79,10 @@ class StockLocationSchedulerSequence(models.Model):
                                                        help=u"If this option is checked, the scheduler whill process "
                                                             u"only products that can be manufactured in the location "
                                                             u"of the orderpoint.")
+    exclude_manufactured_products = fields.Boolean(string=u"Exclude manufactured products",
+                                                   help=u"If this option is checked, the scheduler whill process "
+                                                        u"only products that can not be manufactured in the location "
+                                                        u"of the orderpoint.")
 
     _sql_constraints = [
         ('location_sequence_unique', 'unique(location_id, name)',
@@ -158,7 +162,6 @@ class ProcurementOrderQuantity(models.Model):
  product_id,
  location_id,
  location_sequence,
- route_sequence,
  run_procs,
  done,
  create_date,
@@ -168,10 +171,9 @@ class ProcurementOrderQuantity(models.Model):
 
 WITH user_id AS (SELECT %s AS user_id),
 
-     manufactured_products_by_location AS (
-       SELECT pp.id          AS product_id,
-              pr.location_id AS manufactured_in_location_id,
-              TRUE           AS is_manufactured_product_for_location
+     manufactured_products AS (
+       SELECT pp.id AS product_id,
+              TRUE  AS is_manufactured_product
        FROM product_product pp
               INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
               INNER JOIN stock_location_route_categ rel ON rel.categ_id = pt.categ_id
@@ -179,13 +181,12 @@ WITH user_id AS (SELECT %s AS user_id),
               INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
                                                 coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
        WHERE coalesce(pp.active, FALSE) IS TRUE
-       GROUP BY pp.id, pr.location_id
+       GROUP BY pp.id
 
        UNION ALL
 
-       SELECT pp.id          AS product_id,
-              pr.location_id AS manufactured_in_location_id,
-              TRUE           AS is_manufactured_product_for_location
+       SELECT pp.id AS product_id,
+              TRUE  AS is_manufactured_product
        FROM product_product pp
               INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
               INNER JOIN stock_route_product rel ON rel.product_id = pt.id
@@ -193,39 +194,36 @@ WITH user_id AS (SELECT %s AS user_id),
               INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
                                                 coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
        WHERE coalesce(pp.active, FALSE) IS TRUE
-       GROUP BY pp.id, pr.location_id),
+       GROUP BY pp.id),
 
      orderpoints_to_insert AS (
-       SELECT op.id                                     AS orderpoint_id,
+       SELECT op.id                             AS orderpoint_id,
               op.product_id,
               op.location_id,
-              COALESCE(slss.name :: INTEGER, 0)         AS location_sequence,
-              COALESCE(slr.stock_scheduler_sequence, 0) AS route_sequence,
-              FALSE                                     AS run_procs,
-              FALSE                                     AS done,
-              CURRENT_TIMESTAMP                         AS create_date,
-              CURRENT_TIMESTAMP                         AS write_date,
+              COALESCE(slss.name :: INTEGER, 0) AS location_sequence,
+              FALSE                             AS run_procs,
+              FALSE                             AS done,
+              CURRENT_TIMESTAMP                 AS create_date,
+              CURRENT_TIMESTAMP                 AS write_date,
               (SELECT user_id
-               FROM user_id)                            AS create_uid,
+               FROM user_id)                    AS create_uid,
               (SELECT user_id
-               FROM user_id)                            AS write_uid
+               FROM user_id)                    AS write_uid
        FROM stock_warehouse_orderpoint op
-              LEFT JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
-              LEFT JOIN product_product pp ON pp.id = op.product_id
-              LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
-              LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
-              LEFT JOIN manufactured_products_by_location mpbl ON mpbl.product_id = op.product_id AND
-                                                                  mpbl.manufactured_in_location_id = op.location_id
+              INNER JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
+              INNER JOIN product_product pp ON pp.id = op.product_id AND COALESCE(pp.active, FALSE) IS TRUE
+              LEFT JOIN manufactured_products mpbl ON mpbl.product_id = op.product_id
        WHERE op.id IN %s
-         AND (coalesce(slss.exclude_non_manufactured_products, FALSE) IS FALSE
-         OR coalesce(mpbl.is_manufactured_product_for_location, FALSE) IS TRUE)
-       GROUP BY op.id, slr.stock_scheduler_sequence, slss.name),
+         AND (COALESCE(slss.exclude_non_manufactured_products, FALSE) IS FALSE
+         OR COALESCE(mpbl.is_manufactured_product, FALSE) IS TRUE)
+         AND (COALESCE(slss.exclude_manufactured_products, FALSE) IS FALSE
+         OR COALESCE(mpbl.is_manufactured_product, FALSE) IS FALSE)
+       GROUP BY op.id, slss.name),
 
      list_sequences AS (
-       SELECT location_sequence,
-              route_sequence
+       SELECT location_sequence
        FROM orderpoints_to_insert
-       GROUP BY location_sequence, route_sequence)
+       GROUP BY location_sequence)
 
 SELECT *
 FROM orderpoints_to_insert
@@ -236,7 +234,6 @@ SELECT NULL              AS orderpoint_id,
        NULL              AS product_id,
        NULL              AS location_id,
        location_sequence,
-       route_sequence,
        TRUE              AS run_procs,
        FALSE             AS done,
        CURRENT_TIMESTAMP AS create_date,
@@ -872,7 +869,6 @@ class StockSchedulerController(models.Model):
     location_id = fields.Many2one('stock.location', string=u"Location", readonly=True)
     location_sequence = fields.Integer(string=u"Location sequence", readonly=True)
     route_id = fields.Many2one('stock.location.route', string=u"Route", readonly=True)
-    route_sequence = fields.Integer(string=u"Route sequence", readonly=True)
     run_procs = fields.Boolean(string=u"Run procurements", readonly=True)
     job_creation_date = fields.Datetime(string=u"Job Creation Date", readonly=True)
     job_uuid = fields.Char(string=u"Job UUID", readonly=True, index=True)
@@ -910,28 +906,25 @@ class StockSchedulerController(models.Model):
 
     @api.model
     def update_scheduler_controller(self, jobify=True, run_procurements=True):
-        max_sequence = self.search([('done', '=', False)], order='location_sequence desc, route_sequence desc', limit=1)
+        line_min_sequence = self.search([('done', '=', False)], order='location_sequence', limit=1)
         if self.is_pop_orderpoints_process_running():
             return
         if self.is_head_scheduler_function_running():
             return
-        if max_sequence:
-            max_location_sequence = max_sequence.location_sequence
-            max_route_sequence = max_sequence.route_sequence
+        if line_min_sequence:
+            min_sequence = line_min_sequence.location_sequence
             is_procs_confirmation_ok = self.env['procurement.order'].is_procs_confirmation_ok()
             is_moves_confirmation_ok = self.env['procurement.order'].is_moves_confirmation_ok()
             if is_procs_confirmation_ok and is_moves_confirmation_ok:
                 controller_lines_no_run = self.search([('done', '=', False),
                                                        ('job_uuid', '=', False),
-                                                       ('location_sequence', '=', max_location_sequence),
-                                                       ('route_sequence', '=', max_route_sequence),
+                                                       ('location_sequence', '=', min_sequence),
                                                        ('run_procs', '=', False)])
 
                 if not controller_lines_no_run:
                     controller_lines_no_run_blocked = self.search([('done', '=', False),
                                                                    ('job_uuid', '!=', False),
-                                                                   ('location_sequence', '=', max_location_sequence),
-                                                                   ('route_sequence', '=', max_route_sequence),
+                                                                   ('location_sequence', '=', min_sequence),
                                                                    ('run_procs', '=', False)])
                     if controller_lines_no_run_blocked:
                         any_line_to_relaunch = False
@@ -947,8 +940,7 @@ class StockSchedulerController(models.Model):
                             return
 
                     controller_lines_run_procs = self.search([('done', '=', False),
-                                                              ('location_sequence', '=', max_location_sequence),
-                                                              ('route_sequence', '=', max_route_sequence),
+                                                              ('location_sequence', '=', min_sequence),
                                                               ('run_procs', '=', True)])
                     if controller_lines_run_procs:
                         if run_procurements:
