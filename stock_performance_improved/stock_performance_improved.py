@@ -211,51 +211,6 @@ class StockQuantIndex(models.Model):
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    def _get_location_id_store(self, cr, uid, ids, field_name, arg, context):
-        res = {}
-        for line in self.browse(cr, uid, ids, context=context):
-            if line.move_lines:
-                if line.location_id_store != line.move_lines[0].location_id:
-                    res[line.id] = line.move_lines[0].location_id
-        return res
-
-    def _get_location_dest_id_store(self, cr, uid, ids, field_name, arg, context):
-        res = {}
-        for line in self.browse(cr, uid, ids, context=context):
-            if line.move_lines:
-                if line.location_dest_id_store != line.move_lines[0].location_dest_id:
-                    res[line.id] = line.move_lines[0].location_dest_id
-        return res
-
-    def _get_pickings(self, cr, uid, ids, context=None):
-        res = set()
-        for sm in self.browse(cr, uid, ids, context=context):
-            if sm.picking_id:
-                res.add(sm.picking_id.id)
-        return list(res)
-
-    _columns = {
-        'location_id_store': old_api_fields.function(_get_location_id_store, type='many2one', relation='stock.location',
-                                                     string=u"Location",
-                                                     store={
-                                                         'stock.move': (
-                                                             _get_pickings,
-                                                             ['picking_id', 'location_id'], 10)
-                                                     }, readonly=True, select=True),
-        'location_dest_id_store': old_api_fields.function(_get_location_dest_id_store, type='many2one',
-                                                          relation='stock.location',
-                                                          string=u"Destination location",
-                                                          store={
-                                                              'stock.move': (
-                                                                  _get_pickings,
-                                                                  ['picking_id', 'location_dest_id'], 10)
-                                                          }, readonly=True, select=True),
-        'location_id': old_api_fields.related(
-            'location_id_store', type='many2one', string=u"Location", relation='stock.location'),
-        'location_dest_id': old_api_fields.related(
-            'location_dest_id_store', type='many2one', string=u"Destination location", relation='stock.location'),
-    }
-
     picking_type_code_store = fields.Selection([('incoming', 'Suppliers'),
                                                 ('outgoing', 'Customers'),
                                                 ('internal', 'Internal')],
@@ -746,6 +701,29 @@ WHERE nb_moves = 0""")
             move_ids = [move.id for move in self.browse(cr, uid, id, context=context).move_lines]
             move_obj.write(cr, uid, move_ids, {'date_expected': value}, context=context)
 
+    def _get_location_id_store(self, cr, uid, ids, field_name, arg, context):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            if line.move_lines:
+                if line.location_id_store != line.move_lines[0].location_id:
+                    res[line.id] = line.move_lines[0].location_id.id
+        return res
+
+    def _get_location_dest_id_store(self, cr, uid, ids, field_name, arg, context):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            if line.move_lines:
+                if line.location_dest_id_store != line.move_lines[0].location_dest_id:
+                    res[line.id] = line.move_lines[0].location_dest_id.id
+        return res
+
+    def _get_pickings(self, cr, uid, ids, context=None):
+        res = set()
+        for sm in self.browse(cr, uid, ids, context=context):
+            if sm.picking_id:
+                res.add(sm.picking_id.id)
+        return list(res)
+
     _columns = {
         'priority': osv.fields.function(get_min_max_date, multi="min_max_date", fnct_inv=_set_priority,
                                         type='selection',
@@ -778,6 +756,25 @@ WHERE nb_moves = 0""")
                                            'stock.picking': (lambda self, cr, uid, ids, ctx: ids, ['move_lines'], 10),
                                            'stock.move': (_get_pickings_group_id, ['group_id', 'picking_id'], 10),
                                        }),
+        'location_id_store': old_api_fields.function(_get_location_id_store, type='many2one', relation='stock.location',
+                                                     string=u"Location",
+                                                     store={
+                                                         'stock.move': (
+                                                             _get_pickings,
+                                                             ['picking_id', 'location_id'], 10)
+                                                     }, readonly=True, select=True),
+        'location_dest_id_store': old_api_fields.function(_get_location_dest_id_store, type='many2one',
+                                                          relation='stock.location',
+                                                          string=u"Destination location",
+                                                          store={
+                                                              'stock.move': (
+                                                                  _get_pickings,
+                                                                  ['picking_id', 'location_dest_id'], 10)
+                                                          }, readonly=True, select=True),
+        'location_id': old_api_fields.related(
+            'location_id_store', type='many2one', string=u"Location", relation='stock.location'),
+        'location_dest_id': old_api_fields.related(
+            'location_dest_id_store', type='many2one', string=u"Destination location", relation='stock.location'),
     }
 
     @api.multi
