@@ -31,5 +31,53 @@ class AccountInvoice(models.Model):
 
     @api.multi
     def invoice_print(self):
-        super(AccountInvoice, self).invoice_print()
-        return self.env['report'].with_context(active_ids=self.ids).get_action(self, 'invoice.report.aeroo')
+        """
+        Replace the Odoo report form view by the aeroo report in the 'Print' button of the form view.
+        """
+
+        self.ensure_one()
+        self.sent = True
+
+        aeroo_report = self.env.ref('account_invoice_report_aeroo.account_invoice_report_aeroo')
+        return {
+            'name': aeroo_report.name,
+            'type': 'ir.actions.report',
+            'model': 'sale.order',
+            'report_name': aeroo_report.report_name,
+            'report_type': aeroo_report.report_type,
+            'report_file': aeroo_report.report_file,
+            'attachment': aeroo_report.attachment,
+            'tml_source': aeroo_report.tml_source,
+            'in_format': aeroo_report.in_format,
+            'binding_model_id': aeroo_report.binding_model_id.id,
+            'out_format': aeroo_report.out_format,
+        }
+
+
+class AccountInvoiceDeleteReport(models.TransientModel):
+    _name = 'account.invoice.delete.report'
+
+    @api.model
+    def link_report_with_mail(self):
+        """
+        Replace the Odoo report by the aeroo report in the 'Send by mail' button of the form view.
+        """
+
+        mail_model = self.env.ref('account.email_template_edi_invoice')
+        report = self.env.ref(self._get_report_id())
+        mail_model.report_template = report.id
+
+    @api.model
+    def _get_report_id(self):
+        return 'account_invoice_report_aeroo.account_invoice_report_aeroo'
+
+    @api.model
+    def hide_odoo_report(self):
+        """
+        Get rid of the Odoo reports in the list of the 'Print' action.
+        """
+
+        odoo_sale_order_report_invoice = self.env.ref('account.account_invoices')
+        odoo_sale_order_report_invoice_with_no_payment = self.env.ref('account.account_invoices_without_payment')
+        self.env['ir.actions.report'].browse(odoo_sale_order_report_invoice.id).unlink_action()
+        self.env['ir.actions.report'].browse(odoo_sale_order_report_invoice_with_no_payment.id).unlink_action()

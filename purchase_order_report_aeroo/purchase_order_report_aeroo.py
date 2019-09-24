@@ -20,8 +20,8 @@
 from odoo import models, api
 
 
-class SaleOrderDeleteReport(models.TransientModel):
-    _name = 'sale.order.delete.report'
+class PurchaseOrderDeleteReport(models.TransientModel):
+    _name = 'purchase.order.delete.report'
 
     @api.model
     def link_report_with_mail(self):
@@ -29,13 +29,13 @@ class SaleOrderDeleteReport(models.TransientModel):
         Replace the Odoo report by the aeroo report in the 'Send by mail' button of the form view.
         """
 
-        mail_model = self.env.ref('sale.email_template_edi_sale')
+        mail_model = self.env.ref('purchase.email_template_edi_purchase')
         report = self.env.ref(self._get_report_id())
         mail_model.report_template = report.id
 
     @api.model
     def _get_report_id(self):
-        return 'sale_order_report_aeroo.sale_order_report_aeroo'
+        return 'purchase_order_report_aeroo.purchase_order_report_aeroo'
 
     @api.model
     def hide_odoo_report(self):
@@ -43,12 +43,24 @@ class SaleOrderDeleteReport(models.TransientModel):
         Get rid of the Odoo report in the list of the 'Print' action.
         """
 
-        odoo_sale_order_report = self.env.ref('sale.action_report_saleorder')
-        self.env['ir.actions.report'].browse(odoo_sale_order_report.id).unlink_action()
+        odoo_purchase_order_report = self.env.ref('purchase.action_report_purchase_order')
+        odoo_purchase_quotation_report = self.env.ref('purchase.report_purchase_quotation')
+        self.env['ir.actions.report'].browse(odoo_purchase_order_report.id).unlink_action()
+        self.env['ir.actions.report'].browse(odoo_purchase_quotation_report.id).unlink_action()
+
+    @api.model
+    def hide_common_report(self):
+        """
+        For now, we can't use parser on overloaded reports. If we need to use a parser, we have to create a new report
+        and hide the one created in this module.
+        """
+
+        odoo_purchase_common_report = self.env.ref('purchase_order_report_aeroo.purchase_order_report_aeroo')
+        self.env['ir.actions.report'].browse(odoo_purchase_common_report.id).unlink_action()
 
 
-class SaleOrderReportAeroo(models.Model):
-    _inherit = 'sale.order'
+class PurchaseOrderReportAeroo(models.Model):
+    _inherit = 'purchase.order'
 
     @api.multi
     def print_quotation(self):
@@ -57,7 +69,7 @@ class SaleOrderReportAeroo(models.Model):
         """
 
         self.filtered(lambda s: s.state == 'draft').write({'state': 'sent'})
-        aeroo_report = self.env.ref('sale_order_report_aeroo.sale_order_report_aeroo')
+        aeroo_report = self.env.ref('purchase_order_report_aeroo.purchase_order_report_aeroo')
         return {
             'name': aeroo_report.name,
             'type': 'ir.actions.report',
