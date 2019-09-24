@@ -130,7 +130,7 @@ def assign_moves(session, model_name, ids, context):
     moves.action_assign()
 
 
-@job
+@job(default_channel='root.root_actions_on_procs')
 def job_cancel_procurement(session, model_name, ids):
     """Cancel procurements"""
     procs = session.env[model_name].search([('id', 'in', ids),
@@ -138,7 +138,7 @@ def job_cancel_procurement(session, model_name, ids):
     procs.cancel()
 
 
-@job
+@job(default_channel='root.root_actions_on_procs')
 def job_reconfirm_procurement(session, model_name, ids, vals):
     """Reconfirm procurements with new vals (if provided)"""
     procs = session.env[model_name].browse(ids)
