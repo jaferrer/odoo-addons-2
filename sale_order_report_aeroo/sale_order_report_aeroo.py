@@ -46,6 +46,7 @@ class SaleOrderDeleteReport(models.TransientModel):
         odoo_sale_order_report = self.env.ref('sale.action_report_saleorder')
         self.env['ir.actions.report'].browse(odoo_sale_order_report.id).unlink_action()
 
+
 class SaleOrderReportAeroo(models.Model):
     _inherit = 'sale.order'
 

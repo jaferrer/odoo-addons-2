@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-		<record id="purchase_order_report_aeroo" model="ir.actions.report">
-			<field name="name">Purchase Order</field>
-			<field name="type">ir.actions.report</field>
-			<field name="model">purchase.order</field>
-			<field name="report_name">purchase.order.report.aeroo</field>
-			<field name="report_type">aeroo</field>
-			<field name="report_file">purchase_order_report_aeroo/purchase_order_report.odt</field>
-            <field name="attachment">object.name.replace('/','')</field>
-			<field name="tml_source">file</field>
-			<field name="in_format">oo-odt</field>
-			<field name="binding_model_id" ref="purchase.model_purchase_order"/>
-			<field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
-		</record>
+    <!--Create a new report and hide this one if you need to use a parser-->
+    <record id="purchase_order_report_aeroo" model="ir.actions.report">
+        <field name="name">Purchase Order</field>
+        <field name="type">ir.actions.report</field>
+        <field name="model">purchase.order</field>
+        <field name="report_name">purchase.order.report.aeroo</field>
+        <field name="report_type">aeroo</field>
+        <field name="report_file">purchase_order_report_aeroo/purchase_order_report.odt</field>
+        <field name="attachment">object.name.replace('/','')</field>
+        <field name="tml_source">file</field>
+        <field name="in_format">oo-odt</field>
+        <field name="binding_model_id" ref="purchase.model_purchase_order"/>
+        <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+    </record>
 
-        <function model="purchase.order.delete.report" name="link_report_with_mail"/>
-        <function model="purchase.order.delete.report" name="hide_odoo_report"/>
+    <function model="purchase.order.delete.report" name="link_report_with_mail"/>
+    <function model="purchase.order.delete.report" name="hide_odoo_report"/>
 
 </odoo>
