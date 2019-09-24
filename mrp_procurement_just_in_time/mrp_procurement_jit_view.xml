@@ -10,6 +10,7 @@
             <field name="arch" type="xml">
                 <field name="name" position="after">
                     <field name="exclude_non_manufactured_products"/>
+                    <field name="exclude_manufactured_products"/>
                 </field>
             </field>
         </record>
