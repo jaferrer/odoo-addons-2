@@ -38,7 +38,8 @@ class BusConfigurationExport(models.Model):
                                                u"Treatment in BUS database", default='simple_reception', required=True)
     treatment_type = fields.Selection([('SYNCHRONIZATION', u"Synchronization"),
                                        ('DELETION_SYNCHRONIZATION', u"Deletion"),
-                                       ('CHECK_SYNCHRONIZATION', u"Check")],
+                                       ('CHECK_SYNCHRONIZATION', u"Check"),
+                                       ('BUS_SYNCHRONIZATION', u"Bus")],
                                       string=u"Treatment type", default='SYNCHRONIZATION', required=True)
 
     last_transfer_state = fields.Selection([('never_processed', u"Never processed"),

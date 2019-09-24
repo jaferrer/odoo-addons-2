@@ -43,17 +43,20 @@ class BusSynchronizationExporter(models.AbstractModel):
         :return: True or raise an exception
         """
         batch = self.env['bus.configuration.export'].browse(backend_bus_configuration_export_id)
-        object_mapping = self.env['bus.object.mapping'].search([('model_name', '=', batch.model)])
-        if not object_mapping or not object_mapping.is_exportable:
-            raise exceptions.ValidationError(u"Object mapping not configured for model : %s" % batch.model)
 
         # last_send_date: limit the number models to synchronise, we only send models which have been updated after the
         #                 last export bus.configuration.export domain should be set to
         #                 [('write_date', '>', last_send_date)]
         export_domain = batch.domain and safe_eval(batch.domain, batch.export_domain_keywords()) or []
+
         active_test = True
-        if batch.treatment_type != 'DELETION_SYNCHRONIZATION' and object_mapping.deactivated_sync:
-            active_test = False
+        if batch.treatment_type != 'BUS_SYNCHRONIZATION':
+            object_mapping = self.env['bus.object.mapping'].search([('model_name', '=', batch.model)])
+            if not object_mapping or not object_mapping.is_exportable:
+                raise exceptions.ValidationError(u"Object mapping not configured for model : %s" % batch.model)
+
+            if batch.treatment_type != 'DELETION_SYNCHRONIZATION' and object_mapping.deactivated_sync:
+                active_test = False
 
         if force_domain:
             force_domain = safe_eval(force_domain, batch.export_domain_keywords())
@@ -116,8 +119,12 @@ class BusSynchronizationExporter(models.AbstractModel):
             result = self._generate_msg_body_deletion(exported_records, model_name)
         elif message_type == 'CHECK_SYNCHRONIZATION':
             result = self._generate_check_msg_body(exported_records, model_name, message_dict['header']['dest'])
-        else:
+        elif message_type == 'BUS_SYNCHRONIZATION':
+            result = self._generate_bus_synchronization_msg_body(exported_records, model_name)
+        elif message_type == 'SYNCHRONIZATION':
             result = self._generate_msg_body(exported_records, model_name)
+        else:
+            raise exceptions.except_orm("Message type '%s' unimplemented" % message_type)
         message_dict['body'] = result['body']
 
         message = self.env['bus.message'].create_message_from_batch(message_dict, batch,
@@ -135,6 +142,19 @@ class BusSynchronizationExporter(models.AbstractModel):
             message.add_log(u"could not create send message job", 'error')
 
     # region def _generate_msg_body(self, exported_records, model_name):
+    def _generate_bus_synchronization_msg_body(self, exported_records, model_name):
+        message_dict = {}
+        for record in exported_records:
+            record_id = str(record.id)
+            message_dict\
+                .setdefault('body', {})\
+                .setdefault('root', {})\
+                .setdefault(record._name, {})\
+                .setdefault(record_id, {})
+            message_dict['body']['root'][record._name][record_id]['write_date'] = record.write_date
+            message_dict['body']['root'][record._name][record_id]['display_name'] = record.display_name or ""
+        return message_dict
+
     def _generate_msg_body(self, exported_records, model_name):
         message_dict = {
             'body': {

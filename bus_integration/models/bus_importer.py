@@ -319,6 +319,15 @@ class BusSynchronizationImporter(models.AbstractModel):
         return True
 
     @api.model
+    def register_synchro_bus_response(self, message):
+        message_dict = json.loads(message.message, encoding='utf-8')
+        result = message_dict.get('body', {}).get('return', {}).get('result', {})
+        for model in result.keys():
+            for id in result[model].keys():
+                external_key = result[model][id]
+                self.create_receive_transfer(model, external_key, id, False, False)
+
+    @api.model
     def import_bus_references(self, message_id, dict_result, return_state):
         if not dict_result:
             return True
