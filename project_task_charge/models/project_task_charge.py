@@ -41,7 +41,6 @@ class ProjectTaskCharge(models.Model):
     remaining_hours = fields.Float(u"Remaining hours")
     date_start = fields.Datetime(u"Start date")
     date_end = fields.Datetime(u"End date")
-    is_template_task = fields.Boolean(u"Template task")
 
     api.multi
 
@@ -59,12 +58,10 @@ class ProjectTaskCharge(models.Model):
     WITH max_task_date AS (
     SELECT max(date_end) AS max_date
     FROM project_task
-    WHERE is_template_task IS NOT TRUE
 ),
      min_task_date AS (
          SELECT min(date_start) AS min_date
          FROM project_task
-         WHERE is_template_task IS NOT TRUE
      ),
      days AS (
          SELECT generate_days.date,
@@ -83,12 +80,10 @@ class ProjectTaskCharge(models.Model):
                 duration,
                 pt.date_start,
                 pt.date_end,
-                pt.is_template_task,
                 planned_hours,
                 total_hours_spent,
                 remaining_hours
          FROM project_task pt
-         WHERE is_template_task IS NOT TRUE
      )
 SELECT (to_char(days.date, 'yyyymmdd') || lpad(COALESCE(td.user_id::TEXT, '')::TEXT, 4, '0') ||
        lpad(COALESCE(td.task_id::TEXT, '')::TEXT, 5, '0')) AS id,
@@ -97,7 +92,6 @@ SELECT (to_char(days.date, 'yyyymmdd') || lpad(COALESCE(td.user_id::TEXT, '')::T
              td.project_id AS project_id,
              td.user_id AS user_id,
              td.task_id AS task_id,
-             td.is_template_task AS is_template_task,
              td.stage_id AS stage_id,
              td.duration_per_day AS duration_per_day,
              td.duration AS duration,
