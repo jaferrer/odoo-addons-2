@@ -79,6 +79,10 @@ class StockLocationSchedulerSequence(models.Model):
                                                        help=u"If this option is checked, the scheduler whill process "
                                                             u"only products that can be manufactured in the location "
                                                             u"of the orderpoint.")
+    exclude_manufactured_products = fields.Boolean(string=u"Exclude manufactured products",
+                                                   help=u"If this option is checked, the scheduler whill process "
+                                                        u"only products that can not be manufactured in the location "
+                                                        u"of the orderpoint.")
 
     _sql_constraints = [
         ('location_sequence_unique', 'unique(location_id, name)',
@@ -219,6 +223,8 @@ WITH user_id AS (SELECT %s AS user_id),
        WHERE op.id IN %s
          AND (coalesce(slss.exclude_non_manufactured_products, FALSE) IS FALSE
          OR coalesce(mpbl.is_manufactured_product_for_location, FALSE) IS TRUE)
+         AND (coalesce(slss.exclude_manufactured_products, FALSE) IS FALSE
+         OR coalesce(mpbl.is_manufactured_product_for_location, FALSE) IS FALSE)
        GROUP BY op.id, slr.stock_scheduler_sequence, slss.name),
 
      list_sequences AS (

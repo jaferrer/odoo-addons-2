@@ -28,17 +28,6 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="stock_location_scheduler_sequence_tree">
-            <field name="name">stock_location_scheduler_sequence_tree</field>
-            <field name="model">stock.location.scheduler.sequence</field>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <tree editable="bottom">
-                    <field name="name"/>
-                </tree>
-            </field>
-        </record>
-
         <record model="ir.ui.view" id="stock_route_form">
             <field name="name">stock_route_form</field>
             <field name="model">stock.location.route</field>
@@ -233,6 +222,31 @@
                 </sheet>
             </field>
         </record>
+
+        <record model="ir.ui.view" id="stock_location_scheduler_sequence_tree">
+            <field name="name">stock_location_scheduler_sequence_tree</field>
+            <field name="model">stock.location.scheduler.sequence</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="bottom">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_stock_scheduler_sequence">
+            <field name="name">Stock Scheduler Sequences</field>
+            <field name="res_model">stock.location.scheduler.sequence</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"/>
+        </record>
+
+        <menuitem id="menu_location_scheduler_sequence" name="Stock Scheduler Sequences"
+                  action="act_window_stock_scheduler_sequence"
+                  parent="stock.menu_stock_sched" sequence="40"/>
 
     </data>
 </openerp>
