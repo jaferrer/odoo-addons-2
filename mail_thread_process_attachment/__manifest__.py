@@ -27,7 +27,7 @@
     'description': """
 Mail Thread process Attachment
 ==============================
-Override of mail.thread.message_process() to read the email attachments, and to use any attached email as the main 
+Override of mail.thread.message_process() to read the email attachments, and to use any attached email as the main
 email, to comply to mail forwarding with attachment.
 """,
     'website': 'http://www.ndp-systemes.fr',

@@ -32,7 +32,7 @@ class MailThread(models.AbstractModel):
     @api.model
     def message_process(self, model, message, custom_values=None,
                         save_original=False, strip_attachments=False,
-                        thread_id=None):
+                        thread_id=None, parent_msg_dict=None):
         """Overridden her to read email attachment if any.
 
         Process an incoming RFC2822 email message, relying on
@@ -64,7 +64,13 @@ class MailThread(models.AbstractModel):
         :param int thread_id: optional ID of the record/thread from ``model``
            to which this mail should be attached. When provided, this
            overrides the automatic detection based on the message
-           headers."""
+           headers.
+        :param dict parent_msg_dict: If it is called recursively on an
+           attachment from a parent, this dict will contain the parent
+           `msg_dict`, in order to keep its fields in the attachment's
+           msg_dict (at key `parent_dict`)
+        """
+        custom_values = custom_values or {}
         # extract message bytes - we are forced to pass the message as binary because
         # we don't know its encoding until we parse its headers and hence can't
         # convert it to utf-8 for transport between the mailgate script and here.
@@ -78,6 +84,9 @@ class MailThread(models.AbstractModel):
 
         # parse the message, verify we are not in a loop by checking message_id is not duplicated
         msg = self.message_parse(msg_txt, save_original=save_original)
+        if parent_msg_dict:
+            msg.update(parent_dict=parent_msg_dict)
+
         if strip_attachments:
             msg.pop('attachments', None)
 
@@ -92,16 +101,22 @@ class MailThread(models.AbstractModel):
         # find possible routes for the message
         routes = self.message_route(msg_txt, msg, model, thread_id, custom_values)
         # Handle messages embedded as attachment as the original message
-        for att in msg.get('attachments', []):
-            if att.info.get('message') and not self.env.context.get('message_extracted'):
-                if isinstance(att.content, list):
-                    embedded_msg = att.content[0]
-                else:
-                    embedded_msg = att.content
-                return self.with_context(message_extracted=True).message_process(
-                    routes[0][0], embedded_msg.as_string(), custom_values=routes[0][2], save_original=save_original,
-                    strip_attachments=strip_attachments, thread_id=routes[0][1]
-                )
+        if not self.env.context.get('message_extracted'):
+            for att in msg.get('attachments', []):
+                if att.info.get('message'):
+                    if isinstance(att.content, list):
+                        embedded_msg = att.content[0]
+                    else:
+                        embedded_msg = att.content
+                    return self.with_context(message_extracted=True).message_process(
+                        routes[0][0],
+                        embedded_msg.as_string(),
+                        custom_values=routes[0][2],
+                        save_original=save_original,
+                        strip_attachments=strip_attachments,
+                        thread_id=routes[0][1],
+                        parent_msg_dict=msg,
+                    )
         thread_id = self.message_route_process(msg_txt, msg, routes)
         return thread_id
 
