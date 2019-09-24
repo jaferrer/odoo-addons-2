@@ -893,17 +893,29 @@ class StockSchedulerController(models.Model):
             controller_line.write({'job_uuid': job_uuid, 'job_creation_date': fields.Datetime.now()})
 
     @api.model
-    def is_not_pop_orderpoints_process_running_ok(self):
-        return not self.env['queue.job']. \
+    def is_pop_orderpoints_process_running(self):
+        return self.env['queue.job']. \
             search(
             [('job_function_id.name', '=',
               'openerp.addons.stock_procurement_just_in_time.stock_procurement_jit.pop_sub_process_orderpoints'),
              ('state', 'not in', ('done', 'failed'))], limit=1)
 
     @api.model
+    def is_head_scheduler_function_running(self):
+        return self.env['queue.job']. \
+            search(
+            [('job_function_id.name', '=',
+              'openerp.addons.scheduler_async.scheduler_async.run_procure_orderpoint_async'),
+             ('state', 'not in', ('done', 'failed'))], limit=1)
+
+    @api.model
     def update_scheduler_controller(self, jobify=True, run_procurements=True):
         max_sequence = self.search([('done', '=', False)], order='location_sequence desc, route_sequence desc', limit=1)
-        if max_sequence and self.is_not_pop_orderpoints_process_running_ok():
+        if self.is_pop_orderpoints_process_running():
+            return
+        if self.is_head_scheduler_function_running():
+            return
+        if max_sequence:
             max_location_sequence = max_sequence.location_sequence
             max_route_sequence = max_sequence.route_sequence
             is_procs_confirmation_ok = self.env['procurement.order'].is_procs_confirmation_ok()
