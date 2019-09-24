@@ -34,24 +34,8 @@ class AccountInvoice(models.Model):
         """
         Replace the Odoo report form view by the aeroo report in the 'Print' button of the form view.
         """
-
-        self.ensure_one()
-        self.sent = True
-
-        aeroo_report = self.env.ref('account_invoice_report_aeroo.account_invoice_report_aeroo')
-        return {
-            'name': aeroo_report.name,
-            'type': 'ir.actions.report',
-            'model': 'sale.order',
-            'report_name': aeroo_report.report_name,
-            'report_type': aeroo_report.report_type,
-            'report_file': aeroo_report.report_file,
-            'attachment': aeroo_report.attachment,
-            'tml_source': aeroo_report.tml_source,
-            'in_format': aeroo_report.in_format,
-            'binding_model_id': aeroo_report.binding_model_id.id,
-            'out_format': aeroo_report.out_format,
-        }
+        super(AccountInvoice, self).invoice_print()
+        return self.env.ref('account_invoice_report_aeroo.account_invoice_report_aeroo').read()[0]
 
 
 class AccountInvoiceDeleteReport(models.TransientModel):
