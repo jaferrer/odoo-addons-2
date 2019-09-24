@@ -28,18 +28,6 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="stock_route_form">
-            <field name="name">stock_route_form</field>
-            <field name="model">stock.location.route</field>
-            <field name="inherit_id" ref="stock.stock_location_route_form_view"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <field name="sequence" position="after">
-                    <field name="stock_scheduler_sequence"/>
-                </field>
-            </field>
-        </record>
-
         <record model="ir.ui.view" id="stock_levels_report_tree">
             <field name="name">stock.levels.report.tree</field>
             <field name="model">stock.levels.report</field>
@@ -164,7 +152,6 @@
                     <field name="location_id"/>
                     <field name="location_sequence"/>
                     <field name="route_id"/>
-                    <field name="route_sequence"/>
                     <field name="run_procs"/>
                     <field name="job_creation_date"/>
                     <field name="job_uuid"/>
