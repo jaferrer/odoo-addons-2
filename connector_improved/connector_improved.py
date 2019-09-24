@@ -27,6 +27,7 @@ class QueueJob(models.Model):
     _inherit = 'queue.job'
 
     date_requeued = fields.Datetime(string=u"Requeued at", track_visibility='onchange')
+    job_function_id = fields.Many2one('queue.job.function', index=True)
 
     @api.multi
     def set_to_done(self):
@@ -95,3 +96,9 @@ class ConnectorCheckpointImproved(models.Model):
             return
         users = self.env['res.users'].search([('groups_id', '=', group.id)])
         self.message_subscribe_users(user_ids=users.ids)
+
+
+class QueueJobFunction(models.Model):
+    _inherit = 'queue.job.function'
+
+    name = fields.Char(index=True)
