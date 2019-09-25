@@ -802,6 +802,7 @@ class StockMove(models.Model):
     procurement_id = fields.Many2one('procurement.order', index=True)
     group_id = fields.Many2one('procurement.group', index=True)
     picking_type_id = fields.Many2one('stock.picking.type', index=True)
+    partially_available = fields.Boolean(index=True)
 
     @api.multi
     def _check_package_from_moves(self):
