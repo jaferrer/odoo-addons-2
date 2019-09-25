@@ -44,18 +44,18 @@ class ForbiddenCancelProtectedProcurement(exceptions.except_orm):
 
 
 @job(default_channel='root.procurement_just_in_time_chunk')
-def pop_sub_process_orderpoints(session, model_name, ids, context):
+def pop_sub_process_orderpoints(session, model_name, ids):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s pop computing orderpoints to process" % POP_PROCESS_CHUNK)
-    controller_stock = session.env[model_name].with_context(context).search([('id', 'in', ids)])
+    controller_stock = session.env[model_name].search([('id', 'in', ids)])
     controller_stock.pop_job_orderpoint_process()
 
 
 @job(default_channel='root.procurement_just_in_time')
-def process_orderpoints(session, model_name, ids, context):
+def process_orderpoints(session, model_name, ids):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    orderpoints = session.env[model_name].with_context(context).search([('id', 'in', ids)])
+    orderpoints = session.env[model_name].search([('id', 'in', ids)])
     orderpoints.process()
     job_uuid = session.context.get('job_uuid')
     if job_uuid:
@@ -884,8 +884,7 @@ class StockSchedulerController(models.Model):
         for controller_line in self:
             job_uuid = process_orderpoints. \
                 delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                      controller_line.orderpoint_id.ids, dict(self.env.context),
-                      description="Computing orderpoints")
+                      controller_line.orderpoint_id.ids, description="Computing orderpoints")
             controller_line.write({'job_uuid': job_uuid, 'job_creation_date': fields.Datetime.now()})
 
     @api.model
@@ -955,14 +954,13 @@ class StockSchedulerController(models.Model):
                             controller_lines_no_run = controller_lines_no_run[POP_PROCESS_CHUNK:]
                             pop_sub_process_orderpoints. \
                                 delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
-                                      chunk_line.ids, dict(self.env.context),
-                                      description="Pop job Computing orderpoints")
+                                      chunk_line.ids, description="Pop job Computing orderpoints")
                     else:
                         for line in controller_lines_no_run:
                             line.job_uuid = str(line.orderpoint_id.id)
                             self.env.context = dict(self.env.context, job_uuid=line.job_uuid)
                             process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                                line.orderpoint_id.ids, dict(self.env.context))
+                                                line.orderpoint_id.ids)
 
     @api.model
     def clean_scheduler_controller_lines(self):
