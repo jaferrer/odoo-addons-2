@@ -14,20 +14,6 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="stock_location_form">
-            <field name="name">stock_location_form</field>
-            <field name="model">stock.location</field>
-            <field name="inherit_id" ref="stock.view_location_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <field name="putaway_strategy_id" position="after">
-                    <div colspan="2">
-                        <field name="stock_scheduler_sequence_ids" nolabel="1"/>
-                    </div>
-                </field>
-            </field>
-        </record>
-
         <record model="ir.ui.view" id="stock_levels_report_tree">
             <field name="name">stock.levels.report.tree</field>
             <field name="model">stock.levels.report</field>
@@ -217,6 +203,7 @@
             <field name="arch" type="xml">
                 <tree editable="bottom">
                     <field name="name"/>
+                    <field name="location_id"/>
                 </tree>
             </field>
         </record>
