@@ -143,6 +143,10 @@ class MoUpdateMrpProduction(models.Model):
         return result
 
     @api.multi
+    def button_update_manual(self):
+        self.with_context(manual_mo_update=True).button_update()
+
+    @api.multi
     def button_update(self):
         running_orders = self.search([('id', 'in', self.ids),
                                       ('state', 'not in', ['draft', 'done', 'cancel'])])

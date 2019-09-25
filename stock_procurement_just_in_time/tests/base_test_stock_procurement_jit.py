@@ -50,6 +50,10 @@ class BaseTestStockProcurementJIT(common.TransactionCase):
         wizard.execute()
         self.env['queue.job'].search([]).write({'state': 'done'})
 
+        for location in self.env['stock.location'].search([]):
+            self.env['stock.location.scheduler.sequence'].create({'location_id': location.id,
+                                                                  'name': 0})
+
     def process_orderpoints(self, product_ids=None):
         """Function to call the scheduler without needing connector to work."""
         if not product_ids:
