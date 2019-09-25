@@ -56,6 +56,12 @@ class MakeProcurementImproved(models.TransientModel):
                     'uom_id': product.uom_id.id,
                     'date_planned': res.date_planned,
                 })
+
+        if res.product_tmpl_id.route_from_categ_ids:
+            res['route_ids'] = res.product_tmpl_id.route_from_categ_ids[0]
+        elif res.product_tmpl_id.route_ids:
+            res['route_ids'] = res.product_tmpl_id.route_ids[0]
+
         return res
 
     @api.multi
@@ -97,7 +103,7 @@ class ProductTmplImproved(models.Model):
             {'active_id': self.id, 'active_model': 'product.template'}).create({})
         return {
             'type': 'ir.actions.act_window',
-            'name': _(u"Make Procurements"),
+            'name': _(u"Make Procurements (%s)" % self.name),
             'res_model': 'make.procurement',
             'view_type': 'form',
             'view_mode': 'form',

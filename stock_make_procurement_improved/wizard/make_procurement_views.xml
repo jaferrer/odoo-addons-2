@@ -21,6 +21,9 @@
                         </tree>
                     </field>
                 </field>
+                <field name="route_ids" position="attributes">
+                    <attribute name="required">1</attribute>
+                </field>
             </field>
         </record>
 
