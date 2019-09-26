@@ -53,7 +53,9 @@ class ProcurementOrderPurchasePlanningImproved(models.Model):
                 if proc.purchase_id and fields.Datetime.from_string(proc.purchase_id.date_order) > order_date and not \
                         self.env.context.get('do_not_move_purchase_order'):
                     proc.purchase_id.date_order = fields.Datetime.to_string(order_date)
-                proc.purchase_line_id.set_moves_dates(proc.purchase_line_id.date_required)
+                date_required = proc.purchase_line_id.date_required
+                if date_required:
+                    proc.purchase_line_id.set_moves_dates(proc.purchase_line_id.date_required)
         return super(ProcurementOrderPurchasePlanningImproved, self).action_reschedule()
 
     @api.model
