@@ -276,7 +276,10 @@ class StockPicking(models.Model):
                         qty_on_link, prod2move_ids = picking_obj. \
                             _create_link_for_quant(cr, uid, prod2move_ids, ops.id, quant, quant["qty"], context=context)
                         remaining_qty_on_quant -= qty_on_link
-                    if remaining_qty_on_quant:
+                    product = self.pool.get('product.product').browse(cr, uid, quant["product_id"], context)
+                    remaining_qty_cmp = float_compare(remaining_qty_on_quant, 0,
+                                                      precision_rounding=product.uom_id.rounding)
+                    if remaining_qty_cmp > 0:
                         still_to_do.append((ops, quant["product_id"], remaining_qty_on_quant))
                         need_rereserve = True
             elif ops.product_id.id:
@@ -306,10 +309,14 @@ class StockPicking(models.Model):
                         flag = flag and (ops.owner_id.id == quant["owner_id"])
                         if flag:
                             max_qty_on_link = min(quant["qty"], qty_to_assign)
-                            qty_on_link, prod2move_ids = picking_obj. \
-                                _create_link_for_quant(cr, uid, prod2move_ids, ops.id, quant, max_qty_on_link,
-                                                       context=context)
-                            qty_to_assign -= qty_on_link
+                            product = self.pool.get('product.product').browse(cr, uid, quant["product_id"], context)
+                            max_qty_on_link_cmp = float_compare(max_qty_on_link, 0,
+                                                              precision_rounding=product.uom_id.rounding)
+                            if max_qty_on_link_cmp > 0:
+                                qty_on_link, prod2move_ids = picking_obj. \
+                                    _create_link_for_quant(cr, uid, prod2move_ids, ops.id, quant, max_qty_on_link,
+                                                           context=context)
+                                qty_to_assign -= qty_on_link
                 qty_assign_cmp = float_compare(qty_to_assign, 0, precision_rounding=ops.product_id.uom_id.rounding)
                 if qty_assign_cmp > 0:
                     # qty reserved is less than qty put in operations. We need to create a link but it's deferred
