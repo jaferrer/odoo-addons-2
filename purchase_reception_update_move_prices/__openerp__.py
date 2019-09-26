@@ -24,7 +24,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['purchase', 'currency_rate_update'],
+    'depends': ['purchase'],
     'description': """
 Free Numbering of Purchase Orders
 =================================
