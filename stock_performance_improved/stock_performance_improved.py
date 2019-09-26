@@ -1225,6 +1225,9 @@ class StockInventoryLine(models.Model):
 class StockMoveOperationLinkImporved(models.Model):
     _inherit = 'stock.move.operation.link'
 
+    operation_id = fields.Many2one('stock.pack.operation', index=True)
+    reserved_quant_id = fields.Many2one('stock.quant', index=True)
+
     @api.model
     def sweep_move_operation_links(self):
         self.env.cr.execute("""WITH link_ids_to_delete AS (
