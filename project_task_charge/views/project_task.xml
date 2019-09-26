@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="charge_project_task_form" model="ir.ui.view">
+            <field name="name">charge_project_task_form</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <field name="project_id" position="after">
+                    <field name="duration"/>
+                    <field name="duration_per_day" widget="float_time"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</openerp>
