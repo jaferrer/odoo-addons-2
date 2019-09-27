@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!--Create a new report and hide this one if you need to use a parser-->
     <record id="purchase_order_report_aeroo" model="ir.actions.report">
         <field name="name">Purchase Order</field>
         <field name="type">ir.actions.report</field>

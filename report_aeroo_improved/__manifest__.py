@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Compatibity to send a report Aeroo inside a Mail',
+    'name': 'Compatibility to send a report Aeroo inside a Mail',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
