@@ -57,7 +57,7 @@ class PurchaseProcurementStockWarehouseOrderpoint(models.Model):
         return """SELECT
       sm.id,
       sm.product_qty,
-      min(COALESCE(po.date_planned, sm.date)) AS date,
+      min(COALESCE(po.date_planned, sm.date))::DATE AS date,
       po.id
     FROM
       stock_move sm

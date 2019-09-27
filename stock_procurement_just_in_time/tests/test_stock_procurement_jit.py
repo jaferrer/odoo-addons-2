@@ -23,7 +23,6 @@ from .base_test_stock_procurement_jit import BaseTestStockProcurementJIT
 
 class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
-
     def test_01_procurement_jit_basic(self):
         procs = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
                                                       ('product_id', 'in', [self.test_product.id,
@@ -44,32 +43,32 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
         self.assertEqual(len(procs), 8)
 
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].state, 'running')
         self.assertEqual(procs[0].product_id, self.test_product)
 
-        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-16")
         self.assertEqual(procs[1].product_qty, 8)
         self.assertEqual(procs[1].state, 'exception')
         self.assertEqual(procs[1].product_id, self.test_product3)
 
-        self.assertEqual(procs[2].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-20")
         self.assertEqual(procs[2].product_qty, 6)
         self.assertEqual(procs[2].state, 'running')
         self.assertEqual(procs[2].product_id, self.test_product)
 
-        self.assertEqual(procs[3].date_planned, "2015-03-21 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-21")
         self.assertEqual(procs[3].product_qty, 6)
         self.assertEqual(procs[3].state, 'exception')
         self.assertEqual(procs[3].product_id, self.test_product3)
 
-        self.assertEqual(procs[4].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[4].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[4].product_qty, 12)
         self.assertEqual(procs[4].state, 'running')
         self.assertEqual(procs[4].product_id, self.test_product)
 
-        self.assertEqual(procs[5].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[5].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[5].product_qty, 12)
         self.assertEqual(procs[5].state, 'exception')
         self.assertEqual(procs[5].product_id, self.test_product3)
@@ -127,37 +126,37 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
         self.assertEqual(len(procs), 7)
         self.assertEqual(procs[0].product_id, self.test_product)
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].state, 'running')
 
         self.assertEqual(procs[1].product_id, self.test_product3)
-        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-16")
         self.assertEqual(procs[1].product_qty, 8)
         self.assertEqual(procs[1].state, 'exception')
 
         self.assertEqual(procs[2].product_id, self.test_product)
-        self.assertEqual(procs[2].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-20")
         self.assertEqual(procs[2].product_qty, 6)
         self.assertEqual(procs[2].state, 'running')
 
         self.assertEqual(procs[3].product_id, self.test_product3)
-        self.assertEqual(procs[3].date_planned, "2015-03-21 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-21")
         self.assertEqual(procs[3].product_qty, 6)
         self.assertEqual(procs[3].state, 'exception')
 
         self.assertEqual(procs[4].product_id, self.test_product)
-        self.assertEqual(procs[4].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[4].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[4].product_qty, 12)
         self.assertEqual(procs[4].state, 'running')
 
         self.assertEqual(procs[5].product_id, self.test_product3)
-        self.assertEqual(procs[5].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[5].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[5].product_qty, 12)
         self.assertEqual(procs[5].state, 'exception')
 
         self.assertEqual(procs[6].product_id, self.test_product2)
-        self.assertEqual(procs[6].date_planned, "2015-03-26 18:00:00")
+        self.assertEqual(procs[6].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[6].product_qty, 5)
         self.assertEqual(procs[6].state, 'confirmed')
 
@@ -217,32 +216,32 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
         # They should all be running
         self.assertEqual(len(procs), 6)
         self.assertEqual(procs[0].product_id, self.test_product)
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].state, 'running')
 
         self.assertEqual(procs[1].product_id, self.test_product3)
-        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-16")
         self.assertEqual(procs[1].product_qty, 8)
         self.assertEqual(procs[1].state, 'exception')
 
         self.assertEqual(procs[2].product_id, self.test_product)
-        self.assertEqual(procs[2].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-20")
         self.assertEqual(procs[2].product_qty, 6)
         self.assertEqual(procs[2].state, 'running')
 
         self.assertEqual(procs[3].product_id, self.test_product3)
-        self.assertEqual(procs[3].date_planned, "2015-03-21 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-21")
         self.assertEqual(procs[3].product_qty, 6)
         self.assertEqual(procs[3].state, 'exception')
 
         self.assertEqual(procs[4].product_id, self.test_product)
-        self.assertEqual(procs[4].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[4].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[4].product_qty, 12)
         self.assertEqual(procs[4].state, 'running')
 
         self.assertEqual(procs[5].product_id, self.test_product3)
-        self.assertEqual(procs[5].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[5].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[5].product_qty, 12)
         self.assertEqual(procs[5].state, 'exception')
 
@@ -304,32 +303,32 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
                                 order='date_planned, product_id')
 
         self.assertEqual(len(procs), 6)
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].product_id, self.test_product)
         self.assertEqual(procs[0].state, 'running')
 
-        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-16")
         self.assertEqual(procs[1].product_qty, 8)
         self.assertEqual(procs[1].product_id, self.test_product3)
         self.assertEqual(procs[1].state, 'exception')
 
-        self.assertEqual(procs[2].date_planned, "2015-03-24 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-24")
         self.assertEqual(procs[2].product_qty, 6)
         self.assertEqual(procs[2].product_id, self.test_product)
         self.assertEqual(procs[2].state, 'running')
 
-        self.assertEqual(procs[3].date_planned, "2015-03-24 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-24")
         self.assertEqual(procs[3].product_qty, 6)
         self.assertEqual(procs[3].product_id, self.test_product3)
         self.assertEqual(procs[3].state, 'exception')
 
-        self.assertEqual(procs[4].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[4].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[4].product_qty, 10)
         self.assertEqual(procs[4].product_id, self.test_product)
         self.assertEqual(procs[4].state, 'running')
 
-        self.assertEqual(procs[5].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[5].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[5].product_qty, 10)
         self.assertEqual(procs[5].product_id, self.test_product3)
         self.assertEqual(procs[5].state, 'exception')
@@ -348,13 +347,13 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
         # First let's start with the basic procurement scenario
         self.test_01_procurement_jit_basic()
         move_need2 = self.browse_ref('stock_procurement_just_in_time.need2')
-        move_need2.date = "2015-03-27 11:00:00"
+        move_need2.date = "2015-03-27"
         move_need7 = self.browse_ref('stock_procurement_just_in_time.need7')
-        move_need7.date = "2015-03-28 11:00:00"
+        move_need7.date = "2015-03-28"
         # We create a new move in order to have a need at the end
-        new_move = move_need2.copy({'date': "2015-03-30 11:10:00"})
+        new_move = move_need2.copy({'date': "2015-03-30"})
         new_move.action_confirm()
-        new_move2 = move_need7.copy({'date': "2015-03-31 11:10:00"})
+        new_move2 = move_need7.copy({'date': "2015-03-31"})
         new_move2.action_confirm()
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
@@ -363,42 +362,42 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
                                 order='date_planned, product_id')
 
         self.assertEqual(len(procs), 8)
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].product_id, self.test_product)
         self.assertEqual(procs[0].state, 'running')
 
-        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-16")
         self.assertEqual(procs[1].product_qty, 8)
         self.assertEqual(procs[1].product_id, self.test_product3)
         self.assertEqual(procs[1].state, 'exception')
 
-        self.assertEqual(procs[2].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[2].product_qty, 12)
         self.assertEqual(procs[2].product_id, self.test_product)
         self.assertEqual(procs[2].state, 'running')
 
-        self.assertEqual(procs[3].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[3].product_qty, 12)
         self.assertEqual(procs[3].product_id, self.test_product3)
         self.assertEqual(procs[3].state, 'exception')
 
-        self.assertEqual(procs[4].date_planned, "2015-03-27 11:00:00")
+        self.assertEqual(procs[4].date_planned[:10], "2015-03-27")
         self.assertEqual(procs[4].product_qty, 6)
         self.assertEqual(procs[4].product_id, self.test_product)
         self.assertEqual(procs[4].state, 'running')
 
-        self.assertEqual(procs[5].date_planned, "2015-03-28 11:00:00")
+        self.assertEqual(procs[5].date_planned[:10], "2015-03-28")
         self.assertEqual(procs[5].product_qty, 6)
         self.assertEqual(procs[5].product_id, self.test_product3)
         self.assertEqual(procs[5].state, 'exception')
 
-        self.assertEqual(procs[6].date_planned, "2015-03-30 11:10:00")
+        self.assertEqual(procs[6].date_planned[:10], "2015-03-30")
         self.assertEqual(procs[6].product_qty, 6)
         self.assertEqual(procs[6].product_id, self.test_product)
         self.assertEqual(procs[6].state, 'running')
 
-        self.assertEqual(procs[7].date_planned, "2015-03-31 11:10:00")
+        self.assertEqual(procs[7].date_planned[:10], "2015-03-31")
         self.assertEqual(procs[7].product_qty, 6)
         self.assertEqual(procs[7].product_id, self.test_product3)
         self.assertEqual(procs[7].state, 'exception')
@@ -419,9 +418,9 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
         procs[1].product_qty = 10
 
         move_need1 = self.browse_ref('stock_procurement_just_in_time.need1')
-        move_need1.date = "2015-03-22 11:00:00"
+        move_need1.date = "2015-03-22"
         move_need6 = self.browse_ref('stock_procurement_just_in_time.need6')
-        move_need6.date = "2015-03-23 11:00:00"
+        move_need6.date = "2015-03-23"
 
         self.process_orderpoints()
         procs = proc_env.search([('location_id', '=', self.location_b.id),
@@ -430,32 +429,32 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
                                 order='date_planned, product_id')
 
         self.assertEqual(len(procs), 6)
-        self.assertEqual(procs[0].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-20")
         self.assertEqual(procs[0].product_qty, 6)
         self.assertEqual(procs[0].product_id, self.test_product)
         self.assertEqual(procs[0].state, 'running')
 
-        self.assertEqual(procs[1].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-20")
         self.assertEqual(procs[1].product_qty, 6)
         self.assertEqual(procs[1].product_id, self.test_product)
         self.assertEqual(procs[1].state, 'running')
 
-        self.assertEqual(procs[2].date_planned, "2015-03-21 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-21")
         self.assertEqual(procs[2].product_qty, 6)
         self.assertEqual(procs[2].product_id, self.test_product3)
         self.assertEqual(procs[2].state, 'exception')
 
-        self.assertEqual(procs[3].date_planned, "2015-03-21 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-21")
         self.assertEqual(procs[3].product_qty, 6)
         self.assertEqual(procs[3].product_id, self.test_product3)
         self.assertEqual(procs[3].state, 'exception')
 
-        self.assertEqual(procs[4].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[4].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[4].product_qty, 12)
         self.assertEqual(procs[4].product_id, self.test_product)
         self.assertEqual(procs[4].state, 'running')
 
-        self.assertEqual(procs[5].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[5].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[5].product_qty, 12)
         self.assertEqual(procs[5].product_id, self.test_product3)
         self.assertEqual(procs[5].state, 'exception')
@@ -483,12 +482,12 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
         self.assertEqual(len(procs), 2)
 
-        self.assertEqual(procs[0].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-20")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].state, 'running')
         self.assertEqual(procs[0].product_id, self.test_product)
 
-        self.assertEqual(procs[1].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[1].product_qty, 14)
         self.assertEqual(procs[1].state, 'running')
         self.assertEqual(procs[1].product_id, self.test_product)
@@ -516,7 +515,7 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
         self.assertEqual(len(procs), 1)
 
-        self.assertEqual(procs[0].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[0].product_qty, 12)
         self.assertEqual(procs[0].state, 'running')
         self.assertEqual(procs[0].product_id, self.test_product)
@@ -538,27 +537,27 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
         self.assertEqual(len(procs), 4)
 
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].product_id, self.test_product)
         self.assertEqual(procs[0].state, 'running')
 
-        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-16")
         self.assertEqual(procs[1].product_qty, 8)
         self.assertEqual(procs[1].product_id, self.test_product3)
         self.assertEqual(procs[1].state, 'exception')
 
-        self.assertEqual(procs[2].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[2].product_qty, 12)
         self.assertEqual(procs[2].product_id, self.test_product)
         self.assertEqual(procs[2].state, 'running')
 
-        self.assertEqual(procs[3].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[3].product_qty, 12)
         self.assertEqual(procs[3].product_id, self.test_product3)
         self.assertEqual(procs[3].state, 'exception')
 
-    def test_01_unlink_moves_of_partially_done_chain(self):
+    def test_10_unlink_moves_of_partially_done_chain(self):
         # Let's add rules to deal with chains
         procurement_rule_a_to_b = self.browse_ref('stock_procurement_just_in_time.procurement_rule_a_to_b')
         procurement_rule_a_to_b.procure_method = 'make_to_order'
@@ -590,17 +589,17 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
         self.assertEqual(len(procs), 3)
 
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].state, 'running')
         self.assertEqual(procs[0].product_id, self.test_product)
 
-        self.assertEqual(procs[1].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-20")
         self.assertEqual(procs[1].product_qty, 6)
         self.assertEqual(procs[1].state, 'running')
         self.assertEqual(procs[1].product_id, self.test_product)
 
-        self.assertEqual(procs[2].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[2].product_qty, 12)
         self.assertEqual(procs[2].state, 'running')
         self.assertEqual(procs[2].product_id, self.test_product)
@@ -673,22 +672,22 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
                                                      order='date_planned, product_id')
         self.assertEqual(len(procs), 4)
 
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].product_id, self.test_product)
         self.assertEqual(procs[0].state, 'running')
 
-        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-16")
         self.assertEqual(procs[1].product_qty, 8)
         self.assertEqual(procs[1].product_id, self.test_product3)
         self.assertEqual(procs[1].state, 'exception')
 
-        self.assertEqual(procs[2].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[2].product_qty, 12)
         self.assertEqual(procs[2].product_id, self.test_product)
         self.assertEqual(procs[2].state, 'running')
 
-        self.assertEqual(procs[3].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[3].product_qty, 12)
         self.assertEqual(procs[3].product_id, self.test_product3)
         self.assertEqual(procs[3].state, 'exception')
@@ -845,37 +844,37 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
         self.assertEqual(len(procs), 7)
         self.assertEqual(procs[0].product_id, self.test_product)
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 8)
         self.assertEqual(procs[0].state, 'running')
 
         self.assertEqual(procs[1].product_id, self.test_product3)
-        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-16")
         self.assertEqual(procs[1].product_qty, 8)
         self.assertEqual(procs[1].state, 'exception')
 
         self.assertEqual(procs[2].product_id, self.test_product)
-        self.assertEqual(procs[2].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-20")
         self.assertEqual(procs[2].product_qty, 12)
         self.assertEqual(procs[2].state, 'running')
 
         self.assertEqual(procs[3].product_id, self.test_product3)
-        self.assertEqual(procs[3].date_planned, "2015-03-21 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-21")
         self.assertEqual(procs[3].product_qty, 6)
         self.assertEqual(procs[3].state, 'exception')
 
         self.assertEqual(procs[4].product_id, self.test_product)
-        self.assertEqual(procs[4].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[4].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[4].product_qty, 2)
         self.assertEqual(procs[4].state, 'running')
 
         self.assertEqual(procs[5].product_id, self.test_product3)
-        self.assertEqual(procs[5].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[5].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[5].product_qty, 12)
         self.assertEqual(procs[5].state, 'exception')
 
         self.assertEqual(procs[6].product_id, self.test_product2)
-        self.assertEqual(procs[6].date_planned, "2015-03-26 18:00:00")
+        self.assertEqual(procs[6].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[6].product_qty, 5)
         self.assertEqual(procs[6].state, 'confirmed')
 
@@ -930,32 +929,32 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
         self.assertEqual(len(procs), 6)
         self.assertEqual(procs[0].product_id, self.test_product)
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 10)
         self.assertEqual(procs[0].state, 'running')
 
         self.assertEqual(procs[1].product_id, self.test_product3)
-        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-16")
         self.assertEqual(procs[1].product_qty, 8)
         self.assertEqual(procs[1].state, 'exception')
 
         self.assertEqual(procs[2].product_id, self.test_product3)
-        self.assertEqual(procs[2].date_planned, "2015-03-21 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-21")
         self.assertEqual(procs[2].product_qty, 6)
         self.assertEqual(procs[2].state, 'exception')
 
         self.assertEqual(procs[3].product_id, self.test_product)
-        self.assertEqual(procs[3].date_planned, "2015-03-24 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-24")
         self.assertEqual(procs[3].product_qty, 12)
         self.assertEqual(procs[3].state, 'running')
 
         self.assertEqual(procs[4].product_id, self.test_product3)
-        self.assertEqual(procs[4].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[4].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[4].product_qty, 12)
         self.assertEqual(procs[4].state, 'exception')
 
         self.assertEqual(procs[5].product_id, self.test_product2)
-        self.assertEqual(procs[5].date_planned, "2015-03-26 18:00:00")
+        self.assertEqual(procs[5].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[5].product_qty, 5)
         self.assertEqual(procs[5].state, 'confirmed')
 
@@ -982,32 +981,32 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
 
         self.assertEqual(len(procs), 8)
 
-        self.assertEqual(procs[0].date_planned, "2015-03-15 10:00:00")
+        self.assertEqual(procs[0].date_planned[:10], "2015-03-15")
         self.assertEqual(procs[0].product_qty, 8.2)
         self.assertEqual(procs[0].state, 'running')
         self.assertEqual(procs[0].product_id, self.test_product)
 
-        self.assertEqual(procs[1].date_planned, "2015-03-16 10:00:00")
+        self.assertEqual(procs[1].date_planned[:10], "2015-03-16")
         self.assertEqual(procs[1].product_qty, 8)
         self.assertEqual(procs[1].state, 'exception')
         self.assertEqual(procs[1].product_id, self.test_product3)
 
-        self.assertEqual(procs[2].date_planned, "2015-03-20 10:00:00")
+        self.assertEqual(procs[2].date_planned[:10], "2015-03-20")
         self.assertEqual(procs[2].product_qty, 5)
         self.assertEqual(procs[2].state, 'running')
         self.assertEqual(procs[2].product_id, self.test_product)
 
-        self.assertEqual(procs[3].date_planned, "2015-03-21 10:00:00")
+        self.assertEqual(procs[3].date_planned[:10], "2015-03-21")
         self.assertEqual(procs[3].product_qty, 6)
         self.assertEqual(procs[3].state, 'exception')
         self.assertEqual(procs[3].product_id, self.test_product3)
 
-        self.assertEqual(procs[4].date_planned, "2015-03-25 10:00:00")
+        self.assertEqual(procs[4].date_planned[:10], "2015-03-25")
         self.assertEqual(procs[4].product_qty, 13)
         self.assertEqual(procs[4].state, 'running')
         self.assertEqual(procs[4].product_id, self.test_product)
 
-        self.assertEqual(procs[5].date_planned, "2015-03-26 10:00:00")
+        self.assertEqual(procs[5].date_planned[:10], "2015-03-26")
         self.assertEqual(procs[5].product_qty, 12)
         self.assertEqual(procs[5].state, 'exception')
         self.assertEqual(procs[5].product_id, self.test_product3)

@@ -28,7 +28,7 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
         self.warehouse_orderpoint1.write({'product_min_qty': 0, 'product_max_qty': 0})
         self.process_orderpoints(self.test_product.ids)
         procs2 = self.env['procurement.order'].search([('location_id', '=', self.location_b.id),
-                                                       ('product_id', 'in', [self.test_product.id]),
+                                                       ('product_id', '=', self.test_product.id),
                                                        ('state', '!=', 'cancel')],
                                                       order='date_planned, product_id')
         self.assertTrue(not any(procs2.mapped('protected_against_scheduler')))
@@ -56,7 +56,6 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
                                                        ('product_id', 'in', [self.test_product.id]),
                                                        ('state', '!=', 'cancel')],
                                                       order='date_planned, product_id')
-        print procs2.mapped('protected_against_scheduler')
         self.assertTrue(not any(procs2.mapped('protected_against_scheduler')))
         self.assertEqual(len(procs2), 4)
         self.assertEqual([2, 6, 2, 10], procs2.mapped('product_qty'))
@@ -74,7 +73,6 @@ class TestStockProcurementJIT(BaseTestStockProcurementJIT):
                                                        ('product_id', 'in', [self.test_product.id]),
                                                        ('state', '!=', 'cancel')],
                                                       order='date_planned, product_id')
-        print procs2.mapped('protected_against_scheduler')
         self.assertTrue(not any(procs2.mapped('protected_against_scheduler')))
         self.assertEqual(len(procs2), 4)
         self.assertEqual([2, 6, 2, 10], procs2.mapped('product_qty'))

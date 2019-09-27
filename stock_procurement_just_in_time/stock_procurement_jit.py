@@ -22,10 +22,9 @@ from datetime import datetime as dt
 
 import openerp.addons.decimal_precision as dp
 from dateutil.relativedelta import relativedelta
+from openerp import fields, models, api, exceptions, _
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
-
-from openerp import fields, models, api, exceptions, _
 from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 
@@ -389,7 +388,8 @@ class StockWarehouseOrderPointJit(models.Model):
         """
         proc = self.env['procurement.order']
         self.ensure_one()
-        product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
+        end_cover_date = fields.Datetime.from_string(need.get('date') or fields.Date.today()) + relativedelta(days=1)
+        product_max_qty = self.get_max_qty(end_cover_date)
         if self.fill_strategy == 'duration':
             consider_end_contract_effect = bool(self.env['ir.config_parameter'].get_param(
                 'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
@@ -405,7 +405,7 @@ class StockWarehouseOrderPointJit(models.Model):
         if float_compare(qty, 0.0, precision_rounding=self.product_uom.rounding) > 0:
             proc_vals = proc._prepare_orderpoint_procurement(self, qty)
             if need['date']:
-                proc_vals.update({'date_planned': need['date']})
+                proc_vals.update({'date_planned': need['date'] + ' 12:00:00'})
             proc = proc.create(proc_vals)
             if not self.env.context.get('procurement_no_run'):
                 proc.run()
@@ -481,7 +481,7 @@ class StockWarehouseOrderPointJit(models.Model):
     def process_events_at_date(self, event, events, stock_after_event):
         self.ensure_one()
         events_at_date = [item for item in events if item['date'] == event['date']]
-        stock_after_event += sum(item['move_qty'] for item in events_at_date)
+        stock_after_event += sum([item['move_qty'] for item in events_at_date])
         return events_at_date, stock_after_event
 
     @api.multi
@@ -499,9 +499,9 @@ class StockWarehouseOrderPointJit(models.Model):
                     events_at_date, stock_after_event = op.process_events_at_date(event, events, stock_after_event)
                     done_dates += [event['date']]
                 if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned'] and event['proc_id']:
-                    procs_oversupply = self.env[
-                        'procurement.order'].search([('id', 'in', [item['proc_id'] for item in events_at_date]),
-                                                     ('state', '!=', 'done')])
+                    procs_oversupply = self.env['procurement.order']. \
+                        search([('id', 'in', [item['proc_id'] for item in events_at_date]),
+                                ('state', '!=', 'done')])
                     for proc_oversupply in procs_oversupply:
                         qty_same_proc = sum([item['move_qty']
                                             for item in events if item['proc_id'] == proc_oversupply.id])
@@ -518,14 +518,14 @@ class StockWarehouseOrderPointJit(models.Model):
             # the minimum quantity of the orderpoint.
             last_scheduled_date = op.get_last_scheduled_date()
             if last_scheduled_date:
-                date_end = last_scheduled_date + relativedelta(minutes=+1)
+                date_end = last_scheduled_date + relativedelta(days=1)
                 op.remove_unecessary_procurements(date_end)
 
     @api.model
     def get_query_move_in(self):
         return """SELECT sm.id,
        sm.product_qty,
-       min(COALESCE(po.date_planned, sm.date)) AS date,
+       min(COALESCE(po.date_planned, sm.date))::DATE AS date,
        po.id
 FROM stock_move sm
        LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
@@ -539,7 +539,7 @@ WHERE sm.product_id = %s
     def get_query_moves_out(self):
         return """SELECT sm.id,
        sm.product_qty,
-       min(sm.date) AS date
+       min(sm.date)::DATE AS date
 FROM stock_move sm
        LEFT JOIN stock_location sl ON sm.location_id = sl.id
 WHERE sm.product_id = %s
@@ -550,7 +550,7 @@ WHERE sm.product_id = %s
     @api.model
     def get_query_procs(self):
         return """SELECT po.id,
-       min(po.date_planned),
+       min(po.date_planned)::DATE,
        min(po.qty)
 FROM procurement_order po
        LEFT JOIN stock_location sl ON po.location_id = sl.id

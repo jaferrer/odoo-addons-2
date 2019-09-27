@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
