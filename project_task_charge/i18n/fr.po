@@ -58,9 +58,19 @@ msgid "User"
 msgstr "Utilisateur"
 
 #. module: project_task_charge
-#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_stage_id
-msgid "Stage"
-msgstr "Étape"
+#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_user_id
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: project_task_charge
+#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_sale_order_line_amount
+msgid "Sale order line amount"
+msgstr "Montant de la ligne de commande"
+
+#. module: project_task_charge
+#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_sale_order_line_amount_per_day
+msgid "Sale order line amount per day"
+msgstr "Montant de la ligne de commande par jour"
 
 #. module: project_task_charge
 #: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_planned_hours
@@ -93,3 +103,37 @@ msgstr "Date de fin"
 msgid "Task charge"
 msgstr "Charges de travail"
 
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Day"
+msgstr "Jour"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Week"
+msgstr "Semaine"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Month"
+msgstr "Mois"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Year"
+msgstr "Année"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Task"
+msgstr "Tâche"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Project"
+msgstr "Projet"

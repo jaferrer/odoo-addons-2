@@ -26,7 +26,8 @@
     'depends': [
         'project',
         'hr_timesheet_task',
-        'project_timeline'
+        'project_timeline',
+        'web_timeline_improved',
     ],
     'description': """
 Project task charge

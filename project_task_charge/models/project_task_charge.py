@@ -33,6 +33,8 @@ class ProjectTaskCharge(models.Model):
     project_id = fields.Many2one('project.project', u"Project")
     task_id = fields.Many2one('project.task', u"Task")
     user_id = fields.Many2one('res.users', u"User")
+    sale_order_line_amount = fields.Float(string=u"Sale order line amount")
+    sale_order_line_amount_per_day = fields.Float(string=u"Sale order line amount per day")
     stage_id = fields.Many2one('project.task.type', u"Stage")
     duration_per_day = fields.Float(u"Duration of the task per day")
     duration = fields.Integer(u"Spacing the task in days")
@@ -42,8 +44,7 @@ class ProjectTaskCharge(models.Model):
     date_start = fields.Datetime(u"Start date")
     date_end = fields.Datetime(u"End date")
 
-    api.multi
-
+    @api.multi
     def name_get(self):
         result = []
         for rec in self:
@@ -56,9 +57,9 @@ class ProjectTaskCharge(models.Model):
         self.env.cr.execute("""
  CREATE OR REPLACE VIEW project_task_charge AS (
     WITH max_task_date AS (
-    SELECT max(date_end) AS max_date
-    FROM project_task
-),
+        SELECT max(date_end) AS max_date
+        FROM project_task
+    ),
      min_task_date AS (
          SELECT min(date_start) AS min_date
          FROM project_task
@@ -74,35 +75,49 @@ class ProjectTaskCharge(models.Model):
      task_data AS (
          SELECT pt.project_id,
                 pt.user_id,
-                pt.id AS task_id,
+                pt.id                           AS task_id,
                 pt.stage_id,
-                duration_per_day,
-                duration,
+                sol.price_subtotal,
+                pt.date_start,
+                pt.date_end,
+                planned_hours,
+                total_hours_spent,
+                remaining_hours,
+                count(days.date)                as duration
+         FROM project_task pt
+                  INNER JOIN sale_order_line sol ON pt.sale_line_id = sol.id
+                  LEFT JOIN days ON days.date > pt.date_start AND days.date < pt.date_end AND days.date < pt.date_end
+                  AND days.num_day_week > 0 AND days.num_day_week < 6
+         group by pt.project_id,
+                  pt.user_id,
+                  task_id,
+                pt.stage_id,
+                sol.price_subtotal,
                 pt.date_start,
                 pt.date_end,
                 planned_hours,
                 total_hours_spent,
                 remaining_hours
-         FROM project_task pt
      )
 SELECT (to_char(days.date, 'yyyymmdd') || lpad(COALESCE(td.user_id::TEXT, '')::TEXT, 4, '0') ||
-       lpad(COALESCE(td.task_id::TEXT, '')::TEXT, 5, '0')) AS id,
-             days.date::DATE AS date,
-             days.num_day_week AS num_day_week,
-             td.project_id AS project_id,
-             td.user_id AS user_id,
-             td.task_id AS task_id,
-             td.stage_id AS stage_id,
-             td.duration_per_day AS duration_per_day,
-             td.duration AS duration,
-             td.planned_hours AS planned_hours,
-             td.total_hours_spent AS total_hours_spent,
-             td.remaining_hours AS remaining_hours,
-             td.date_start AS date_start,
-             td.date_end AS date_end
-    FROM days
-             LEFT JOIN task_data td ON days.date > td.date_start AND days.date < td.date_end
-    WHERE days.num_day_week > 0
-      AND days.num_day_week < 6
-)
-        """)
+        lpad(COALESCE(td.task_id::TEXT, '')::TEXT, 5, '0'))                 AS id,
+       days.date::DATE                                                      AS date,
+       days.num_day_week                                                    AS num_day_week,
+       td.project_id                                                        AS project_id,
+       td.user_id                                                           AS user_id,
+       td.task_id                                                           AS task_id,
+       td.stage_id                                                          AS stage_id,
+       td.price_subtotal                                                    AS sale_order_line_amount,
+       (planned_hours / duration)                                           AS duration_per_day,
+       (price_subtotal / planned_hours *  (planned_hours / duration))       AS sale_order_line_amount_per_day,
+       duration                                                             AS duration,
+       td.planned_hours                                                     AS planned_hours,
+       td.total_hours_spent                                                 AS total_hours_spent,
+       td.remaining_hours                                                   AS remaining_hours,
+       td.date_start                                                        AS date_start,
+       td.date_end                                                          AS date_end
+FROM days
+    LEFT JOIN task_data td ON days.date > td.date_start AND days.date < td.date_end
+WHERE days.num_day_week > 0
+  AND days.num_day_week < 6
+  )""")
