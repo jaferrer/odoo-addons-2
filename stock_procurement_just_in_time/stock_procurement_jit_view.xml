@@ -208,6 +208,18 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="stock_location_scheduler_sequence_search">
+            <field name="name">stock_location_scheduler_sequence_search</field>
+            <field name="model">stock.location.scheduler.sequence</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="location_id"/>
+                </search>
+            </field>
+        </record>
+
         <record model="ir.actions.act_window" id="act_window_stock_scheduler_sequence">
             <field name="name">Stock Scheduler Sequences</field>
             <field name="res_model">stock.location.scheduler.sequence</field>
