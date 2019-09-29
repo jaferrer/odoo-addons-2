@@ -65,8 +65,20 @@ class StockQuantMove(models.TransientModel):
                     rec.picking_type_id = self.env['stock.quant'].get_default_picking_type_for_move()
 
     @api.multi
+    @api.onchange('picking_type_id')
+    def onchange_global_dest_loc(self):
+        self.force_is_manual_op_if_needed()
+
+    @api.multi
+    def force_is_manual_op_if_needed(self):
+        for rec in self:
+            if rec.picking_type_id and rec.picking_type_id.force_is_manual_op:
+                rec.is_manual_op = True
+
+    @api.multi
     def do_transfer(self):
         self.ensure_one()
+        self.force_is_manual_op_if_needed()
         quants = self.pack_move_items.mapped(lambda x: x.quant)
         move_items = {}
         for item in self.pack_move_items:
