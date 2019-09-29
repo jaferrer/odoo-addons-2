@@ -8,8 +8,8 @@
         <field name="model">rida.line</field>
         <field name="arch" type="xml">
             <tree editable="top"
-                  decoration-warning="state not in ('closed', 'duplicate', 'cancel') and priority == 'medium'"
-                  decoration-danger="state not in ('closed', 'duplicate', 'cancel') and priority == 'high'"
+                  decoration-warning="state not in ('closed', 'duplicate', 'cancel') and priority == 'p2'"
+                  decoration-danger="state not in ('closed', 'duplicate', 'cancel') and priority == 'p1'"
                   decoration-muted="state in ('closed', 'duplicate', 'cancel')">
                 <field name="reference"/>
                 <field name="report_id"/>
@@ -27,6 +27,30 @@
         </field>
     </record>
 
+    <record id="rida_line_tree_embed" model="ir.ui.view">
+        <field name="name">rida_line_tree_embed</field>
+        <field name="model">rida.line</field>
+        <field name="inherit_id" ref="rida_report.rida_line_tree"/>
+        <field name="mode">primary</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <field name="report_id" position="replace"/>
+        </field>
+    </record>
+
+    <record id="rida_line_tree_embed_no_create" model="ir.ui.view">
+        <field name="name">rida_line_tree_embed_no_create</field>
+        <field name="model">rida.line</field>
+        <field name="inherit_id" ref="rida_report.rida_line_tree_embed"/>
+        <field name="mode">primary</field>
+        <field name="priority">999</field>
+        <field name="arch" type="xml">
+            <tree position="attributes">
+                <attribute name="create">0</attribute>
+            </tree>
+        </field>
+    </record>
+
     <record id="rida_line_form" model="ir.ui.view">
         <field name="name">rida.line.form</field>
         <field name="model">rida.line</field>
@@ -36,6 +60,7 @@
                     <group col="4">
                         <field name="reference"/>
                         <field name="type"/>
+                        <field name="report_id"/>
                         <field name="context"/>
                         <field name="level"/>
                         <field name="create_date" widget="date" readonly="True"/>
@@ -48,10 +73,13 @@
                         <field name="date"
                                attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                         <field name="write_date" widget="date" readonly="True"/>
-                        <field name="date_done" readonly="True"/>
+                        <field name="date_done"/>
                     </group>
                     <group colspan="4">
                         <field name="comment"/>
+                    </group>
+                    <group colspan="4">
+                        <field name="contributor_ids" widget="many2many_tags"/>
                     </group>
                     <group colspan="4">
                         <field name="attachment_ids" widget="many2many_binary"/>
@@ -107,26 +135,22 @@
                                    attrs="{'invisible': [('auth_mode', '!=', 'private')]}"/>
                         </group>
                     </group>
-                    <group string="Lines" col="1">
-                        <field name="line_ids" nolabel="1">
-                            <tree editable="bottom"
-                                  decoration-warning="state not in ('closed', 'duplicate', 'cancel') and priority == 'medium'"
-                                  decoration-danger="state not in ('closed', 'duplicate', 'cancel') and priority == 'high'"
-                                  decoration-muted="state in ('closed', 'duplicate', 'cancel')">
-                                <field name="reference"/>
-                                <field name="type"/>
-                                <field name="priority"/>
-                                <field name="name"/>
-                                <field name="user_id"
-                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                                <field name="state"
-                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                                <field name="date"
-                                       attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                                <button name="action_form_view" type="object" string="Details" class="btn-primary"/>
-                            </tree>
-                        </field>
-                    </group>
+                    <notebook>
+                        <page name="active_lines" string="Active lines">
+                            <group col="1" string="Active lines">
+                                <field name="active_line_ids"
+                                       context="{'tree_view_ref': 'rida_report.rida_line_tree_embed'}"
+                                       nolabel="1"/>
+                            </group>
+                        </page>
+                        <page name="inactive_lines" string="Inactive lines">
+                            <group col="1" string="Inactive lines">
+                                <field name="inactive_line_ids"
+                                       context="{'tree_view_ref': 'rida_report.rida_line_tree_embed_no_create'}"
+                                       nolabel="1"/>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -150,20 +174,27 @@
         <field name="model">rida.line</field>
         <field name="arch" type="xml">
             <search>
+                <field name="reference"/>
+                <field name="report_id"/>
+                <field name="user_id"/>
+                <field name="comment"/>
+                <field name="contributor_ids"/>
                 <filter name="information_only" string="Informations only" domain="[('type', '=', 'information')]"/>
                 <filter name="decision_only" string="Decisions only" domain="[('type', '=', 'decision')]"/>
                 <filter name="action_only" string="Actions only" domain="[('type', '=', 'action')]"/>
                 <separator/>
-                <filter name="all_action_todo" string="All actions to do"
-                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'open')]"/>
-                <filter name="all_action_done" string="All actions done"
-                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
-                <filter name="my_action_todo" string="My actions to do"
-                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'open')]"/>
-                <filter name="my_action_done" string="My actions done"
-                        domain="[('user_id', '=', uid), ('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <filter name="my_lines" string="My Lines"
+                        domain="['|', ('user_id', '=', uid), ('contributor_ids', '=', uid)]"/>
+                <filter name="own_lines" string="Lines for which I am responsible"
+                        domain="[('user_id', '=', uid)]"/>
+                <filter name="my_contributions" string="My contributions"
+                        domain="[('contributor_ids', '=', uid)]"/>
                 <separator/>
-                <filter name="own_lines" string="My lines" domain="[('user_id', '=', uid), ]"/>
+                <filter name="actions_todo" string="Actions to do"
+                        domain="[('type', '=', 'action'), ('state', '=', 'open')]"/>
+                <filter name="actions_done" string="Actions done"
+                        domain="[('type', '=', 'action'), ('state', '=', 'done')]"/>
+                <separator/>
                 <group expand="0" string="Group By">
                     <filter string="RIDA" domain="[]" context="{'group_by': 'report_id'}"/>
                     <filter string="Type" domain="[]" context="{'group_by': 'type'}"/>
@@ -184,7 +215,7 @@
         <field name="name">Lines</field>
         <field name="res_model">rida.line</field>
         <field name="view_mode">tree</field>
-        <field name="context">{'search_default_my_action_todo': 1}</field>
+        <field name="context">{'search_default_my_lines': 1, 'search_default_actions_todo': 1}</field>
     </record>
 
     <!-- menuitems -->

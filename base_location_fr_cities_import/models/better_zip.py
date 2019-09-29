@@ -33,7 +33,7 @@ class BetterZipWithUpdate(models.Model):
     @api.multi
     def update_french_zipcodes(self):
         _logger.info(u"Started updating french zip codes database")
-        france_id = self.env['res.country'].search([('name', '=', 'France')])[0]
+        france_id = self.env.ref('base.fr')
 
         already_known = set(self.env['res.better.zip'].search(
             [('country_id', '=', france_id.id)]).mapped(lambda x: (x.name, x.city)))
@@ -54,6 +54,7 @@ class BetterZipWithUpdate(models.Model):
                         [latitude, longitude] = splitted_coordinates
                 if city_complement:
                     city += " - %s" % city_complement
+                _logger.info(u"Creating zip %s - %s from 'La Poste' API", name, city)
                 if (name, city) not in already_known:
                     self.env['res.better.zip'].create({
                         'name': name,

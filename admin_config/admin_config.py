@@ -17,13 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api
+from odoo import fields, models, api
 
 
 class IrTranslationImproved(models.Model):
     _inherit = 'ir.translation'
 
-    module_sequence = fields.Integer(string="Sequence", compute='_compute_sequence')
+    module_sequence = fields.Integer(string="Sequence", compute='_compute_sequence', compute_sudo=True,
+                                     groups='base.group_system')
 
     @api.multi
     def _compute_sequence(self):
