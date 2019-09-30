@@ -24,7 +24,7 @@ class ProjectTask(models.Model):
     _inherit = 'project.task'
 
     duration = fields.Float(u"Spacing the task in days", compute='_get_duration', store=True, digits=(8, 2))
-    duration_per_day = fields.Float(u"Durée de la tâche par jour", help=u"In hours", compute='_get_duration',
+    duration_per_day = fields.Float(u"Duration of the task per day", help=u"In hours", compute='_get_duration',
                                     store=True, digits=(8, 2))
 
     @api.depends('date_start', 'date_end', 'planned_hours')
