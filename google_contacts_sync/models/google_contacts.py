@@ -221,17 +221,20 @@ class LmdtGoogleContacts(models.Model):
             if groupe.system_group and groupe.system_group.id == 'Contacts':
                 group_href = groupe.id.text
 
-        google_contact_ids = self.env['google.contacts'].search([('user_id', '=', self.env.user.id)])
-        contact_ids = []
+        google_contact_ids = self.env['google.contacts'].search([('user_id', '=', self.env.user.id)], order='id ASC')
+        contact_ids_deja_presents = []
         if google_contact_ids:
+            last_google_contact_id = google_contact_ids[0]
             for google_contact_id in google_contact_ids:
+                last_google_contact_id = google_contact_id
                 if google_contact_id.partner_ids:
                     for google_partner in google_contact_id.partner_ids:
-                        contact_ids.append(google_partner.id)
+                        contact_ids_deja_presents.append(google_partner.id)
 
+        contact_ids_a_ajouter = []
         for partner in partners:
             # Le contact est-il déjà présent dans Google pour l'utilisateur en cours ?
-            contact_present = contact_ids and (partner.id in contact_ids) or False
+            contact_present = contact_ids_deja_presents and (partner.id in contact_ids_deja_presents) or False
 
             if not partner.google_contacts_id or not contact_present:
                 # Le contact n'est pas encore dans Google => création
@@ -240,7 +243,7 @@ class LmdtGoogleContacts(models.Model):
                 partner.sudo().with_context(do_not_inform_partner_type=True).write({
                     'google_contacts_id': contact_entry.id.text,
                 })
-                contact_ids.append(partner.id)
+                contact_ids_a_ajouter.append(partner.id)
             else:
                 # Le contact est déjà présent dans Google => MAJ
                 contact = self.update_contact(partner)
@@ -250,7 +253,10 @@ class LmdtGoogleContacts(models.Model):
                     if e.status == 412:
                         # Etags mismatch: handle the exception.
                         pass
-        google_contact_id.sudo().write({'partner_ids': [(6, 0, list(contact_ids))]})
+
+        if contact_ids_a_ajouter:
+            contacts_sans_doublons = set(list(contact_ids_a_ajouter))
+            last_google_contact_id.sudo().write({'partner_ids': [(6, 0, list(contacts_sans_doublons))]})
 
     def create_contact(self, partner, group_href):
         """
