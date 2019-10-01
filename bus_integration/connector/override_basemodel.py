@@ -38,7 +38,8 @@ UNLINK_ORIGINAL = models.BaseModel.unlink
 def unlink_bus(self):
     if is_module_installed(self.env, 'bus_integration'):
         object_mapping = self.env['bus.object.mapping'].get_mapping(self._name)
-        if object_mapping:
+        receive_transfer = self.env['bus.receive.transfer'].search([('model', '=', self._name)], limit=1)
+        if object_mapping and receive_transfer:
             raise exceptions.except_orm(u"Bus Error", u"Impossible to delete record on model %s, use for bus "
                                                       u"synchronisation, please deactivate the record in the sending "
                                                       u"instance" % self._name)

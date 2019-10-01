@@ -68,6 +68,8 @@ class BusMessage(models.Model):
                                   ('DELETION_SYNCHRONIZATION_RETURN', u"Deletion response"),
                                   ('CHECK_SYNCHRONIZATION', u"Check request"),
                                   ('CHECK_SYNCHRONIZATION_RETURN', u"Check response"),
+                                  ('BUS_SYNCHRONIZATION', u"bus synchro request"),
+                                  ('BUS_SYNCHRONIZATION_RETURN', u"bus synchro response"),
                                   ], u"Treatment", required=True)
     log_ids = fields.One2many('bus.message.log', 'message_id', string=u"Logs")
     exported_ids = fields.Text(string=u"Exported ids", compute='get_export_eported_ids', store=True)

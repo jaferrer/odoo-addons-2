@@ -25,7 +25,7 @@ from openerp import models, fields, api
 
 class BusConfigurationExport(models.Model):
     _name = 'bus.configuration.export'
-    _order = 'sequence ASC, dependency_level ASC'
+    _order = 'model ASC'
 
     name = fields.Char(u"Name", required=True, compute="_compute_name")
     configuration_id = fields.Many2one('bus.configuration', string=u"Backend",
@@ -38,7 +38,8 @@ class BusConfigurationExport(models.Model):
                                                u"Treatment in BUS database", default='simple_reception', required=True)
     treatment_type = fields.Selection([('SYNCHRONIZATION', u"Synchronization"),
                                        ('DELETION_SYNCHRONIZATION', u"Deletion"),
-                                       ('CHECK_SYNCHRONIZATION', u"Check")],
+                                       ('CHECK_SYNCHRONIZATION', u"Check"),
+                                       ('BUS_SYNCHRONIZATION', u"Bus")],
                                       string=u"Treatment type", default='SYNCHRONIZATION', required=True)
 
     last_transfer_state = fields.Selection([('never_processed', u"Never processed"),
