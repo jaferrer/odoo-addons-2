@@ -45,12 +45,15 @@ class ProductTemplateJit(models.Model):
 
     @api.model
     def update_seller_ids(self):
+        restrict_to_template_ids = self.env.context.get('restrict_to_template_ids', [])
+        if not restrict_to_template_ids:
+            restrict_to_template_ids = self.search([]).ids
         self.env.cr.execute("""WITH main_supplier_intermediate_table AS (
     SELECT
         pt.id            AS product_tmpl_id,
         min(ps.sequence) AS sequence
     FROM product_template pt
-        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pt.id
+        LEFT JOIN product_supplierinfo ps ON ps.product_tmpl_id = pt.id AND COALESCE(ps.active, FALSE) IS TRUE
     GROUP BY pt.id),
 
         main_supplier_s AS (
@@ -64,7 +67,8 @@ class ProductTemplateJit(models.Model):
             product_supplierinfo ps
             INNER JOIN
             main_supplier_intermediate_table ms
-                ON ps.product_tmpl_id = ms.product_tmpl_id AND ps.sequence = ms.sequence)
+                ON ps.product_tmpl_id = ms.product_tmpl_id AND ps.sequence = ms.sequence
+        WHERE COALESCE(ps.active, FALSE) IS TRUE)
 
 SELECT
     pt.id          AS product_tmpl_id,
@@ -75,7 +79,7 @@ FROM product_template pt
     LEFT JOIN res_users ON res_partner.user_id = res_users.id
 WHERE (res_partner.id IS NULL OR main_supplier_s.constr = 1) AND
       ((res_partner.id IS NULL AND pt.seller_id IS NOT NULL OR res_partner.id IS NOT NULL AND pt.seller_id IS NULL OR
-        res_partner.id != pt.seller_id))""")
+        res_partner.id != pt.seller_id)) AND pt.ID IN %s""", (tuple(restrict_to_template_ids),))
         for res_tuple in self.env.cr.fetchall():
             product = self.browse(res_tuple[0])
             supplier = self.env['res.partner'].browse(res_tuple[1])
@@ -156,11 +160,13 @@ class ProductSupplierinfoImproved(models.Model):
     _inherit = 'product.supplierinfo'
 
     name = fields.Many2one(index=True)
+    active = fields.Boolean(u"Active", default=True)
 
     @api.multi
     def update_seller_ids_for_products(self):
         templates = self.env['product.template'].search([('id', 'in', [rec.product_tmpl_id.id for rec in self])])
-        templates.update_seller_ids()
+        if templates:
+            self.env['product.template'].with_context(restrict_to_template_ids=templates.ids).update_seller_ids()
 
     @api.model
     def create(self, vals):
@@ -173,3 +179,32 @@ class ProductSupplierinfoImproved(models.Model):
         result = super(ProductSupplierinfoImproved, self).write(vals)
         self.update_seller_ids_for_products()
         return result
+
+
+class PricelistImproved(models.Model):
+    _inherit = 'product.pricelist'
+
+    @api.model
+    def find_supplierinfo_for_product(self, product, partner_id):
+        seller = False
+        for seller_id in product.seller_ids:
+            if partner_id and seller_id.name.id == partner_id:
+                seller = seller_id
+                break
+        if not seller and product.seller_ids:
+            seller = product.seller_ids[0]
+        return seller
+
+
+    @api.model
+    def find_supplierinfos_for_product(self, product, partner_id):
+        """ :return: recordset of supplierinfo (fourniture d'achat
+        for this supplier """
+        sellers = []
+        for seller_id in product.seller_ids:
+            if partner_id and seller_id.name.id == partner_id:
+                sellers.append(seller_id)
+        if not sellers and product.seller_ids:
+            sellers = [product.seller_ids[0]]
+        return sellers
+

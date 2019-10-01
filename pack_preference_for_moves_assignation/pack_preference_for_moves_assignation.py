@@ -32,4 +32,4 @@ class PackPreferenceStockQuant(models.Model):
             order = 'in_date desc, package_id desc, lot_id desc, id desc'
             return self._quants_get_order(location, product, quantity, domain, order)
         else:
-            super(PackPreferenceStockQuant, self).apply_removal_strategy()
+            return super(PackPreferenceStockQuant, self).apply_removal_strategy()

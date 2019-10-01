@@ -369,3 +369,44 @@ msgstr "Séquence de la route"
 #: model:ir.ui.menu,name:stock_procurement_just_in_time.menu_stock_scheduler_controller
 msgid "Stock Scheduler Controller"
 msgstr "Contrôle du planificateur stock"
+
+#. module: stock_procurement_just_in_time
+#: model:ir.actions.act_window,name:stock_procurement_just_in_time.act_window_stock_scheduler_sequence
+#: model:ir.ui.menu,name:stock_procurement_just_in_time.menu_location_scheduler_sequence
+msgid "Stock Scheduler Sequences"
+msgstr "Séquencement planificateur stock"
+
+#. module: stock_procurement_just_in_time
+#: view:stock.warehouse.orderpoint:stock_procurement_just_in_time.stock_warehouse_orderpoint_form
+msgid "Process"
+msgstr "Lancer"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.location.scheduler.sequence,name:0
+msgid "Stock scheduler sequence"
+msgstr "Séquence pour le planificateur stock"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.location.scheduler.sequence,location_id:0
+msgid "Location"
+msgstr "Emplacement"
+
+#. module: stock_procurement_just_in_time
+#: field:stock.location.scheduler.sequence,exclude_non_manufactured_products:0
+msgid "Exclude non-manufactured products"
+msgstr "Exclure les produits non fabriqués"
+
+#. module: stock_procurement_just_in_time
+#: help:stock.location.scheduler.sequence,exclude_non_manufactured_products:0
+msgid "If this option is checked, the scheduler whill process only products that can be manufactured in the location of the orderpoint."
+msgstr "Si cette option est activée, le planificateur ne traitera que les articles qui peuvent être produits dans l'emplacement de la règle de réassort."
+
+#. module: stock_procurement_just_in_time
+#: field:stock.location.scheduler.sequence,exclude_manufactured_products:0
+msgid "Exclude manufactured products"
+msgstr "Exclure les produits fabriqués"
+
+#. module: stock_procurement_just_in_time
+#: help:stock.location.scheduler.sequence,exclude_manufactured_products:0
+msgid "If this option is checked, the scheduler whill process only products that can not be manufactured in the location of the orderpoint."
+msgstr "Si cette option est activée, le planificateur ne traitera que les articles qui ne peuvent pas être produits dans l'emplacement de la règle de réassort."

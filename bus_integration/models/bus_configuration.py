@@ -31,4 +31,4 @@ class BusConfiguration(models.Model):
     reception_treatment = fields.Selection([('simple_reception', u"Simple reception")], u"Message Reception Treatment",
                                            required=True)
     code = fields.Selection([('ODOO_SYNCHRONIZATION', u"Odoo synchronization")], u"Code exchange", required=True)
-    connexion_state = fields.Char(u"Connexion status", compute='get_connexion', store=False)
+    connexion_state = fields.Char(u"Connexion status")

@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': '',
-    'depends': [],
+    'depends': ['base'],
     'description': """
 Fix float_round
 ===============

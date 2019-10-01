@@ -51,9 +51,6 @@ class BusSynchronizationReceiver(models.AbstractModel):
                 job_uiid = job_receive_message(ConnectorSession.from_env(self.env), self._name, message.id)
             result = u"Receive Message : %s in processing by the job %s" % (message.id, job_uiid)
             to_raise = False
-            histo_log = self.env['bus.configuration.export.histo.log'].search([('message_id', '=', parent_message_id)])
-            if histo_log:
-                histo_log.histo_id.add_log(message.id, job_uiid, log=result)
         except exceptions.ValidationError as error:
             result = error
             to_raise = True
@@ -96,6 +93,8 @@ class BusSynchronizationReceiver(models.AbstractModel):
             self.env['bus.importer'].register_synchro_deletion_return(message_id)
         elif message.treatment in ['CHECK_SYNCHRONIZATION_RETURN']:
             self.env['bus.importer'].register_synchro_check_return(message_id)
+        elif message.treatment == 'BUS_SYNCHRONIZATION_RETURN':
+            self.env['bus.importer'].register_synchro_bus_response(message)
         else:
             result = False
         if not result:
@@ -112,17 +111,9 @@ class BusSynchronizationReceiver(models.AbstractModel):
     def register_synchro_return(self, message_id):
         message = self.env['bus.message'].browse(message_id)
         message_dict = json.loads(message.message)
-        serial_id = message_dict.get('header', {}).get('serial_id', False)
-        histo = self.env['bus.configuration.export.histo'].search([('serial_id', '=', serial_id)],
-                                                                  order="create_date desc", limit=1)
         return_res = message_dict.get('body', {}).get('return', {})
         result = return_res.get('result', False)
         return_state = return_res.get('state', False)
-        if not return_state:
-            histo.transfer_state = 'error'
-            message.result = 'error'
-        else:
-            histo.transfer_state = 'finished'
-            message.result = 'finished'
+        message.result = 'error' if not return_state else 'finished'
         self.env['bus.importer'].import_bus_references(message.id, result, return_state)
         return False

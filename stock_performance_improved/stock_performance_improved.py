@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from openerp import exceptions
 import logging
 
 from openerp.addons.connector.session import ConnectorSession
@@ -136,6 +137,7 @@ class stock_pack_operation(models.Model):
     _inherit = 'stock.pack.operation'
 
     picking_id = fields.Many2one('stock.picking', index=True)
+    lot_id = fields.Many2one('stock.production.lot', index=True)
 
     def _get_remaining_prod_quantities(self, cr, uid, operation, context=None):
         '''Get the remaining quantities per product on an operation with a package.
@@ -197,13 +199,18 @@ class stock_pack_operation(models.Model):
         return prod2move_ids.get(self.product_id.id, [])[:]
 
 
+class StockQuantIndex(models.Model):
+    _inherit = 'stock.quant'
+
+    negative_move_id = fields.Many2one('stock.move', 'Move Negative Quant',
+                                       help='If this is a negative quant, this will be the move that caused this '
+                                            'negative quant.',
+                                       readonly=True, index=True)
+
+
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    location_id_store = fields.Many2one('stock.location', related='move_lines.location_id', store=True)
-    location_id = fields.Many2one(related='location_id_store', readonly=True, store=False)
-    location_dest_id_store = fields.Many2one('stock.location', related='move_lines.location_dest_id', store=True)
-    location_dest_id = fields.Many2one(related='location_dest_id_store', readonly=True, store=False)
     picking_type_code_store = fields.Selection([('incoming', 'Suppliers'),
                                                 ('outgoing', 'Customers'),
                                                 ('internal', 'Internal')],
@@ -269,7 +276,10 @@ class StockPicking(models.Model):
                         qty_on_link, prod2move_ids = picking_obj. \
                             _create_link_for_quant(cr, uid, prod2move_ids, ops.id, quant, quant["qty"], context=context)
                         remaining_qty_on_quant -= qty_on_link
-                    if remaining_qty_on_quant:
+                    product = self.pool.get('product.product').browse(cr, uid, quant["product_id"], context)
+                    remaining_qty_cmp = float_compare(remaining_qty_on_quant, 0,
+                                                      precision_rounding=product.uom_id.rounding)
+                    if remaining_qty_cmp > 0:
                         still_to_do.append((ops, quant["product_id"], remaining_qty_on_quant))
                         need_rereserve = True
             elif ops.product_id.id:
@@ -299,10 +309,14 @@ class StockPicking(models.Model):
                         flag = flag and (ops.owner_id.id == quant["owner_id"])
                         if flag:
                             max_qty_on_link = min(quant["qty"], qty_to_assign)
-                            qty_on_link, prod2move_ids = picking_obj. \
-                                _create_link_for_quant(cr, uid, prod2move_ids, ops.id, quant, max_qty_on_link,
-                                                       context=context)
-                            qty_to_assign -= qty_on_link
+                            product = self.pool.get('product.product').browse(cr, uid, quant["product_id"], context)
+                            max_qty_on_link_cmp = float_compare(max_qty_on_link, 0,
+                                                              precision_rounding=product.uom_id.rounding)
+                            if max_qty_on_link_cmp > 0:
+                                qty_on_link, prod2move_ids = picking_obj. \
+                                    _create_link_for_quant(cr, uid, prod2move_ids, ops.id, quant, max_qty_on_link,
+                                                           context=context)
+                                qty_to_assign -= qty_on_link
                 qty_assign_cmp = float_compare(qty_to_assign, 0, precision_rounding=ops.product_id.uom_id.rounding)
                 if qty_assign_cmp > 0:
                     # qty reserved is less than qty put in operations. We need to create a link but it's deferred
@@ -516,7 +530,7 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
                     raise Warning(_('The destination location must be the same for all the moves of the picking.'))
                 location_dest_id = move.location_dest_id.id
                 if location_id and move.location_id.id != location_id:
-                    raise Warning(_('The source location must be the same for all the moves of the picking.'))
+                    raise exceptions.ValidationError(_('The source location must be the same for all the moves of the picking.'))
                 location_id = move.location_id.id
 
         vals = []
@@ -694,6 +708,29 @@ WHERE nb_moves = 0""")
             move_ids = [move.id for move in self.browse(cr, uid, id, context=context).move_lines]
             move_obj.write(cr, uid, move_ids, {'date_expected': value}, context=context)
 
+    def _get_location_id_store(self, cr, uid, ids, field_name, arg, context):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            if line.move_lines:
+                if line.location_id_store != line.move_lines[0].location_id:
+                    res[line.id] = line.move_lines[0].location_id.id
+        return res
+
+    def _get_location_dest_id_store(self, cr, uid, ids, field_name, arg, context):
+        res = {}
+        for line in self.browse(cr, uid, ids, context=context):
+            if line.move_lines:
+                if line.location_dest_id_store != line.move_lines[0].location_dest_id:
+                    res[line.id] = line.move_lines[0].location_dest_id.id
+        return res
+
+    def _get_pickings(self, cr, uid, ids, context=None):
+        res = set()
+        for sm in self.browse(cr, uid, ids, context=context):
+            if sm.picking_id:
+                res.add(sm.picking_id.id)
+        return list(res)
+
     _columns = {
         'priority': osv.fields.function(get_min_max_date, multi="min_max_date", fnct_inv=_set_priority,
                                         type='selection',
@@ -726,6 +763,25 @@ WHERE nb_moves = 0""")
                                            'stock.picking': (lambda self, cr, uid, ids, ctx: ids, ['move_lines'], 10),
                                            'stock.move': (_get_pickings_group_id, ['group_id', 'picking_id'], 10),
                                        }),
+        'location_id_store': old_api_fields.function(_get_location_id_store, type='many2one', relation='stock.location',
+                                                     string=u"Location",
+                                                     store={
+                                                         'stock.move': (
+                                                             _get_pickings,
+                                                             ['picking_id', 'location_id'], 10)
+                                                     }, readonly=True, select=True),
+        'location_dest_id_store': old_api_fields.function(_get_location_dest_id_store, type='many2one',
+                                                          relation='stock.location',
+                                                          string=u"Destination location",
+                                                          store={
+                                                              'stock.move': (
+                                                                  _get_pickings,
+                                                                  ['picking_id', 'location_dest_id'], 10)
+                                                          }, readonly=True, select=True),
+        'location_id': old_api_fields.related(
+            'location_id_store', type='many2one', string=u"Location", relation='stock.location'),
+        'location_dest_id': old_api_fields.related(
+            'location_dest_id_store', type='many2one', string=u"Destination location", relation='stock.location'),
     }
 
     @api.multi
@@ -753,6 +809,7 @@ class StockMove(models.Model):
     procurement_id = fields.Many2one('procurement.order', index=True)
     group_id = fields.Many2one('procurement.group', index=True)
     picking_type_id = fields.Many2one('stock.picking.type', index=True)
+    partially_available = fields.Boolean(index=True)
 
     @api.multi
     def _check_package_from_moves(self):
@@ -938,6 +995,7 @@ class ProcurementOrder(models.Model):
     location_id = fields.Many2one('stock.location', index=True)
     move_dest_id = fields.Many2one('stock.move', index=True)
     state = fields.Selection(index=True, track_visibility=False)
+    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', index=True)
 
     @api.model
     def _run_move_create(self, procurement):
@@ -1167,6 +1225,9 @@ class StockInventoryLine(models.Model):
 class StockMoveOperationLinkImporved(models.Model):
     _inherit = 'stock.move.operation.link'
 
+    operation_id = fields.Many2one('stock.pack.operation', index=True)
+    reserved_quant_id = fields.Many2one('stock.quant', index=True)
+
     @api.model
     def sweep_move_operation_links(self):
         self.env.cr.execute("""WITH link_ids_to_delete AS (
@@ -1216,3 +1277,15 @@ class StockPerformanceImprovedConfig(models.TransientModel):
             _logger.info(u"Updating picking type codes for picking type %s (%s/%s)" %
                          (picking_type.display_name, index, nb_picking_types))
             picking_type.update_picking_type_codes()
+
+
+class StockProductionLotPerformanceImproved(models.Model):
+    _inherit = 'stock.production.lot'
+
+    @api.model
+    def create(self, vals):
+        # The creation message is useless
+        return super(StockProductionLotPerformanceImproved,
+                     self.with_context(mail_notrack=True,
+                                       mail_create_nolog=True,
+                                       do_not_subscribe_anybody=True)).create(vals)

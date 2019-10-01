@@ -66,8 +66,9 @@ class MoUpdateMrpProduction(models.Model):
             for item in mrp.move_lines:
                 if not item.product_id in done_products:
                     if not self.env.context.get('ignore_done_moves'):
-                        total_done_moves = sum([x.product_qty for x in mrp.move_lines2 if x.product_id == item.product_id
-                                                and x.state == 'done' and x.location_dest_id.usage == 'production'])
+                        total_done_moves =\
+                            sum([x.product_qty for x in mrp.move_lines2 if x.product_id == item.product_id
+                                 and x.state == 'done' and x.location_dest_id.usage == 'production'])
                     else:
                         total_done_moves = 0
                     total_old_need = sum([x.product_qty for x in mrp.move_lines if x.product_id == item.product_id])
@@ -142,6 +143,10 @@ class MoUpdateMrpProduction(models.Model):
         return result
 
     @api.multi
+    def button_update_manual(self):
+        self.with_context(manual_mo_update=True).button_update()
+
+    @api.multi
     def button_update(self):
         running_orders = self.search([('id', 'in', self.ids),
                                       ('state', 'not in', ['draft', 'done', 'cancel'])])
@@ -207,7 +212,9 @@ class UpdateChangeProductionQty(models.TransientModel):
                 # its origin moves (which are production moves of the MO)
                 if order.procurement_id:
                     raise ForbiddenChangeQtyMO(order.id,
-                                   _(u"%s: impossible to change the quantity of a manufacturing order created by Odoo. Please create an extra manufacturing order or make stock scheduler cancel this one.") % order.display_name)
+                                               _(u"%s: impossible to change the quantity of a manufacturing order "
+                                                 u"created by Odoo. Please create an extra manufacturing order or "
+                                                 u"make stock scheduler cancel this one.") % order.display_name)
                 # Check raw material moves
                 if order.bom_id and float_compare(order.product_qty, rec.product_qty,
                                                   precision_rounding=order.product_id.uom_id.rounding) != 0:
@@ -217,6 +224,25 @@ class UpdateChangeProductionQty(models.TransientModel):
                 if order.move_prod_id:
                     order.move_prod_id.write({'product_uom_qty': rec.product_qty})
                 self._update_product_to_produce(order, rec.product_qty)
+
+    @api.multi
+    def _update_product_to_produce(self, prod, qty):
+        """
+        Take into account the already created products to update the products tu create when changing the product
+        quantity in OFs.
+        """
+
+        qty_done = 0.0
+        for done_product in prod.move_created_ids2:
+            if done_product.product_id.id == prod.product_id.id:
+                qty_done += done_product.product_uom_qty
+
+        qty -= qty_done
+        if qty < 0.0:
+            raise exceptions.except_orm(_(u"Error!"), _(u" You have already produced %s %s of the product : %s.")
+                                        % (qty_done, prod.product_uom.name, prod.product_id.name))
+
+        return super(UpdateChangeProductionQty, self)._update_product_to_produce(prod, qty)
 
 
 class UpdateChangeStockMove(models.Model):

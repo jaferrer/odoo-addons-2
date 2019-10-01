@@ -23,17 +23,20 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Product',
-    'depends': ['purchase', 'stock'],
+    'depends': ['purchase_improved', 'stock', 'connector'],
     'description': """
 Validity Dates for Supplier Prices
 ==================================
 Makes prices dependant on time, not only on purchase quantity.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['supplier_articles.xml'],
+    'data': [
+        'cron.xml',
+        'supplier_articles.xml',
+    ],
     'demo': [
         'test_supplier_articles.xml'
-        ],
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,

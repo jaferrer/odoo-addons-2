@@ -61,6 +61,8 @@ class PurchaseOrderOverCover(models.Model):
                         line.coverage_to_approve = True
             if any_line_over_covered and not rec.coverage_to_approve:
                 rec.coverage_to_approve = True
+            elif rec.coverage_to_approve and not any_line_over_covered:
+                rec.coverage_to_approve = False
             elif confirm_is_possible:
                 rec.signal_workflow('purchase_confirm')
 

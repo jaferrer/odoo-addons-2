@@ -19,8 +19,8 @@
 
 from datetime import datetime
 
-from openerp.addons.connector.session import ConnectorSession
 from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
 
 from openerp import modules, fields, models, api, _
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
@@ -53,7 +53,9 @@ class ProcurementOrderPurchasePlanningImproved(models.Model):
                 if proc.purchase_id and fields.Datetime.from_string(proc.purchase_id.date_order) > order_date and not \
                         self.env.context.get('do_not_move_purchase_order'):
                     proc.purchase_id.date_order = fields.Datetime.to_string(order_date)
-                proc.purchase_line_id.set_moves_dates(proc.purchase_line_id.date_required)
+                date_required = proc.purchase_line_id.date_required
+                if date_required:
+                    proc.purchase_line_id.set_moves_dates(proc.purchase_line_id.date_required)
         return super(ProcurementOrderPurchasePlanningImproved, self).action_reschedule()
 
     @api.model
@@ -72,16 +74,12 @@ class PurchaseOrderLinePlanningImproved(models.Model):
 
     confirm_date = fields.Datetime(string=u"Confirm date", readonly=True)
     date_required = fields.Date(string=u"Required Date", help=u"Required date for this purchase line. "
-                                                              u"Computed as planned date of the first proc - supplier purchase "
-                                                              u"lead time - company purchase lead time", readonly=True)
+                                                              u"Computed as planned date of the first proc - "
+                                                              u"supplier purchase lead time - "
+                                                              u"company purchase lead time", readonly=True)
     limit_order_date = fields.Date(string=u"Limit Order Date", help=u"Limit order date to be late :required date - "
                                                                     u"supplier delay", readonly=True)
     covering_date = fields.Date(string=u"Covered Date", readonly=True)
-    covering_state = fields.Selection([
-        ('all_covered', u"All Need Covered"),
-        ('coverage_computed', u"Computed Coverage"),
-        ('unknown_coverage', u"Not Calculated State")
-    ], string=u"Covered State", default='unknown_coverage', required=True, readonly=True)
     requested_date = fields.Date("Requested date", help="The line was required to the supplier at that date",
                                  default=fields.Date.context_today, states={'sent': [('readonly', True)],
                                                                             'bid': [('readonly', True)],
@@ -158,7 +156,8 @@ class PurchaseOrderLinePlanningImproved(models.Model):
             product_ids = products.ids
         with open(module_path + '/sql/' + 'covering_dates_query.sql') as sql_file:
             self.env.cr.execute(sql_file.read(), (tuple(product_ids),))
-            for result_line in self.env.cr.dictfetchall():
+            test = self.env.cr.dictfetchall()
+            for result_line in test:
                 line = self.env['purchase.order.line'].search([('id', '=', result_line['pol_id'])])
                 if line.product_id.type == 'product':
                     real_need_date = result_line['real_need_date'] or False
@@ -197,7 +196,9 @@ class PurchaseOrderLinePlanningImproved(models.Model):
 
     @api.model
     def cron_compute_coverage_state(self):
-        pol_coverage_to_recompute = self.search([('order_id.state', '!=', 'draft'), ('remaining_qty', '>', 0)])
+        pol_coverage_to_recompute = self.search([('order_id.state', 'not in', ['draft', 'done', 'cancel']),
+                                                 ('order_id.partner_id.active', '=', True),
+                                                 ('remaining_qty', '>', 0)])
         products_to_process_ids = list(set([line.product_id.id for line in pol_coverage_to_recompute if
                                             line.product_id]))
         if products_to_process_ids:
@@ -227,9 +228,9 @@ class PurchaseOrderLinePlanningImproved(models.Model):
         if need_cover_reset:
             vals['covering_state'] = 'unknown_coverage'
             vals['covering_date'] = False
-        if 'date_planned' in vals:
+        if 'date_planned' in vals and not self.env.context.get('order_line_variant'):
             for line in self:
-                if vals.get('stats', line.state) == 'draft':
+                if vals.get('state', line.state) == 'draft':
                     vals['requested_date'] = vals['date_planned']
         result = super(PurchaseOrderLinePlanningImproved, self).write(vals)
         if 'date_planned' in vals:
@@ -259,16 +260,29 @@ class PurchaseOrderPlanningImproved(models.Model):
   min(pol.limit_order_date) AS new_limit_order_date
 FROM purchase_order po
   INNER JOIN purchase_order_line pol ON pol.order_id = po.id AND pol.limit_order_date IS NOT NULL
+WHERE po.state in ('draft', 'sent', 'bid', 'confirmed')
 GROUP BY po.id
-ORDER BY po.id""")
+ORDER BY po.id
+""")
         result = self.env.cr.dictfetchall()
         order_with_limit_dates_ids = []
         for item in result:
             order = self.search([('id', '=', item['order_id'])])
+            delivery_location = order.picking_type_id.default_location_dest_id
+            if delivery_location:
+                calendar = order.company_id.calendar_id
+                if not calendar:
+                    _, calendar = delivery_location.get_resource_and_calendar_for_location()
+                jours_fermeture = calendar and calendar.leave_ids or []
+                # If Sirail is closed at the 'limit order date', choose the soonest date when Sirail is open.
+                for jour in jours_fermeture:
+                    if jour.date_from <= item['new_limit_order_date'] <= jour.date_to:
+                        item['new_limit_order_date'] = delivery_location. \
+                            schedule_working_days(-1, fields.Datetime.from_string(item['new_limit_order_date']))
+                        break
             if order.limit_order_date != item['new_limit_order_date']:
                 order.limit_order_date = item['new_limit_order_date']
             order_with_limit_dates_ids += [item['order_id']]
-        self.search([('id', 'not in', order_with_limit_dates_ids)]).write({'limit_order_date': False})
 
     @api.multi
     def compute_coverage_state(self):

@@ -87,6 +87,20 @@ class ProcurementSaleLink(models.Model):
         string=u"Manual consideration", related='scheduled_for_sale_line_id.manual_consideration', store=True)
     sale_warehouse_id = fields.Many2one(string=u"Warehouse", related='sale_id.warehouse_id', store=True)
 
+    lettrable = fields.Boolean(compute=lambda x: None, search='_search_is_lettrable')
+
+    @api.model
+    def _search_is_lettrable(self, operator, value):
+
+        product_ids = self.env['sale.order.line'].search([('order_id.state', 'not in', ['draft', 'done', 'cancel']),
+                                                          ('remaining_qty', '>', 0.0001)]).mapped('product_id.id')
+
+        psl_ids = self.env['procurement.sale.link'].search(
+            [('procurement_id', '!=', False), ('scheduled_for_sale_line_id', '=', False),
+             ('product_id', 'in', product_ids)]).ids
+
+        return [('id', 'in', psl_ids)]
+
     @api.model
     def update_table(self):
         context = dict(self.env.context)

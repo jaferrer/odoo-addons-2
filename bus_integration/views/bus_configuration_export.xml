@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
+        <!-- tree -->
         <record id="bus_export_config_tree" model="ir.ui.view">
             <field name="name">bus_export_config_tree</field>
             <field name="model">bus.configuration.export</field>
@@ -9,33 +10,31 @@
                         grey: last_transfer_state == 'never_processed';
                         orange: last_transfer_state == 'blocked';
                         red: last_transfer_state == 'error';
-                        blue: last_transfer_state == 'started';"
-                      default_order="model">
+                        blue: last_transfer_state == 'started';">
                     <field name="model"/>
                     <field name="recipient_id"/>
                     <field name="treatment_type"/>
-                    <field name="serial_id"/>
                     <field name="last_transfer_state"/>
                     <field name="mapping_object_id"/>
+                    <field name="sequence"/>
                     <field name="dependency_level"/>
-                    <field name="cron_created" invisible="1"/>
-                    <button string="Init" name="create_cron" type="object"
-                            attrs="{'invisible':[('cron_created','=',True)]}"/>
-                    <button string="Edit cron" name="edit_cron" type="object"
-                            attrs="{'invisible':[('cron_created','=',False)]}"/>
-                    <button string="run" name="run_batch" type="object" />
+                    <button string="Sync. diff." name="sync_diff" type="object" />
+                    <button string="Sync. ALL" name="sync_all" type="object" />
                 </tree>
             </field>
         </record>
 
+        <!-- form -->
         <record id="bus_export_config_form" model="ir.ui.view">
             <field name="name">bus_export_config_form</field>
             <field name="model">bus.configuration.export</field>
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button name="run_batch" string="Run batch" class="oe_highlight" type="object"/>
-                        <button name="edit_cron" string="Cron" class="oe_highlight" type="object"/>
+                        <button name="sync_all" string="Sync. ALL" class="oe_highlight" type="object"/>
+                        <button name="sync_diff" string="Sync. Diff" class="oe_highlight" type="object"/>
+                        <button name="create_cron_sync_all" string="Create cron: Sync. ALL" class="oe_button" type="object" attrs="{'invisible': [('cron_sync_all','!=',False)]}"/>
+                        <button name="create_cron_sync_diff" string="Create cron: Sync. diff." class="oe_button" type="object" attrs="{'invisible': [('cron_sync_diff','!=',False)]}"/>
                         <field name="last_transfer_state" widget="statusbar" statusbar_visible=""
                                statusbar_colors="{'done':'green', 'error': 'red'}"/>
                     </header>
@@ -47,26 +46,28 @@
                             </h1>
                         </div>
                         <group>
-
                             <group>
                                 <field name="configuration_id"/>
                                 <field name="recipient_id"/>
                                 <field name="bus_username"/>
                                 <field name="treatment_type"/>
                                 <field name="bus_reception_treatment"/>
+                                <field name="sequence"/>
+                                <field name="active"/>
                             </group>
                             <group>
-                                <field name="serial_id"/>
                                 <field name="model"/>
                                 <field name="domain"/>
                                 <field name="chunk_size"/>
                                 <field name="mapping_object_id"/>
                                 <field name="dependency_level"/>
+                                <field name="cron_sync_all" />
+                                <field name="cron_sync_diff" />
                             </group>
                         </group>
                         <notebook>
                             <page id="histo" string="History">
-                                <field name="bach_histo_ids" nolabel="1"/>
+                                <field name="bus_message_ids" nolabel="1"/>
                             </page>
                         </notebook>
                     </sheet>
@@ -80,13 +81,14 @@
             <field name="arch" type="xml">
                 <search string="Configuration of template exports">
                     <field name="recipient_id"/>
-                    <field name="serial_id"/>
                     <field name="bus_username"/>
                     <field name="treatment_type"/>
                     <field name="bus_reception_treatment"/>
                     <field name="model"/>
+                    <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                    <filter string="Inactive" name="inactive" domain="[('active', '=', False)]"/>
                     <group expand="0" string="Group By">
-                        <filter string="Recipient" domain="[]" context="{'group_by':'recipient_id'}"/>
+                        <filter string="Recipient" name="group_by_recipient" domain="[]" context="{'group_by':'recipient_id'}"/>
                         <filter string="BUS user name" domain="[]" context="{'group_by':'bus_username'}"/>
                         <filter string="Type traitement" domain="[]" context="{'group_by':'treatment_type'}"/>
                     </group>
@@ -99,15 +101,35 @@
             <field name="res_model">bus.configuration.export</field>
             <field name="view_mode">tree,form</field>
             <field name="help"/>
+            <field name="context">{'search_default_group_by_recipient': 1}</field>
         </record>
 
         <menuitem id="menu_bus_config_export_menu" name="Configuration of template exports"
                   action="act_window_bus_config_export" parent="menu_bus"
                   sequence="15"/>
 
+        <!-- Create crons action -->
+        <record model="ir.actions.server" id="ir_actions_config_export_create_crons">
+            <field name="name">Auto generate crons</field>
+            <field name="model_id" ref="bus_integration.model_bus_configuration_export"/>
+            <field name="code">
+                action = self.auto_generate_crons(cr,uid,context.get('active_ids'),context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="ir_value_config_export_create_crons">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">bus.configuration.export</field>
+            <field name="name">Auto generate crons</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_config_export_create_crons)"/>
+        </record>
+
+
+        <!-- Update dependency level action -->
         <record model="ir.actions.server" id="ir_actions_update_config_export_dependency_level">
             <field name="name">Update dependency level</field>
-            <field name="model_id" ref="bus_integration.model_bus_object_mapping"/>
+            <field name="model_id" ref="bus_integration.model_bus_configuration_export"/>
             <field name="code">
                 action = self.compute_dependency_level(cr,uid,context.get('active_ids'),context)
             </field>

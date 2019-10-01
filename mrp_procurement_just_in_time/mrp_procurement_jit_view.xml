@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="stock_location_scheduler_sequence_tree">
+            <field name="name">stock_location_scheduler_sequence_tree</field>
+            <field name="model">stock.location.scheduler.sequence</field>
+            <field name="inherit_id" ref="stock_procurement_just_in_time.stock_location_scheduler_sequence_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree position="inside">
+                    <field name="exclude_non_manufactured_products"/>
+                    <field name="exclude_manufactured_products"/>
+                </tree>
+            </field>
+        </record>
+
+    </data>
+</openerp>

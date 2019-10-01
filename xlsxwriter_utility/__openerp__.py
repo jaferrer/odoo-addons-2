@@ -28,7 +28,7 @@
     ==================
     Add some utility function to create report with xlsx writer lib
     """,
-    'depends': [],
+    'depends': ['base'],
     'qweb': [],
     'data': [],
 }

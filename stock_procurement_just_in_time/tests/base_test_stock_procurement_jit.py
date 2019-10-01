@@ -50,6 +50,10 @@ class BaseTestStockProcurementJIT(common.TransactionCase):
         wizard.execute()
         self.env['queue.job'].search([]).write({'state': 'done'})
 
+        for location in self.env['stock.location'].search([]):
+            self.env['stock.location.scheduler.sequence'].create({'location_id': location.id,
+                                                                  'name': 0})
+
     def process_orderpoints(self, product_ids=None):
         """Function to call the scheduler without needing connector to work."""
         if not product_ids:
@@ -64,11 +68,11 @@ class BaseTestStockProcurementJIT(common.TransactionCase):
             search([('id', 'not in', existing_controller_lines.ids)])
         self.assertEqual(len(orderpoints), len(controller_lines) - 1)
         controller_lines_data = [(line.orderpoint_id, line.product_id, line.location_id,
-                                  line.location_sequence, line.route_sequence, line.run_procs, line.done)
+                                  line.location_sequence, line.run_procs, line.done)
                                  for line in controller_lines]
         for op in orderpoints:
             for sequence in op.stock_scheduler_sequence_ids:
-                self.assertIn((op, op.product_id, op.location_id, 0, sequence.name,
+                self.assertIn((op, op.product_id, op.location_id, sequence.name,
                                False, False), controller_lines_data)
 
         self.env['stock.scheduler.controller'].update_scheduler_controller(jobify=False, run_procurements=False)
@@ -78,9 +82,9 @@ class BaseTestStockProcurementJIT(common.TransactionCase):
             search([('id', 'not in', existing_controller_lines.ids)])
         self.assertEqual(len(orderpoints), len(controller_lines) - 1)
         controller_lines_data = [(line.orderpoint_id, line.product_id, line.location_id, line.location_sequence,
-                                  line.route_sequence, line.run_procs, line.job_uuid, line.done)
+                                  line.run_procs, line.job_uuid, line.done)
                                  for line in controller_lines]
         for op in orderpoints:
             for sequence in op.stock_scheduler_sequence_ids:
-                self.assertIn((op, op.product_id, op.location_id, 0, sequence.name,
+                self.assertIn((op, op.product_id, op.location_id, sequence.name,
                                False, str(op.id), True), controller_lines_data)

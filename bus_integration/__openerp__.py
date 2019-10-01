@@ -35,13 +35,11 @@ Connector to Odoo Databus
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
-        'data/cron.xml',
         'data/bus_configuration.xml',
         'views/bus_receive_transfer.xml',
         'views/bus_check_transfer.xml',
         'views/bus_configuration.xml',
         'views/bus_configuration_export.xml',
-        'views/bus_configuration_export_histo.xml',
         'views/bus_base.xml',
         'views/bus_message.xml',
         'views/bus_message_log.xml',

@@ -53,11 +53,11 @@ class PurchaseProcurementStockWarehouseOrderpoint(models.Model):
     _inherit = 'stock.warehouse.orderpoint'
 
     @api.model
-    def get_query_move_in(self, move_in_date_clause):
-        return ("""SELECT
+    def get_query_move_in(self):
+        return """SELECT
       sm.id,
       sm.product_qty,
-      min(COALESCE(po.date_planned, sm.date)) AS date,
+      min(COALESCE(po.date_planned, sm.date))::DATE AS date,
       po.id
     FROM
       stock_move sm
@@ -68,7 +68,4 @@ class PurchaseProcurementStockWarehouseOrderpoint(models.Model):
       AND sm.state NOT IN ('cancel', 'done', 'draft')
       AND sm.purchase_line_id IS NULL
       AND sl.parent_left >= %s
-      AND sl.parent_left < %s""" +
-                move_in_date_clause +
-                """GROUP BY sm.id, po.id, sm.product_qty
-    ORDER BY DATE""")
+      AND sl.parent_left < %s"""

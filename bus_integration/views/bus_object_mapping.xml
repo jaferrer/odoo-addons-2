@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-
         <record model="ir.ui.view" id="object_mapping_tree">
             <field name="name">bus.object.mapping.tree</field>
             <field name="model">bus.object.mapping</field>
@@ -14,6 +13,7 @@
                     <field name="key_xml_id"/>
                     <field name="deactivated_sync"/>
                     <field name="deactivate_on_delete"/>
+                    <field name="update_prohibited"/>
                     <field name="dependency_level"/>
                 </tree>
             </field>
@@ -28,7 +28,7 @@
                     <field name="model_id"/>
                     <group expand="0" string="Filters">
                         <filter name="is_exportable" string="is_exportable" domain="[('is_exportable','=', True)]"/>
-                        <filter name="is_importable" string="Mibrable" domain="[('is_importable','=', True)]"/>
+                        <filter name="is_importable" string="is_importable" domain="[('is_importable','=', True)]"/>
                         <filter name="key_xml_id" string="Key on xml id" domain="[('key_xml_id','!=', False)]"/>
                         <filter name="deactivated_sync" string="Deactivated sync"
                                 domain="[('deactivated_sync','=', True)]"/>
@@ -52,12 +52,14 @@
                     </header>
                     <sheet>
                         <group>
-                            <field name="model_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="create_date" invisible="1"/>
+                            <field name="model_id" options="{'no_create': True, 'no_open': True}" attrs="{'readonly': [('create_date', '!=', False)]}"/>
                             <field name="is_exportable"/>
                             <field name="is_importable"/>
                             <field name="key_xml_id"/>
                             <field name="deactivated_sync"/>
                             <field name="deactivate_on_delete"/>
+                            <field name="update_prohibited"/>
                             <field name="dependency_level"/>
                         </group>
                         <notebook>
@@ -67,13 +69,12 @@
                                         'default_export_field': is_exportable,
                                         'default_import_creatable_field': is_importable,
                                         'default_import_updatable_field': is_importable}">
-                                    <tree editable="bottom" colors="red:is_configured==False">
+                                    <tree editable="bottom" colors="red:type_field == 'many2one' and relation_mapping_id == False">
                                         <field name="model_id" invisible="1"/>
-                                        <field name="is_configured"/>
                                         <field name="field_id" domain="[('model_id', '=', model_id)]"
                                                options="{'no_create': True, 'no_open': True}"/>
                                         <field name="type_field"/>
-                                        <field name="relation"/>
+                                        <field name="relation_mapping_id" widget="many2one_clickable" />
                                         <field name="map_name"/>
                                         <field name="export_field"/>
                                         <field name="import_creatable_field"/>

@@ -61,16 +61,18 @@ class TestSupplierPriceValidity(common.TransactionCase):
         })
 
         def unit_price(line):
+            self.env['pricelist.partnerinfo']. \
+                with_context(force_date_for_partnerinfo_validity=line.order_id.date_order). \
+                cron_update_active_line(jobify=False)
             results = line.onchange_product_id(line.order_id.pricelist_id.id,
-                                                              line.product_id.id,
-                                                              line.product_qty,
-                                                              line.product_uom.id,
-                                                              line.order_id.partner_id.id,
-                                                              line.order_id.date_order)
+                                               line.product_id.id,
+                                               line.product_qty,
+                                               line.product_uom.id,
+                                               line.order_id.partner_id.id,
+                                               line.order_id.date_order)
             return (results['value'])['price_unit']
 
         self.assertEquals(unit_price(purchase_order_line), 14)
-
         purchase_order_line.product_qty = 11.0
         self.assertEquals(unit_price(purchase_order_line), 12)
         purchase_order_line.product_qty = 101.0
@@ -131,31 +133,41 @@ class TestSupplierPriceValidity(common.TransactionCase):
         uom = self.browse_ref('product.product_uom_unit')
         self.assertTrue(uom)
 
-        # demo procurement order
-
-        procurement_order_1 = self.env['procurement.order'].create({
-            "name": 'Procurement order 1',
-            "product_id": product1.id,
-            "product_qty": 1.0,
-            "warehouse_id": warehouse.id,
-            "location_id": location1.id,
-            "date_planned": '2015-05-04 15:00:00',
-            "product_uom": uom.id,
-            })
+        def create_proc_1():
+            procurement_order_1 = self.env['procurement.order'].create({
+                "name": 'Procurement order 1',
+                "product_id": product1.id,
+                "product_qty": 1.0,
+                "warehouse_id": warehouse.id,
+                "location_id": location1.id,
+                "date_planned": '2015-05-04 15:00:00',
+                "product_uom": uom.id,
+                })
+            return procurement_order_1
 
         def test(qty, result):
+            self.env['pricelist.partnerinfo']. \
+                with_context(force_date_for_partnerinfo_validity=procurement_order_1.date_planned). \
+                cron_update_active_line(jobify=False)
             procurement_order_1.product_qty = qty
             procurement_order_1.run()
             self.assertEqual(procurement_order_1.state, u'running')
-            purchase_order_line = self.env['purchase.order.line'].search([('product_id', '=', procurement_order_1.product_id.id)])
+            purchase_order_line = self.env['purchase.order.line']. \
+                search([('product_id', '=', procurement_order_1.product_id.id)])
             self.assertTrue(purchase_order_line)
             # po price_unit should be equal to result:
             self.assertEqual(purchase_order_line.price_unit, result)
             purchase_order_line.order_id.unlink()
 
         def test_active(number, value, date_today):
-            supplierinfo2 = supplierinfo1.with_context({'date': date_today})
-            self.assertEqual(supplierinfo2.pricelist_ids[number].is_active(), value)
+            # get the pricelist.partnerinfo using the xml ID to avoid concern when ids not in same order as xml
+            price_list = self.env.ref("product_supplier_price_validity.pricelist{}".format(number))
+            self.env['pricelist.partnerinfo'].with_context(force_date_for_partnerinfo_validity=date_today). \
+                cron_update_active_line(jobify=False)
+            self.assertEqual(price_list.active_line, value)
+
+        # demo procurement order
+        procurement_order_1 = create_proc_1()
 
         test(1.0, 14)
         test(9.0, 14)
@@ -172,17 +184,19 @@ class TestSupplierPriceValidity(common.TransactionCase):
         test(10001.0, 5)
 
         date_today = '2015-05-04 15:00:00'
-
-        test_active(0, True, date_today)
-        test_active(1, False, date_today)
-        test_active(2, True, date_today)
-        test_active(3, False, date_today)
+        # number 1 is 'pricelist1' in xml file, ..
+        test_active(1, True, date_today)
+        test_active(2, False, date_today)
+        test_active(3, True, date_today)
         test_active(4, False, date_today)
         test_active(5, True, date_today)
-        test_active(6, True, date_today)
-        test_active(7, False, date_today)
-        test_active(8, False, date_today)
+        test_active(6, False, date_today)
+        test_active(7, True, date_today)
+        test_active(8, True, date_today)
         test_active(9, True, date_today)
+        test_active(10, True, date_today)
+        test_active(11, True, date_today)
+        test_active(12, True, date_today)
 
         procurement_order_1.date_planned = "2017-05-04 15:00:00"
 
@@ -202,13 +216,15 @@ class TestSupplierPriceValidity(common.TransactionCase):
 
         date_today = '2017-05-04 15:00:00'
 
-        test_active(0, False, date_today)
         test_active(1, True, date_today)
-        test_active(2, False, date_today)
+        test_active(2, True, date_today)
         test_active(3, True, date_today)
         test_active(4, True, date_today)
-        test_active(5, False, date_today)
+        test_active(5, True, date_today)
         test_active(6, True, date_today)
-        test_active(7, False, date_today)
-        test_active(8, False, date_today)
+        test_active(7, True, date_today)
+        test_active(8, True, date_today)
         test_active(9, True, date_today)
+        test_active(10, True, date_today)
+        test_active(11, False, date_today)  # expiration date overpassed
+        test_active(12, False, date_today)  # expiration date overpassed

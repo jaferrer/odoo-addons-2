@@ -21,58 +21,103 @@ import time
 
 from openerp.exceptions import except_orm
 from openerp import fields, models, api, _
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
+
+@job
+def job_update_active_line(session, model_name):
+    session.env[model_name].update_active_lines()
 
 
 class productSupplierinfoImproved (models.Model):
     _inherit = "product.supplierinfo"
+
     validity_date_2 = fields.Date(
         "Validity date",
         help="Price list validity end date. Does not have any affect on the price calculation.")
 
+    @api.multi
+    def update_active_line(self):
+        self.env['pricelist.partnerinfo'].search([('suppinfo_id', 'in', self.ids)]).update_active_lines()
+
+    @api.multi
+    def write(self, vals):
+        result = super(productSupplierinfoImproved, self).write(vals)
+        if 'pricelist_ids' in vals:
+            self.update_active_line()
+        return result
+
 
 class pricelist_partnerinfo_improved (models.Model):
-    _inherit = "pricelist.partnerinfo"
+    _inherit = 'pricelist.partnerinfo'
     _order = 'min_quantity asc, validity_date asc'
 
-    validity_date = fields.Date("Validity date", help="Validity date from that date")
-    active_line = fields.Boolean("True if this rule is used", store=True, compute="_is_active_line")
+    validity_date = fields.Date("Validity date", help=u"Validity date from that date", required=True,
+                                default=fields.Date.today)
+    end_validity_date = fields.Date(string=u"Expiration date", help=u"Valid until that date")
+    active_line = fields.Boolean("True if this rule is used", readonly=True)
     force_inactive = fields.Boolean(string="Inactive Price")
+    supplierinfo_sequence = fields.Integer(string=u"Supplierinfo sequence", related='suppinfo_id.sequence', store=True)
+
+    @api.model
+    def cron_update_active_line(self, jobify=True):
+        if jobify:
+            job_update_active_line.delay(ConnectorSession.from_env(self.env), 'pricelist.partnerinfo')
+        else:
+            job_update_active_line(ConnectorSession.from_env(self.env), 'pricelist.partnerinfo')
 
     @api.multi
-    @api.depends('suppinfo_id.pricelist_ids', 'min_quantity', 'validity_date')
-    def _is_active_line(self):
-        for rec in self:
-            rec.active_line = rec.is_active()
+    def update_active_lines(self):
+        reference_date = self.env.context.get('force_date_for_partnerinfo_validity', fields.Date.today())
+        lines_to_deactivate = self.env['pricelist.partnerinfo']
+        domain_lines = []
+        if self:
+            domain_lines = [('id', 'in', self.ids)]
+        lines_to_deactivate += self.search(domain_lines +
+                                           [('force_inactive', '=', True),
+                                            ('active_line', '=', True)])
+        lines_to_deactivate += self.search(domain_lines +
+                                           [('validity_date', '!=', False),
+                                            ('validity_date', '>', reference_date),
+                                            ('active_line', '=', True)])
+        lines_to_deactivate += self.search(domain_lines +
+                                           [('end_validity_date', '!=', False),
+                                            ('end_validity_date', '<', reference_date),
+                                            ('active_line', '=', True)])
+        lines_to_deactivate.write({'active_line': False})
+        lines_to_activate = self.search(domain_lines +
+                                        [('force_inactive', '=', False),
+                                         '|', ('validity_date', '=', False),
+                                         ('validity_date', '<=', reference_date),
+                                         '|', ('end_validity_date', '=', False),
+                                         ('end_validity_date', '>=', reference_date),
+                                         ('active_line', '=', False)])
+        lines_to_activate.write({'active_line': True})
 
     @api.multi
-    def is_active(self, check_force_inactive=True):
-        self.ensure_one()
-        context = self.env.context or {}
-        reference_date = context.get('date') or time.strftime('%Y-%m-%d')
-        active = True
-        list_line = []
-        if check_force_inactive and self.force_inactive:
-            return False
-        for item in self.suppinfo_id.pricelist_ids:
-            if item.min_quantity == self.min_quantity:
-                list_line += [item]
-        if self.validity_date and self.validity_date > reference_date:
-            return False
-        for item in list_line:
-            if item.validity_date and item.validity_date > self.validity_date and item.validity_date <= reference_date:
-                active = False
-                break
-        return active
+    def write(self, vals):
+        result = super(pricelist_partnerinfo_improved, self).write(vals)
+        if 'force_inactive' in vals:
+            self.update_active_lines()
+        return result
 
 
 class product_pricelist_improved(models.Model):
-    _inherit = "product.pricelist"
+    _inherit = 'product.pricelist'
 
     @api.model
     def _price_rule_get_multi(self, pricelist, products_by_qty_by_partner):
+        """
+        Price list applied is the one from the product.supplierinfo with the highest priority
+        (sequence closest to 1), which is valid, respect the minimum quantity and has
+        the closest validity_date before today
+        :param pricelist:
+        :param products_by_qty_by_partner:
+        :return: result from super, with modified price calculation
+        """
         results = super(product_pricelist_improved, self)._price_rule_get_multi(pricelist, products_by_qty_by_partner)
         context = self.env.context or {}
-        date = context.get('date') or time.strftime('%Y-%m-%d')
         for product_id in results.keys():
             price = False
             price_uom_id = False
@@ -84,43 +129,43 @@ class product_pricelist_improved(models.Model):
             if rule.base == -2:
                 for product2, qty, partner in products_by_qty_by_partner:
                     if product2 == product:
-                        results[product.id] = 0.0
-                        # rule_id = False
-                        price = False
+                        results[product.id] = (0.0, -2)
                         qty_uom_id = context.get('uom') or product.uom_id.id
-                        price_uom_id = product.uom_id.id
                         if qty_uom_id != product.uom_id.id:
                             try:
-                                qty_in_product_uom = product_uom_obj._compute_qty(
-                                    context['uom'], qty, product.uom_id.id or product.uos_id.id)
+                                product_uom_obj._compute_qty(context['uom'], qty,
+                                                             product.uom_id.id or product.uos_id.id)
                             except except_orm:
                                 # Ignored - incompatible UoM in context, use default product UoM
                                 pass
-                        seller = False
-                        for seller_id in product.seller_ids:
-                            if (not partner) or (seller_id.name.id != partner):
-                                continue
-                            seller = seller_id
-                        if not seller and product.seller_ids:
-                            seller = product.seller_ids[0]
-                        if seller:
+                        suppinfos = self.find_supplierinfos_for_product(product, partner)
+                        valid_pricelists = self.env['pricelist.partnerinfo']
+                        price_uom_ids = {}
+
+                        for suppinfo in suppinfos:  # we iterate over supplier_info (fourniture achat) because they
+                            # may be many for one supplier
                             qty_in_seller_uom = qty
-                            seller_uom = seller.product_uom.id
+                            seller_uom = suppinfo.product_uom.id
                             if qty_uom_id != seller_uom:
                                 qty_in_seller_uom = product_uom_obj._compute_qty(qty_uom_id, qty, to_uom_id=seller_uom)
-                            price_uom_id = seller_uom
-                            good_pricelist = False
-                            for item in seller.pricelist_ids.filtered(lambda pricelist: not pricelist.force_inactive):
-                                if item.min_quantity <= qty_in_seller_uom:
-                                    if item.validity_date and item.validity_date <= date:
-                                        good_pricelist = item
-                                    if not item.validity_date:
-                                        if not good_pricelist or item.min_quantity != good_pricelist.min_quantity:
-                                            good_pricelist = item
-                                else:
-                                    break
-                            price = good_pricelist and good_pricelist.price or 0.0
+                            price_uom_ids[suppinfo.id] = seller_uom  # stored in a dictionary to be able to retrive
+                            # the one associated with the choosen supplier_info
+                            # we retrieve valid price list = active, min quantity respected  and validity date ok
+                            # note that pricelist_ids returns pricelist.partnerinfo object
+                            valid_pricelists |= \
+                                suppinfo.pricelist_ids.filtered(lambda pricelist: not pricelist.force_inactive
+                                                                and pricelist.active_line
+                                                                and pricelist.min_quantity <= qty_in_seller_uom)
+                        # the right pricelist is the one with highest priority, higher quantity and newer validity_date
+                        good_pricelist = valid_pricelists.search([('id', 'in', valid_pricelists.ids)],
+                                                                 order='supplierinfo_sequence asc, suppinfo_id asc, '
+                                                                       'min_quantity desc, validity_date desc',
+                                                                 limit=1)
+                        if price_uom_ids and good_pricelist and good_pricelist.suppinfo_id:
+                            price = good_pricelist.price
+                            price_uom_id = price_uom_ids[good_pricelist.suppinfo_id.id]
                         break
+
                 if price_uom_id and qty_uom_id and rule_id:
                     price = product_uom_obj._compute_price(price_uom_id, price, qty_uom_id)
                     results[product.id] = (price, rule_id)
@@ -132,8 +177,9 @@ class procurement_order(models.Model):
 
     @api.model
     def _get_po_line_values_from_proc(self, procurement, partner, company, schedule_date):
-        date = fields.Date.to_string(schedule_date)
-        result = super(procurement_order, self.with_context(date=date))._get_po_line_values_from_proc(procurement,
-                                                                                                      partner, company,
-                                                                                                      schedule_date)
+        context = dict(self.env.context)
+        if 'force_date_for_partnerinfo_validity' not in context:
+            context['force_date_for_partnerinfo_validity'] = fields.Date.to_string(schedule_date)
+        result = super(procurement_order, self.with_context(context)). \
+            _get_po_line_values_from_proc(procurement, partner, company, schedule_date)
         return result

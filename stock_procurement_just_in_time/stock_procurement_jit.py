@@ -22,14 +22,14 @@ from datetime import datetime as dt
 
 import openerp.addons.decimal_precision as dp
 from dateutil.relativedelta import relativedelta
+from openerp import fields, models, api, exceptions, _
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
-
-from openerp import fields, models, api, exceptions, _
 from openerp.tools import float_compare, float_round
 from openerp.tools.sql import drop_view_if_exists
 
 ORDERPOINT_CHUNK = 1
+POP_PROCESS_CHUNK = 100
 
 _logger = logging.getLogger(__name__)
 
@@ -42,11 +42,19 @@ class ForbiddenCancelProtectedProcurement(exceptions.except_orm):
                                                                   _(u"You can't cancel a protected procurement"))
 
 
+@job(default_channel='root.procurement_just_in_time_chunk')
+def pop_sub_process_orderpoints(session, model_name, ids):
+    """Processes the given orderpoints."""
+    _logger.info("<<Started chunk of %s pop computing orderpoints to process" % POP_PROCESS_CHUNK)
+    controller_stock = session.env[model_name].search([('id', 'in', ids)])
+    controller_stock.pop_job_orderpoint_process()
+
+
 @job(default_channel='root.procurement_just_in_time')
-def process_orderpoints(session, model_name, ids, context):
+def process_orderpoints(session, model_name, ids):
     """Processes the given orderpoints."""
     _logger.info("<<Started chunk of %s orderpoints to process" % ORDERPOINT_CHUNK)
-    orderpoints = session.env[model_name].with_context(context).search([('id', 'in', ids)])
+    orderpoints = session.env[model_name].search([('id', 'in', ids)])
     orderpoints.process()
     job_uuid = session.context.get('job_uuid')
     if job_uuid:
@@ -62,9 +70,18 @@ def job_delete_cancelled_moves_and_procs(session, model_name, ids):
 
 class StockLocationSchedulerSequence(models.Model):
     _name = 'stock.location.scheduler.sequence'
+    _order = 'name,id'
 
-    name = fields.Char(string=u"Stock scheduler sequence", required=True)
+    name = fields.Integer(string=u"Stock scheduler sequence", required=True)
     location_id = fields.Many2one('stock.location', string=u"Location", ondelete='cascade')
+    exclude_non_manufactured_products = fields.Boolean(string=u"Exclude non-manufactured products",
+                                                       help=u"If this option is checked, the scheduler whill process "
+                                                            u"only products that can be manufactured in the location "
+                                                            u"of the orderpoint.")
+    exclude_manufactured_products = fields.Boolean(string=u"Exclude manufactured products",
+                                                   help=u"If this option is checked, the scheduler whill process "
+                                                        u"only products that can not be manufactured in the location "
+                                                        u"of the orderpoint.")
 
     _sql_constraints = [
         ('location_sequence_unique', 'unique(location_id, name)',
@@ -144,7 +161,6 @@ class ProcurementOrderQuantity(models.Model):
  product_id,
  location_id,
  location_sequence,
- route_sequence,
  run_procs,
  done,
  create_date,
@@ -152,64 +168,87 @@ class ProcurementOrderQuantity(models.Model):
  create_uid,
  write_uid)
 
-  WITH user_id AS (SELECT %s AS user_id),
+WITH user_id AS (SELECT %s AS user_id),
 
-      orderpoints_to_insert AS (
-        SELECT
-          op.id                                     AS orderpoint_id,
-          op.product_id,
-          op.location_id,
-          COALESCE(slss.name :: INTEGER, 0)         AS location_sequence ,
-          COALESCE(slr.stock_scheduler_sequence, 0) AS route_sequence,
-          FALSE                                     AS run_procs,
-          FALSE                                     AS done,
-          CURRENT_TIMESTAMP                         AS create_date,
-          CURRENT_TIMESTAMP                         AS write_date,
-          (SELECT user_id
-           FROM user_id)                            AS create_uid,
-          (SELECT user_id
-           FROM user_id)                            AS write_uid
-        FROM stock_warehouse_orderpoint op
-          LEFT JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
-          LEFT JOIN product_product pp ON pp.id = op.product_id
-          LEFT JOIN stock_route_product rel ON rel.product_id = pp.product_tmpl_id
-          LEFT JOIN stock_location_route slr ON slr.id = rel.route_id
-        WHERE op.id IN %s
-        GROUP BY op.id, slr.stock_scheduler_sequence, slss.name),
+     manufactured_products AS (
+       SELECT pp.id AS product_id,
+              TRUE  AS is_manufactured_product
+       FROM product_product pp
+              INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
+              INNER JOIN stock_location_route_categ rel ON rel.categ_id = pt.categ_id
+              INNER JOIN stock_location_route route ON route.id = rel.route_id AND coalesce(route.active, FALSE) IS TRUE
+              INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
+                                                coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
+       WHERE coalesce(pp.active, FALSE) IS TRUE
+       GROUP BY pp.id
 
-      list_sequences AS (
-        SELECT
-          location_sequence,
-          route_sequence
-        FROM orderpoints_to_insert
-        GROUP BY location_sequence, route_sequence)
+       UNION ALL
 
-  SELECT *
-  FROM orderpoints_to_insert
+       SELECT pp.id AS product_id,
+              TRUE  AS is_manufactured_product
+       FROM product_product pp
+              INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
+              INNER JOIN stock_route_product rel ON rel.product_id = pt.id
+              INNER JOIN stock_location_route route ON route.id = rel.route_id AND coalesce(route.active, FALSE) IS TRUE
+              INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
+                                                coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
+       WHERE coalesce(pp.active, FALSE) IS TRUE
+       GROUP BY pp.id),
 
-  UNION ALL
+     orderpoints_to_insert AS (
+       SELECT op.id                             AS orderpoint_id,
+              op.product_id,
+              op.location_id,
+              COALESCE(slss.name :: INTEGER, 0) AS location_sequence,
+              FALSE                             AS run_procs,
+              FALSE                             AS done,
+              CURRENT_TIMESTAMP                 AS create_date,
+              CURRENT_TIMESTAMP                 AS write_date,
+              (SELECT user_id
+               FROM user_id)                    AS create_uid,
+              (SELECT user_id
+               FROM user_id)                    AS write_uid
+       FROM stock_warehouse_orderpoint op
+              INNER JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
+              INNER JOIN product_product pp ON pp.id = op.product_id AND COALESCE(pp.active, FALSE) IS TRUE
+              LEFT JOIN manufactured_products mpbl ON mpbl.product_id = op.product_id
+       WHERE op.id IN %s
+         AND (COALESCE(slss.exclude_non_manufactured_products, FALSE) IS FALSE
+         OR COALESCE(mpbl.is_manufactured_product, FALSE) IS TRUE)
+         AND (COALESCE(slss.exclude_manufactured_products, FALSE) IS FALSE
+         OR COALESCE(mpbl.is_manufactured_product, FALSE) IS FALSE)
+       GROUP BY op.id, slss.name),
 
-  SELECT
-    NULL              AS orderpoint_id,
-    NULL              AS product_id,
-    NULL              AS location_id,
-    location_sequence,
-    route_sequence,
-    TRUE              AS run_procs,
-    FALSE             AS done,
-    CURRENT_TIMESTAMP AS create_date,
-    CURRENT_TIMESTAMP AS write_date,
-    (SELECT user_id
-     FROM user_id)    AS create_uid,
-    (SELECT user_id
-     FROM user_id)    AS write_uid
-  FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
+     list_sequences AS (
+       SELECT location_sequence
+       FROM orderpoints_to_insert
+       GROUP BY location_sequence)
+
+SELECT *
+FROM orderpoints_to_insert
+
+UNION ALL
+
+SELECT NULL              AS orderpoint_id,
+       NULL              AS product_id,
+       NULL              AS location_id,
+       location_sequence,
+       TRUE              AS run_procs,
+       FALSE             AS done,
+       CURRENT_TIMESTAMP AS create_date,
+       CURRENT_TIMESTAMP AS write_date,
+       (SELECT user_id
+        FROM user_id)    AS create_uid,
+       (SELECT user_id
+        FROM user_id)    AS write_uid
+FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
         return {}
 
     @api.multi
     def check_can_be_canceled(self, raise_error=True):
         for rec in self:
-            if rec.protected_against_scheduler and self.env.context.get('is_scheduler'):
+            if rec.protected_against_scheduler and self.env.context.get('is_scheduler') and not \
+                    self.env.context.get('propagation_cancel'):
                 if raise_error:
                     raise ForbiddenCancelProtectedProcurement(rec.id)
                 else:
@@ -250,7 +289,8 @@ class ProcurementOrderQuantity(models.Model):
             # Keep proc with new qty if some moves are already done
             procurement.remove_done_moves()
         return super(ProcurementOrderQuantity,
-                     self.sudo().with_context(ignore_move_ids=ignore_move_ids)).propagate_cancel(procurement)
+                     self.sudo().with_context(ignore_move_ids=ignore_move_ids, propagation_cancel=True)).\
+            propagate_cancel(procurement)
 
     @api.model
     def remove_done_moves(self):
@@ -284,8 +324,9 @@ class ProcurementOrderQuantity(models.Model):
         try:
             with self.env.cr.savepoint():
                 self.with_context(unlink_all_chain=True, cancel_procurement=True, is_scheduler=True).cancel()
-                self.unlink()
-                result = stock_qty - qty
+                if self.state == 'cancel':
+                    self.unlink()
+                    result = stock_qty - qty
         except ForbiddenCancelProtectedProcurement as e:
             _logger.info(e.value)
         return result
@@ -334,8 +375,7 @@ class StockWarehouseOrderPointJit(models.Model):
         """Returns a dict of stock level requirements where the stock level is below minimum qty for the product and
         the location of the orderpoint."""
         self.ensure_one()
-        events = self.compute_stock_levels_requirements(product_id=self.product_id.id, location=self.location_id,
-                                                        list_move_types=('in', 'planned', 'out', 'existing'),
+        events = self.compute_stock_levels_requirements(list_move_types=('in', 'planned', 'out', 'existing'),
                                                         limit=False, parameter_to_sort='date', to_reverse=False)
         return sorted(events, key=lambda event: event['date'])
 
@@ -348,7 +388,8 @@ class StockWarehouseOrderPointJit(models.Model):
         """
         proc = self.env['procurement.order']
         self.ensure_one()
-        product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
+        end_cover_date = fields.Datetime.from_string(need.get('date') or fields.Date.today()) + relativedelta(days=1)
+        product_max_qty = self.get_max_qty(end_cover_date)
         if self.fill_strategy == 'duration':
             consider_end_contract_effect = bool(self.env['ir.config_parameter'].get_param(
                 'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
@@ -364,7 +405,7 @@ class StockWarehouseOrderPointJit(models.Model):
         if float_compare(qty, 0.0, precision_rounding=self.product_uom.rounding) > 0:
             proc_vals = proc._prepare_orderpoint_procurement(self, qty)
             if need['date']:
-                proc_vals.update({'date_planned': need['date']})
+                proc_vals.update({'date_planned': need['date'] + ' 12:00:00'})
             proc = proc.create(proc_vals)
             if not self.env.context.get('procurement_no_run'):
                 proc.run()
@@ -378,11 +419,8 @@ class StockWarehouseOrderPointJit(models.Model):
     def get_last_scheduled_date(self):
         """Returns the last scheduled date for this order point."""
         self.ensure_one()
-        last_schedule = self.env['stock.warehouse.orderpoint'].compute_stock_levels_requirements(
-            product_id=self.product_id.id,
-            location=self.location_id,
-            list_move_types=['in', 'out', 'existing'], limit=1,
-            parameter_to_sort='date', to_reverse=True)
+        last_schedule = self.compute_stock_levels_requirements(list_move_types=['in', 'out', 'existing'], limit=1,
+                                                               parameter_to_sort='date', to_reverse=True)
         res = last_schedule and last_schedule[0].get('date') and \
             fields.Datetime.from_string(last_schedule[0].get('date')) or False
         return res
@@ -443,7 +481,7 @@ class StockWarehouseOrderPointJit(models.Model):
     def process_events_at_date(self, event, events, stock_after_event):
         self.ensure_one()
         events_at_date = [item for item in events if item['date'] == event['date']]
-        stock_after_event += sum(item['move_qty'] for item in events_at_date)
+        stock_after_event += sum([item['move_qty'] for item in events_at_date])
         return events_at_date, stock_after_event
 
     @api.multi
@@ -461,9 +499,9 @@ class StockWarehouseOrderPointJit(models.Model):
                     events_at_date, stock_after_event = op.process_events_at_date(event, events, stock_after_event)
                     done_dates += [event['date']]
                 if op.is_over_stock_max(event, stock_after_event) and event['move_type'] in ['in', 'planned'] and event['proc_id']:
-                    procs_oversupply = self.env[
-                        'procurement.order'].search([('id', 'in', [item['proc_id'] for item in events_at_date]),
-                                                     ('state', '!=', 'done')])
+                    procs_oversupply = self.env['procurement.order']. \
+                        search([('id', 'in', [item['proc_id'] for item in events_at_date]),
+                                ('state', '!=', 'done')])
                     for proc_oversupply in procs_oversupply:
                         qty_same_proc = sum([item['move_qty']
                                             for item in events if item['proc_id'] == proc_oversupply.id])
@@ -480,32 +518,52 @@ class StockWarehouseOrderPointJit(models.Model):
             # the minimum quantity of the orderpoint.
             last_scheduled_date = op.get_last_scheduled_date()
             if last_scheduled_date:
-                date_end = last_scheduled_date + relativedelta(minutes=+1)
+                date_end = last_scheduled_date + relativedelta(days=1)
                 op.remove_unecessary_procurements(date_end)
 
     @api.model
-    def get_query_move_in(self, move_in_date_clause):
-        return ("""SELECT
-  sm.id,
-  sm.product_qty,
-  min(COALESCE(po.date_planned, sm.date)) AS date,
-  po.id
-FROM
-  stock_move sm
-  LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
-  LEFT JOIN procurement_order po ON sm.procurement_id = po.id
-WHERE
-  sm.product_id = %s
+    def get_query_move_in(self):
+        return """SELECT sm.id,
+       sm.product_qty,
+       min(COALESCE(po.date_planned, sm.date))::DATE AS date,
+       po.id
+FROM stock_move sm
+       LEFT JOIN stock_location sl ON sm.location_dest_id = sl.id
+       LEFT JOIN procurement_order po ON sm.procurement_id = po.id
+WHERE sm.product_id = %s
   AND sm.state NOT IN ('cancel', 'done', 'draft')
   AND sl.parent_left >= %s
-  AND sl.parent_left < %s""" +
-            move_in_date_clause +
-            """GROUP BY sm.id, po.id, sm.product_qty
-ORDER BY DATE""")
+  AND sl.parent_left < %s"""
 
     @api.model
-    def compute_stock_levels_requirements(self, product_id, location, list_move_types, limit=1,
-                                          parameter_to_sort='date', to_reverse=False, max_date=None):
+    def get_query_moves_out(self):
+        return """SELECT sm.id,
+       sm.product_qty,
+       min(sm.date)::DATE AS date
+FROM stock_move sm
+       LEFT JOIN stock_location sl ON sm.location_id = sl.id
+WHERE sm.product_id = %s
+  AND sm.state NOT IN ('cancel', 'done', 'draft')
+  AND sl.parent_left >= %s
+  AND sl.parent_left < %s"""
+
+    @api.model
+    def get_query_procs(self):
+        return """SELECT po.id,
+       min(po.date_planned)::DATE,
+       min(po.qty)
+FROM procurement_order po
+       LEFT JOIN stock_location sl ON po.location_id = sl.id
+       LEFT JOIN stock_move sm ON po.id = sm.procurement_id
+WHERE po.product_id = %s
+  AND sl.parent_left >= %s
+  AND sl.parent_left < %s
+  AND po.state NOT IN ('done', 'cancel')
+  AND (sm.state = 'draft' OR sm.id IS NULL)"""
+
+    @api.model
+    def compute_stock_levels_requirements(self, list_move_types, limit=1, parameter_to_sort='date', to_reverse=False,
+                                          max_date=None):
         """
         Computes stock level report
         :param product_id: int
@@ -516,13 +574,14 @@ ORDER BY DATE""")
         :param to_reverse: bool
         :return: list of need dictionaries
         """
+        self.ensure_one()
         procurement_date_clause = max_date and " AND po.date_planned <= %s " or ""
         move_out_date_clause = max_date and " AND sm.date <= %s " or ""
         move_in_date_clause = max_date and " AND COALESCE(po.date_planned, sm.date) <= %s " or ""
         # Workaround for tests
-        if not location.parent_left or not location.parent_right:
+        if not self.location_id.parent_left or not self.location_id.parent_right:
             self.env['stock.location']._parent_store_compute()
-        params = (product_id, location.parent_left, location.parent_right)
+        params = (self.product_id.id, self.location_id.parent_left, self.location_id.parent_right)
         if max_date:
             params += (max_date,)
 
@@ -530,53 +589,23 @@ ORDER BY DATE""")
         first_date = False
         result = []
         intermediate_result = []
-        query_moves_in = self.get_query_move_in(move_in_date_clause)
+        query_moves_in = self.get_query_move_in() + move_in_date_clause + """
+GROUP BY sm.id, po.id, sm.product_qty
+ORDER BY DATE"""
         self.env.cr.execute(query_moves_in, params)
         moves_in_tuples = self.env.cr.fetchall()
 
-        query_moves_out = """
-            SELECT
-                sm.id,
-                sm.product_qty,
-                min(sm.date) AS date
-            FROM
-                stock_move sm
-                LEFT JOIN stock_location sl ON sm.location_id = sl.id
-            WHERE
-                sm.product_id = %s
-                AND sm.state NOT IN ('cancel', 'done', 'draft')
-                AND sl.parent_left >= %s
-                AND sl.parent_left < %s""" + \
-                          move_out_date_clause + \
-                          """
-                          GROUP BY sm.id, sm.product_qty
-                          ORDER BY date
-                      """
+        query_moves_out = self.get_query_moves_out() + move_out_date_clause + """
+GROUP BY sm.id, sm.product_qty
+ORDER BY date"""
         self.env.cr.execute(query_moves_out, params)
         moves_out_tuples = self.env.cr.fetchall()
 
-        stock_quant_restricted = self.env['stock.quant'].search([('product_id', '=', product_id),
-                                                                 ('location_id', 'child_of', location.id)])
-        query_procs = """
-            SELECT
-                po.id,
-                min(po.date_planned),
-                min(po.qty)
-            FROM
-                procurement_order po
-                LEFT JOIN stock_location sl ON po.location_id = sl.id
-                LEFT JOIN stock_move sm ON po.id = sm.procurement_id
-            WHERE
-                po.product_id = %s
-                AND sl.parent_left >= %s
-                AND sl.parent_left < %s
-                AND po.state NOT IN ('done', 'cancel')
-                AND (sm.state = 'draft' OR sm.id IS NULL)""" + \
-                      procurement_date_clause + \
-                      """
-                      GROUP BY po.id
-                      ORDER BY po.date_planned
-                  """
+        stock_quant_restricted = self.env['stock.quant'].search([('product_id', '=', self.product_id.id),
+                                                                 ('location_id', 'child_of', self.location_id.id)])
+        query_procs = self.get_query_procs() + procurement_date_clause + """
+GROUP BY po.id
+ORDER BY po.date_planned"""
         self.env.cr.execute(query_procs, params)
         procurement_tuples = self.env.cr.fetchall()
         dates = []
@@ -593,7 +622,7 @@ ORDER BY DATE""")
         existing_qty = sum([x.qty for x in stock_quant_restricted])
         intermediate_result += [{
             'proc_id': False,
-            'location_id': location.id,
+            'location_id': self.location_id.id,
             'move_type': 'existing',
             'date': first_date,
             'move_qty': existing_qty,
@@ -603,7 +632,7 @@ ORDER BY DATE""")
         for sm in moves_in_tuples:
             intermediate_result += [{
                 'proc_id': sm[3],
-                'location_id': location.id,
+                'location_id': self.location_id.id,
                 'move_type': 'in',
                 'date': sm[2],
                 'move_qty': sm[1],
@@ -614,7 +643,7 @@ ORDER BY DATE""")
         for sm in moves_out_tuples:
             intermediate_result += [{
                 'proc_id': False,
-                'location_id': location.id,
+                'location_id': self.location_id.id,
                 'move_type': 'out',
                 'date': sm[2],
                 'move_qty': - sm[1],
@@ -625,7 +654,7 @@ ORDER BY DATE""")
         for po in procurement_tuples:
             intermediate_result += [{
                 'proc_id': po[0],
-                'location_id': location.id,
+                'location_id': self.location_id.id,
                 'move_type': 'planned',
                 'date': po[1],
                 'move_qty': po[2],
@@ -647,7 +676,7 @@ ORDER BY DATE""")
                     level_qty = qty
                 result += [{
                     'proc_id': dictionary['proc_id'],
-                    'product_id': product_id,
+                    'product_id': self.product_id.id,
                     'location_id': dictionary['location_id'],
                     'move_type': dictionary['move_type'],
                     'date': dictionary['date'],
@@ -835,12 +864,11 @@ class StockSchedulerController(models.Model):
     _name = 'stock.scheduler.controller'
     _order = 'orderpoint_id'
 
-    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Orderpoint")
+    orderpoint_id = fields.Many2one('stock.warehouse.orderpoint', string=u"Orderpoint", index=True)
     product_id = fields.Many2one('product.product', string=u"Product", readonly=True)
     location_id = fields.Many2one('stock.location', string=u"Location", readonly=True)
     location_sequence = fields.Integer(string=u"Location sequence", readonly=True)
     route_id = fields.Many2one('stock.location.route', string=u"Route", readonly=True)
-    route_sequence = fields.Integer(string=u"Route sequence", readonly=True)
     run_procs = fields.Boolean(string=u"Run procurements", readonly=True)
     job_creation_date = fields.Datetime(string=u"Job Creation Date", readonly=True)
     job_uuid = fields.Char(string=u"Job UUID", readonly=True, index=True)
@@ -851,37 +879,67 @@ class StockSchedulerController(models.Model):
     def set_to_done(self):
         self.write({'done': True, 'date_done': fields.Datetime.now()})
 
+    @api.multi
+    def pop_job_orderpoint_process(self):
+        for controller_line in self:
+            job_uuid = process_orderpoints. \
+                delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                      controller_line.orderpoint_id.ids, description="Computing orderpoints")
+            controller_line.write({'job_uuid': job_uuid, 'job_creation_date': fields.Datetime.now()})
+
+    @api.model
+    def is_pop_orderpoints_process_running(self):
+        return self.env['queue.job']. \
+            search(
+            [('job_function_id.name', '=',
+              'openerp.addons.stock_procurement_just_in_time.stock_procurement_jit.pop_sub_process_orderpoints'),
+             ('state', 'not in', ('done', 'failed'))], limit=1)
+
+    @api.model
+    def is_head_scheduler_function_running(self):
+        return self.env['queue.job']. \
+            search(
+            [('job_function_id.name', '=',
+              'openerp.addons.scheduler_async.scheduler_async.run_procure_orderpoint_async'),
+             ('state', 'not in', ('done', 'failed'))], limit=1)
+
     @api.model
     def update_scheduler_controller(self, jobify=True, run_procurements=True):
-        max_sequence = self.search([('done', '=', False)], order='location_sequence desc, route_sequence desc', limit=1)
-        if max_sequence:
-            max_location_sequence = max_sequence.location_sequence
-            max_route_sequence = max_sequence.route_sequence
+        line_min_sequence = self.search([('done', '=', False)], order='location_sequence', limit=1)
+        if self.is_pop_orderpoints_process_running():
+            return
+        if self.is_head_scheduler_function_running():
+            return
+        if line_min_sequence:
+            min_sequence = line_min_sequence.location_sequence
             is_procs_confirmation_ok = self.env['procurement.order'].is_procs_confirmation_ok()
             is_moves_confirmation_ok = self.env['procurement.order'].is_moves_confirmation_ok()
             if is_procs_confirmation_ok and is_moves_confirmation_ok:
                 controller_lines_no_run = self.search([('done', '=', False),
                                                        ('job_uuid', '=', False),
-                                                       ('location_sequence', '=', max_location_sequence),
-                                                       ('route_sequence', '=', max_route_sequence),
+                                                       ('location_sequence', '=', min_sequence),
                                                        ('run_procs', '=', False)])
 
                 if not controller_lines_no_run:
                     controller_lines_no_run_blocked = self.search([('done', '=', False),
                                                                    ('job_uuid', '!=', False),
-                                                                   ('location_sequence', '=', max_location_sequence),
-                                                                   ('route_sequence', '=', max_route_sequence),
+                                                                   ('location_sequence', '=', min_sequence),
                                                                    ('run_procs', '=', False)])
                     if controller_lines_no_run_blocked:
+                        any_line_to_relaunch = False
                         for line_blocked in controller_lines_no_run_blocked:
                             queue_job = self.env['queue.job'].search(
                                 [('uuid', '=', line_blocked.job_uuid), ('state', 'in', ['done', 'failed'])])
                             if queue_job:
                                 line_blocked.done = True
+                            elif not self.env['queue.job'].search([('uuid', '=', line_blocked.job_uuid)]):
+                                line_blocked.job_uuid = False
+                                any_line_to_relaunch = True
+                        if any_line_to_relaunch:
+                            return
 
                     controller_lines_run_procs = self.search([('done', '=', False),
-                                                              ('location_sequence', '=', max_location_sequence),
-                                                              ('route_sequence', '=', max_route_sequence),
+                                                              ('location_sequence', '=', min_sequence),
                                                               ('run_procs', '=', True)])
                     if controller_lines_run_procs:
                         if run_procurements:
@@ -892,21 +950,17 @@ class StockSchedulerController(models.Model):
                 else:
                     if jobify:
                         while controller_lines_no_run:
-                            chunk_line = controller_lines_no_run[:50]
-                            controller_lines_no_run = controller_lines_no_run[50:]
-                            orderpoints = chunk_line.mapped('orderpoint_id')
-                            job_uuid = process_orderpoints. \
-                                delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                      orderpoints.ids, dict(self.env.context),
-                                      description="Computing orderpoints")
-                            chunk_line.write({'job_uuid': job_uuid,
-                                              'job_creation_date': fields.Datetime.now()})
+                            chunk_line = controller_lines_no_run[:POP_PROCESS_CHUNK]
+                            controller_lines_no_run = controller_lines_no_run[POP_PROCESS_CHUNK:]
+                            pop_sub_process_orderpoints. \
+                                delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
+                                      chunk_line.ids, description="Pop job Computing orderpoints")
                     else:
                         for line in controller_lines_no_run:
                             line.job_uuid = str(line.orderpoint_id.id)
                             self.env.context = dict(self.env.context, job_uuid=line.job_uuid)
                             process_orderpoints(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
-                                                line.orderpoint_id.ids, dict(self.env.context))
+                                                line.orderpoint_id.ids)
 
     @api.model
     def clean_scheduler_controller_lines(self):

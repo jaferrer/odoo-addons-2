@@ -12,7 +12,7 @@
                     <field name="origin" position="after">
                         <field name="limit_order_date" attrs="{'invisible': [('state', 'not in', ['draft','send','bid','confirmed'])]}"/>
                     </field>
-                    <field name="date_order" position="before">
+                    <field name="validator" position="after">
                         <field name="confirm_date" widget="date"/>
                     </field>
                     <xpath expr="//field[@name='order_line']//field[@name='date_planned']" position="before">

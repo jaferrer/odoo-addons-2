@@ -51,11 +51,13 @@ class BusSynchronizationMapper(models.AbstractModel):
         importable_fields.append('external_key')
         importable_fields.append('bus_sender_id')
         importable_fields.append('bus_recipient_id')
+        importable_fields.append('write_date')
+        importable_fields.append('display_name')
         for field_key in record.keys():
             if field_key not in importable_fields:
-                error.append(('warning', u"Error field %s not configured for import" % field_key))
-            elif field_key in required_fields and not record.get(field_key):
-                error.append(('error', u"Error field %s is required, record id : %s" % (field_key, record.get('id'))))
+                error.append(('warning', u"Field %s not configured for import" % field_key))
+            elif field_key in required_fields and field_key not in record.keys():
+                error.append(('error', u"Field %s is required, record id : %s" % (field_key, record.get('id'))))
             else:
                 if isinstance(record.get(field_key), dict):
                     relational_values = False
@@ -75,7 +77,20 @@ class BusSynchronizationMapper(models.AbstractModel):
 
     @api.model
     def get_relational_value(self, model, id, dependencies):
-        external_key = dependencies.get(model, {}).get(str(id)).get('external_key')
+        """ returns a local id of a relation or false
+            :param model: model name aka: "stock.location"
+            :param id: remote record id (id from the sender)
+            :param dependencies: dict containing all models with all dependencies ids (remote, local and external_key)
+        """
+        model_deps = dependencies.get(model, {}).get(str(id))
+        if 'bus_recipient_id' in model_deps:
+            try:
+                return int(model_deps['bus_recipient_id'])
+            except ValueError:
+                pass
+        # hack: legacy code, might be dead code, if bus_recipient_id isn't set (when record is not synchronized)
+        # external_key would not return any record BUT some other uses cases could be out of my mind..
+        external_key = model_deps.get('external_key')
         _, sub_record = self.env['bus.binder'].get_record_by_external_key(external_key, model)
         return sub_record and sub_record.id or False
 

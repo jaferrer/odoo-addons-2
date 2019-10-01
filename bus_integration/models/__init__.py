@@ -27,11 +27,11 @@ from . import bus_object_mapping
 from . import bus_receive_transfer
 from . import bus_check_transfer
 from . import bus_configuration
-from . import bus_configuration_export_histo
 from . import bus_configuration_export
 from . import bus_message
 from . import bus_message_log
 from . import ir_model
 from . import ir_cron
+from . import ir_ui_view
 from . import mapping_configuration_helper
-# from . import access_rights
+from . import access_rights
