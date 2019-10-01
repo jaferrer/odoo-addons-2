@@ -34,7 +34,6 @@ class BusObjectMappingAbstract(models.AbstractModel):
                                 help=u"if XML id not find, is_importable on key in fields")
     deactivated_sync = fields.Boolean(string=u"Synchronize inactive items")
     deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
-    deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
     update_prohibited = fields.Boolean(string=u"Update prohibited", help=u"When field are importable", default=True)
 
     @api.multi
