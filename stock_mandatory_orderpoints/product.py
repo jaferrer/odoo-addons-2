@@ -135,6 +135,7 @@ class StockLocationRoute(models.Model):
     no_rsm_locations_ids = fields.Many2many('stock.location', 'stock_location_without_rsm', 'route_id',
                                             string=u"Location with no rsm")
 
+
 class SirailStockLocation(models.Model):
     _inherit = 'stock.location'
 

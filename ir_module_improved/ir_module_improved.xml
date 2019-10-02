@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="ir_module_module_form">
+            <field name="name">ir_module_module_form</field>
+            <field name="model">ir.module.module</field>
+            <field name="inherit_id" ref="base.module_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="demo" position="after">
+                    <field name="do_not_update_noupdate_data_when_install"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
