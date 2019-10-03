@@ -500,26 +500,33 @@ FROM top_parent WHERE top_parent_task_id = %s""", (self.project_id.id, self.id,)
         self.ensure_one()
         propagate_to_the_future = self.env.context.get('propagate_to_the_future')
         propagate_to_the_past = self.env.context.get('propagate_to_the_past')
+        # This is made to manage appearant null duration for
+        expected_end_date = self.expected_end_date
+        if self.expected_end_date and self.forced_duration_one_day:
+            expected_end_date = self.schedule_get_date(expected_end_date, -1)
+        expected_start_date = self.expected_start_date
+        if self.expected_start_date and self.forced_duration_one_day:
+            expected_start_date = self.schedule_get_date(expected_start_date, 1)
         if propagate_to_the_future and self.expected_end_date:
             next_tasks_to_reschedule = self.env['project.task']
             for task in self.next_task_ids:
                 if not task.expected_start_date:
                     next_tasks_to_reschedule |= task
                     continue
-                if self.expected_end_date >= task.expected_start_date:
+                if expected_end_date >= task.expected_start_date:
                     next_tasks_to_reschedule |= task
             if next_tasks_to_reschedule:
-                next_tasks_to_reschedule.schedule_tasks_after_date(self.expected_end_date)
+                next_tasks_to_reschedule.schedule_tasks_after_date(expected_end_date)
         if propagate_to_the_past and self.expected_start_date:
             previous_tasks_to_reschedule = self.env['project.task']
             for task in self.previous_task_ids:
                 if not task.expected_end_date:
                     previous_tasks_to_reschedule |= task
                     continue
-                if self.expected_start_date <= task.expected_end_date:
+                if expected_start_date <= task.expected_end_date:
                     previous_tasks_to_reschedule |= task
             if previous_tasks_to_reschedule:
-                previous_tasks_to_reschedule.schedule_tasks_before_date(self.expected_start_date)
+                previous_tasks_to_reschedule.schedule_tasks_before_date(expected_start_date)
         children_task_ids = self.get_children_task_ids(include_self=False)
         if children_task_ids and propagate_to_the_past:
             self.env.cr.execute("""SELECT pt.id
