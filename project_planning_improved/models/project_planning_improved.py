@@ -715,7 +715,7 @@ WHERE id = %s"""
         self.env.invalidate_all()
 
     @api.multi
-    def postpone_tasks_of_nb_days(self, tasks_to_postpone, first_start_date_to_postpone, nb_days):
+    def postpone_tasks_of_nb_days(self, tasks_to_postpone, first_date_to_postpone, nb_days):
         self.ensure_one()
         if not tasks_to_postpone:
             return
@@ -724,7 +724,7 @@ WHERE id = %s"""
         if not last_task:
             return
         usefull_working_days, usefull_non_working_days = self. \
-            get_usefull_working_days_to_postpone(first_start_date_to_postpone, last_task.expected_end_date, nb_days)
+            get_usefull_working_days_to_postpone(first_date_to_postpone, last_task.expected_end_date, nb_days)
         nb_usefull_working_days = len(usefull_working_days)
         index = 0
         dict_date_modification = {}
@@ -748,7 +748,7 @@ WHERE id = %s"""
                                                 dict_date_modification[task.expected_end_date])
 
     @api.multi
-    def advance_tasks_of_nb_days(self, tasks_to_advance, last_end_date_to_advance, nb_days):
+    def advance_tasks_of_nb_days(self, tasks_to_advance, last_date_to_advance, nb_days):
         self.ensure_one()
         if not tasks_to_advance:
             return
@@ -757,7 +757,7 @@ WHERE id = %s"""
         if not first_task:
             return
         usefull_working_days, usefull_non_working_days = self. \
-            get_usefull_working_days_to_advance(last_end_date_to_advance, first_task.expected_start_date, nb_days)
+            get_usefull_working_days_to_advance(last_date_to_advance, first_task.expected_start_date, nb_days)
         nb_usefull_working_days = len(usefull_working_days)
         index = 0
         dict_date_modification = {}
@@ -957,12 +957,34 @@ WHERE id = %s"""
     def set_task_on_one_day(self):
         for rec in self:
             task_and_children = self.env['project.task'].search([('id', 'child_of', rec.id)])
+            initial_end_date = rec.expected_end_date
+            new_start_date = rec.expected_start_date
             task_and_children.with_context(do_not_propagate_dates=True).write({
                 'forced_duration_one_day': True,
-                'expected_start_date': rec.expected_start_date,
-                'expected_end_date': rec.expected_start_date,
                 'taken_into_account': False,
             })
+            for task in task_and_children:
+                task.update_expected_dates_no_write(rec.expected_start_date, rec.expected_start_date)
+            next_tasks_of_task_and_parents = rec.get_next_tasks_of_task_and_parents()
+            first_task_to_advance = self.env['project.task']. \
+                search([('id', 'in', next_tasks_of_task_and_parents.ids),
+                        ('expected_start_date', '!=', False),
+                        ('expected_start_date', '>', initial_end_date)], order='expected_start_date', limit=1)
+            if first_task_to_advance:
+                first_start_date_to_advance = first_task_to_advance.expected_start_date
+                nb_days = first_task_to_advance. \
+                    get_task_number_open_days(new_start_date, first_task_to_advance.expected_start_date) or 0
+                nb_days = max(nb_days - 1, 0)
+                if nb_days:
+                    tasks_to_advance = self.env['project.task']. \
+                        search([('project_id', '=', self.project_id.id),
+                                ('id', '!=', self.id),
+                                ('expected_start_date', '>=', first_start_date_to_advance)],
+                               order='expected_end_date desc')
+                    if tasks_to_advance:
+                        last_date_to_advance = tasks_to_advance[0].expected_end_date
+                        rec.advance_tasks_of_nb_days(tasks_to_advance, last_date_to_advance, nb_days)
+            rec.project_id.update_dates_parent_tasks()
 
     @api.multi
     def unset_task_on_one_day(self):
@@ -976,3 +998,4 @@ WHERE id = %s"""
                 # reset_duration_for_tasks is supposed to make only one replanification.
                 child.expected_end_date = child.with_context(reset_duration_for_tasks=children.ids). \
                     schedule_get_date(child.expected_start_date, child.objective_duration - 1)
+            rec.project_id.update_dates_parent_tasks()
