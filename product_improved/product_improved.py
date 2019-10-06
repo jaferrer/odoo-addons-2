@@ -29,7 +29,7 @@ class ProductTemplateJit(models.Model):
     _inherit = 'product.template'
 
     _columns = {
-        'seller_id': old_api_fields.many2one('res.partner', string='Main Supplier',
+        'seller_id': old_api_fields.many2one('res.partner', string='Main Supplier', track_visibility='onchange',
                                              help="Main Supplier who has highest priority in Supplier List."),
     }
 
@@ -90,7 +90,8 @@ WHERE (res_partner.id IS NULL OR main_supplier_s.constr = 1) AND
 class ProductLabelProductProduct(models.Model):
     _inherit = 'product.product'
 
-    seller_id = fields.Many2one(related='product_tmpl_id.seller_id', store=True, readonly=True)
+    seller_id = fields.Many2one(related='product_tmpl_id.seller_id', store=True, readonly=True,
+                                track_visibility='onchange')
 
     @api.model
     def update_seller_ids(self):
