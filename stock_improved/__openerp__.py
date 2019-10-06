@@ -30,7 +30,7 @@ Stock Improved
 This modules improves stock
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': ['stock_improved.xml'],
     'demo': [],
     'test': [],
     'installable': True,
