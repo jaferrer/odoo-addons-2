@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,24 +17,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Stock Improved',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Stock',
-    'depends': ['stock'],
-    'description': """
-Stock Improved
-==============
-This modules improves stock
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['stock_improved.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from openerp import api, models, _
+
+
+class ResUsers(models.BaseModel):
+    _inherit = 'res.users'
+
+    @api.model
+    def change_rights(self, users):
+        wizard = self.env['user.copy.rights'].create({})
+        wizard.user_ids = users
+        return {
+            'name': _(u"Change user rights"),
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'form',
+            'res_model': 'user.copy.rights',
+            'res_id': wizard.id,
+            'context': self.env.context,
+            'target': 'new'
+        }

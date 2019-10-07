@@ -59,24 +59,28 @@ class MappingConfigurationHelper(models.TransientModel):
 
     def _get_refresh_action(self):
         return {
-            "type": "ir.actions.act_window",
-            "view_mode": "form",
+            'type': 'ir.actions.act_window',
+            'view_mode': 'form',
             'view_type': 'form',
-            "res_model": self._name,
-            "res_id": self.id,
-            "target": "new",
+            'res_model': self._name,
+            'res_id': self.id,
+            'target': 'new',
+            'context': self.env.context,
         }
 
     @api.multi
     def add_all(self):
         self.field_ids = []
-        unwanted_fields = ('create_date', 'create_uid', '__last_update', 'write_date', 'write_uid', 'display_name')
+        unwanted_fields = ('id', 'display_name',
+                           'create_date', 'create_uid',
+                           'write_date', 'write_uid',
+                           '__last_update')
 
-        fields = self.env['ir.model.fields'].search([('model_id', '=', self.model_id.id),
-                                                     ('name', 'not in', unwanted_fields)])
+        model_fields = self.env['ir.model.fields'].search([('model_id', '=', self.model_id.id),
+                                                           ('name', 'not in', unwanted_fields)])
 
         self.field_ids = self.env['mapping.configuration.helper.line']
-        for field in fields:
+        for field in model_fields:
             self.field_ids |= self.env['mapping.configuration.helper.line'].create({
                 'wizard_id': self.id,
                 'field_id': field.id,

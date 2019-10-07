@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,19 +18,21 @@
 #
 
 {
-    'name': 'Stock Improved',
+    'name': 'Copy user rights',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Stock',
-    'depends': ['stock'],
+    'category': 'Dependency',
+    'depends': ['base'],
     'description': """
-Stock Improved
-==============
-This modules improves stock
+Copy user rights
+================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['stock_improved.xml'],
+    'data': [
+        'views/res_users.xml',
+        'views/user_copy_right.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,19 +18,19 @@
 #
 
 {
-    'name': 'Stock Improved',
+    'name': 'Odoo Module Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Stock',
-    'depends': ['stock'],
+    'category': 'Technical',
+    'depends': ['base'],
     'description': """
-Stock Improved
-==============
-This modules improves stock
+Odoo Module Improved
+====================
+This modules improves modules data load in Odoo.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['stock_improved.xml'],
+    'data': ['ir_module_improved.xml'],
     'demo': [],
     'test': [],
     'installable': True,

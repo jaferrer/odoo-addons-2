@@ -13,6 +13,7 @@
                     <field name="key_xml_id"/>
                     <field name="deactivated_sync"/>
                     <field name="deactivate_on_delete"/>
+                    <field name="update_prohibited"/>
                     <field name="dependency_level"/>
                 </tree>
             </field>
@@ -58,6 +59,7 @@
                             <field name="key_xml_id"/>
                             <field name="deactivated_sync"/>
                             <field name="deactivate_on_delete"/>
+                            <field name="update_prohibited"/>
                             <field name="dependency_level"/>
                         </group>
                         <notebook>

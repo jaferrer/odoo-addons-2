@@ -34,7 +34,6 @@ class BusObjectMappingAbstract(models.AbstractModel):
                                 help=u"if XML id not find, is_importable on key in fields")
     deactivated_sync = fields.Boolean(string=u"Synchronize inactive items")
     deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
-    deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
     update_prohibited = fields.Boolean(string=u"Update prohibited", help=u"When field are importable", default=True)
 
     @api.multi
@@ -129,6 +128,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     field_name = fields.Char(u"Field name", readonly=True, related='field_id.name', store=True)
     type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
     is_computed = fields.Boolean(String=u"Computed", compute="_compute_depends_field_id", store=True)
+    relation = fields.Char(u"relation", related="field_id.relation")
     # compute when model changes in mapping.field.configuration.helper
     map_name = fields.Char(u"Mapping name", required=True)
     # set manually
