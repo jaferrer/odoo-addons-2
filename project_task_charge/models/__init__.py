@@ -20,3 +20,4 @@
 
 from . import project_task
 from . import project_task_charge
+from . import project_config_settings
