@@ -143,14 +143,10 @@ class BusSynchronizationExporter(models.AbstractModel):
 
     # region def _generate_msg_body(self, exported_records, model_name):
     def _generate_bus_synchronization_msg_body(self, exported_records, model_name):
-        message_dict = {}
+        message_dict = {'body': {'root': {exported_records._name: {}}}}
         for record in exported_records:
             record_id = str(record.id)
-            message_dict\
-                .setdefault('body', {})\
-                .setdefault('root', {})\
-                .setdefault(record._name, {})\
-                .setdefault(record_id, {})
+            message_dict['body']['root'][record._name].setdefault(record_id, {})
             message_dict['body']['root'][record._name][record_id]['write_date'] = record.write_date
             message_dict['body']['root'][record._name][record_id]['display_name'] = record.display_name or ""
         return message_dict
