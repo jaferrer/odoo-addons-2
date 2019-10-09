@@ -35,3 +35,8 @@ class ResPartnerWithAddressFromProvider(models.Model):
         self.zip = self.address_provider.postalCode
         self.city = self.address_provider.city
         self.country = self.address_provider.country
+
+    @api.onchange('street')
+    def _onchange_street(self):
+        if self.street:
+            self.address_provider = False
