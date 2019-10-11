@@ -45,7 +45,6 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
                                                   digits_compute=dp.get_precision('Product UoS'))
     scheduled_procurement_ids = fields.One2many('procurement.order', 'scheduled_for_sale_line_id',
                                                 string=u"Procurement orders scheduled for this line")
-
     manual_consideration = fields.Boolean(string=u"Manual consideration", default=False)
 
     @api.depends('product_uom_qty', 'scheduled_procurement_ids', 'scheduled_procurement_ids.product_qty',
