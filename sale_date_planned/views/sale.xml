@@ -16,7 +16,7 @@
                 <xpath expr="//form[@string='Sales Order Lines']//label[@for='delay']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//form[@string='Sales Order Lines']//field[@name='delay']" position="attributes">
+                <xpath expr="//form[@string='Sales Order Lines']//div[field[@name='delay']]" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
             </field>

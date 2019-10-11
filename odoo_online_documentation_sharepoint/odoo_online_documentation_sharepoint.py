@@ -279,6 +279,9 @@ class SharepointAccessIdConfig(models.TransientModel):
         base_url = self.env['knowledge.config.settings']\
             .get_default_auth_code_url_sharepoint(fields=None)['auth_code_url_sharepoint']
 
+        if not username or not password or not base_url:
+            return
+
         data = {
             'client_id': u"67e8fd34-23ba-4806-8e15-35a6568b4da3",
             'scope': u"openid offline_access https://sirail.sharepoint.com/user.read",

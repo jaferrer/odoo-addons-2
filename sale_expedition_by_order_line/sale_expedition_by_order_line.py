@@ -279,8 +279,8 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
 
     procurement_ids = fields.One2many('procurement.order', 'sale_line_id', readonly=True)
     move_ids = fields.One2many('stock.move', 'sale_line_id', readonly=True)
-    remaining_qty = fields.Float(u"Qty Still To Be Sent", digits_compute=dp.get_precision('Product UoS'))
-    sent_qty = fields.Float(u"Quantity Already Sent", digits_compute=dp.get_precision('Product UoS'))
+    remaining_qty = fields.Float(u"Qty Still To Be Sent", digits_compute=dp.get_precision('Product UoS'), readonly=True)
+    sent_qty = fields.Float(u"Quantity Already Sent", digits_compute=dp.get_precision('Product UoS'), readonly=True)
 
     @api.multi
     def get_running_moves_to_customer_for_line(self):

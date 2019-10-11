@@ -96,6 +96,8 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
         # - prendre en compte uniquement la première fourniture correspondant au fournisseur choisi, s'il y en a
         # plusieurs (ajout du "break").
         supplierinfo = False
+        precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
+        qty = qty or 0
         for supplier in product.seller_ids:
             if partner_id and (supplier.name.id == partner_id):
                 supplierinfo = supplier
@@ -106,7 +108,7 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
                 min_qty = self.env['product.uom']._compute_qty(supplierinfo.product_uom.id,
                                                                supplierinfo.min_qty,
                                                                to_uom_id=uom_id)
-                if not qty:
+                if float_compare(min_qty, qty, precision_digits=precision) == 1:
                     qty = min_qty
                 break
         return res, qty, supplierinfo
