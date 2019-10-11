@@ -67,6 +67,10 @@ class MakeProcurementImproved(models.TransientModel):
     @api.multi
     def make_procurement(self):
         for wizard in self:
+            location = wizard.warehouse_id.lot_stock_id.id
+            if 'force_location_id' in self.env.context:
+                location = self.env.context['force_location_id']
+
             procurements_creates = []
             for line in wizard.make_procurement_line_ids:
                 if line.qty > 0:
@@ -80,7 +84,7 @@ class MakeProcurementImproved(models.TransientModel):
                         'product_qty': line.qty,
                         'product_uom': line.uom_id.id,
                         'warehouse_id': wizard.warehouse_id.id,
-                        'location_id': wizard.warehouse_id.lot_stock_id.id,
+                        'location_id': location,
                         'company_id': wizard.warehouse_id.company_id.id,
                         'route_ids': [(6, 0, wizard.route_ids.ids)]}).id)
         return {
