@@ -73,11 +73,14 @@ class PurchaseOrderJustInTime(models.Model):
         else:
             name = order_line.name or ''
         self.env.cr.execute("""SELECT sum(CASE
-            WHEN sm.origin_returned_move_id IS NULL THEN sm.product_qty
-            ELSE sm.product_qty * - 1 END )
-        FROM purchase_order_line pol
-        LEFT JOIN stock_move sm ON sm.purchase_line_id = pol.id AND sm.state != 'cancel'
-        WHERE pol.id = %s
+             WHEN loc_src.usage = 'supplier' AND loc_dest.usage in ('internal', 'transit') THEN sm.product_qty
+             WHEN loc_src.usage in ('internal', 'transit') AND loc_dest.usage = 'supplier' THEN (-1) * sm.product_qty
+             ELSE 0 END) AS existing_quantity
+FROM purchase_order_line pol
+       LEFT JOIN stock_move sm ON sm.purchase_line_id = pol.id AND sm.state != 'cancel'
+       INNER JOIN stock_location loc_src ON loc_src.id = sm.location_id
+       INNER JOIN stock_location loc_dest ON loc_dest.id = sm.location_dest_id
+WHERE pol.id = %s
         """ % (order_line.id))
         existing_quantity = self.env.cr.fetchall()[0][0] or 0
         existing_quantity_pol_uom = self.env['product.uom']._compute_qty(order_line.product_id.uom_id.id,
@@ -318,21 +321,18 @@ class PurchaseOrderLineJustInTime(models.Model):
         returned_qty = 0
         qty_running_pol_uom = 0
         line_uom = line_uom_id and self.env['product.uom'].search([('id', '=', line_uom_id)]) or self.product_uom
+        running_move = self.env['stock.move']
         if self.product_id and self.product_id.type != 'service':
             delivered_qty = sum(x.product_qty for x in self.env['stock.move'].
-                                search([('product_id', '=', self.product_id.id),
-                                        ('purchase_line_id', '=', self.id),
+                                search([('purchase_line_id', '=', self.id),
                                         ('location_id.usage', '=', 'supplier'),
-                                        ('location_dest_id.usage', '=', 'internal'),
-                                        ('state', '=', 'done'),
-                                        ('group_id', '=', self.order_id.group_id.id)]))
+                                        ('location_dest_id.usage', 'in', ['internal', 'transit']),
+                                        ('state', '=', 'done')]))
             returned_qty = sum(x.product_qty for x in self.env['stock.move'].
-                               search([('product_id', '=', self.product_id.id),
-                                       ('purchase_line_id', '=', self.id),
-                                       ('location_id.usage', '=', 'internal'),
+                               search([('purchase_line_id', '=', self.id),
+                                       ('location_id.usage', 'in', ['internal', 'transit']),
                                        ('location_dest_id.usage', '=', 'supplier'),
-                                       ('state', '=', 'done'),
-                                       ('group_id', '=', self.order_id.group_id.id)]))
+                                       ('state', '=', 'done')]))
             running_move = self.get_running_moves_for_line()
             qty_running_product_uom = sum(x.product_qty for x in running_move)
             qty_running_pol_uom = qty_running_product_uom
