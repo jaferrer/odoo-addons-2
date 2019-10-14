@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="ssh_role_tree">
+            <field name="name">ssh_role_tree</field>
+            <field name="model">ssh.role</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="sequence" widget="handle"/>
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_ssh_roles">
+            <field name="name">SSH Roles</field>
+            <field name="res_model">ssh.role</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <menuitem id="menu_ssh_roles" name="SSH Roles" action="act_window_ssh_roles"
+                  parent="menu_ssh_config" sequence="10"/>
+
+    </data>
+</odoo>
