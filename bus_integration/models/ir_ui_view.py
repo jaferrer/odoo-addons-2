@@ -37,8 +37,9 @@ class IrUIView(models.Model):
             if mapping_field.mapping_id.is_importable and mapping_field.mapping_id.update_prohibited:
                 orm.transfer_modifiers_to_node({'readonly': True}, node)
         if node.tag == 'field':
-            mapping_field = self.env['bus.object.mapping.field'].search([('model_id.model', '=', model),
-                                                                         ('field_id.name', '=', node.get('name'))])
-            if mapping_field.mapping_id.is_importable and mapping_field.mapping_id.update_prohibited:
-                orm.transfer_modifiers_to_node({'readonly': True}, node)
+            if not node.attrib.get('invisible', False):
+                mapping_field = self.env['bus.object.mapping.field'].search([('model_id.model', '=', model),
+                                                                             ('field_id.name', '=', node.get('name'))])
+                if mapping_field.mapping_id.is_importable and mapping_field.mapping_id.update_prohibited:
+                    orm.transfer_modifiers_to_node({'readonly': True}, node)
         return res
