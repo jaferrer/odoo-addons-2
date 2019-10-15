@@ -69,8 +69,6 @@ def fields_get_bus(self, allfields=None, context=None, write_access=True, attrib
                     res[mapping_field.field_name]['string'] = u"⇐ %s" % (res[mapping_field.field_name]['string'])
                 elif mapping_field.mapping_id.is_importable:
                     res[mapping_field.field_name]['string'] = u"⇒ %s" % (res[mapping_field.field_name]['string'])
-                if mapping_field.mapping_id.is_importable and mapping_field.mapping_id.update_prohibited:
-                    res[mapping_field.field_name]['readonly'] = True
     return res
 
 
