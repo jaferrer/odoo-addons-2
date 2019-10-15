@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- OUTLOOK.CONTACT.SYNC -->
+
+    <record id="outlook_sync_wizard_form" model="ir.ui.view">
+        <field name="name">outlook_sync_wizard_form</field>
+        <field name="model">outlook.sync.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Synchronisation avec Outlook">
+                <group>
+                    <group>
+                        <field name="synchronise_contacts"/>
+                        <field name="synchronise_calendars"/>
+                        <div colspan="2"/>
+                        <button name="get_auth_code_outlook"
+                                string="Authentification"
+                                type="object"
+                                class="btn-primary"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="button_do_get_from_outlook"
+                            string="Importer depuis Outlook"
+                            type="object"
+                            class="btn-primary"/>
+                    <button name="button_do_send_to_outlook"
+                            string="Exporter vers Outlook"
+                            type="object"
+                            class="btn-primary"/>
+                    <button special="cancel" string="Annuler" class="btn-default"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="outlook_sync_wizard_action" model="ir.actions.act_window">
+        <field name="name">Synchronisation Outlook</field>
+        <field name="res_model">outlook.sync.wizard</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- MENU RES.PARTNER -->
+    <menuitem id="outlook_sync_wizard_menu_res_partner"
+              name="Synchronisation Outlook"
+              action="outlook_sync_wizard_action"
+              parent="contacts.menu_contacts"
+              sequence="4"/>
+
+    <!-- MENU CALENDAR.EVENTS-->
+    <menuitem id="outlook_sync_wizard_menu_calendar_event"
+              name="Synchronisation Outlook"
+              action="outlook_sync_wizard_action"
+              parent="calendar.mail_menu_calendar"
+              sequence="1"/>
+
+</odoo>
