@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_config_settings_export" model="ir.ui.view">
+        <field name="name">view_account_config_settings_export</field>
+        <field name="model">account.config.settings</field>
+        <field name="inherit_id" ref="account.view_account_config_settings"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[field[@name='tax_calculation_rounding_method']]" position="after">
+                <group name="export" string="Accounting export">
+                    <group>
+                        <field name="export_mode" widget="radio"/>
+                        <field name="export_cron_id"/>
+                    </group>
+                    <group colspan="2" attrs="{'invisible': [('export_mode', '!=', 'auto')]}">
+                        <field name="export_line_selection"/>
+                        <field name="export_journal_ids" widget="many2many_tags"/>
+                        <field name="export_group_by_account"/>
+                    </group>
+                    <group colspan="2" col="4"
+                           attrs="{'invisible': ['|', ('export_mode', '!=', 'auto'), ('export_line_selection', '!=', 'bounded')]}">
+                        <field name="export_date_from"/>
+                        <field name="export_date_to"/>
+                    </group>
+                    <group string="FTP" colspan="2" attrs="{'invisible': ['|', ('export_mode', '!=', 'auto')]}">
+                        <field name="export_ftp_url"/>
+                        <field name="export_ftp_login"/>
+                        <field name="export_ftp_password"/>
+                        <field name="export_ftp_path"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
