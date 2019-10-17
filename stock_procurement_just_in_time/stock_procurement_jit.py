@@ -68,6 +68,18 @@ def job_delete_cancelled_moves_and_procs(session, model_name, ids):
     objects_to_delete.unlink()
 
 
+@job(default_channel='root.update_rsm_treat_by_scheduler')
+def job_rsm_treat_by_scheduler(session, model_name, ids):
+    objects_to_write = session.env[model_name].search([('id', 'in', ids)])
+    objects_to_write.update_treat_by_scheduler_rsm(True)
+
+
+@job(default_channel='root.update_rsm_treat_by_scheduler')
+def job_rsm_not_treat_by_scheduler(session, model_name, ids):
+    objects_to_write = session.env[model_name].search([('id', 'in', ids)])
+    objects_to_write.update_treat_by_scheduler_rsm(False)
+
+
 class StockLocationSchedulerSequence(models.Model):
     _name = 'stock.location.scheduler.sequence'
     _order = 'name,id'
@@ -87,6 +99,23 @@ class StockLocationSchedulerSequence(models.Model):
         ('location_sequence_unique', 'unique(location_id, name)',
          _(u"Each sequence must be unique for the same location!")),
     ]
+
+    @api.model
+    def cron_update_treat_by_scheduler_rsm(self):
+        locations = self.search([]).mapped('location_id')
+        rsm_treat_by_scheduler = self.env['stock.warehouse.orderpoint'].search([('location_id', 'in', locations.ids)])
+        rsm_not_treat_by_scheduler = self.env['stock.warehouse.orderpoint'].search(
+            [('location_id', 'not in', locations.ids)])
+
+        if rsm_treat_by_scheduler:
+            job_rsm_treat_by_scheduler.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                             rsm_treat_by_scheduler.ids,
+                                             description=u"Update is treat by scheduler")
+
+        if rsm_not_treat_by_scheduler:
+            job_rsm_not_treat_by_scheduler.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                                 rsm_not_treat_by_scheduler.ids,
+                                                 description=u"Update is not treat by scheduler")
 
 
 class StockLocation(models.Model):
@@ -369,6 +398,7 @@ class StockWarehouseOrderPointJit(models.Model):
 
     stock_scheduler_sequence_ids = fields.One2many(string=u"Stock scheduler sequences",
                                                    related='location_id.stock_scheduler_sequence_ids')
+    is_treat_by_scheduler = fields.Boolean(u"Treat by the scheduler", readonly=True, default=False)
 
     @api.multi
     def get_list_events(self):
@@ -689,6 +719,10 @@ ORDER BY po.date_planned"""
             return result[:limit]
         else:
             return result
+
+    @api.multi
+    def update_treat_by_scheduler_rsm(self, is_treat_by_scheduler):
+        self.write({'is_treat_by_scheduler': is_treat_by_scheduler})
 
 
 class StockLevelsReport(models.Model):
