@@ -25,20 +25,21 @@ import pytz
 from iso8601 import iso8601
 from odoo import fields, models, api, _
 from odoo.exceptions import UserError
+from odoo.addons.queue_job.job import job
 
 
 class OutlookSynchronisationWizard(models.TransientModel):
     _name = 'outlook.sync.wizard'
 
-    synchronise_contacts = fields.Boolean("Synchroniser les contacts", default=False)
-    synchronise_calendars = fields.Boolean("Synchroniser les emplois du temps", default=True)
+    synchronise_contacts = fields.Boolean("Synchroniser les contacts", default=True)
+    synchronise_events = fields.Boolean("Synchroniser les emplois du temps", default=False)
 
     @api.multi
     def button_do_get_from_outlook(self):
         self.ensure_one()
         if self.synchronise_contacts:
             self.get_contacts_from_outlook()
-        if self.synchronise_calendars:
+        if self.synchronise_events:
             self.get_calendars_from_outlook()
 
     @api.multi
@@ -46,7 +47,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
         self.ensure_one()
         if self.synchronise_contacts:
             self.send_contacts_to_outlook()
-        if self.synchronise_calendars:
+        if self.synchronise_events:
             self.send_calendars_to_outlook()
 
     @api.multi
@@ -55,7 +56,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
         scope = "openid offline_access"
         if self.synchronise_contacts:
             scope += " https://graph.microsoft.com/contacts.readwrite"
-        if self.synchronise_calendars:
+        if self.synchronise_events:
             scope += " https://graph.microsoft.com/calendars.readwrite"
         return scope
 
@@ -117,32 +118,13 @@ class OutlookSynchronisationWizard(models.TransientModel):
         user.outlook_refresh_token = token_dico.get('refresh_token')
 
     @api.multi
-    def access_outlook(self):
-        """
-        Accède à Outlook via la méthode OAuth2.
-        """
-        session = requests.Session()
-        access_token = self.get_token()
-        if access_token:
-            authorization = u"Bearer " + access_token
-        else:
-            raise UserError(_(u"Accès refusé, veuillez rafraîchir votre authentification auprès d'Outlook."))
-
-        session.headers.update({
-            'Authorization': authorization,
-            'accept': u"application/json;",
-        })
-
-        return session
-
-    @api.multi
     def get_token(self):
         """
         Permet de récupérer un nouveau token en utilisant le refresh_token lorsque l'access_token n'est plus valide
         (3600s).
         """
         outlook_refresh_token = self.env.user.outlook_refresh_token
-        redirect_uri = self.env['ir.config_parameter'].get_param('web.base.url') + u"/outlook_odoo"
+        redirect_uri = self.env['ir.config_parameter'].sudo().get_param('web.base.url') + u"/outlook_odoo"
 
         headers = {
             'Content-Type': "application/x-www-form-urlencoded",
@@ -165,26 +147,36 @@ class OutlookSynchronisationWizard(models.TransientModel):
 
         return outlook_token
 
+    @api.multi
+    def access_outlook(self):
+        """
+        Accède à Outlook via la méthode OAuth2.
+        """
+        session = requests.Session()
+        access_token = self.get_token()
+        if access_token:
+            authorization = u"Bearer " + access_token
+        else:
+            raise UserError(_(u"Accès refusé, veuillez rafraîchir votre authentification auprès d'Outlook."))
+
+        session.headers.update({
+            'Authorization': authorization,
+            'accept': u"application/json;",
+        })
+
+        return session
+
     # CONTACTS SYNCHRONISATION
 
     @api.model
     def odoo_to_outlook_date(self, odoo_date):
         """
-        Passe une date du format Odoo au format ISO 8601.
+        Passe une date du format Odoo au format ISO 8601. Attention, le temps en base est toujours en UTC, donc il faut
+        renvoyer ce temps en tant qu'UTC au format ISO 8601 et non pas 'Europe/Paris' sinon on retire deux fois 2h au
+        lieu d'une seule fois ('Europe/Paris' = UTC+2:00)
         """
         odoo_datetime = fields.Datetime.from_string(odoo_date)
-        tz_info = fields.Datetime.context_timestamp(self, odoo_datetime).tzinfo
-        return odoo_datetime.replace(tzinfo=tz_info).astimezone(pytz.UTC).isoformat()
-
-    @api.model
-    def outlook_to_odoo_date(self, iso8601_date):
-        """
-        Passe une date du format ISO 8601 au format Odoo.
-        """
-        utc_tz_date = iso8601.parse_date(iso8601_date)
-        tz_info = fields.Datetime.context_timestamp(self, utc_tz_date.replace(tzinfo=None)).tzinfo
-        right_tz_date = utc_tz_date.astimezone(tz_info)
-        return fields.Datetime.to_string(right_tz_date.astimezone(tz_info))
+        return odoo_datetime.astimezone(pytz.UTC).isoformat()
 
     @api.multi
     def get_100_item_infos(self, session, url, sending=False):
@@ -205,20 +197,21 @@ class OutlookSynchronisationWizard(models.TransientModel):
         # Odoo -> Outlook
         data_contacts = []
         for contact in contacts.json().get('value'):
-            # Ici on garde les lastModifiedDateTime en UTC pour comparer avec les write_date des res.partner car les
-            # write_date sont également en UTC dans la base de données.
-            utc_write_date = fields.Datetime.to_string(iso8601.parse_date(contact.get('lastModifiedDateTime')))
-            data_contacts.append((contact.get('id'), utc_write_date))
+            # Ici on garde les lastModifiedDateTime en UTC pour comparer avec les write_date_outlook des res.partner car
+            # les dates sont également en UTC dans la base de données.
+            utc_write_date_outlook = fields.Datetime.to_string(iso8601.parse_date(contact.get('lastModifiedDateTime')))
+            data_contacts.append((contact.get('id'), utc_write_date_outlook))
 
         return data_contacts, more_contacts_url
 
     @api.model
     def get_contact_infos_for_odoo(self, outlook_contact):
-        write_date = self.outlook_to_odoo_date(outlook_contact.get('lastModifiedDateTime'))
+        # Attention : Il faut récupérer les plages horaires sur le fuseau UTC, car les dates Odoo sont en UTC en base
+        write_date_outlook = fields.Datetime.to_string(iso8601.parse_date(outlook_contact.get('lastModifiedDateTime')))
         email = outlook_contact.get('emailAddresses') and outlook_contact.get('emailAddresses')[0].get('address') or ""
         return {
             'name': outlook_contact.get('displayName'),
-            'write_date': write_date,
+            'write_date_outlook': write_date_outlook,
             'outlook_id': outlook_contact.get('id'),
             'company_id': self.env['res.company'].search([('name', '=', outlook_contact.get('companyName'))]).id,
             'street': outlook_contact.get('businessAddress').get('street'),
@@ -249,10 +242,10 @@ class OutlookSynchronisationWizard(models.TransientModel):
 
         for contact in outlook_contacts:
             # Recherche des contacts existants à modifier
-            utc_write_date = fields.Datetime.to_string(iso8601.parse_date(contact.get('lastModifiedDateTime')))
+            utc_write_date_outlook = fields.Datetime.to_string(iso8601.parse_date(contact.get('lastModifiedDateTime')))
             to_update_contact = self.env['res.partner'].search([
                 ('outlook_id', '=', contact.get('id')),
-                ('write_date', '<', utc_write_date)
+                ('write_date_outlook', '<', utc_write_date_outlook)
             ])
             if to_update_contact:
                 contact_infos = self.get_contact_infos_for_odoo(contact)
@@ -262,14 +255,12 @@ class OutlookSynchronisationWizard(models.TransientModel):
             # Création de nouveaux contacts depuis Outlook
             if not self.env['res.partner'].search([('outlook_id', '=', contact.get('id'))]):
                 contact_infos = self.get_contact_infos_for_odoo(contact)
-                self.env['res.partner'].create(contact_infos)
+                self.env['res.partner'].with_context(creation=True).create(contact_infos)
 
     @api.model
-    def update_contact_in_outlook(self, partner, session, url_update):
-        write_date = self.odoo_to_outlook_date(partner.write_date)
-        contact_infos = {
+    def get_contact_infos_for_outlook(self, partner):
+        return {
             'givenName': partner.name,
-            'lastModifiedDateTime': write_date,
             'displayName': partner.name,
             'companyName': partner.company_id.name or "",
             'businessAddress': {
@@ -285,40 +276,39 @@ class OutlookSynchronisationWizard(models.TransientModel):
             }],
             'personalNotes': partner.comment or "",
         }
-        # On crée le contact sur Outlook
 
+    @api.model
+    def update_contact_in_outlook(self, partner, session, url_update):
+        contact_infos = self.get_contact_infos_for_outlook(partner)
         ans_update = session.patch(url_update, data=json.dumps(contact_infos))
         if ans_update.status_code != 200:
             raise UserError(_(u"HTTP Request returned a %d error" % ans_update.status_code))
 
+        # On doit prendre la date de modification du contact Outlook car tout comme l'id, il est impossible d'imposer
+        # une lastModifiedDateTime à Outlook.
+        write_date_outlook = ans_update.json().get('lastModifiedDateTime')
+        partner.write_date_outlook = fields.Datetime.to_string(iso8601.parse_date(write_date_outlook))
+
     @api.model
     def create_contact_in_outlook(self, partner, session, url_create):
-        write_date = self.odoo_to_outlook_date(partner.write_date)
-        contact_infos = {
-            'givenName': partner.name,
-            'lastModifiedDateTime': write_date,
-            'displayName': partner.name,
-            'companyName': partner.company_id.name or "",
-            'businessAddress': {
-                'street': partner.street or "",
-                'postalCode': partner.zip or "",
-                'city': partner.city or "",
-                'countryOrRegion': partner.country_id.name or "",
-            },
-            'mobilePhone': partner.city or "",
-            'emailAddresses': [{
-                'address': partner.email or "",
-                'name': partner.name or "",
-            }],
-            'personalNotes': partner.comment or "",
-        }
-        # On crée le contact sur Outlook
+        contact_infos = self.get_contact_infos_for_outlook(partner)
         ans_create = session.post(url_create, data=json.dumps(contact_infos))
         if ans_create.status_code != 201:
             raise UserError(_(u"HTTP Request returned a %d error" % ans_create.status_code))
+
+        # Il est nécessaire ce réappeler le nouvel évènement pour avoir la bonne date de modification
+        outlook_id = ans_create.json().get('id')
+        ans_refresh = session.get(url_create + "/%s" % outlook_id)
+        if ans_refresh.status_code != 200:
+            raise UserError(_(u"HTTP Request returned a %d error" % ans_create.status_code))
+        write_date_outlook = ans_refresh.json().get('lastModifiedDateTime')
+
         # L'id Outlook d'un contact est attribué à sa création dans Outlook (impossible de lui donner un autre
         # id car il sera écrasé). On transfert cet id au contact Odoo qui n'en avait pas encore.
-        partner.outlook_id = ans_create.json().get('id')
+        partner.write({
+            'outlook_id': outlook_id,
+            'write_date_outlook': fields.Datetime.to_string(iso8601.parse_date(write_date_outlook))
+        })
 
     @api.model
     def delete_item_in_outlook(self, session, url_delete):
@@ -359,7 +349,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
                 outlook_ids.append(data_contact[0])
                 updated_contacts |= self.env['res.partner'].search([
                     ('outlook_id', '=', data_contact[0]),
-                    ('write_date', '>', data_contact[1])
+                    ('write_date_outlook', '>', data_contact[1])
                 ])
         new_contacts = self.env['res.partner'].search([('outlook_id', 'not in', outlook_ids)])
 
@@ -381,16 +371,15 @@ class OutlookSynchronisationWizard(models.TransientModel):
 
     @api.model
     def get_event_infos_for_odoo(self, outlook_event, user_id):
-        # Attention : Il faut récupérer les plages horaires sur le fuseau UTC, car Odoo rajoute 2h par rapport à ce
-        # qu'il enregistre en base. SAUF pour la write_date (Pourquoi?)
-        write_date = self.outlook_to_odoo_date(outlook_event.get('lastModifiedDateTime'))
+        # Attention : Il faut récupérer les plages horaires sur le fuseau UTC, car les dates Odoo sont en UTC en base
+        write_date_outlook = fields.Datetime.to_string(iso8601.parse_date(outlook_event.get('lastModifiedDateTime')))
         start_date = fields.Datetime.to_string(iso8601.parse_date(outlook_event.get('start').get('dateTime')))
         end_date = fields.Datetime.to_string(iso8601.parse_date(outlook_event.get('end').get('dateTime')))
         show_as = 'free' if outlook_event.get('showAs') == "free" else 'busy'
         location = outlook_event.get('location') and outlook_event.get('location').get('displayName') or ""
         return {
             'name': outlook_event.get('subject'),
-            'write_date': write_date,
+            'write_date_outlook': write_date_outlook,
             'outlook_id': outlook_event.get('id'),
             'user_id': user_id,
             'start': start_date,
@@ -418,10 +407,10 @@ class OutlookSynchronisationWizard(models.TransientModel):
         user_id = self.env.user.id
         for event in outlook_events:
             # Recherche des évènements existants à modifier
-            utc_write_date = fields.Datetime.to_string(iso8601.parse_date(event.get('lastModifiedDateTime')))
+            utc_write_date_outlook = fields.Datetime.to_string(iso8601.parse_date(event.get('lastModifiedDateTime')))
             to_update_event = self.env['calendar.event'].search([
                 ('outlook_id', '=', event.get('id')),
-                ('write_date', '<', utc_write_date),
+                ('write_date_outlook', '<', utc_write_date_outlook),
             ])
             if to_update_event:
                 event_infos = self.get_event_infos_for_odoo(event, user_id)
@@ -431,21 +420,16 @@ class OutlookSynchronisationWizard(models.TransientModel):
             # Création de nouveaux évènements depuis Outlook
             if not self.env['calendar.event'].search([('outlook_id', '=', event.get('id'))]):
                 event_infos = self.get_event_infos_for_odoo(event, user_id)
-                self.env['calendar.event'].create(event_infos)
+                self.env['calendar.event'].with_context(creation=True).create(event_infos)
 
     @api.model
     def get_event_infos_for_outlook(self, calendar_event):
-        write_date = self.odoo_to_outlook_date(calendar_event.write_date)
         start_date = self.odoo_to_outlook_date(calendar_event.start)
-        start_dt = fields.Datetime.from_string(calendar_event.start)
-        start_tz = fields.Datetime.context_timestamp(self, start_dt).tzinfo.zone
+        start_tz = fields.Datetime.from_string(calendar_event.start).astimezone(pytz.UTC).tzinfo.zone
         end_date = self.odoo_to_outlook_date(calendar_event.stop)
-        end_dt = fields.Datetime.from_string(calendar_event.stop)
-        end_tz = fields.Datetime.context_timestamp(self, end_dt).tzinfo.zone
-        show_as = "free" if calendar_event.show_as == 'free' else "busy"
+        end_tz = fields.Datetime.from_string(calendar_event.stop).astimezone(pytz.UTC).tzinfo.zone
         return {
             'subject': calendar_event.name or "",
-            'lastModifiedDateTime': write_date or "",
             'start': {
                 'dateTime': start_date or "",
                 'timeZone': start_tz or "",
@@ -458,28 +442,43 @@ class OutlookSynchronisationWizard(models.TransientModel):
             'location': {
                 'displayName': calendar_event.location or "",
             },
-            # 'show_as': show_as,
+            'showAs': calendar_event.show_as,
         }
 
     @api.model
     def update_calendars_in_outlook(self, calendar_event, session, url_update):
         event_infos = self.get_event_infos_for_outlook(calendar_event)
-        # On met à jour l'évènement sur Outlook
         ans_update = session.patch(url_update, data=json.dumps(event_infos))
         if ans_update.status_code != 200:
             raise UserError(_(u"HTTP Request returned a %d error" % ans_update.status_code))
 
+        # On doit prendre la date de modification du contact Outlook car tout comme l'id, il est impossible d'imposer
+        # une lastModifiedDateTime à Outlook.
+        write_date_outlook = ans_update.json().get('lastModifiedDateTime')
+        calendar_event.write_date_outlook = fields.Datetime.to_string(iso8601.parse_date(write_date_outlook))
+
     @api.model
     def create_calendars_in_outlook(self, calendar_event, session, url_create):
         event_infos = self.get_event_infos_for_outlook(calendar_event)
-        # On crée un nouvel évènement sur Outlook
         ans_create = session.post(url_create, data=json.dumps(event_infos))
         if ans_create.status_code != 201:
             raise UserError(_(u"HTTP Request returned a %d error" % ans_create.status_code))
+
+        # Il est nécessaire ce réappeler le nouvel évènement pour avoir la bonne date de modification
+        outlook_id = ans_create.json().get('id')
+        ans_refresh = session.get(url_create + "/%s" % outlook_id)
+        if ans_refresh.status_code != 200:
+            raise UserError(_(u"HTTP Request returned a %d error" % ans_create.status_code))
+        write_date_outlook = ans_refresh.json().get('lastModifiedDateTime')
+
         # L'id Outlook d'un évènement est attribué à sa création dans Outlook (impossible de lui donner un autre
         # id car il sera écrasé). On transfert cet id à l'évènement Odoo qui n'en avait pas encore.
-        calendar_event.outlook_id = ans_create.json().get('id')
+        calendar_event.write({
+            'outlook_id': outlook_id,
+            'write_date_outlook': fields.Datetime.to_string(iso8601.parse_date(write_date_outlook)),
+        })
 
+    @api.multi
     def send_calendars_to_outlook(self):
         """
         Envoi l'emploi du temps de l'utilisateur courant sur son compte Outlook.
@@ -490,7 +489,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
             'Content-Type': u"application/json;",
         })
         url_create = "https://graph.microsoft.com/v1.0/me/events"
-        parameters = "?$select=id,lastModifiedDateTime&$top=1"
+        parameters = "?$select=id,lastModifiedDateTime&$top=100"
 
         # Récupération des évènements d'Outlook et recherche des évènements à créer/modifier sur Outlook
         data_events, more_events_url = self.get_100_item_infos(session, url_create + parameters, sending=True)
@@ -503,14 +502,14 @@ class OutlookSynchronisationWizard(models.TransientModel):
         for data_event in data_events:
             # Les évènements Outlook non liés à des calendar.event doivent être supprimés lors de l'export
             # Odoo -> Outlook
-            # if not self.env['calendar.event'].search([('outlook_id', '=', data_contact[0])]):
-            #     deleted_event_outlook_ids.append(data_contact[0])
-            # else:
-            outlook_ids.append(data_event[0])
-            updated_events |= self.env['calendar.event'].search([
-                ('outlook_id', '=', data_event[0]),
-                ('write_date', '>', data_event[1])
-            ])
+            if not self.env['calendar.event'].search([('outlook_id', '=', data_event[0])]):
+                deleted_event_outlook_ids.append(data_event[0])
+            else:
+                outlook_ids.append(data_event[0])
+                updated_events |= self.env['calendar.event'].search([
+                    ('outlook_id', '=', data_event[0]),
+                    ('write_date_outlook', '>', data_event[1])
+                ])
         new_events = self.env['calendar.event'].search([('outlook_id', 'not in', outlook_ids)])
 
         # Mise à jour des contacts modifiés dans Odoo
@@ -519,13 +518,13 @@ class OutlookSynchronisationWizard(models.TransientModel):
             self.update_calendars_in_outlook(updated_event, session, url_update)
 
         # # Création de nouveaux contacts dans Outlook
-        # for new_event in new_events:
-        #     self.create_calendars_in_outlook(new_event, session, url_create)
-        #
+        for new_event in new_events:
+            self.create_calendars_in_outlook(new_event, session, url_create)
+
         # # Suppression des contacts obsolètes dans Outlook
-        # for deleted_event_outlook_id in deleted_event_outlook_ids:
-        #     url_delete = url_create + "/%s" % deleted_event_outlook_id
-        #     self.delete_item_in_outlook(session, url_delete)
+        for deleted_event_outlook_id in deleted_event_outlook_ids:
+            url_delete = url_create + "/%s" % deleted_event_outlook_id
+            self.delete_item_in_outlook(session, url_delete)
 
 
 class ResUsersOutlook(models.Model):
@@ -533,14 +532,91 @@ class ResUsersOutlook(models.Model):
 
     outlook_refresh_token = fields.Char("Refresh token")
 
+    @api.multi
+    @job(default_channel='root.subchannel')
+    def job_outlook_synchronisation(self, user_id):
+        """
+        Cron to synchronise contacts between Odoo and Outlook during the night.
+        - First : Odoo -> Outlook (to consider the deletions in Odoo).
+        - Then : Outlook -> Odoo.
+        """
+        sync_wizard = self.env['outlook.sync.wizard'].sudo(user_id).create({
+            'synchronize_contacts': True,
+            'synchronize_events': True,
+        })
+        try:
+            sync_wizard.send_contacts_to_outlook()
+        except UserError:
+            # Lors de la synchronisation automatique, envoie un mail à l'utilisateur pour qu'il rafraîchisse son
+            # authentification si son refresh_token n'est plus valide
+            email_template = self.env.ref('outlook_sync.email_template_refresh_outlook_authentication')
+            mail_id = self.env['mail.template'].browse(email_template.id).send_mail(self.env.user.partner_id.id)
+            self.env['mail.mail'].browse(mail_id).send()
+            return "Le contact doit se ré-authentifier."
+        sync_wizard.send_calendars_to_outlook()
+        sync_wizard.get_contacts_from_outlook()
+        sync_wizard.get_calendars_from_outlook()
+        return "Fin de la synchronisation."
+
+    @api.multi
+    def cron_launch_outlook_synchronisation(self, jobify=True):
+        """
+        Cron to synchronise contacts and calendars between Odoo and Outlook during the night.
+        - First : Odoo -> Outlook (to consider the deletions in Odoo).
+        - Then : Outlook -> Odoo.
+        """
+        users = self.env['res.users'].search([])
+        if not jobify:
+            for user in users:
+                sync_wizard = self.env['outlook.sync.wizard'].sudo(user).create({
+                    'synchronize_contacts': True,
+                    'synchronize_events': True,
+                })
+                sync_wizard.send_contacts_to_outlook()
+                sync_wizard.send_calendars_to_outlook()
+                sync_wizard.get_contacts_from_outlook()
+                sync_wizard.get_calendars_from_outlook()
+
+        for user in users:
+            self.with_delay(
+                description=f"Synchronisation Outlook {user.name}", max_retries=0).job_outlook_synchronisation(user.id)
+
 
 class OuestacroResPartnerOutlook(models.Model):
     _inherit = 'res.partner'
 
     outlook_id = fields.Char("Identifiant Outlook")
+    write_date_outlook = fields.Datetime("Date de modification", readonly=True)
+
+    @api.multi
+    def write(self, vals):
+        """
+        La date de modification Outlook est une date de modification qui peut-être imposée.
+        """
+        res = super(OuestacroResPartnerOutlook, self).write(vals)
+
+        if not vals.get('write_date_outlook') and not self.env.context.get('creation'):
+            for rec in self:
+                rec.write_date_outlook = rec.write_date
+
+        return res
 
 
 class OuestacroCalendarEventOutlook(models.Model):
     _inherit = 'calendar.event'
 
     outlook_id = fields.Char("Identifiant Outlook")
+    write_date_outlook = fields.Datetime("Date de modification", readonly=True)
+
+    @api.multi
+    def write(self, vals):
+        """
+        La date de modification Outlook est une date de modification qui peut-être imposée.
+        """
+        res = super(OuestacroCalendarEventOutlook, self).write(vals)
+
+        if not vals.get('write_date_outlook') and not self.env.context.get('creation'):
+            for rec in self:
+                rec.write_date_outlook = rec.write_date
+
+        return res

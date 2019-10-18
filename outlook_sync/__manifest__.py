@@ -23,7 +23,9 @@
     'maintainer': 'NDP Systèmes',
     'category': 'Init',
     'depends': [
+        'contacts',
         'calendar',
+        'queue_job',
     ],
     'description': """
 Outlook Sync
@@ -47,6 +49,7 @@ get-events
     'test': [],
     'data': [
         'views/outlook_sync.xml',
+        'views/cron.xml',
     ],
     'auto_install': False,
     'license': 'AGPL-3',
