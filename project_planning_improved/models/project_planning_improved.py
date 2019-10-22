@@ -472,35 +472,6 @@ class ProjectImprovedTask(models.Model):
         return parent_tasks
 
     @api.multi
-    def schedule_tasks_after_date(self, date, same_day=False):
-        for rec in self:
-            reset_duration = rec.id in self.env.context.get('reset_duration_for_tasks', [])
-            expected_start_date = date
-            if not same_day:
-                expected_start_date = rec.schedule_get_date(date, 1)
-            task_data = {'expected_start_date': expected_start_date}
-            if not rec.children_task_ids:
-                # If rec has children, children planification will reschedule its end date if needed
-                nb_working_days = reset_duration and rec.objective_duration or rec.get_task_number_open_days()
-                expected_end_date = rec.schedule_get_date(expected_start_date, nb_working_days - 1)
-                task_data['expected_end_date'] = expected_end_date
-            rec.write(task_data)
-
-    @api.multi
-    def schedule_tasks_before_date(self, date, same_day=False):
-        for rec in self:
-            reset_duration = rec.id in self.env.context.get('reset_duration_for_tasks', [])
-            expected_end_date = date
-            if not same_day:
-                expected_end_date = rec.schedule_get_date(date, -1)
-            task_data = {'expected_end_date': expected_end_date}
-            if not rec.children_task_ids:
-                nb_working_days = reset_duration and rec.objective_duration or rec.get_task_number_open_days()
-                expected_start_date = rec.schedule_get_date(expected_end_date, -nb_working_days + 1)
-                task_data['expected_start_date'] = expected_start_date
-            rec.write(task_data)
-
-    @api.multi
     def check_not_tia(self):
         for rec in self:
             if rec.taken_into_account:
@@ -560,28 +531,6 @@ class ProjectImprovedTask(models.Model):
         return propagate_to_the_future, propagate_to_the_past
 
     @api.multi
-    def postpone_children_task_if_needed(self):
-        self.ensure_one()
-        do_not_rechedule_parent_task_ids = self.env.context.get('do_not_rechedule_parent_task_ids', [])
-        do_not_rechedule_parent_task_ids += [self.id]
-        for child_task in self.search([('id', 'in', self.children_task_ids.ids),
-                                       ('expected_start_date', '<', self.expected_start_date)],
-                                      order='expected_start_date'):
-            child_task.with_context(do_not_rechedule_parent_task_ids=do_not_rechedule_parent_task_ids). \
-                schedule_tasks_after_date(self.expected_start_date, same_day=True)
-
-    @api.multi
-    def advance_children_task_if_needed(self):
-        self.ensure_one()
-        do_not_rechedule_parent_task_ids = self.env.context.get('do_not_rechedule_parent_task_ids', [])
-        do_not_rechedule_parent_task_ids += [self.id]
-        for child_task in self.search([('id', 'in', self.children_task_ids.ids),
-                                       ('expected_end_date', '>', self.expected_end_date)],
-                                      order='expected_end_date desc'):
-            child_task.with_context(do_not_rechedule_parent_task_ids=do_not_rechedule_parent_task_ids). \
-                schedule_tasks_before_date(self.expected_end_date, same_day=True)
-
-    @api.multi
     def get_next_tasks_of_task_and_parents(self):
         self.ensure_one()
         task = self
@@ -620,6 +569,24 @@ class ProjectImprovedTask(models.Model):
         return tasks_to_postpone_entirely, first_start_date_to_postpone, nb_days
 
     @api.multi
+    def get_children_tasks_to_postpone(self):
+        self.ensure_one()
+        tasks_to_postpone_entirely = self.env['project.task']
+        first_task_to_postpone = self.env['project.task']. \
+            search([('id', 'child_of', self.children_task_ids.ids),
+                    ('expected_start_date', '<', self.expected_start_date)], order='expected_start_date', limit=1)
+        first_start_date_to_postpone = first_task_to_postpone and first_task_to_postpone.expected_start_date or False
+        nb_days = first_task_to_postpone and first_task_to_postpone. \
+            get_task_number_open_days(first_start_date_to_postpone, self.expected_start_date) or 0
+        nb_days = max(nb_days - 1, 0)
+        if nb_days != 0:
+            tasks_to_postpone_entirely = self.env['project.task']. \
+                search([('project_id', '=', self.project_id.id),
+                        ('id', '!=', self.id),
+                        ('expected_start_date', '>=', first_start_date_to_postpone)])
+        return tasks_to_postpone_entirely, first_start_date_to_postpone, nb_days
+
+    @api.multi
     def get_tasks_to_advance(self):
         self.ensure_one()
         tasks_to_advance_entirely = self.env['project.task']
@@ -630,6 +597,24 @@ class ProjectImprovedTask(models.Model):
         last_end_date_to_advance = last_task_to_advance and last_task_to_advance.expected_end_date or False
         nb_days = last_task_to_advance and last_task_to_advance. \
             get_task_number_open_days(self.expected_start_date, last_task_to_advance.expected_end_date) or 0
+        if nb_days != 0:
+            tasks_to_advance_entirely = self.env['project.task']. \
+                search([('project_id', '=', self.project_id.id),
+                        ('id', '!=', self.id),
+                        ('expected_end_date', '<=', last_end_date_to_advance)])
+        return tasks_to_advance_entirely, last_end_date_to_advance, nb_days
+
+    @api.multi
+    def get_children_tasks_to_advance(self):
+        self.ensure_one()
+        tasks_to_advance_entirely = self.env['project.task']
+        last_task_to_advance = self.env['project.task']. \
+            search([('id', 'child_of', self.children_task_ids.ids),
+                    ('expected_end_date', '>', self.expected_end_date)], order='expected_end_date desc', limit=1)
+        last_end_date_to_advance = last_task_to_advance and last_task_to_advance.expected_end_date or False
+        nb_days = last_task_to_advance and last_task_to_advance. \
+            get_task_number_open_days(self.expected_end_date, last_end_date_to_advance) or 0
+        nb_days = max(nb_days - 1, 0)
         if nb_days != 0:
             tasks_to_advance_entirely = self.env['project.task']. \
                 search([('project_id', '=', self.project_id.id),
@@ -818,14 +803,18 @@ WHERE id = %s"""
             do_not_rechedule_parent_task_ids += [rec.id]
             if rec.expected_start_date and rec.expected_end_date and propagate_dates and dates_changed:
                 if propagate_to_the_future:
-                    rec.postpone_children_task_if_needed()
+                    tasks_to_postpone, first_start_date_to_postpone, nb_days = self.get_children_tasks_to_postpone()
+                    if tasks_to_postpone:
+                        self.postpone_tasks_of_nb_days(tasks_to_postpone, first_start_date_to_postpone, nb_days)
                     rec.project_id.update_dates_parent_tasks(avoid_task_ids=do_not_rechedule_parent_task_ids)
                     tasks_to_postpone, first_start_date_to_postpone, nb_days = rec.get_tasks_to_postpone()
                     if tasks_to_postpone:
                         rec.postpone_tasks_of_nb_days(tasks_to_postpone, first_start_date_to_postpone, nb_days)
                     rec.project_id.update_dates_parent_tasks(avoid_task_ids=do_not_rechedule_parent_task_ids)
                 if propagate_to_the_past:
-                    rec.advance_children_task_if_needed()
+                    tasks_to_advance, last_end_date_to_advance, nb_days = self.get_children_tasks_to_advance()
+                    if tasks_to_advance:
+                        self.advance_tasks_of_nb_days(tasks_to_advance, last_end_date_to_advance, nb_days)
                     rec.project_id.update_dates_parent_tasks(avoid_task_ids=do_not_rechedule_parent_task_ids)
                     tasks_to_advance, last_end_date_to_advance, nb_days = rec.get_tasks_to_advance()
                     if tasks_to_advance:
