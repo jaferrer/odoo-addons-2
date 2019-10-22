@@ -483,6 +483,50 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.parent_task_4.expected_start_date, '2017-10-16')
         self.assertEqual(self.parent_task_4.expected_end_date, '2017-10-24')
 
+        # Let's come back to first task position
+        context = self.env.context.copy()
+        if not context.get('params'):
+            context['params'] = {}
+        context['params']['view_type'] = 'timeline'
+        self.parent_task_3.with_context(context).write({
+            'expected_start_date': '2017-09-18',
+            'expected_end_date': '2017-10-04',
+        })
+
+        # Parent tasks 1, 2 and 3 (and their children) should have been advanced of 7 days.
+        self.assertEqual(self.project_task_3.expected_start_date, '2017-08-28')
+        self.assertEqual(self.project_task_3.expected_end_date, '2017-08-29')
+        self.assertEqual(self.project_task_1.expected_start_date, '2017-08-25')
+        self.assertEqual(self.project_task_1.expected_end_date, '2017-08-25')
+        self.assertEqual(self.project_task_2.expected_start_date, '2017-08-28')
+        self.assertEqual(self.project_task_2.expected_end_date, '2017-08-30')
+        self.assertEqual(self.project_task_4.expected_start_date, '2017-08-31')
+        self.assertEqual(self.project_task_4.expected_end_date, '2017-09-06')
+        self.assertEqual(self.project_task_5.expected_start_date, '2017-08-29')
+        self.assertEqual(self.project_task_5.expected_end_date, '2017-09-06')
+
+        self.assertEqual(self.project_task_6.expected_start_date, '2017-08-28')
+        self.assertEqual(self.project_task_6.expected_end_date, '2017-08-31')
+        self.assertEqual(self.project_task_7.expected_start_date, '2017-09-01')
+        self.assertEqual(self.project_task_7.expected_end_date, '2017-09-01')
+
+        self.assertEqual(self.project_task_8.expected_start_date, '2017-09-18')
+        self.assertEqual(self.project_task_8.expected_end_date, '2017-09-21')
+        self.assertEqual(self.project_task_9.expected_start_date, '2017-09-18')
+        self.assertEqual(self.project_task_9.expected_end_date, '2017-10-04')
+        self.assertEqual(self.project_task_10.expected_start_date, '2017-10-16')
+        self.assertEqual(self.project_task_10.expected_end_date, '2017-10-23')
+        self.assertEqual(self.project_task_11.expected_start_date, '2017-10-16')
+        self.assertEqual(self.project_task_11.expected_end_date, '2017-10-24')
+        self.assertEqual(self.parent_task_1.expected_start_date, '2017-08-25')
+        self.assertEqual(self.parent_task_1.expected_end_date, '2017-08-25')
+        self.assertEqual(self.parent_task_2.expected_start_date, '2017-08-28')
+        self.assertEqual(self.parent_task_2.expected_end_date, '2017-09-06')
+        self.assertEqual(self.parent_task_3.expected_start_date, '2017-09-18')
+        self.assertEqual(self.parent_task_3.expected_end_date, '2017-10-04')
+        self.assertEqual(self.parent_task_4.expected_start_date, '2017-10-16')
+        self.assertEqual(self.parent_task_4.expected_end_date, '2017-10-24')
+
     def test_14_hide_tasks_in_timeline_and_reschedule(self):
         """First planification test, using task 3 as reference task"""
 
