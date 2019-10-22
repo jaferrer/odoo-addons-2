@@ -66,7 +66,7 @@ class BusSynchronizationMapper(models.AbstractModel):
                     if type_field == 'many2one':
                         needed_id = record.get(field_key).get('id')
                         relational_values = self.get_relational_value(model, needed_id, dependencies)
-                    if type_field == 'many2many':
+                    if type_field == 'many2many' or type_field == 'one2many':
                         needed_ids = record.get(field_key).get('ids')
                         relational_values = [(6, False, self.get_multiple_relational_value(model, needed_ids,
                                                                                            dependencies))]
