@@ -185,6 +185,11 @@ class BusConfigurationExport(models.Model):
 
     @api.multi
     def export_domain_keywords(self):
+        """
+        return a dict with
+        keys: values to search and replace in domain
+        values: replacement values
+        """
         self.ensure_one()
         return {
             'date': datetime,
@@ -192,8 +197,15 @@ class BusConfigurationExport(models.Model):
             'self': self,
             'context': self.env.context,
             'date_to_str': fields.Date.to_string,
-            'last_send_date': self.get_last_send_date()
+            'last_send_date': self.get_last_send_date(),
+            'synchronized_record_ids': self.get_synchronized_record_ids(),
         }
+
+    @api.multi
+    def get_synchronized_record_ids(self):
+        self.ensure_one()
+        transfers = self.env['bus.receive.transfer'].search([('model', '=', self.model)])
+        return [transfer.local_id for transfer in transfers]
 
     @api.multi
     def get_last_send_date(self):

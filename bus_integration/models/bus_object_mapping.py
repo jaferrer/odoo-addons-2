@@ -119,8 +119,7 @@ class BusObjectMappingAbstract(models.AbstractModel):
 class BusObjectMappingFieldAbstract(models.AbstractModel):
     _name = 'bus.object.mapping.field.abstract'
 
-    field_id = fields.Many2one('ir.model.fields', u"Field", required=True, domain=[('ttype', '!=', 'one2many')],
-                               context={'display_technical_names': True})
+    field_id = fields.Many2one('ir.model.fields', u"Field", required=True, context={'display_technical_names': True})
 
     mapping_id = fields.Many2one('bus.object.mapping.abstract', string=u"Model")
     model_id = fields.Many2one('ir.model', u"Model", related='mapping_id.model_id', readonly=True)
@@ -149,6 +148,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
             rec.is_computed = model_name \
                 and rec.field_name in self.env[model_name]._fields \
                 and self.env[model_name]._fields[rec.field_name].compute \
+                and not self.env[model_name]._fields[rec.field_name].store \
                 and not self.env[model_name]._fields[rec.field_name].inverse \
                 and not self.env[model_name]._fields[rec.field_name].related or False
             model_name = rec.field_id.relation
@@ -163,7 +163,7 @@ class BusObjectMapping(models.Model):
 
     active = fields.Boolean(u"Active", default=True)
     field_ids = fields.One2many('bus.object.mapping.field', 'mapping_id', string=u"Fields",
-                                domain=[('type_field', '!=', 'one2many'), ('is_computed', '=', False)])
+                                domain=[('is_computed', '=', False)])
     dependency_level = fields.Integer(u"Dependency level", readonly=True)
 
     _sql_constraints = [
@@ -275,6 +275,4 @@ class BusObjectMappingField(models.Model):
 
     _sql_constraints = [
         ('name_uniq_by_model', 'unique(field_id, mapping_id)', u"This field already exists for this model."),
-        ('check_type_field', "check(type_field <> 'one2many')", u"one2many fields can't be exported"),
-        ('check_not_computed', "check(is_computed = False)", u"fields must not be computed"),
     ]

@@ -25,7 +25,7 @@ class MappingConfigurationHelper(models.TransientModel):
     _inherit = 'bus.object.mapping.abstract'
 
     field_ids = fields.One2many('mapping.configuration.helper.line', 'mapping_id', u"Fields to parameter",
-                                domain=[('type_field', '!=', 'one2many'), ('is_computed', '=', False)])
+                                domain=[('is_computed', '=', False)])
 
     @api.onchange('model_id')
     def onchange_model_id(self):
