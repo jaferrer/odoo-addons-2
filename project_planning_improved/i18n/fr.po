@@ -234,6 +234,11 @@ msgid "Duration forced at one day"
 msgstr "Durée forcée à un jour"
 
 #. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_hidden_from_task_id
+msgid "Hidden from task"
+msgstr "Cachée depuis la tâche"
+
+#. module: project_planning_improved
 #: code:addons\project_planning_improved\project_planning_improved.py:36
 #, python-format
 msgid "You are not allowed to change the reference task (or its date) for project %s, because you are not manager of this project."
@@ -274,6 +279,12 @@ msgstr "La tâche %s doit contenir totalement la tâche %s"
 #, python-format
 msgid "Task %s: impossible to set start date in a not working period (%s)"
 msgstr "Tâche %s : impossible de définir la date de début dans une période non ouvrée (%s)"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\exceptions.py:31
+#, python-format
+msgid "Impossible to display %s, please display first task %s"
+msgstr "Impossible d'afficher la tâche %s, veuillez d'abord afficher la tâche %s"
 
 #. module: project_planning_improved
 #: code:addons\project_planning_improved\exceptions.py:477
