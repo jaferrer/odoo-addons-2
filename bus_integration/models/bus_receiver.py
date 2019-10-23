@@ -115,5 +115,5 @@ class BusSynchronizationReceiver(models.AbstractModel):
         result = return_res.get('result', False)
         return_state = return_res.get('state', False)
         message.result = 'error' if not return_state else 'finished'
-        self.env['bus.importer'].import_bus_references(message.id, result, return_state)
+        self.env['bus.importer'].import_bus_references(message, result, return_state)
         return False
