@@ -18,10 +18,14 @@
 #
 
 import base64
+import json
 import logging
-import os
-
+import tempfile
 import unicodecsv as csv
+
+from odoo.exceptions import UserError
+from odoo.tools.safe_eval import safe_eval
+
 from odoo import exceptions
 from odoo import models, fields, api
 from odoo.addons.queue_job.job import job, related_action
@@ -79,10 +83,15 @@ class CustomerFileToImport(models.Model):
     def generate_out_csv_files(self):
         """Method to overwrite for each model"""
         self.ensure_one()
+
+    @api.multi
+    def action_generate_out_csv_files(self):
+        self.ensure_one()
         self.log_info(u"Generating CSV file for %s" % self.name)
         self.state = 'draft'
         self.log_line_ids.unlink()
         self.csv_file_ids.unlink()
+        self.generate_out_csv_files()
 
     @api.multi
     def import_actual_files(self):
@@ -91,12 +100,7 @@ class CustomerFileToImport(models.Model):
     @api.multi
     def _log(self, msg, type='INFO'):
         self.ensure_one()
-        if type == 'INFO':
-            _logger.info(msg)
-        elif type == 'WARNING':
-            _logger.warning(msg)
-        elif type == 'ERROR':
-            _logger.error(msg)
+        _logger.log(logging._levelNames[type], msg)
         self.env['customer.importation.log.line'].create({
             'import_id': self.id,
             'type': type,
@@ -115,6 +119,11 @@ class CustomerFileToImport(models.Model):
     def log_error(self, msg):
         self._log(msg, type='ERROR')
 
+    @api.multi
+    def get_context_to_add(self):
+        self.ensure_one()
+        return {}
+
     @api.model
     def get_external_id_or_create_one(self, object):
         object.ensure_one()
@@ -131,16 +140,21 @@ class CustomerFileToImport(models.Model):
     @api.multi
     def save_generated_csv_file(self, model, fields_to_import, table_dict_result, sequence=0):
         self.ensure_one()
-        file_path = os.tempnam() + '.csv'
+        file_path = str(tempfile.NamedTemporaryFile().name) + '.csv'
         _logger.info(u"Importation file opened at path %s", file_path)
         model_obj = self.env['ir.model'].search([('model', '=', model)])
         if len(model_obj) != 1:
             raise exceptions.UserError(u"Model %s not found." % model)
         with open(file_path, 'w') as out_file:
             out_file_csv = csv.writer(out_file)
-            out_file_csv.writerow(['id'] + fields_to_import)
+            field_names = list(fields_to_import)
+            if 'id' not in field_names:
+                field_names = ['id'] + fields_to_import
+            out_file_csv.writerow(field_names)
             for record_id in table_dict_result:
                 row = [record_id]
+                if 'id' not in fields_to_import:
+                    row = [record_id] + row
                 for field_name in fields_to_import:
                     field_name_formated = field_name.replace('/id', '').replace(':id', '')
                     field = self.env['ir.model.fields'].search([('model_id', '=', model_obj.id),
@@ -217,6 +231,7 @@ class CustomerGeneratedCsvFile(models.Model):
     model = fields.Char(string=u"Model", readonly=True, required=True)
     sequence = fields.Integer(string=u"Sequence", readonly=True)
     datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
+    context_to_add = fields.Char(string=u"Context To add")
     fields_to_import = fields.Char(string=u"Fields to import", readonly=True)
     state = fields.Selection([('draft', u"To import"),
                               ('importing', u"Importing"),
@@ -254,7 +269,7 @@ class CustomerGeneratedCsvFile(models.Model):
     @api.multi
     def action_import(self):
         for rec in self:
-            self.env['customer.imported.csv.file'].create({
+            imported = self.env['customer.imported.csv.file'].create({
                 'model': rec.model,
                 'csv_file': rec.generated_csv_file,
                 'asynchronous': rec.import_id.asynchronous,
@@ -262,8 +277,11 @@ class CustomerGeneratedCsvFile(models.Model):
                 'fields_to_import': rec.fields_to_import,
                 'original_file_id': rec.id,
                 'chunk_size': rec.import_id.chunk_size,
+                'context_to_add': rec.context_to_add
             })
             if not rec.import_id.asynchronous:
+                if imported.error_msg:
+                    raise UserError(imported.error_msg)
                 rec.imported = True
 
 
@@ -285,6 +303,7 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
     error_msg = fields.Text(string=u"Message d'erreur")
     generated_job_ids = fields.One2many('queue.job', 'imported_file_id', string=u"Generated jobs")
     processed = fields.Boolean(string=u"Traité")
+    context_to_add = fields.Char("Additional Context tu use in the import")
 
     @api.multi
     def _compute_datas_fname(self):
@@ -343,16 +362,20 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
     @api.multi
     def launch_importation(self):
         for rec in self:
+            fields_to_import = safe_eval(rec.fields_to_import)
             rec.started = True
             default_values_for_importation_wizard = rec.get_default_values_for_importation_wizard()
-            wizard = self.env['base_import.import'].create(default_values_for_importation_wizard)
+            context_to_add = json.loads(rec.context_to_add or "{}")
+            ctx = dict(self.env.context)
+            ctx.update(context_to_add)
+            wizard = self.env['base_import.import'].with_context(ctx).create(default_values_for_importation_wizard)
             options = rec.get_default_importation_options()
             existing_attachment_ids = []
             if rec.asynchronous:
                 options[u'use_queue'] = True
                 options[u'chunk_size'] = rec.chunk_size
                 existing_attachment_ids = self.env['ir.attachment'].search([('res_model', '=', 'queue.job')]).ids
-            importation_result = wizard.do(fields=eval(rec.fields_to_import), options=options)
+            importation_result = wizard.do(fields=fields_to_import, options=options)
             if rec.asynchronous:
                 new_attachments = self.env['ir.attachment'].search([('res_model', '=', 'queue.job'),
                                                                     ('id', 'not in', existing_attachment_ids)])
