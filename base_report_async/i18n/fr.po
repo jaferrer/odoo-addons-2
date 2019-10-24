@@ -1,0 +1,78 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* base_export_async
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2019-07-04 14:43+0000\n"
+"Last-Translator: Maria Sparenberg <maria.sparenberg@gmx.net>\n"
+"Language-Team: none\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Weblate 3.7.1\n"
+
+#. module: base_export_async
+#: model:ir.model.fields,field_description:base_export_async.field_ir_actions_report_xml_async_report
+msgid "Asynchronous generation"
+msgstr "Génération asynchrone"
+
+#. module: base_export_async
+#: code:addons\base_export_async\models\base_report_async.py:99
+#, python-format
+msgid "Report {} {}"
+msgstr "Rapport {} {}"
+
+#. module: base_report_async
+#: code:addons/base_report_async/models/base_report_async.py:119
+#, python-format
+msgid "<p>Your report is available <a href=\"{}\">here</a>.</p>\n"
+"<p>It will be automatically deleted the {}.</p>\n"
+"<p>&nbsp;</p>\n"
+"<p><span style=\"color: #808080;\">\n"
+"This is an automated message please do not reply.</span></p>"
+msgstr "<p>Votre rapport est disponible <a href=\"{}\">ici</a>.</p>\n"
+"<p>Il sera automatiquement supprimé le {}.</p>\n"
+"<p>&nbsp;</p>\n"
+"<p><span style=\"color: #808080;\">\n"
+"Ceci est un message automatique, merci de ne pas y répondre.</span></p>"
+
+#. module: base_export_async
+#: code:addons\base_export_async\models\base_report_async.py:139
+#, python-format
+msgid "Error while generating report {}"
+msgstr "Erreur lors de la génération du rapport {}"
+
+#. module: base_report_async
+#: code:addons/base_report_async/models/base_report_async.py:141
+#, python-format
+msgid "<p>The generation of your report failed. Here is the error : {}</p>\n"
+"<p>&nbsp;</p>\n"
+"<p><span style=\"color: #808080;\">\n"
+"This is an automated message please do not reply.</span></p>"
+msgstr "<p>La ganération asynchrone de votre rapport a échoué. Voici le message d'erreur : {}</p>\n"
+"<p>&nbsp;</p>\n"
+"<p><span style=\"color: #808080;\">\n"
+"Ceci est un message automatique, merci de ne pas y répondre.</span></p>"
+
+#. module: base_export_async
+#: code:addons\base_export_async\models\base_report_async.py:149
+#, python-format
+msgid "Report %s has been generated asynchronously, you will receive the result by email soon."
+msgstr "Le rapport %s va être généré de manière asynchrone, vous recevrez bientôt le résultat par mail."
+
+#. module: base_export_async
+#: code:addons\base_export_async\models\base_report_async.py:151
+#, python-format
+msgid "A job is running for report %s, please wait for the result first."
+msgstr "Un job est déjà en cours pour le rapport %s, veuillez attendre qu'il se termine d'abord."
+
+#. module: base_export_async
+#: code:addons\base_export_async\models\base_report_async.py:155
+#, python-format
+msgid "Asynchronous report generation"
+msgstr "Génération asynchrone de rapport"

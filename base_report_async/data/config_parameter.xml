@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="attachment_report_ttl" model="ir.config_parameter">
+        <field name="key">attachment.report.ttl</field>
+        <field name="value">7</field>
+    </record>
+
+</odoo>
