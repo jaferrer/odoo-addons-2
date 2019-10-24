@@ -30,3 +30,7 @@ msgstr "Modèle d'article"
 msgid "Product Unit of Measure"
 msgstr "Unité de mesure d'article"
 
+#. module: product_improved
+#: field:product.product,seller_id:0
+msgid "Main Supplier"
+msgstr "Fournisseur principal"
