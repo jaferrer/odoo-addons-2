@@ -968,10 +968,12 @@ WHERE id = %s"""
     def advance_next_task_to_past_to_follow_replanification(self, initial_end_date, new_start_date,
                                                             only_same_parent_task_if_any=False):
         self.ensure_one()
+        parent_task_initial_end_date = self.parent_task_id and self.parent_task_id.expected_end_date or False
         next_tasks_of_task_and_parents = self.get_next_tasks_of_task_and_parents()
         domain = [('id', 'in', next_tasks_of_task_and_parents.ids),
                   ('expected_start_date', '!=', False),
-                  ('expected_start_date', '>', initial_end_date)]
+                  ('expected_start_date', '>', initial_end_date),
+                  ('children_task_ids', '=', False)]
         if self.parent_task_id and only_same_parent_task_if_any:
             domain += [('id', 'child_of', self.parent_task_id.children_task_ids.ids)]
         first_task_to_advance = self.env['project.task'].search(domain, order='expected_start_date', limit=1)
@@ -983,7 +985,8 @@ WHERE id = %s"""
             if nb_days:
                 domain = [('project_id', '=', self.project_id.id),
                           ('id', '!=', self.id),
-                          ('expected_start_date', '>=', first_start_date_to_advance)]
+                          ('expected_start_date', '>=', first_start_date_to_advance),
+                          ('children_task_ids', '=', False)]
                 if self.parent_task_id and only_same_parent_task_if_any:
                     domain += [('id', 'child_of', self.parent_task_id.children_task_ids.ids)]
                 tasks_to_advance = self.env['project.task'].search(domain, order='expected_end_date desc')
@@ -991,6 +994,11 @@ WHERE id = %s"""
                     last_date_to_advance = tasks_to_advance[0].expected_end_date
                     self.advance_tasks_of_nb_days(tasks_to_advance, last_date_to_advance, nb_days)
         self.project_id.update_dates_parent_tasks()
+        if parent_task_initial_end_date and self.parent_task_id.expected_end_date < parent_task_initial_end_date:
+            new_start_date = self.schedule_get_date(self.parent_task_id.expected_end_date, 1)
+            self.parent_task_id.advance_next_task_to_past_to_follow_replanification(parent_task_initial_end_date,
+                                                                                    new_start_date,
+                                                                                    only_same_parent_task_if_any=True)
 
     @api.multi
     def set_task_on_one_day(self):
