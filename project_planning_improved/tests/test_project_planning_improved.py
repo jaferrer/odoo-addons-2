@@ -527,7 +527,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.parent_task_4.expected_start_date, '2017-10-16')
         self.assertEqual(self.parent_task_4.expected_end_date, '2017-10-24')
 
-    def test_14_hide_tasks_in_timeline_and_reschedule(self):
+    def test_14_hide_macro_tasks_in_timeline_and_reschedule(self):
         """First planification test, using task 3 as reference task"""
         self.test_03_schedule_from_task_3()
         self.project_task_3.taken_into_account = False
@@ -613,7 +613,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
 
     def test_15_display_hidden_task_only_allowed_from_original_task(self):
 
-        self.test_14_hide_tasks_in_timeline_and_reschedule()
+        self.test_14_hide_macro_tasks_in_timeline_and_reschedule()
         error = False
         try:
             self.project_task_4.unset_task_on_one_day()
@@ -626,7 +626,7 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
 
     def test_16_display_hidden_task_only_allowed_from_original_task(self):
 
-        self.test_14_hide_tasks_in_timeline_and_reschedule()
+        self.test_14_hide_macro_tasks_in_timeline_and_reschedule()
         # Let's display parent task 2 and check the replanification
         self.assertEqual(self.project_task_2.nb_days_after_for_start, 0)
         self.assertEqual(self.project_task_2.nb_days_after_for_end, 2)
@@ -704,7 +704,111 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertEqual(self.parent_task_4.expected_start_date, '2017-10-10')
         self.assertEqual(self.parent_task_4.expected_end_date, '2017-10-18')
 
-    def test_17_reference_task_modification_by_a_non_manager(self):
+    def test_17_hide_tasks_in_timeline_and_reschedule(self):
+        """First planification test, using task 3 as reference task"""
+        self.test_03_schedule_from_task_3()
+        self.project_task_3.taken_into_account = False
+
+        # Let's hide task 6
+        self.project_task_6.set_task_on_one_day()
+        self.assertEqual(self.project_task_3.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_3.expected_end_date, '2017-09-07')
+        self.assertEqual(self.project_task_1.expected_start_date, '2017-09-05')
+        self.assertEqual(self.project_task_1.expected_end_date, '2017-09-05')
+        self.assertEqual(self.project_task_2.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_2.expected_end_date, '2017-09-08')
+        self.assertEqual(self.project_task_4.expected_start_date, '2017-09-11')
+        self.assertEqual(self.project_task_4.expected_end_date, '2017-09-15')
+        self.assertEqual(self.project_task_5.expected_start_date, '2017-09-07')
+        self.assertEqual(self.project_task_5.expected_end_date, '2017-09-15')
+        self.assertEqual(self.project_task_6.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_6.expected_end_date, '2017-09-06')
+        self.assertEqual(self.project_task_7.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_7.expected_end_date, '2017-09-06')
+        self.assertEqual(self.project_task_8.expected_start_date, '2017-09-18')
+        self.assertEqual(self.project_task_8.expected_end_date, '2017-09-21')
+        self.assertEqual(self.project_task_9.expected_start_date, '2017-09-18')
+        self.assertEqual(self.project_task_9.expected_end_date, '2017-10-04')
+        self.assertEqual(self.project_task_10.expected_start_date, '2017-10-05')
+        self.assertEqual(self.project_task_10.expected_end_date, '2017-10-12')
+        self.assertEqual(self.project_task_11.expected_start_date, '2017-10-05')
+        self.assertEqual(self.project_task_11.expected_end_date, '2017-10-13')
+        self.assertEqual(self.parent_task_1.expected_start_date, '2017-09-05')
+        self.assertEqual(self.parent_task_1.expected_end_date, '2017-09-05')
+        self.assertEqual(self.parent_task_2.expected_start_date, '2017-09-06')
+        self.assertEqual(self.parent_task_2.expected_end_date, '2017-09-15')
+        self.assertEqual(self.parent_task_3.expected_start_date, '2017-09-18')
+        self.assertEqual(self.parent_task_3.expected_end_date, '2017-10-04')
+        self.assertEqual(self.parent_task_4.expected_start_date, '2017-10-05')
+        self.assertEqual(self.parent_task_4.expected_end_date, '2017-10-13')
+
+        # Let's hide task 4
+        self.project_task_4.set_task_on_one_day()
+        self.assertEqual(self.project_task_3.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_3.expected_end_date, '2017-09-07')
+        self.assertEqual(self.project_task_1.expected_start_date, '2017-09-05')
+        self.assertEqual(self.project_task_1.expected_end_date, '2017-09-05')
+        self.assertEqual(self.project_task_2.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_2.expected_end_date, '2017-09-08')
+        self.assertEqual(self.project_task_4.expected_start_date, '2017-09-11')
+        self.assertEqual(self.project_task_4.expected_end_date, '2017-09-11')
+        self.assertEqual(self.project_task_5.expected_start_date, '2017-09-07')
+        self.assertEqual(self.project_task_5.expected_end_date, '2017-09-15')
+        self.assertEqual(self.project_task_6.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_6.expected_end_date, '2017-09-06')
+        self.assertEqual(self.project_task_7.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_7.expected_end_date, '2017-09-06')
+        self.assertEqual(self.project_task_8.expected_start_date, '2017-09-18')
+        self.assertEqual(self.project_task_8.expected_end_date, '2017-09-21')
+        self.assertEqual(self.project_task_9.expected_start_date, '2017-09-18')
+        self.assertEqual(self.project_task_9.expected_end_date, '2017-10-04')
+        self.assertEqual(self.project_task_10.expected_start_date, '2017-10-05')
+        self.assertEqual(self.project_task_10.expected_end_date, '2017-10-12')
+        self.assertEqual(self.project_task_11.expected_start_date, '2017-10-05')
+        self.assertEqual(self.project_task_11.expected_end_date, '2017-10-13')
+        self.assertEqual(self.parent_task_1.expected_start_date, '2017-09-05')
+        self.assertEqual(self.parent_task_1.expected_end_date, '2017-09-05')
+        self.assertEqual(self.parent_task_2.expected_start_date, '2017-09-06')
+        self.assertEqual(self.parent_task_2.expected_end_date, '2017-09-15')
+        self.assertEqual(self.parent_task_3.expected_start_date, '2017-09-18')
+        self.assertEqual(self.parent_task_3.expected_end_date, '2017-10-04')
+        self.assertEqual(self.parent_task_4.expected_start_date, '2017-10-05')
+        self.assertEqual(self.parent_task_4.expected_end_date, '2017-10-13')
+
+        # Let's hide task 5
+        self.project_task_5.set_task_on_one_day()
+        self.assertEqual(self.project_task_3.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_3.expected_end_date, '2017-09-07')
+        self.assertEqual(self.project_task_1.expected_start_date, '2017-09-05')
+        self.assertEqual(self.project_task_1.expected_end_date, '2017-09-05')
+        self.assertEqual(self.project_task_2.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_2.expected_end_date, '2017-09-08')
+        self.assertEqual(self.project_task_4.expected_start_date, '2017-09-11')
+        self.assertEqual(self.project_task_4.expected_end_date, '2017-09-11')
+        self.assertEqual(self.project_task_5.expected_start_date, '2017-09-07')
+        self.assertEqual(self.project_task_5.expected_end_date, '2017-09-07')
+        self.assertEqual(self.project_task_6.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_6.expected_end_date, '2017-09-06')
+        self.assertEqual(self.project_task_7.expected_start_date, '2017-09-06')
+        self.assertEqual(self.project_task_7.expected_end_date, '2017-09-06')
+        self.assertEqual(self.project_task_8.expected_start_date, '2017-09-18')
+        self.assertEqual(self.project_task_8.expected_end_date, '2017-09-21')
+        self.assertEqual(self.project_task_9.expected_start_date, '2017-09-18')
+        self.assertEqual(self.project_task_9.expected_end_date, '2017-10-04')
+        self.assertEqual(self.project_task_10.expected_start_date, '2017-10-05')
+        self.assertEqual(self.project_task_10.expected_end_date, '2017-10-12')
+        self.assertEqual(self.project_task_11.expected_start_date, '2017-10-05')
+        self.assertEqual(self.project_task_11.expected_end_date, '2017-10-13')
+        self.assertEqual(self.parent_task_1.expected_start_date, '2017-09-05')
+        self.assertEqual(self.parent_task_1.expected_end_date, '2017-09-05')
+        self.assertEqual(self.parent_task_2.expected_start_date, '2017-09-06')
+        self.assertEqual(self.parent_task_2.expected_end_date, '2017-09-11')
+        self.assertEqual(self.parent_task_3.expected_start_date, '2017-09-18')
+        self.assertEqual(self.parent_task_3.expected_end_date, '2017-10-04')
+        self.assertEqual(self.parent_task_4.expected_start_date, '2017-10-05')
+        self.assertEqual(self.parent_task_4.expected_end_date, '2017-10-13')
+
+    def test_18_reference_task_modification_by_a_non_manager(self):
         self.test_project.reference_task_id = self.project_task_3
         self.test_project.reference_task_end_date = '2017-09-07'
         self.test_project.user_id = self.demo_user
