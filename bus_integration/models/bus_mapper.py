@@ -30,6 +30,7 @@ class BusSynchronizationMapper(models.AbstractModel):
             'model': record_model,
             'external_key': external_key,
             'received_data': json.dumps(record, indent=4),
+            'origin_base_id': message.get_base_origin().id,
         }
         record_data = {}
 
