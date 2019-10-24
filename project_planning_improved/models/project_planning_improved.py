@@ -328,32 +328,32 @@ class ProjectImprovedProject(models.Model):
                                                               ('id', 'not in', parent_tasks.ids)])
             if not children_tasks:
                 return
-            self.env.cr.execute("""WITH RECURSIVE
-  top_parent(task_id, top_parent_task_id) AS (
-    SELECT pt.id AS task_id,
-           pt.id AS top_parent_task_id
-    FROM project_task pt
-           LEFT JOIN project_task ptp ON ptp.id = pt.parent_task_id
-    WHERE pt.project_id = %s
-    UNION
-    SELECT pt.id AS task_id,
-           tp.top_parent_task_id
-    FROM project_task pt,
-         top_parent tp
-    WHERE pt.parent_task_id = tp.task_id
-  )
+            self.env.cr.execute("""WITH RECURSIVE top_parent(task_id, top_parent_task_id) AS (
+  SELECT pt.id AS task_id,
+         pt.id AS top_parent_task_id
+  FROM project_task pt
+         LEFT JOIN project_task ptp ON ptp.id = pt.parent_task_id
+  WHERE pt.project_id = %s
+  UNION
+  SELECT pt.id AS task_id,
+         tp.top_parent_task_id
+  FROM project_task pt,
+       top_parent tp
+  WHERE pt.parent_task_id = tp.task_id
+)
 
 SELECT parent_task.id                      AS parent_task_id,
-           min(child_task.expected_start_date) AS new_expected_start_date,
-           max(child_task.expected_end_date)   AS new_expected_end_date
-    FROM project_task parent_task
-           INNER JOIN top_parent tp ON tp.top_parent_task_id = parent_task.id AND tp.task_id != parent_task.id
-           LEFT JOIN project_task child_task ON child_task.id = tp.task_id AND
-                                                child_task.expected_start_date IS NOT NULL AND
-                                                child_task.expected_end_date IS NOT NULL AND
-                                                child_task.id IN %s
-    WHERE top_parent_task_id IN %s
-    GROUP BY parent_task.id""", (rec.id, tuple(children_tasks.ids), tuple(parent_tasks.ids)))
+       min(child_task.expected_start_date) AS new_expected_start_date,
+       max(child_task.expected_end_date)   AS new_expected_end_date
+FROM project_task parent_task
+       INNER JOIN top_parent tp ON tp.top_parent_task_id = parent_task.id AND tp.task_id != parent_task.id
+       LEFT JOIN project_task child_task ON child_task.id = tp.task_id AND
+                                            child_task.expected_start_date IS NOT NULL AND
+                                            child_task.expected_end_date IS NOT NULL AND
+                                            child_task.id IN %s AND
+                                            COALESCE(child_task.forced_duration_one_day, FALSE) IS FALSE
+WHERE top_parent_task_id IN %s AND COALESCE(parent_task.forced_duration_one_day, FALSE) IS FALSE
+GROUP BY parent_task.id""", (rec.id, tuple(children_tasks.ids), tuple(parent_tasks.ids)))
             for parent_task_id, new_expected_start_date, new_expected_end_date in self.env.cr.fetchall():
                 parent_task = self.env['project.task'].browse(parent_task_id)
                 parent_task.update_expected_dates_no_write(new_expected_start_date, new_expected_end_date)
