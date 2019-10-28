@@ -63,7 +63,6 @@ class DelayReport(models.Model):
 
     @api.multi
     def asynchronous_report_generation(self, values):
-        print values
         self.ensure_one()
         active_ids = self.env.context.get('active_ids', [])
         active_model = self.env.context.get('active_model')
@@ -105,13 +104,12 @@ class DelayReport(models.Model):
         return self.create_temporary_report_attachment(base64.b64encode(result), name)
 
     @api.multi
-    def send_mail_report_async_to_user(self, url):
-        self.ensure_one()
+    def get_mail_data_report_async_success(self, url):
         time_to_live = self.env['ir.config_parameter'].sudo().get_param('attachment.report.ttl', 7)
         expiration_date = fields.Date.to_string(dt.today() + relativedelta(days=+int(time_to_live)))
         odoo_bot = self.sudo().env.ref('base.partner_root')
         email_from = odoo_bot.email
-        mail = self.env['mail.mail'].create({
+        return {
             'email_from': email_from,
             'reply_to': email_from,
             'recipient_ids': [(6, 0, self.env.user.partner_id.ids)],
@@ -122,17 +120,19 @@ class DelayReport(models.Model):
 <p><span style="color: #808080;">
 This is an automated message please do not reply.</span></p>""").format(url, expiration_date),
             'auto_delete': False,
-        })
+        }
+
+    @api.multi
+    def send_mail_report_async_to_user(self, url):
+        self.ensure_one()
+        mail = self.env['mail.mail'].create(self.get_mail_data_report_async_success(url))
         mail.send()
 
     @api.multi
-    def send_failure_mail(self, error):
-        print 'send_failure', error.name
-        print error.value
-        self.ensure_one()
+    def get_mail_data_report_async_fail(self, error):
         odoo_bot = self.sudo().env.ref('base.partner_root')
         email_from = odoo_bot.email
-        mail = self.env['mail.mail'].create({
+        return {
             'email_from': email_from,
             'reply_to': email_from,
             'recipient_ids': [(6, 0, self.env.user.partner_id.ids)],
@@ -142,7 +142,12 @@ This is an automated message please do not reply.</span></p>""").format(url, exp
 <p><span style="color: #808080;">
 This is an automated message please do not reply.</span></p>""").format(tools.ustr(error)),
             'auto_delete': False,
-        })
+        }
+
+    @api.multi
+    def send_failure_mail(self, error):
+        self.ensure_one()
+        mail = self.env['mail.mail'].create(self.get_mail_data_report_async_fail(error))
         mail.send()
 
     @api.multi
@@ -174,8 +179,7 @@ class IrAttachment(models.Model):
     @api.model
     def cron_delete_temporary_report_files(self):
         time_to_live = self.env['ir.config_parameter'].sudo().get_param('attachment.report.ttl', 7)
-        date_today = fields.Date.today()
-        date_to_delete = date_today + relativedelta(days=-int(time_to_live))
+        date_to_delete = fields.Date.to_string(dt.today() + relativedelta(days=-int(time_to_live)))
         self.search([('create_date', '<=', date_to_delete),
                      ('is_temporary_report_file', '=', True)]).unlink()
 
