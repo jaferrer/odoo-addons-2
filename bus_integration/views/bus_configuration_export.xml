@@ -67,7 +67,7 @@
                         </group>
                         <notebook>
                             <page id="histo" string="History">
-                                <field name="bus_message_ids" nolabel="1"/>
+                                <field name="bus_message_ids" nolabel="1" options="{'reload_on_button': true}"/>
                             </page>
                         </notebook>
                     </sheet>

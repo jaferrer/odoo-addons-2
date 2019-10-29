@@ -16,7 +16,7 @@
                     <field name="model"/>
                     <field name="external_key"/>
                     <field name="local_id"/>
-                    <field name="to_deactivate"/>
+                    <field name="origin_base_id"/>
                 </tree>
             </field>
         </record>
@@ -35,11 +35,13 @@
                             <group>
                                 <field name="model"/>
                                 <field name="local_id"/>
-                                <field name="create_date"/>
+                                <field name="external_key"/>
+                                <field name="to_deactivate"/>
                             </group>
                             <group>
-                                <field name="to_deactivate"/>
-                                <field name="external_key"/>
+                                <field name="origin_base_id" />
+                                <field name="origin_write_date" />
+                                <field name="create_date"/>
                                 <field name="write_date"/>
                             </group>
                         </group>

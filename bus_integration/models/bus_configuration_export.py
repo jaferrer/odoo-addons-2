@@ -204,7 +204,9 @@ class BusConfigurationExport(models.Model):
     @api.multi
     def get_synchronized_record_ids(self):
         self.ensure_one()
-        transfers = self.env['bus.receive.transfer'].search([('model', '=', self.model)])
+        base = self.env.ref('bus_integration.backend').sender_id
+        transfers = self.env['bus.receive.transfer'].search([('model', '=', self.model),
+                                                             ('origin_base_id', '=', base.id)])
         return [transfer.local_id for transfer in transfers]
 
     @api.multi
