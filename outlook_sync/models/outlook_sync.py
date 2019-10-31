@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import ast
 import json
 
 from urllib import parse
@@ -31,7 +32,7 @@ from odoo.addons.queue_job.job import job
 class OutlookSynchronisationWizard(models.TransientModel):
     _name = 'outlook.sync.wizard'
 
-    synchronise_contacts = fields.Boolean("Synchroniser les contacts", default=True)
+    synchronise_contacts = fields.Boolean("Synchroniser les contacts", default=False)
     synchronise_events = fields.Boolean("Synchroniser les emplois du temps", default=False)
 
     @api.multi
@@ -50,13 +51,12 @@ class OutlookSynchronisationWizard(models.TransientModel):
         if self.synchronise_events:
             self.send_calendars_to_outlook()
 
-    @api.multi
-    def get_scope(self):
-        self.ensure_one()
+    @api.model
+    def get_scope(self, synchronise_contacts, synchronise_events):
         scope = "openid offline_access"
-        if self.synchronise_contacts:
+        if synchronise_contacts:
             scope += " https://graph.microsoft.com/contacts.readwrite"
-        if self.synchronise_events:
+        if synchronise_events:
             scope += " https://graph.microsoft.com/calendars.readwrite"
         return scope
 
@@ -70,11 +70,12 @@ class OutlookSynchronisationWizard(models.TransientModel):
         """
         self.ensure_one()
         full_redirect_uri = self.env['ir.config_parameter'].get_param('web.base.url') + u"/outlook_odoo"
+        client_id = self.env['ir.config_parameter'].get_param('outlook_sync.client_id_outlook')
         dbname = self.env.cr.dbname
-        scope = self.get_scope()
+        scope = self.get_scope(self.synchronise_contacts, self.synchronise_events)
 
         params = {
-            'client_id': "243972aa-f693-41d7-a82b-db2ce249e404",
+            'client_id': client_id,
             'response_type': u"code",
             'redirect_uri': full_redirect_uri,
             'response_mode': "query",
@@ -97,18 +98,21 @@ class OutlookSynchronisationWizard(models.TransientModel):
         """
         user = self.env['res.users'].browse(user_id)
         redirect_uri = self.env['ir.config_parameter'].get_param('web.base.url') + u"/outlook_odoo"
+        client_id = self.env['ir.config_parameter'].get_param('outlook_sync.client_id_outlook')
+        client_secret = self.env['ir.config_parameter'].get_param('outlook_sync.client_secret_outlook')
 
         headers = {
             'Content-Type': "application/x-www-form-urlencoded",
         }
-
+        # 'client_id': "243972aa-f693-41d7-a82b-db2ce249e404",
+        # 'client_secret': "8OxndY0y5/SEEmu=LFK]h0gKZmCI]lGo",
         data = {
-            'client_id': "243972aa-f693-41d7-a82b-db2ce249e404",
+            'client_id': client_id,
             'scope': scope,
             'code': authorization_code,
             'redirect_uri': redirect_uri,
             'grant_type': "authorization_code",
-            'client_secret': "8OxndY0y5/SEEmu=LFK]h0gKZmCI]lGo",
+            'client_secret': client_secret,
         }
 
         request_token = requests.post(u"https://login.microsoftonline.com/common/oauth2/v2.0/token",
@@ -117,8 +121,8 @@ class OutlookSynchronisationWizard(models.TransientModel):
 
         user.outlook_refresh_token = token_dico.get('refresh_token')
 
-    @api.multi
-    def get_token(self):
+    @api.model
+    def _get_token(self, synchronise_contacts, synchronise_events):
         """
         Permet de récupérer un nouveau token en utilisant le refresh_token lorsque l'access_token n'est plus valide
         (3600s).
@@ -132,7 +136,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
 
         data = {
             'client_id': "243972aa-f693-41d7-a82b-db2ce249e404",
-            'scope': self.get_scope(),
+            'scope': self.get_scope(synchronise_contacts, synchronise_events),
             'refresh_token': outlook_refresh_token,
             'redirect_uri': redirect_uri,
             'grant_type': "refresh_token",
@@ -147,13 +151,13 @@ class OutlookSynchronisationWizard(models.TransientModel):
 
         return outlook_token
 
-    @api.multi
-    def access_outlook(self):
+    @api.model
+    def access_outlook(self, synchronise_contacts, synchronise_events):
         """
         Accède à Outlook via la méthode OAuth2.
         """
         session = requests.Session()
-        access_token = self.get_token()
+        access_token = self._get_token(synchronise_contacts, synchronise_events)
         if access_token:
             authorization = u"Bearer " + access_token
         else:
@@ -166,7 +170,12 @@ class OutlookSynchronisationWizard(models.TransientModel):
 
         return session
 
-    # CONTACTS SYNCHRONISATION
+    # SYNCHRONISATION
+
+    @api.model
+    def connection_error_msg(self, request):
+        error_msg = ast.literal_eval(request.text).get('error').get('message')
+        raise UserError(_(u"HTTP Request returned a %d error :\n %s" % (request.status_code, error_msg)))
 
     @api.model
     def odoo_to_outlook_date(self, odoo_date):
@@ -181,13 +190,13 @@ class OutlookSynchronisationWizard(models.TransientModel):
     @api.multi
     def get_100_item_infos(self, session, url, sending=False):
         """
-        Récupère 100 contacts Outlook. Ne pas oublier de rajouter "?$top=100" à l'url donnée, on ne le fait pas dans la
+        Récupère 100 objets Outlook. Ne pas oublier de rajouter "?$top=100" à l'url donnée, on ne le fait pas dans la
         fonction car il sera gardé dans '@odata.nextLink'.
         """
         self.ensure_one()
         contacts = session.get(url)
         if contacts.status_code != 200:
-            raise UserError(_(u"HTTP Request returned a %d error" % contacts.status_code))
+            self.connection_error_msg(contacts)
         more_contacts_url = contacts.json().get('@odata.nextLink')
 
         # Outlook -> Odoo
@@ -203,6 +212,8 @@ class OutlookSynchronisationWizard(models.TransientModel):
             data_contacts.append((contact.get('id'), utc_write_date_outlook))
 
         return data_contacts, more_contacts_url
+
+    # CONTACTS
 
     @api.model
     def get_contact_infos_for_odoo(self, outlook_contact):
@@ -229,7 +240,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
         """
         Récupère le carnet d'adresse du compte Outlook de l'utilisateur.
         """
-        session = self.access_outlook()
+        session = self.access_outlook(self.synchronise_contacts, self.synchronise_events)
         url = "https://graph.microsoft.com/v1.0/me/contacts"
         parameters = "?$select=id,lastModifiedDateTime,displayName,companyName,businessAddress,mobilePhone," \
                      "emailAddresses,personalNotes&$top=100"
@@ -282,7 +293,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
         contact_infos = self.get_contact_infos_for_outlook(partner)
         ans_update = session.patch(url_update, data=json.dumps(contact_infos))
         if ans_update.status_code != 200:
-            raise UserError(_(u"HTTP Request returned a %d error" % ans_update.status_code))
+            self.connection_error_msg(ans_update)
 
         # On doit prendre la date de modification du contact Outlook car tout comme l'id, il est impossible d'imposer
         # une lastModifiedDateTime à Outlook.
@@ -294,13 +305,13 @@ class OutlookSynchronisationWizard(models.TransientModel):
         contact_infos = self.get_contact_infos_for_outlook(partner)
         ans_create = session.post(url_create, data=json.dumps(contact_infos))
         if ans_create.status_code != 201:
-            raise UserError(_(u"HTTP Request returned a %d error" % ans_create.status_code))
+            self.connection_error_msg(ans_create)
 
         # Il est nécessaire ce réappeler le nouvel évènement pour avoir la bonne date de modification
         outlook_id = ans_create.json().get('id')
         ans_refresh = session.get(url_create + "/%s" % outlook_id)
         if ans_refresh.status_code != 200:
-            raise UserError(_(u"HTTP Request returned a %d error" % ans_create.status_code))
+            self.connection_error_msg(ans_refresh)
         write_date_outlook = ans_refresh.json().get('lastModifiedDateTime')
 
         # L'id Outlook d'un contact est attribué à sa création dans Outlook (impossible de lui donner un autre
@@ -318,7 +329,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
         """
         ans_delete = session.delete(url_delete)
         if ans_delete.status_code != 204:
-            raise UserError(_(u"HTTP Request returned a %d error" % ans_delete.status_code))
+            self.connection_error_msg(ans_delete)
 
     @api.multi
     def send_contacts_to_outlook(self):
@@ -326,7 +337,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
         Envoi les contacts vers le compte Outlook de l'utilisateur courant.
         """
         self.ensure_one()
-        session = self.access_outlook()
+        session = self.access_outlook(self.synchronise_contacts, self.synchronise_events)
         session.headers.update({
             'Content-Type': u"application/json;",
         })
@@ -367,7 +378,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
             url_delete = url_create + "/%s" % deleted_contact_outlook_id
             self.delete_item_in_outlook(session, url_delete)
 
-    # CALENDARS SYNCHRONISATION
+    # CALENDARS
 
     @api.model
     def get_event_infos_for_odoo(self, outlook_event, user_id):
@@ -394,7 +405,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
         """
         Récupère l'emploi du temps du compte Outlook de l'utilisateur.
         """
-        session = self.access_outlook()
+        session = self.access_outlook(self.synchronise_contacts, self.synchronise_events)
         url = "https://graph.microsoft.com/v1.0/me/events"
         parameters = "?$select=subject,id,start,end,bodyPreview,showAs,lastModifiedDateTime&$top=100"
 
@@ -450,7 +461,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
         event_infos = self.get_event_infos_for_outlook(calendar_event)
         ans_update = session.patch(url_update, data=json.dumps(event_infos))
         if ans_update.status_code != 200:
-            raise UserError(_(u"HTTP Request returned a %d error" % ans_update.status_code))
+            self.connection_error_msg(ans_update)
 
         # On doit prendre la date de modification du contact Outlook car tout comme l'id, il est impossible d'imposer
         # une lastModifiedDateTime à Outlook.
@@ -462,13 +473,13 @@ class OutlookSynchronisationWizard(models.TransientModel):
         event_infos = self.get_event_infos_for_outlook(calendar_event)
         ans_create = session.post(url_create, data=json.dumps(event_infos))
         if ans_create.status_code != 201:
-            raise UserError(_(u"HTTP Request returned a %d error" % ans_create.status_code))
+            self.connection_error_msg(ans_create)
 
         # Il est nécessaire ce réappeler le nouvel évènement pour avoir la bonne date de modification
         outlook_id = ans_create.json().get('id')
         ans_refresh = session.get(url_create + "/%s" % outlook_id)
         if ans_refresh.status_code != 200:
-            raise UserError(_(u"HTTP Request returned a %d error" % ans_create.status_code))
+            self.connection_error_msg(ans_refresh)
         write_date_outlook = ans_refresh.json().get('lastModifiedDateTime')
 
         # L'id Outlook d'un évènement est attribué à sa création dans Outlook (impossible de lui donner un autre
@@ -484,7 +495,7 @@ class OutlookSynchronisationWizard(models.TransientModel):
         Envoi l'emploi du temps de l'utilisateur courant sur son compte Outlook.
         """
         self.ensure_one()
-        session = self.access_outlook()
+        session = self.access_outlook(self.synchronise_contacts, self.synchronise_events)
         session.headers.update({
             'Content-Type': u"application/json;",
         })
@@ -532,31 +543,76 @@ class ResUsersOutlook(models.Model):
 
     outlook_refresh_token = fields.Char("Refresh token")
 
+    @job
     @api.multi
-    @job(default_channel='root.subchannel')
-    def job_outlook_synchronisation(self, user_id):
+    def job_outlook_sync_contacts(self):
         """
         Cron to synchronise contacts between Odoo and Outlook during the night.
         - First : Odoo -> Outlook (to consider the deletions in Odoo).
         - Then : Outlook -> Odoo.
         """
-        sync_wizard = self.env['outlook.sync.wizard'].sudo(user_id).create({
-            'synchronize_contacts': True,
-            'synchronize_events': True,
+        sync_wizard = self.env['outlook.sync.wizard'].sudo(self.env.user).create({
+            'synchronise_contacts': True,
+            'synchronise_events': False,
         })
-        try:
-            sync_wizard.send_contacts_to_outlook()
-        except UserError:
-            # Lors de la synchronisation automatique, envoie un mail à l'utilisateur pour qu'il rafraîchisse son
-            # authentification si son refresh_token n'est plus valide
-            email_template = self.env.ref('outlook_sync.email_template_refresh_outlook_authentication')
-            mail_id = self.env['mail.template'].browse(email_template.id).send_mail(self.env.user.partner_id.id)
-            self.env['mail.mail'].browse(mail_id).send()
-            return "Le contact doit se ré-authentifier."
-        sync_wizard.send_calendars_to_outlook()
+        sync_wizard.send_contacts_to_outlook()
         sync_wizard.get_contacts_from_outlook()
+        return "Fin de la synchronisation."
+
+    @job
+    @api.multi
+    def job_outlook_sync_calendars(self):
+        """
+        Cron to synchronise calendars between Odoo and Outlook during the night.
+        - First : Odoo -> Outlook (to consider the deletions in Odoo).
+        - Then : Outlook -> Odoo.
+        """
+        sync_wizard = self.env['outlook.sync.wizard'].sudo(self.env.user).create({
+            'synchronise_contacts': False,
+            'synchronise_events': True,
+        })
+        sync_wizard.send_calendars_to_outlook()
         sync_wizard.get_calendars_from_outlook()
         return "Fin de la synchronisation."
+
+    def send_mail_to_user(self):
+        """
+        Send a mail to ask the user to refresh its authentication and get a new refresh token.
+        """
+        email_template = self.env.ref('outlook_sync.email_template_refresh_outlook_authentication')
+        self.env['mail.template'].browse(email_template.id).sudo().send_mail(self.env.user.id)
+
+    def check_user_access_and_launch_job_outlook_contacts(self, user, jobify):
+        self_sudo = self.sudo(user)
+        try:
+            self_sudo.env['outlook.sync.wizard'].access_outlook(True, False)
+        except UserError:
+            self_sudo.send_mail_to_user()
+            return
+
+        if not jobify:
+            self_sudo.job_outlook_sync_contacts()
+        else:
+            self_sudo.with_delay(
+                description=f"Synchronisation contacts Outlook {self.env.user.name}",
+                max_retries=0
+            ).job_outlook_sync_contacts()
+
+    def check_user_access_and_launch_job_outlook_calendars(self, user, jobify):
+        self_sudo = self.sudo(user)
+        try:
+            self_sudo.env['outlook.sync.wizard'].access_outlook(False, True)
+        except UserError:
+            self_sudo.send_mail_to_user()
+            return
+
+        if not jobify:
+            self_sudo.job_outlook_sync_calendars()
+        else:
+            self_sudo.with_delay(
+                description=f"Synchronisation évènements Outlook {self.env.user.name}",
+                max_retries=0
+            ).job_outlook_sync_calendars()
 
     @api.multi
     def cron_launch_outlook_synchronisation(self, jobify=True):
@@ -566,23 +622,13 @@ class ResUsersOutlook(models.Model):
         - Then : Outlook -> Odoo.
         """
         users = self.env['res.users'].search([])
-        if not jobify:
-            for user in users:
-                sync_wizard = self.env['outlook.sync.wizard'].sudo(user).create({
-                    'synchronize_contacts': True,
-                    'synchronize_events': True,
-                })
-                sync_wizard.send_contacts_to_outlook()
-                sync_wizard.send_calendars_to_outlook()
-                sync_wizard.get_contacts_from_outlook()
-                sync_wizard.get_calendars_from_outlook()
-
         for user in users:
-            self.with_delay(
-                description=f"Synchronisation Outlook {user.name}", max_retries=0).job_outlook_synchronisation(user.id)
+            user.check_user_access_and_launch_job_outlook_contacts(user, jobify)
+        for user in users:
+            user.check_user_access_and_launch_job_outlook_calendars(user, jobify)
 
 
-class OuestacroResPartnerOutlook(models.Model):
+class ResPartnerOutlook(models.Model):
     _inherit = 'res.partner'
 
     outlook_id = fields.Char("Identifiant Outlook")
@@ -593,7 +639,7 @@ class OuestacroResPartnerOutlook(models.Model):
         """
         La date de modification Outlook est une date de modification qui peut-être imposée.
         """
-        res = super(OuestacroResPartnerOutlook, self).write(vals)
+        res = super(ResPartnerOutlook, self).write(vals)
 
         if not vals.get('write_date_outlook') and not self.env.context.get('creation'):
             for rec in self:
@@ -602,7 +648,7 @@ class OuestacroResPartnerOutlook(models.Model):
         return res
 
 
-class OuestacroCalendarEventOutlook(models.Model):
+class CalendarEventOutlook(models.Model):
     _inherit = 'calendar.event'
 
     outlook_id = fields.Char("Identifiant Outlook")
@@ -613,10 +659,36 @@ class OuestacroCalendarEventOutlook(models.Model):
         """
         La date de modification Outlook est une date de modification qui peut-être imposée.
         """
-        res = super(OuestacroCalendarEventOutlook, self).write(vals)
+        res = super(CalendarEventOutlook, self).write(vals)
 
         if not vals.get('write_date_outlook') and not self.env.context.get('creation'):
             for rec in self:
                 rec.write_date_outlook = rec.write_date
 
         return res
+
+
+class IrConfigParameterOutlook(models.TransientModel):
+    _inherit = 'res.config.settings'
+
+    client_id_outlook = fields.Char("Client id Outlook")
+    client_secret_outlook = fields.Char("Client secret Outlook")
+
+    @api.model
+    def get_values(self):
+        res = super(IrConfigParameterOutlook, self).get_values()
+
+        res.update(
+            client_id_outlook=self.env['ir.config_parameter'].get_param('outlook_sync.client_id_outlook'),
+            client_secret_outlook=self.env['ir.config_parameter'].get_param('outlook_sync.client_secret_outlook'))
+
+        return res
+
+    @api.multi
+    def set_values(self):
+        super(IrConfigParameterOutlook, self).set_values()
+        self.env['ir.config_parameter'].sudo().set_param('outlook_sync.client_id_outlook', self.client_id_outlook)
+        self.env['ir.config_parameter'].sudo().set_param(
+            'outlook_sync.client_secret_outlook',
+            self.client_secret_outlook
+        )
