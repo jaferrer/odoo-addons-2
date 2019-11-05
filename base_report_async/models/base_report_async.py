@@ -3,6 +3,7 @@
 
 import base64
 import logging
+import mimetypes
 import tempfile
 import time
 import zipfile
@@ -34,6 +35,9 @@ class DelayReport(models.Model):
         if not binary:
             return False
         mimetype = guess_mimetype(binary.decode('base64'))
+        extension = mimetypes.guess_extension(mimetype)
+        if extension:
+            name += extension
         return self.env['ir.attachment'].create({
             'type': 'binary',
             'res_name': name,
@@ -75,7 +79,7 @@ class DelayReport(models.Model):
                 except Exception as error:
                     self.send_failure_mail(error)
                     return
-            zip_file_name = '%s.zip' % (slugify(values.get('name')) or 'documents')
+            zip_file_name = '%s' % (slugify(values.get('name')) or 'documents')
             temp_dir = tempfile.mkdtemp()
             zip_file_path = '%s/%s' % (temp_dir, zip_file_name)
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
