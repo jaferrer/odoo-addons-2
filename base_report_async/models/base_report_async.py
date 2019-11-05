@@ -4,6 +4,7 @@
 import base64
 import logging
 import mimetypes
+import os
 import tempfile
 import time
 import zipfile
@@ -72,7 +73,11 @@ class DelayReport(models.Model):
         active_model = self.env.context.get('active_model')
         if values.get('type_multi_print') == 'zip' and len(active_ids) > 1:
             attachments_to_zip = self.env['ir.attachment']
+            nb_records = len(active_ids)
+            index = 0
             for active_id in active_ids:
+                index += 1
+                _logger.info(u"Generating report for ID %s (%s/%s)", active_id, index, nb_records)
                 try:
                     new_attachment = self.save_attachement_for_one_record(active_model, [active_id])
                     attachments_to_zip |= new_attachment
@@ -84,7 +89,8 @@ class DelayReport(models.Model):
             zip_file_path = '%s/%s' % (temp_dir, zip_file_name)
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
                 for att in attachments_to_zip:
-                    zip_file.writestr(att.datas_fname, base64.b64decode(att.with_context(bin_size=False).datas))
+                    zip_file.writestr(att.datas_fname.replace(os.sep, '-'),
+                                      base64.b64decode(att.with_context(bin_size=False).datas))
             with open(zip_file_path, 'r') as zf:
                 attachment = self.create_temporary_report_attachment(base64.b64encode(zf.read()), zip_file_name)
         else:
@@ -94,7 +100,7 @@ class DelayReport(models.Model):
                 self.send_failure_mail(error)
                 return
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
-        url = base_url + "/web/binary/saveas?model=ir.attachment&field=datas&id=%s&filename_field=name" % attachment.id
+        url = base_url + "/web/content/%s/%s" % (attachment.id, attachment.name)
         self.send_mail_report_async_to_user(url)
 
     @api.multi
