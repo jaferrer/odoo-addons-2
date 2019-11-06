@@ -446,7 +446,7 @@ class StockWarehouseOrderPointJit(models.Model):
     @api.multi
     def get_max_allowed_qty(self, date):
         self.ensure_one()
-        product_max_qty = self.get_max_qty(date + ' 23:59:59')
+        product_max_qty = self.get_max_qty(fields.Datetime.from_string(date + ' 23:59:59'))
         if self.fill_strategy == 'duration':
             consider_end_contract_effect = bool(self.env['ir.config_parameter'].get_param(
                 'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
