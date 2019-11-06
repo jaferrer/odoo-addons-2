@@ -1,12 +1,11 @@
 include: "https://gitlab.ndp-systemes.fr/odoo-addons/ci-files/raw/master/default-gitlab-ci.yml"
 
 variables:
-  ODOO_VERSION: "8.0"
+  ODOO_VERSION: "13.0"
   ODOO_DEPENDS: "odoo-addons/community-addons"
   ODOO_MODULE: "ALL"
-  ODOO_IMG: "8.0-ndp"
+  ODOO_IMG: "13.0"
   VERBOSE: "True"
-  BEFORE_ODOO_MODULE: "sale_mrp"
 
 runbot_depends:
   stage: test

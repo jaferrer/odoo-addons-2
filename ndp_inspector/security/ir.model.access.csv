@@ -1,3 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_ndp_inspector,access_ndp_inspector,model_ndp_logging_time,ndp_inspector.group_logging_viewer,1,0,0,0
-access_ndp_inspector_manager,access_ndp_inspector_manager,model_ndp_logging_time,ndp_inspector.group_logging_manager,1,1,1,1

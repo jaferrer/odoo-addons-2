@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<openerp>
-    <data>
-
-        <!-- For odoo modules or community addons, demo products should have their seller_id computed -->
-        <function model="product.template" name="update_seller_ids"/>
-
-    </data>
-</openerp>

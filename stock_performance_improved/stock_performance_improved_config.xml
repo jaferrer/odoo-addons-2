@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<openerp>
-    <data>
-
-        <function model="stock.performance.improved.config" name="update_picking_type_codes"/>
-
-    </data>
-</openerp>
