@@ -444,10 +444,9 @@ class StockWarehouseOrderPointJit(models.Model):
                 procs.unlink()
 
     @api.multi
-    def get_max_allowed_qty(self, need):
-        # TODO: passer need en date
+    def get_max_allowed_qty(self, date):
         self.ensure_one()
-        product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
+        product_max_qty = self.get_max_qty(date + ' 23:59:59')
         if self.fill_strategy == 'duration':
             consider_end_contract_effect = bool(self.env['ir.config_parameter'].get_param(
                 'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
@@ -464,7 +463,7 @@ class StockWarehouseOrderPointJit(models.Model):
     @api.multi
     def is_over_stock_max(self, need, stock_after_event):
         self.ensure_one()
-        max_qty = self.get_max_allowed_qty(need)
+        max_qty = self.get_max_allowed_qty(need['date'])
         if float_compare(stock_after_event, max_qty, precision_rounding=self.product_id.uom_id.rounding) > 0:
             return True
         return False
