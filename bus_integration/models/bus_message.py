@@ -97,7 +97,9 @@ class BusMessage(models.Model):
     @api.multi
     def get_base_origin(self):
         self.ensure_one()
-        return self.env['bus.base'].search([('bus_username', '=', self.cross_id_origin_base)])
+        return self.env['bus.base']\
+            .with_context(active_test=False)\
+            .search([('bus_username', '=', self.cross_id_origin_base)])
 
     @api.multi
     def get_json_message(self):
@@ -127,7 +129,8 @@ class BusMessage(models.Model):
                 body_dict = message_dict.get('body', {}).get('root', {})
                 models = body_dict.keys()
                 for model in models:
-                    ids = body_dict.get(model).keys()
+                    keys = body_dict.get(model).keys()
+                    ids = [int(key) for key in keys]
                     exported_ids += u"%s : %s, " % (model, ids)
             rec.exported_ids = exported_ids
 
