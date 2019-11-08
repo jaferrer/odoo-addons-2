@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="project_task_charge_config_settings_form" model="ir.ui.view">
+            <field name="name">project_task_charge_config_settings_form</field>
+            <field name="model">project.config.settings</field>
+            <field name="inherit_id" ref="project.view_config_settings"/>
+            <field name="arch" type="xml">
+                <field name="module_rating_project" position="after">
+                    <field name="calc_min_date"/>
+                    <field name="calc_max_date"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</openerp>
