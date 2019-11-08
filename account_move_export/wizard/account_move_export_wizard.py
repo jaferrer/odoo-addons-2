@@ -59,19 +59,19 @@ class AccountMoveExportWizard(models.TransientModel):
         """
         self.ensure_one()
 
-        lines = self.env['account.move.line']
+        moves = self.env['account.move']
         if self.line_selection == 'bounded':
-            lines = self._get_move_lines_by_dates_and_journals(self.date_from, self.date_to, self.journal_ids)
+            moves = self._get_moves_by_dates_and_journals(self.date_from, self.date_to, self.journal_ids)
         elif self.line_selection == 'manual':
-            lines = self._get_lines_by_moves(self.move_ids)
+            moves = self.move_ids
         elif self.line_selection == 'not_exported':
-            lines = self._get_unexported_move_lines(self.journal_ids)
+            moves = self._get_unexported_moves(self.journal_ids)
 
-        self.binary_export = base64.encodestring(self._create_export_from_lines(lines))
+        self.binary_export = base64.encodestring(self._create_export_from_moves(moves))
 
         self.data_fname = self._get_export_filename()
 
-        self._mark_move_lines_as_exported(lines)
+        self._mark_move_lines_as_exported(moves)
 
         if self.destination == 'ftp':
             self._send_to_ftp()
@@ -116,59 +116,51 @@ class AccountMoveExportWizard(models.TransientModel):
         return res
 
     @api.multi
-    def _mark_move_lines_as_exported(self, move_lines):
-        """ Mark a recordset of move_lines as exported, in order not to export them again
+    def _mark_move_lines_as_exported(self, moves):
+        """ Mark lines of a recordset of account.move as exported, in order not to export them again
 
-        :param move_lines: recordset of account.move.line
+        :param moves: recordset of account.move
         """
-        move_lines.write({'exported': True})
+        moves.mapped('line_ids').write({'exported': True})
 
     @api.multi
-    def _get_move_lines_by_dates_and_journals(self, date_from, date_to, journals):
-        """ Get all lines in selected journals in a date frame
+    def _get_moves_by_dates_and_journals(self, date_from, date_to, journals):
+        """ Get all moves in selected journals in a date frame
 
         :param date_from: date or string, first bound of the frame
         :param date_to: date or string, second bound of the frame
         :param journals: recordset of account.journal
-        :return: recordset of account.move.line
+        :return: recordset of account.move
         """
-        lines = self.env['account.move.line'].search([
-            ('move_id.journal_id', 'in', journals.ids),
-            ('move_id.date', '>=', date_from),
-            ('move_id.date', '<=', date_to),
+        moves = self.env['account.move'].search([
+            ('journal_id', 'in', journals.ids),
+            ('date', '>=', date_from),
+            ('date', '<=', date_to),
         ])
-        return lines
+        return moves
 
     @api.multi
-    def _get_unexported_move_lines(self, journals):
-        """ Get all lines in the selected journals that have not already been exported
+    def _get_unexported_moves(self, journals):
+        """ Get all move in the selected journals whose lines have not already been exported
 
         :param journals: recordset of account.journal
-        :return: recordset of account.move.line
+        :return: recordset of account.move
         """
-        lines = self.env['account.move.line'].search([
+        lines = self.env['account.move.line'].search_read([
             ('move_id.journal_id', 'in', journals.ids),
             ('exported', '=', False),
-        ])
-        return lines
+        ], ['move_id'])
+
+        return self.env['account.move'].browse({line['move_id'][0] for line in lines})
 
     @api.multi
-    def _get_lines_by_moves(self, moves):
-        """ Return the account.move.line associated with selected moves
-
-        :param moves: recordset of account.move
-        :return: recordset of account.move.line
-        """
-        return moves.mapped('line_ids')
-
-    @api.multi
-    def _create_export_from_lines(self, lines):
-        """ Creates the export from a recorset of account.move.line
+    def _create_export_from_moves(self, moves):
+        """ Creates the export from a recorset of account.move
 
         MUST BE IMPLEMENTED BY A SPECIFIC MODULE
         The current module only provides structure and interface for exports
 
-        :param lines: recordset of account.move.lines to export
+        :param moves: recordset of account.move.lines to export
         :return: string corresponding to the export file content
         """
         raise NotImplementedError
