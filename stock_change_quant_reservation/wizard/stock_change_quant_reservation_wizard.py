@@ -34,7 +34,8 @@ class StockChangeQuantPicking(models.TransientModel):
 
     partner_id = fields.Many2one('res.partner', string='Partner')
     picking_id = fields.Many2one('stock.picking', string='Picking', context={'reserving_quant': True})
-    move_id = fields.Many2one('stock.move', string='Stock move', required=True, context={'reserving_quant': True})
+    move_id = fields.Many2one('stock.move', string='Stock move', required=True, context={'reserving_quant': True},
+                              index=True)
 
     @api.onchange('partner_id')
     def onchange_partner_id(self):
