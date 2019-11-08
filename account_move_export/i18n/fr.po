@@ -351,3 +351,8 @@ msgstr "Date from"
 #: field:account.move.export.wizard,date_to:0
 msgid "Date to"
 msgstr "Date to"
+
+#. module: account_move_export
+#: field:account.move.export.wizard,mark_exported_line:0
+msgid "Mark Exported Move Line"
+msgstr "Marquer les écritures comme exportées"
