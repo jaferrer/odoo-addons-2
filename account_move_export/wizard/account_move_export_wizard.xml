@@ -21,6 +21,7 @@
                         </group>
                         <group>
                             <field name="group_by_account"/>
+                            <field name="mark_exported_line"/>
                         </group>
                         <group attrs="{'invisible': [('destination', '!=', 'ftp')]}" col="4">
                             <field name="ftp_url" attrs="{'required': [('destination', '=', 'ftp')]}"/>
