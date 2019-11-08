@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,20 +20,7 @@
 from openerp import models, fields
 
 
-class MrpPerformanceImprovedMrpProduction(models.Model):
-    _inherit = 'mrp.production'
+class AdjustmentLineImporved(models.Model):
+    _inherit = 'stock.valuation.adjustment.lines'
 
-    procurement_id = fields.Many2one('procurement.order', index=True)
-    move_prod_id = fields.Many2one('stock.move', index=True)
-
-
-class MrpPerformanceImprovedStockMove(models.Model):
-    _inherit = 'stock.move'
-
-    consumed_for = fields.Many2one('stock.move', index=True)
-
-
-class MrpPerformanceImprovedProcurementOrder(models.Model):
-    _inherit = 'procurement.order'
-
-    production_id = fields.Many2one('mrp.production', index=True)
+    move_id = fields.Many2one('stock.move', index=True)
