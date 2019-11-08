@@ -45,6 +45,7 @@ class AccountMoveExportWizard(models.TransientModel):
     date_to = fields.Date(u"Date to")
     move_ids = fields.Many2many('account.move', string=u"Account moves")
     group_by_account = fields.Boolean(u"Group by accounting account")
+    mark_exported_line = fields.Boolean(u"Mark Exported Move Line", default=True)
 
     ftp_url = fields.Char(u"FTP URL")
     ftp_login = fields.Char(u"FTP login")
@@ -64,17 +65,18 @@ class AccountMoveExportWizard(models.TransientModel):
 
         moves = self.env['account.move']
         if self.line_selection == 'bounded':
-            moves = self._get_move_lines_by_dates_and_journals(self.date_from, self.date_to, self.journal_ids)
+            moves = self._get_move_by_dates_and_journals(self.date_from, self.date_to, self.journal_ids)
         elif self.line_selection == 'manual':
             moves = self.move_ids
         elif self.line_selection == 'not_exported':
-            moves = self._get_unexported_move_lines(self.journal_ids)
+            moves = self._get_unexported_moves(self.journal_ids)
 
         self.binary_export = base64.encodestring(self._create_export_from_move(moves))
 
         self.data_fname = self._get_export_filename()
 
-        self._mark_move_lines_as_exported(moves)
+        if self.mark_exported_line:
+            self._mark_move_lines_as_exported(moves)
 
         if self.destination == 'ftp':
             self._send_to_ftp()
@@ -148,11 +150,11 @@ class AccountMoveExportWizard(models.TransientModel):
         :param journals: recordset of account.journal
         :return: recordset of account.move.line
         """
-        lines = self.env['account.move.line'].search_read([
+        lines = self.env['account.move.line'].search([
             ('move_id.journal_id', 'in', journals.ids),
             ('exported', '=', False),
-        ], ['move_id'])
-        return self.env['account.move'].browse([line['move_id'] for line in lines])
+        ])
+        return self.env['account.move'].browse([line['move_id'] for line in lines.read(['move_id'], load="no_name")])
 
     @api.multi
     def _create_export_from_move(self, moves):
