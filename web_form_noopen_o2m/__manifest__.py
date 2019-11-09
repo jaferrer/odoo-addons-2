@@ -24,7 +24,10 @@
     'maintainer': 'NDP Systèmes',
     'category': 'technical',
     'depends': ['web'],
-    'description': """""",
+    'description': """
+Disable Open form popup on O2M
+==============================
+""",
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'views/templates.xml'
