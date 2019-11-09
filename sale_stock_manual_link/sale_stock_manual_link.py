@@ -67,7 +67,7 @@ class ProcurementSaleLink(models.Model):
 
     procurement_id = fields.Many2one('procurement.order', string=u"Procurement Order", readonly=True,
                                      domain=[('state', 'not in', ['draft', 'done', 'cancel'])],
-                                     context={'display_products_qties_dates': True})
+                                     context={'display_products_qties_dates': True}, index=True)
     proc_location_id = fields.Many2one('stock.location', string=u"Procurement location", readonly=True,
                                        related='procurement_id.location_id', store=True)
     proc_date_planned = fields.Datetime(string=u"Procurement date", readonly=True,
