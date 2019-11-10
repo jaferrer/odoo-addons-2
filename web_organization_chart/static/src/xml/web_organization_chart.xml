@@ -1,5 +1,0 @@
-<template>
-  <t t-name="OrganizationChartView">
-    <div class="oe_organization_chart_view"></div>
-  </t>
-</template>
