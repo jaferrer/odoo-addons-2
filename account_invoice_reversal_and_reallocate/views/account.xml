@@ -14,7 +14,6 @@
                     <field name="extourne_parent_id" readonly="True"/>
                     <field name="original_account_move_id" readonly="True"/>
                     <field name="reimputation_parent_id" readonly="True"/>
-
                 </field>
                 <notebook position="before">
                     <label for="reimputation"
@@ -36,9 +35,6 @@
                             string="Re-allocate the accounting entry"
                             attrs="{'invisible': ['|', ('ligne_compte_tiers','=', False), '|', ('reimputation', '=', True), ('state', '=', 'draft')]}"/>
                 </button>
-                <xpath expr="//field[@name='line_id']//tree" position="attributes">
-                    <attribute name="delete">false</attribute>
-                </xpath>
                 <xpath expr="//field[@name='line_id']//tree" position="inside">
                     <field name="compte_tiers"/>
                     <field name="reimputation" invisible="True"/>

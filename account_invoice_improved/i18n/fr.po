@@ -26,12 +26,12 @@ msgid ""
 "\n"
 "Account Invoice Improved\n"
 "========================\n"
-"This modules improves a few settings for account objects.\n"
+"This modules improves a few settings for account invoices.\n"
 msgstr ""
 "\n"
 "Amélioration de la facturation\n"
 "==============================\n"
-"Ce module apporte quelques améliorations dans le domaine de la facturation.\n"
+"Ce module apporte quelques améliorations sur les factures.\n"
 
 #. module: account_invoice_improved
 #: view:account.invoice:account_invoice_improved.account_improved_invoice_search
