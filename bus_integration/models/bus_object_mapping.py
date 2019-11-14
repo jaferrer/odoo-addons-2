@@ -115,6 +115,11 @@ class BusObjectMappingAbstract(models.AbstractModel):
             'context': self.env.context
         }
 
+    @api.model
+    def get_mapping_fields(self):
+        self.ensure_one()
+        return [field for field in self.field_ids if field.is_migration_key]
+
 
 class BusObjectMappingFieldAbstract(models.AbstractModel):
     _name = 'bus.object.mapping.field.abstract'

@@ -190,18 +190,13 @@ class BusSynchronizationImporter(models.AbstractModel):
         transfer = False
         try:
             with self.env.cr.savepoint():
-                transfer, odoo_record = self.env['bus.binder']\
+                transfer, odoo_record, errors = self.env['bus.binder']\
                     .process_binding(record, model, external_key, model_mapping, message, xml_id)
-                binding_data, record_data, errors = self.env['bus.mapper'] \
-                    .process_mapping(record, model, external_key, model_mapping, message, odoo_record)
-                if len(odoo_record) > 1:
-                    errors.append(('error', u"Too many record find for %s : %s" % (model, record_id)))
+                if not errors:
+                    binding_data, record_data, errors = self.env['bus.mapper'] \
+                        .process_mapping(record, model, external_key, model_mapping, message, odoo_record)
         except IntegrityError as err:
-            fields_mapping = self.env['bus.object.mapping.field'].search([('is_migration_key', '=', True),
-                                                                          ('mapping_id', '=', model_mapping.id)])
-            fields_name = str([field.field_name for field in fields_mapping])
-            errors.append(('error', u"invalid migration_key on %s. multiple records found with migration_key %s, "
-                                    u"detail: %s" % (fields_name, model, err)))
+            errors.append(('error', err))
         critical_error = [error for error in errors if error[0] == 'error']
         if not critical_error:
             try:
