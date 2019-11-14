@@ -31,11 +31,10 @@
                 </button>
                 <button name="button_cancel" position="after">
                     <button name="extourner" type="object" groups="account.group_account_invoice"
-                            string="Reversal the accounting entry" attrs="{'invisible': ['|', ('ligne_compte_tiers','=', True),
-                        ('extourne', '=', True)]}"/>
+                            string="Reversal the accounting entry" attrs="{'invisible': ['|', ('ligne_compte_tiers','=', True), '|', ('extourne', '=', True), ('state', '=', 'draft')]}"/>
                     <button name="re_imputer" type="object" groups="account.group_account_invoice"
                             string="Re-allocate the accounting entry"
-                            attrs="{'invisible': ['|', ('ligne_compte_tiers','=', False), ('reimputation', '=', True)]}"/>
+                            attrs="{'invisible': ['|', ('ligne_compte_tiers','=', False), '|', ('reimputation', '=', True), ('state', '=', 'draft')]}"/>
                 </button>
                 <xpath expr="//field[@name='line_id']//tree" position="attributes">
                     <attribute name="delete">false</attribute>

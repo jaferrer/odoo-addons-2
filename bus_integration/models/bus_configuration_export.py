@@ -53,6 +53,7 @@ class BusConfigurationExport(models.Model):
         You can acces to : relativedelta, self, context.
         For datetime use shorcut date, date_to_str to translate dates.
         last_send_date to get the last date of dispatch.""")
+    comment = fields.Char(u"Comment")
     mapping_object_id = fields.Many2one('bus.object.mapping', u"Mapping", compute='_get_mapping_object', store=True)
     sequence = fields.Integer(u"sequence", help=u"Order to launch export", default=99)
     dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True)
@@ -74,7 +75,7 @@ class BusConfigurationExport(models.Model):
         for rec in self:
             rec.name = u"%s%s→%s" % (
                 rec.model or "[_]",
-                "" if rec.domain == "[]" else "[...]",
+                "" if not rec.comment else " (%s)" % rec.comment,
                 rec.recipient_id.display_name or "[_]")
 
     @api.multi
@@ -204,7 +205,9 @@ class BusConfigurationExport(models.Model):
     @api.multi
     def get_synchronized_record_ids(self):
         self.ensure_one()
-        transfers = self.env['bus.receive.transfer'].search([('model', '=', self.model)])
+        base = self.env.ref('bus_integration.backend').sender_id
+        transfers = self.env['bus.receive.transfer'].search([('model', '=', self.model),
+                                                             ('origin_base_id', '=', base.id)])
         return [transfer.local_id for transfer in transfers]
 
     @api.multi

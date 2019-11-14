@@ -86,12 +86,19 @@ WHERE (res_partner.id IS NULL OR main_supplier_s.constr = 1) AND
             product.seller_id = supplier
         self.env['product.product'].update_seller_ids()
 
+    @api.multi
+    def write(self, vals):
+        result = super(ProductTemplateJit, self).write(vals)
+        if 'seller_id' in vals:
+            for rec in self:
+                rec.product_variant_ids.write({'seller_id': rec.seller_id and rec.seller_id.id or False})
+        return result
+
 
 class ProductLabelProductProduct(models.Model):
     _inherit = 'product.product'
 
-    seller_id = fields.Many2one(related='product_tmpl_id.seller_id', store=True, readonly=True,
-                                track_visibility='onchange')
+    seller_id = fields.Many2one('res.partner', string=u"Main Supplier", readonly=True, track_visibility='onchange')
 
     @api.model
     def update_seller_ids(self):

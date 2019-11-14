@@ -18,7 +18,10 @@
 #
 
 import json
+import logging
 from openerp import models, api
+
+_logger = logging.getLogger(__name__)
 
 
 class BusSynchronizationBinder(models.AbstractModel):
@@ -58,8 +61,7 @@ class BusSynchronizationBinder(models.AbstractModel):
     @api.model
     def get_record_by_field_mapping(self, model_mapping, record, dependencies):
         odoo_record = self.env[model_mapping.model_name]
-        fields_mapping = self.env['bus.object.mapping.field'].search([('is_migration_key', '=', True),
-                                                                      ('mapping_id', '=', model_mapping.id)])
+        fields_mapping = model_mapping.get_mapping_fields()
         domain = []
         if fields_mapping:
             for field in fields_mapping:
@@ -74,21 +76,53 @@ class BusSynchronizationBinder(models.AbstractModel):
         return transfer, self.with_context(active_test=False).env[model].search([('id', '=', local_id)])
 
     @api.model
-    def process_binding(self, record, model, external_key, model_mapping, dependencies, xml_id):
+    def process_binding(self, record, model, external_key, model_mapping, message, xml_id):
+
+        def get_log(odoo_record):
+            if not odoo_record:
+                return "NO LOCAL RECORD FOUND"
+            elif len(odoo_record) == 1:
+                return "FOUND LOCAL ID #%d (%s)" % (odoo_record.id, odoo_record.display_name)
+            return "ERROR, MULTIPLE RECORDS FOUND"
+
+        errors = []
         transfer, odoo_record = self.get_record_by_external_key(external_key, model)
         if transfer:
             transfer.local_id = odoo_record.id
         else:
+            log_message = ""
             if model_mapping.key_xml_id and xml_id:
                 odoo_record = self.get_record_by_xml(xml_id, model_mapping.model_name)
+                log_message = "bus-process_binding %s #%d (%s) by xml_id '%s': %s" % (model, external_key,
+                                                                                      record['display_name'],
+                                                                                      xml_id, get_log(odoo_record))
+                _logger.info(log_message)
+
             if not model_mapping.key_xml_id or not odoo_record:
-                odoo_record = self.get_record_by_field_mapping(model_mapping, record, dependencies)
+                odoo_record = self.get_record_by_field_mapping(model_mapping, record, message.get_json_dependencies())
+                log_message = "bus-process_binding %s #%d (%s) by field mapping [%s] : %s", (
+                    model, external_key, record['display_name'],
+                    str([field.field_name for field in model_mapping.get_mapping_fields()]),
+                    get_log(odoo_record))
+                _logger.info(log_message)
+
+            if len(odoo_record) > 1:
+                errors.append(('error', u"%s \n Too many local record found %s" % (log_message, odoo_record)))
 
             if odoo_record and len(odoo_record) == 1:
-                transfer = self.env['bus.receive.transfer'].create({
-                    'model': model,
-                    'local_id': odoo_record.id,
-                    'external_key': external_key,
-                    'received_data': json.dumps(record, indent=4)
-                })
-        return transfer, odoo_record
+                existing_transfer = self.env['bus.receive.transfer'].search(
+                    [('model', '=', model), ('local_id', '=', odoo_record.id)])
+                if existing_transfer:
+                    msg = '%s, cannot create bus_receive_transfer local record is already mapped ' \
+                          'to external_key : #%d ' % (log_message, existing_transfer.external_key)
+                    _logger.error(msg)
+                    errors.append(('error', msg))
+                else:
+                    transfer = self.env['bus.receive.transfer'].create({
+                        'model': model,
+                        'local_id': odoo_record.id,
+                        'external_key': external_key,
+                        'received_data': json.dumps(record, indent=4),
+                        'origin_base_id': message.get_base_origin().id,
+                    })
+        return transfer, odoo_record, errors

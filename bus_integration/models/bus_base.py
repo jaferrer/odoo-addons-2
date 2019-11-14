@@ -26,7 +26,6 @@ class BusBase(models.Model):
     name = fields.Char(u"Name")
     bus_username = fields.Char(u"BUS user name", required=True)
     active = fields.Boolean(u"Active", default=True)
-    current_base = fields.Boolean(u"Current base", default=False)
     url = fields.Char(string=u"Url")
 
     _sql_constraints = [('uq_constraint_bus_mapping', 'UNIQUE(bus_username)',

@@ -57,13 +57,13 @@ class BusObjectMappingAbstract(models.AbstractModel):
         model_mapping_xml_id = u"mapping_model_%s" % (self.model_id.model.replace('.', '_'))
         model_xml_id = self.model_id.get_external_id().get(self.model_id.id)
         model_csv = u"%s,%s,%s,%s,%s,%s,%s,%s" % (model_mapping_xml_id,
-                                               model_xml_id,
-                                               self.is_exportable,
-                                               self.is_importable,
-                                               self.key_xml_id,
-                                               self.deactivated_sync,
-                                               self.deactivate_on_delete,
-                                               self.update_prohibited)
+                                                  model_xml_id,
+                                                  self.is_exportable,
+                                                  self.is_importable,
+                                                  self.key_xml_id,
+                                                  self.deactivated_sync,
+                                                  self.deactivate_on_delete,
+                                                  self.update_prohibited)
 
         fields_csv = u""""""
         for my_field in self.field_ids:
@@ -114,6 +114,11 @@ class BusObjectMappingAbstract(models.AbstractModel):
             'target': 'new',
             'context': self.env.context
         }
+
+    @api.model
+    def get_mapping_fields(self):
+        self.ensure_one()
+        return [field for field in self.field_ids if field.is_migration_key]
 
 
 class BusObjectMappingFieldAbstract(models.AbstractModel):

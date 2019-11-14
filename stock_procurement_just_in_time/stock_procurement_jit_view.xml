@@ -193,6 +193,21 @@
                         <button name="process" type="object" string="Process" class="oe_highlight"/>
                     </header>
                 </sheet>
+                <field name="active" position="after">
+                    <field name="is_treat_by_scheduler"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="warehouse_orderpoint_search_jit">
+            <field name="name">warehouse_orderpoint_search_jit</field>
+            <field name="model">stock.warehouse.orderpoint</field>
+            <field name="inherit_id" ref="stock.warehouse_orderpoint_search"/>
+            <field name="arch" type="xml">
+                <search position="inside">
+                    <filter name="is_not_treat_by_scheduler" string="Is not treat by the scheduler"
+                            domain="[('is_treat_by_scheduler', '=', False)]"/>
+                </search>
             </field>
         </record>
 

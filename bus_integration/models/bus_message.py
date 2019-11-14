@@ -95,6 +95,23 @@ class BusMessage(models.Model):
     active = fields.Boolean(u'Is active', default=True, index=True)
 
     @api.multi
+    def get_base_origin(self):
+        self.ensure_one()
+        return self.env['bus.base']\
+            .with_context(active_test=False)\
+            .search([('bus_username', '=', self.cross_id_origin_base)])
+
+    @api.multi
+    def get_json_message(self):
+        self.ensure_one()
+        return json.loads(self.message, encoding='utf-8')
+
+    @api.multi
+    def get_json_dependencies(self):
+        self.ensure_one()
+        return self.get_json_message().get('body', {}).get('dependency', {})
+
+    @api.multi
     def deactive(self):
         self.write({'active': False})
 
@@ -112,7 +129,8 @@ class BusMessage(models.Model):
                 body_dict = message_dict.get('body', {}).get('root', {})
                 models = body_dict.keys()
                 for model in models:
-                    ids = body_dict.get(model).keys()
+                    keys = body_dict.get(model).keys()
+                    ids = [int(key) for key in keys]
                     exported_ids += u"%s : %s, " % (model, ids)
             rec.exported_ids = exported_ids
 
