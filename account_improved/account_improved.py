@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,25 +17,20 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Account Invoice Improved',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Account',
-    'depends': ['account'],
-    'description': """
-Account Invoice Improved
-========================
-This modules improves a few settings for account invoices.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['account_invoice_improved.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-    'sequence': 999,
-}
+from openerp import models, fields, api
+
+
+class AccountMove(models.Model):
+    _inherit = 'account.move'
+
+    @api.multi
+    @api.depends('line_id', 'line_id.credit', 'line_id.debit')
+    def _compute_is_balanced(self):
+        prec = self.env['decimal.precision'].precision_get('Account')
+        for rec in self:
+            amount = 0
+            for line in rec.line_id:
+                amount += line.debit - line.credit
+            rec.is_balanced = round(abs(amount), prec) < 10 ** (-max(5, prec))
+
+    is_balanced = fields.Boolean(compute='_compute_is_balanced', string=u"Is balanced", store=True)
