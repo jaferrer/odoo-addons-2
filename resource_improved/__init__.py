@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,10 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models
-
-
-class ResCompany(models.Model):
-    _inherit = 'res.company'
-
-    duration_between_wo = fields.Float(u"Default duration between 2 work orders (h)", default=1)
+from . import models
