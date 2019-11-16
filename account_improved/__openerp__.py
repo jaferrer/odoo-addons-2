@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,19 +18,19 @@
 #
 
 {
-    'name': 'Account Invoice Improved',
+    'name': 'Account Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Account',
     'depends': ['account'],
     'description': """
-Account Invoice Improved
+Account Improved
 ========================
-This modules improves a few settings for account invoices.
+This modules improves a few settings for account objects.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['account_invoice_improved.xml'],
+    'data': ['account_improved.xml'],
     'demo': [],
     'test': [],
     'installable': True,
