@@ -6,6 +6,11 @@
     'summary': """
         Asynchronous report with job queue
         """,
+    'description': """
+Base Report Async
+=================
+This modules allows to define asynchronous reports, which are generated in a job and sent by email after.
+""",
     'version': '9.0.1.0.0',
     'license': 'AGPL-3',
     'author': 'NDP Systèmes',
