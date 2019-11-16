@@ -14,7 +14,6 @@
     'website': 'http://www.ndp-systemes.fr',
     'depends': [
         'web',
-        'web_easy_download',
         'web_report_improved',
         'connector'
     ],
