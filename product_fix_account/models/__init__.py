@@ -17,25 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Disable Open form popup on O2M',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'technical',
-    'depends': ['web'],
-    'description': """
-Disable Open form popup on O2M
-==============================
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/templates.xml'
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from . import product_template

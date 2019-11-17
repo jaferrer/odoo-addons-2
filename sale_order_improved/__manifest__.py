@@ -18,19 +18,20 @@
 #
 
 {
-    'name': 'Disable Open form popup on O2M',
+    'name': 'Sale Order Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'technical',
-    'depends': ['web'],
+    'category': 'Account',
+    'depends': ['sale_stock'],
     'description': """
-Disable Open form popup on O2M
-==============================
+Sale Order Improved
+===================
+This modules improves sale orders
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/templates.xml'
+        'sale_order.xml'
     ],
     'demo': [],
     'test': [],
