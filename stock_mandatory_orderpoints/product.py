@@ -106,7 +106,8 @@ WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_loca
         for product_id, location_id in self.env.cr.fetchall():
             product = self.env['product.product'].search([('id', '=', product_id)])
             location = self.env['stock.location'].search([('id', '=', location_id)])
-            self.env['stock.warehouse.orderpoint'].create(product._prepare_order_point_data(location))
+            if product and location:
+                self.env['stock.warehouse.orderpoint'].create(product._prepare_order_point_data(location))
 
     @api.model
     def _prepare_order_point_data(self, location):
