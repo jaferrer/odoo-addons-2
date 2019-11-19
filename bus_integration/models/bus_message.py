@@ -331,7 +331,7 @@ class BusMessage(models.Model):
             return False
         return self.search([('cross_id_origin_base', '=', self.cross_id_origin_base),
                             ('cross_id_origin_id', '=', self.cross_id_origin_parent_id),
-                            ('type', '=', self.type)])
+                            ('type', '=', self.type)], order='id desc', limit=1)
 
     @api.multi
     def send(self, msg_content_dict):
