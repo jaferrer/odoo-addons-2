@@ -133,12 +133,26 @@ class CustomerFileToImport(models.Model):
         self.ensure_one()
         file_path = os.tempnam() + '.csv'
         _logger.info(u"Importation file opened at path %s", file_path)
+        model_obj = self.env['ir.model'].search([('model', '=', model)])
+        if len(model_obj) != 1:
+            raise exceptions.UserError(u"Model %s not found." % model)
         with open(file_path, 'w') as out_file:
             out_file_csv = csv.writer(out_file)
             out_file_csv.writerow(['id'] + fields_to_import)
             for record_id in table_dict_result:
-                out_file_csv.writerow([record_id] + [table_dict_result[record_id].get(field_name, '') for
-                                                     field_name in fields_to_import])
+                row = [record_id]
+                for field_name in fields_to_import:
+                    field_name_formated = field_name.replace('/id', '').replace(':id', '')
+                    field = self.env['ir.model.fields'].search([('model_id', '=', model_obj.id),
+                                                                ('name', '=', field_name_formated)])
+                    if len(field) != 1:
+                        raise exceptions.UserError(u"Field %s not found in model %s." % (field_name_formated, model))
+                    text = table_dict_result[record_id].get(field_name, '')
+                    if ',' in unicode(text) and field.ttype != 'many2many':
+                        raise exceptions.UserError(u"Forbidden to write text with a comma in a cell : "
+                                                   u"field %s, text %s" % (field_name, text))
+                    row += [text]
+                out_file_csv.writerow(row)
         with open(file_path, 'r') as tmpfile:
             self.env['customer.generated.csv.file'].create({'import_id': self.id,
                                                             'model': model,
