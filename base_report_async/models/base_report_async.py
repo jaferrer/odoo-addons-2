@@ -37,6 +37,8 @@ class DelayReport(models.Model):
             return False
         mimetype = guess_mimetype(binary.decode('base64'))
         extension = mimetypes.guess_extension(mimetype)
+        if extension == '.xlb':
+            extension = '.xls'
         if extension:
             name += extension
         return self.env['ir.attachment'].create({
