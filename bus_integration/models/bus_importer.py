@@ -134,10 +134,10 @@ class BusSynchronizationImporter(models.AbstractModel):
         return self.env['bus.object.mapping'].search([('model_name', '=', model), ('active', '=', True),
                                                       ('is_importable', '=', True)])
 
-    def _update_translation(self, transfer, translation, ir_translation_name, lang):
+    def _update_translation(self, record_id, translation, ir_translation_name, lang):
         ir_translation = self.env['ir.translation'].search([('name', '=', ir_translation_name),
                                                             ('type', '=', 'model'), ('lang', '=', lang),
-                                                            ('res_id', '=', transfer.local_id)])
+                                                            ('res_id', '=', record_id)])
         translation.update({'comments': u"Set by BUS %s" % datetime.now()})
         if ir_translation:
             ir_translation.write(translation)
@@ -145,7 +145,7 @@ class BusSynchronizationImporter(models.AbstractModel):
             translation.update({
                 'name': ir_translation_name,
                 'lang': lang,
-                'res_id': transfer.local_id,
+                'res_id': record_id,
                 'type': 'model'
             })
             self.env['ir.translation'].create(translation)
@@ -159,15 +159,27 @@ class BusSynchronizationImporter(models.AbstractModel):
         :return: warnings if any or []. translations errors are not critical.
         """
         warnings = []
+        record = self.env[transfer.model].search([('id', '=', transfer.local_id)])
+        if not record:
+            warnings.append(('error', 'Translation on %s not applicable, record %s not found' %
+                                      (transfer.model, transfer.local_id)))
+            return warnings
         for field in translations:
             for lang in translations.get(field):
-                ir_translation_name = "%s,%s" % (transfer.model, field)
+                if self.env[transfer.model]._inherit_fields[field]:
+                    parent_model, link_field, parent_field, parent_model_b = record._inherit_fields[field]
+                    model = parent_model
+                    record_id = record[link_field].id
+                else:
+                    model = record._name
+                    record_id = record.id
+                ir_translation_name = "%s,%s" % (model, field)
                 if not self.env['res.lang'].search([('code', '=', lang)]):
                     warnings .append(('warning', 'could not translate %s. lang %s is not installed' %
                                       (ir_translation_name, lang)))
                 else:
                     translation = translations.get(field).get(lang, "")
-                    self._update_translation(transfer, translation, ir_translation_name, lang)
+                    self._update_translation(record_id, translation, ir_translation_name, lang)
         return warnings
 
     @api.model
