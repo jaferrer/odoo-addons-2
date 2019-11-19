@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,10 +17,29 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models
-
-
-class ResCompany(models.Model):
-    _inherit = 'res.company'
-
-    duration_between_wo = fields.Float(u"Default duration between 2 work orders (h)", default=1)
+{
+    'name': 'Resource Improved',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Warehouse',
+    'depends': [
+        'resource',
+    ],
+    'description': """
+Resource Improved
+=================
+This module improved the resources management.""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'security/ir.model.access.csv',
+        'views/resource_improved.xml',
+        'data/resource_improved_data.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

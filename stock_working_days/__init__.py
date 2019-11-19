@@ -17,10 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models
-
-
-class ResCompany(models.Model):
-    _inherit = 'res.company'
-
-    duration_between_wo = fields.Float(u"Default duration between 2 work orders (h)", default=1)
+from . import models
