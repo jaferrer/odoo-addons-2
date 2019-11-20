@@ -93,6 +93,14 @@ class RessourceCalendar(models.Model):
     @api.multi
     def schedule_days_get_date(self, days, day_date=None, compute_leaves=False, resource_id=None,
                                default_interval=None):
+        """ Override resource.calendar method
+
+        We add ore remove 1 to days in order to have `today + 1 day = tomorrow`
+        Odoo native behaviour is `today + 1 day = today after work`
+
+        If "today" is not a working day, we keep the +/- 1 day, because `today_not_working + 1 day of work` should not
+        be the next working day, but the day after
+        """
         self.ensure_one()
         if days == 0:
             return day_date
