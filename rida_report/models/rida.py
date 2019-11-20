@@ -98,6 +98,10 @@ class RidaLine(models.Model):
     ], u"Priority", default='p3')
     contributor_ids = fields.Many2many('res.users', 'rel_rida_lines_contributors', 'line_id', 'user_id',
                                        u"Contributors")
+    last_modif_date = fields.Datetime(u"Last updated on")
+
+    _TRACKED_FIELDS = {'type', 'name', 'reference', 'user_id', 'date', 'report_id', 'context', 'level', 'comment',
+                       'date_done', 'attachment_id', 'state', 'priority', 'contributor_ids'}
 
     @api.onchange('type')
     def onchange_type(self):
@@ -123,6 +127,9 @@ class RidaLine(models.Model):
     def write(self, vals):
         if vals.get('state', '') == 'done' and 'date_done' not in vals:
             self.filtered(lambda r: not(r.state == 'done' or r.date_done)).write({'date_done': fields.Date.today()})
+
+        if self._TRACKED_FIELDS.intersection(vals.keys()):
+            vals['last_modif_date'] = fields.Datetime.now()
 
         return super(RidaLine, self).write(vals)
 

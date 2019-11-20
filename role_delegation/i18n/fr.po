@@ -1,0 +1,103 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* role_delegation
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-01 18:10+0000\n"
+"PO-Revision-Date: 2019-10-01 18:10+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_allowed_user_ids
+msgid "Allowed user ids"
+msgstr "Allowed user ids"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_date_from
+msgid "From"
+msgstr "À partir du"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_id
+msgid "ID"
+msgstr "ID"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: role_delegation
+#: model:ir.model,name:role_delegation.model_res_users_role_delegation
+msgid "Role delegation"
+msgstr "Délégation de rôle"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_delegation_ids
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_view_users_form
+msgid "Role delegations"
+msgstr "Délégations de roles"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_role_line_ids
+msgid "Role line ids"
+msgstr "Lignes de rôles"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_target_id
+msgid "Target user"
+msgstr "Utilisateur désigné"
+
+#. module: role_delegation
+#: sql_constraint:res.users.role.delegation:0
+msgid "The ending date must be later than or equal to the starting date."
+msgstr "La date de fin doit être supérieure ou égale à la date de début."
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_date_to
+msgid "To"
+msgstr "Jusqu'au"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_user_id
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: role_delegation
+#: model:ir.model,name:role_delegation.model_res_users
+msgid "Users"
+msgstr "Utilisateurs"
+
