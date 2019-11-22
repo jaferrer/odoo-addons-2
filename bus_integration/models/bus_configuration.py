@@ -32,3 +32,5 @@ class BusConfiguration(models.Model):
                                            required=True)
     code = fields.Selection([('ODOO_SYNCHRONIZATION', u"Odoo synchronization")], u"Code exchange", required=True)
     connexion_state = fields.Char(u"Connexion status")
+    module_disabled_mapping = fields.Char(u"Module disabled mapping", help=u"Module not used for mapping by xml id",
+                                          default='__export__')

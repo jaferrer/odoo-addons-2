@@ -18,6 +18,7 @@
                             <field name="login"/>
                             <field name="password" password="1"/>
                             <field name="reception_treatment"/>
+                            <field name="module_disabled_mapping"/>
                             <field name="code"/>
                             <group colspan="2">
                                 <button name="try_connexion" type="object" string="Test Connexion"/>
