@@ -166,7 +166,7 @@ class BusSynchronizationImporter(models.AbstractModel):
             return warnings
         for field in translations:
             for lang in translations.get(field):
-                if self.env[transfer.model]._inherit_fields[field]:
+                if field in self.env[transfer.model]._inherit_fields:
                     parent_model, link_field, parent_field, parent_model_b = record._inherit_fields[field]
                     model = parent_model
                     record_id = record[link_field].id

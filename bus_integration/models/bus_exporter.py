@@ -193,7 +193,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = record[field.field_name]
         if field.field_id.ttype == 'char' and field.field_id.translate:
-            if record._inherit_fields[field.field_name]:
+            if field.field_name in record._inherit_fields:
                 parent_model, link_field, parent_field, parent_model_b = record._inherit_fields[field.field_name]
                 model = parent_model
                 res_id = record[link_field].id
