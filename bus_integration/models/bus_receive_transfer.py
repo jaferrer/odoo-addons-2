@@ -99,7 +99,6 @@ class BusReceiveTransfer(models.Model):
         if not transfer:
             # creates bus_receive_transfer record
             transfer_vals['origin_write_date'] = received_record_write_date
-            # transfer_vals['origin_base'] =
             transfer = self.create(self.remove_not_existing_fields(self._name, transfer_vals))
         else:
             if transfer.origin_write_date and fields.Datetime.from_string(transfer.origin_write_date) \
@@ -113,7 +112,9 @@ class BusReceiveTransfer(models.Model):
 
         vals = self.sanitize_vals(odoo_record, record_vals)
         if not odoo_record:
-            odoo_record = odoo_record.create(vals)
+            odoo_record = odoo_record\
+                .with_context(bus_receive_transfer_external_key=transfer.external_key)\
+                .create(vals)
         elif vals:
             odoo_record.write(vals)
         transfer.local_id = odoo_record.id

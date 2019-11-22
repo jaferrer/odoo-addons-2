@@ -68,6 +68,7 @@
                     <field name="model"/>
                     <field name="local_id"/>
                     <field name="external_key"/>
+                    <field name="origin_base_id" />
                     <group expand="0" string="Filters">
                         <filter name="to_deactivate" string="To Deactivate"
                                 domain="[('to_deactivate','=', True)]"/>
