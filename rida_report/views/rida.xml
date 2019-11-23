@@ -72,7 +72,7 @@
                                attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                         <field name="date"
                                attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                        <field name="write_date" widget="date" readonly="True"/>
+                        <field name="last_modif_date" widget="date" readonly="True"/>
                         <field name="date_done"/>
                     </group>
                     <group colspan="4">

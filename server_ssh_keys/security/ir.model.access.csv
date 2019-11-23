@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ssh_server,access_ssh_server,model_ssh_server,server_ssh_keys.group_ssh_user,1,0,0,0
+manager_ssh_server,manager_ssh_server,model_ssh_server,server_ssh_keys.group_ssh_manager,1,1,1,1
+access_ssh_server_user,access_ssh_server_user,model_ssh_server_user,server_ssh_keys.group_ssh_user,1,0,0,0
+manager_ssh_server_user,manager_ssh_server_user,model_ssh_server_user,server_ssh_keys.group_ssh_manager,1,1,1,1
+access_ssh_key,access_ssh_key,model_ssh_key,server_ssh_keys.group_ssh_user,1,1,1,1
+access_ssh_role,access_ssh_role,model_ssh_role,server_ssh_keys.group_ssh_user,1,0,0,0
+manager_ssh_role,manager_ssh_role,model_ssh_role,server_ssh_keys.group_ssh_manager,1,1,1,1

@@ -17,40 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from datetime import datetime
-
-from odoo import fields, models, exceptions, _
+from odoo import fields, models
 
 
 class ResCompany(models.Model):
     _inherit = 'res.company'
 
-    calendar_id = fields.Many2one('resource.calendar', string=u"Company Calendar")
     duration_between_wo = fields.Float(u"Default duration between 2 work orders (h)", default=1)
-
-    def schedule_working_days(self, nb_days, day_date):
-        """Returns the date that is nb_days working days after day_date in the context of this company.
-
-        :param nb_days: int: The number of working days to add to day_date. If nb_days is negative, counting is done
-                             backwards.
-        :param day_date: datetime: The starting date for the scheduling calculation.
-        :return: The scheduled date nb_days after (or before) day_date.
-        :rtype : datetime
-        """
-        self.ensure_one()
-        assert isinstance(day_date, datetime)
-        if nb_days == 0:
-            return day_date
-        elif nb_days > 0:
-            # Hack to have today + 1 day = tomorrow instead of today after work
-            nb_days += 1
-        else:
-            # Hack to have today - 1 day = yesterday instead of today before work
-            nb_days -= 1
-        calendar = self.calendar_id
-        if not calendar:
-            raise exceptions.UserError(_(u"You must define a calendar for this company to schedule productions."))
-        newdate = calendar.schedule_days_get_date(nb_days, day_date=day_date, compute_leaves=True)
-        if isinstance(newdate, (list, tuple)):
-            newdate = newdate[0]
-        return newdate

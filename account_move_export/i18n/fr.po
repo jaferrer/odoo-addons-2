@@ -1,0 +1,267 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* account_move_export
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-09 14:43+0000\n"
+"PO-Revision-Date: 2019-10-09 14:43+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: account_move_export
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:110
+#, python-format
+msgid " from %s to %s"
+msgstr " du %s au %s"
+
+#. module: account_move_export
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:112
+#, python-format
+msgid " on %s"
+msgstr " sur %s"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_journal_ids
+msgid "Account journals"
+msgstr "Journaux comptable"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_move_ids
+msgid "Account moves"
+msgstr "Pièces comptables"
+
+#. module: account_move_export
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:108
+#: model:ir.ui.view,arch_db:account_move_export.view_account_config_settings_export
+#, python-format
+msgid "Accounting export"
+msgstr "Export Comptable"
+
+#. module: account_move_export
+#: selection:account.config.settings,export_mode:0
+msgid "Automatic, on FTP"
+msgstr "Automatique, sur FTP"
+
+#. module: account_move_export
+#: model:ir.ui.view,arch_db:account_move_export.account_move_export_wizard_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: account_move_export
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:199
+#, python-format
+msgid "Cannot connect to the FTP : missing parameters"
+msgstr "Impossible de se connecter au FTP : paramètres manquants"
+
+#. module: account_move_export
+#: model:ir.ui.view,arch_db:account_move_export.account_move_export_wizard_result_form
+msgid "Close"
+msgstr "Fermer"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_date_from
+msgid "Date from"
+msgstr "Depuis le"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_date_to
+msgid "Date to"
+msgstr "Jusqu'à"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: account_move_export
+#: model:ir.ui.menu,name:account_move_export.account_export_menu
+#: model:ir.ui.view,arch_db:account_move_export.account_move_export_wizard_form
+msgid "Export"
+msgstr "Exporter"
+
+#. module: account_move_export
+#: model:ir.actions.act_window,name:account_move_export.account_move_export_wizard_action
+#: model:ir.ui.menu,name:account_move_export.account_move_export_wizard_menu
+msgid "Export account move lines"
+msgstr "Export des écritures comptables"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_cron_id
+msgid "Export cron"
+msgstr "Cron d'export"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_binary_export
+msgid "Export file"
+msgstr "Export comptable"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_mode
+msgid "Export mode"
+msgstr "Mode d'export"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_destination
+msgid "Extraction type"
+msgstr "Type d'extraction"
+
+#. module: account_move_export
+#: model:ir.ui.view,arch_db:account_move_export.view_account_config_settings_export
+msgid "FTP"
+msgstr "FTP"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_ftp_url
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_ftp_url
+msgid "FTP URL"
+msgstr "URL du FTP"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_ftp_login
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_ftp_login
+msgid "FTP login"
+msgstr "Utilisateur du FTP"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_ftp_password
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_ftp_password
+msgid "FTP password"
+msgstr "Mot de passe du FTP"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_ftp_path
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_ftp_path
+msgid "FTP path"
+msgstr "Chemin du dossier sur le FTP"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_data_fname
+msgid "File name"
+msgstr "Nom du fichier"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_date_from
+msgid "From"
+msgstr "À partir du"
+
+#. module: account_move_export
+#: selection:account.config.settings,export_line_selection:0
+#: selection:account.move.export.wizard,line_selection:0
+msgid "From date to date"
+msgstr "De date à date"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_group_by_account
+msgid "Group by account"
+msgstr "Grouper par compte comptable"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_group_by_account
+msgid "Group by accounting account"
+msgstr "Grouper par compte comptable"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_line_exported
+msgid "Has been exported"
+msgstr "A été exporté"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_id
+msgid "ID"
+msgstr "ID"
+
+#. module: account_move_export
+#: model:ir.model,name:account_move_export.model_account_move_line
+msgid "Journal Item"
+msgstr "Écriture comptable"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_journal_ids
+msgid "Journals"
+msgstr "Journaux"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_line_selection
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_line_selection
+msgid "Line selection"
+msgstr "Selection d'écritures"
+
+#. module: account_move_export
+#: selection:account.config.settings,export_line_selection:0
+#: selection:account.move.export.wizard,line_selection:0
+msgid "Lines not previously exported"
+msgstr "Écritures qui n'ont pas encore été exportées"
+
+#. module: account_move_export
+#: selection:account.config.settings,export_mode:0
+msgid "Manual"
+msgstr "Manuel"
+
+#. module: account_move_export
+#: selection:account.move.export.wizard,line_selection:0
+msgid "Manual moves selection"
+msgstr "Sélection manuelle des pièces comptables"
+
+#. module: account_move_export
+#: selection:account.move.export.wizard,destination:0
+msgid "On FTP"
+msgstr "Sur le FTP"
+
+#. module: account_move_export
+#: selection:account.move.export.wizard,destination:0
+msgid "On screen"
+msgstr "En direct"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_date_to
+msgid "To"
+msgstr "Jusqu'au"
+
+#. module: account_move_export
+#: model:ir.model,name:account_move_export.model_account_config_settings
+msgid "account.config.settings"
+msgstr "account.config.settings"
+
+#. module: account_move_export
+#: model:ir.model,name:account_move_export.model_account_move_export_wizard
+msgid "account.move.export.wizard"
+msgstr "account.move.export.wizard"
+
+#. module: account_move_export
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:180
+#, python-format
+msgid "account_export_%s.tra"
+msgstr "account_export_%s.tra"
+
