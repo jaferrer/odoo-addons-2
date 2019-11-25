@@ -109,7 +109,7 @@ class BusSynchronizationBinder(models.AbstractModel):
 
             if not model_mapping.key_xml_id or not odoo_record:
                 odoo_record = self.get_record_by_field_mapping(model_mapping, record, message.get_json_dependencies())
-                log_message = "bus-process_binding %s #%d (%s) by field mapping [%s] : %s", (
+                log_message = "bus-process_binding %s #%d (%s) by field mapping %s : %s" % (
                     model, external_key, record['display_name'],
                     str([field.field_name for field in model_mapping.get_mapping_fields()]),
                     get_log(odoo_record))
