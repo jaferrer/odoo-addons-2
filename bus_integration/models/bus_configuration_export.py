@@ -107,7 +107,7 @@ class BusConfigurationExport(models.Model):
     def export_updated_records(self):
         self.ensure_one()
         force_domain = "[('write_date', '>', last_send_date)]"
-        self.env['bus.exporter'].run_export(self.id, force_domain)
+        return self.env['bus.exporter'].run_export(self.id, force_domain)
 
     @api.multi
     def sync_diff(self):
@@ -115,7 +115,7 @@ class BusConfigurationExport(models.Model):
         since the last last export"""
         self.ensure_one()
         force_domain = "[('write_date', '>', last_send_date)]"
-        self.env['bus.exporter'].run_export(self.id, force_domain)
+        return self.env['bus.exporter'].run_export(self.id, force_domain)
 
     def _create_cron(self, is_diff_cron, nextcall=False):
         """ protected : creates the cron"""

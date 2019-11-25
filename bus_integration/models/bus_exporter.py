@@ -95,7 +95,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         for export_msg in message_list:
             job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
                                        msgs_group_uuid)
-        return True
+        return msgs_group_uuid
 
     @api.model
     def generate_message(self, bus_configuration_export_id, export_msg, msgs_group_uuid):
