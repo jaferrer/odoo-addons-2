@@ -25,14 +25,17 @@ class IrAttachmentRename(models.TransientModel):
 
     line_ids = fields.One2many('ir.attachment.rename.line', 'renamer_id')
 
+    def get_attachment_domain(self):
+        return [
+            ('res_model', '=', self._context.get('active_model')),
+            ('res_id', '=', self._context.get('active_id'))
+        ]
+
     @api.model
     def default_get(self, fields_list):
         line_ids = []
         res = {}
-        attachment_domain = [
-            ('res_model', '=', self._context.get('active_model')),
-            ('res_id', '=', self._context.get('active_id'))
-        ]
+        attachment_domain = self.get_attachment_domain()
         for att in self.env['ir.attachment'].search(attachment_domain):
             line_ids.append((0, 0, {
                 'attachment_id': att.id,
