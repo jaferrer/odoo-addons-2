@@ -62,9 +62,9 @@ class magentoextendProductProductv2(models.Model):
             ('simple', 'Simple Product'),
             ('configurable', 'Configurable Product'),
             ('amgiftcard', 'Carte Cadeau'),
-            ('virtual', 'Virtual Product'),
             # XXX activate when supported
             # ('grouped', 'Grouped Product'),
+            # ('virtual', 'Virtual Product'),
             # ('bundle', 'Bundle Product'),
             # ('downloadable', 'Downloadable Product'),
         ]
@@ -588,7 +588,8 @@ class ProductProductImportMapper(ImportMapper):
     def type(self, record):
         if record['type_id'] == 'simple':
             return {'type': 'product'}
-        elif record['type_id'] in ['amgiftcard', 'virtual']:
+        # Exception sur l'ID de la Black Card 2019, a retirer une fois l'operation terminée
+        elif record['type_id'] == 'amgiftcard' or record['sku'] == 'BLACK-CARD':
             return {'type': 'service'}
         return
 
