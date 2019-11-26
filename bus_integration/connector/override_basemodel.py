@@ -35,10 +35,20 @@ UNLINK_ORIGINAL = models.BaseModel.unlink
 
 
 @openerp.api.multi
+def get_non_synchronized_items(self):
+    if is_module_installed(self.env, 'bus_integration'):
+        receive_transfer = self.env['bus.receive.transfer'].sudo().search([('model', '=', self._name),
+                                                                           ('local_id', '=', self.ids)])
+        return self.env[self._name].search([('id', 'in', self.ids),
+                                            ('id', 'not in', [item.local_id for item in receive_transfer])])
+    return self
+
+
+@openerp.api.multi
 def unlink_bus(self):
     if is_module_installed(self.env, 'bus_integration'):
-        receive_transfer = self.env['bus.receive.transfer'].search([('model', '=', self._name),
-                                                                    ('local_id', 'in', self.ids)])
+        receive_transfer = self.env['bus.receive.transfer'].sudo().search([('model', '=', self._name),
+                                                                           ('local_id', 'in', self.ids)])
         if receive_transfer:
             raise exceptions.except_orm(u"Bus Error", u"Impossible to delete record on synchronized records %s, IDs=%s"
                                                       u", please deactivate the record in the sending instance" %
@@ -48,6 +58,7 @@ def unlink_bus(self):
 
 
 models.BaseModel.unlink = unlink_bus
+models.BaseModel.get_non_synchronized_items = get_non_synchronized_items
 
 FIELDS_GET_ORIGINAL = models.BaseModel.fields_get
 
