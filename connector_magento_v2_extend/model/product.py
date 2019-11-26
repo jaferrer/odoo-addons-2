@@ -182,7 +182,7 @@ class ProductProductAdapter(GenericAdapter):
             # updated_at include the created records
             filters['searchCriteria[filter_groups][0][filters][0][field]'] = 'updated_at'
             filters['searchCriteria[filter_groups][0][filters][0][condition_type]'] = 'gteq'
-            filters['searchCriteria[filter_groups][0][filters][0][value]'] = from_date.strftime(dt_fmt)
+            filters['searchCriteria[filter_groups][0][filters][0][value]'] = '2019-11-25 00:00:00' #from_date.strftime(dt_fmt)
         if to_date is not None:
             filters['searchCriteria[filter_groups][1][filters][0][field]'] = 'updated_at'
             filters['searchCriteria[filter_groups][1][filters][0][condition_type]'] = 'lteq'
