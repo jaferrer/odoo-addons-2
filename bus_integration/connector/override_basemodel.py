@@ -37,12 +37,12 @@ UNLINK_ORIGINAL = models.BaseModel.unlink
 @openerp.api.multi
 def unlink_bus(self):
     if is_module_installed(self.env, 'bus_integration'):
-        object_mapping = self.env['bus.object.mapping'].get_mapping(self._name)
-        receive_transfer = self.env['bus.receive.transfer'].search([('model', '=', self._name)], limit=1)
-        if object_mapping and receive_transfer:
-            raise exceptions.except_orm(u"Bus Error", u"Impossible to delete record on model %s, use for bus "
-                                                      u"synchronisation, please deactivate the record in the sending "
-                                                      u"instance" % self._name)
+        receive_transfer = self.env['bus.receive.transfer'].search([('model', '=', self._name),
+                                                                    ('local_id', 'in', self.ids)])
+        if receive_transfer:
+            raise exceptions.except_orm(u"Bus Error", u"Impossible to delete record on synchronized records %s, IDs=%s"
+                                                      u", please deactivate the record in the sending instance" %
+                                        (self._name, [item.local_id for item in receive_transfer]))
     res_unlink = UNLINK_ORIGINAL(self)
     return res_unlink
 

@@ -95,7 +95,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         for export_msg in message_list:
             job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
                                        msgs_group_uuid)
-        return True
+        return msgs_group_uuid
 
     @api.model
     def generate_message(self, bus_configuration_export_id, export_msg, msgs_group_uuid):
@@ -193,12 +193,19 @@ class BusSynchronizationExporter(models.AbstractModel):
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = record[field.field_name]
         if field.field_id.ttype == 'char' and field.field_id.translate:
+            if field.field_name in record._inherit_fields:
+                parent_model, link_field, parent_field, parent_model_b = record._inherit_fields[field.field_name]
+                model = parent_model
+                res_id = record[link_field].id
+            else:
+                model = record._name
+                res_id = record.id
             # makes sure all fields are translated. before export.
             # Actually if the translation form has never been opened ir_translation records are not create
-            self.env['ir.translation'].translate_fields(record._name, record.id, field=field.field_name)
-            translation_name = "%s,%s" % (record._name, field.field_name)
+            self.env['ir.translation'].translate_fields(model, res_id, field=field.field_name)
+            translation_name = "%s,%s" % (model, field.field_name)
             translations = self.env['ir.translation'].search([('name', '=', translation_name),
-                                                              ('res_id', '=', record.id)])
+                                                              ('res_id', '=', res_id)])
             if translations:
                 message_dict = self.fill_translation(message_dict, record._name, record_id, field, translations)
         return message_dict

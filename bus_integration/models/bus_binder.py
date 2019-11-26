@@ -76,6 +76,15 @@ class BusSynchronizationBinder(models.AbstractModel):
         return transfer, self.with_context(active_test=False).env[model].search([('id', '=', local_id)])
 
     @api.model
+    def is_valid_xml_id(self, xml_id):
+        module, _ = xml_id.split(".")
+        configuration = self.env.ref('bus_integration.backend')
+        disabled_modules = configuration.module_disabled_mapping.split(',')
+        if module in disabled_modules:
+            return False
+        return True
+
+    @api.model
     def process_binding(self, record, model, external_key, model_mapping, message, xml_id):
 
         def get_log(odoo_record):
@@ -91,7 +100,7 @@ class BusSynchronizationBinder(models.AbstractModel):
             transfer.local_id = odoo_record.id
         else:
             log_message = ""
-            if model_mapping.key_xml_id and xml_id:
+            if model_mapping.key_xml_id and xml_id and self.is_valid_xml_id(xml_id):
                 odoo_record = self.get_record_by_xml(xml_id, model_mapping.model_name)
                 log_message = "bus-process_binding %s #%d (%s) by xml_id '%s': %s" % (model, external_key,
                                                                                       record['display_name'],
@@ -100,7 +109,7 @@ class BusSynchronizationBinder(models.AbstractModel):
 
             if not model_mapping.key_xml_id or not odoo_record:
                 odoo_record = self.get_record_by_field_mapping(model_mapping, record, message.get_json_dependencies())
-                log_message = "bus-process_binding %s #%d (%s) by field mapping [%s] : %s", (
+                log_message = "bus-process_binding %s #%d (%s) by field mapping %s : %s" % (
                     model, external_key, record['display_name'],
                     str([field.field_name for field in model_mapping.get_mapping_fields()]),
                     get_log(odoo_record))

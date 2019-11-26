@@ -27,11 +27,11 @@ class BusReceiveTransfer(models.Model):
     _inherit = 'external.binding'
 
     model = fields.Char(string=u'Model', required=True, index=True)
-    local_id = fields.Integer(string=u'Local ID')
-    external_key = fields.Integer(string=u'External key', required=True)
+    local_id = fields.Integer(string=u'Local ID', index=True)
+    external_key = fields.Integer(string=u'External key', required=True, index=True)
     # used to check if data received from sender are new than local data
     origin_write_date = fields.Datetime(string=u"Sender write date")
-    origin_base_id = fields.Many2one('bus.base', string=u"Sender", required=True)
+    origin_base_id = fields.Many2one('bus.base', string=u"Sender", required=True, index=True)
     received_data = fields.Text(string=u"Received data (JSON-encoded)", required=True)
     to_deactivate = fields.Boolean(string=u"To deactivate")
     msg_error = fields.Text(string=u"Error message")
@@ -99,7 +99,6 @@ class BusReceiveTransfer(models.Model):
         if not transfer:
             # creates bus_receive_transfer record
             transfer_vals['origin_write_date'] = received_record_write_date
-            # transfer_vals['origin_base'] =
             transfer = self.create(self.remove_not_existing_fields(self._name, transfer_vals))
         else:
             if transfer.origin_write_date and fields.Datetime.from_string(transfer.origin_write_date) \
@@ -113,7 +112,9 @@ class BusReceiveTransfer(models.Model):
 
         vals = self.sanitize_vals(odoo_record, record_vals)
         if not odoo_record:
-            odoo_record = odoo_record.create(vals)
+            odoo_record = odoo_record\
+                .with_context(bus_receive_transfer_external_key=transfer.external_key)\
+                .create(vals)
         elif vals:
             odoo_record.write(vals)
         transfer.local_id = odoo_record.id
