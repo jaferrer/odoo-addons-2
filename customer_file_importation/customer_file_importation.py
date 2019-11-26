@@ -147,11 +147,7 @@ class CustomerFileToImport(models.Model):
                                                                 ('name', '=', field_name_formated)])
                     if len(field) != 1:
                         raise exceptions.UserError(u"Field %s not found in model %s." % (field_name_formated, model))
-                    text = table_dict_result[record_id].get(field_name, '')
-                    if ',' in unicode(text) and field.ttype != 'many2many':
-                        raise exceptions.UserError(u"Forbidden to write text with a comma in a cell : "
-                                                   u"field %s, text %s" % (field_name, text))
-                    row += [text]
+                    row += [table_dict_result[record_id].get(field_name, '')]
                 out_file_csv.writerow(row)
         with open(file_path, 'r') as tmpfile:
             self.env['customer.generated.csv.file'].create({'import_id': self.id,
