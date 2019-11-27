@@ -160,7 +160,7 @@ class ProcurementOrderQuantity(models.Model):
 
     @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
-                                    run_moves=True):
+                                    run_moves=True, force_orderpoints=None):
         """
         Create procurement based on orderpoint
 
@@ -168,14 +168,17 @@ class ProcurementOrderQuantity(models.Model):
             This is appropriate for batch jobs only.
         """
         orderpoint_env = self.env['stock.warehouse.orderpoint']
-        dom = company_id and [('company_id', '=', company_id)] or []
-        if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
-            dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
-        if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
-            supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
-            read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
-            dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
-        orderpoints = orderpoint_env.search(dom)
+        if force_orderpoints:
+            orderpoints = force_orderpoints
+        else:
+            dom = company_id and [('company_id', '=', company_id)] or []
+            if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
+                dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
+            if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
+                supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
+                read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
+                dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
+            orderpoints = orderpoint_env.search(dom)
         if run_procurements:
             self.env['procurement.order'].run_confirm_procurements(company_id=company_id)
         if run_moves:
@@ -549,6 +552,15 @@ class StockWarehouseOrderPointJit(models.Model):
             if last_scheduled_date:
                 date_end = last_scheduled_date + relativedelta(days=1)
                 op.remove_unecessary_procurements(date_end)
+
+    @api.multi
+    def process_from_screen(self):
+        self.ensure_one()
+        self.env['procurement.order']._procure_orderpoint_confirm(use_new_cursor=False,
+                                                                  company_id=False,
+                                                                  run_procurements=False,
+                                                                  run_moves=False,
+                                                                  force_orderpoints=self)
 
     @api.model
     def get_query_move_in(self):

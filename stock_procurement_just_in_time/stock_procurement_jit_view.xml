@@ -190,7 +190,7 @@
             <field name="arch" type="xml">
                 <sheet position="before">
                     <header>
-                        <button name="process" type="object" string="Process" class="oe_highlight"/>
+                        <button name="process_from_screen" type="object" string="Process" class="oe_highlight"/>
                     </header>
                 </sheet>
                 <field name="active" position="after">
