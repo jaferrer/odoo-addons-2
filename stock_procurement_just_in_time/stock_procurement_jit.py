@@ -354,7 +354,7 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
             with self.env.cr.savepoint():
                 self.with_context(unlink_all_chain=True, cancel_procurement=True, is_scheduler=True).cancel()
                 if self.state == 'cancel':
-                    self.unlink_proc_just_in_time()
+                    self.unlink()
                     result = stock_qty - qty
         except ForbiddenCancelProtectedProcurement as e:
             _logger.info(e.value)
