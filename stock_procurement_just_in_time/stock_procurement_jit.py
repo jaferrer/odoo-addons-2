@@ -660,7 +660,8 @@ ORDER BY po.date_planned"""
             first_date = min(dates)
 
         # existing items
-        existing_qty = sum([x.qty for x in stock_quant_restricted])
+        existing_qty = self.location_id.usage in ['internal', 'transit'] and \
+            sum([x.qty for x in stock_quant_restricted]) or 0
         intermediate_result += [{
             'proc_id': False,
             'location_id': self.location_id.id,
