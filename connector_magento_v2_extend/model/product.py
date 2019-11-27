@@ -586,11 +586,11 @@ class ProductProductImportMapper(ImportMapper):
     @mapping
     @only_create
     def type(self, record):
-        if record['type_id'] == 'simple':
-            return {'type': 'product'}
         # Exception sur l'ID de la Black Card 2019, a retirer une fois l'operation terminée
-        elif record['type_id'] == 'amgiftcard' or record['sku'] == 'BLACK-CARD':
+        if record['type_id'] == 'amgiftcard' or record['sku'] == 'BLACK-CARD':
             return {'type': 'service'}
+        elif record['type_id'] == 'simple':
+            return {'type': 'product'}
         return
 
     @mapping
