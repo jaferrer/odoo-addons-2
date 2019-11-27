@@ -872,6 +872,11 @@ class ProductProduct(models.Model):
     def get_warehouse_for_stock_report(self):
         return self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)], limit=1)
 
+    @api.model
+    def get_orderpoint_required_locations_ids(self):
+        sequences = self.env['stock.location.scheduler.sequence'].search([])
+        return [sequence.location_id.id for sequence in sequences]
+
     @api.multi
     def action_show_evolution(self):
         self.ensure_one()
