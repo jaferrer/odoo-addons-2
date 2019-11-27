@@ -27,6 +27,7 @@ class SSHServer(models.Model):
     name = fields.Char(u"Server's FQDN", required=True, index=True)
     project_id = fields.Many2one('project.project', string=u"Linked Project")
     allowed_user_ids = fields.One2many('ssh.server.user', 'server_id', string=u"Allowed Users")
+    note = fields.Text(u"Notes")
 
     def allowed_keys_contents(self, role_name):
         """Returns a list of allowed keys contents for the given role on this server."""
