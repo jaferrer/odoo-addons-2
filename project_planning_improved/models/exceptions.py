@@ -28,6 +28,15 @@ class NotReschedulableTiaTaskError(exceptions.UserError):
                                                              u"taken into account") % self.task_id.display_name)
 
 
+class ReDisplayTaskForbidden(exceptions.UserError):
+
+    def __init__(self, task_id):
+        self.task_id = task_id
+        super(ReDisplayTaskForbidden, self).__init__(_(u"Impossible to display %s, please display first task %s")
+                                                     % (self.task_id.display_name,
+                                                        self.task_id.hidden_from_task_id.display_name))
+
+
 class StartDateNotWorkingPeriod(exceptions.ValidationError):
 
     def __init__(self, task_id, date):

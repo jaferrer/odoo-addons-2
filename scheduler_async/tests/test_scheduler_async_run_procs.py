@@ -29,7 +29,7 @@ class TestSchedulerAsyncRunProcs(common.TransactionCase):
         super(TestSchedulerAsyncRunProcs, self).setUp()
         self.test_product = self.browse_ref('product.product_product_3')
         self.location = self.browse_ref('stock.stock_location_stock')
-        self.proc = self.env['procurement.order'].create({
+        self.proc = self.env['procurement.order'].with_context(procurement_autorun_defer=True).create({
             'name': u"Test procurement (Scheduler Async)",
             'product_id': self.test_product.id,
             'location_id': self.location.id,
