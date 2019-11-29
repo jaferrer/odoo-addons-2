@@ -17,8 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 import openerp
 from openerp import models, exceptions
+
+_logger = logging.getLogger(__name__)
 
 
 def is_module_installed(env, module_name):
@@ -49,10 +53,15 @@ def unlink_bus(self):
     if is_module_installed(self.env, 'bus_integration'):
         receive_transfer = self.env['bus.receive.transfer'].sudo().search([('model', '=', self._name),
                                                                            ('local_id', 'in', self.ids)])
-        if receive_transfer:
+        mapping = self.env['bus.object.mapping'].search([('model_name', '=', self._name)], limit=1)
+        not_deletable_ids = [item.local_id for item in receive_transfer]
+        if receive_transfer and mapping and not mapping.deactivate_on_delete:
+            _logger.info(u"Object(s) %s with IDs %s can not be deleted. They are synchronized (%s) and their mapping is"
+                         u" configured without 'deactivate on delete' (%s)",
+                         self._name, not_deletable_ids, receive_transfer, mapping)
             raise exceptions.except_orm(u"Bus Error", u"Impossible to delete record on synchronized records %s, IDs=%s"
                                                       u", please deactivate the record in the sending instance" %
-                                        (self._name, [item.local_id for item in receive_transfer]))
+                                        (self._name, not_deletable_ids))
     res_unlink = UNLINK_ORIGINAL(self)
     return res_unlink
 
