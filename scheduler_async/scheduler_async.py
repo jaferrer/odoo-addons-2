@@ -248,8 +248,9 @@ WHERE (qj.id IS NULL OR qj.state IN ('done', 'failed')) AND sm.id IN %s"""
                               dict(self.env.context))
 
     @api.model
-    def run_assign_moves(self):
-        confirmed_moves = self.env['stock.move'].search([('state', '=', 'confirmed')], limit=None,
+    def run_assign_moves(self, additional_domain=None):
+        additional_domain = additional_domain or []
+        confirmed_moves = self.env['stock.move'].search([('state', '=', 'confirmed')] + additional_domain, limit=None,
                                                         order='priority desc, date_expected asc')
 
         while confirmed_moves:
