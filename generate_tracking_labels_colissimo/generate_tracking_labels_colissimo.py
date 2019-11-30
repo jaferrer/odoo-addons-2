@@ -23,7 +23,6 @@ from openerp import models, api, fields
 from openerp.exceptions import UserError
 from openerp.tools import ustr
 
-
 COLISSIMO_RELAIS = [
     'A2P',
     'BPR'
@@ -89,7 +88,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
             city2 = self.partner_orig_id.city or ''
             zipCode2 = self.partner_orig_id.zip or ''
             phoneNumber2 = self.partner_orig_id.phone and \
-                self.partner_orig_id.phone.replace(' ', '').replace('-', '') or ''
+                           self.partner_orig_id.phone.replace(' ', '').replace('-', '') or ''
             mobileNumber2 = ''
             doorCode12 = ''
             doorCode22 = ''
@@ -116,7 +115,8 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                     bool(package_data['cod_value']) and 1 or 0,
                     package_data['cod_value'] * 100,
                     self.instructions,
-                    self.is_relais(self.produit_expedition_id.code) and u"""<pickupLocationId>%s</pickupLocationId>""" % self.id_relais or u"""""",
+                    self.is_relais(
+                        self.produit_expedition_id.code) and u"""<pickupLocationId>%s</pickupLocationId>""" % self.id_relais or u"""""",
                     self.ftd
                 )
 
@@ -135,15 +135,16 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                     }
 
                 self.mobile_number = self.is_relais(self.produit_expedition_id.code) and \
-                                     (self.mobile_number and self.mobile_number or self.phone_number) or self.mobile_number
+                                     (
+                                                 self.mobile_number and self.mobile_number or self.phone_number) or self.mobile_number
 
                 customer_data = (
                     self.company_name or '', self.last_name or '', self.first_name or '', customer_spec['line0'],
-                                 customer_spec['line1'], customer_spec[
-                                     'line2'], customer_spec['line3'], self.country_id.code or '',
-                                 self.city or '', self.zip or '', self.phone_number or '', self.mobile_number or '',
-                                 self.door_code1 or '', self.door_code2 or '', self.email or '', self.intercom or '',
-                                 self.language)
+                    customer_spec['line1'], customer_spec[
+                        'line2'], customer_spec['line3'], self.country_id.code or '',
+                    self.city or '', self.zip or '', self.phone_number or '', self.mobile_number or '',
+                    self.door_code1 or '', self.door_code2 or '', self.email or '', self.intercom or '',
+                    self.language)
 
                 data_for_adressee = (self.adressee_parcel_ref or '', self.code_bar_for_reference or '',
                                      self.service_info or '')
@@ -163,7 +164,8 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                    <x>%s</x>
                    <y>%s</y>
                    <outputPrintingType>%s</outputPrintingType>
-                </outputFormat>""" % (login_dict["contractNumber"], login_dict["password"], x, y, self.output_printing_type_id.code)
+                </outputFormat>""" % (
+                login_dict["contractNumber"], login_dict["password"], x, y, self.output_printing_type_id.code)
                 xml_post_parameter += u"""
                 <letter>
                    <service>
@@ -277,8 +279,10 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                        our_data + data_for_adressee + customer_data)
 
                 encoded_request = xml_post_parameter.encode('utf-8')
-                headers = {"Content-Type": "text/xml; charset=UTF-8",
-                           "Content-Length": str(len(encoded_request))}
+                headers = {
+                    "Content-Type": "text/xml; charset=UTF-8",
+                    "Content-Length": str(len(encoded_request))
+                }
                 response = requests.post(url="https://ws.colissimo.fr/sls-ws/SlsServiceWS?wsdl",
                                          headers=headers,
                                          data=encoded_request,
@@ -291,7 +295,7 @@ class GenerateTrackingLabelsWizardColissimo(models.TransientModel):
                     tracking_numbers += [tracking_number]
                     response_string = response.content
                     if len(response.content.split('<pdfUrl>')) == 2 and \
-                                    len(response.content.split('<pdfUrl>')[1].split('</pdfUrl>')) == 2:
+                            len(response.content.split('<pdfUrl>')[1].split('</pdfUrl>')) == 2:
                         url = response.content.split('<pdfUrl>')[1].split('</pdfUrl>')[0].replace('amp;', '')
                         file = requests.get(url)
                         list_files += [file.content]
