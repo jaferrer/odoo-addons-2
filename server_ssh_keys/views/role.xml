@@ -9,6 +9,7 @@
                 <tree editable="top">
                     <field name="sequence" widget="handle"/>
                     <field name="name"/>
+                    <field name="implied_ids" widget="many2many_tags"/>
                 </tree>
             </field>
         </record>
