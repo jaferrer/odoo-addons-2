@@ -30,5 +30,10 @@
             <field name="email">user_bus@ndp-systemes.fr</field>
         </record>
 
+        <record model="bus.base" id="bus_base_master">
+            <field name="name">Bus base master</field>
+            <field name="bus_username">base_master</field>
+        </record>
+
     </data>
 </openerp>
