@@ -51,9 +51,15 @@ class SaleOrderReportAeroo(models.Model):
     _inherit = 'sale.order'
 
     @api.multi
+    def multi_reports_print_quotation(self, report_xml_id):
+        """
+        In case there are several reports for 'sale.order'.
+        """
+        return self.env.ref(report_xml_id).report_action(self, config=False)
+
+    @api.multi
     def print_quotation(self):
         """
         Replace the Odoo report form view by the aeroo report in the 'Print' button of the form view.
         """
-        super(SaleOrderReportAeroo, self).print_quotation()
-        return self.env.ref('sale_order_report_aeroo.sale_order_report_aeroo').read()[0]
+        return self.env.ref('purchase_order_report_aeroo.purchase_order_report_aeroo').report_action(self, config=False)
