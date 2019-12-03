@@ -41,7 +41,6 @@ class BusConfigurationExport(models.Model):
                                        ('CHECK_SYNCHRONIZATION', u"Check"),
                                        ('BUS_SYNCHRONIZATION', u"Bus")],
                                       string=u"Treatment type", default='SYNCHRONIZATION', required=True)
-
     last_transfer_state = fields.Selection([('never_processed', u"Never processed"),
                                             ('inprogress', u"In progress"), ('error', u"Error"), ('done', u"Done")],
                                            string=u'Last transfer status', compute="_compute_last_transfer")
@@ -56,7 +55,8 @@ class BusConfigurationExport(models.Model):
     comment = fields.Char(u"Comment")
     mapping_object_id = fields.Many2one('bus.object.mapping', u"Mapping", compute='_get_mapping_object', store=True)
     sequence = fields.Integer(u"sequence", help=u"Order to launch export", default=99)
-    dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True)
+    dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True,
+                                      readonly=True)
     bus_message_ids = fields.One2many('bus.message', 'batch_id', string=u"Messages")
     cron_sync_all = fields.Many2one('ir.cron', compute="_compute_cron")
     cron_sync_diff = fields.Many2one('ir.cron', compute="_compute_cron")
