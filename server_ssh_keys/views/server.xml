@@ -39,6 +39,8 @@
                                 <field name="role_id"/>
                             </tree>
                         </field>
+                        <separator string="Notes"/>
+                        <field name="note" widget="bootstrap_markdown"/>
                     </sheet>
                 </form>
             </field>
