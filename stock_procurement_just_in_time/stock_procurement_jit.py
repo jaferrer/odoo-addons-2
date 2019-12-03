@@ -561,6 +561,7 @@ class StockWarehouseOrderPointJit(models.Model):
                                                                   run_procurements=False,
                                                                   run_moves=False,
                                                                   force_orderpoints=self)
+        self.env['stock.scheduler.controller'].update_scheduler_controller()
 
     @api.model
     def get_query_move_in(self):
