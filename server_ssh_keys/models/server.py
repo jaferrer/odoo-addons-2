@@ -35,7 +35,8 @@ class SSHServer(models.Model):
         role = self.env['ssh.role'].search([('name', '=', role_name)])
         if not role:
             return []
-        allowed_users = self.env['ssh.server.user'].search([('server_id', '=', self.id), ('role_id', '=', role.id)])
+        roles = self.env['ssh.role'].search(['|', ('id', '=', role.id), ('implied_ids', '=', role.id)])
+        allowed_users = self.env['ssh.server.user'].search([('server_id', '=', self.id), ('role_id', 'in', roles.ids)])
         keys = []
         for allowed_user in allowed_users:
             for key in allowed_user.user_id.ssh_key_ids:
