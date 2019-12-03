@@ -104,18 +104,15 @@ class BusConfigurationExport(models.Model):
         self.env['bus.exporter'].run_export(self.id)
 
     @api.multi
-    def export_updated_records(self):
-        self.ensure_one()
-        force_domain = "[('write_date', '>', last_send_date)]"
-        return self.env['bus.exporter'].run_export(self.id, force_domain)
-
-    @api.multi
     def sync_diff(self):
         """ run the batch, exports all self.model's records matching self.domain and created or update
         since the last last export"""
-        self.ensure_one()
         force_domain = "[('write_date', '>', last_send_date)]"
-        return self.env['bus.exporter'].run_export(self.id, force_domain)
+        job_uuids = {}
+        for rec in self:
+            uuid = self.env['bus.exporter'].run_export(rec.id, force_domain)
+            job_uuids[rec.id] = uuid
+        return job_uuids[self.id] if len(self) == 1 else job_uuids
 
     def _create_cron(self, is_diff_cron, nextcall=False):
         """ protected : creates the cron"""
@@ -155,34 +152,6 @@ class BusConfigurationExport(models.Model):
     @api.multi
     def create_cron_sync_all(self):
         self._create_cron(False)
-
-    @api.multi
-    def auto_generate_crons(self):
-        """ ir_action_server called from tree's actions menu """
-        ordered_exports = self.search([('id', 'in', self.ids), ('sequence', '!=', 99)],
-                                      order='sequence ASC')
-
-        curr_sequence = 1
-        # 1 par minute, une séquence par minute
-        curr_sync_diff_next_call = datetime.now() + timedelta(minutes=1)  # 1st crons started from now() + 5 minutes
-        now = datetime.now()
-        curr_sync_all_next_call = datetime.strptime("%d-%d-%d %d:%d" % (now.year, now.month, now.day, 18, 30),
-                                                    "%Y-%m-%d %H:%M")  # 1st crons started today at 18:30
-        for rec in ordered_exports:
-            if rec.sequence != curr_sequence:
-                curr_sync_diff_next_call = curr_sync_diff_next_call + timedelta(minutes=1)
-
-                sync_all_tempo = 45 if rec.sequence in [2, 3, 4] else 90
-                curr_sync_all_next_call = curr_sync_all_next_call + timedelta(minutes=sync_all_tempo)
-                curr_sequence = rec.sequence
-
-            if not rec.cron_sync_all:
-                nextcall_str = fields.Datetime.to_string(curr_sync_all_next_call)
-                rec._create_cron(False, nextcall_str)
-
-            if not rec.cron_sync_diff:
-                nextcall_str = fields.Datetime.to_string(curr_sync_diff_next_call)
-                rec._create_cron(True, nextcall_str)
 
     @api.multi
     def export_domain_keywords(self):

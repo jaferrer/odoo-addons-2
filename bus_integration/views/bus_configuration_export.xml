@@ -107,11 +107,11 @@
                   sequence="15"/>
 
         <!-- Create crons action -->
-        <record model="ir.actions.server" id="ir_actions_config_export_create_crons">
-            <field name="name">Auto generate crons</field>
+        <record model="ir.actions.server" id="ir_actions_config_sync_diff">
+            <field name="name">Synch. diff</field>
             <field name="model_id" ref="bus_integration.model_bus_configuration_export"/>
             <field name="code">
-                action = self.auto_generate_crons(cr,uid,context.get('active_ids'),context)
+                action = self.sync_diff(cr,uid,context.get('active_ids'),context)
             </field>
         </record>
 
@@ -119,8 +119,8 @@
             <field name="key">action</field>
             <field name="key2">client_action_multi</field>
             <field name="model">bus.configuration.export</field>
-            <field name="name">Auto generate crons</field>
-            <field name="value" eval="'ir.actions.server,'+str(ir_actions_config_export_create_crons)"/>
+            <field name="name">Synch. diff</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_config_sync_diff)"/>
         </record>
     </data>
 </openerp>
