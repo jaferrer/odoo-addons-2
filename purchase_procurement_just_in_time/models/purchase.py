@@ -90,6 +90,7 @@ WHERE pol.id = %s
                                  precision_rounding=order_line.product_uom.rounding)
         if float_compare(qty_to_add, 0.0, precision_rounding=order_line.product_uom.rounding) == 0:
             return []
+        location = order.picking_type_id.default_location_src_id or order.partner_id.property_stock_supplier
         return [{
             'name': name,
             'product_id': order_line.product_id.id,
@@ -99,7 +100,7 @@ WHERE pol.id = %s
             'product_uos_qty': qty_to_add,
             'date': order.date_order,
             'date_expected': order_line.date_planned + ' 01:00:00',
-            'location_id': order.partner_id.property_stock_supplier.id,
+            'location_id': location and location.id or False,
             'location_dest_id': order.location_id.id,
             'picking_id': picking_id,
             'partner_id': order.dest_address_id.id or order.partner_id.id,
