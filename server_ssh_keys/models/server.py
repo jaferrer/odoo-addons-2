@@ -25,7 +25,6 @@ class SSHServer(models.Model):
     _description = u"SSH Server"
 
     name = fields.Char(u"Server's FQDN", required=True, index=True)
-    project_id = fields.Many2one('project.project', string=u"Linked Project")
     allowed_user_ids = fields.One2many('ssh.server.user', 'server_id', string=u"Allowed Users")
     note = fields.Text(u"Notes")
 
