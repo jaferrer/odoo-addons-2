@@ -556,12 +556,12 @@ class StockWarehouseOrderPointJit(models.Model):
     @api.multi
     def process_from_screen(self):
         self.ensure_one()
-        self.env['procurement.order']._procure_orderpoint_confirm(use_new_cursor=False,
-                                                                  company_id=False,
-                                                                  run_procurements=False,
-                                                                  run_moves=False,
-                                                                  force_orderpoints=self)
-        self.env['stock.scheduler.controller'].update_scheduler_controller()
+        self.env['procurement.order'].sudo()._procure_orderpoint_confirm(use_new_cursor=False,
+                                                                         company_id=False,
+                                                                         run_procurements=False,
+                                                                         run_moves=False,
+                                                                         force_orderpoints=self)
+        self.env['stock.scheduler.controller'].sudo().update_scheduler_controller()
 
     @api.model
     def get_query_move_in(self):
