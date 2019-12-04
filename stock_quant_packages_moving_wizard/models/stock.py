@@ -594,11 +594,7 @@ FROM
 
     @api.multi
     def move_products(self):
-        if self:
-            location = self[0].location_id
-            if any([line.location_id != location for line in self]):
-                raise exceptions.except_orm(_("error"),
-                                            _("Impossible to move simultaneously products of different locations"))
+        self.check_line_locations()
         ctx = self.env.context.copy()
         ctx['active_ids'] = self.ids
         return {
@@ -610,6 +606,14 @@ FROM
             'target': 'new',
             'context': ctx,
         }
+
+    def check_line_locations(self):
+        """ extraction of the checking to allow overriding in sirail"""
+        if self:
+            location = self[0].location_id
+            if any([line.location_id != location for line in self]):
+                raise exceptions.except_orm(_("error"),
+                                            _("Impossible to move simultaneously products of different locations"))
 
     @api.multi
     def get_quants_from_package(self):
