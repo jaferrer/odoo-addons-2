@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-
         <menuitem id="menu_bus" name="Bus"
                   parent="connector.menu_connector_root"
+                  sequence="50"/>
+
+        <menuitem id="menu_bus_configuration" name="Configuration"
+                  parent="menu_bus"
                   sequence="50"/>
 
         <record model="ir.ui.view" id="bus_model_extend_tree">
@@ -96,7 +99,7 @@
 
         <menuitem id="menu_bus_model_extend" name="Synchronized Data"
                   action="act_window_bus_model_extend" parent="menu_bus"
-                  sequence="100"/>
+                  sequence="101"/>
 
     </data>
 </openerp>

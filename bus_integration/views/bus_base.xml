@@ -52,6 +52,6 @@
         </record>
 
         <!-- This Menu Item must have a parent and an action -->
-        <menuitem id="bus_base_menu" name="Bus base" parent="menu_bus" action="bus_base_action" sequence="9"/>
+        <menuitem id="bus_base_menu" name="Bus base" parent="menu_bus_configuration" action="bus_base_action" sequence="9"/>
     </data>
 </openerp>

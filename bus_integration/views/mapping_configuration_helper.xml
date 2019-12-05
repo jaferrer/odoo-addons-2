@@ -65,7 +65,7 @@
 
         <menuitem id="menu_mapping_configuration_helper" name="Mapping Configuration Helper"
                   action="act_window_mapping_configuration_helper"
-                  parent="menu_bus" sequence="200"/>
+                  parent="menu_bus_configuration" sequence="200"/>
 
         <record model="ir.ui.view" id="mapping_configuration_helper_answer_form">
             <field name="name">mapping_configuration_helper_answer_form</field>

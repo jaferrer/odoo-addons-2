@@ -104,7 +104,7 @@
 
         <menuitem id="menu_bus_config_export_menu" name="Configuration of template exports"
                   action="act_window_bus_config_export" parent="menu_bus"
-                  sequence="15"/>
+                  sequence="101"/>
 
         <!-- Create crons action -->
         <record model="ir.actions.server" id="ir_actions_config_sync_diff">
