@@ -1,0 +1,72 @@
+td.o_data_cell:first-child {
+    white-space: nowrap;
+}
+
+table.treetable span.indenter + * {
+    display: table-cell;
+    position: relative;
+    vertical-align: middle;
+    text-align: right;
+}
+table.treetable span.indenter + .invisible {
+    display: none;
+}
+
+table.treetable td.o_list_record_selector
+{
+    min-width: 45px;
+}
+
+table.treetable span.indenter a {
+    background-position: center;
+    border-radius: 15px;
+    transition: background-color 0.3s ease;
+}
+
+table.treetable span.indenter a:hover {
+    background-color: #d6d6d3;
+}
+
+a.treetable-control {
+    display: inline-block;
+    margin: 5px 0px 5px 5px;
+    padding: 4px 5px;
+    background-color: #e2e2e0;
+    border-radius: 15px;
+}
+
+/*.o_form_view.o_form_editable span.indenter {*/
+/*    display: none;*/
+/*}*/
+
+.table-striped.treetable > tbody > tr.level-0:first-child {
+    border-top: none;
+}
+
+.table-striped.treetable > tbody > tr.level-0 {
+    background-color: #cfcfcf;
+    border-top: 1px solid #b3b3b3;
+}
+
+.table-striped.treetable > tbody > tr.level-1 {
+    background-color: #d9d9d9;
+}
+
+.table-striped.treetable > tbody > tr.level-2 {
+    background-color: #E3E3E3;
+}
+
+.table-striped.treetable > tbody > tr.level-3 {
+    background-color: #EDEDED;
+}
+
+.table-striped.treetable > tbody > tr.level-4 {
+    background-color: #F5F5F5;
+}
+
+.table-striped.treetable > tbody > tr.level-5,
+.table-striped.treetable > tbody > tr.level-6,
+.table-striped.treetable > tbody > tr.level-7,
+.table-striped.treetable > tbody > tr.level-8 {
+    background-color: #ffffff;
+}

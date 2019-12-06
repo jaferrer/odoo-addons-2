@@ -10,8 +10,13 @@ button.oe_stat_button.btn-minimalist {
     margin-right: 7px;
     padding: 2px 4px 2px 5px;
     font-size: 15px;
+    margin-top: -5px;
 }
 
 button.oe_stat_button.btn-minimalist > span {
     display: none;
+}
+
+.o_horizontal_separator > span:first-child {
+    margin-right: 12px;
 }
