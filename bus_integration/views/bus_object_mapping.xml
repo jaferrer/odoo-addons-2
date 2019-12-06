@@ -100,7 +100,7 @@
         </record>
 
         <menuitem id="menu_object_mapping_menu" name="Object Mapping"
-                  action="act_window_object_mapping" parent="menu_bus"
+                  action="act_window_object_mapping" parent="menu_bus_configuration"
                   sequence="50"/>
 
         <record model="ir.actions.server" id="ir_actions_server_bus_export_config">

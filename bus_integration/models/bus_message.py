@@ -51,7 +51,7 @@ class BusMessage(models.Model):
     _order = 'create_date DESC'
 
     configuration_id = fields.Many2one('bus.configuration', string=u"Backend")
-    batch_id = fields.Many2one('bus.configuration.export', string=u"Batch")
+    batch_id = fields.Many2one('bus.configuration.export', string=u"Batch", index=True)
     job_generate_uuid = fields.Char(u'Generate message job uuid')
     job_send_uuid = fields.Char(u'Send message job uuid')
     export_run_uuid = fields.Char(u'Message group unique identifier',

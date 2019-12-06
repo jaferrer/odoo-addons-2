@@ -46,7 +46,7 @@
         </record>
 
         <menuitem id="menu_bus_config_menu" name="Configuration"
-                  action="act_window_bus_configuration" parent="menu_bus"
+                  action="act_window_bus_configuration" parent="menu_bus_configuration"
                   sequence="10"/>
 
     </data>

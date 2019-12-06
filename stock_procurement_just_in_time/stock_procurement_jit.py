@@ -160,7 +160,7 @@ class ProcurementOrderQuantity(models.Model):
 
     @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
-                                    run_moves=True):
+                                    run_moves=True, force_orderpoints=None):
         """
         Create procurement based on orderpoint
 
@@ -168,14 +168,17 @@ class ProcurementOrderQuantity(models.Model):
             This is appropriate for batch jobs only.
         """
         orderpoint_env = self.env['stock.warehouse.orderpoint']
-        dom = company_id and [('company_id', '=', company_id)] or []
-        if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
-            dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
-        if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
-            supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
-            read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
-            dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
-        orderpoints = orderpoint_env.search(dom)
+        if force_orderpoints:
+            orderpoints = force_orderpoints
+        else:
+            dom = company_id and [('company_id', '=', company_id)] or []
+            if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
+                dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
+            if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
+                supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
+                read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
+                dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
+            orderpoints = orderpoint_env.search(dom)
         if run_procurements:
             self.env['procurement.order'].run_confirm_procurements(company_id=company_id)
         if run_moves:
@@ -347,10 +350,6 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
                     })
 
     @api.multi
-    def unlink_proc_just_in_time(self):
-        self.unlink()
-
-    @api.multi
     def cancel_procs_just_in_time(self, stock_qty, qty):
         self.ensure_one()
         result = stock_qty
@@ -358,7 +357,7 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
             with self.env.cr.savepoint():
                 self.with_context(unlink_all_chain=True, cancel_procurement=True, is_scheduler=True).cancel()
                 if self.state == 'cancel':
-                    self.unlink_proc_just_in_time()
+                    self.unlink()
                     result = stock_qty - qty
         except ForbiddenCancelProtectedProcurement as e:
             _logger.info(e.value)
@@ -554,6 +553,16 @@ class StockWarehouseOrderPointJit(models.Model):
                 date_end = last_scheduled_date + relativedelta(days=1)
                 op.remove_unecessary_procurements(date_end)
 
+    @api.multi
+    def process_from_screen(self):
+        self.ensure_one()
+        self.env['procurement.order'].sudo()._procure_orderpoint_confirm(use_new_cursor=False,
+                                                                         company_id=False,
+                                                                         run_procurements=False,
+                                                                         run_moves=False,
+                                                                         force_orderpoints=self)
+        self.env['stock.scheduler.controller'].sudo().update_scheduler_controller()
+
     @api.model
     def get_query_move_in(self):
         return """SELECT sm.id,
@@ -652,7 +661,8 @@ ORDER BY po.date_planned"""
             first_date = min(dates)
 
         # existing items
-        existing_qty = sum([x.qty for x in stock_quant_restricted])
+        existing_qty = self.location_id.usage in ['internal', 'transit'] and \
+            sum([x.qty for x in stock_quant_restricted]) or 0
         intermediate_result += [{
             'proc_id': False,
             'location_id': self.location_id.id,
@@ -863,6 +873,11 @@ class ProductProduct(models.Model):
     @api.model
     def get_warehouse_for_stock_report(self):
         return self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)], limit=1)
+
+    @api.model
+    def get_orderpoint_required_locations_ids(self):
+        sequences = self.env['stock.location.scheduler.sequence'].search([])
+        return [sequence.location_id.id for sequence in sequences]
 
     @api.multi
     def action_show_evolution(self):
