@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_ndp_analytic_contract_user,ndp_analytic_contract,model_ndp_analytic_contract,base.group_user,1,1,1,1
+access_ndp_sale_consu_line_user,ndp_sale_consu_line,model_ndp_sale_consu_line,base.group_user,1,1,1,1
+access_ndp_sale_recurrence_line_user,ndp_sale_recurrence_line,model_ndp_sale_recurrence_line,base.group_user,1,1,1,1
+access_ndp_consu_type_user,ndp_consu_type,model_ndp_consu_type,base.group_user,1,1,1,1
+access_ndp_sale_consu_group_user,ndp_sale_consu_group,model_ndp_sale_consu_group,base.group_user,1,1,1,1

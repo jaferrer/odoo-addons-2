@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="ndp_sale_consu_group_tree" model="ir.ui.view">
+            <field name="name">ndp_sale_consu_group_tree</field>
+            <field name="model">ndp.sale.consu.group</field>
+            <field name="arch" type="xml">
+                <tree string="Consumption group">
+                    <field name="ndp_analytic_contract_id" invisible="1"/>
+                    <field name="consu_type_id"/>
+                    <field name="is_configurable" invisible="1"/>
+                    <field name="sale_recurrence_line_id"/>
+                    <field name="recurrence_id"
+                           domain="[('category_id', '=', %(ndp_analytic_contract.product_uom_categ_recurrence)d)]"/>
+                    <field name="sale_consu_line_ids" widget="many2many_tags"/>
+                    <field name="amount_expected"/>
+                    <field name="amount_invoiced"/>
+                    <field name="amount_remaining"/>
+                    <field name="amount_to_invoice"/>
+                    <button name="open_consu_config"
+                            string="Configure"
+                            type="object"
+                            attrs="{'invisible': [('is_configurable', '=', False)]}"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="ndp_sale_consu_group_form" model="ir.ui.view">
+            <field name="name">ndp_sale_consu_group_form</field>
+            <field name="model">ndp.sale.consu.group</field>
+            <field name="arch" type="xml">
+                <form string="Consumption group">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="ndp_analytic_contract_id" invisible="1"/>
+                                <field name="consu_type_id"/>
+                                <field name="is_configurable" invisible="1"/>
+                                <field name="sale_recurrence_line_id"/>
+                                <field name="recurrence_id"
+                                       domain="[('category_id', '=', %(ndp_analytic_contract.product_uom_categ_recurrence)d)]"/>
+
+                                <button name="open_consu_config"
+                                        string="Configure"
+                                        type="object"
+                                        attrs="{'invisible': [('is_configurable', '=', False)]}"/>
+                            </group>
+                            <group>
+                                <field name="amount_expected"/>
+                                <field name="amount_invoiced"/>
+                                <field name="amount_remaining"/>
+                                <field name="amount_to_invoice"/>
+                            </group>
+                        </group>
+                        <field name="sale_consu_line_ids"/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>

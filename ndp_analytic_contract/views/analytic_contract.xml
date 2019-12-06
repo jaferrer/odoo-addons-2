@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--NDP.ANALYTIC.CONTRACT-->
+
+        <record id="ndp_analytic_contract_tree" model="ir.ui.view">
+            <field name="name">ndp_analytic_contract_tree</field>
+            <field name="model">ndp.analytic.contract</field>
+            <field name="arch" type="xml">
+                <tree string="Contracts">
+                    <field name="name"/>
+                    <field name="partner_id"/>
+                    <field name="code"/>
+                    <field name="last_invoice_date"/>
+                    <field name="remaining_hours"/>
+                    <field name="date_start"/>
+                    <field name="date"/>
+                    <field name="template_id"/>
+                    <field name="manager_id"/>
+                    <field name="company_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="ndp_analytic_contract_form" model="ir.ui.view">
+            <field name="name">ndp_analytic_contract_form</field>
+            <field name="model">ndp.analytic.contract</field>
+            <field name="arch" type="xml">
+                <form string="Contracts">
+                    <header>
+                        <button name="open_billing_wizard" string="Create invoice" type="object"/>
+                        <field name="state" widget="statusbar" clickable="True"/>
+                    </header>
+                    <sheet>
+                    <div class="oe_right oe_button_box" name="buttons">
+                        <button class="oe_inline oe_stat_button"
+                                type="object"
+                                name="associated_sale_order"
+                                icon="fa-pencil-square-o">
+                            <field string="Sale orders" name="sale_order_count" widget="statinfo"/>
+                        </button>
+                        <button class="oe_inline oe_stat_button"
+                                type="object"
+                                name="associated_account_invoice"
+                                icon="fa-usd">
+                        <field string="Invoices" name="account_invoice_count" widget="statinfo"/>
+		                </button>
+                    </div>
+                        <h1>
+                            <field name="name" class="oe_inline" placeholder="Title..."/>
+                        </h1>
+                        <group>
+                            <group>
+                                <field name="partner_id" required="True"/>
+                                <field name="manager_id"/>
+                            </group>
+                            <group>
+                                <field name="template_id"/>
+                                <field name="code"/>
+                                <field name="parent_id"/>
+                                <field name="company_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page name="contract_infos" string="Contract infos">
+                                <group name="renewal" string="Renewal">
+                                    <group>
+                                        <field name="date_start"/>
+                                        <field name="date"/>
+                                        <field name="quantity_max"/>
+                                    </group>
+                                </group>
+                                <group name="terms_and_conditions" string="Terms and conditions">
+                                    <field name="description" nolabel="1"/>
+                                </group>
+                            </page>
+                            <page name="sr_lines" string="Recurrence lines">
+                                <field name="sale_recurrence_line_ids"/>
+                            </page>
+                            <page name="consu_group" string="Consumption groups">
+                                <field name="consu_group_ids">
+                                     <tree string="Consumption group" editable="top" create="false" delete="false">
+                                        <field name="ndp_analytic_contract_id" invisible="1"/>
+                                        <field name="consu_type_id"/>
+                                        <field name="is_configurable" invisible="1"/>
+                                        <field name="sale_recurrence_line_id"
+                                               domain="[('ndp_analytic_contract_id', '=', parent.id)]"/>
+                                        <field name="recurrence_id"
+                                               domain="[('category_id', '=', %(ndp_analytic_contract.product_uom_categ_recurrence)d)]"/>
+                                        <field name="amount_expected"/>
+                                        <field name="amount_invoiced"/>
+                                        <field name="amount_remaining"/>
+                                        <field name="amount_to_invoice"/>
+                                        <button name="open_consu_config"
+                                                string="Configure"
+                                                type="object"
+                                                attrs="{'invisible': [('is_configurable', '=', False)]}"/>
+                                        <button name="open_consu_line_tree"
+                                                string="Open"
+                                                type="object"
+                                                icon="gtk-go-forward"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="ndp_analytic_contract_action" model="ir.actions.act_window">
+            <field name="name">Contracts</field>
+            <field name="res_model">ndp.analytic.contract</field>
+            <field name="target">current</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="ndp_analytic_contract_menu"
+                  name="Contracts"
+                  parent="base.menu_sales"
+                  action="ndp_analytic_contract.ndp_analytic_contract_action"/>
+
+        <!--SALE.ORDER-->
+
+        <record id="ndp_analytic_contract_sale_order_form" model="ir.ui.view">
+            <field name="name">ndp_analytic_contract_sale_order_form</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook/page[field[@name='order_line']]" position="after">
+                    <page name="recurrence_line" string="Recurrence lines">
+                        <field name="sale_recurrence_line_ids"/>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</openerp>
