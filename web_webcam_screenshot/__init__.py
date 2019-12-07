@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,16 +16,3 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-from odoo import fields, models
-
-
-class SSHRole(models.Model):
-    _name = 'ssh.role'
-    _description = u"Role on a SSH Server"
-    _order = 'sequence'
-
-    name = fields.Char(u"Name")
-    sequence = fields.Integer(u"Sequence")
-    implied_ids = fields.Many2many('ssh.role', 'ssh_role_implied_rel', 'master_id', 'implied_id',
-                                   string=u"Implied Roles")

@@ -23,7 +23,10 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Manufacture',
-    'depends': ['mrp'],
+    'depends': [
+        'mrp',
+        'resource_improved',
+    ],
     'description': """
 MRP Workorder Planning
 ======================
@@ -32,7 +35,6 @@ It also enables working days planification of production orders.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/res_company.xml',
         'views/mrp_config_settings.xml',
     ],
     'demo': [

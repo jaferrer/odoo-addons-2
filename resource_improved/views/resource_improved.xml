@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
     <data>
 
-        <record model="ir.ui.view" id="res_company_form_prodex">
-            <field name="name">res.company.form.prodex</field>
+        <record model="ir.ui.view" id="res_company_with_calendar_view_form">
+            <field name="name">res_company_with_calendar_view_form</field>
             <field name="model">res.company</field>
             <field name="inherit_id" ref="base.view_company_form"/>
             <field name="priority" eval="16"/>
@@ -16,6 +16,5 @@
             </field>
         </record>
 
-
     </data>
-</openerp>
+</odoo>
