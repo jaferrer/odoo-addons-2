@@ -56,11 +56,21 @@ class MakeProcurementImproved(models.TransientModel):
                     'uom_id': product.uom_id.id,
                     'date_planned': res.date_planned,
                 })
+
+        if res.product_tmpl_id.route_from_categ_ids:
+            res['route_ids'] = res.product_tmpl_id.route_from_categ_ids[0]
+        elif res.product_tmpl_id.route_ids:
+            res['route_ids'] = res.product_tmpl_id.route_ids[0]
+
         return res
 
     @api.multi
     def make_procurement(self):
         for wizard in self:
+            location = wizard.warehouse_id.lot_stock_id.id
+            if 'force_location_id' in self.env.context:
+                location = self.env.context['force_location_id']
+
             procurements_creates = []
             for line in wizard.make_procurement_line_ids:
                 if line.qty > 0:
@@ -74,7 +84,7 @@ class MakeProcurementImproved(models.TransientModel):
                         'product_qty': line.qty,
                         'product_uom': line.uom_id.id,
                         'warehouse_id': wizard.warehouse_id.id,
-                        'location_id': wizard.warehouse_id.lot_stock_id.id,
+                        'location_id': location,
                         'company_id': wizard.warehouse_id.company_id.id,
                         'route_ids': [(6, 0, wizard.route_ids.ids)]}).id)
         return {
@@ -97,7 +107,7 @@ class ProductTmplImproved(models.Model):
             {'active_id': self.id, 'active_model': 'product.template'}).create({})
         return {
             'type': 'ir.actions.act_window',
-            'name': _(u"Make Procurements"),
+            'name': _(u"Make Procurements (%s)" % self.name),
             'res_model': 'make.procurement',
             'view_type': 'form',
             'view_mode': 'form',

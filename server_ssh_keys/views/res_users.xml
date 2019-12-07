@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="res_users_form_ssh_keys">
+            <field name="name">base.view_users_form</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="priority" eval="16"/>
+            <field name="groups_id" eval="[(6, 0, [ref('server_ssh_keys.group_ssh_user')])]"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page name="ssh" string="SSH Keys">
+                        <field name="ssh_key_ids" readonly="0">
+                            <tree editable="bottom">
+                                <field name="name"/>
+                                <field name="key"/>
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="res_users_form_pref_ssh_keys">
+            <field name="name">res_users_form_pref_ssh_keys</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
+            <field name="priority" eval="16"/>
+            <field name="groups_id" eval="[(6, 0, [ref('server_ssh_keys.group_ssh_user')])]"/>
+            <field name="arch" type="xml">
+                <form position="inside">
+                    <separator string="SSH Keys"/>
+                    <field name="ssh_key_ids" readonly="0">
+                        <tree editable="bottom">
+                            <field name="name"/>
+                            <field name="key"/>
+                        </tree>
+                    </field>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

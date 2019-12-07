@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="ssh_key_tree">
+            <field name="name">ssh_key_tree</field>
+            <field name="model">ssh.key</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <field name="key"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="ssh_key_search">
+            <field name="name">ssh_key_search</field>
+            <field name="model">ssh.key</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="name"/>
+                    <field name="user_id"/>
+                    <group string="Group By">
+                        <filter name="group_user" string="Users" domain="[]" context="{'group_by': 'user_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_ssh_keys">
+            <field name="name">SSH Keys</field>
+            <field name="res_model">ssh.key</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+        </record>
+
+        <menuitem id="menu_ssh" name="SSH" sequence="200"
+                  web_icon="server_ssh_keys,static/src/img/ssh.png"/>
+        <menuitem id="menu_ssh_config" name="Configuration" parent="menu_ssh" sequence="99"/>
+
+        <menuitem id="menu_ssh_keys" name="SSH Keys" action="act_window_ssh_keys"
+                  parent="menu_ssh_config" sequence="20"/>
+
+    </data>
+</odoo>
