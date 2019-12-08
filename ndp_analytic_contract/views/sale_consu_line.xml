@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="ndp_sale_consu_line_tree" model="ir.ui.view">
+            <field name="name">ndp_sale_consu_line_tree</field>
+            <field name="model">ndp.sale.consu.line</field>
+            <field name="arch" type="xml">
+                <tree string="Sale consumption lines" editable="top">
+                    <field name="consu_group_id"/>
+                    <field name="sale_recurrence_line_id"/>
+                    <field name="name"/>
+                    <field name="product_id"/>
+                    <field name="date"/>
+                    <field name="billed_period_start"/>
+                    <field name="billed_period_end"/>
+                    <field name="price"/>
+                    <field name="tax_ids" widget="many2many_tags"/>
+                    <field name="auto_invoice"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="ndp_sale_consu_line_form" model="ir.ui.view">
+            <field name="name">ndp_sale_consu_line_form</field>
+            <field name="model">ndp.sale.consu.line</field>
+            <field name="arch" type="xml">
+                <form string="Sale consumption lines">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="consu_group_id"/>
+                                <field name="sale_recurrence_line_id"/>
+                                <field name="name"/>
+                                <field name="product_id"/>
+                                <field name="tax_ids"/>
+                            </group>
+                            <group>
+                                <field name="date"/>
+                                <field name="billed_period_start"/>
+                                <field name="billed_period_end"/>
+                                <field name="price"/>
+                                <field name="auto_invoice"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>

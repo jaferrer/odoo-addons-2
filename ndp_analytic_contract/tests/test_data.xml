@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--PRODUCT.PRODUCT-->
+
+        <record id="product_1" model="product.product">
+            <field name="name">Product 1</field>
+            <field name="type">service</field>
+        </record>
+
+        <!--RES.PARTNER-->
+
+        <record id="partner_1" model="res.partner">
+            <field name="name">Partner 1</field>
+        </record>
+
+        <!--NDP.CONSU.TYPE-->
+
+        <record id="ndp_consu_type_1" model="ndp.consu.type">
+            <field name="name">Consu type 1</field>
+        </record>
+
+        <record id="ndp_consu_type_2" model="ndp.consu.type">
+            <field name="name">Consu type 2</field>
+        </record>
+
+        <record id="ndp_consu_type_3" model="ndp.consu.type">
+            <field name="name">Consu type 3</field>
+        </record>
+
+        <record id="ndp_consu_type_4" model="ndp.consu.type">
+            <field name="name">Consu type 4</field>
+        </record>
+
+    </data>
+</openerp>

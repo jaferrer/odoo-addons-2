@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <!--PRODUCT.UOM.CATEG-->
+
+        <record id="product_uom_categ_recurrence" model="product.uom.categ">
+            <field name="name">Monthly recurrence</field>
+        </record>
+
+        <record id="product_uom_categ_temporality" model="product.uom.categ">
+            <field name="name">Monthly temporality</field>
+        </record>
+
+        <!--PRODUCT.UOM-->
+
+        <!--Recurrence-->
+        <record id="ndp_uom_recurrence_month" model="product.uom">
+            <field name="name">Per month</field>
+            <field name="category_id" ref="ndp_analytic_contract.product_uom_categ_recurrence"/>
+            <field name="rounding" eval="0.001"/>
+        </record>
+
+        <record id="ndp_uom_recurrence_trimester" model="product.uom">
+            <field name="name">Per trimester</field>
+            <field name="category_id" ref="ndp_analytic_contract.product_uom_categ_recurrence"/>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="3"/>
+            <field name="rounding" eval="0.001"/>
+        </record>
+
+        <record id="ndp_uom_recurrence_semester" model="product.uom">
+            <field name="name">Per semester</field>
+            <field name="category_id" ref="ndp_analytic_contract.product_uom_categ_recurrence"/>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="6"/>
+            <field name="rounding" eval="0.001"/>
+        </record>
+
+        <record id="ndp_uom_recurrence_year" model="product.uom">
+            <field name="name">Per year</field>
+            <field name="category_id" ref="ndp_analytic_contract.product_uom_categ_recurrence"/>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="12"/>
+            <field name="rounding" eval="0.001"/>
+        </record>
+
+        <!--Temporality-->
+        <record id="ndp_uom_temporalite_month" model="product.uom">
+            <field name="name">Month(s)</field>
+            <field name="category_id" ref="ndp_analytic_contract.product_uom_categ_temporality"/>
+            <field name="rounding" eval="0.001"/>
+        </record>
+
+        <record id="ndp_uom_temporalite_trimester" model="product.uom">
+            <field name="name">Trimester(s)</field>
+            <field name="category_id" ref="ndp_analytic_contract.product_uom_categ_temporality"/>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="3"/>
+            <field name="rounding" eval="0.001"/>
+        </record>
+
+        <record id="ndp_uom_temporalite_semester" model="product.uom">
+            <field name="name">Semester(s)</field>
+            <field name="category_id" ref="ndp_analytic_contract.product_uom_categ_temporality"/>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="6"/>
+            <field name="rounding" eval="0.001"/>
+        </record>
+
+        <record id="ndp_uom_temporalite_year" model="product.uom">
+            <field name="name">Year(s)</field>
+            <field name="category_id" ref="ndp_analytic_contract.product_uom_categ_temporality"/>
+            <field name="uom_type">bigger</field>
+            <field name="factor_inv" eval="12"/>
+            <field name="rounding" eval="0.001"/>
+        </record>
+
+    </data>
+</openerp>

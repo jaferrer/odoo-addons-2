@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="ndp_consu_type_from" model="ir.ui.view">
+            <field name="name">ndp_consu_type_from</field>
+            <field name="model">ndp.consu.type</field>
+            <field name="arch" type="xml">
+                <form string="Consumption type">
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="product_id"/>
+                                <field name="is_configurable"/>
+                                <field name="config_model" attrs="{'invisible': [('is_configurable', '=', False)]}"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>

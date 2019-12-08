@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="ndp_contract_billing_wizard" model="ir.ui.view">
+            <field name="name">ndp_contract_billing_wizard</field>
+            <field name="model">ndp.contract.billing.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Billing">
+                    <sheet>
+                        <separator name="period" string="Period"/>
+                        <group>
+                            <group>
+                                <field name="ndp_analytic_contract_id" invisible="1"/>
+                                <div>
+                                    <field name="billing_month" required="True" class="oe_inline"/>
+                                    <field name="billing_year" required="True" class="oe_inline"/>
+                                </div>
+                            </group>
+                        </group>
+                        <separator name="options" string="Options"/>
+                        <group>
+                            <group>
+                                <field name="all_lines"/>
+                                <field name="all_types" attrs="{'invisible': [('all_lines', '=', True)]}"/>
+                                <field name="so_lines" attrs="{'invisible': [('all_lines', '=', True)]}"/>
+                                <field name="sr_lines" attrs="{'invisible': [('all_lines', '=', True)]}"/>
+                                <field name="sale_recurrence_line_ids"
+                                       widget="many2many_tags"
+                                       attrs="{'invisible': [('sr_lines', '=', False), ('all_lines', '=', False)]}"
+                                       domain="[('ndp_analytic_contract_id', '=', ndp_analytic_contract_id)]"/>
+                                <field name="sc_lines" attrs="{'invisible': [('all_lines', '=', True)]}"/>
+                                <field name="sale_consu_line_ids"
+                                       widget="many2many_tags"
+                                       attrs="{'invisible': [('sc_lines', '=', False), ('all_lines', '=', False)]}"
+                                       domain="[('ndp_analytic_contract_id', '=', ndp_analytic_contract_id)]"/>
+                            </group>
+                        </group>
+                        <footer>
+                            <button string="Validate"
+                                    name="contract_create_invoice"
+                                    type="object"
+                                    class="oe_highlight"/>
+
+                            or
+                            <button string="Cancel" special="cancel" class="oe_link"/>
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>

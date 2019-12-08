@@ -1,0 +1,559 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* ndp_analytic_contract
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-12-03 10:47+0000\n"
+"PO-Revision-Date: 2019-12-03 10:47+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: ndp_analytic_contract
+#: field:ndp.contract.billing.wizard,all_lines:0
+msgid "All lines"
+msgstr "Toutes les lignes"
+
+#. module: ndp_analytic_contract
+#: field:ndp.contract.billing.wizard,all_types:0
+msgid "All types"
+msgstr "Tous les types"
+
+#. module: ndp_analytic_contract
+#: field:ndp.analytic.contract,analytic_account_id:0
+msgid "Analytic account"
+msgstr "Compte analytique"
+
+#. module: ndp_analytic_contract
+#: view:ndp.sale.recurrence.line:ndp_analytic_contract.ndp_sale_recurrence_line_form
+msgid "Apply"
+msgstr "Appliquer"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "April"
+msgstr "Avril"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "August"
+msgstr "Août"
+
+#. module: ndp_analytic_contract
+#: field:account.invoice.line,billed_period_end:0
+#: field:ndp.sale.consu.line,billed_period_end:0
+msgid "Billed period end"
+msgstr "Fin période facturée"
+
+#. module: ndp_analytic_contract
+#: field:account.invoice.line,billed_period_start:0
+#: field:ndp.sale.consu.line,billed_period_start:0
+msgid "Billed period start"
+msgstr "Début période facturée"
+
+#. module: ndp_analytic_contract
+#: view:ndp.contract.billing.wizard:ndp_analytic_contract.ndp_contract_billing_wizard
+msgid "Billing"
+msgstr "Facturation"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.line,billing_period_end:0
+msgid "Billing period end"
+msgstr "Fin période facturation"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.line,billing_period_start:0
+msgid "Billing period start"
+msgstr "Début période facturation"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.sale.recurrence.line,calendar_type:0
+msgid "Birthday"
+msgstr "Anniversaire"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,calendar_type:0
+msgid "Calendar type"
+msgstr "Calendrier"
+
+#. module: ndp_analytic_contract
+#: view:ndp.contract.billing.wizard:ndp_analytic_contract.ndp_contract_billing_wizard
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: ndp_analytic_contract
+#: field:ndp.consu.type,config_model:0
+msgid "Configuration model"
+msgstr "Modèle de configuration"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+#: view:ndp.sale.consu.group:ndp_analytic_contract.ndp_sale_consu_group_form
+#: view:ndp.sale.consu.group:ndp_analytic_contract.ndp_sale_consu_group_tree
+msgid "Configure"
+msgstr "Configurer"
+
+#. module: ndp_analytic_contract
+#: field:ndp.contract.billing.wizard,sc_lines:0
+msgid "Consumption"
+msgstr "Consommation"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+#: view:ndp.sale.consu.group:ndp_analytic_contract.ndp_sale_consu_group_form
+#: view:ndp.sale.consu.group:ndp_analytic_contract.ndp_sale_consu_group_tree
+#: field:ndp.sale.consu.line,consu_group_id:0
+msgid "Consumption group"
+msgstr "Groupe de consommation"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+msgid "Consumption groups"
+msgstr "Groupes de consommation"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.group,sale_consu_line_ids:0
+msgid "Consumption lines"
+msgstr "Lignes de consommation"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.group,consu_type_id:0
+msgid "Consumption type"
+msgstr "Type de consommation"
+
+#. module: ndp_analytic_contract
+#: field:ndp.contract.billing.wizard,ndp_analytic_contract_id:0
+#: field:ndp.sale.consu.group,ndp_analytic_contract_id:0
+#: field:ndp.sale.recurrence.line,ndp_analytic_contract_id:0
+#: field:sale.order.line,ndp_analytic_contract_id:0
+msgid "Contract"
+msgstr "Contrat"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+msgid "Contract infos"
+msgstr "Renseignements sur le contrat"
+
+#. module: ndp_analytic_contract
+#: model:ir.actions.act_window,name:ndp_analytic_contract.ndp_analytic_contract_action
+#: model:ir.ui.menu,name:ndp_analytic_contract.ndp_analytic_contract_menu
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_tree
+msgid "Contracts"
+msgstr "Contrats"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+msgid "Create invoice"
+msgstr "Facturer"
+
+#. module: ndp_analytic_contract
+#: field:ndp.analytic.contract,create_uid:0
+#: field:ndp.consu.type,create_uid:0
+#: field:ndp.contract.billing.wizard,create_uid:0
+#: field:ndp.sale.consu.group,create_uid:0
+#: field:ndp.sale.consu.line,create_uid:0
+#: field:ndp.sale.recurrence.line,create_uid:0
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: ndp_analytic_contract
+#: field:ndp.analytic.contract,create_date:0
+#: field:ndp.consu.type,create_date:0
+#: field:ndp.contract.billing.wizard,create_date:0
+#: field:ndp.sale.consu.group,create_date:0
+#: field:ndp.sale.consu.line,create_date:0
+#: field:ndp.sale.recurrence.line,create_date:0
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,billing_day:0
+msgid "Day of billing"
+msgstr "Jour de facturation"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "December"
+msgstr "Décembre"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,date_end:0
+msgid "End date"
+msgstr "Date de fin"
+
+#. module: ndp_analytic_contract
+#: code:addons/ndp_analytic_contract/model/sale_consu_line.py:86
+#, python-format
+msgid "Error"
+msgstr "Erreur"
+
+#. module: ndp_analytic_contract
+#: code:addons/ndp_analytic_contract/model/analytic_contract.py:205
+#, python-format
+msgid "Error!"
+msgstr "Erreur!"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.group,amount_expected:0
+msgid "Expected"
+msgstr "Attendu"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.group,amount_invoiced:0
+msgid "Invoiced"
+msgstr "Facturé"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.group,amount_remaining:0
+msgid "Remaining"
+msgstr "Restant"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.group,amount_to_invoice:0
+msgid "To invoice"
+msgstr "À facturer"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "February"
+msgstr "Février"
+
+#. module: ndp_analytic_contract
+#: model:ir.model,name:ndp_analytic_contract.model_account_invoice_line
+msgid "Invoice Line"
+msgstr "Ligne de facture"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.line,invoice_line_id:0
+msgid "Invoice line"
+msgstr "Ligne de facture"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+msgid "Invoices"
+msgstr "Factures"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "January"
+msgstr "Janvier"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "July"
+msgstr "Juillet"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "June"
+msgstr "Juin"
+
+#. module: ndp_analytic_contract
+#: field:ndp.analytic.contract,write_uid:0
+#: field:ndp.consu.type,write_uid:0
+#: field:ndp.contract.billing.wizard,write_uid:0
+#: field:ndp.sale.consu.group,write_uid:0
+#: field:ndp.sale.consu.line,write_uid:0
+#: field:ndp.sale.recurrence.line,write_uid:0
+msgid "Last Updated by"
+msgstr "Dernière modification par"
+
+#. module: ndp_analytic_contract
+#: field:ndp.analytic.contract,write_date:0
+#: field:ndp.consu.type,write_date:0
+#: field:ndp.contract.billing.wizard,write_date:0
+#: field:ndp.sale.consu.group,write_date:0
+#: field:ndp.sale.consu.line,write_date:0
+#: field:ndp.sale.recurrence.line,write_date:0
+msgid "Last Updated on"
+msgstr "Dernière modification le"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "March"
+msgstr "Mars"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "May"
+msgstr "Mai"
+
+#. module: ndp_analytic_contract
+#: field:ndp.contract.billing.wizard,billing_month:0
+msgid "Month"
+msgstr "Mois"
+
+#. module: ndp_analytic_contract
+#: model:product.uom,name:ndp_analytic_contract.ndp_uom_temporalite_month
+msgid "Month(s)"
+msgstr "Mois"
+
+#. module: ndp_analytic_contract
+#: model:product.uom.categ,name:ndp_analytic_contract.product_uom_categ_recurrence
+msgid "Monthly recurrence"
+msgstr "Récurrence mensuelle"
+
+#. module: ndp_analytic_contract
+#: model:product.uom.categ,name:ndp_analytic_contract.product_uom_categ_temporality
+msgid "Monthly temporality"
+msgstr "Temporalité mensuelle"
+
+#. module: ndp_analytic_contract
+#: field:ndp.consu.type,name:0
+#: field:ndp.sale.consu.line,name:0
+msgid "Name"
+msgstr "Nom"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,next_billing_date:0
+#: field:ndp.sale.recurrence.line,true_nbdate:0
+msgid "Next billing date"
+msgstr "Prochaine date facturation"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "November"
+msgstr "Novembre"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "October"
+msgstr "Octobre"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+msgid "Open"
+msgstr "Ouvrir"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+msgid "Order lines"
+msgstr "Lignes de vente"
+
+#. module: ndp_analytic_contract
+#: model:product.uom,name:ndp_analytic_contract.ndp_uom_recurrence_month
+msgid "Per month"
+msgstr "Par mois"
+
+#. module: ndp_analytic_contract
+#: model:product.uom,name:ndp_analytic_contract.ndp_uom_recurrence_semester
+msgid "Per semester"
+msgstr "Par semestre"
+
+#. module: ndp_analytic_contract
+#: model:product.uom,name:ndp_analytic_contract.ndp_uom_recurrence_trimester
+msgid "Per trimester"
+msgstr "Par trimestre"
+
+#. module: ndp_analytic_contract
+#: model:product.uom,name:ndp_analytic_contract.ndp_uom_recurrence_year
+msgid "Per year"
+msgstr "Par année"
+
+#. module: ndp_analytic_contract
+#: view:ndp.contract.billing.wizard:ndp_analytic_contract.ndp_contract_billing_wizard
+msgid "Period"
+msgstr "Période"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.line,price:0
+msgid "Price"
+msgstr "Prix"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,product_uom_qty:0
+msgid "Quantity"
+msgstr "Quantité"
+
+#. module: ndp_analytic_contract
+#: field:ndp.contract.billing.wizard,sr_lines:0
+#: field:ndp.sale.recurrence.line,recurrence_id:0
+#: field:ndp.sale.consu.group,recurrence_id:0
+msgid "Recurrence"
+msgstr "Fréquence"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,product_categ_id:0
+msgid "Service type"
+msgstr "Type de service"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,standard_price:0
+msgid "Cost price"
+msgstr "Prix de revient"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.group,sale_recurrence_line_id:0
+msgid "Recurrence line"
+msgstr "Ligne récurrente"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+#: view:sale.order:ndp_analytic_contract.ndp_analytic_contract_sale_order_form
+msgid "Recurrence lines"
+msgstr "Lignes récurrentes"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+msgid "Renewal"
+msgstr "Renouvellement"
+
+#. module: ndp_analytic_contract
+#: field:ndp.contract.billing.wizard,so_lines:0
+msgid "Sale"
+msgstr "Vente"
+
+#. module: ndp_analytic_contract
+#: field:account.invoice.line,sale_consu_line_ids:0
+#: field:ndp.contract.billing.wizard,sale_consu_line_ids:0
+#: view:ndp.sale.consu.line:ndp_analytic_contract.ndp_sale_consu_line_form
+#: view:ndp.sale.consu.line:ndp_analytic_contract.ndp_sale_consu_line_tree
+msgid "Sale consumption lines"
+msgstr "Lignes de consommation"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,sale_id:0
+msgid "Sale order"
+msgstr "Devis"
+
+#. module: ndp_analytic_contract
+#: field:ndp.analytic.contract,sale_order_line_ids:0
+#: field:ndp.contract.billing.wizard,sale_order_line_ids:0
+msgid "Sale order lines"
+msgstr "Lignes de vente"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+msgid "Sale orders"
+msgstr "Devis"
+
+#. module: ndp_analytic_contract
+#: field:account.invoice.line,sale_recurrence_line_ids:0
+#: field:ndp.analytic.contract,sale_recurrence_line_ids:0
+#: field:ndp.contract.billing.wizard,sale_recurrence_line_ids:0
+#: view:ndp.sale.recurrence.line:ndp_analytic_contract.ndp_sale_recurrence_line_tree
+#: field:sale.order,sale_recurrence_line_ids:0
+msgid "Sale recurrence lines"
+msgstr "Lignes récurrentes"
+
+#: field:ndp.sale.consu.line,sale_recurrence_line_id:0
+#: field:ndp.sale.consu.group,sale_recurrence_line_id:0
+msgid "Sale recurrence line"
+msgstr "Lignes récurrente"
+
+#. module: ndp_analytic_contract
+#: model:ir.model,name:ndp_analytic_contract.model_sale_order
+msgid "Sales Order"
+msgstr "Bon de commande"
+
+#. module: ndp_analytic_contract
+#: model:ir.model,name:ndp_analytic_contract.model_sale_order_line
+msgid "Sales Order Line"
+msgstr "Lignes de vente"
+
+#. module: ndp_analytic_contract
+#: model:product.uom,name:ndp_analytic_contract.ndp_uom_temporalite_semester
+msgid "Semester(s)"
+msgstr "Semestre(s)"
+
+#. module: ndp_analytic_contract
+#: selection:ndp.contract.billing.wizard,billing_month:0
+msgid "September"
+msgstr "Septembre"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,date_start:0
+msgid "Start date"
+msgstr "Date de début"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,term:0
+msgid "Term"
+msgstr "Terme"
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+msgid "Terms and conditions"
+msgstr "Termes et conditions"
+
+#. module: ndp_analytic_contract
+#: code:addons/ndp_analytic_contract/model/sale_consu_line.py:86
+#, python-format
+msgid "The consumption group %s-%s needs to be attached to a recurrence line first."
+msgstr "Le groupe de consommation %s-%s doit d'abord être rattaché à une ligne récurrente."
+
+#. module: ndp_analytic_contract
+#: code:addons/ndp_analytic_contract/wizard/contract_billing_wizard.py:114
+#, python-format
+msgid "There is nothing to invoice during this period %s-%s."
+msgstr "Il n'y a rien à facturer durant cette période %s-%s."
+
+#. module: ndp_analytic_contract
+#: view:ndp.analytic.contract:ndp_analytic_contract.ndp_analytic_contract_form
+msgid "Title..."
+msgstr "Titre..."
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.consu.line,auto_invoice:0
+#: field:ndp.sale.recurrence.line,auto_invoice:0
+msgid "Auto invoicing"
+msgstr "Facturation automatique"
+
+#. module: ndp_analytic_contract
+#: model:product.uom,name:ndp_analytic_contract.ndp_uom_temporalite_trimester
+msgid "Trimester(s)"
+msgstr "Trimestre(s)"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,product_uom_id:0
+msgid "Unit"
+msgstr "Unité"
+
+#. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,price_unit:0
+msgid "Unit price"
+msgstr "Prix unitaire"
+
+#. module: ndp_analytic_contract
+#: view:ndp.contract.billing.wizard:ndp_analytic_contract.ndp_contract_billing_wizard
+msgid "Validate"
+msgstr "Valider"
+
+#. module: ndp_analytic_contract
+#: code:addons/ndp_analytic_contract/wizard/contract_billing_wizard.py:114
+#, python-format
+msgid "Warning"
+msgstr "Attention"
+
+#. module: ndp_analytic_contract
+#: field:ndp.contract.billing.wizard,billing_year:0
+msgid "Year"
+msgstr "Année"
+
+#. module: ndp_analytic_contract
+#: model:product.uom,name:ndp_analytic_contract.ndp_uom_temporalite_year
+msgid "Year(s)"
+msgstr "Année(s)"
+
+#. module: ndp_analytic_contract
+#: code:addons/ndp_analytic_contract/model/analytic_contract.py:205
+#, python-format
+msgid "You cannot confirm a sales order which has no line."
+msgstr "Vous ne pouvez confirmer un devis qui n'a aucune ligne de vente/récurrente."
+
+#. module: ndp_analytic_contract
+#: field:ndp.analytic.contract,consu_group_ids:0
+msgid "consumption groups"
+msgstr "Groupes de consommation"
+
+#. module: ndp_analytic_contract
+#: view:ndp.contract.billing.wizard:ndp_analytic_contract.ndp_contract_billing_wizard
+msgid "or"
+msgstr "ou"
