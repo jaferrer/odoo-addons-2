@@ -72,10 +72,16 @@ class PurchaseOrderJustInTime(models.Model):
             name = order_line.product_id.with_context(lang=order.dest_address_id.lang).display_name
         else:
             name = order_line.name or ''
-        self.env.cr.execute("""SELECT sum(sm.product_qty)
+        self.env.cr.execute("""SELECT sum(CASE
+             WHEN loc_src.usage = 'supplier' AND loc_dest.usage in ('internal', 'transit') THEN sm.product_qty
+             WHEN loc_src.usage in ('internal', 'transit') AND loc_dest.usage = 'supplier' THEN (-1) * sm.product_qty
+             ELSE 0 END) AS existing_quantity
 FROM purchase_order_line pol
-LEFT JOIN stock_move sm ON sm.purchase_line_id = pol.id AND sm.state != 'cancel'
-WHERE pol.id = %s""", (order_line.id,))
+       LEFT JOIN stock_move sm ON sm.purchase_line_id = pol.id AND sm.state != 'cancel'
+       INNER JOIN stock_location loc_src ON loc_src.id = sm.location_id
+       INNER JOIN stock_location loc_dest ON loc_dest.id = sm.location_dest_id
+WHERE pol.id = %s
+        """ % (order_line.id))
         existing_quantity = self.env.cr.fetchall()[0][0] or 0
         existing_quantity_pol_uom = self.env['product.uom']._compute_qty(order_line.product_id.uom_id.id,
                                                                          existing_quantity,
@@ -84,6 +90,7 @@ WHERE pol.id = %s""", (order_line.id,))
                                  precision_rounding=order_line.product_uom.rounding)
         if float_compare(qty_to_add, 0.0, precision_rounding=order_line.product_uom.rounding) == 0:
             return []
+        location = order.picking_type_id.default_location_src_id or order.partner_id.property_stock_supplier
         return [{
             'name': name,
             'product_id': order_line.product_id.id,
@@ -93,7 +100,7 @@ WHERE pol.id = %s""", (order_line.id,))
             'product_uos_qty': qty_to_add,
             'date': order.date_order,
             'date_expected': order_line.date_planned + ' 01:00:00',
-            'location_id': order.partner_id.property_stock_supplier.id,
+            'location_id': location and location.id or False,
             'location_dest_id': order.location_id.id,
             'picking_id': picking_id,
             'partner_id': order.dest_address_id.id or order.partner_id.id,
@@ -289,26 +296,57 @@ class PurchaseOrderLineJustInTime(models.Model):
                                                                       self.product_uom.id)
         if self.product_id.type == 'service':
             target_qty = done_moves_qty_pol_uom
-        running_moves = self.env['stock.move'].search([('purchase_line_id', '=', self.id),
-                                                       ('state', 'not in', ['done', 'cancel'])])
-        running_moves_qty = sum([move.product_qty for move in running_moves])
-        running_moves_qty_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
-                                                                         running_moves_qty,
-                                                                         self.product_uom.id)
-        if float_compare(target_qty, done_moves_qty_pol_uom, precision_rounding=self.product_uom.rounding) < 0:
+
+        delivered_qty, _, returned_qty, qty_running_pol_uom, running_moves = self.compute_remaining_qty()
+
+        if float_compare(target_qty, delivered_qty - returned_qty, precision_rounding=self.product_uom.rounding) < 0:
             raise exceptions.except_orm(_(u"Error!"), _(u"Impossible to cancel moves at state done."))
-        final_running_qty = target_qty - done_moves_qty_pol_uom
+        final_running_qty = target_qty - delivered_qty + returned_qty
         moves_to_cancel = self.env['stock.move']
-        if float_compare(running_moves_qty_pol_uom, final_running_qty,
+        if float_compare(qty_running_pol_uom, final_running_qty,
                          precision_rounding=self.product_uom.rounding) > 0:
             moves_to_cancel = running_moves
             # If we cancel all the moves, the order may switch to 'picking_except' state.
             moves_to_cancel.write({'product_uom_qty': 0})
-            running_moves_qty_pol_uom -= running_moves_qty_pol_uom
-        if float_compare(running_moves_qty_pol_uom, final_running_qty,
+            qty_running_pol_uom -= qty_running_pol_uom
+        if float_compare(qty_running_pol_uom, final_running_qty,
                          precision_rounding=self.product_uom.rounding) < 0:
             self.order_id._create_stock_moves(self.order_id, order_lines=self)
         moves_to_cancel.action_cancel()
+
+    @api.multi
+    def compute_remaining_qty(self, line_uom_id=False):
+        self.ensure_one()
+        delivered_qty = 0
+        remaining_qty = 0
+        returned_qty = 0
+        qty_running_pol_uom = 0
+        line_uom = line_uom_id and self.env['product.uom'].search([('id', '=', line_uom_id)]) or self.product_uom
+        running_move = self.env['stock.move']
+        if self.product_id and self.product_id.type != 'service':
+            delivered_qty = sum(x.product_qty for x in self.env['stock.move'].
+                                search([('purchase_line_id', '=', self.id),
+                                        ('location_id.usage', '=', 'supplier'),
+                                        ('location_dest_id.usage', 'in', ['internal', 'transit']),
+                                        ('state', '=', 'done')]))
+            returned_qty = sum(x.product_qty for x in self.env['stock.move'].
+                               search([('purchase_line_id', '=', self.id),
+                                       ('location_id.usage', 'in', ['internal', 'transit']),
+                                       ('location_dest_id.usage', '=', 'supplier'),
+                                       ('state', '=', 'done')]))
+            running_move = self.get_running_moves_for_line()
+            qty_running_product_uom = sum(x.product_qty for x in running_move)
+            qty_running_pol_uom = qty_running_product_uom
+            if self.product_id.uom_id != self.product_uom:
+                qty_running_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
+                                                                           qty_running_product_uom, line_uom.id,
+                                                                           rounding_method='HALF-UP')
+            delivered_qty = delivered_qty - returned_qty
+            if self.product_id.uom_id != self.product_uom:
+                delivered_qty = self.env['product.uom']._compute_qty(self.product_id.uom_id.id, delivered_qty,
+                                                                     line_uom.id, rounding_method='HALF-UP')
+            remaining_qty = self.product_qty - delivered_qty
+        return delivered_qty, remaining_qty, returned_qty, qty_running_pol_uom, running_move
 
     @api.multi
     def update_moves(self, vals):
@@ -384,3 +422,8 @@ class PurchaseOrderLineJustInTime(models.Model):
         cancelled_procs.with_context(tracking_disable=True).write({'state': 'cancel'})
         procurements_to_detach.remove_procs_from_lines()
         return result
+
+    def get_running_moves_for_line(self):
+        self.ensure_one()
+        return self.env['stock.move'].search([('purchase_line_id', '=', self.id),
+                                              ('state', 'not in', ['done', 'cancel'])], order='product_qty')

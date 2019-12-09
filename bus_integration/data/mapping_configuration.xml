@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <function model="bus.object.mapping.field" name="delete_records_created_manually"/>
+
+        <function model="bus.object.mapping" name="delete_records_created_manually"/>
+
+    </data>
+</openerp>

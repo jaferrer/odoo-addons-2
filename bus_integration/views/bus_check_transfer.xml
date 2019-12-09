@@ -82,6 +82,6 @@
         </record>
 
         <menuitem id="bus_check_transfer_menu" name="Check transfer" parent="menu_bus"
-                  action="bus_check_transfer_action" sequence="101"/>
+                  action="bus_check_transfer_action" sequence="100"/>
     </data>
 </openerp>

@@ -17,16 +17,19 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, fields, api
+from openerp import models, fields, api, _
 
 
 class BusBase(models.Model):
     _name = 'bus.base'
 
     name = fields.Char(u"Name")
-    bus_username = fields.Char(u"BUS user name")
+    bus_username = fields.Char(u"BUS user name", required=True)
     active = fields.Boolean(u"Active", default=True)
     url = fields.Char(string=u"Url")
+
+    _sql_constraints = [('uq_constraint_bus_mapping', 'UNIQUE(bus_username)',
+                         _(u'bus synchronisation requires unique values for : %s') % 'bus_username')]
 
     @api.multi
     def name_get(self):

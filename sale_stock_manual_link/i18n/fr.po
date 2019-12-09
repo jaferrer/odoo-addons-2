@@ -153,6 +153,16 @@ msgid "Manual consideration"
 msgstr "Prise en compte manuelle"
 
 #. module: sale_stock_manual_link
+#: field:sale.order.line,procurements_not_scheduled_qty:0
+msgid "Procurement orders missing quantity"
+msgstr "Quantité manquante dans les approvisionnements"
+
+#. module: sale_stock_manual_link
+#: field:sale.order.line,scheduled_procurement_ids:0
+msgid "Procurement orders scheduled for this line"
+msgstr "Approvisionnements prévus pour cette ligne"
+
+#. module: sale_stock_manual_link
 #: field:procurement.sale.link,sale_warehouse_id:0
 #: field:sale.order.line,manual_consideration:0
 #: view:procurement.sale.link:sale_stock_manual_link.procurement_sale_link_search

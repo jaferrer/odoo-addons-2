@@ -17,8 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 import openerp
 from openerp import models, exceptions
+
+_logger = logging.getLogger(__name__)
 
 
 def is_module_installed(env, module_name):
@@ -35,19 +39,35 @@ UNLINK_ORIGINAL = models.BaseModel.unlink
 
 
 @openerp.api.multi
+def get_non_synchronized_items(self):
+    if is_module_installed(self.env, 'bus_integration'):
+        receive_transfer = self.env['bus.receive.transfer'].sudo().search([('model', '=', self._name),
+                                                                           ('local_id', '=', self.ids)])
+        return self.env[self._name].search([('id', 'in', self.ids),
+                                            ('id', 'not in', [item.local_id for item in receive_transfer])])
+    return self
+
+
+@openerp.api.multi
 def unlink_bus(self):
     if is_module_installed(self.env, 'bus_integration'):
-        object_mapping = self.env['bus.object.mapping'].get_mapping(self._name)
-        receive_transfer = self.env['bus.receive.transfer'].search([('model', '=', self._name)], limit=1)
-        if object_mapping and receive_transfer:
-            raise exceptions.except_orm(u"Bus Error", u"Impossible to delete record on model %s, use for bus "
-                                                      u"synchronisation, please deactivate the record in the sending "
-                                                      u"instance" % self._name)
+        receive_transfer = self.env['bus.receive.transfer'].sudo().search([('model', '=', self._name),
+                                                                           ('local_id', 'in', self.ids)])
+        mapping = self.env['bus.object.mapping'].search([('model_name', '=', self._name)], limit=1)
+        not_deletable_ids = [item.local_id for item in receive_transfer]
+        if receive_transfer and mapping and not mapping.deactivate_on_delete:
+            _logger.info(u"Object(s) %s with IDs %s can not be deleted. They are synchronized (%s) and their mapping is"
+                         u" configured without 'deactivate on delete' (%s)",
+                         self._name, not_deletable_ids, receive_transfer, mapping)
+            raise exceptions.except_orm(u"Bus Error", u"Impossible to delete record on synchronized records %s, IDs=%s"
+                                                      u", please deactivate the record in the sending instance" %
+                                        (self._name, not_deletable_ids))
     res_unlink = UNLINK_ORIGINAL(self)
     return res_unlink
 
 
 models.BaseModel.unlink = unlink_bus
+models.BaseModel.get_non_synchronized_items = get_non_synchronized_items
 
 FIELDS_GET_ORIGINAL = models.BaseModel.fields_get
 
@@ -69,8 +89,6 @@ def fields_get_bus(self, allfields=None, context=None, write_access=True, attrib
                     res[mapping_field.field_name]['string'] = u"⇐ %s" % (res[mapping_field.field_name]['string'])
                 elif mapping_field.mapping_id.is_importable:
                     res[mapping_field.field_name]['string'] = u"⇒ %s" % (res[mapping_field.field_name]['string'])
-                if mapping_field.mapping_id.is_importable and mapping_field.mapping_id.update_prohibited:
-                    res[mapping_field.field_name]['readonly'] = True
     return res
 
 

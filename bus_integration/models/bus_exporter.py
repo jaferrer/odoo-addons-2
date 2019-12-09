@@ -95,7 +95,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         for export_msg in message_list:
             job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
                                        msgs_group_uuid)
-        return True
+        return msgs_group_uuid
 
     @api.model
     def generate_message(self, bus_configuration_export_id, export_msg, msgs_group_uuid):
@@ -143,14 +143,10 @@ class BusSynchronizationExporter(models.AbstractModel):
 
     # region def _generate_msg_body(self, exported_records, model_name):
     def _generate_bus_synchronization_msg_body(self, exported_records, model_name):
-        message_dict = {}
+        message_dict = {'body': {'root': {exported_records._name: {}}}}
         for record in exported_records:
             record_id = str(record.id)
-            message_dict\
-                .setdefault('body', {})\
-                .setdefault('root', {})\
-                .setdefault(record._name, {})\
-                .setdefault(record_id, {})
+            message_dict['body']['root'][record._name].setdefault(record_id, {})
             message_dict['body']['root'][record._name][record_id]['write_date'] = record.write_date
             message_dict['body']['root'][record._name][record_id]['display_name'] = record.display_name or ""
         return message_dict
@@ -176,9 +172,9 @@ class BusSynchronizationExporter(models.AbstractModel):
                     message_dict['body']['root'][model_name][record_id]['xml_id'] = xml_id
             list_export_field = object_mapping.get_field_to_export()
             for field in list_export_field:
-                if field.type_field == 'many2many':
-                    message_dict = self.fill_many2many(message_dict, record, field)
-                if field.type_field == 'many2one':
+                if field.type_field == 'many2many' or field.type_field == 'one2many':
+                    message_dict = self.fill_x2many(message_dict, record, field)
+                elif field.type_field == 'many2one':
                     message_dict = self.fill_many2one(message_dict, record, field)
                 elif field.type_field in self.authorize_field_type:
                     message_dict = self.fill_field(message_dict, record, field)
@@ -197,12 +193,19 @@ class BusSynchronizationExporter(models.AbstractModel):
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = record[field.field_name]
         if field.field_id.ttype == 'char' and field.field_id.translate:
+            if field.field_name in record._inherit_fields:
+                parent_model, link_field, parent_field, parent_model_b = record._inherit_fields[field.field_name]
+                model = parent_model
+                res_id = record[link_field].id
+            else:
+                model = record._name
+                res_id = record.id
             # makes sure all fields are translated. before export.
             # Actually if the translation form has never been opened ir_translation records are not create
-            self.env['ir.translation'].translate_fields(record._name, record.id, field=field.field_name)
-            translation_name = "%s,%s" % (record._name, field.field_name)
+            self.env['ir.translation'].translate_fields(model, res_id, field=field.field_name)
+            translation_name = "%s,%s" % (model, field.field_name)
             translations = self.env['ir.translation'].search([('name', '=', translation_name),
-                                                              ('res_id', '=', record.id)])
+                                                              ('res_id', '=', res_id)])
             if translations:
                 message_dict = self.fill_translation(message_dict, record._name, record_id, field, translations)
         return message_dict
@@ -223,12 +226,13 @@ class BusSynchronizationExporter(models.AbstractModel):
         return message_dict
 
     @api.model
-    def fill_many2many(self, message_dict, record, field):
+    def fill_x2many(self, message_dict, record, field):
+        """ one2many or many2many field """
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = {
             'ids': record[field.field_name].ids,
             'model': field.field_id.relation,
-            'type_field': 'many2many'
+            'type_field': field.type_field
         }
         sub_records = record[field.field_name]
         message_dict = self.fill_dependancy(message_dict, field, sub_records)

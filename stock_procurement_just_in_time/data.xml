@@ -17,6 +17,11 @@
             <field name="parent_id" ref="connector.channel_root"/>
         </record>
 
+        <record model="queue.job.channel" id="root_update_rsm_treat_by_scheduler">
+            <field name="name">update_rsm_treat_by_scheduler</field>
+            <field name="parent_id" ref="connector.channel_root"/>
+        </record>
+
     </data>
 
     <data noupdate="1">
@@ -66,6 +71,20 @@
             <field name="args"/>
         </record>
 
+        <record model="ir.cron" id="job_update_treat_by_scheduler_rsm">
+            <field name="name">Update if rsm are treats by the scheduler</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall">2019-01-01 08:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model">stock.location.scheduler.sequence</field>
+            <field name="function">cron_update_treat_by_scheduler_rsm</field>
+            <field name="args"/>
+        </record>
     </data>
 
 </openerp>

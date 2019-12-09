@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-
         <menuitem id="menu_bus" name="Bus"
                   parent="connector.menu_connector_root"
+                  sequence="50"/>
+
+        <menuitem id="menu_bus_configuration" name="Configuration"
+                  parent="menu_bus"
                   sequence="50"/>
 
         <record model="ir.ui.view" id="bus_model_extend_tree">
@@ -16,7 +19,7 @@
                     <field name="model"/>
                     <field name="external_key"/>
                     <field name="local_id"/>
-                    <field name="to_deactivate"/>
+                    <field name="origin_base_id"/>
                 </tree>
             </field>
         </record>
@@ -35,11 +38,13 @@
                             <group>
                                 <field name="model"/>
                                 <field name="local_id"/>
-                                <field name="create_date"/>
+                                <field name="external_key"/>
+                                <field name="to_deactivate"/>
                             </group>
                             <group>
-                                <field name="to_deactivate"/>
-                                <field name="external_key"/>
+                                <field name="origin_base_id" />
+                                <field name="origin_write_date" />
+                                <field name="create_date"/>
                                 <field name="write_date"/>
                             </group>
                         </group>
@@ -66,6 +71,7 @@
                     <field name="model"/>
                     <field name="local_id"/>
                     <field name="external_key"/>
+                    <field name="origin_base_id" />
                     <group expand="0" string="Filters">
                         <filter name="to_deactivate" string="To Deactivate"
                                 domain="[('to_deactivate','=', True)]"/>
@@ -93,7 +99,7 @@
 
         <menuitem id="menu_bus_model_extend" name="Synchronized Data"
                   action="act_window_bus_model_extend" parent="menu_bus"
-                  sequence="100"/>
+                  sequence="101"/>
 
     </data>
 </openerp>

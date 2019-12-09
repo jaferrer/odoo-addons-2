@@ -68,6 +68,18 @@ def job_delete_cancelled_moves_and_procs(session, model_name, ids):
     objects_to_delete.unlink()
 
 
+@job(default_channel='root.update_rsm_treat_by_scheduler')
+def job_rsm_treat_by_scheduler(session, model_name, ids):
+    objects_to_write = session.env[model_name].search([('id', 'in', ids)])
+    objects_to_write.update_treat_by_scheduler_rsm(True)
+
+
+@job(default_channel='root.update_rsm_treat_by_scheduler')
+def job_rsm_not_treat_by_scheduler(session, model_name, ids):
+    objects_to_write = session.env[model_name].search([('id', 'in', ids)])
+    objects_to_write.update_treat_by_scheduler_rsm(False)
+
+
 class StockLocationSchedulerSequence(models.Model):
     _name = 'stock.location.scheduler.sequence'
     _order = 'name,id'
@@ -87,6 +99,23 @@ class StockLocationSchedulerSequence(models.Model):
         ('location_sequence_unique', 'unique(location_id, name)',
          _(u"Each sequence must be unique for the same location!")),
     ]
+
+    @api.model
+    def cron_update_treat_by_scheduler_rsm(self):
+        locations = self.search([]).mapped('location_id')
+        rsm_treat_by_scheduler = self.env['stock.warehouse.orderpoint'].search([('location_id', 'in', locations.ids)])
+        rsm_not_treat_by_scheduler = self.env['stock.warehouse.orderpoint'].search(
+            [('location_id', 'not in', locations.ids)])
+
+        if rsm_treat_by_scheduler:
+            job_rsm_treat_by_scheduler.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                             rsm_treat_by_scheduler.ids,
+                                             description=u"Update is treat by scheduler")
+
+        if rsm_not_treat_by_scheduler:
+            job_rsm_not_treat_by_scheduler.delay(ConnectorSession.from_env(self.env), 'stock.warehouse.orderpoint',
+                                                 rsm_not_treat_by_scheduler.ids,
+                                                 description=u"Update is not treat by scheduler")
 
 
 class StockLocation(models.Model):
@@ -131,7 +160,7 @@ class ProcurementOrderQuantity(models.Model):
 
     @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
-                                    run_moves=True):
+                                    run_moves=True, force_orderpoints=None):
         """
         Create procurement based on orderpoint
 
@@ -139,14 +168,17 @@ class ProcurementOrderQuantity(models.Model):
             This is appropriate for batch jobs only.
         """
         orderpoint_env = self.env['stock.warehouse.orderpoint']
-        dom = company_id and [('company_id', '=', company_id)] or []
-        if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
-            dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
-        if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
-            supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
-            read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
-            dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
-        orderpoints = orderpoint_env.search(dom)
+        if force_orderpoints:
+            orderpoints = force_orderpoints
+        else:
+            dom = company_id and [('company_id', '=', company_id)] or []
+            if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
+                dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
+            if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
+                supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
+                read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
+                dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
+            orderpoints = orderpoint_env.search(dom)
         if run_procurements:
             self.env['procurement.order'].run_confirm_procurements(company_id=company_id)
         if run_moves:
@@ -369,6 +401,7 @@ class StockWarehouseOrderPointJit(models.Model):
 
     stock_scheduler_sequence_ids = fields.One2many(string=u"Stock scheduler sequences",
                                                    related='location_id.stock_scheduler_sequence_ids')
+    is_treat_by_scheduler = fields.Boolean(u"Treat by the scheduler", readonly=True, default=False)
 
     @api.multi
     def get_list_events(self):
@@ -444,10 +477,9 @@ class StockWarehouseOrderPointJit(models.Model):
                 procs.unlink()
 
     @api.multi
-    def get_max_allowed_qty(self, need):
-        # TODO: passer need en date
+    def get_max_allowed_qty(self, date):
         self.ensure_one()
-        product_max_qty = self.get_max_qty(fields.Datetime.from_string(need['date']))
+        product_max_qty = date and self.get_max_qty(fields.Datetime.from_string(date + ' 23:59:59')) or 0
         if self.fill_strategy == 'duration':
             consider_end_contract_effect = bool(self.env['ir.config_parameter'].get_param(
                 'stock_procurement_just_in_time.consider_end_contract_effect', default=False))
@@ -464,7 +496,7 @@ class StockWarehouseOrderPointJit(models.Model):
     @api.multi
     def is_over_stock_max(self, need, stock_after_event):
         self.ensure_one()
-        max_qty = self.get_max_allowed_qty(need)
+        max_qty = self.get_max_allowed_qty(need['date'])
         if float_compare(stock_after_event, max_qty, precision_rounding=self.product_id.uom_id.rounding) > 0:
             return True
         return False
@@ -520,6 +552,16 @@ class StockWarehouseOrderPointJit(models.Model):
             if last_scheduled_date:
                 date_end = last_scheduled_date + relativedelta(days=1)
                 op.remove_unecessary_procurements(date_end)
+
+    @api.multi
+    def process_from_screen(self):
+        self.ensure_one()
+        self.env['procurement.order'].sudo()._procure_orderpoint_confirm(use_new_cursor=False,
+                                                                         company_id=False,
+                                                                         run_procurements=False,
+                                                                         run_moves=False,
+                                                                         force_orderpoints=self)
+        self.env['stock.scheduler.controller'].sudo().update_scheduler_controller()
 
     @api.model
     def get_query_move_in(self):
@@ -619,7 +661,8 @@ ORDER BY po.date_planned"""
             first_date = min(dates)
 
         # existing items
-        existing_qty = sum([x.qty for x in stock_quant_restricted])
+        existing_qty = self.location_id.usage in ['internal', 'transit'] and \
+            sum([x.qty for x in stock_quant_restricted]) or 0
         intermediate_result += [{
             'proc_id': False,
             'location_id': self.location_id.id,
@@ -689,6 +732,10 @@ ORDER BY po.date_planned"""
             return result[:limit]
         else:
             return result
+
+    @api.multi
+    def update_treat_by_scheduler_rsm(self, is_treat_by_scheduler):
+        self.write({'is_treat_by_scheduler': is_treat_by_scheduler})
 
 
 class StockLevelsReport(models.Model):
@@ -826,6 +873,11 @@ class ProductProduct(models.Model):
     @api.model
     def get_warehouse_for_stock_report(self):
         return self.env['stock.warehouse'].search([('company_id', '=', self.env.user.company_id.id)], limit=1)
+
+    @api.model
+    def get_orderpoint_required_locations_ids(self):
+        sequences = self.env['stock.location.scheduler.sequence'].search([])
+        return [sequence.location_id.id for sequence in sequences]
 
     @api.multi
     def action_show_evolution(self):

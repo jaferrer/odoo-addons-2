@@ -1289,3 +1289,9 @@ class StockProductionLotPerformanceImproved(models.Model):
                      self.with_context(mail_notrack=True,
                                        mail_create_nolog=True,
                                        do_not_subscribe_anybody=True)).create(vals)
+
+
+class StockPerformanceReturnPickingLine(models.TransientModel):
+    _inherit = 'stock.return.picking.line'
+
+    move_id = fields.Many2one('stock.move', index=True)

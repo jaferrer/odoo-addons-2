@@ -20,11 +20,17 @@
 from openerp import models, fields
 
 
+class MrpPerformanceImprovedMrpProduction(models.Model):
+    _inherit = 'mrp.production'
+
+    procurement_id = fields.Many2one('procurement.order', index=True)
+    move_prod_id = fields.Many2one('stock.move', index=True)
+
+
 class MrpPerformanceImprovedStockMove(models.Model):
     _inherit = 'stock.move'
 
     consumed_for = fields.Many2one('stock.move', index=True)
-
 
 
 class MrpPerformanceImprovedProcurementOrder(models.Model):

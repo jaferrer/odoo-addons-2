@@ -29,9 +29,12 @@ class PurchaseOrderLineOverCover(models.Model):
     def compute_coverage_state(self, force_product_ids=None):
         result = super(PurchaseOrderLineOverCover, self).compute_coverage_state(force_product_ids=force_product_ids)
         if not self.env.context.get('do_not_update_coverage_data'):
+            lines_to_process = self
+            if force_product_ids:
+                lines_to_process = self.search([('id', 'in', self.ids), ('product_id', 'in', force_product_ids)])
             orders = self.env['purchase.order']
             draft_orders = self.env['purchase.order']
-            for rec in self:
+            for rec in lines_to_process:
                 orders |= rec.order_id
                 if rec.order_id.state == 'draft':
                     draft_orders |= rec.order_id

@@ -24,12 +24,13 @@ class BusSynchronizationMapper(models.AbstractModel):
     _name = 'bus.mapper'
 
     @api.model
-    def process_mapping(self, record, record_model, external_key, model_mapping, dependencies, odoo_record):
+    def process_mapping(self, record, record_model, external_key, model_mapping, message, odoo_record):
         error = []
         binding_data = {
             'model': record_model,
             'external_key': external_key,
             'received_data': json.dumps(record, indent=4),
+            'origin_base_id': message.get_base_origin().id,
         }
         record_data = {}
 
@@ -65,11 +66,12 @@ class BusSynchronizationMapper(models.AbstractModel):
                     type_field = record.get(field_key).get('type_field')
                     if type_field == 'many2one':
                         needed_id = record.get(field_key).get('id')
-                        relational_values = self.get_relational_value(model, needed_id, dependencies)
-                    if type_field == 'many2many':
+                        relational_values = self.get_relational_value(model, needed_id, message.get_json_dependencies())
+                    if type_field == 'many2many' or type_field == 'one2many':
                         needed_ids = record.get(field_key).get('ids')
-                        relational_values = [(6, False, self.get_multiple_relational_value(model, needed_ids,
-                                                                                           dependencies))]
+                        relational_values = \
+                            [(6, False, self.get_multiple_relational_value(model, needed_ids,
+                                                                           message.get_json_dependencies()))]
                     record_data[field_key] = relational_values
                 else:
                     record_data[field_key] = record.get(field_key)
