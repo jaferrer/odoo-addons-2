@@ -124,6 +124,10 @@ WHERE pol.id = %s
     def get_purchase_order_states_with_moves(self):
         return ['approved']
 
+    @api.model
+    def get_purchase_order_states_to_receive(self):
+        return ['approved']
+
     @api.multi
     def action_picking_create(self):
         """ set the stock picking company of the purchase order to the company of the purchase order

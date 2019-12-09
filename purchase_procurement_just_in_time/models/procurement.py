@@ -252,7 +252,17 @@ WHERE coalesce(sc.done, FALSE) IS FALSE AND
                 days_delta = self.get_delta_begin_grouping_period()
                 date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 06:00:00') or \
                     seller.schedule_working_days(days_delta, dt.today())
-                min_date = self.get_delivery_date_for_dateref_order(product, seller, date_ref)
+                min_draft_procurements_date = self.get_delivery_date_for_dateref_order(product, seller, date_ref)
+                first_purchase_line_to_receive = self.env['purchase.order.line']. \
+                    search([('order_id.state', 'in', self.env['purchase.order'].get_purchase_order_states_to_receive()),
+                            ('product_id', '=', product.id),
+                            ('remaining_qty', '>', 0)], order='date_planned asc', limit=1)
+                min_date = min_draft_procurements_date
+                # Even if we ignore past procurements, procurements before the first possible reception date must be
+                # able to be linked to a confirmed order.
+                if first_purchase_line_to_receive and \
+                        first_purchase_line_to_receive.date_planned < min_draft_procurements_date:
+                    min_date = first_purchase_line_to_receive.date_planned
                 past_procurements = self.search(domain + [('date_planned', '<=', min_date)])
                 if past_procurements:
                     past_procurements.remove_procs_from_lines()
@@ -820,6 +830,33 @@ GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
                                                        u"of the same supplier")
         return seller
 
+    @api.model
+    def remove_past_procurements_if_needed(self, not_assigned_proc_ids, seller):
+        if not not_assigned_proc_ids:
+            return
+        ignore_past_procurements = bool(self.env['ir.config_parameter'].
+                                        get_param('purchase_procurement_just_in_time.ignore_past_procurements'))
+        days_delta = self.get_delta_begin_grouping_period()
+        force_date_ref = self.env.context.get('force_date_ref')
+        date_ref = force_date_ref and fields.Datetime.from_string(force_date_ref + ' 06:00:00') or \
+                   seller.schedule_working_days(days_delta, dt.today())
+        # If we ignore past procurements, first procurements to create draft orders must be after the first possible
+        # reception date
+        if ignore_past_procurements:
+            self.env.cr.execute("""SELECT product_id
+FROM procurement_order
+WHERE id IN %s
+GROUP BY product_id""", (tuple(not_assigned_proc_ids),))
+            product_ids = [item[0] for item in self.env.cr.fetchall()]
+            for product in self.env['product.product'].search([('id', 'in', product_ids)]):
+                min_draft_procurements_date = self.get_delivery_date_for_dateref_order(product, seller, date_ref)
+                procurements_to_remove_ids = self.search([('id', 'in', not_assigned_proc_ids),
+                                                          ('date_planned', '<', min_draft_procurements_date)]).ids
+                if procurements_to_remove_ids:
+                    not_assigned_proc_ids = [proc_id for proc_id in not_assigned_proc_ids if
+                                             proc_id not in procurements_to_remove_ids]
+        return not_assigned_proc_ids
+
     @api.multi
     def purchase_schedule_procurements(self, jobify=False):
         return_msg = u""
@@ -834,6 +871,7 @@ GROUP BY po.company_id, po.product_id""", (tuple(self.ids), seller.id,))
         time_now = dt.now()
         dict_procs_lines, not_assigned_proc_ids = self.compute_which_procs_for_lines(self.ids, company, location)
         return_msg += u"\nComputing which procs for lines: %s s." % int((dt.now() - time_now).seconds)
+        not_assigned_proc_ids = self.remove_past_procurements_if_needed(not_assigned_proc_ids, seller)
         time_now = dt.now()
         if seller.nb_max_draft_orders and seller.get_effective_order_group_period() and not_assigned_proc_ids:
             not_assigned_procs = self.env['procurement.order'].search([('id', 'in', not_assigned_proc_ids)])
