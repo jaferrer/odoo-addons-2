@@ -1,11 +1,6 @@
 from openerp import http, tools
-import simplejson
-from openerp.http import request, serialize_exception as _serialize_exception
-from cStringIO import StringIO
-from collections import deque
-from openerp.tools.misc import find_in_path
+from openerp.http import request
 import base64
-from datetime import datetime
 import urllib
 
 
