@@ -102,7 +102,8 @@ class ProductLabelProductProduct(models.Model):
 
     @api.model
     def update_seller_ids(self):
-        return False
+        for product in self.search([]):
+            product.seller_id = product.product_tmpl_id.seller_id
 
     @api.multi
     def get_main_supplierinfo(self, force_supplier=None, force_company=None):
