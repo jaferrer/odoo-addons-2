@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="role_delegation_creation_target_template">
+        Congratulations <a href="#" t-att-data-oe-model="'res.users'" t-att-data-oe-id="obj.target_id"><t t-esc="obj.target_id.display_name"/></a>,<br/>
+        <a href="#" t-att-data-oe-model="'res.users'" t-att-data-oe-id="obj.user_id"><t t-esc="obj.user_id.name"/></a>
+        has delegated you
+        <t t-if="obj.role_id">
+            the
+            <a href="#" t-att-data-oe-model="'res.users.role'" t-att-data-oe-id="obj.role_id"><t t-esc="obj.role_id.name"/></a>
+            role
+        </t>
+        <t t-if="not obj.role_id">
+            all roles they have
+        </t>
+        (from <t t-esc="obj.date_from"/> to <t t-esc="obj.date_to"/>)
+    </template>
+
+    <template id="role_delegation_modification_target_template">
+        This delegation has been modified : <br/>
+        <t t-if="obj.role_id">
+            Role <a href="#" t-att-data-oe-model="'res.users.role'" t-att-data-oe-id="obj.role_id"><t t-esc="obj.role_id.name"/></a>
+        </t>
+        <t t-if="not obj.role_id">
+            All roles
+        </t>
+        from user
+        <a href="#" t-att-data-oe-model="'res.users'" t-att-data-oe-id="obj.user_id"><t t-esc="obj.user_id.name"/></a>
+        to user
+        <a href="#" t-att-data-oe-model="'res.users'" t-att-data-oe-id="obj.target_id"><t t-esc="obj.target_id.display_name"/></a>
+        (from <t t-esc="obj.date_from"/> to <t t-esc="obj.date_to"/>)
+    </template>
+</odoo>

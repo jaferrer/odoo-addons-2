@@ -17,6 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import hr_employee
-from . import res_users
-from . import role_delegation
+from odoo import models, fields
+
+
+class HrEmployee(models.Model):
+    _inherit = 'hr.employee'
+
+    delegation_ids = fields.One2many('res.users.role.delegation', related='user_id.delegation_ids')
+    received_delegation_ids = fields.One2many('res.users.role.delegation', related='user_id.received_delegation_ids',
+                                              readonly=True)
