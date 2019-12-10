@@ -79,7 +79,7 @@ class NdpConsuType(models.Model):
     @api.model
     def default_get(self, fields_list):
         res = super(NdpConsuType, self).default_get(fields_list)
-        res.update({'product_id': self.env.ref('ndp_analytic_contract.product_consu')})
+        res.update({'product_id': self.env.ref('ndp_analytic_contract.product_consu').id})
         return res
 
     @api.model
