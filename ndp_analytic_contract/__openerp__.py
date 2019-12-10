@@ -37,6 +37,7 @@ order lines, sale recurrence lines and sale consumption lines.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'data/data.xml',
         'views/data.xml',
         'views/analytic_contract.xml',
         'views/sale_recurrence_line.xml',
