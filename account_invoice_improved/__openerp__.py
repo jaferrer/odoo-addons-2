@@ -27,7 +27,7 @@
     'description': """
 Account Invoice Improved
 ========================
-This modules improves a few settings for account objects.
+This modules improves a few settings for account invoices.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': ['account_invoice_improved.xml'],

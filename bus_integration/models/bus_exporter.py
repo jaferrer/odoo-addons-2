@@ -43,17 +43,20 @@ class BusSynchronizationExporter(models.AbstractModel):
         :return: True or raise an exception
         """
         batch = self.env['bus.configuration.export'].browse(backend_bus_configuration_export_id)
-        object_mapping = self.env['bus.object.mapping'].search([('model_name', '=', batch.model)])
-        if not object_mapping or not object_mapping.is_exportable:
-            raise exceptions.ValidationError(u"Object mapping not configured for model : %s" % batch.model)
 
         # last_send_date: limit the number models to synchronise, we only send models which have been updated after the
         #                 last export bus.configuration.export domain should be set to
         #                 [('write_date', '>', last_send_date)]
         export_domain = batch.domain and safe_eval(batch.domain, batch.export_domain_keywords()) or []
+
         active_test = True
-        if batch.treatment_type != 'DELETION_SYNCHRONIZATION' and object_mapping.deactivated_sync:
-            active_test = False
+        if batch.treatment_type != 'BUS_SYNCHRONIZATION':
+            object_mapping = self.env['bus.object.mapping'].search([('model_name', '=', batch.model)])
+            if not object_mapping or not object_mapping.is_exportable:
+                raise exceptions.ValidationError(u"Object mapping not configured for model : %s" % batch.model)
+
+            if batch.treatment_type != 'DELETION_SYNCHRONIZATION' and object_mapping.deactivated_sync:
+                active_test = False
 
         if force_domain:
             force_domain = safe_eval(force_domain, batch.export_domain_keywords())
@@ -92,7 +95,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         for export_msg in message_list:
             job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
                                        msgs_group_uuid)
-        return True
+        return msgs_group_uuid
 
     @api.model
     def generate_message(self, bus_configuration_export_id, export_msg, msgs_group_uuid):
@@ -116,8 +119,12 @@ class BusSynchronizationExporter(models.AbstractModel):
             result = self._generate_msg_body_deletion(exported_records, model_name)
         elif message_type == 'CHECK_SYNCHRONIZATION':
             result = self._generate_check_msg_body(exported_records, model_name, message_dict['header']['dest'])
-        else:
+        elif message_type == 'BUS_SYNCHRONIZATION':
+            result = self._generate_bus_synchronization_msg_body(exported_records, model_name)
+        elif message_type == 'SYNCHRONIZATION':
             result = self._generate_msg_body(exported_records, model_name)
+        else:
+            raise exceptions.except_orm("Message type '%s' unimplemented" % message_type)
         message_dict['body'] = result['body']
 
         message = self.env['bus.message'].create_message_from_batch(message_dict, batch,
@@ -135,6 +142,15 @@ class BusSynchronizationExporter(models.AbstractModel):
             message.add_log(u"could not create send message job", 'error')
 
     # region def _generate_msg_body(self, exported_records, model_name):
+    def _generate_bus_synchronization_msg_body(self, exported_records, model_name):
+        message_dict = {'body': {'root': {exported_records._name: {}}}}
+        for record in exported_records:
+            record_id = str(record.id)
+            message_dict['body']['root'][record._name].setdefault(record_id, {})
+            message_dict['body']['root'][record._name][record_id]['write_date'] = record.write_date
+            message_dict['body']['root'][record._name][record_id]['display_name'] = record.display_name or ""
+        return message_dict
+
     def _generate_msg_body(self, exported_records, model_name):
         message_dict = {
             'body': {
@@ -156,13 +172,14 @@ class BusSynchronizationExporter(models.AbstractModel):
                     message_dict['body']['root'][model_name][record_id]['xml_id'] = xml_id
             list_export_field = object_mapping.get_field_to_export()
             for field in list_export_field:
-                if field.type_field == 'many2many':
-                    message_dict = self.fill_many2many(message_dict, record, field)
-                if field.type_field == 'many2one':
+                if field.type_field == 'many2many' or field.type_field == 'one2many':
+                    message_dict = self.fill_x2many(message_dict, record, field)
+                elif field.type_field == 'many2one':
                     message_dict = self.fill_many2one(message_dict, record, field)
                 elif field.type_field in self.authorize_field_type:
                     message_dict = self.fill_field(message_dict, record, field)
             message_dict['body']['root'][record._name][record_id]['write_date'] = record.write_date
+            message_dict['body']['root'][record._name][record_id]['display_name'] = record.display_name or ""
         return message_dict
 
     @api.model
@@ -176,12 +193,19 @@ class BusSynchronizationExporter(models.AbstractModel):
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = record[field.field_name]
         if field.field_id.ttype == 'char' and field.field_id.translate:
+            if field.field_name in record._inherit_fields:
+                parent_model, link_field, parent_field, parent_model_b = record._inherit_fields[field.field_name]
+                model = parent_model
+                res_id = record[link_field].id
+            else:
+                model = record._name
+                res_id = record.id
             # makes sure all fields are translated. before export.
             # Actually if the translation form has never been opened ir_translation records are not create
-            self.env['ir.translation'].translate_fields(record._name, record.id, field=field.field_name)
-            translation_name = "%s,%s" % (record._name, field.field_name)
+            self.env['ir.translation'].translate_fields(model, res_id, field=field.field_name)
+            translation_name = "%s,%s" % (model, field.field_name)
             translations = self.env['ir.translation'].search([('name', '=', translation_name),
-                                                              ('res_id', '=', record.id)])
+                                                              ('res_id', '=', res_id)])
             if translations:
                 message_dict = self.fill_translation(message_dict, record._name, record_id, field, translations)
         return message_dict
@@ -194,35 +218,35 @@ class BusSynchronizationExporter(models.AbstractModel):
             return message_dict
         message_dict['body']['root'][record._name][record_id][field.map_name] = {
             'id': record[field.field_name].id,
-            'model': field.relation_mapping_id.model_name,
+            'model': field.field_id.relation,
             'type_field': 'many2one'
         }
         sub_record = record[field.field_name]
-        message_dict = self.fill_dependancy(message_dict, field.relation_mapping_id.model_name, sub_record)
+        message_dict = self.fill_dependancy(message_dict, field, sub_record)
         return message_dict
 
     @api.model
-    def fill_many2many(self, message_dict, record, field):
+    def fill_x2many(self, message_dict, record, field):
+        """ one2many or many2many field """
         record_id = str(record.id)
         message_dict['body']['root'][record._name][record_id][field.map_name] = {
             'ids': record[field.field_name].ids,
-            'model': field.relation_mapping_id.model_name,
-            'type_field': 'many2many'
+            'model': field.field_id.relation,
+            'type_field': field.type_field
         }
         sub_records = record[field.field_name]
-        message_dict = self.fill_dependancy(message_dict, field.relation_mapping_id.model_name, sub_records)
+        message_dict = self.fill_dependancy(message_dict, field, sub_records)
         return message_dict
 
     @api.model
-    def fill_dependancy(self, message_dict, model_name, records):
+    def fill_dependancy(self, message_dict, field, records):
+        model_name = field.field_id.relation
         if not message_dict['body']['dependency'].get(model_name):
             message_dict['body']['dependency'][model_name] = {}
         for sub_record in records:
             sub_record_id = str(sub_record.id)
             if not message_dict['body']['dependency'][model_name].get(sub_record_id):
-                message_dict['body']['dependency'][model_name][sub_record_id] = {
-                    'id': sub_record.id
-                }
+                message_dict['body']['dependency'][model_name][sub_record_id] = {}
         return message_dict
 
     @api.model

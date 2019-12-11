@@ -45,6 +45,12 @@ class ProductProduct(models.Model):
             create_needed_orderpoint_for_product(ConnectorSession.from_env(self.env), 'product.product',
                                                  products.ids, dict(self.env.context))
 
+    @api.model
+    def get_orderpoint_required_locations_ids(self):
+        location_config_ids = self.env['ir.config_parameter']. \
+            get_param('stock_location_orderpoint.required_orderpoint_location_ids', default='[]')
+        return location_config_ids and eval(location_config_ids) or []
+
     @api.multi
     def _create_needed_orderpoints(self):
         if not self:
@@ -58,10 +64,7 @@ WHERE op.company_id != sl.company_id""")
         for orderpoint_id, company_id in self.env.cr.fetchall():
             orderpoint = self.env['stock.warehouse.orderpoint'].browse(orderpoint_id)
             orderpoint.write({'company_id': company_id})
-        location_config_ids = self.env['ir.config_parameter'].get_param(
-            'stock_location_orderpoint.required_orderpoint_location_ids', default='[]')
-        orderpoint_required_locations = location_config_ids and self.env['stock.location']. \
-            browse(eval(location_config_ids))
+        orderpoint_required_locations_ids = self.get_orderpoint_required_locations_ids()
         self.env.cr.execute("""WITH product_product_restricted AS (
     SELECT *
     FROM product_product
@@ -102,11 +105,12 @@ SELECT
   product_id,
   location_id
 FROM existing_orderpoints
-WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_locations.ids or [0]),))
+WHERE orderpoint_id IS NULL""", (tuple(self.ids), tuple(orderpoint_required_locations_ids or [0]),))
         for product_id, location_id in self.env.cr.fetchall():
             product = self.env['product.product'].search([('id', '=', product_id)])
             location = self.env['stock.location'].search([('id', '=', location_id)])
-            self.env['stock.warehouse.orderpoint'].create(product._prepare_order_point_data(location))
+            if product and location:
+                self.env['stock.warehouse.orderpoint'].create(product._prepare_order_point_data(location))
 
     @api.model
     def _prepare_order_point_data(self, location):
@@ -134,6 +138,7 @@ class StockLocationRoute(models.Model):
                                    string=u"Products")
     no_rsm_locations_ids = fields.Many2many('stock.location', 'stock_location_without_rsm', 'route_id',
                                             string=u"Location with no rsm")
+
 
 class SirailStockLocation(models.Model):
     _inherit = 'stock.location'

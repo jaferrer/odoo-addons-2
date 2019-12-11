@@ -95,6 +95,12 @@ class pricelist_partnerinfo_improved (models.Model):
                                          ('active_line', '=', False)])
         lines_to_activate.write({'active_line': True})
 
+    @api.model
+    def create(self, vals):
+        res = super(pricelist_partnerinfo_improved, self).create(vals)
+        res.update_active_lines()
+        return res
+
     @api.multi
     def write(self, vals):
         result = super(pricelist_partnerinfo_improved, self).write(vals)

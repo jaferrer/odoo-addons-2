@@ -17,7 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 from openerp import models, fields, api, exceptions, _ as _t
+
+_logger = logging.getLogger(__name__)
 
 
 class BusObjectMappingAbstract(models.AbstractModel):
@@ -33,7 +37,6 @@ class BusObjectMappingAbstract(models.AbstractModel):
     key_xml_id = fields.Boolean(string=u"Migration key on xml id",
                                 help=u"if XML id not find, is_importable on key in fields")
     deactivated_sync = fields.Boolean(string=u"Synchronize inactive items")
-    deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
     deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
     update_prohibited = fields.Boolean(string=u"Update prohibited", help=u"When field are importable", default=True)
 
@@ -57,13 +60,14 @@ class BusObjectMappingAbstract(models.AbstractModel):
         self.ensure_one()
         model_mapping_xml_id = u"mapping_model_%s" % (self.model_id.model.replace('.', '_'))
         model_xml_id = self.model_id.get_external_id().get(self.model_id.id)
-        model_csv = u"%s,%s,%s,%s,%s,%s,%s" % (model_mapping_xml_id,
-                                               model_xml_id,
-                                               self.is_exportable,
-                                               self.is_importable,
-                                               self.key_xml_id,
-                                               self.deactivated_sync,
-                                               self.deactivate_on_delete)
+        model_csv = u"%s,%s,%s,%s,%s,%s,%s,%s" % (model_mapping_xml_id,
+                                                  model_xml_id,
+                                                  self.is_exportable,
+                                                  self.is_importable,
+                                                  self.key_xml_id,
+                                                  self.deactivated_sync,
+                                                  self.deactivate_on_delete,
+                                                  self.update_prohibited)
 
         fields_csv = u""""""
         for my_field in self.field_ids:
@@ -115,12 +119,16 @@ class BusObjectMappingAbstract(models.AbstractModel):
             'context': self.env.context
         }
 
+    @api.model
+    def get_mapping_fields(self):
+        self.ensure_one()
+        return [field for field in self.field_ids if field.is_migration_key]
+
 
 class BusObjectMappingFieldAbstract(models.AbstractModel):
     _name = 'bus.object.mapping.field.abstract'
 
-    field_id = fields.Many2one('ir.model.fields', u"Field", required=True, domain=[('ttype', '!=', 'one2many')],
-                               context={'display_technical_names': True})
+    field_id = fields.Many2one('ir.model.fields', u"Field", required=True, context={'display_technical_names': True})
 
     mapping_id = fields.Many2one('bus.object.mapping.abstract', string=u"Model")
     model_id = fields.Many2one('ir.model', u"Model", related='mapping_id.model_id', readonly=True)
@@ -129,6 +137,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
     field_name = fields.Char(u"Field name", readonly=True, related='field_id.name', store=True)
     type_field = fields.Selection(u"Type", related='field_id.ttype', store=True, readonly=True)
     is_computed = fields.Boolean(String=u"Computed", compute="_compute_depends_field_id", store=True)
+    relation = fields.Char(u"relation", related="field_id.relation")
     # compute when model changes in mapping.field.configuration.helper
     map_name = fields.Char(u"Mapping name", required=True)
     # set manually
@@ -148,6 +157,7 @@ class BusObjectMappingFieldAbstract(models.AbstractModel):
             rec.is_computed = model_name \
                 and rec.field_name in self.env[model_name]._fields \
                 and self.env[model_name]._fields[rec.field_name].compute \
+                and not self.env[model_name]._fields[rec.field_name].store \
                 and not self.env[model_name]._fields[rec.field_name].inverse \
                 and not self.env[model_name]._fields[rec.field_name].related or False
             model_name = rec.field_id.relation
@@ -162,7 +172,7 @@ class BusObjectMapping(models.Model):
 
     active = fields.Boolean(u"Active", default=True)
     field_ids = fields.One2many('bus.object.mapping.field', 'mapping_id', string=u"Fields",
-                                domain=[('type_field', '!=', 'one2many'), ('is_computed', '=', False)])
+                                domain=[('is_computed', '=', False)])
     dependency_level = fields.Integer(u"Dependency level", readonly=True)
 
     _sql_constraints = [
@@ -239,6 +249,14 @@ class BusObjectMapping(models.Model):
         self.ensure_one()
         return [field for field in self.field_ids if field.import_creatable_field or field.import_updatable_field]
 
+    @api.model
+    def delete_records_created_manually(self):
+        for rec in self.search([]):
+            xml_id = rec.get_external_id().get(rec.id, '')
+            if not xml_id:
+                _logger.info(u"Deleting mapping for model %s, because it was created manually.", rec.model_name)
+                rec.unlink()
+
 
 class BusObjectMappingField(models.Model):
     _name = 'bus.object.mapping.field'
@@ -247,8 +265,11 @@ class BusObjectMappingField(models.Model):
     mapping_id = fields.Many2one('bus.object.mapping', string=u"Model")
     # "field_id_name" = temporary field used while importing data from CSV to compute "field_id"
     field_id_name = fields.Text(string="field_name", store=False, compute=lambda x: [None for _ in x], required=False)
-
     active = fields.Boolean(u"Active", default=True)
+
+    _sql_constraints = [
+        ('name_uniq_by_model', 'unique(field_id, mapping_id)', u"This field already exists for this model."),
+    ]
 
     def _get_vals_with_field_id(self, vals):
         if 'field_id_name' not in vals:
@@ -263,6 +284,15 @@ class BusObjectMappingField(models.Model):
         return vals
 
     @api.model
+    def delete_records_created_manually(self):
+        for rec in self.search([]):
+            xml_id = rec.get_external_id().get(rec.id, '')
+            if not xml_id:
+                _logger.info(u"Deleting mapping for field %s in model %s, because it was created manually.",
+                             rec.field_name, rec.mapping_id.model_name)
+                rec.unlink()
+
+    @api.model
     def create(self, vals):
         vals = self._get_vals_with_field_id(vals)
         return super(BusObjectMappingField, self).create(vals)
@@ -271,9 +301,3 @@ class BusObjectMappingField(models.Model):
     def write(self, vals):
         vals = self._get_vals_with_field_id(vals)
         return super(BusObjectMappingField, self).write(vals)
-
-    _sql_constraints = [
-        ('name_uniq_by_model', 'unique(field_id, mapping_id)', u"This field already exists for this model."),
-        ('check_type_field', "check(type_field <> 'one2many')", u"one2many fields can't be exported"),
-        ('check_not_computed', "check(is_computed = False)", u"fields must not be computed"),
-    ]

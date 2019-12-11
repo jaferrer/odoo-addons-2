@@ -93,6 +93,8 @@ class BusSynchronizationReceiver(models.AbstractModel):
             self.env['bus.importer'].register_synchro_deletion_return(message_id)
         elif message.treatment in ['CHECK_SYNCHRONIZATION_RETURN']:
             self.env['bus.importer'].register_synchro_check_return(message_id)
+        elif message.treatment == 'BUS_SYNCHRONIZATION_RETURN':
+            self.env['bus.importer'].register_synchro_bus_response(message)
         else:
             result = False
         if not result:
@@ -113,5 +115,5 @@ class BusSynchronizationReceiver(models.AbstractModel):
         result = return_res.get('result', False)
         return_state = return_res.get('state', False)
         message.result = 'error' if not return_state else 'finished'
-        self.env['bus.importer'].import_bus_references(message.id, result, return_state)
+        self.env['bus.importer'].import_bus_references(message, result, return_state)
         return False

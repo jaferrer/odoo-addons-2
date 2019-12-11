@@ -279,8 +279,8 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
 
     procurement_ids = fields.One2many('procurement.order', 'sale_line_id', readonly=True)
     move_ids = fields.One2many('stock.move', 'sale_line_id', readonly=True)
-    remaining_qty = fields.Float(u"Qty Still To Be Sent", digits_compute=dp.get_precision('Product UoS'))
-    sent_qty = fields.Float(u"Quantity Already Sent", digits_compute=dp.get_precision('Product UoS'))
+    remaining_qty = fields.Float(u"Qty Still To Be Sent", digits_compute=dp.get_precision('Product UoS'), readonly=True)
+    sent_qty = fields.Float(u"Quantity Already Sent", digits_compute=dp.get_precision('Product UoS'), readonly=True)
 
     @api.multi
     def get_running_moves_to_customer_for_line(self):
@@ -384,7 +384,7 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
                 procs_to_remove_from_lines.write({'sale_line_id': False})
 
     @api.multi
-    def update_remaining_qty(self):
+    def update_remaining_qty(self, jobify=True):
         list_lines_to_synchronize = []
         for rec in self:
             prec = rec.product_uom.rounding
@@ -400,8 +400,12 @@ class ExpeditionByOrderLineSaleOrderLine(models.Model):
                 list_lines_to_synchronize += [(rec.id, returned_qty)]
         while list_lines_to_synchronize:
             chunk_list_lines_to_synchronize = list_lines_to_synchronize[:100]
-            job_synchronize_lines.delay(ConnectorSession.from_env(self.env), 'sale.order.line',
-                                        chunk_list_lines_to_synchronize, dict(self.env.context))
+            if jobify:
+                job_synchronize_lines.delay(ConnectorSession.from_env(self.env), 'sale.order.line',
+                                            chunk_list_lines_to_synchronize, dict(self.env.context))
+            else:
+                job_synchronize_lines(ConnectorSession.from_env(self.env), 'sale.order.line',
+                                      chunk_list_lines_to_synchronize, dict(self.env.context))
             list_lines_to_synchronize = list_lines_to_synchronize[100:]
 
 
@@ -439,9 +443,9 @@ class ExpeditionByOrderLineSaleOrder(models.Model):
                 rec.lines_display = 'not_null_remaining_quantity'
 
     @api.multi
-    def update_remaining_qties(self):
+    def update_remaining_qties(self, jobify=True):
         for rec in self:
-            rec.order_line.update_remaining_qty()
+            rec.order_line.update_remaining_qty(jobify=jobify)
 
     @api.multi
     def remove_old_delivery_moves(self):

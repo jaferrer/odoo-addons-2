@@ -26,7 +26,7 @@ from openerp import modules, fields, models, api, _
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT
 
 
-@job
+@job(default_channel='root.job_compute_coverage_state')
 def job_compute_coverage_state(session, model_name, ids, force_product_ids, context):
     session.env[model_name].with_context(context).browse(ids). \
         compute_coverage_state(force_product_ids=force_product_ids)
@@ -156,8 +156,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
             product_ids = products.ids
         with open(module_path + '/sql/' + 'covering_dates_query.sql') as sql_file:
             self.env.cr.execute(sql_file.read(), (tuple(product_ids),))
-            test = self.env.cr.dictfetchall()
-            for result_line in test:
+            for result_line in self.env.cr.dictfetchall():
                 line = self.env['purchase.order.line'].search([('id', '=', result_line['pol_id'])])
                 if line.product_id.type == 'product':
                     real_need_date = result_line['real_need_date'] or False
@@ -198,14 +197,18 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     def cron_compute_coverage_state(self):
         pol_coverage_to_recompute = self.search([('order_id.state', 'not in', ['draft', 'done', 'cancel']),
                                                  ('order_id.partner_id.active', '=', True),
-                                                 ('remaining_qty', '>', 0)])
-        products_to_process_ids = list(set([line.product_id.id for line in pol_coverage_to_recompute if
-                                            line.product_id]))
-        if products_to_process_ids:
+                                                 ('remaining_qty', '>', 0),
+                                                 ('product_id', '!=', False)])
+        products_to_process_ids = list(set([line.product_id.id for line in pol_coverage_to_recompute]))
+        products = self.env['product.product'].search([('id', 'in', products_to_process_ids)])
+        nb_products = len(products)
+        index = 0
+        for product in products:
+            index += 1
+            description = u"Update coverage states for product %s (%s/%s)" % (product.default_code, index, nb_products)
             job_compute_coverage_state.delay(ConnectorSession.from_env(self.env), 'purchase.order.line',
                                              pol_coverage_to_recompute.ids,
-                                             products_to_process_ids, context=dict(self.env.context),
-                                             description=u"Update coverage states")
+                                             [product.id], context=dict(self.env.context), description=description)
 
     @api.multi
     def set_moves_dates(self, date_required):

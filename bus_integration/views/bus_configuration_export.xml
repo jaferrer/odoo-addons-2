@@ -12,12 +12,10 @@
                         red: last_transfer_state == 'error';
                         blue: last_transfer_state == 'started';">
                     <field name="model"/>
+                    <field name="comment"/>
                     <field name="recipient_id"/>
                     <field name="treatment_type"/>
                     <field name="last_transfer_state"/>
-                    <field name="mapping_object_id"/>
-                    <field name="sequence"/>
-                    <field name="dependency_level"/>
                     <button string="Sync. diff." name="sync_diff" type="object" />
                     <button string="Sync. ALL" name="sync_all" type="object" />
                 </tree>
@@ -57,9 +55,9 @@
                             </group>
                             <group>
                                 <field name="model"/>
+                                <field name="comment" />
                                 <field name="domain"/>
                                 <field name="chunk_size"/>
-                                <field name="mapping_object_id"/>
                                 <field name="dependency_level"/>
                                 <field name="cron_sync_all" />
                                 <field name="cron_sync_diff" />
@@ -67,7 +65,7 @@
                         </group>
                         <notebook>
                             <page id="histo" string="History">
-                                <field name="bus_message_ids" nolabel="1"/>
+                                <field name="bus_message_ids" nolabel="1" options="{'reload_on_button': true}"/>
                             </page>
                         </notebook>
                     </sheet>
@@ -88,7 +86,7 @@
                     <filter string="Active" name="active" domain="[('active', '=', True)]"/>
                     <filter string="Inactive" name="inactive" domain="[('active', '=', False)]"/>
                     <group expand="0" string="Group By">
-                        <filter string="Recipient" domain="[]" context="{'group_by':'recipient_id'}"/>
+                        <filter string="Recipient" name="group_by_recipient" domain="[]" context="{'group_by':'recipient_id'}"/>
                         <filter string="BUS user name" domain="[]" context="{'group_by':'bus_username'}"/>
                         <filter string="Type traitement" domain="[]" context="{'group_by':'treatment_type'}"/>
                     </group>
@@ -101,18 +99,19 @@
             <field name="res_model">bus.configuration.export</field>
             <field name="view_mode">tree,form</field>
             <field name="help"/>
+            <field name="context">{'search_default_group_by_recipient': 1}</field>
         </record>
 
         <menuitem id="menu_bus_config_export_menu" name="Configuration of template exports"
                   action="act_window_bus_config_export" parent="menu_bus"
-                  sequence="15"/>
+                  sequence="101"/>
 
         <!-- Create crons action -->
-        <record model="ir.actions.server" id="ir_actions_config_export_create_crons">
-            <field name="name">Auto generate crons</field>
+        <record model="ir.actions.server" id="ir_actions_config_sync_diff">
+            <field name="name">Synch. diff</field>
             <field name="model_id" ref="bus_integration.model_bus_configuration_export"/>
             <field name="code">
-                action = self.auto_generate_crons(cr,uid,context.get('active_ids'),context)
+                action = self.sync_diff(cr,uid,context.get('active_ids'),context)
             </field>
         </record>
 
@@ -120,27 +119,8 @@
             <field name="key">action</field>
             <field name="key2">client_action_multi</field>
             <field name="model">bus.configuration.export</field>
-            <field name="name">Auto generate crons</field>
-            <field name="value" eval="'ir.actions.server,'+str(ir_actions_config_export_create_crons)"/>
+            <field name="name">Synch. diff</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_config_sync_diff)"/>
         </record>
-
-
-        <!-- Update dependency level action -->
-        <record model="ir.actions.server" id="ir_actions_update_config_export_dependency_level">
-            <field name="name">Update dependency level</field>
-            <field name="model_id" ref="bus_integration.model_bus_configuration_export"/>
-            <field name="code">
-                action = self.compute_dependency_level(cr,uid,context.get('active_ids'),context)
-            </field>
-        </record>
-
-        <record model="ir.values" id="ir_value_update_config_export_dependency_level">
-            <field name="key">action</field>
-            <field name="key2">client_action_multi</field>
-            <field name="model">bus.configuration.export</field>
-            <field name="name">Update dependency level</field>
-            <field name="value" eval="'ir.actions.server,'+str(ir_actions_update_config_export_dependency_level)"/>
-        </record>
-
     </data>
 </openerp>

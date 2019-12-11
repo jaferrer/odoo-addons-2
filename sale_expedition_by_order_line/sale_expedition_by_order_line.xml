@@ -55,7 +55,7 @@ self.update_remaining_qty(cr,uid,context.get('active_ids'),context)
                     <field name="sent_qty"/>
                     <field name="remaining_qty"/>
                 </xpath>
-                <xpath expr="//notebook//field[@name='order_line']/form//field[@name='product_uom_qty']" position="after">
+                <xpath expr="//notebook//field[@name='order_line']/form//field[@name='price_unit']" position="before">
                     <field name="sent_qty"/>
                     <field name="remaining_qty"/>
                 </xpath>
