@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,24 +18,22 @@
 #
 
 {
-    'name': 'Project Template Tasks',
+    'name': 'Timeline - Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project'],
+    'category': 'web',
+    'depends': ['web_timeline'],
     'description': """
-Project Template Tasks
-======================
-This module allows to generate automatically tasks from project task types. You can also define task types which are
-selected by default for any new project.
+Timeline improved
+=================
+Add 'timeline' in selection of view mode of act window
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/ir.model.access.csv',
-        'project_template_tasks.xml',
+        'views/templates.xml',
     ],
-    'demo': ['tests/template_tasks_demo.xml'],
+    'demo': [],
     'test': [],
     'installable': True,
     'auto_install': False,

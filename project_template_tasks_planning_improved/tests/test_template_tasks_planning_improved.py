@@ -50,13 +50,15 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
             'name': "Test project (Template Tasks)"
         })
         self.assertEqual(len(new_project.use_task_type_ids), 4)
-        self.assertIn(self.stage0, new_project.use_task_type_ids)
-        self.assertIn(self.stage1, new_project.use_task_type_ids)
-        self.assertIn(self.stage2, new_project.use_task_type_ids)
-        self.assertIn(self.stage3, new_project.use_task_type_ids)
+        self.assertIn(self.stage0, new_project.type_ids)
+        self.assertIn(self.stage1, new_project.type_ids)
+        self.assertIn(self.stage2, new_project.type_ids)
+        self.assertIn(self.stage3, new_project.type_ids)
 
         # Synchronizing stage 1
-        self.stage1.with_context(project_id=new_project.id).synchronize_default_tasks()
+        line_to_synchronize = new_project.use_task_type_ids.filtered(lambda line: line.type_id == self.stage1)
+        self.assertEqual(len(line_to_synchronize), 1)
+        line_to_synchronize.synchronize_default_tasks()
         domain_stage1 = [('is_template', '=', False),
                          ('project_id', '=', new_project.id),
                          ('stage_id', '=', self.stage1.id)]
@@ -97,7 +99,9 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertFalse(task7.next_task_ids)
 
         # Synchronizing stage 0
-        self.stage0.with_context(project_id=new_project.id).synchronize_default_tasks()
+        line_to_synchronize = new_project.use_task_type_ids.filtered(lambda line: line.type_id == self.stage0)
+        self.assertEqual(len(line_to_synchronize), 1)
+        line_to_synchronize.synchronize_default_tasks()
         domain_stage0 = [('is_template', '=', False),
                          ('project_id', '=', new_project.id),
                          ('stage_id', '=', self.stage0.id)]
@@ -116,7 +120,9 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertIn(task6, task1.next_task_ids)
 
         # Synchronizing stage 3
-        self.stage3.with_context(project_id=new_project.id).synchronize_default_tasks()
+        line_to_synchronize = new_project.use_task_type_ids.filtered(lambda line: line.type_id == self.stage3)
+        self.assertEqual(len(line_to_synchronize), 1)
+        line_to_synchronize.synchronize_default_tasks()
         domain_stage3 = [('is_template', '=', False),
                          ('project_id', '=', new_project.id),
                          ('stage_id', '=', self.stage3.id)]
@@ -137,7 +143,9 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.assertFalse(task11.next_task_ids)
 
         # Synchronizing stage 2
-        self.stage2.with_context(project_id=new_project.id).synchronize_default_tasks()
+        line_to_synchronize = new_project.use_task_type_ids.filtered(lambda line: line.type_id == self.stage2)
+        self.assertEqual(len(line_to_synchronize), 1)
+        line_to_synchronize.synchronize_default_tasks()
         domain_stage2 = [('is_template', '=', False),
                          ('project_id', '=', new_project.id),
                          ('stage_id', '=', self.stage2.id)]

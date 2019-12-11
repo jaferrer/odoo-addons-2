@@ -1,0 +1,10 @@
+<openerp>
+    <data>
+        <template id="assets_backend" name="web_edit_listview_fixed assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/web_edit_listview_fixed/static/src/css/web_edit_listview_fixed.css"/>
+                <script type="text/javascript" src="/web_edit_listview_fixed/static/src/js/web_edit_listview_fixed.js"></script>
+            </xpath>
+        </template>
+    </data>
+</openerp>

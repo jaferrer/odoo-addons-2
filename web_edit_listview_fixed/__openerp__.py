@@ -16,29 +16,23 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Project Template Tasks',
+    'name': "Web edit listview fixed",
+
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['project'],
-    'description': """
-Project Template Tasks
-======================
-This module allows to generate automatically tasks from project task types. You can also define task types which are
-selected by default for any new project.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'security/ir.model.access.csv',
-        'project_template_tasks.xml',
+    'category': 'Technical',
+    'description': """A module that fix the listview in edit form
+        """,
+
+    'depends': [
+        'web',
     ],
-    'demo': ['tests/template_tasks_demo.xml'],
-    'test': [],
+    'qweb': [
+    ],
+    'data': [
+        'view/qweb.xml',
+    ],
     'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
 }
