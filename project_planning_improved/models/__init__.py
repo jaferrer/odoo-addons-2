@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from . import exceptions
 from . import res_partner
 from . import project_planning_improved
 from . import conflicts_tracking

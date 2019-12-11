@@ -103,6 +103,26 @@ msgid "Next tasks"
 msgstr "Tâches suivantes"
 
 #. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_form
+msgid "Mask in timeline view"
+msgstr "Masquer en vue timeline"
+
+#. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_form
+msgid "Display in timeline view"
+msgstr "Afficher en vue timeline"
+
+#. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_form
+msgid "Are you sure? This will set the duration of this task and all its children to one day."
+msgstr "Êtes-vous sûr ? Cela passera la durée de cette tâche et de toutes ses tâches filles à une journée."
+
+#. module: project_planning_improved
+#: view:project.task:project_planning_improved.project_improved_task_form
+msgid "Are you sure? This will recompute dates for this task and its children from objective durations."
+msgstr "Êtes-vous sûr ? Les dates de cette tâche et de ses tâches filles seront recalculées à partir des durées objectives."
+
+#. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_critical_task
 #: view:project.task:project_planning_improved.project_improved_task_search
 msgid "Critical task"
@@ -116,8 +136,8 @@ msgstr "Durée initialement prévue (en jours)"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_duration
-msgid "Allocated duration"
-msgstr "Temps alloué"
+msgid "Allocated duration (days)"
+msgstr "Temps alloué (jours)"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_total_allocated_duration
@@ -128,13 +148,6 @@ msgstr "Temps alloué total"
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_allocated_duration_unit_tasks
 msgid "Allocated duration for unit tasks"
 msgstr "Temps alloué pour les tâches unitaires"
-
-#. module: project_planning_improved
-#: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration
-#: model:ir.model.fields,help:project_planning_improved.field_project_task_allocated_duration_unit_tasks
-#: model:ir.model.fields,help:project_planning_improved.field_project_task_total_allocated_duration
-msgid "In project time unit of the company"
-msgstr "Exprimé en unité de temps de la société"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_expected_end_date
@@ -202,7 +215,7 @@ msgstr "Date de fin de la tâche de référence"
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_children_task_ids
 #: view:project.task:project_planning_improved.project_improved_task_form
 msgid "Children tasks"
-msgstr "Tâches enfants"
+msgstr "Tâches filles"
 
 #. module: project_planning_improved
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_taken_into_account
@@ -214,6 +227,16 @@ msgstr "Pris en compte"
 #: model:ir.model.fields,field_description:project_planning_improved.field_project_task_conflict
 msgid "Conflict"
 msgstr "Conflit"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_forced_duration_one_day
+msgid "Duration forced at one day"
+msgstr "Durée forcée à un jour"
+
+#. module: project_planning_improved
+#: model:ir.model.fields,field_description:project_planning_improved.field_project_task_hidden_from_task_id
+msgid "Hidden from task"
+msgstr "Cachée depuis la tâche"
 
 #. module: project_planning_improved
 #: code:addons\project_planning_improved\project_planning_improved.py:36
@@ -252,19 +275,25 @@ msgid "Task %s must totally include task %s"
 msgstr "La tâche %s doit contenir totalement la tâche %s"
 
 #. module: project_planning_improved
-#: code:addons\project_planning_improved\project_planning_improved.py:475
+#: code:addons\project_planning_improved\exceptions.py:31
 #, python-format
 msgid "Task %s: impossible to set start date in a not working period (%s)"
 msgstr "Tâche %s : impossible de définir la date de début dans une période non ouvrée (%s)"
 
 #. module: project_planning_improved
-#: code:addons\project_planning_improved\project_planning_improved.py:477
+#: code:addons\project_planning_improved\exceptions.py:31
+#, python-format
+msgid "Impossible to display %s, please display first task %s"
+msgstr "Impossible d'afficher la tâche %s, veuillez d'abord afficher la tâche %s"
+
+#. module: project_planning_improved
+#: code:addons\project_planning_improved\exceptions.py:477
 #, python-format
 msgid "Task %s: impossible to set end date in a not working period (%s)"
 msgstr "Tâche %s : impossible de définir la date de fin dans une période non ouvrée (%s)"
 
 #. module: project_planning_improved
-#: code:addons\project_planning_improved\project_planning_improved.py:718
+#: code:addons\project_planning_improved\exceptions.py:27
 #, python-format
 msgid "Impossible to schedule task %s, because it is already taken into account"
 msgstr "Impossible de planifier la tâche %s, car elle est déjà prise en compte"
