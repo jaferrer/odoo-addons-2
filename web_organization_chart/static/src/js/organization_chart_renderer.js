@@ -1,6 +1,8 @@
 var nodeTemplate = function (data) {
-    return `<div class="title">${data.display_name}</div>
-        <div class="content">${data.content}</div>`;
+    data.function = data.function || '';
+    data.email = data.email ? data.email + '<br/>' :  '';
+    return `<div class="${data.company_type}"><div class="title">${data.display_name}</div>
+        <div class="content">${data.function}${data.email}</div></div>`;
 };
 
 odoo.define('web_organization_chart.OrganizationChartRenderer', function (require) {
@@ -10,7 +12,6 @@ odoo.define('web_organization_chart.OrganizationChartRenderer', function (requir
     var utils = require('web.utils');
     var session = require('web.session');
     var QWeb = require('web.QWeb');
-    var field_utils = require('web.field_utils');
 
     var OrganizationChartRenderer = AbstractRenderer.extend({
         template: "OrganizationChartView",
@@ -35,7 +36,6 @@ odoo.define('web_organization_chart.OrganizationChartRenderer', function (requir
          */
         start: function () {
             var self = this;
-            // var attrs = this.arch.attrs;
             this.$organization_chart = this.$el;
             this._super.apply(this, self);
         },
@@ -72,14 +72,23 @@ odoo.define('web_organization_chart.OrganizationChartRenderer', function (requir
                 this.qweb.add_template(tmpl);
             }
 
+            var ajaxURLs = {
+                'parent': function (nodeData) {
+                    return 'get_parent_node?node_id=' + nodeData.id;
+                },
+                'children': function (nodeData) {
+                    return 'get_children_nodes?node_id=' + nodeData.id;
+                }
+            };
+
             this.organization_chart = self.$organization_chart.empty().orgchart({
                 'data': {},
+                'ajaxURL': ajaxURLs,
                 'nodeTemplate': nodeTemplate,
-                'toggleSiblingsResp': true,
                 'initCompleted': function ($chart) {
-                    $('.node').unbind('click');
-                    $('.node').on('click', function (event) {
-                        event.id = $(this).attr('id')
+                    $('.node > .company').unbind('click');
+                    $('.node > .company').on('click', function (event) {
+                        event.id = $(this).parent().attr('id')
                         self.on_update(event);
                     });
                 }
@@ -96,14 +105,12 @@ odoo.define('web_organization_chart.OrganizationChartRenderer', function (requir
          */
         on_data_loaded: function (data) {
             var self = this;
-            var nodesData = {
-                'display_name': this.modelClass,
-                'children': [],
-            };
+            // Compatible avec un seul noeud racine (avec une racine artificielle, on ne peut pas remonter l'arbre)
+            var nodesData = null;
 
             data.forEach(function (item) {
                 if (item.parent_id === false || data.map(x => x.id).indexOf(parseInt(item.parent_id[0])) === -1) {
-                    nodesData.children.push(self.get_children(item, data));
+                    nodesData = self.get_children(item, data);
                 }
             });
 
@@ -116,8 +123,11 @@ odoo.define('web_organization_chart.OrganizationChartRenderer', function (requir
             var self = this;
             var nodesData = {
                 'id': parent.id,
+                'relationship': parent.relationship,
                 'display_name': parent.display_name,
-                'content': this.render_chart_item(parent),
+                'function': parent.function,
+                'email': parent.email,
+                'company_type': parent.company_type,
                 'children': [],
             };
 
@@ -128,19 +138,6 @@ odoo.define('web_organization_chart.OrganizationChartRenderer', function (requir
             });
 
             return nodesData;
-        },
-
-        render_chart_item: function (evt) {
-            if (this.qweb.has_template('chart-item')) {
-                return this.qweb.render('chart-item', {
-                    'record': evt,
-                    'field_utils': field_utils
-                });
-            }
-
-            console.error(
-                _t('Template "chart-item" not present in timeline view definition.')
-            );
         },
 
         /**

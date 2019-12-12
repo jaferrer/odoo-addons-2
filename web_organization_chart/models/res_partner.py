@@ -17,11 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import api, models
+from odoo import api, models, fields
 
 
 class ResPartner(models.Model):
     _inherit = "res.partner"
+
+    relationship = fields.Char("Hierarchy relationships", compute='_compute_relationship')
 
     @api.multi
     def associated_res_partner(self):
@@ -32,3 +34,10 @@ class ResPartner(models.Model):
         action_data = action_ref.read()[0]
         action_data['domain'] = [('id', 'in', self.child_ids.mapped('id') + self.ids)]
         return action_data
+
+    @api.multi
+    def _compute_relationship(self):
+        for rec in self:
+            has_parent = rec.parent_id.id and '1' or '0'
+            has_children = len(rec.child_ids) > 0 and '1' or '0'
+            rec.relationship = has_parent + '0' + has_children

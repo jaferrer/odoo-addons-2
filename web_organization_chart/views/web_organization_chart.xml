@@ -27,6 +27,9 @@
             <organization_chart>
                 <field name="parent_id"/>
                 <field name="email"/>
+                <field name="function"/>
+                <field name="company_type"/>
+                <field name="relationship"/>
                 <field name="lang"/>
                 <templates>
                     <div t-name="chart-item">
