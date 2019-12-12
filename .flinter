@@ -1,0 +1,5 @@
+[smartpylint#py]
+python_version = 3
+
+[smartflake8#py]
+python_version = 3
