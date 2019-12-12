@@ -24,7 +24,12 @@ var registerTreetable = function() {
 };
 
 var getLevel = function(numPoste) {
-    return "level-" + (numPoste.split(".").length - 1)
+    if (numPoste) {
+        return "level-" + (numPoste.split(".").length - 1);
+    }
+    else {
+        return "level-0";
+    }
 };
 
 ListRenderer.include({
