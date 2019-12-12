@@ -192,6 +192,29 @@ class NdpAnalyticContractSaleOrder(models.Model):
     _inherit = 'sale.order'
 
     sale_recurrence_line_ids = fields.One2many('ndp.sale.recurrence.line', 'sale_id', string="Sale recurrence lines")
+    amount_annual_recurrence = fields.Float(u"Annual amount Exc.Taxes", compute='_compute_amount_annual_recurrence')
+
+    @api.multi
+    @api.depends('sale_recurrence_line_ids',
+                 'sale_recurrence_line_ids.date_start',
+                 'sale_recurrence_line_ids.date_end',
+                 'sale_recurrence_line_ids.price_unit',
+                 'sale_recurrence_line_ids.recurrence_id',
+                 'sale_recurrence_line_ids.product_uom_qty',
+                 'sale_recurrence_line_ids.product_uom_id')
+    def _compute_amount_annual_recurrence(self):
+        for rec in self:
+            amount = 0
+            uom_temporality_year = self.env.ref('ndp_analytic_contract.ndp_uom_temporalite_year')
+            for recurrence_line in rec.sale_recurrence_line_ids:
+                if recurrence_line.product_uom_id.category_id == uom_temporality_year.category_id:
+                    uom_in_year = self.env['product.uom']._compute_qty(
+                        uom_temporality_year.id, 1, recurrence_line.product_uom_id.id)
+                else:
+                    uom_in_year = 12.0
+                amount += uom_in_year * recurrence_line.price_unit * recurrence_line.product_uom_qty
+
+            rec.amount_annual_recurrence = amount
 
     @api.multi
     def action_wait(self):

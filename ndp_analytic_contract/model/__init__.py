@@ -19,3 +19,4 @@
 from . import sale_recurrence_line
 from . import sale_consu_line
 from . import analytic_contract
+from . import sale_recurrence_line

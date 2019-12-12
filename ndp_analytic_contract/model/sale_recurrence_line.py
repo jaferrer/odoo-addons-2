@@ -41,9 +41,10 @@ class NdpSaleRecurrenceLine(models.Model):
         required=True)
     next_billing_date = fields.Date(u"Next billing date", readonly=True)
     true_nbdate = fields.Date(u"Next billing date", compute='_compute_true_nbdate', store=True)
-    term = fields.Selection([('echu', u"Échu"), ('echoir', u"Échoir")], string=u"Term", required=True)
+    term = fields.Selection([('echu', u"Échu"), ('echoir', u"Échoir")], string=u"Term", required=True, default='echoir')
     calendar_type = fields.Selection([('civil', u"Civil"), ('birthday', u"Birthday")],
                                      string=u"Calendar type",
+                                     default='civil',
                                      required=True)
     product_uom_id = fields.Many2one('product.uom', string=u"Unit", required=True)
     product_uom_qty = fields.Float(u"Quantity", required=True, digits=(16, 3))
@@ -60,6 +61,19 @@ class NdpSaleRecurrenceLine(models.Model):
                                        related='product_id.categ_id',
                                        readonly=True)
     standard_price = fields.Float(u"Cost price", readonly=True, related='product_id.standard_price')
+    product_uom_categ_id = fields.Many2one('product.uom.categ',
+                                           string=u"Product UOM category",
+                                           related='product_id.uom_id.category_id',
+                                           readonly=True)
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super(NdpSaleRecurrenceLine, self).default_get(fields_list)
+        res.update({
+            'recurrence_id': self.env.ref('ndp_analytic_contract.ndp_uom_recurrence_month').id,
+            'date_start': fields.Datetime.now(),
+        })
+        return res
 
     @api.multi
     @api.onchange('date_start', 'calendar_type')
@@ -79,6 +93,12 @@ class NdpSaleRecurrenceLine(models.Model):
             self.date_end = fields.Date.to_string(date_start_datetime + relativedelta.relativedelta(years=1))
         else:
             self.date_end = False
+
+    @api.multi
+    @api.onchange('product_id')
+    def _onchange_product_id(self):
+        self.ensure_one()
+        self.product_uom_id = self.product_id.uom_id
 
     @api.multi
     @api.depends('next_billing_date', 'billing_day')

@@ -557,3 +557,8 @@ msgstr "Groupes de consommation"
 #: view:ndp.contract.billing.wizard:ndp_analytic_contract.ndp_contract_billing_wizard
 msgid "or"
 msgstr "ou"
+
+#. module: ndp_analytic_contract
+#: field:sale.order,amount_annual_recurrence:0
+msgid "Annual amount Exc.Taxes"
+msgstr "Montant annuel HT"

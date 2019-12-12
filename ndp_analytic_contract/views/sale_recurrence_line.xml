@@ -12,15 +12,16 @@
                     <field name="standard_price"/>
                     <field name="product_uom_qty"/>
                     <field name="price_unit"/>
-                    <field name="product_uom_id"
-                           domain="[('category_id', '!=', %(ndp_analytic_contract.product_uom_categ_recurrence)d)]"/>
+                    <field name="product_uom_id" domain="[('category_id', '=', product_uom_categ_id)]"/>
                     <field name="recurrence_id"
                            domain="[('category_id', '=', %(ndp_analytic_contract.product_uom_categ_recurrence)d)]"/>
+                    <field name="calendar_type"/>
                     <field name="date_start"/>
                     <field name="date_end"/>
                     <field name="billing_day" invisible="1"/>
                     <field name="true_nbdate"/>
                     <field name="auto_invoice" invisible="1"/>
+                    <field name="product_uom_categ_id" invisible="1"/>
                     <button name="open_recurrence_line_form" string="Open" type="object" icon="gtk-go-forward"/>
                 </tree>
             </field>
@@ -57,15 +58,12 @@
                                 <field name="auto_invoice"/>
                             </group>
                         </group>
-                    </sheet>
                     <footer>
                         <button name="dummy_save"
                                 string="Apply"
-                                type="object"
-                                attrs="{'invisible': [
-                                '|', ('analytic_contract_state', 'not in', ('template', 'draft', 'open', 'pending')),
-                                ('sale_id_state', 'not in', ('draft', 'sent', 'edit_sale_order'))]}"/>
+                                type="object"/>
                     </footer>
+                    </sheet>
                 </form>
             </field>
         </record>
