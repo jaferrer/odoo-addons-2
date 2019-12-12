@@ -16,11 +16,11 @@ var registerTreetable = function() {
         "<a href='#' class='treetable-control' onclick=\"$('.web_treetable > table.o_list_view').treetable('expandAll');\"><i class='fa fa-fw o_button_icon fa-expand'></i></a>"
      );
 
-     $('.web_treetable > table.o_list_view > tbody > tr').each(function(index, value) {
-         if ($(value).attr('data-tt-id') && $(value).attr('data-tt-collapsed') === 'false') {
+     $('.web_treetable > table.o_list_view > tbody > tr.o_data_row').each(function(index, value) {
+         if (Number.isInteger($(value).attr('data-tt-id')) && $(value).attr('data-tt-collapsed') === 'false') {
              $('.web_treetable > table.o_list_view').treetable('expandNode', $(value).attr('data-tt-id'));
          }
-     })
+     });
 };
 
 var getLevel = function(numPoste) {
