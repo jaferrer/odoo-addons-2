@@ -78,6 +78,11 @@ msgid "Birthday"
 msgstr "Anniversaire"
 
 #. module: ndp_analytic_contract
+#: field:ndp.sale.recurrence.line,name:0
+msgid "Comment"
+msgstr "Commentaire"
+
+#. module: ndp_analytic_contract
 #: field:ndp.sale.recurrence.line,calendar_type:0
 msgid "Calendar type"
 msgstr "Calendrier"
