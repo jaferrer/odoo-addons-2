@@ -98,11 +98,16 @@ WHERE (res_partner.id IS NULL OR main_supplier_s.constr = 1) AND
 class ProductLabelProductProduct(models.Model):
     _inherit = 'product.product'
 
-    seller_id = fields.Many2one('res.partner', string=u"Main Supplier", readonly=True, track_visibility='onchange')
+    seller_id = fields.Many2one('res.partner', string=u"Main Supplier", readonly=True, track_visibility='onchange',
+                                related=None)
 
     @api.model
     def update_seller_ids(self):
-        for product in self.search([]):
+        self.env.cr.execute("""SELECT pp.id
+FROM product_product pp
+       LEFT JOIN product_template pt ON pt.id = pp.product_tmpl_id
+WHERE coalesce(pp.seller_id, 0) != coalesce(pt.seller_id, 0)""")
+        for product in self.search([('id', 'in', [item[0] for item in self.env.cr.fetchall()])]):
             product.seller_id = product.product_tmpl_id.seller_id
 
     @api.multi
