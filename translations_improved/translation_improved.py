@@ -24,8 +24,6 @@ class TranslationImporved(models.Model):
     _inherit = 'ir.translation'
 
     name = fields.Char(index=True)
-    src = fields.Text(index=True)
-    value = fields.Text(index=True)
     lang = fields.Selection(index=True)
 
 
