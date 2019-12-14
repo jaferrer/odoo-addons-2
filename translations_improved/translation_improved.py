@@ -17,7 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from openerp import models, api, fields
+
+
+class TranslationImporved(models.Model):
+    _inherit = 'ir.translation'
+
+    name = fields.Char(index=True)
+    lang = fields.Selection(index=True)
 
 
 class LanguageInstallImproved(models.TransientModel):

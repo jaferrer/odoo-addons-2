@@ -204,6 +204,7 @@ WITH user_id AS (SELECT %s AS user_id),
 
      manufactured_products AS (
        SELECT pp.id AS product_id,
+              pr.location_id,
               TRUE  AS is_manufactured_product
        FROM product_product pp
               INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
@@ -212,11 +213,12 @@ WITH user_id AS (SELECT %s AS user_id),
               INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
                                                 coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
        WHERE coalesce(pp.active, FALSE) IS TRUE
-       GROUP BY pp.id
+       GROUP BY pp.id, pr.location_id
 
        UNION ALL
 
        SELECT pp.id AS product_id,
+              pr.location_id,
               TRUE  AS is_manufactured_product
        FROM product_product pp
               INNER JOIN product_template pt ON pt.id = pp.product_tmpl_id AND coalesce(pt.active, FALSE) IS TRUE
@@ -225,7 +227,7 @@ WITH user_id AS (SELECT %s AS user_id),
               INNER JOIN procurement_rule pr ON pr.route_id = route.id AND
                                                 coalesce(pr.active, FALSE) IS TRUE AND pr.action = 'manufacture'
        WHERE coalesce(pp.active, FALSE) IS TRUE
-       GROUP BY pp.id),
+       GROUP BY pp.id, pr.location_id),
 
      orderpoints_to_insert AS (
        SELECT op.id                             AS orderpoint_id,
@@ -243,7 +245,8 @@ WITH user_id AS (SELECT %s AS user_id),
        FROM stock_warehouse_orderpoint op
               INNER JOIN stock_location_scheduler_sequence slss ON slss.location_id = op.location_id
               INNER JOIN product_product pp ON pp.id = op.product_id AND COALESCE(pp.active, FALSE) IS TRUE
-              LEFT JOIN manufactured_products mpbl ON mpbl.product_id = op.product_id
+              LEFT JOIN manufactured_products mpbl ON mpbl.product_id = op.product_id AND
+                                                      mpbl.location_id = op.location_id
        WHERE op.id IN %s
          AND (COALESCE(slss.exclude_non_manufactured_products, FALSE) IS FALSE
          OR COALESCE(mpbl.is_manufactured_product, FALSE) IS TRUE)
