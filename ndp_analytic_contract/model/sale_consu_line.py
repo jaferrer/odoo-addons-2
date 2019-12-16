@@ -50,17 +50,16 @@ class NdpSaleConsuLine(models.Model):
             # Une ligne de conso est toujours facturée en 'échue' et donc facturée durant la période après celle de
             # sa création.
             if rec.billing_period_start <= fields.Date.to_string(wizard_date) < rec.billing_period_end:
+                name = rec.name + u" Période du %s au %s." % (rec.billed_period_start, rec.billed_period_end)
                 vals_invoice_lines.append({
                     'invoice_id': account_invoice.id,
                     'product_id': rec.product_id.id,
-                    'name': rec.name,
+                    'name': name,
                     'account_id': account_invoice.account_id.id,
                     'account_analytic_id': rec.consu_group_id.ndp_analytic_contract_id.analytic_account_id.id,
                     'quantity': 1,
                     'uos_id': uom_unite.id,
                     'price_unit': rec.price,
-                    'billed_period_start': rec.billed_period_start,
-                    'billed_period_end': rec.billed_period_end,
                     'invoice_line_tax_id': [(6, 0, rec.tax_ids.ids)],
                     'sale_consu_line_ids': [(4, rec.id, 0)],
                 })

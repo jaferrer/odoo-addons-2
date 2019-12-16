@@ -303,7 +303,5 @@ class NdpAnalyticContractSaleOrder(models.Model):
 class NdpAnalyticContractAccountInvoiceLine(models.Model):
     _inherit = 'account.invoice.line'
 
-    billed_period_start = fields.Date(u"Billed period start", readonly=True)
-    billed_period_end = fields.Date(u"Billed period end", readonly=True)
     sale_recurrence_line_ids = fields.Many2many('ndp.sale.recurrence.line', string=u"Sale recurrence lines")
     sale_consu_line_ids = fields.Many2many('ndp.sale.consu.line', string=u"Sale consumption lines")

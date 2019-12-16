@@ -195,7 +195,6 @@ class NdpSaleRecurrenceLine(models.Model):
                 start_billing_period_date = first_billing_date + relativedelta.relativedelta(days=1)
                 first_billing_date += relativedelta.relativedelta(months=int(months_to_bill), day=31)
 
-
         return first_billing_date, start_billing_period_date
 
     @api.multi
@@ -270,7 +269,7 @@ class NdpSaleRecurrenceLine(models.Model):
                     billed_period_end) + relativedelta.relativedelta(months=int(months_to_bill), days=1))
 
             qty_to_bill = float_round(rec.product_uom_qty * months_to_bill / uom_in_month, 3)
-            name = rec.name or rec.product_id.name
+            name = rec.name or rec.product_id.name + u" Période du %s au %s." % (billed_period_start, billed_period_end)
             recurrence_vals_list.append({
                 'invoice_id': account_invoice.id,
                 'product_id': rec.product_id.id,
@@ -280,8 +279,6 @@ class NdpSaleRecurrenceLine(models.Model):
                 'quantity': qty_to_bill,
                 'uos_id': rec.product_uom_id.id,
                 'price_unit': rec.price_unit,
-                'billed_period_start': billed_period_start,
-                'billed_period_end': billed_period_end,
                 'invoice_line_tax_id': [(6, 0, rec.tax_ids.ids)],
                 'sale_recurrence_line_ids': [(4, rec.id, 0)],
             })
