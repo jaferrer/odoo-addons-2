@@ -26,6 +26,7 @@
     'depends': [
         'sale',
         'project',
+        'sale_timesheet',
     ],
     'description': """
 Sale Order Project Improved

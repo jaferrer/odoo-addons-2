@@ -46,6 +46,7 @@ a.treetable-control {
 .table-striped.treetable > tbody > tr.level-0 {
     background-color: #cfcfcf;
     border-top: 1px solid #b3b3b3;
+    font-weight: bold;
 }
 
 .table-striped.treetable > tbody > tr.level-1 {
