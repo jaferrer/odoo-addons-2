@@ -8,7 +8,7 @@ var registerTreetable = function() {
             expandable: true,
             indent: 19
         });
-     $('a.treetable-control').remove()
+     $('a.treetable-control').remove();
      $('.web_treetable > table.o_list_view').before(
          "<a href='#' class='treetable-control' onclick=\"$('.web_treetable > table.o_list_view').treetable('collapseAll');\"><i class='fa fa-fw o_button_icon fa-compress'></i></a>"
      );
@@ -17,7 +17,7 @@ var registerTreetable = function() {
      );
 
      $('.web_treetable > table.o_list_view > tbody > tr.o_data_row').each(function(index, value) {
-         if (Number.isInteger($(value).attr('data-tt-id')) && $(value).attr('data-tt-collapsed') === 'false') {
+         if (Number.isInteger(parseInt($(value).attr('data-tt-id'))) && $(value).attr('data-tt-collapsed') === 'false') {
              $('.web_treetable > table.o_list_view').treetable('expandNode', $(value).attr('data-tt-id'));
          }
      });

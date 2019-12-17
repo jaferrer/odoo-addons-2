@@ -44,24 +44,24 @@ a.treetable-control {
 }
 
 .table-striped.treetable > tbody > tr.level-0 {
-    background-color: #cfcfcf;
+    background-color: #bfbfbf;
     border-top: 1px solid #b3b3b3;
 }
 
 .table-striped.treetable > tbody > tr.level-1 {
-    background-color: #d9d9d9;
+    background-color: #cccccc;
 }
 
 .table-striped.treetable > tbody > tr.level-2 {
-    background-color: #E3E3E3;
+    background-color: #d9d9d9;
 }
 
 .table-striped.treetable > tbody > tr.level-3 {
-    background-color: #EDEDED;
+    background-color: #e6e6e6;
 }
 
 .table-striped.treetable > tbody > tr.level-4 {
-    background-color: #F5F5F5;
+    background-color: #f2f2f2;
 }
 
 .table-striped.treetable > tbody > tr.level-5,
