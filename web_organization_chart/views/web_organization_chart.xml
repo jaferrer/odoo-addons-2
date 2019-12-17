@@ -5,40 +5,10 @@
         <xpath expr="." position="inside">
             <link rel="stylesheet" href="/web_organization_chart/static/src/css/jquery_orgchart.css"/>
             <link rel="stylesheet" href="/web_organization_chart/static/src/css/web_organization_chart.css"/>
-
             <script type="text/javascript" src="/web_organization_chart/static/src/js/jquery_orgchart.js"/>
-            <script type="text/javascript" src="/web_organization_chart/static/src/js/organization_chart_view.js"/>
-            <script type="text/javascript" src="/web_organization_chart/static/src/js/organization_chart_renderer.js"/>
-            <script type="text/javascript"
-                    src="/web_organization_chart/static/src/js/organization_chart_controller.js"/>
-            <script type="text/javascript" src="/web_organization_chart/static/src/js/organization_chart_model.js"/>
+            <script type="text/javascript" src="/web_organization_chart/static/src/js/web_organization_chart.js"/>
         </xpath>
     </template>
-
-
-    <!-- Ajout d'un bouton sur les res.partner -->
-
-    <record id="view_organization_chart_res_partner" model="ir.ui.view">
-        <field name="name">view_organization_chart_res_partner</field>
-        <field name="model">res.partner</field>
-        <field name="type">organization_chart</field>
-        <field name="field_parent">parent_id</field>
-        <field name="arch" type="xml">
-            <organization_chart>
-                <field name="parent_id"/>
-                <field name="email"/>
-                <field name="function"/>
-                <field name="company_type"/>
-                <field name="relationship"/>
-                <field name="lang"/>
-                <templates>
-                    <div t-name="chart-item">
-                        <span t-esc="record.email"/>
-                    </div>
-                </templates>
-            </organization_chart>
-        </field>
-    </record>
 
     <record id="res_partner_view_organization_chart_button" model="ir.ui.view">
         <field name="name">res_partner_view_organization_chart_button</field>
@@ -46,20 +16,14 @@
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="priority" eval="30"/>
         <field name="arch" type="xml">
-            <div name="button_box" position="inside">
-                <button name="associated_res_partner" type="object" icon="fa-sitemap"
-                        class="oe_stat_button" string="Arborescence"
-                        attrs="{'invisible':[('child_ids','=',[])]}">
-                </button>
-            </div>
+            <page name="internal_notes" position="before">
+                <page string="Arborescence" name="orgchart">
+                    <group>
+                           <field name="id" nolabel="1" widget="organization_chart"/>
+                    </group>
+                </page>
+            </page>
         </field>
-    </record>
-
-    <record model="ir.actions.act_window" id="res_partner_childs_organization_chart">
-        <field name="name">Arborescence des contacts</field>
-        <field name="res_model">res.partner</field>
-        <field name="view_mode">organization_chart,form</field>
-        <field name="view_id" ref="view_organization_chart_res_partner"/>
     </record>
 
 </odoo>
