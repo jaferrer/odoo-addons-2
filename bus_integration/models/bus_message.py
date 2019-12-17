@@ -70,6 +70,8 @@ class BusMessage(models.Model):
                                   ('CHECK_SYNCHRONIZATION_RETURN', u"Check response"),
                                   ('BUS_SYNCHRONIZATION', u"bus synchro request"),
                                   ('BUS_SYNCHRONIZATION_RETURN', u"bus synchro response"),
+                                  ('RESTRICT_IDS_SYNCHRONIZATION', u"Restrict ID request"),
+                                  ('RESTRICT_IDS_SYNCHRONIZATION_RETURN', u"Restrict ID response"),
                                   ], u"Treatment", required=True)
     log_ids = fields.One2many('bus.message.log', 'message_id', string=u"Logs")
     exported_ids = fields.Text(string=u"Exported ids", compute='get_export_eported_ids', store=True)
@@ -129,7 +131,9 @@ class BusMessage(models.Model):
                 body_dict = message_dict.get('body', {}).get('root', {})
                 models = body_dict.keys()
                 for model in models:
-                    keys = body_dict.get(model).keys()
+                    keys = []
+                    if isinstance(body_dict.get(model), dict):
+                        keys = body_dict.get(model).keys()
                     ids = [int(key) for key in keys]
                     exported_ids += u"%s : %s, " % (model, ids)
             rec.exported_ids = exported_ids
