@@ -112,10 +112,10 @@
             if (mutations[i].addedNodes[j].classList.contains('orgchart')) {
               if (that.options.initCompleted && typeof that.options.initCompleted === 'function') {
                 that.options.initCompleted(that.$chart);
-                var initEvent = $.Event('init.orgchart');
-                that.$chart.trigger(initEvent);
-                break initTime;
               }
+              var initEvent = $.Event('init.orgchart');
+              that.$chart.trigger(initEvent);
+              break initTime;
             }
           }
         }
@@ -400,17 +400,28 @@
     // detect the exist/display state of related node
     getNodeState: function ($node, relation) {
       var $target = {};
+      var isVerticalNode = $node.parent().is('li');
       var relation = relation || 'self';
       if (relation === 'parent') {
-        $target = $node.closest('.nodes').siblings(':first');
+        if (isVerticalNode) {
+          $target = $node.closest('ul').parents('ul');
+          if (!$target.length) {
+            $target = $node.closest('.nodes');
+            if (!$target.length) {
+              $target = $node.closest('.verticalNodes').siblings(':first');
+            }
+          }
+        } else {
+          $target = $node.closest('.nodes').siblings(':first');
+        }
         if ($target.length) {
-          if ($target.is('.hidden') || (!$target.is('.hidden') && $target.closest('.nodes').is('.hidden'))) {
+          if ($target.is('.hidden') || (!$target.is('.hidden') && $target.closest('.nodes').is('.hidden')) || (!$target.is('.hidden') && $target.closest('.verticalNodes').is('.hidden'))) {
             return { 'exist': true, 'visible': false };
           }
           return { 'exist': true, 'visible': true };
         }
       } else if (relation === 'children') {
-        $target = $node.closest('tr').siblings(':last');
+        $target = isVerticalNode ? $node.parent().children('ul') : $node.closest('tr').siblings(':last');
         if ($target.length) {
           if (!$target.is('.hidden')) {
             return { 'exist': true, 'visible': true };
@@ -418,9 +429,9 @@
           return { 'exist': true, 'visible': false };
         }
       } else if (relation === 'siblings') {
-        $target = $node.closest('table').parent().siblings();
-        if ($target.length) {
-          if (!$target.is('.hidden') && !$target.parent().is('.hidden')) {
+        $target = isVerticalNode ? $node.closest('ul') : $node.closest('table').parent().siblings();
+        if ($target.length && (!isVerticalNode || $target.children('li').length > 1)) {
+          if (!$target.is('.hidden') && !$target.parent().is('.hidden') && (!isVerticalNode || !$target.closest('.verticalNodes').is('.hidden'))) {
             return { 'exist': true, 'visible': true };
           }
           return { 'exist': true, 'visible': false };
@@ -430,7 +441,7 @@
         if ($target.length) {
           if (!(($target.closest('.nodes').length && $target.closest('.nodes').is('.hidden')) ||
             ($target.closest('table').parent().length && $target.closest('table').parent().is('.hidden')) ||
-            ($target.parent().is('li') && ($target.closest('ul').is('.hidden') || $target.closest('verticalNodes').is('.hidden')))
+            ($target.parent().is('li') && ($target.closest('ul').is('.hidden') || $target.closest('.verticalNodes').is('.hidden')))
           )) {
             return { 'exist': true, 'visible': true };
           }
@@ -895,6 +906,7 @@
       var ghostNode, nodeCover;
       if (!document.querySelector('.ghost-node')) {
         ghostNode = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        if (!ghostNode.classList) return;
         ghostNode.classList.add('ghost-node');
         nodeCover = document.createElementNS('http://www.w3.org/2000/svg','rect');
         ghostNode.appendChild(nodeCover);
@@ -934,17 +946,21 @@
         ghostNodeWrapper.src = 'data:image/svg+xml;utf8,' + (new XMLSerializer()).serializeToString(ghostNode);
         origEvent.dataTransfer.setDragImage(ghostNodeWrapper, xOffset, yOffset);
       } else {
-        origEvent.dataTransfer.setDragImage(ghostNode, xOffset, yOffset);
+        // IE/Edge do not support this, so only use it if we can
+        if (origEvent.dataTransfer.setDragImage)
+          origEvent.dataTransfer.setDragImage(ghostNode, xOffset, yOffset);
       }
     },
     //
     filterAllowedDropNodes: function ($dragged) {
       var opts = this.options;
-      var $dragZone = $dragged.closest('.nodes').siblings().eq(0).find('.node:first');
-      var $dragHier = $dragged.closest('table').find('.node');
+      // what is being dragged?  a node, or something within a node?
+      var draggingNode = $dragged.closest('[draggable]').hasClass('node');
+      var $dragZone = $dragged.closest('.nodes').siblings().eq(0).find('.node:first');      // parent node
+      var $dragHier = $dragged.closest('table').find('.node');      // this node, and its children
       this.$chart.data('dragged', $dragged)
         .find('.node').each(function (index, node) {
-          if ($dragHier.index(node) === -1) {
+          if (!draggingNode || $dragHier.index(node) === -1) {
             if (opts.dropCriteria) {
               if (opts.dropCriteria($dragged, $dragZone, $(node))) {
                 $(node).addClass('allowedDrop');
@@ -966,9 +982,12 @@
     },
     //
     dragoverHandler: function (event) {
-      event.preventDefault();
       if (!$(event.delegateTarget).is('.allowedDrop')) {
         event.originalEvent.dataTransfer.dropEffect = 'none';
+      } else {
+        // default action for drag-and-drop of div is not to drop, so preventing default action for nodes which have allowedDrop class
+        //to fix drag and drop on IE and Edge
+        event.preventDefault();
       }
     },
     //
@@ -979,6 +998,19 @@
     dropHandler: function (event) {
       var $dropZone = $(event.delegateTarget);
       var $dragged = this.$chart.data('dragged');
+
+      // Pass on drops which are not nodes (since they are not our doing)
+      if (!$dragged.hasClass('node')) {
+        this.$chart.triggerHandler({ 'type': 'otherdropped.orgchart', 'draggedItem': $dragged, 'dropZone': $dropZone });
+        return;
+      }
+
+      if (!$dropZone.hasClass('allowedDrop')) {
+          // We are trying to drop a node into a node which isn't allowed
+          // IE/Edge have a habit of allowing this, so we need our own double-check
+          return;
+      }
+
       var $dragZone = $dragged.closest('.nodes').siblings().eq(0).children();
       var dropEvent = $.Event('nodedrop.orgchart');
       this.$chart.trigger(dropEvent, { 'draggedNode': $dragged, 'dragZone': $dragZone.children(), 'dropZone': $dropZone });
@@ -1025,95 +1057,149 @@
     },
     //
     touchstartHandler: function (event) {
-        console.log("orgChart: touchstart 1: touchHandled=" + this.touchHandled + ", touchMoved=" + this.touchMoved + ", target=" + event.target.innerText);
-        if (this.touchHandled)
-            return;
-        this.touchHandled = true;
-        this.touchMoved = false;     // this is so we can work out later if this was a 'press' or a 'drag' touch
-        event.preventDefault();
+      if (this.touchHandled)
+        return;
+
+      if (event.touches && event.touches.length > 1)
+        return;
+
+      this.touchHandled = true;
+      this.touchMoved = false;     // this is so we can work out later if this was a 'press' or a 'drag' touch
+      event.preventDefault();
     },
     //
     touchmoveHandler: function (event) {
       if (!this.touchHandled)
         return;
+
+      if (event.touches && event.touches.length > 1)
+        return;
+
       event.preventDefault();
+
       if (!this.touchMoved) {
-        var nodeIsSelected = $(this).hasClass('focused');
-        console.log("orgChart: touchmove 1: " + event.touches.length + " touches, we have not moved, so simulate a drag start", event.touches);
-        // TODO: visualise the start of the drag (as would happen on desktop)
-        this.simulateMouseEvent(event, 'dragstart');
+        // we do not bother with createGhostNode (dragstart does) since the touch event does not have a dataTransfer property
+        this.filterAllowedDropNodes($(event.currentTarget));        // will also set 'this.$chart.data('dragged')' for us
+        // create an image which can be used to illustrate the drag (our own createGhostNode)
+        this.touchDragImage = this.createDragImage(event, this.$chart.data('dragged')[0]);
       }
       this.touchMoved = true;
-      var $touching = $(document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY));
-      var $touchingNode = $touching.closest('div.node');
 
-      if ($touchingNode.length > 0) {
-        var touchingNodeElement = $touchingNode[0];
-        // TODO: simulate the dragover visualisation
-        if ($touchingNode.is('.allowedDrop')) {
-            console.log("orgChart: touchmove 2: this node (" + touchingNodeElement.id + ") is allowed to be a drop target");
-            this.touchTargetNode = touchingNodeElement;
-        } else {
-            console.log("orgChart: touchmove 3: this node (" + touchingNodeElement.id + ") is NOT allowed to be a drop target");
-            this.touchTargetNode = null;
+      // move our dragimage so it follows our finger
+      this.moveDragImage(event, this.touchDragImage);
+
+      var $touching = $(document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY));
+      var $touchingNodes = $touching.closest('div.node');
+      if ($touchingNodes.length > 0) {
+        var touchingNodeElement = $touchingNodes[0];
+        if ($touchingNodes.is('.allowedDrop')) {
+          this.touchTargetNode = touchingNodeElement;
         }
-      } else {
-        console.log("orgchart: touchmove 4: not touching a node");
+        else {
+          this.touchTargetNode = null;
+        }
+      }
+      else {
         this.touchTargetNode = null;
       }
     },
     //
     touchendHandler: function (event) {
-      console.log("orgChart: touchend 1: touchHandled=" + this.touchHandled + ", touchMoved=" + this.touchMoved + ", " + event.target.innerText + " ");
       if (!this.touchHandled) {
-          console.log("orgChart: touchend 2: not handled by us, so aborting");
           return;
       }
+      this.destroyDragImage();
       if (this.touchMoved) {
           // we've had movement, so this was a 'drag' touch
           if (this.touchTargetNode) {
-              console.log("orgChart: touchend 3: moved to a node, so simulating drop");
               var fakeEventForDropHandler = { delegateTarget: this.touchTargetNode };
               this.dropHandler(fakeEventForDropHandler);
               this.touchTargetNode = null;
           }
-          console.log("orgChart: touchend 4: simulating dragend");
-          this.simulateMouseEvent(event, 'dragend');
+          this.dragendHandler(event);
       }
       else {
-          // we did not move, so assume this was a 'press' touch
-          console.log("orgChart: touchend 5: moved, so simulating click");
-          this.simulateMouseEvent(event, 'click');
+          // we did not move, so this was a 'press' touch (fake a click)
+          var firstTouch = event.changedTouches[0];
+          var fakeMouseClickEvent = document.createEvent('MouseEvents');
+          fakeMouseClickEvent.initMouseEvent('click', true, true, window, 1, firstTouch.screenX, firstTouch.screenY, firstTouch.clientX, firstTouch.clientY, event.ctrlKey, event.altKey, event.shiftKey, event.metaKey, 0, null);
+          event.target.dispatchEvent(fakeMouseClickEvent);
       }
       this.touchHandled = false;
     },
-    // simulate a mouse event (so we can fake them on a touch device)
-    simulateMouseEvent: function (event, simulatedType) {
-      // Ignore multi-touch events
-      if (event.originalEvent.touches.length > 1) {
-        return;
+    //
+    createDragImage: function (event, source) {
+      var dragImage = source.cloneNode(true);
+      this.copyStyle(source, dragImage);
+      dragImage.style.top = dragImage.style.left = '-9999px';
+      var sourceRectangle = source.getBoundingClientRect();
+      var sourcePoint = this.getTouchPoint(event);
+      this.touchDragImageOffset = { x: sourcePoint.x - sourceRectangle.left, y: sourcePoint.y - sourceRectangle.top };
+      dragImage.style.opacity = '0.5';
+      document.body.appendChild(dragImage);
+      return dragImage;
+    },
+    //
+    destroyDragImage: function () {
+      if (this.touchDragImage && this.touchDragImage.parentElement)
+        this.touchDragImage.parentElement.removeChild(this.touchDragImage);
+      this.touchDragImageOffset = null;
+      this.touchDragImage = null;
+    },
+    //
+    copyStyle: function (src, dst) {
+      // remove potentially troublesome attributes
+      var badAttributes = ['id', 'class', 'style', 'draggable'];
+      badAttributes.forEach(function (att) {
+          dst.removeAttribute(att);
+      });
+      // copy canvas content
+      if (src instanceof HTMLCanvasElement) {
+        var cSrc = src, cDst = dst;
+        cDst.width = cSrc.width;
+        cDst.height = cSrc.height;
+        cDst.getContext('2d').drawImage(cSrc, 0, 0);
       }
-      var touch = event.originalEvent.changedTouches[0];
-      var simulatedEvent = document.createEvent('MouseEvents');
-      simulatedEvent.initMouseEvent(
-        simulatedType,    // type
-        true,             // bubbles
-        true,             // cancelable
-        window,           // view
-        1,                // detail
-        touch.screenX,    // screenX
-        touch.screenY,    // screenY
-        touch.clientX,    // clientX
-        touch.clientY,    // clientY
-        false,            // ctrlKey
-        false,            // altKey
-        false,            // shiftKey
-        false,            // metaKey
-        0,                // button
-        null              // relatedTarget
-      );
-      // Dispatch the simulated event to the target element
-      event.target.dispatchEvent(simulatedEvent);
+      // copy style (without transitions)
+      var cs = getComputedStyle(src);
+      for (var i = 0; i < cs.length; i++) {
+        var key = cs[i];
+        if (key.indexOf('transition') < 0) {
+          dst.style[key] = cs[key];
+        }
+      }
+      dst.style.pointerEvents = 'none';
+      // and repeat for all children
+      for (var i = 0; i < src.children.length; i++) {
+        this.copyStyle(src.children[i], dst.children[i]);
+      }
+    },
+    //
+    getTouchPoint: function (event) {
+      if (event && event.touches) {
+        event = event.touches[0];
+      }
+      return {
+        x: event.clientX,
+        y: event.clientY
+      };
+    },
+    //
+    moveDragImage: function (event, image) {
+      if (!event || !image)
+        return;
+      var orgChartMaster = this;
+      requestAnimationFrame(function () {
+        var pt = orgChartMaster.getTouchPoint(event);
+        var s = image.style;
+        s.position = 'absolute';
+        s.pointerEvents = 'none';
+        s.zIndex = '999999';
+        if (orgChartMaster.touchDragImageOffset) {
+            s.left = Math.round(pt.x - orgChartMaster.touchDragImageOffset.x) + 'px';
+            s.top = Math.round(pt.y - orgChartMaster.touchDragImageOffset.y) + 'px';
+        }
+      });
     },
     //
     bindDragDrop: function ($node) {
@@ -1353,6 +1439,78 @@
       }
     },
     //
+    hideDropZones: function () {
+      // Remove all the 'this is a drop zone' indicators
+      var orgChartObj = this;
+      orgChartObj.$chart.find('.allowedDrop')
+        .removeClass('allowedDrop');
+    },
+    //
+    showDropZones: function (dragged) {
+      // Highlight all the 'drop zones', and set dragged, so that the drop/enter can work out what happens later
+      // TODO: This assumes all nodes are droppable: it doesn't run the custom isDroppable function - it should!
+      var orgChartObj = this;
+      orgChartObj.$chart.find('.node')
+        .each(function (index, node) {
+          $(node).addClass('allowedDrop');
+        });
+      orgChartObj.$chart.data('dragged', $(dragged));
+    },
+    //
+    processExternalDrop: function (dropZone, dragged) {
+      // Allow an external drop event to be handled by one of our nodes
+      if (dragged) {
+        this.$chart.data('dragged', $(dragged));
+      }
+      var droppedOnNode = dropZone.closest('.node');
+      // would like to just call 'dropZoneHandler', but I can't reach it from here
+      // instead raise a drop event on the node element
+      droppedOnNode.triggerHandler({ 'type': 'drop' });
+    },
+    //
+    exportPDF: function(canvas, exportFilename){
+      var doc = {};
+      var docWidth = Math.floor(canvas.width);
+      var docHeight = Math.floor(canvas.height);
+
+      if (docWidth > docHeight) {
+        doc = new jsPDF({
+          orientation: 'landscape',
+          unit: 'px',
+          format: [docWidth, docHeight]
+        });
+      } else {
+        doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'px',
+          format: [docHeight, docWidth]
+        });
+      }
+      doc.addImage(canvas.toDataURL(), 'png', 0, 0);
+      doc.save(exportFilename + '.pdf');
+    },
+    //
+    exportPNG: function(canvas, exportFilename){
+      var that = this;
+      var isWebkit = 'WebkitAppearance' in document.documentElement.style;
+      var isFf = !!window.sidebar;
+      var isEdge = navigator.appName === 'Microsoft Internet Explorer' || (navigator.appName === "Netscape" && navigator.appVersion.indexOf('Edge') > -1);
+      var $chartContainer = this.$chartContainer;
+
+      if ((!isWebkit && !isFf) || isEdge) {
+        window.navigator.msSaveBlob(canvas.msToBlob(), exportFilename + '.png');
+      } else {
+        var selector = '.oc-download-btn' + (that.options.chartClass !== '' ? '.' + that.options.chartClass : '');
+
+        if (!$chartContainer.find(selector).length) {
+          $chartContainer.append('<a class="oc-download-btn' + (that.options.chartClass !== '' ? ' ' + that.options.chartClass : '') + '"'
+                                 + ' download="' + exportFilename + '.png"></a>');
+        }
+
+        $chartContainer.find(selector).attr('href', canvas.toDataURL())[0].click();
+      }
+    },
+    //
     export: function (exportFilename, exportFileextension) {
       var that = this;
       exportFilename = (typeof exportFilename !== 'undefined') ?  exportFilename : this.options.exportFilename;
@@ -1375,39 +1533,17 @@
         'onclone': function (cloneDoc) {
           $(cloneDoc).find('.canvasContainer').css('overflow', 'visible')
             .find('.orgchart:not(".hidden"):first').css('transform', '');
-        },
-        'onrendered': function (canvas) {
-          $chartContainer.find('.mask').addClass('hidden');
-          if (exportFileextension.toLowerCase() === 'pdf') {
-            var doc = {};
-            var docWidth = Math.floor(canvas.width * 0.2646);
-            var docHeight = Math.floor(canvas.height * 0.2646);
-            if (docWidth > docHeight) {
-              doc = new jsPDF('l', 'mm', [docWidth, docHeight]);
-            } else {
-              doc = new jsPDF('p', 'mm', [docHeight, docWidth]);
-            }
-            doc.addImage(canvas.toDataURL(), 'png', 0, 0);
-            doc.save(exportFilename + '.pdf');
-          } else {
-            var isWebkit = 'WebkitAppearance' in document.documentElement.style;
-            var isFf = !!window.sidebar;
-            var isEdge = navigator.appName === 'Microsoft Internet Explorer' || (navigator.appName === "Netscape" && navigator.appVersion.indexOf('Edge') > -1);
-
-            if ((!isWebkit && !isFf) || isEdge) {
-              window.navigator.msSaveBlob(canvas.msToBlob(), exportFilename + '.png');
-            } else {
-              var selector = '.oc-download-btn' + (that.options.chartClass !== '' ? '.' + that.options.chartClass : '');
-              if (!$chartContainer.find(selector).length) {
-                $chartContainer.append('<a class="oc-download-btn' + (that.options.chartClass !== '' ? ' ' + that.options.chartClass : '') + '"'
-                  + ' download="' + exportFilename + '.png"></a>');
-              }
-              $chartContainer.find(selector).attr('href', canvas.toDataURL())[0].click();
-            }
-          }
         }
       })
-      .then(function () {
+      .then(function (canvas) {
+        $chartContainer.find('.mask').addClass('hidden');
+
+        if (exportFileextension.toLowerCase() === 'pdf') {
+          that.exportPDF(canvas, exportFilename);
+        } else {
+          that.exportPNG(canvas, exportFilename);
+        }
+
         $chartContainer.removeClass('canvasContainer');
       }, function () {
         $chartContainer.removeClass('canvasContainer');
