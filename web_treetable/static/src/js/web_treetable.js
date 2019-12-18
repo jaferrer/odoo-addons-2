@@ -51,8 +51,8 @@ ListRenderer.include({
             }
         });
 
-        if (id) result.attr("data-tt-id", record.data[id]).addClass(getLevel(record.data[id]));
-        if (parentId) result.attr("data-tt-parent-id", record.data[parentId]);
+        if (id && record.data[id]) result.attr("data-tt-id", record.data[id]).addClass(getLevel(record.data[id]));
+        if (parentId && record.data[parentId]) result.attr("data-tt-parent-id", record.data[parentId]);
         if (collapsed) result.attr("data-tt-collapsed", record.data[collapsed]);
         return result;
     },
