@@ -112,6 +112,7 @@ class RoleDelegation(models.Model):
         for rec in self:
             rec_vals = dict(vals)
             if 'user_id' in vals or 'target_id' in vals or 'role_id' in vals:
+                rec.role_line_ids.unlink()
                 rec_vals['role_line_ids'] = [(5, 0)] + rec._create_role_lines(
                     vals.get('user_id', rec.user_id.id),
                     vals.get('target_id', rec.target_id.id),
