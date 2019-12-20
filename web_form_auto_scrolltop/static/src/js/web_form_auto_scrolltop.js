@@ -6,8 +6,8 @@ odoo.define('web_form_auto_scrolltop.FormView', function(require) {
 
     FormView.include({
          do_show: function (options) {
-            this._super.apply(this, arguments);
             window.scrollTo(0, 0);
+            return this._super.apply(this, arguments);
          },
     });
 });
