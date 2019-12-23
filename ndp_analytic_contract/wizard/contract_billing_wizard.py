@@ -18,6 +18,8 @@
 #
 import datetime
 
+from dateutil import relativedelta
+
 from openerp import models, fields, api, exceptions, _
 
 
@@ -97,7 +99,7 @@ class NdpAnalyticContractBillingWizard(models.TransientModel):
             'user_id': self.ndp_analytic_contract_id.manager_id.id,
         })
 
-        wizard_date = datetime.date(self.billing_year, self.billing_month, 2)
+        wizard_date = datetime.date(self.billing_year, self.billing_month, 1) + relativedelta.relativedelta(day=31)
         # Lignes de récurrence
         for invoice_line_vals in self.sale_recurrence_line_ids.bill_recurrence_lines(new_invoice, wizard_date):
             self.env['account.invoice.line'].create(invoice_line_vals)
@@ -108,8 +110,7 @@ class NdpAnalyticContractBillingWizard(models.TransientModel):
 
         # S'il n'y a rien à facturer dans la période sélectionnée
         if not new_invoice.invoice_line:
-            raise exceptions.except_orm(_(u"Warning"), _(u"There is nothing to invoice during this period %s-%s." % (
-                self.billing_month, self.billing_year)))
+            return _(u"There is nothing to invoice during this period %s-%s." % (self.billing_month, self.billing_year))
 
         form_id = self.env.ref('account.invoice_form').id
         return {

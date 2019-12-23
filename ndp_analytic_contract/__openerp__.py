@@ -44,7 +44,6 @@ order lines, sale recurrence lines and sale consumption lines.
         'views/sale_consu_line.xml',
         'views/sale_consu_group.xml',
         'views/contract_billing_wizard.xml',
-        'views/account_invoice.xml',
         'views/consu_type.xml',
         'views/cron.xml',
     ],

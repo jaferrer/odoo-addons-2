@@ -28,7 +28,7 @@ class NdpSaleRecurrenceLine(models.Model):
     _name = 'ndp.sale.recurrence.line'
 
     product_id = fields.Many2one('product.product', string=u"Service", required=True, domain=[('type', '=', 'service')])
-    name = fields.Char(u"Description")
+    name = fields.Char(u"Comment")
     date_start = fields.Date(u"Start date", required=True)
     date_end = fields.Date(u"End date")
     billing_day = fields.Selection([
@@ -41,13 +41,15 @@ class NdpSaleRecurrenceLine(models.Model):
         required=True)
     next_billing_date = fields.Date(u"Next billing date", readonly=True)
     true_nbdate = fields.Date(u"Next billing date", compute='_compute_true_nbdate', store=True)
-    term = fields.Selection([('echu', u"Échu"), ('echoir', u"Échoir")], string=u"Term", required=True)
+    term = fields.Selection([('echu', u"Échu"), ('echoir', u"Échoir")], string=u"Term", required=True, default='echoir')
     calendar_type = fields.Selection([('civil', u"Civil"), ('birthday', u"Birthday")],
                                      string=u"Calendar type",
+                                     default='civil',
                                      required=True)
     product_uom_id = fields.Many2one('product.uom', string=u"Unit", required=True)
     product_uom_qty = fields.Float(u"Quantity", required=True, digits=(16, 3))
     price_unit = fields.Float(u"Unit price", required=True, digits=(16, 2))
+    price_subtotal = fields.Float(u"Price subtotal", digits=(16, 2), compute='_compute_price_subtotal')
     recurrence_id = fields.Many2one('product.uom', string=u"Recurrence", required=True)
     tax_ids = fields.Many2many('account.tax', string="Taxes")
     sale_id = fields.Many2one('sale.order', string=u"Sale order")
@@ -60,6 +62,19 @@ class NdpSaleRecurrenceLine(models.Model):
                                        related='product_id.categ_id',
                                        readonly=True)
     standard_price = fields.Float(u"Cost price", readonly=True, related='product_id.standard_price')
+    product_uom_categ_id = fields.Many2one('product.uom.categ',
+                                           string=u"Product UOM category",
+                                           related='product_id.uom_id.category_id',
+                                           readonly=True)
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super(NdpSaleRecurrenceLine, self).default_get(fields_list)
+        res.update({
+            'recurrence_id': self.env.ref('ndp_analytic_contract.ndp_uom_recurrence_month').id,
+            'date_start': fields.Datetime.now(),
+        })
+        return res
 
     @api.multi
     @api.onchange('date_start', 'calendar_type')
@@ -81,6 +96,12 @@ class NdpSaleRecurrenceLine(models.Model):
             self.date_end = False
 
     @api.multi
+    @api.onchange('product_id')
+    def _onchange_product_id(self):
+        self.ensure_one()
+        self.product_uom_id = self.product_id.uom_id
+
+    @api.multi
     @api.depends('next_billing_date', 'billing_day')
     def _compute_true_nbdate(self):
         """
@@ -95,6 +116,21 @@ class NdpSaleRecurrenceLine(models.Model):
                 rec.true_nbdate = fields.Date.to_string(true_nbdate + relativedelta.relativedelta(day=rec.billing_day))
             else:
                 rec.true_nbdate = False
+
+    @api.multi
+    def _compute_price_subtotal(self):
+        uom_recurrence_month = self.env.ref('ndp_analytic_contract.ndp_uom_recurrence_month')
+        uom_temporality_month = self.env.ref('ndp_analytic_contract.ndp_uom_temporalite_month')
+        categ_temporality = self.env.ref('ndp_analytic_contract.product_uom_categ_temporality')
+        for rec in self:
+            if rec.product_uom_id.category_id == categ_temporality:
+                uom_in_month = self.env['product.uom']._compute_qty(rec.product_uom_id.id, 1, uom_temporality_month.id)
+            else:
+                uom_in_month = 1.0
+
+            months_to_bill = self.env['product.uom']._compute_qty(rec.recurrence_id.id, 1, uom_recurrence_month.id)
+
+            rec.price_subtotal = uom_in_month and (rec.price_unit / uom_in_month) * months_to_bill
 
     @api.multi
     def get_line_period(self, wizard_date, months_to_bill):
@@ -151,8 +187,13 @@ class NdpSaleRecurrenceLine(models.Model):
         first_billing_date = datetime.date(recurrence_date_start.year, 1, 1)
         start_billing_period_date = first_billing_date
         while first_billing_date < recurrence_date_start:
-            start_billing_period_date = first_billing_date
-            first_billing_date += relativedelta.relativedelta(months=int(months_to_bill), days=-1)
+            if first_billing_date.day == 1:
+                # La première fois on passe du 1er au dernier jour du mois
+                start_billing_period_date = first_billing_date
+                first_billing_date += relativedelta.relativedelta(months=int(months_to_bill) - 1, day=31)
+            else:
+                start_billing_period_date = first_billing_date + relativedelta.relativedelta(days=1)
+                first_billing_date += relativedelta.relativedelta(months=int(months_to_bill), day=31)
 
         return first_billing_date, start_billing_period_date
 
@@ -218,8 +259,9 @@ class NdpSaleRecurrenceLine(models.Model):
                                                                                             months_to_bill)
 
             # On ne facture pas les périodes avant la date de début de contrat
-            period_date_start = fields.Date.to_string(previous_period_date) or billed_period_start
-            if period_date_start < rec.date_start:
+            # Si fin période demandée < rec.date_start
+            # period_date_start = fields.Date.to_string(previous_period_date) or billed_period_start
+            if billed_period_end < rec.date_start:
                 continue
 
             if self.env.context.get('cron_invoice_ndp_contracts'):
@@ -227,7 +269,7 @@ class NdpSaleRecurrenceLine(models.Model):
                     billed_period_end) + relativedelta.relativedelta(months=int(months_to_bill), days=1))
 
             qty_to_bill = float_round(rec.product_uom_qty * months_to_bill / uom_in_month, 3)
-            name = rec.name or rec.product_id.name
+            name = rec.name or rec.product_id.name + u" Période du %s au %s." % (billed_period_start, billed_period_end)
             recurrence_vals_list.append({
                 'invoice_id': account_invoice.id,
                 'product_id': rec.product_id.id,
@@ -237,8 +279,6 @@ class NdpSaleRecurrenceLine(models.Model):
                 'quantity': qty_to_bill,
                 'uos_id': rec.product_uom_id.id,
                 'price_unit': rec.price_unit,
-                'billed_period_start': billed_period_start,
-                'billed_period_end': billed_period_end,
                 'invoice_line_tax_id': [(6, 0, rec.tax_ids.ids)],
                 'sale_recurrence_line_ids': [(4, rec.id, 0)],
             })

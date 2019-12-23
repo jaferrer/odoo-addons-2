@@ -191,13 +191,39 @@ class NdpAnalyticContract(models.Model):
 class NdpAnalyticContractSaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    sale_recurrence_line_ids = fields.One2many('ndp.sale.recurrence.line', 'sale_id', string="Sale recurrence lines")
+    sale_recurrence_line_ids = fields.One2many('ndp.sale.recurrence.line',
+                                               'sale_id',
+                                               string="Sale recurrence lines",
+                                               copy=True)
+    amount_annual_recurrence = fields.Float(u"Annual amount Exc.Taxes", compute='_compute_amount_annual_recurrence')
+    ndp_contract_id = fields.Many2one('ndp.analytic.contract', string=u"Contrat", copy=False)
+    project_id = fields.Many2one(related='ndp_contract_id.analytic_account_id')
+
+    @api.multi
+    @api.depends('sale_recurrence_line_ids',
+                 'sale_recurrence_line_ids.date_start',
+                 'sale_recurrence_line_ids.date_end',
+                 'sale_recurrence_line_ids.price_unit',
+                 'sale_recurrence_line_ids.recurrence_id',
+                 'sale_recurrence_line_ids.product_uom_qty',
+                 'sale_recurrence_line_ids.product_uom_id')
+    def _compute_amount_annual_recurrence(self):
+        for rec in self:
+            amount = 0
+            uom_temporality_year = self.env.ref('ndp_analytic_contract.ndp_uom_temporalite_year')
+            for recurrence_line in rec.sale_recurrence_line_ids:
+                if recurrence_line.product_uom_id.category_id == uom_temporality_year.category_id:
+                    uom_in_year = self.env['product.uom']._compute_qty(
+                        uom_temporality_year.id, 1, recurrence_line.product_uom_id.id)
+                else:
+                    uom_in_year = 12.0
+                amount += uom_in_year * recurrence_line.price_unit * recurrence_line.product_uom_qty
+
+            rec.amount_annual_recurrence = amount
 
     @api.multi
     def action_wait(self):
-        """
-        Surcharge pour gérer de pouvoir valider un devis même si il contient que des lignes de récurrence ou de conso.
-        """
+        """Surcharge pour pouvoir valider un devis même s'il ne contient que des lignes d'abonnements"""
         for rec in self:
             if not any(line.state != 'cancel' for line in rec.order_line) and not any(rec.sale_recurrence_line_ids):
                 raise exceptions.except_orm(_('Error!'), _('You cannot confirm a sales order which has no line.'))
@@ -211,34 +237,71 @@ class NdpAnalyticContractSaleOrder(models.Model):
 
     @api.multi
     def action_button_confirm(self):
+        if all(product.type == 'service' for product in self.order_line.mapped('product_id')):
+            self.order_policy = 'manual'
+        result = super(NdpAnalyticContractSaleOrder, self).action_button_confirm()
+        template = self.env.ref('nntech_ventes.modele_mail_notif_confirm_devis', False)
+        if template:
+            for rec in self:
+                template.send_mail(rec.id, force_send=True)
+        if not self.order_line and self.sale_recurrence_line_ids:
+            self.write({'state': 'progress', 'manual_confirm': True})
+            return result
+        return result
+
+    @api.multi
+    def action_done(self):
+        result = super(NdpAnalyticContractSaleOrder, self).action_done()
+        if not self.order_line and self.sale_recurrence_line_ids:
+            return result
+        self.action_confirm_sale_order()
+        return result
+
+    @api.multi
+    def action_confirm_sale_order(self):
+        for rec in self:
+            if rec.sale_recurrence_line_ids:
+                rec.create_or_update_project_id()
+                rec.write({
+                    'state': 'done',
+                })
+            elif all(it.product_id.type == 'service' for it in rec.order_line):
+                rec.write({
+                    'state': 'done',
+                })
+
+    @api.multi
+    def create_or_update_project_id(self):
         """
         La confirmation d'un devis entraîne la copie de ses lignes récurrentes dans le contrat associé.
         """
-        res = super(NdpAnalyticContractSaleOrder, self).action_button_confirm()
+        self.ensure_one()
+        contract = self.env['ndp.analytic.contract'].search([('analytic_account_id', '=', self.project_id.id)])
+        if not contract:
+            name = u"Contract : %s (%s)" % (self.partner_id.name, self.name)
+            contract = self.env['ndp.analytic.contract'].create({
+                'name': name,
+                'partner_id': self.partner_id.id,
+                'company_id': self.company_id.id,
+                'manager_id': self.user_id.id,
+            })
 
-        for rec in self:
-            contract = self.env['ndp.analytic.contract'].search([('analytic_account_id', '=', rec.project_id.id)])
-            if not contract:
-                name = rec.project_id.name or u"Contract %s" % rec.name
-                contract = self.env['ndp.analytic.contract'].create({
-                    'name': name,
-                    'partner_id': rec.partner_id.id,
-                })
+        for sr_line in self.sale_recurrence_line_ids:
+            sr_line.copy({
+                'sale_id': False,
+                'ndp_analytic_contract_id': contract.id,
+            })
 
-            rec.project_id = contract.analytic_account_id.id
-            for sr_line in rec.sale_recurrence_line_ids:
-                sr_line.copy({
-                    'sale_id': False,
-                    'ndp_analytic_contract_id': contract.id,
-                })
+        self.write({
+            'manual_confirm': False,
+            'ndp_contract_id': contract.id,
+        })
 
-        return res
+        return contract
 
 
 class NdpAnalyticContractAccountInvoiceLine(models.Model):
     _inherit = 'account.invoice.line'
 
-    billed_period_start = fields.Date(u"Billed period start", readonly=True)
-    billed_period_end = fields.Date(u"Billed period end", readonly=True)
     sale_recurrence_line_ids = fields.Many2many('ndp.sale.recurrence.line', string=u"Sale recurrence lines")
     sale_consu_line_ids = fields.Many2many('ndp.sale.consu.line', string=u"Sale consumption lines")
