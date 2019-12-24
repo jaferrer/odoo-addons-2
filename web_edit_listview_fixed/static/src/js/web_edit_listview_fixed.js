@@ -14,7 +14,7 @@ odoo.define('web.EditListFormFixed', function (require) {
         resize_field: function (field, cell) {
             var result = this._super.apply(this, arguments);
             var pos_ok = $('.oe_edition')[0];
-             if (pos_ok !== 'undefined' && pos_ok !== undefined) {
+            if (pos_ok !== 'undefined' && pos_ok !== undefined) {
                 field.$el.css({'top': pos_ok.offsetTop});
             }
             return result;
