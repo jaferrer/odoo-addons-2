@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.cron" id="cron_process_files_to_import">
+            <field name="name">Process files to import</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="active" eval="True"/>
+            <field name="priority">5</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="nextcall">2019-01-04 00:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="doall"/>
+            <field name="model_id" ref="customer_file_importation.model_customer_imported_csv_file"/>
+            <field name="state">code</field>
+            <field name="code">model.process_files_to_import()</field>
+        </record>
+
+    </data>
+</openerp>
