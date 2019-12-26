@@ -86,6 +86,7 @@ class StockSplitPicking(models.Model):
         pack_operations = self.env['stock.pack.operation'].search([('picking_id', 'in', not_done_picking_ids)])
         pack_operations.unlink()
         # We search again, if packop deletion deleted pickings by cascade
+        self.env.invalidate_all()
         self.search([('id', 'in', not_done_picking_ids)]).write({'packing_details_saved': False})
 
     @api.multi
