@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,16 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, api
-
-
-class DbUnaccent(models.Model):
-    _name = "db.unaccent"
-    _description = "DB Unaccent"
-
-    @api.model_cr
-    def init(self):
-        self.env.cr.execute("""
-        CREATE EXTENSION IF NOT EXISTS "unaccent";
-        """)
-        return super(DbUnaccent, self).init()
+from . import customer_file_importation

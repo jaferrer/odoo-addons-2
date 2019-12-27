@@ -22,6 +22,7 @@ from odoo import models, api
 
 class SQLfunctions(models.AbstractModel):
     _name = 'group.operator'
+    _description = "Group Operator"
     _auto = False
 
     @api.model_cr
