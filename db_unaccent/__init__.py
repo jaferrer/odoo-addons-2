@@ -22,6 +22,7 @@ from odoo import models, api
 
 class DbUnaccent(models.Model):
     _name = "db.unaccent"
+    _description = "DB Unaccent"
 
     @api.model_cr
     def init(self):

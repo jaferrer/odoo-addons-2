@@ -31,6 +31,7 @@ _logger = logging.getLogger(__name__)
 
 class CustomerFileToImport(models.Model):
     _name = 'customer.file.to.import'
+    _description = "Customer file to import"
     _order = 'sequence,id'
 
     name = fields.Char(string=u"Nom", required=True, readonly=True)
@@ -200,6 +201,7 @@ class CustomerFileToImport(models.Model):
 
 class CustomerImportationLogLine(models.Model):
     _name = 'customer.importation.log.line'
+    _description = "Customer importation log line"
     _order = 'type'
 
     import_id = fields.Many2one('customer.file.to.import', string=u"File to import", readonly=True, required=True)
@@ -210,6 +212,7 @@ class CustomerImportationLogLine(models.Model):
 
 class CustomerGeneratedCsvFile(models.Model):
     _name = 'customer.generated.csv.file'
+    _description = "Customer generated CSV file"
     _order = 'sequence, id'
 
     import_id = fields.Many2one('customer.file.to.import', string=u"File to import", readonly=True, required=True)
@@ -269,6 +272,7 @@ class CustomerGeneratedCsvFile(models.Model):
 
 class CustomerGeneratedCsvFileSequenced(models.Model):
     _name = 'customer.imported.csv.file'
+    _description = "Customer imported CSV file"
     _order = 'id desc'
 
     model = fields.Char(string=u"Model", readonly=True, required=True)
@@ -380,13 +384,6 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
         files_to_process.launch_importation()
 
 
-class CustomerFileImportationQueueJob(models.Model):
-    _inherit = 'queue.job'
-
-    imported_file_id = fields.Many2one('customer.imported.csv.file', string=u"Job généré pour le fichier",
-                                       readonly=True)
-
-
 class CustomerFileImportationIrAttachment(models.Model):
     _inherit = 'ir.attachment'
 
@@ -422,6 +419,9 @@ class BaseImportImport(models.TransientModel):
 
 class CustomerFileQueueJob(models.Model):
     _inherit = 'queue.job'
+
+    imported_file_id = fields.Many2one('customer.imported.csv.file', string=u"Job généré pour le fichier",
+                                       readonly=True)
 
     @api.multi
     def update_importation_file_states(self):
