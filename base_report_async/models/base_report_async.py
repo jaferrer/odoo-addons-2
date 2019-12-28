@@ -86,7 +86,7 @@ class DelayReport(models.Model):
                 except Exception as error:
                     self.send_failure_mail(error)
                     return
-            zip_file_name = '%s' % (slugify(values.get('name')) or 'documents')
+            zip_file_name = '%s' % (slugify(values.get('name').replace('/', '-')) or 'documents')
             temp_dir = tempfile.mkdtemp()
             zip_file_path = '%s/%s' % (temp_dir, zip_file_name)
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
