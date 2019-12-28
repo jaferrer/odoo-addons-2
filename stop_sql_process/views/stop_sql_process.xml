@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="stop_sql_process_form" model="ir.ui.view">
+            <field name="name">stop_sql_process_form</field>
+            <field name="model">stop.sql.process</field>
+            <field name="arch" type="xml">
+                <form>
+                    <header>
+                        <button name="analyze"  string="Analyze" type="object"/>
+                        <button name="kill_all"  string="Kill all" type="object" class="oe_highlight"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <field name="nb_lines"/>
+                            <field name="line_ids">
+                                <tree>
+                                    <field name="pid"/>
+                                    <field name="query_start"/>
+                                    <field name="query"/>
+                                </tree>
+                            </field>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="stop_sql_process_action" model="ir.actions.act_window">
+            <field name="name">Stop sql process</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">stop.sql.process</field>
+            <field name="view_mode">form</field>
+        </record>
+
+        <menuitem id="stop_sql_process_menu" name="Stop sql process"
+                  parent="base.menu_custom" action="stop_sql_process.stop_sql_process_action" sequence="8"/>
+
+
+    </data>
+</odoo>
