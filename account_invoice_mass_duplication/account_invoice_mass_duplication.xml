@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="act_server_mass_duplicate_invoices" model="ir.actions.server">
+            <field name="name">Mass Duplication</field>
+            <field name="model_id" ref="account.model_account_invoice"/>
+            <field name="binding_model_id" ref="account.model_account_invoice"/>
+            <field name="state">code</field>
+            <field name="code">action = records.mass_duplicate()</field>
+        </record>
+
+        <record model="ir.ui.view" id="wizard_invoice_mass_duplication_form">
+            <field name="name">wizard_invoice_mass_duplication_form</field>
+            <field name="model">wizard.invoice.mass.duplication</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="date"/>
+                    </group>
+                    <footer>
+                        <button name="duplicate" string="Duplicate" type="object" class="btn-primary"/>
+                        or
+                        <button string="Cancel" special="cancel" class="btn-default"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>
