@@ -172,7 +172,20 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                                                  company=line.order_id.company_id,
                                                  schedule_date=date_required,
                                                  ref_product=line.product_id) or False
+                    if limit_order_date:
+                        delivery_location = line.order_id.picking_type_id.default_location_dest_id
+                        if delivery_location:
+                            calendar = line.order_id.company_id.calendar_id
+                            if not calendar:
+                                _, calendar = delivery_location.get_resource_and_calendar_for_location()
+                            jours_fermeture = calendar and calendar.leave_ids or []
+                            # If Sirail is closed at the 'limit order date',choose the soonest date when Sirail is open.
+                            for jour in jours_fermeture:
+                                if jour.date_from <= fields.Datetime.to_string(limit_order_date) <= jour.date_to:
+                                    limit_order_date = delivery_location.schedule_working_days(-1, limit_order_date)
+                                    break
                     limit_order_date = limit_order_date and fields.Datetime.to_string(limit_order_date) or False
+
                     date_required = date_required and fields.Datetime.to_string(date_required) or False
                     dict_pol = {
                         'date_required': date_required,
@@ -268,24 +281,10 @@ GROUP BY po.id
 ORDER BY po.id
 """)
         result = self.env.cr.dictfetchall()
-        order_with_limit_dates_ids = []
         for item in result:
             order = self.search([('id', '=', item['order_id'])])
-            delivery_location = order.picking_type_id.default_location_dest_id
-            if delivery_location:
-                calendar = order.company_id.calendar_id
-                if not calendar:
-                    _, calendar = delivery_location.get_resource_and_calendar_for_location()
-                jours_fermeture = calendar and calendar.leave_ids or []
-                # If Sirail is closed at the 'limit order date', choose the soonest date when Sirail is open.
-                for jour in jours_fermeture:
-                    if jour.date_from <= item['new_limit_order_date'] <= jour.date_to:
-                        item['new_limit_order_date'] = delivery_location. \
-                            schedule_working_days(-1, fields.Datetime.from_string(item['new_limit_order_date']))
-                        break
             if order.limit_order_date != item['new_limit_order_date']:
                 order.limit_order_date = item['new_limit_order_date']
-            order_with_limit_dates_ids += [item['order_id']]
 
     @api.multi
     def compute_coverage_state(self):
