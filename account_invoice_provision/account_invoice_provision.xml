@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="account_invoice_tree">
+            <field name="name">account_invoice_tree</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_supplier_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="date_invoice" position="after">
+                    <field name="reverse_invoice_date" invisible="not context.get('default_is_provision_invoice')"/>
+                </field>
+                <field name="reference" position="attributes">
+                    <attribute name="invisible">context.get('default_is_provision_invoice')</attribute>
+                </field>
+                <field name="date_due" position="attributes">
+                    <attribute name="invisible">context.get('default_is_provision_invoice')</attribute>
+                </field>
+                <field name="residual_signed" position="attributes">
+                    <attribute name="invisible">context.get('default_is_provision_invoice')</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="account_invoice_supplier_form">
+            <field name="name">account_invoice_supplier_form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_supplier_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="date_invoice" position="after">
+                    <field name="is_provision_invoice" invisible="1"/>
+                    <field name="reverse_invoice_date" attrs="{'invisible': [('is_provision_invoice', '=', False)], 'required': [('is_provision_invoice', '=', True)]}"/>
+                </field>
+                <field name="date_invoice" position="attributes">
+                    <attribute name="attrs">{'required': [('is_provision_invoice', '=', True)]}</attribute>
+                </field>
+                <field name="date_due" position="attributes">
+                    <attribute name="attrs">{'invisible': [('is_provision_invoice', '=', True)]}</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record id="account.action_vendor_bill_template" model="ir.actions.act_window">
+            <field name="domain">[('type','=','in_invoice'), ('is_provision_invoice', '=', False)]</field>
+        </record>
+
+        <record id="account.action_invoice_in_refund" model="ir.actions.act_window">
+            <field name="domain">[('type','=','in_refund'), ('is_provision_invoice', '=', False)]</field>
+        </record>
+
+        <record id="act_window_provision_supplier_invoices" model="ir.actions.act_window">
+            <field name="name">Provisions</field>
+            <field name="res_model">account.invoice</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
+            <field name="view_id" eval="False"/>
+            <field name="domain">[('type','=','in_invoice'), ('is_provision_invoice', '=', True)]</field>
+            <field name="context">{'default_type': 'in_invoice', 'type': 'in_invoice', 'journal_type': 'purchase', 'default_is_provision_invoice': True}</field>
+            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Record a new supplier provision
+                </p>
+            </field>
+        </record>
+
+        <record id="act_server_provision_supplier_invoices" model="ir.actions.server">
+            <field name="name">Provisions</field>
+            <field name="model_id" ref="account.model_account_invoice"/>
+            <field name="state">code</field>
+            <field name="code">
+action_values = env.ref('account_invoice_provision.act_window_provision_supplier_invoices').read()[0]
+new_help = model.complete_empty_list_help()
+action_values.update({'help': action_values.get('help', '') + new_help})
+action = action_values
+            </field>
+        </record>
+
+        <record id="act_server_provision_supplier_invoices_tree" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="account.invoice_supplier_tree"/>
+            <field name="act_window_id" ref="act_window_provision_supplier_invoices"/>
+        </record>
+
+        <record id="act_server_provision_supplier_invoices_form" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="account.invoice_supplier_form"/>
+            <field name="act_window_id" ref="act_window_provision_supplier_invoices"/>
+        </record>
+
+        <menuitem action="act_server_provision_supplier_invoices" id="menu_provision_supplier_invoices"
+                  name="Provisions" parent="account.menu_finance_payables" sequence="10"/>
+
+    </data>
+</openerp>
