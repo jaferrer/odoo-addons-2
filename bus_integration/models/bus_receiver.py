@@ -86,8 +86,12 @@ class BusSynchronizationReceiver(models.AbstractModel):
             self.register_synchro_return(message_id)
         # deletion request
         elif message.treatment == 'DELETION_SYNCHRONIZATION':
-            result = self.env['bus.importer'].import_deletion_synchronization_message(message_id)
-            self.env['bus.exporter'].send_deletion_return_message(message_id, result)
+            message_dict = self.env['bus.importer'].import_deletion_synchronization_message(message_id)
+            self.env['bus.exporter'].send_deletion_return_message(message_id, message_dict)
+        # restrict ids request
+        elif message.treatment == 'RESTRICT_IDS_SYNCHRONIZATION':
+            message_dict = self.env['bus.importer'].run_synchro_restrict_ids(message)
+            new_msg = self.env['bus.exporter'].send_restrict_id_response(message, message_dict)
         # deletion response
         elif message.treatment == 'DELETION_SYNCHRONIZATION_RETURN':
             self.env['bus.importer'].register_synchro_deletion_return(message_id)
@@ -95,11 +99,16 @@ class BusSynchronizationReceiver(models.AbstractModel):
             self.env['bus.importer'].register_synchro_check_return(message_id)
         elif message.treatment == 'BUS_SYNCHRONIZATION_RETURN':
             self.env['bus.importer'].register_synchro_bus_response(message)
+        elif message.treatment == 'RESTRICT_IDS_SYNCHRONIZATION_RETURN':
+            self.env['bus.importer'].register_synchro_restrict_ids_return(message)
         else:
             result = False
         if not result:
             return False
-        successful_treatments = ('SYNCHRONIZATION_RETURN', 'DELETION_SYNCHRONIZATION_RETURN')
+        successful_treatments = ('SYNCHRONIZATION_RETURN',
+                                 'DELETION_SYNCHRONIZATION_RETURN',
+                                 'BUS_SYNCHRONIZATION_RETURN',
+                                 'RESTRICT_IDS_SYNCHRONIZATION_RETURN')
         if (message.treatment in successful_treatments) or (new_msg and new_msg.treatment in successful_treatments):
             date_done = datetime.now()
             linked_msgs = message.get_same_cross_id_messages(json.loads(message.message))

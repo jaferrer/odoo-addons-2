@@ -38,6 +38,7 @@ class BusConfigurationExport(models.Model):
                                                u"Treatment in BUS database", default='simple_reception', required=True)
     treatment_type = fields.Selection([('SYNCHRONIZATION', u"Synchronization"),
                                        ('DELETION_SYNCHRONIZATION', u"Deletion"),
+                                       ('RESTRICT_IDS_SYNCHRONIZATION', u"Restrict ids"),
                                        ('CHECK_SYNCHRONIZATION', u"Check"),
                                        ('BUS_SYNCHRONIZATION', u"Bus")],
                                       string=u"Treatment type", default='SYNCHRONIZATION', required=True)

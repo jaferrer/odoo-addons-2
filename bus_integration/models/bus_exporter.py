@@ -50,7 +50,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         export_domain = batch.domain and safe_eval(batch.domain, batch.export_domain_keywords()) or []
 
         active_test = True
-        if batch.treatment_type != 'BUS_SYNCHRONIZATION':
+        if batch.treatment_type not in ('BUS_SYNCHRONIZATION', 'RESTRICT_IDS_SYNCHRONIZATION'):
             object_mapping = self.env['bus.object.mapping'].search([('model_name', '=', batch.model)])
             if not object_mapping or not object_mapping.is_exportable:
                 raise exceptions.ValidationError(u"Object mapping not configured for model : %s" % batch.model)
@@ -120,7 +120,9 @@ class BusSynchronizationExporter(models.AbstractModel):
         elif message_type == 'CHECK_SYNCHRONIZATION':
             result = self._generate_check_msg_body(exported_records, model_name, message_dict['header']['dest'])
         elif message_type == 'BUS_SYNCHRONIZATION':
-            result = self._generate_bus_synchronization_msg_body(exported_records, model_name)
+            result = self._generate_bus_synchronization_msg_body(exported_records)
+        elif message_type == 'RESTRICT_IDS_SYNCHRONIZATION':
+            result = {'body': {'root': {exported_records._name: exported_records.ids}}}
         elif message_type == 'SYNCHRONIZATION':
             result = self._generate_msg_body(exported_records, model_name)
         else:
@@ -142,7 +144,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             message.add_log(u"could not create send message job", 'error')
 
     # region def _generate_msg_body(self, exported_records, model_name):
-    def _generate_bus_synchronization_msg_body(self, exported_records, model_name):
+    def _generate_bus_synchronization_msg_body(self, exported_records):
         message_dict = {'body': {'root': {exported_records._name: {}}}}
         for record in exported_records:
             record_id = str(record.id)
@@ -447,3 +449,36 @@ class BusSynchronizationExporter(models.AbstractModel):
         resp['body']['return'] = return_message
         message.send(resp)
         return True
+
+    @api.model
+    def send_restrict_id_response(self, parent_message, result_dict):
+        message_dict = json.loads(parent_message.message)
+
+        log_message = u""
+        return_state = 'done'
+        for log in parent_message.log_ids:
+            if log.type == 'error':
+                return_state = 'error'
+            log_message += u"%s : %s \n" % (log.type, log.information)
+
+        dest = message_dict.get('header').get('origin')
+
+        resp = collections.OrderedDict()
+        resp['header'] = message_dict.get('header')
+        resp['header']['origin'] = message_dict.get('header').get('dest')
+        resp['header']['dest'] = dest
+        resp['header']['treatment'] = 'RESTRICT_IDS_SYNCHRONIZATION_RETURN'
+        resp['header']['parent'] = message_dict.get('header').get('id')
+        resp['body'] = {
+            'dependency': {},
+            'root': {},
+        }
+        resp['body']['return'] = {
+            'result': result_dict,
+            'log': log_message,
+            'state': return_state,
+        }
+        message = self.env['bus.message'].create_message(resp, 'sent', parent_message.configuration_id,
+                                                         parent_message.id)
+        message.send(resp)
+        return message
