@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="crossovered_budget_form">
+            <field name="name">crossovered_budget_form</field>
+            <field name="model">crossovered.budget</field>
+            <field name="inherit_id" ref="account_budget_oca.crossovered_budget_view_form"/>
+            <field name="priority" eval="999"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='crossovered_budget_line_ids']//tree" position="attributes">
+                    <attribute name="editable">bottom</attribute>
+                </xpath>
+            </field>
+        </record>
+
+    </data>
+</openerp>

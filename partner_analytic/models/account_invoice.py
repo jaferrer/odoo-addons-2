@@ -52,7 +52,7 @@ class AccountInvoiceLine(models.Model):
         if invoice_id and not vals.get('account_analytic_id'):
             invoice = self.env['account.invoice'].browse(invoice_id)
             inv_type = invoice.type
-            ana_accounts = invoice.partner_id.partner_id._get_partner_analytic_accounts()
+            ana_accounts = invoice.partner_id._get_partner_analytic_accounts()
             ana_account = ana_accounts.get(INV_TYPE_MAP[inv_type], self.env['account.analytic.account'])
             vals['account_analytic_id'] = ana_account.id
         return super(AccountInvoiceLine, self).create(vals)
