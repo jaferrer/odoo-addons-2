@@ -18,14 +18,14 @@
 #
 
 {
-    'name': 'Accounting - Busget (OCA) - No Line Dates',
+    'name': 'Accounting - Budget (OCA) - No Line Dates',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Account',
     'depends': ['account_budget_oca'],
     'description': """
-Accounting - Busget (OCA) - No Line Dates
+Accounting - Budget (OCA) - No Line Dates
 =========================================
 This modules removes the possibility to have specific dates on budget lines.
 """,

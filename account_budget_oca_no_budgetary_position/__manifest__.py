@@ -18,14 +18,14 @@
 #
 
 {
-    'name': 'Accounting - Busget (OCA) - No Budgetary Position',
+    'name': 'Accounting - Budget (OCA) - No Budgetary Position',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Account',
     'depends': ['account_budget_oca'],
     'description': """
-Accounting - Busget (OCA) - No Budgetary Position
+Accounting - Budget (OCA) - No Budgetary Position
 =================================================
 This modules changes budgets management, so that the field "Budgetary Position" disappears, and budget lines are only
 linked to an analytic account (which becomes required).

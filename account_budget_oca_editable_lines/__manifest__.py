@@ -18,14 +18,14 @@
 #
 
 {
-    'name': 'Accounting - Busget (OCA) - Editable Lines',
+    'name': 'Accounting - Budget (OCA) - Editable Lines',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Account',
     'depends': ['account_budget_oca'],
     'description': """
-Accounting - Busget (OCA) - Editable Lines
+Accounting - Budget (OCA) - Editable Lines
 ==========================================
 This modules makes budget lines editable.
 """,
