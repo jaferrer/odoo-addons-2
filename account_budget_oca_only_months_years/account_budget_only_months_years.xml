@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="crossovered_budget_form">
+            <field name="name">crossovered_budget_form</field>
+            <field name="model">crossovered.budget</field>
+            <field name="inherit_id" ref="account_budget_oca.crossovered_budget_view_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="date_from" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <field name="date_from" position="after">
+                    <field name="month_from" class="oe_inline" attrs="{'readonly':[('state','!=','draft')]}"/>/
+                    <field name="year_from" class="oe_inline" attrs="{'readonly':[('state','!=','draft')]}"/>
+                </field>
+                <field name="date_to" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+                <field name="date_to" position="after">
+                    <field name="month_to" class="oe_inline" attrs="{'readonly':[('state','!=','draft')]}"/>/
+                    <field name="year_to" class="oe_inline" attrs="{'readonly':[('state','!=','draft')]}"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>
