@@ -17,21 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import api, fields, models
-
-
-class ResPartner(models.Model):
-    _inherit = 'res.partner'
-
-    income_analytic_account_id = fields.Many2one('account.analytic.account', string='Income Analytic Account')
-    expense_analytic_account_id = fields.Many2one('account.analytic.account', string='Expense Analytic Account')
-
-    @api.multi
-    def _get_partner_analytic_accounts(self):
-        if not self:
-            return {}
-        self.ensure_one()
-        return {
-            'income': self.income_analytic_account_id or self.env['account.analytic.account'],
-            'expense': self.expense_analytic_account_id or self.env['account.analytic.account'],
-        }
+from . import account_invoice_required_analytic_account

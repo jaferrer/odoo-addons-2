@@ -17,21 +17,15 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import api, fields, models
+from odoo import models, api, exceptions, _
 
 
-class ResPartner(models.Model):
-    _inherit = 'res.partner'
-
-    income_analytic_account_id = fields.Many2one('account.analytic.account', string='Income Analytic Account')
-    expense_analytic_account_id = fields.Many2one('account.analytic.account', string='Expense Analytic Account')
+class AccointInvoiceRecomputeTaxes(models.Model):
+    _inherit = 'account.invoice'
 
     @api.multi
-    def _get_partner_analytic_accounts(self):
-        if not self:
-            return {}
-        self.ensure_one()
-        return {
-            'income': self.income_analytic_account_id or self.env['account.analytic.account'],
-            'expense': self.expense_analytic_account_id or self.env['account.analytic.account'],
-        }
+    def recompute_taxes_from_screen(self):
+        if self.search([('id', 'in', self.ids),
+                        ('state', '!=', 'draft')]):
+            raise exceptions.UserError(_(u"You can only recompute VAT for draft invoices"))
+        self.compute_taxes()

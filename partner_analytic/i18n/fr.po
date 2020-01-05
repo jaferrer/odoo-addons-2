@@ -18,10 +18,12 @@ msgstr ""
 
 #. module: partner_analytic
 #: model:ir.model.fields,field_description:partner_analytic.field_res_partner__expense_analytic_account_id
+#: model_terms:ir.ui.view,arch_db:partner_analytic.res_partner_search_view
 msgid "Expense Analytic Account"
 msgstr "Compte Analytique Dépenses"
 
 #. module: partner_analytic
 #: model:ir.model.fields,field_description:partner_analytic.field_res_partner__income_analytic_account_id
+#: model_terms:ir.ui.view,arch_db:partner_analytic.res_partner_search_view
 msgid "Income Analytic Account"
 msgstr "Compte Analytique Revenu"

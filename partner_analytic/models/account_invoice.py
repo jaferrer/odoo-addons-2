@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import api, models, fields
+from odoo import api, models
 
 INV_TYPE_MAP = {
     'out_invoice': 'income',
@@ -29,8 +29,6 @@ INV_TYPE_MAP = {
 
 class AccountInvoiceLine(models.Model):
     _inherit = 'account.invoice.line'
-
-    account_analytic_id = fields.Many2one('account.analytic.account')
 
     @api.onchange('product_id')
     def _onchange_product_id(self):

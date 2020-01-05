@@ -82,7 +82,7 @@
                             <field name="extension"/>
                             <field name="asynchronous"/>
                             <field name="chunk_size" attrs="{'invisible': [('asynchronous', '=', False)]}"/>
-                            <field name="file"  filename="datas_fname"/>
+                            <field name="file" filename="datas_fname"/>
                             <field name="nb_columns"/>
                         </group>
                         <notebook>
@@ -92,8 +92,9 @@
                             <page string="Generated CSV files">
                                 <field name="csv_file_ids">
                                     <tree>
-                                        <field name="model"/>
-                                        <field name="generated_csv_file" filename="datas_fname"/>
+                                        <field name="model" invisible="1"/>
+                                        <field name="datas_fname" invisible="1"/>
+                                        <field name="generated_csv_file" widget="download_link" filename="datas_fname"/>
                                         <field name="fields_to_import"/>
                                         <field name="state"/>
                                         <button name="action_import" string="Launch Importation" type="object"/>
