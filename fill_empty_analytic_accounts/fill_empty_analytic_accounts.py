@@ -54,3 +54,16 @@ class AccountInvoiceLineFillAnalyticAccount(models.Model):
     def fill_empty_account_analytic_ids(self):
         for line in self.env['account.invoice.line'].search([('account_analytic_id', '=', False)]):
             line.fill_empty_account_analytic_for_lines(logs=True)
+
+    @api.model
+    def create(self, vals):
+        if vals.get('account_analytic_id'):
+            return super(AccountInvoiceLineFillAnalyticAccount, self).create(vals)
+        invoice_id = vals.get('invoice_id')
+        if invoice_id:
+            invoice = self.env['account.invoice'].browse(invoice_id)
+            if invoice.type in ['out_invoice', 'out_refund']:
+                vals['account_analytic_id'] = self.env.ref('fill_empty_analytic_accounts.analytic_account_sales').id
+            if invoice.type in ['in_invoice', 'in_refund']:
+                vals['account_analytic_id'] = self.env.ref('fill_empty_analytic_accounts.analytic_account_purchases').id
+        return super(AccountInvoiceLineFillAnalyticAccount, self).create(vals)
