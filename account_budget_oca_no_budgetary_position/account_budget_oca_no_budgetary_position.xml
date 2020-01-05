@@ -17,5 +17,29 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="view_crossovered_budget_line_tree">
+            <field name="name">crossovered.budget.line.tree</field>
+            <field name="model">crossovered.budget.lines</field>
+            <field name="inherit_id" ref="account_budget_oca.view_crossovered_budget_line_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="general_budget_id" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_crossovered_budget_line_form">
+            <field name="name">crossovered.budget.line.form</field>
+            <field name="model">crossovered.budget.lines</field>
+            <field name="inherit_id" ref="account_budget_oca.view_crossovered_budget_line_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="general_budget_id" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
     </data>
 </openerp>
