@@ -1,6 +1,6 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# * account_budget_oca_only_months_years
+# * account_budget_oca_months_years
 #
 msgid ""
 msgstr ""

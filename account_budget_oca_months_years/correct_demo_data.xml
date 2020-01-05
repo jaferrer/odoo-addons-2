@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <function model="crossovered.budget" name="update_months_years_demo_data"/>
+
+    </data>
+</openerp>

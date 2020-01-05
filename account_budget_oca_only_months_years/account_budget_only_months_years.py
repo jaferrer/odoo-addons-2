@@ -21,19 +21,14 @@
 from odoo import models, fields, api
 from dateutil.relativedelta import relativedelta
 
-MONTH_SELECTION = [('%02d' % number, '%02d' % number) for number in range(1, 13)]
-
-# Do not change year selection here, because it will impact existing data
-YEAR_SELECTION = [('%02d' % number, '%02d' % number) for number in range(2019, 2051)]
-
 
 class OmyCrossoveredBudget(models.Model):
     _inherit = 'crossovered.budget'
 
-    month_from = fields.Selection(MONTH_SELECTION, string=u"Start month", required=True)
-    year_from = fields.Selection(YEAR_SELECTION, string=u"Start year", required=True)
-    month_to = fields.Selection(MONTH_SELECTION, string=u"End month", required=True)
-    year_to = fields.Selection(YEAR_SELECTION, string=u"End year", required=True)
+    month_from = fields.Selection(required=True)
+    year_from = fields.Selection(required=True)
+    month_to = fields.Selection(required=True)
+    year_to = fields.Selection(required=True)
     date_from = fields.Date(compute='_compute_dates', store=True, required=False)
     date_to = fields.Date(compute='_compute_dates', store=True, required=False)
 

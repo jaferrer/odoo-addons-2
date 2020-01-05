@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,26 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Accounting - Budget (OCA) - Month Only',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Account',
-    'depends': ['account_budget_oca_months_years'],
-    'description': """
-Accounting - Budget (OCA) - Month Only
-======================================
-This modules replaces start and end date by a start and end month/year
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'account_budget_only_months_years.xml',
-    ],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': True,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from . import account_budget_months_years

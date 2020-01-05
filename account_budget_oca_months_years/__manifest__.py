@@ -23,20 +23,18 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Account',
-    'depends': ['account_budget_oca_months_years'],
+    'depends': ['account_budget_oca_no_line_dates'],
     'description': """
 Accounting - Budget (OCA) - Month Only
 ======================================
-This modules replaces start and end date by a start and end month/year
+This module creates fields start/end month and start/end year
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'account_budget_only_months_years.xml',
-    ],
-    'demo': [],
+    'data': [],
+    'demo': ['correct_demo_data.xml'],
     'test': [],
     'installable': True,
-    'auto_install': True,
+    'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
 }
