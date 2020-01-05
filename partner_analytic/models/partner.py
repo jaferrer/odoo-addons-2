@@ -23,12 +23,8 @@ from odoo import api, fields, models
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
-    income_analytic_account_id = fields.Many2one(
-        'account.analytic.account', string='Income Analytic Account',
-        company_dependent=True)
-    expense_analytic_account_id = fields.Many2one(
-        'account.analytic.account', string='Expense Analytic Account',
-        company_dependent=True)
+    income_analytic_account_id = fields.Many2one('account.analytic.account', string='Income Analytic Account')
+    expense_analytic_account_id = fields.Many2one('account.analytic.account', string='Expense Analytic Account')
 
     @api.multi
     def _get_partner_analytic_accounts(self):
