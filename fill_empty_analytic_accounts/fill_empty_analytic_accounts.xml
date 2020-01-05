@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <function name="fill_empty_account_analytic_ids" model="account.invoice.line"/>
+
+    </data>
+</openerp>
