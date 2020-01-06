@@ -28,18 +28,9 @@ class AccountInvoiceChangeType(models.Model):
     done = fields.Boolean(string=u"Done", readonly=True)
 
     @api.multi
-    def invoice_confirm(self):
-        for rec in self:
-            if not rec.hide_force_number and rec.force_number:
-                rec.invoice_ids.write({'move_name': rec.force_number})
-            rec.done = True
-        return super(AccountInvoiceChangeType, self).invoice_confirm()
-
-    @api.multi
     def apply(self):
         self.ensure_one()
         self.invoice_id.move_name = self.force_number
-        wizard = self.env['account.invoice.confirm'].create({})
-        wizard.with_context(active_ids=self.invoice_id.ids).invoice_confirm()
+        self.invoice_id.with_context(set_number_and_confirm=True).action_invoice_open()
         self.done = True
         return {'type': 'ir.actions.act_window_close'}
