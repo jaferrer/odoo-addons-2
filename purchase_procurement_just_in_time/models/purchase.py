@@ -61,7 +61,9 @@ class PurchaseOrderJustInTime(models.Model):
                     move = self.env['stock.move'].with_context(mail_notrack=True).create(vals)
                     todo_moves |= move
         todo_moves.with_context(mail_notrack=True).action_confirm()
-        todo_moves.with_context(mail_notrack=True).force_assign()
+        moves_to_assign = self.env['stock.move'].search([('id', 'in', todo_moves.ids),
+                                                         ('location_id.usage', '=', 'supplier')])
+        moves_to_assign.with_context(mail_notrack=True).force_assign()
 
     @api.model
     def _prepare_order_line_move(self, order, order_line, picking_id, group_id):
