@@ -93,7 +93,7 @@ action = action_values
         </record>
 
         <menuitem action="act_server_provision_supplier_invoices" id="menu_provision_supplier_invoices"
-                  name="Provisions" parent="account.menu_finance_payables" sequence="10"/>
+                  name="Provisions" parent="account.menu_finance_entries_management" sequence="10"/>
 
     </data>
 </openerp>
