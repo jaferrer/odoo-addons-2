@@ -96,7 +96,7 @@ class BusSynchronizationBinder(models.AbstractModel):
 
         errors = []
         transfer, odoo_record = self.get_record_by_external_key(external_key, model)
-        if transfer:
+        if transfer and transfer.local_id != odoo_record.id:
             transfer.local_id = odoo_record.id
         else:
             log_message = ""
