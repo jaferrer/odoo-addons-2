@@ -184,10 +184,13 @@ class ProcurementOrderQuantity(models.Model):
         if run_moves:
             domain = company_id and [('company_id', '=', company_id)] or False
             self.env['procurement.order'].run_confirm_moves(domain)
-        last_date_done = dt.now() - relativedelta(months=1)
-        last_date_done = fields.Datetime.to_string(last_date_done)
-        self.env.cr.execute("""DELETE FROM stock_scheduler_controller WHERE done IS TRUE AND date_done < %s""",
-                            (last_date_done,))
+        # we invalidate the already existing line of stock controller not yet started
+        # done_date is kept to NULL, so we have a way to identify controller line invalidated
+        msg = "set to done before starting execution of Stock scheduler on {}".format(fields.Datetime.to_string(dt.now()))
+        self.env.cr.execute("""UPDATE stock_scheduler_controller SET done=TRUE,
+         job_uuid=%s 
+          WHERE done IS FALSE AND job_uuid IS NULL;""", (msg, )
+                            )
         self.env.cr.execute("""INSERT INTO stock_scheduler_controller
 (orderpoint_id,
  product_id,
