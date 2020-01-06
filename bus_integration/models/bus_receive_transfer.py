@@ -117,5 +117,6 @@ class BusReceiveTransfer(models.Model):
                 .create(vals)
         elif vals:
             odoo_record.write(vals)
-        transfer.local_id = odoo_record.id
+        if vals and transfer.local_id  != odoo_record.id:
+            transfer.local_id = odoo_record.id
         return transfer, odoo_record, False
