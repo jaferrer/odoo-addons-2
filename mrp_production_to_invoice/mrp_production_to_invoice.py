@@ -25,10 +25,27 @@ class AccountInvoiceToInvoice(models.Model):
     mrp_production_ids = fields.One2many('mrp.production', 'account_invoice_id', string=u"Manufacturing orders")
 
 
+class ResPartnerToInvoice(models.Model):
+    _inherit = 'res.partner'
+
+    is_manufacturer = fields.Boolean(compute=lambda x: None, search='_search_is_manufacturer')
+
+    @api.model
+    def _search_is_manufacturer(self, oper, value):
+        manufacturers = self.env['stock.picking.type'].search(
+            [('code', '=', 'mrp_operation')]).mapped('default_location_dest_id.partner_id')
+        if value:
+            operande = 'in'
+        else:
+            operande = 'not in'
+        return [('id', operande, manufacturers.ids)]
+
+
 class MrpProductionToInvoice(models.Model):
     _inherit = 'mrp.production'
 
-    manufacturer_id = fields.Many2one('res.partner', u"Manufacturer", required=False)
+    manufacturer_id = fields.Many2one('res.partner', u"Manufacturer", required=False,
+                                      domain=[('is_manufacturer', '=', True)])
     account_invoice_id = fields.Many2one('account.invoice', u"Account invoice", required=False)
 
     @api.multi
@@ -36,6 +53,16 @@ class MrpProductionToInvoice(models.Model):
     def _onchange_location_dest_id(self):
         for rec in self:
             rec.manufacturer_id = rec.location_dest_id.partner_id
+
+    @api.multi
+    @api.onchange('manufacturer_id')
+    def _onchange_manufacturer_id(self):
+        for rec in self:
+            rec.stock_picking_type = False
+            spt = self.env['stock.picking.type'].search(
+                [('default_location_dest_id.partner_id', '=', rec.manufacturer_id.id), ('code', '=', 'mrp_operation')])
+            if len(spt) == 1:
+                rec.picking_type_id = spt
 
     @api.multi
     def create_ai_from_of(self):
