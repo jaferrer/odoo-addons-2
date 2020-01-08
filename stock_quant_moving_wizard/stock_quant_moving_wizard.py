@@ -76,7 +76,7 @@ class HamacStockQuant(models.Model):
             'location_id': self.mapped('location_id')[0].id,
         })
         return {
-            'name': _(u"Create a stock operation"),
+            'name': _(u"Create a stock operation (from %s)") % self.mapped('location_id')[0].name,
             'type': 'ir.actions.act_window',
             'res_model': 'stock.quant.moving.wizard',
             'view_type': 'form',
