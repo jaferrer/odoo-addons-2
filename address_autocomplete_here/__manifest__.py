@@ -32,6 +32,7 @@ Provides autocompletion for partners' addresses.
         'security/ir.model.access.csv',
         'views/partner.xml',
         'wizard/config_address_provider_wizard_view.xml',
+        'data/base_config_settings.xml',
     ],
     'demo': [],
     'test': [],
