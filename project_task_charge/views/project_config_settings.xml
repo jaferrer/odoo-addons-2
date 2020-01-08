@@ -13,4 +13,15 @@
             </field>
         </record>
     </data>
+
+    <data noupdate="1">
+        <record model="ir.config_parameter" id="calc_max_date">
+            <field name="key">calc_max_date</field>
+            <field name="value">3</field>
+        </record>
+        <record model="ir.config_parameter" id="calc_in_date">
+            <field name="key">calc_min_date</field>
+            <field name="value">3</field>
+        </record>
+    </data>
 </openerp>

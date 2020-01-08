@@ -10,6 +10,7 @@
                         <group>
                             <field name="date_from"/>
                             <field name="date_to"/>
+                            <field name="role_id"/>
                         </group>
                         <group>
                             <field name="user_id"/>
@@ -28,6 +29,7 @@
             <tree>
                 <field name="user_id"/>
                 <field name="target_id"/>
+                <field name="role_id"/>
                 <field name="date_from"/>
                 <field name="date_to"/>
             </tree>

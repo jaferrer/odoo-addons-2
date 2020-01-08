@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="account_invoice_change_type_form">
+            <field name="name">account_invoice_change_type_form</field>
+            <field name="model">account.invoice.change.type</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="new_type"/>
+                    </group>
+                    <footer>
+                        <button name="change_type" string="Change Type" type="object" class="btn btn-sm btn-primary"/>
+                        or
+                        <button string="Cancel" class="btn btn-sm btn-default" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</openerp>

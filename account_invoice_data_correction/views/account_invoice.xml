@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="action_change_type_for_draft_invoices" model="ir.actions.server">
+            <field name="name">Change type</field>
+            <field name="model_id" ref="account.model_account_invoice"/>
+            <field name="state">code</field>
+            <field name="groups_id" eval="[(6, 0, [ref('account_invoice_data_correction.group_invoice_data_correction')])]"/>
+            <field name="code">action = model.browse(context['active_ids']).change_type_for_draft_invoices()</field>
+        </record>
+
+        <record id="value_change_type_for_draft_invoices" model="ir.values">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">account.invoice</field>
+            <field name="name">Change type</field>
+            <field name="value" eval="'ir.actions.server,' + str(action_change_type_for_draft_invoices)"/>
+        </record>
+
+        <record id="action_change_number_or_date_for_validated_invoices" model="ir.actions.server">
+            <field name="name">Change date or number (open or paid invoices)</field>
+            <field name="model_id" ref="account.model_account_invoice"/>
+            <field name="state">code</field>
+            <field name="groups_id" eval="[(6, 0, [ref('account_invoice_data_correction.group_invoice_data_correction')])]"/>
+            <field name="code">action = model.browse(context['active_ids']).change_number_or_date_for_validated_invoices()</field>
+        </record>
+
+        <record id="value_change_number_or_date_for_validated_invoices" model="ir.values">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">account.invoice</field>
+            <field name="name">Change date or number (open or paid invoices)</field>
+            <field name="value" eval="'ir.actions.server,' + str(action_change_number_or_date_for_validated_invoices)"/>
+        </record>
+
+        <record id="action_define_number_and_confirm" model="ir.actions.server">
+            <field name="name">Define number and confirm</field>
+            <field name="model_id" ref="account.model_account_invoice"/>
+            <field name="state">code</field>
+            <field name="groups_id" eval="[(6, 0, [ref('account_invoice_data_correction.group_invoice_data_correction')])]"/>
+            <field name="code">action = model.browse(context['active_ids']).define_number_and_confirm()</field>
+        </record>
+
+        <record id="value_define_number_and_confirm" model="ir.values">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">account.invoice</field>
+            <field name="name">Define number and confirm</field>
+            <field name="value" eval="'ir.actions.server,' + str(action_define_number_and_confirm)"/>
+        </record>
+
+    </data>
+</openerp>

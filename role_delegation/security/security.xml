@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_rule_anybody_can_manage_own_delegations" model="ir.rule">
+        <field name="name">Everybody can manage their own delegations</field>
+        <field name="model_id" ref="role_delegation.model_res_users_role_delegation"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="ir_rule_anybody_can_see_affected_delegations" model="ir.rule">
+        <field name="name">Everybody can see delegations affected to them</field>
+        <field name="model_id" ref="role_delegation.model_res_users_role_delegation"/>
+        <field name="domain_force">[('target_id', '=', user.id)]</field>
+        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="ir_rule_anybody_can_manage_own_role_lines" model="ir.rule">
+        <field name="name">Everybody can manage their own role lines</field>
+        <field name="model_id" ref="base_user_role.model_res_users_role_line"/>
+        <field name="domain_force">[
+            '|',
+            '&amp;',
+            ('user_id.received_delegation_ids', 'in', user.delegation_ids.ids),
+            ('role_id', 'in', user.role_ids.ids),
+            ('user_id', '=', user.id),
+        ]</field>
+        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="ir_rule_manager_can_manage_all_role_lines" model="ir.rule">
+        <field name="name">Manager can manage all role lines</field>
+        <field name="model_id" ref="base_user_role.model_res_users_role_line"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(6, 0, [ref('base.group_erp_manager')])]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="ir_rule_anybody_can_update_own_user" model="ir.rule">
+        <field name="name">Everybody can update their own user</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="domain_force">[('id', '=', user.id)]</field>
+        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="ir_rule_anybody_can_see_all_users" model="ir.rule">
+        <field name="name">Everybody can see all users</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(6, 0, [ref('base.group_user')])]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="ir_rule_manager_can_update_all_users" model="ir.rule">
+        <field name="name">Manager can update all users</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(6, 0, [ref('base.group_erp_manager')])]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+</odoo>
