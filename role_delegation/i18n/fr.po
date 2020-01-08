@@ -1,0 +1,207 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* role_delegation
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-12-11 02:21+0000\n"
+"PO-Revision-Date: 2019-12-11 02:21+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: role_delegation
+#: code:addons/role_delegation/models/role_delegation.py:135
+#, python-format
+msgid "%s delegation from %s to %s"
+msgstr "Délégation du rôle %s de %s à %s"
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_creation_target_template
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_modification_target_template
+msgid "(from"
+msgstr "(du"
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_modification_target_template
+msgid "All roles"
+msgstr "Tous les rôles"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_allowed_user_ids
+msgid "Allowed user ids"
+msgstr "Utilisateurs autorisés"
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_creation_target_template
+msgid "Congratulations"
+msgstr "Félicitations"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_role_id
+msgid "Delegated role (all if left blank)"
+msgstr "Rôle à déléguer (tous si laissé blanc)"
+
+#. module: role_delegation
+#: model:mail.message.subtype,name:role_delegation.delegation_notification_subtype
+msgid "Delegation notification"
+msgstr "Notification de délégation"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: role_delegation
+#: model:ir.model,name:role_delegation.model_hr_employee
+msgid "Employee"
+msgstr "Employé"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_date_from
+msgid "From"
+msgstr "De"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_id
+msgid "ID"
+msgstr "ID"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_hr_employee_received_delegation_ids
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_received_delegation_ids
+msgid "Received delegations"
+msgstr "Délégations reçues"
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_modification_target_template
+msgid "Role"
+msgstr "Rôle"
+
+#. module: role_delegation
+#: model:ir.model,name:role_delegation.model_res_users_role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_view_users_form_simple_modif
+msgid "Role delegation"
+msgstr "Délégation de rôle"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_hr_employee_delegation_ids
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_delegation_ids
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_view_employee_form
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_view_users_form
+msgid "Role delegations"
+msgstr "Délégations de rôles"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_role_line_ids
+msgid "Role line ids"
+msgstr "Lignes de rôles"
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_view_employee_form
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_view_users_form
+msgid "Roles delegated to current user"
+msgstr "Rôles délégués à l'utilisateur"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_target_id
+msgid "Target user"
+msgstr "Utilisateur désigné"
+
+#. module: role_delegation
+#: sql_constraint:res.users.role.delegation:0
+msgid "The ending date must be later than or equal to the starting date."
+msgstr "La date de fin doit être supérieure ou égale à la date de début."
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_modification_target_template
+msgid "This delegation has been modified : <br/>"
+msgstr "Cette délégation a été modifiée : <br/>"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_date_to
+msgid "To"
+msgstr "A"
+
+#. module: role_delegation
+#: model:ir.model.fields,field_description:role_delegation.field_res_users_role_delegation_user_id
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: role_delegation
+#: code:addons/role_delegation/models/role_delegation.py:54
+#, python-format
+msgid "User %s hasn't got role %s"
+msgstr "L'utilisateur %s n'a pas le rôle %s"
+
+#. module: role_delegation
+#: model:ir.model,name:role_delegation.model_res_users
+msgid "Users"
+msgstr "Utilisateurs"
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_creation_target_template
+msgid "all roles they have"
+msgstr "tous les roles qu'il a"
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_modification_target_template
+msgid "from user"
+msgstr "de l'utilisateur"
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_creation_target_template
+msgid "has delegated you"
+msgstr "vous a délégué le rôle"
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_creation_target_template
+msgid "role"
+msgstr " "
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_creation_target_template
+msgid "the"
+msgstr " "
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_creation_target_template
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_modification_target_template
+msgid "to"
+msgstr "au"
+
+#. module: role_delegation
+#: model:ir.ui.view,arch_db:role_delegation.role_delegation_modification_target_template
+msgid "to user"
+msgstr "à l'utilisateur"
+

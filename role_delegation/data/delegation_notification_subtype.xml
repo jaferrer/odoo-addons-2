@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="delegation_notification_subtype" model="mail.message.subtype">
+        <field name="name">Delegation notification</field>
+        <field name="default" eval="False"/>
+        <field name="internal" eval="False"/>
+    </record>
+</odoo>

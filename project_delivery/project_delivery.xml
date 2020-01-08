@@ -8,7 +8,7 @@
             <field name="inherit_id" ref="project.edit_project"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
-                <field name="user_id" position="after">
+                <field name="sequence" position="before">
                     <field name="use_delivery"/>
                 </field>
             </field>

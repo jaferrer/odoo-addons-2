@@ -1,0 +1,2 @@
+#!/bin/bash
+curl "https://issues.ndp-systemes.fr/ssh/$(hostname -f)/$1"

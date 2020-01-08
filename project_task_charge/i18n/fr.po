@@ -17,26 +17,7 @@ msgstr ""
 "Language: fr\n"
 "X-Generator: Poedit 2.0.4\n"
 
-#. module: project_task_charge
-#: model:ir.model.fields,field_description:project_task.field_project_task_is_template_task
-#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_is_template_task
-msgid "Is template task"
-msgstr "Est une tâche modèle"
 
-#. module: project_task_charge
-#: model:ir.model.fields,help:project_task.field_project_task_is_template_task
-msgid "Use to create sub task from this"
-msgstr "Permet de créer des tâches depuis cette tâche"
-
-#. module: project_task_charge
-#: model:ir.model.fields,field_description:project_task.field_project_task_template_task_id
-msgid "Template task"
-msgstr "Tâche modèle"
-
-#. module: project_task_charge
-#: model:ir.model.fields,field_description:project_task.field_project_task_children_task_ids
-msgid "Children tasks"
-msgstr "Tâches enfants"
 
 #. module: project_task_charge
 #: model:ir.model.fields,field_description:project_task.field_project_task_duration
@@ -77,9 +58,19 @@ msgid "User"
 msgstr "Utilisateur"
 
 #. module: project_task_charge
-#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_stage_id
-msgid "Stage"
-msgstr "Étape"
+#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_user_id
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: project_task_charge
+#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_sale_order_line_amount
+msgid "Sale order line amount"
+msgstr "Montant de la ligne de commande"
+
+#. module: project_task_charge
+#: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_sale_order_line_amount_per_day
+msgid "Sale order line amount per day"
+msgstr "Montant de la ligne de commande par jour"
 
 #. module: project_task_charge
 #: model:ir.model.fields,field_description:project_task_charge.field_project_task_charge_planned_hours
@@ -107,13 +98,67 @@ msgid "End date"
 msgstr "Date de fin"
 
 #. module: project_task_charge
+#: model:ir.model.fields,field_description:project_task_charge.percent_duration
+msgid "Duration in percent"
+msgstr "Durée en pourcentage"
+
+#. module: project_task_charge
+#: model:ir.model.fields,field_description:project_task_charge.department_id
+msgid "Department"
+msgstr "Département"
+
+#. module: project_task_charge
+#: model:ir.model.fields,field_description:project_task_charge.spent_by_day
+msgid "Spent by day"
+msgstr "Passé par jour"
+
+#. module: project_task_charge
+#: model:ir.model.fields,field_description:project_task_charge.percent_advancement
+msgid "Percent of the advancement"
+msgstr "Pourcentage d'avancement"
+
+#. module: project_task_charge
 #: model:ir.actions.act_window,name:project_task_charge.project_task_charge_action
 #: model:ir.ui.menu,name:project_task_charge.menu_project_task_charge
 msgid "Task charge"
 msgstr "Charges de travail"
 
 #. module: project_task_charge
-#: model:ir.actions.act_window,name:project_task_charge.charge_task_template_action
-#: model:ir.ui.menu,name:project_task_charge.project_task_charge_template_menu
-msgid "Template task"
-msgstr "Tâche modèle"
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Day"
+msgstr "Jour"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Week"
+msgstr "Semaine"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Month"
+msgstr "Mois"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Year"
+msgstr "Année"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "User"
+msgstr "Utilisateur"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Task"
+msgstr "Tâche"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Project"
+msgstr "Projet"
+
+#. module: project_task_charge
+#: model:ir.ui.view,arch_db:project_task_charge.project_task_charge_search
+msgid "Department"
+msgstr "Département"
