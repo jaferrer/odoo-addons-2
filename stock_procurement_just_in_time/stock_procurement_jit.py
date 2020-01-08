@@ -1010,9 +1010,11 @@ class StockSchedulerController(models.Model):
                         while controller_lines_no_run:
                             chunk_line = controller_lines_no_run[:POP_PROCESS_CHUNK]
                             controller_lines_no_run = controller_lines_no_run[POP_PROCESS_CHUNK:]
-                            pop_sub_process_orderpoints. \
+                            job_uuid = pop_sub_process_orderpoints. \
                                 delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
                                       chunk_line.ids, description="Pop job Computing orderpoints")
+                            controller_lines_no_run.write({'job_uuid': job_uuid,
+                                                           'job_creation_date': fields.Datetime.now()})
                     else:
                         for line in controller_lines_no_run:
                             line.job_uuid = str(line.orderpoint_id.id)
