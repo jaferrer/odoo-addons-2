@@ -21,7 +21,8 @@ from odoo import models, fields, api
 
 
 class ResUsers(models.Model):
-    _inherit = 'res.users'
+    _inherit = ['mail.thread', 'res.users']
+    _name = 'res.users'
 
     delegation_ids = fields.One2many('res.users.role.delegation', 'user_id', u"Role delegations")
     allowed_user_ids = fields.Many2many('res.users', u"Users replaced by this user",

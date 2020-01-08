@@ -22,7 +22,6 @@ from odoo.exceptions import ValidationError
 
 
 class RoleDelegation(models.Model):
-    _inherit = 'mail.thread'
     _name = 'res.users.role.delegation'
     _description = u"Role delegation"
 
@@ -79,10 +78,10 @@ class RoleDelegation(models.Model):
         body = template.render({
             'obj': self.sudo()
         }).decode('utf-8')
-        self.sudo().message_subscribe_users(user_ids=[self.target_id.id], subtype_ids=[
+        self.target_id.sudo().message_subscribe_users(user_ids=[self.target_id.id], subtype_ids=[
             self.env.ref('role_delegation.delegation_notification_subtype').id
         ])
-        self.message_post(body=body, subtype='role_delegation.delegation_notification_subtype')
+        self.target_id.sudo().message_post(body=body, subtype='role_delegation.delegation_notification_subtype')
 
     @api.multi
     def _create_role_lines(self, user_id, target_id, date_from, date_to, role_id):
@@ -112,6 +111,7 @@ class RoleDelegation(models.Model):
         for rec in self:
             rec_vals = dict(vals)
             if 'user_id' in vals or 'target_id' in vals or 'role_id' in vals:
+                rec.role_line_ids.sudo().unlink()
                 rec_vals['role_line_ids'] = [(5, 0)] + rec._create_role_lines(
                     vals.get('user_id', rec.user_id.id),
                     vals.get('target_id', rec.target_id.id),
@@ -134,7 +134,7 @@ class RoleDelegation(models.Model):
 
     @api.multi
     def unlink(self):
-        self.mapped('role_line_ids').unlink()
+        self.mapped('role_line_ids').sudo().unlink()
         return super(RoleDelegation, self).unlink()
 
     @api.multi
