@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--base.config.settings-->
+
+    <!--PARAMÈTRES GÉOCODING HERE-->
+    <record model="ir.config_parameter" id="url_geocoding_config">
+        <field name="key">url_address_provider</field>
+        <field name="value">https://autocomplete.geocoder.ls.hereapi.com/6.2/suggest.json</field>
+    </record>
+
+    <record model="ir.config_parameter" id="apikey_geocoding_config">
+        <field name="key">apikey_address_provider</field>
+        <field name="value">voTFPGPjEJYfheQI6bGB-MKAZx3HYYB42zaf_0AXkLs</field>
+    </record>
+
+    <record model="ir.config_parameter" id="country_geocoding_config">
+        <field name="key">country_address_provider</field>
+        <field name="value">FRA</field>
+    </record>
+
+</odoo>
