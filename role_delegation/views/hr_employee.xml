@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="role_delegation_view_employee_form" model="ir.ui.view">
+        <field name="name">role_delegation_view_employee_form</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[last()]" position="after">
+                <page name="delegations" string="Role delegations">
+                    <group string="Role delegations" col="1">
+                        <field name="delegation_ids" nolabel="1" context="{'default_user_id': user_id}">
+                            <tree editable="top">
+                                <field name="user_id" invisible="1"/>
+                                <field name="target_id"/>
+                                <field name="role_id"/>
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Roles delegated to current user">
+                        <field name="received_delegation_ids" nolabel="1">
+                            <tree>
+                                <field name="user_id"/>
+                                <field name="role_id"/>
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

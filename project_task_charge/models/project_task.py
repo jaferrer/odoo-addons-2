@@ -23,13 +23,12 @@ from odoo import fields, models, api
 class ProjectTask(models.Model):
     _inherit = 'project.task'
 
-    is_template_task = fields.Boolean(u"Is template task", help=u"Use to create sub task from this", default=False)
-    template_task_id = fields.Many2one('project.task', u"Template task", domain=[('is_template_task', '=', True)])
-    children_task_ids = fields.One2many('project.task', 'template_task_id', u"Children tasks",
-                                        domain=[('is_template_task', '=', False)])
     duration = fields.Float(u"Spacing the task in days", compute='_get_duration', store=True, digits=(8, 2))
-    duration_per_day = fields.Float(u"Durée de la tâche par jour", help=u"In hours", compute='_get_duration',
+    duration_per_day = fields.Float(u"Duration of the task per day", help=u"In hours", compute='_get_duration',
                                     store=True, digits=(8, 2))
+    planned_hours = fields.Float(required=True, default=0)
+    date_start = fields.Datetime(required=True, default=fields.Datetime.now)
+    date_end = fields.Datetime(required=True, default=fields.Datetime.now)
 
     @api.depends('date_start', 'date_end', 'planned_hours')
     @api.multi

@@ -7,34 +7,10 @@
             <field name="inherit_id" ref="project.view_task_form2"/>
             <field name="arch" type="xml">
                 <field name="project_id" position="after">
-                    <field name="is_template_task"/>
-                    <field name="template_task_id" attrs="{'invisible': [('is_template_task', '=', True)]}"/>
                     <field name="duration"/>
                     <field name="duration_per_day" widget="float_time"/>
                 </field>
-                <notebook position="inside">
-                    <page name="chidlren_tasks" string="Tâches enfants"
-                          attrs="{'invisible': [('is_template_task', '=', False)]}">
-                        <field name="children_task_ids"/>
-                    </page>
-                </notebook>
             </field>
         </record>
-
-        <record id="project.action_view_task" model="ir.actions.act_window">
-            <field name="domain">[('is_template_task', '=', False)]</field>
-        </record>
-
-        <record id="charge_task_template_action" model="ir.actions.act_window">
-            <field name="name">Template task</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">project.task</field>
-            <field name="view_mode">tree,form</field>
-            <field name="domain">[('is_template_task', '=', True)]</field>
-            <field name="context">{'is_template_task': True}</field>
-        </record>
-
-        <menuitem id="project_task_charge_template_menu" name="Template task" parent="project.menu_project_management"
-                  action="charge_task_template_action" sequence="3"/>
     </data>
 </openerp>

@@ -2,38 +2,27 @@
 <odoo>
     <data>
 
-        <record model="ir.ui.view" id="view_make_procurment_wizard_hamac">
-            <field name="name">view_make_procurment_wizard_hamac</field>
+        <record model="ir.ui.view" id="view_make_procurement_improved_wizard">
+            <field name="name">view_make_procurement_improved_wizard</field>
             <field name="model">make.procurement</field>
             <field name="inherit_id" ref="stock.view_make_procurment_wizard"/>
             <field name="arch" type="xml">
-                <field name="product_id" position="attributes">
-                    <attribute name="attrs">{'invisible': [('product_variant_count','&gt;',1)]}</attribute>
-                </field>
-                <xpath expr="//label[@for='qty']" position="attributes">
-                    <attribute name="attrs">{'invisible': [('product_variant_count','&gt;',1)]}</attribute>
-                </xpath>
-                <field name="qty" position="attributes">
-                    <attribute name="attrs">{'invisible': [('product_variant_count','&gt;',1)]}</attribute>
-                </field>
-                <field name="uom_id" position="attributes">
-                    <attribute name="attrs">{'invisible': [('product_variant_count','&gt;',1)]}</attribute>
-                </field>
-                <field name="date_planned" position="attributes">
-                    <attribute name="attrs">{'invisible': [('product_variant_count','&gt;',1)]}</attribute>
-                </field>
-                <field name="product_id" position="before">
+                <xpath expr="//label[@for='qty']" position="replace"/>
+                <xpath expr="//div" position="replace"/>
+                <field name="date_planned" position="replace"/>
+                <field name="product_id" position="replace">
                     <field name="default_line_date_planned"/>
-                </field>
-                <field name="product_id" position="after">
-                    <field name="make_procurement_line_ids" attrs="{'invisible': [('product_variant_count','&lt;',2)]}">
+                    <field name="make_procurement_line_ids">
                         <tree create="0" delete="0" editable="bottom">
-                            <field name="name"/>
+                            <field name="variant" widget="many2many_tags"/>
                             <field name="qty" sum="Total Quantity"/>
                             <field name="uom_id"/>
                             <field name="date_planned"/>
                         </tree>
                     </field>
+                </field>
+                <field name="route_ids" position="attributes">
+                    <attribute name="required">1</attribute>
                 </field>
             </field>
         </record>
@@ -42,6 +31,18 @@
             <field name="name">product_template_form_view_procurement_button_improved</field>
             <field name="model">product.template</field>
             <field name="inherit_id" ref="stock.product_template_form_view_procurement_button"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='%(stock.act_make_procurement)d']" position="attributes">
+                    <attribute name="type">object</attribute>
+                    <attribute name="name">launch_make_procurement_wizard</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="product_form_view_procurement_button_improved">
+            <field name="name">product_form_view_procurement_button_improved</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="stock.product_form_view_procurement_button"/>
             <field name="arch" type="xml">
                 <xpath expr="//button[@name='%(stock.act_make_procurement)d']" position="attributes">
                     <attribute name="type">object</attribute>

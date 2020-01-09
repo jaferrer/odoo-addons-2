@@ -198,19 +198,21 @@ class AccountInvoice(models.Model):
     def _get_next_dunning_type(self):
         dunning_type_ids = self.invoice_dunning_ids.filtered(lambda it: it.state == 'send').mapped('dunning_type_id')
         return self.env['account.invoice.dunning.type'].search(
-            [('id', 'not in', dunning_type_ids.ids), ('company_id', '=', self.company_id.id)],
+            [('id', 'not in', dunning_type_ids.ids),
+             '|', ('company_id', '=', self.company_id.id),
+             ('company_id', '=', False)],
             order='number asc', limit=1)
 
     @api.multi
-    def _prepare_invoice_dunning(self, dunning_type_id):
+    def _prepare_invoice_dunning(self, dunning_type):
         self.ensure_one()
         return {
-            'dunning_type_id': dunning_type_id.id,
+            'dunning_type_id': dunning_type.id,
             'invoice_ids': [(4, self.id, {})],
             'partner_id': self.partner_id.id,
             'company_id': self.company_id.id,
             'user_id': self.user_id.id,
-            'name': dunning_type_id._get_dunning_name()
+            'name': dunning_type._get_dunning_name()
         }
 
     @api.multi

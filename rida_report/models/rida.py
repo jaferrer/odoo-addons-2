@@ -31,6 +31,8 @@ class RidaReport(models.Model):
     active = fields.Boolean(u"Active", default=True)
     theme_id = fields.Many2one('res.partner', u"Theme", index=True)
     project_id = fields.Many2one('project.project', u"Related project", index=True)
+    purchase_id = fields.Many2one('purchase.order', u"Purchase order", index=True)
+    invoice_id = fields.Many2one('account.invoice', u"Invoice", index=True)
     creation_date = fields.Date(u"Creation date", required=True, default=fields.Date.today)
     auth_mode = fields.Selection([('public', u"Tout le monde"), ('private', u"Les utilisateurs invités")],
                                  string=u"Utilisateurs autorisés", required=True, default='private')
@@ -79,6 +81,8 @@ class RidaLine(models.Model):
     report_id = fields.Many2one('rida.report', u"Related RIDA", required=True, ondelete='cascade')
     project_id = fields.Many2one('project.project', related='report_id.project_id', store=True)
     theme_id = fields.Many2one('res.partner', related='report_id.theme_id', store=True)
+    purchase_id = fields.Many2one('purchase.order', related='report_id.purchase_id', store=True)
+    invoice_id = fields.Many2one('account.invoice', related='report_id.invoice_id', store=True)
     context = fields.Char(u"Context")
     level = fields.Char(u"Level")
     comment = fields.Text(u"Comment")
@@ -98,6 +102,10 @@ class RidaLine(models.Model):
     ], u"Priority", default='p3')
     contributor_ids = fields.Many2many('res.users', 'rel_rida_lines_contributors', 'line_id', 'user_id',
                                        u"Contributors")
+    last_modif_date = fields.Datetime(u"Last updated on")
+
+    _TRACKED_FIELDS = {'type', 'name', 'reference', 'user_id', 'date', 'report_id', 'context', 'level', 'comment',
+                       'date_done', 'attachment_id', 'state', 'priority', 'contributor_ids'}
 
     @api.onchange('type')
     def onchange_type(self):
@@ -123,6 +131,9 @@ class RidaLine(models.Model):
     def write(self, vals):
         if vals.get('state', '') == 'done' and 'date_done' not in vals:
             self.filtered(lambda r: not(r.state == 'done' or r.date_done)).write({'date_done': fields.Date.today()})
+
+        if self._TRACKED_FIELDS.intersection(vals.keys()):
+            vals['last_modif_date'] = fields.Datetime.now()
 
         return super(RidaLine, self).write(vals)
 

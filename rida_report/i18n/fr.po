@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-23 09:56+0000\n"
-"PO-Revision-Date: 2019-07-23 09:56+0000\n"
+"POT-Creation-Date: 2019-10-24 13:33+0000\n"
+"PO-Revision-Date: 2019-10-24 13:33+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -36,12 +36,6 @@ msgid "Actions only"
 msgstr "Actions seulement"
 
 #. module: rida_report
-#: model:ir.model.fields,field_description:rida_report.field_rida_report_active_line_ids
-#: model:ir.ui.view,arch_db:rida_report.rida_report_form
-msgid "Active lines"
-msgstr "Lignes actives"
-
-#. module: rida_report
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
 msgid "Actions to do"
 msgstr "Actions à faire"
@@ -50,6 +44,12 @@ msgstr "Actions à faire"
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_active
 msgid "Active"
 msgstr "Actif"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_active_line_ids
+#: model:ir.ui.view,arch_db:rida_report.rida_report_form
+msgid "Active lines"
+msgstr "Lignes actives"
 
 #. module: rida_report
 #: selection:rida.report,state:0
@@ -166,11 +166,6 @@ msgid "Group By"
 msgstr "Grouper par"
 
 #. module: rida_report
-#: selection:rida.line,priority:0
-msgid "P1 High"
-msgstr "P1 Élevée"
-
-#. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_id
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_id
 msgid "ID"
@@ -212,6 +207,7 @@ msgstr "Dernière mise à jour par"
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_write_date
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_write_date
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_last_modif_date
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
 
@@ -249,21 +245,6 @@ msgid "Lines for which I am responsible"
 msgstr "Lignes dont je suis responsable"
 
 #. module: rida_report
-#: selection:rida.line,priority:0
-msgid "P3 Low"
-msgstr "P3 Faible"
-
-#. module: rida_report
-#: selection:rida.line,priority:0
-msgid "P2 Medium"
-msgstr "P2 Moyenne"
-
-#. module: rida_report
-#: model:ir.ui.menu,name:rida_report.rida_line_menu
-msgid "My Lines"
-msgstr "Mes Lignes"
-
-#. module: rida_report
 #: model:ir.ui.menu,name:rida_report.rida_line_menu
 #: model:ir.ui.view,arch_db:rida_report.rida_line_search
 msgid "My Lines"
@@ -284,6 +265,21 @@ msgstr "Nom"
 #: selection:rida.report,state:0
 msgid "Open"
 msgstr "Ouvert"
+
+#. module: rida_report
+#: selection:rida.line,priority:0
+msgid "P1 High"
+msgstr "P1 Élevée"
+
+#. module: rida_report
+#: selection:rida.line,priority:0
+msgid "P2 Medium"
+msgstr "P2 Moyenne"
+
+#. module: rida_report
+#: selection:rida.line,priority:0
+msgid "P3 Low"
+msgstr "P3 Faible"
 
 #. module: rida_report
 #: model:ir.model.fields,field_description:rida_report.field_rida_line_priority
@@ -325,6 +321,18 @@ msgstr "Statut"
 #: model:ir.model.fields,field_description:rida_report.field_rida_report_theme_id
 msgid "Theme"
 msgstr "Client"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_purchase_id
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_purchase_id
+msgid "Purchase order"
+msgstr "Commande d'achat"
+
+#. module: rida_report
+#: model:ir.model.fields,field_description:rida_report.field_rida_line_invoice_id
+#: model:ir.model.fields,field_description:rida_report.field_rida_report_invoice_id
+msgid "Invoice"
+msgstr "Facture"
 
 #. module: rida_report
 #: selection:rida.report,auth_mode:0

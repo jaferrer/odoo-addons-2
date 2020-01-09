@@ -25,8 +25,10 @@
     'category': 'Project',
     'depends': [
         'project',
+        'sale',
         'hr_timesheet_task',
-        'project_timeline'
+        'project_timeline',
+        'web_timeline_improved',
     ],
     'description': """
 Project task charge
@@ -36,6 +38,7 @@ Project task charge
     'data': [
         'views/project_task.xml',
         'views/project_task_charge.xml',
+        'views/project_config_settings.xml',
         'security/ir.model.access.csv'
     ],
     'demo': [],

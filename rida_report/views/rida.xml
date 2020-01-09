@@ -8,8 +8,8 @@
         <field name="model">rida.line</field>
         <field name="arch" type="xml">
             <tree editable="top"
-                  decoration-warning="state not in ('closed', 'duplicate', 'cancel') and priority == 'medium'"
-                  decoration-danger="state not in ('closed', 'duplicate', 'cancel') and priority == 'high'"
+                  decoration-warning="state not in ('closed', 'duplicate', 'cancel') and priority == 'p2'"
+                  decoration-danger="state not in ('closed', 'duplicate', 'cancel') and priority == 'p1'"
                   decoration-muted="state in ('closed', 'duplicate', 'cancel')">
                 <field name="reference"/>
                 <field name="report_id"/>
@@ -72,7 +72,7 @@
                                attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
                         <field name="date"
                                attrs="{'required': [('type', '=', 'action')], 'readonly': [('type', '!=', 'action')]}"/>
-                        <field name="write_date" widget="date" readonly="True"/>
+                        <field name="last_modif_date" widget="date" readonly="True"/>
                         <field name="date_done"/>
                     </group>
                     <group colspan="4">
@@ -128,6 +128,8 @@
                         <group>
                             <field name="theme_id"/>
                             <field name="project_id"/>
+                            <field name="purchase_id"/>
+                            <field name="invoice_id"/>
                         </group>
                         <group>
                             <field name="auth_mode"/>
@@ -164,6 +166,8 @@
                 <field name="name"/>
                 <field name="theme_id"/>
                 <field name="project_id"/>
+                <field name="purchase_id"/>
+                <field name="invoice_id"/>
                 <filter name="archived" string="Archived projects only" domain="[('active', '=', False)]"/>
             </search>
         </field>
@@ -177,6 +181,10 @@
                 <field name="reference"/>
                 <field name="report_id"/>
                 <field name="user_id"/>
+                <field name="project_id"/>
+                <field name="theme_id"/>
+                <field name="purchase_id"/>
+                <field name="invoice_id"/>
                 <field name="comment"/>
                 <field name="contributor_ids"/>
                 <filter name="information_only" string="Informations only" domain="[('type', '=', 'information')]"/>

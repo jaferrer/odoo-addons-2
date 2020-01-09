@@ -1,0 +1,112 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* mrp_production_to_invoice
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-11-19 14:40+0000\n"
+"PO-Revision-Date: 2019-11-19 14:40+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model.fields,field_description:mrp_production_to_invoice.field_mrp_production_account_invoice_id
+msgid "Account invoice"
+msgstr "Facture"
+
+#. module: mrp_production_to_invoice
+#: code:addons/mrp_production_to_invoice/mrp_production_to_invoice.py:65
+#, python-format
+msgid "An invoice already exist for this manufacturing order!"
+msgstr "Une facture existe déjà pour cet ordre de fabrication!"
+
+#. module: mrp_production_to_invoice
+#: code:addons/mrp_production_to_invoice/mrp_production_to_invoice.py:58
+#, python-format
+msgid "At least one manufacturing order has not manufacturer!"
+msgstr "Au moins un ordre de fabrication n'a pas de fabriquant!"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model,name:mrp_production_to_invoice.model_mrp_bom
+msgid "Bill of Material"
+msgstr "Nomenclature"
+
+#. module: mrp_production_to_invoice
+#: model:ir.ui.view,arch_db:mrp_production_to_invoice.view_mrp_production_to_invoice_search
+msgid "By manufacturer"
+msgstr "Par fabriquant"
+
+#. module: mrp_production_to_invoice
+#: model:ir.actions.server,name:mrp_production_to_invoice.act_server_create_ai_from_of
+msgid "Create an account invoice from manufacturing order"
+msgstr "Créer une facture depuis un ordre de fabrication"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model,name:mrp_production_to_invoice.model_account_invoice
+msgid "Invoice"
+msgstr "Facture"
+
+#. module: mrp_production_to_invoice
+#: code:addons/mrp_production_to_invoice/mrp_production_to_invoice.py:62
+#, python-format
+msgid "It's not possible to generate an invoice from manufacturing orders with different manufacturer!"
+msgstr "Vous ne pouvez générer une facture qu'à partir d'ordres de fabrication ayant le même fabriquant!"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model.fields,field_description:mrp_production_to_invoice.field_mrp_production_manufacturer_id
+msgid "Manufacturer"
+msgstr "Fabriquant"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model,name:mrp_production_to_invoice.model_mrp_production
+msgid "Manufacturing Order"
+msgstr "Ordre de fabrication"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model.fields,field_description:mrp_production_to_invoice.field_account_invoice_mrp_production_ids
+msgid "Manufacturing orders"
+msgstr "Ordres de fabrication"
+
+#. module: mrp_production_to_invoice
+#: code:addons/mrp_production_to_invoice/mrp_production_to_invoice.py:100
+#, python-format
+msgid "New account invoice from manufacturing orders"
+msgstr "Nouvelle facture (générée à partir d'ordres de fabrication)"
+
+#. module: mrp_production_to_invoice
+#: model:ir.actions.act_window,name:mrp_production_to_invoice.mrp_production_not_billed_action
+#: model:ir.ui.menu,name:mrp_production_to_invoice.menu_mrp_production_not_billed
+msgid "Not billed manufacturing orders"
+msgstr "Ordres de fabrication non facturés"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model,name:mrp_production_to_invoice.model_product_product
+msgid "Product"
+msgstr "Article"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model,name:mrp_production_to_invoice.model_product_template
+msgid "Product Template"
+msgstr "Modèle d'article"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model.fields,field_description:mrp_production_to_invoice.field_product_product_bom_id
+#: model:ir.model.fields,field_description:mrp_production_to_invoice.field_product_template_bom_id
+msgid "Service for Bom"
+msgstr "Service pour la nomenclature"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model.fields,field_description:mrp_production_to_invoice.field_mrp_bom_services_to_invoice_ids
+msgid "Services to invoice"
+msgstr "Services à facturer"
+
+#. module: mrp_production_to_invoice
+#: model:ir.model.fields,help:mrp_production_to_invoice.field_mrp_bom_services_to_invoice_ids
+msgid "Services use to generate the manufacturing invoice"
+msgstr "Services utilisés générer la facture de fabrication"

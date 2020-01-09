@@ -64,6 +64,8 @@ class LmdtGoogleContacts(models.Model):
 
     google_uri = fields.Char(u"Génération URI", default=_default_google_uri)
     access_token_present = fields.Boolean(u"Présence d'un access token", default=_default_access_token_generated)
+    user_id = fields.Many2one('res.users', string=u"Utilisateur", default=lambda self: self.env.user)
+    partner_ids = fields.Many2many('res.partner', 'google_contacts_res_partner_rel', string=u"Contacts")
 
     def get_last_sync_date(self):
         """
@@ -177,7 +179,7 @@ class LmdtGoogleContacts(models.Model):
                         address = ({c.rel: c for c in add}.get(gdata.data.WORK_REL, '') or [c for c in add][0]) if \
                             contact.structured_postal_address else False
 
-                    partner.sudo().write({
+                    partner.sudo().with_context(do_not_inform_partner_type=True).write({
                         'name': contact.name.full_name.text,
                         'email': email.address if email != '' else '',
                         'phone': phone.text if phone != '' else '',
@@ -198,10 +200,10 @@ class LmdtGoogleContacts(models.Model):
         """
         if not last_sync:
             # 1ère synchronisation : j'intègre tous les contacts Odoo dans Google
-            partners = self.env['res.partner'].search([])
+            partners = self.env['res.partner'].sudo(self.env.user).search([])
         else:
             # j'intègre dans Google uniquement les contacts ajoutés/modifiés depuis la dernière synchronisation
-            partners = self.env['res.partner'].search([('write_date', '>=', last_sync)])
+            partners = self.env['res.partner'].sudo(self.env.user).search([('write_date', '>=', last_sync)])
 
         client_id = self.env['ir.config_parameter'].sudo().get_param('google_contacts_client_id')
         client_secret = self.env['ir.config_parameter'].sudo().get_param('google_contacts_client_secret')
@@ -219,12 +221,29 @@ class LmdtGoogleContacts(models.Model):
             if groupe.system_group and groupe.system_group.id == 'Contacts':
                 group_href = groupe.id.text
 
+        google_contact_ids = self.env['google.contacts'].search([('user_id', '=', self.env.user.id)], order='id ASC')
+        contact_ids_deja_presents = []
+        if google_contact_ids:
+            last_google_contact_id = google_contact_ids[0]
+            for google_contact_id in google_contact_ids:
+                last_google_contact_id = google_contact_id
+                if google_contact_id.partner_ids:
+                    for google_partner in google_contact_id.partner_ids:
+                        contact_ids_deja_presents.append(google_partner.id)
+
+        contact_ids_a_ajouter = []
         for partner in partners:
-            if not partner.google_contacts_id:
+            # Le contact est-il déjà présent dans Google pour l'utilisateur en cours ?
+            contact_present = contact_ids_deja_presents and (partner.id in contact_ids_deja_presents) or False
+
+            if not partner.google_contacts_id or not contact_present:
                 # Le contact n'est pas encore dans Google => création
                 new_contact = self.create_contact(partner, group_href)
                 contact_entry = gd_client.CreateContact(new_contact, insert_uri=create_route)
-                partner.sudo().write({'google_contacts_id': contact_entry.id.text})
+                partner.sudo().with_context(do_not_inform_partner_type=True).write({
+                    'google_contacts_id': contact_entry.id.text,
+                })
+                contact_ids_a_ajouter.append(partner.id)
             else:
                 # Le contact est déjà présent dans Google => MAJ
                 contact = self.update_contact(partner)
@@ -234,6 +253,10 @@ class LmdtGoogleContacts(models.Model):
                     if e.status == 412:
                         # Etags mismatch: handle the exception.
                         pass
+
+        if contact_ids_a_ajouter:
+            contacts_sans_doublons = set(list(contact_ids_a_ajouter))
+            last_google_contact_id.sudo().write({'partner_ids': [(6, 0, list(contacts_sans_doublons))]})
 
     def create_contact(self, partner, group_href):
         """

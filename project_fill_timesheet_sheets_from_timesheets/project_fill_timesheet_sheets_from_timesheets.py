@@ -50,7 +50,13 @@ class TimesheetAutoFill(models.Model):
     @api.model
     def create_timesheet_if_needed(self, date, user_id):
         employee = self.env['hr.employee'].search([('user_id', '=', user_id)], limit=1)
-        if date and employee and not self.env['hr_timesheet_sheet.sheet'].search(
+        user = self.env['res.users'].browse(user_id)
+        if not employee and not user.share:
+            employee = self.env['hr.employee'].create({
+                'user_id': user_id,
+                'name': user.name
+            })
+        if date and not self.env['hr_timesheet_sheet.sheet'].search(
                 [('date_to', '>=', date), ('date_from', '<=', date),
                  ('employee_id.user_id.id', '=', user_id),
                  ('state', 'in', ['draft', 'new'])]):
@@ -65,7 +71,7 @@ class TimesheetAutoFill(models.Model):
     @api.model
     def create(self, vals):
         if vals.get('project_id'):
-            self.create_timesheet_if_needed(vals.get('date'), vals.get('user_id'))
+            self.create_timesheet_if_needed(vals.get('date', fields.Date.today()), vals.get('user_id'))
         return super(TimesheetAutoFill, self).create(vals)
 
     @api.multi
