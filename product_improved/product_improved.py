@@ -123,7 +123,10 @@ WHERE coalesce(pp.seller_id, 0) != coalesce(pt.seller_id, 0)""")
             positive_operators = ['=', 'ilike', '=ilike', 'like', '=like']
             products = self.env['product.product']
             if operator in positive_operators:
-                products = self.search([('default_code', operator, name)] + args, limit=limit)
+                # in order to be symetrical, we look for name in default_code and name fields
+                # this way, each product falls either into "contains" or "do not contains"
+                products = self.search(['|', ('default_code', operator, name), ('name', operator, name)] + args,
+                                       limit=limit)
                 if not products:
                     products = self.search([('ean13', operator, name)] + args, limit=limit)
             if not products and operator not in expression.NEGATIVE_TERM_OPERATORS:
