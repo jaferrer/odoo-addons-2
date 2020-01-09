@@ -260,7 +260,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             message_dict['body']['root'][model][record_id]['translation'][field.map_name] = {}
             for translation in translations:
                 message_dict['body']['root'][model][record_id]['translation'][field.map_name][translation.lang] = {
-                    'source': translation.source,
+                    'src': translation.src,
                     'value': translation.value
                 }
         return message_dict
