@@ -71,8 +71,9 @@ class BusSynchronizationExporter(models.AbstractModel):
             },
             'export': None
         }
-
+        print ("export domain : ", export_domain)
         ids_to_export = self.with_context(active_test=active_test).env[batch.model].search(export_domain)
+        print "ids_to_export :", ids_to_export
         export_chunk = batch.chunk_size or False
         if export_chunk:
             while ids_to_export:

@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from dateutil import relativedelta
 
 from openerp import models, fields, api
+from openerp.addons.base.ir.ir_cron import _intervalTypes
 
 
 class BusConfigurationExport(models.Model):
@@ -91,11 +92,11 @@ class BusConfigurationExport(models.Model):
         """  compute local fields cron_sync_all & cron_sync_diff """
         env_ir_cron = self.env['ir.cron']
         for rec in self:
-            rec.cron_sync_all = env_ir_cron\
-                .with_context(active_test=False)\
+            rec.cron_sync_all = env_ir_cron \
+                .with_context(active_test=False) \
                 .search([('bus_configuration_export_id', '=', rec.id)], limit=1)
-            rec.cron_sync_diff = env_ir_cron\
-                .with_context(active_test=False)\
+            rec.cron_sync_diff = env_ir_cron \
+                .with_context(active_test=False) \
                 .search([('bus_configuration_export_diff_id', '=', rec.id)], limit=1)
 
     @api.multi
@@ -191,11 +192,16 @@ class BusConfigurationExport(models.Model):
         if not self.cron_sync_diff and self.last_transfer_id:
             last_send_date = self.last_transfer_id.write_date  # Use last_transfer_date if no cron sync_diff
         elif self.cron_sync_diff:
-            last_send_date = self.cron_sync_diff.write_date  # Use cron sync
-        if self.cron_sync_all and self.cron_sync_all.write_date > last_send_date:
-            last_send_date = self.cron_sync_all.write_date
-
-        return last_send_date
+            negative_interval = self.cron_sync_diff.interval_number * -1
+            last_send_date = fields.Datetime.from_string(self.cron_sync_diff.nextcall) + \
+                             _intervalTypes[self.cron_sync_diff.interval_type](negative_interval)
+        if self.cron_sync_all:
+            negative_interval_all = self.cron_sync_diff.interval_number * -1
+            last_send_date_sync_all = fields.Datetime.from_string(self.cron_sync_all.nextcall) + \
+                                      _intervalTypes[self.cron_sync_all.interval_type](negative_interval_all)
+            if last_send_date_sync_all > last_send_date:
+                last_send_date = last_send_date_sync_all
+        return fields.Datetime.to_string(last_send_date)
 
     @api.multi
     def compute_dependency_level(self):
