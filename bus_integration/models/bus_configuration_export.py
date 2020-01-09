@@ -204,9 +204,10 @@ class BusConfigurationExport(models.Model):
         :return:
         """
         self.ensure_one()
-        last_send_date = fields.Datetime.to_string(datetime.strptime('1900', '%Y'))  # default value
+        last_send_date = datetime.strptime('1900', '%Y')  # default value
         if not self.cron_sync_diff and self.last_transfer_id:
-            last_send_date = self.last_transfer_id.write_date  # Use last_transfer_date if no cron sync_diff
+            # Use last_transfer_date if no cron sync_diff
+            last_send_date = fields.Datetime.from_string(self.last_transfer_id.write_date)
         elif self.cron_sync_diff:
             negative_interval = self.cron_sync_diff.interval_number * -1
             last_send_date = fields.Datetime.from_string(self.cron_sync_diff.nextcall) + \
