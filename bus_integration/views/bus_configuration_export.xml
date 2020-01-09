@@ -35,8 +35,16 @@
                         <button name="create_cron_sync_diff" string="Create cron: Sync. diff." class="oe_button" type="object" attrs="{'invisible': [('cron_sync_diff','!=',False)]}"/>
                         <field name="last_transfer_state" widget="statusbar" statusbar_visible=""
                                statusbar_colors="{'done':'green', 'error': 'red'}"/>
+
+
                     </header>
                     <sheet>
+                        <div class="oe_right oe_button_box" name="button_box">
+                            <button class="oe_stat_button" type="action"
+                                    name="view_messages" icon="fa-comments">
+                                <field string="Messages" name="nb_messages" widget="statinfo"/>
+                            </button>
+                        </div>
                         <div class="oe_title">
                             <label for="name" class="oe_edit_only"/>
                             <h1>
@@ -63,11 +71,6 @@
                                 <field name="cron_sync_diff" />
                             </group>
                         </group>
-                        <notebook>
-                            <page id="histo" string="History">
-                                <field name="bus_message_ids" nolabel="1" options="{'reload_on_button': true}"/>
-                            </page>
-                        </notebook>
                     </sheet>
                 </form>
             </field>

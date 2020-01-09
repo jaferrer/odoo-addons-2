@@ -142,11 +142,10 @@ class BusMessage(models.Model):
     def _compute_cross_id_str(self):
         for rec in self:
             if rec.cross_id_origin_parent_id:
-                rec.cross_id_str = "{0:s}:{1:d}>{0:s}:{2:d}".format(rec.cross_id_origin_base,
-                                                                    rec.cross_id_origin_parent_id,
-                                                                    rec.cross_id_origin_id)
+                rec.cross_id_str = "%s:%s>%s:%s" % (rec.cross_id_origin_base, rec.cross_id_origin_parent_id,
+                                                    rec.cross_id_origin_base, rec.cross_id_origin_id)
             else:
-                rec.cross_id_str = "{0:s}:{1:d}".format(rec.cross_id_origin_base, rec.cross_id_origin_id)
+                rec.cross_id_str = "%s:%s" % (rec.cross_id_origin_base, rec.cross_id_origin_id)
 
     @api.multi
     @api.depends('message')

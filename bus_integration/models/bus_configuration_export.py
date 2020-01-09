@@ -60,9 +60,25 @@ class BusConfigurationExport(models.Model):
     dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True,
                                       readonly=True)
     bus_message_ids = fields.One2many('bus.message', 'batch_id', string=u"Messages")
+    nb_messages = fields.Integer(string=u"Nb Messages", compute='_compute_nb_messages')
     cron_sync_all = fields.Many2one('ir.cron', compute="_compute_cron")
     cron_sync_diff = fields.Many2one('ir.cron', compute="_compute_cron")
     active = fields.Boolean(u"Active", related='recipient_id.active', store=True)
+
+    def _compute_nb_messages(self):
+        for rec in self:
+            rec.nb_messages = len(rec.bus_message_ids)
+
+    def view_messages(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'bus.message',
+            'target': 'current',
+            'domain': [('id', 'in', self.bus_message_ids.ids)]
+        }
 
     @api.multi
     @api.depends('model')
