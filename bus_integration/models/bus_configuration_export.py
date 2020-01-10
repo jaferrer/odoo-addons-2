@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from dateutil import relativedelta
 
 from openerp import models, fields, api
+from openerp.addons.base.ir.ir_cron import _intervalTypes
 
 
 class BusConfigurationExport(models.Model):
@@ -59,9 +60,25 @@ class BusConfigurationExport(models.Model):
     dependency_level = fields.Integer(u"Dependency level", related='mapping_object_id.dependency_level', store=True,
                                       readonly=True)
     bus_message_ids = fields.One2many('bus.message', 'batch_id', string=u"Messages")
+    nb_messages = fields.Integer(string=u"Nb Messages", compute='_compute_nb_messages')
     cron_sync_all = fields.Many2one('ir.cron', compute="_compute_cron")
     cron_sync_diff = fields.Many2one('ir.cron', compute="_compute_cron")
     active = fields.Boolean(u"Active", related='recipient_id.active', store=True)
+
+    def _compute_nb_messages(self):
+        for rec in self:
+            rec.nb_messages = len(rec.bus_message_ids)
+
+    def view_messages(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'view_type': 'form',
+            'view_mode': 'tree,form',
+            'res_model': 'bus.message',
+            'target': 'current',
+            'domain': [('id', 'in', self.bus_message_ids.ids)]
+        }
 
     @api.multi
     @api.depends('model')
@@ -91,11 +108,11 @@ class BusConfigurationExport(models.Model):
         """  compute local fields cron_sync_all & cron_sync_diff """
         env_ir_cron = self.env['ir.cron']
         for rec in self:
-            rec.cron_sync_all = env_ir_cron\
-                .with_context(active_test=False)\
+            rec.cron_sync_all = env_ir_cron \
+                .with_context(active_test=False) \
                 .search([('bus_configuration_export_id', '=', rec.id)], limit=1)
-            rec.cron_sync_diff = env_ir_cron\
-                .with_context(active_test=False)\
+            rec.cron_sync_diff = env_ir_cron \
+                .with_context(active_test=False) \
                 .search([('bus_configuration_export_diff_id', '=', rec.id)], limit=1)
 
     @api.multi
@@ -187,15 +204,21 @@ class BusConfigurationExport(models.Model):
         :return:
         """
         self.ensure_one()
-        last_send_date = fields.Datetime.to_string(datetime.strptime('1900', '%Y'))  # default value
+        last_send_date = datetime.strptime('1900', '%Y')  # default value
         if not self.cron_sync_diff and self.last_transfer_id:
-            last_send_date = self.last_transfer_id.write_date  # Use last_transfer_date if no cron sync_diff
+            # Use last_transfer_date if no cron sync_diff
+            last_send_date = fields.Datetime.from_string(self.last_transfer_id.write_date)
         elif self.cron_sync_diff:
-            last_send_date = self.cron_sync_diff.write_date  # Use cron sync
-        if self.cron_sync_all and self.cron_sync_all.write_date > last_send_date:
-            last_send_date = self.cron_sync_all.write_date
-
-        return last_send_date
+            negative_interval = self.cron_sync_diff.interval_number * -1
+            last_send_date = fields.Datetime.from_string(self.cron_sync_diff.nextcall) + \
+                             _intervalTypes[self.cron_sync_diff.interval_type](negative_interval)
+        if self.cron_sync_all:
+            negative_interval_all = self.cron_sync_diff.interval_number * -1
+            last_send_date_sync_all = fields.Datetime.from_string(self.cron_sync_all.nextcall) + \
+                                      _intervalTypes[self.cron_sync_all.interval_type](negative_interval_all)
+            if last_send_date_sync_all > last_send_date:
+                last_send_date = last_send_date_sync_all
+        return fields.Datetime.to_string(last_send_date)
 
     @api.multi
     def compute_dependency_level(self):

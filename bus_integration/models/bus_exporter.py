@@ -71,7 +71,6 @@ class BusSynchronizationExporter(models.AbstractModel):
             },
             'export': None
         }
-
         ids_to_export = self.with_context(active_test=active_test).env[batch.model].search(export_domain)
         export_chunk = batch.chunk_size or False
         if export_chunk:
@@ -259,7 +258,7 @@ class BusSynchronizationExporter(models.AbstractModel):
             message_dict['body']['root'][model][record_id]['translation'][field.map_name] = {}
             for translation in translations:
                 message_dict['body']['root'][model][record_id]['translation'][field.map_name][translation.lang] = {
-                    'source': translation.source,
+                    'src': translation.src,
                     'value': translation.value
                 }
         return message_dict
