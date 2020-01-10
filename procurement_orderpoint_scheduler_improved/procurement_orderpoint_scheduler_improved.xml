@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="view_product_supplierinfo_form_inherit">
+            <field name="name">view_product_supplierinfo_form_inherit</field>
+            <field name="model">product.supplierinfo</field>
+            <field name="inherit_id" ref="product.product_supplierinfo_form_view"/>
+            <field name="arch" type="xml">
+                <field name="min_qty" position="attributes">
+                    <attribute name="string">Minimum Order Quantity</attribute>
+                </field>
+                <xpath expr="/form/group/group[2]//div" position="after">
+                    <field name="qty_multiple"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_stock_warehouse_orderpoint_form_inherit">
+            <field name="name">view_stock_warehouse_orderpoint_form_inherit</field>
+            <field name="model">stock.warehouse.orderpoint</field>
+            <field name="inherit_id" ref="stock.view_warehouse_orderpoint_form"/>
+            <field name="arch" type="xml">
+                <field name="product_min_qty" position="attributes">
+                    <attribute name="string">Minimum Stock</attribute>
+                </field>
+                <field name="qty_multiple" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="product_supplierinfo_tree_view_inherit">
+            <field name="name">product_supplierinfo_tree_view_inherit</field>
+            <field name="model">product.supplierinfo</field>
+            <field name="inherit_id" ref="product.product_supplierinfo_tree_view"/>
+            <field name="arch" type="xml">
+                <field name="min_qty" position="after">
+                    <field name="qty_multiple"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

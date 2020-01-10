@@ -21,20 +21,26 @@ from odoo import models, fields, api
 
 
 class ResUsers(models.Model):
-    _inherit = 'res.users'
+    _inherit = ['mail.thread', 'res.users']
+    _name = 'res.users'
 
     delegation_ids = fields.One2many('res.users.role.delegation', 'user_id', u"Role delegations")
     allowed_user_ids = fields.Many2many('res.users', u"Users replaced by this user",
                                         compute='_compute_allowed_user_ids')
+    received_delegation_ids = fields.One2many('res.users.role.delegation', 'target_id', u"Received delegations",
+                                              readonly=True)
 
     @api.multi
     def _compute_allowed_user_ids(self):
         for rec in self:
-            rec.allowed_user_ids = rec | self.env['res.users.role.delegation'].search([
-                ('target_id', '=', rec.id),
-                ('date_from', '<=', fields.Date.today()),
-                ('date_to', '>=', fields.Date.today()),
-            ]).mapped('user_id')
+            if rec.id == self.env.ref('base.user_root').id:
+                rec.allowed_user_ids = self.env['res.users'].search([])
+            else:
+                rec.allowed_user_ids = rec | self.env['res.users.role.delegation'].search([
+                    ('target_id', '=', rec.id),
+                    ('date_from', '<=', fields.Date.today()),
+                    ('date_to', '>=', fields.Date.today()),
+                ]).mapped('user_id')
 
     @api.multi
     def get_allowed_users(self, candidates):

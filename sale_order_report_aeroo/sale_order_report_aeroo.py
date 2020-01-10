@@ -32,9 +32,12 @@ class SaleOrderDeleteReport(models.TransientModel):
 
     @api.model
     def link_report_with_mail(self):
-        mail_model = self.env.ref('sale.email_template_edi_sale')
-        report = self.env.ref(self._get_report_id())
-        mail_model.report_template = report.id
+        try:
+            mail_model = self.env.ref('sale.email_template_edi_sale')
+            report = self.env.ref(self._get_report_id())
+            mail_model.report_template = report.id
+        except ValueError:
+            pass
 
     def _get_report_id(self):
         return 'sale_order_report_aeroo.sale_order_report_aeroo'
