@@ -23,7 +23,7 @@ class ResCurrencyRateProviderECB(models.Model):
     def _get_supported_currencies(self):
         self.ensure_one()
         if self.service != 'ECB':
-            return super()._get_supported_currencies()  # pragma: no cover
+            return super(ResCurrencyRateProviderECB, self)._get_supported_currencies()  # pragma: no cover
 
         # List of currencies obrained from:
         # https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.zip
@@ -41,15 +41,12 @@ class ResCurrencyRateProviderECB(models.Model):
     def _obtain_rates(self, base_currency, currencies, date_from, date_to):
         self.ensure_one()
         if self.service != 'ECB':
-            return super()._obtain_rates(base_currency, currencies, date_from,
-                                         date_to)  # pragma: no cover
+            return super(ResCurrencyRateProviderECB, self)._obtain_rates(base_currency, currencies, date_from,
+                                                                         date_to)  # pragma: no cover
 
         # This provider only serves EUR-to-??? exchange rates
-        if base_currency != 'EUR':  # pragma: no cover
-            raise UserError(_(
-                'European Central Bank is suitable only for companies'
-                ' with EUR as base currency!'
-            ))
+        if base_currency != 'EUR' and currencies != ['EUR']:  # pragma: no cover
+            raise UserError(_('European Central Bank is suitable only to convert from or to EUR'))
 
         # Depending on the date range, different URLs are used
         url = 'https://www.ecb.europa.eu/stats/eurofxref'
@@ -60,10 +57,25 @@ class ResCurrencyRateProviderECB(models.Model):
         else:
             url = url + '/eurofxref-hist.xml'
 
-        handler = EcbRatesHandler(currencies, date_from, date_to)
+        if base_currency == 'EUR':
+            handler = EcbRatesHandler(currencies, date_from, date_to)
+        else:
+            handler = EcbRatesHandler([base_currency], date_from, date_to)
         with urlopen(url) as response:
             xml.sax.parse(response, handler)
-        return handler.content
+        result = handler.content
+
+        if base_currency != 'EUR':
+            new_result = {}
+            for key_date in result:
+                if key_date not in new_result:
+                    new_result[key_date] = {}
+                for currency_code in result[key_date]:
+                    rate = float(result[key_date][currency_code])
+                    if rate:
+                        new_result[key_date]['EUR'] = 1.0 / rate
+            result = new_result
+        return result
 
 
 class EcbRatesHandler(xml.sax.ContentHandler):
