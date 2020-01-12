@@ -85,6 +85,7 @@ class EcbRatesHandler(xml.sax.ContentHandler):
         self.date_to = date_to
         self.date = None
         self.content = defaultdict(dict)
+        super(EcbRatesHandler, self).__init__()
 
     def startElement(self, name, attrs):
         if name == 'Cube' and 'time' in attrs:

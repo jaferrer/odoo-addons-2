@@ -26,4 +26,4 @@ class ResCurrencyRate(models.Model):
                 'provider_id' not in values:
             values['provider_id'] = False
 
-        return super().write(values)
+        return super(ResCurrencyRate, self).write(values)

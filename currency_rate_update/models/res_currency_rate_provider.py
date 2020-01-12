@@ -119,10 +119,9 @@ class ResCurrencyRateProvider(models.Model):
     @api.multi
     @api.depends('service')
     def _compute_available_currency_ids(self):
-        Currency = self.env['res.currency']
 
         for provider in self:
-            provider.available_currency_ids = Currency.search(
+            provider.available_currency_ids = self.env['res.currency'].search(
                 [(
                     'name',
                     'in',
@@ -132,8 +131,6 @@ class ResCurrencyRateProvider(models.Model):
 
     @api.multi
     def _update(self, date_from, date_to, newest_only=False):
-        Currency = self.env['res.currency']
-        CurrencyRate = self.env['res.currency.rate']
         is_scheduled = self.env.context.get('scheduled')
         for provider in self:
             try:
@@ -144,7 +141,7 @@ class ResCurrencyRateProvider(models.Model):
                     date_to
                 ).items()
             except Exception as e:
-                _logger.warning('Currency Rate Provider Failure: %s' % e)
+                _logger.warning('Currency Rate Provider Failure: %s', e)
                 provider.message_post(
                     body=str(e),
                     subject=_('Currency Rate Provider Failure'),
@@ -167,7 +164,7 @@ class ResCurrencyRateProvider(models.Model):
                     if currency_name == provider.company_id.currency_id.name:
                         continue
 
-                    currency = Currency.search([
+                    currency = self.env['res.currency'].search([
                         ('name', '=', currency_name),
                     ], limit=1)
                     if not currency:
@@ -184,7 +181,7 @@ class ResCurrencyRateProvider(models.Model):
                         rate
                     )
 
-                    record = CurrencyRate.search([
+                    record = self.env['res.currency.rate'].search([
                         ('company_id', '=', provider.company_id.id),
                         ('currency_id', '=', currency.id),
                         ('name', '=', timestamp),
@@ -195,7 +192,7 @@ class ResCurrencyRateProvider(models.Model):
                             'provider_id': provider.id,
                         })
                     else:
-                        record = CurrencyRate.create({
+                        self.env['res.currency.rate'].create({
                             'company_id': provider.company_id.id,
                             'currency_id': currency.id,
                             'name': timestamp,
@@ -221,14 +218,12 @@ class ResCurrencyRateProvider(models.Model):
     def _process_rate(self, currency, rate):
         self.ensure_one()
 
-        Module = self.env['ir.module.module']
-
-        currency_rate_inverted = Module.sudo().search([
+        currency_rate_inverted = self.env['ir.module.module'].sudo().search([
             ('name', '=', 'currency_rate_inverted'),
             ('state', '=', 'installed'),
         ], limit=1)
 
-        if type(rate) is dict:
+        if isinstance(rate, dict):
             inverted = rate.get('inverted', None)
             direct = rate.get('direct', None)
             if inverted is None and direct is None:
@@ -242,14 +237,14 @@ class ResCurrencyRateProvider(models.Model):
                         'rate': rate,
                     }
                 )
-            elif inverted is None:
-                inverted = 1/direct
+            if inverted is None:
+                inverted = 1 / direct
             elif direct is None:
-                direct = 1/inverted
+                direct = 1 / inverted
         else:
             rate = float(rate)
             direct = rate
-            inverted = 1/rate
+            inverted = 1 / rate
 
         value = direct
         if currency_rate_inverted and \
@@ -266,9 +261,9 @@ class ResCurrencyRateProvider(models.Model):
 
         if self.interval_type == 'days':
             return relativedelta(days=self.interval_number)
-        elif self.interval_type == 'weeks':
+        if self.interval_type == 'weeks':
             return relativedelta(weeks=self.interval_number)
-        elif self.interval_type == 'months':
+        if self.interval_type == 'months':
             return relativedelta(months=self.interval_number)
 
     @api.model
@@ -285,7 +280,7 @@ class ResCurrencyRateProvider(models.Model):
             ('next_run', '<=', fields.Date.today()),
         ])
         if providers:
-            _logger.info('Scheduled currency rates update of: %s' % ', '.join(
+            _logger.info('Scheduled currency rates update of: %s', ', '.join(
                 providers.mapped('name')
             ))
             for provider in providers.with_context({'scheduled': True}):
