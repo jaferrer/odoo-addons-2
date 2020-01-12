@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
-    'depends': ['base'],
+    'depends': ['base', 'queue_job_cron'],
     'description': """
 Translations improved
 =====================
