@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="invoice_form">
+            <field name="name">invoice_form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <button name="action_invoice_open" position="attributes">
+                    <attribute name="states"/>
+                    <attribute name="attrs">{'invisible': ['|', ('same_currency_as_company', '=', False), ('state', '!=', 'draft')]}</attribute>
+                </button>
+                <button name="action_invoice_open" position="after">
+                    <button name="enter_rate_and_validate" type="object" string="Enter currency rate and validate"
+                            class="oe_highlight" groups="account.group_account_invoice"
+                            attrs="{'invisible': ['|', ('same_currency_as_company', '=', True), ('state', '!=', 'draft')]}"/>
+                </button>
+                <field name="currency_id" position="after">
+                    <field name="same_currency_as_company" invisible="1"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="invoice_supplier_form">
+            <field name="name">invoice_supplier_form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_supplier_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <button name="action_invoice_open" position="attributes">
+                    <attribute name="states"/>
+                    <attribute name="attrs">{'invisible': ['|', ('same_currency_as_company', '=', False), ('state', '!=', 'draft')]}</attribute>
+                </button>
+                <button name="action_invoice_open" position="after">
+                    <button name="enter_rate_and_validate" type="object" string="Enter currency rate and validate"
+                            class="oe_highlight" groups="account.group_account_invoice"
+                            attrs="{'invisible': ['|', ('same_currency_as_company', '=', True), ('state', '!=', 'draft')]}"/>
+                </button>
+                <field name="currency_id" position="after">
+                    <field name="same_currency_as_company" invisible="1"/>
+                </field>
+            </field>
+        </record>
+
+        <record id="account_invoice_enter_rate_form" model="ir.ui.view">
+            <field name="name">account_invoice_enter_rate_form</field>
+            <field name="model">account.invoice.enter.rate</field>
+            <field name="arch" type="xml">
+                <form>
+                    <field name="invoice_id" invisible="1"/>
+                    <field name="description" class="oe_grey"/>
+                    <group>
+                        <field name="rate"/>
+                    </group>
+                    <footer>
+                        <button name="enter_rate_and_validate" string="Validate" type="object" class="oe_highlight"/>
+                        <button string="Cancel" class="oe_link" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="view_account_payment_invoice_form">
+            <field name="name">view_account_payment_invoice_form</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_invoice_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="journal_id" position="before">
+                    <field name="same_currency_as_company" invisible="1"/>
+                    <field name="rate" groups="base.group_multi_currency" attrs="{'invisible': [('same_currency_as_company', '=', True)]}"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>

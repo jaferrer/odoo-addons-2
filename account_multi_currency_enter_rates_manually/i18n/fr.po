@@ -1,0 +1,73 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# * account_multi_currency_enter_rates_manually
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-11-14 07:33+0000\n"
+"PO-Revision-Date: 2018-08-24 09:14+0000\n"
+"Last-Translator: Romaric PINSET LEPRETRE, 2019\n"
+"Language-Team: French (https://www.transifex.com/odoo/teams/41243/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: account_multi_currency_enter_rates_manually
+#: model:ir.model.fields,field_description:account_multi_currency_enter_rates_manually.field_account_invoice__same_currency_as_company
+#: model:ir.model.fields,field_description:account_multi_currency_enter_rates_manually.field_account_payment__same_currency_as_company
+msgid "Same currency as the company"
+msgstr "Même devise que la société"
+
+#. module: account_multi_currency_enter_rates_manually
+#: model:ir.model.fields,field_description:account_multi_currency_enter_rates_manually.field_account_invoice_enter_rate__invoice_id
+msgid "Invoice"
+msgstr "Facture"
+
+#. module: account_multi_currency_enter_rates_manually
+#: model:ir.model.fields,field_description:account_multi_currency_enter_rates_manually.field_account_invoice_enter_rate__description
+msgid "Description"
+msgstr "Description"
+
+#. module: account_multi_currency_enter_rates_manually
+#: model:ir.model.fields,field_description:account_multi_currency_enter_rates_manually.field_account_invoice_enter_rate__rate
+#: model:ir.model.fields,field_description:account_multi_currency_enter_rates_manually.field_account_payment__rate
+msgid "Rate"
+msgstr "Taux"
+
+#. module: account_multi_currency_enter_rates_manually
+#: model_terms:ir.ui.view,arch_db:account_multi_currency_enter_rates_manually.invoice_form
+#: model_terms:ir.ui.view,arch_db:account_multi_currency_enter_rates_manually.invoice_supplier_form
+msgid "Enter currency rate and validate"
+msgstr "Saisir le taux de conversion et valider"
+
+#. module: account_multi_currency_enter_rates_manually
+#: model_terms:ir.ui.view,arch_db:account_multi_currency_enter_rates_manually.account_invoice_enter_rate_form
+msgid "Validate"
+msgstr "Valider"
+
+#. module: account_multi_currency_enter_rates_manually
+#: model_terms:ir.ui.view,arch_db:account_multi_currency_enter_rates_manually.account_invoice_enter_rate_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: account_multi_currency_enter_rates_manually
+#: code:addons/account_multi_currency_enter_rates_manually/account_multi_currency_enter_rates_manually.py:39
+#, python-format
+msgid "This action is allowed only on draft invoices"
+msgstr "Cette action n'est autorisée que pour des factures brouillon"
+
+#. module: account_multi_currency_enter_rates_manually
+#: code:addons/account_multi_currency_enter_rates_manually/account_multi_currency_enter_rates_manually.py:42
+#, python-format
+msgid "Help: 1.00 %s = <Rate> %s"
+msgstr "Rappel : 1,00 %s = <Taux> %s"
+
+#. module: account_multi_currency_enter_rates_manually
+#: code:addons/account_multi_currency_enter_rates_manually/account_multi_currency_enter_rates_manually.py:42
+#, python-format
+msgid "Validate invoice"
+msgstr "Valider la facture"
