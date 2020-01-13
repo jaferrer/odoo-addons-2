@@ -26,12 +26,18 @@ class HamacStockQuantMovingWizard(models.TransientModel):
     location_id = fields.Many2one('stock.location', u"Origin location", required=True)
     location_dest_id = fields.Many2one('stock.location', u"Destination location", required=False)
 
+    @api.model
+    def get_default_picking_type(self):
+        # You may override this function to fit your needs.
+        return False
+
     @api.multi
     def create_stock_operation(self):
         self.ensure_one()
+        default_picking_type = self.get_default_picking_type()
         ctx = dict(self._context)
         ctx.update({
-            'default_picking_type_id': self.env.ref('hamac_data.hamac_picking_type_manual').id,
+            'default_picking_type_id': default_picking_type and default_picking_type.id or False,
             'default_location_id': self.location_id.id,
             'default_location_dest_id': self.location_dest_id.id,
             'default_move_lines': [(0, 0, {
@@ -41,7 +47,7 @@ class HamacStockQuantMovingWizard(models.TransientModel):
                 'product_uom': quant.product_id.uom_id.id,
                 'location_id': self.mapped('location_id')[0].id,
                 'location_dest_id': self.location_dest_id.id,
-                'picking_type_id': self.env.ref('hamac_data.hamac_picking_type_manual').id,
+                'picking_type_id': default_picking_type and default_picking_type.id or False,
                 'scrapped': False,
                 'state': 'draft',
                 'date_expected': fields.Datetime.now(),
@@ -70,7 +76,7 @@ class HamacStockQuant(models.Model):
             'location_id': self.mapped('location_id')[0].id,
         })
         return {
-            'name': _(u"Create a stock operation"),
+            'name': _(u"Create a stock operation (from %s)") % self.mapped('location_id')[0].name,
             'type': 'ir.actions.act_window',
             'res_model': 'stock.quant.moving.wizard',
             'view_type': 'form',

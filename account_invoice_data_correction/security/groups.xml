@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="res.groups" id="group_invoice_data_correction">
+            <field name="name">Invoices Data Correction (Administrators Only)</field>
+        </record>
+
+    </data>
+</openerp>
