@@ -22,6 +22,7 @@ from odoo import fields, models, api, _, osv
 
 class AccountInvoiceRelanceConfig(models.Model):
     _name = 'account.invoice.dunning.type'
+    _description = u"Account Invoice Dunning Type"
 
     def _get_domain_mail_template(self):
         return [('model_id', '=', self.env.ref('account_invoice_dunning.model_account_invoice_dunning').id)]

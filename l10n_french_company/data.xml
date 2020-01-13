@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="res.company" id="base.main_company">
+            <field name="country_id" ref="base.fr"/>
+        </record>
+
+          <!-- Installation du français et configuration en langue principale de l'administrateur et de la société-->
+        <record model="base.language.install" id="installation_francais">
+            <field name="lang">fr_FR</field>
+            <field name="overwrite" eval="True"/>
+        </record>
+
+        <function model="base.language.install" name="lang_install" eval="[[ref('installation_francais')]]"/>
+
+    </data>
+</openerp>

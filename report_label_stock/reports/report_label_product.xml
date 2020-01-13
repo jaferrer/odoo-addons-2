@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="ir_action_etiquette_code_barre_planche" model="ir.actions.report">
+        <field name="name">Product Barcode Sheet</field>
+        <field name="type">ir.actions.report</field>
+        <field name="model">product.template</field>
+        <field name="report_name">etiquettes_planches</field>
+        <field name="report_type">aeroo</field>
+        <field name="report_file">report_label_stock/reports/report_etiquettes_planches.odt</field>
+        <field name="attachment">object.name.replace('/','')</field>
+        <field name="tml_source">file</field>
+        <field name="in_format">oo-odt</field>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+    </record>
+
+    <record id="product.report_product_template_barcode" model="ir.actions.report">
+        <field name="name">Product Barcode</field>
+        <field name="type">ir.actions.report</field>
+        <field name="model">product.template</field>
+        <field name="report_name">etiquettes_produit</field>
+        <field name="report_type">aeroo</field>
+        <field name="report_file">report_label_stock/reports/report_etiquettes_produits_produits_cb.odt</field>
+        <field name="attachment">object.name.replace('/','')</field>
+        <field name="tml_source">file</field>
+        <field name="in_format">oo-odt</field>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+    </record>
+
+    <record id="product.report_product_template_label" model="ir.actions.report">
+        <field name="name">Product Label</field>
+        <field name="type">ir.actions.report</field>
+        <field name="model">product.template</field>
+        <field name="report_name">produit_prix</field>
+        <field name="report_type">aeroo</field>
+        <field name="report_file">report_label_stock/reports/report_etiquettes_produits_produits_label.odt</field>
+        <field name="attachment">object.name.replace('/','')</field>
+        <field name="tml_source">file</field>
+        <field name="in_format">oo-odt</field>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+    </record>
+
+    <record id="ir_action_etiquette_produit_code_barre_planche" model="ir.actions.report">
+        <field name="name">Product Barcode Sheet</field>
+        <field name="type">ir.actions.report</field>
+        <field name="model">product.product</field>
+        <field name="report_name">etiquettes_planches_p</field>
+        <field name="report_type">aeroo</field>
+        <field name="report_file">report_label_stock/reports/report_etiquettes_planches.odt</field>
+        <field name="attachment">object.name.replace('/','')</field>
+        <field name="tml_source">file</field>
+        <field name="in_format">oo-odt</field>
+        <field name="binding_model_id" ref="product.model_product_product"/>
+        <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+    </record>
+
+    <record id="product.report_product_product_barcode" model="ir.actions.report">
+        <field name="name">Product Barcode</field>
+        <field name="type">ir.actions.report</field>
+        <field name="model">product.product</field>
+        <field name="report_name">etiquettes_produit_p</field>
+        <field name="report_type">aeroo</field>
+        <field name="report_file">report_label_stock/reports/report_etiquettes_produits_produits_cb.odt</field>
+        <field name="attachment">object.name.replace('/','')</field>
+        <field name="tml_source">file</field>
+        <field name="in_format">oo-odt</field>
+        <field name="binding_model_id" ref="product.model_product_product"/>
+        <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+    </record>
+
+    <record id="product.report_product_label" model="ir.actions.report">
+        <field name="name">Product Label</field>
+        <field name="type">ir.actions.report</field>
+        <field name="model">product.product</field>
+        <field name="report_name">produit_p_prix</field>
+        <field name="report_type">aeroo</field>
+        <field name="report_file">report_label_stock/reports/report_etiquettes_produits_produits_label.odt</field>
+        <field name="attachment">object.name.replace('/','')</field>
+        <field name="tml_source">file</field>
+        <field name="in_format">oo-odt</field>
+        <field name="binding_model_id" ref="product.model_product_product"/>
+        <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+    </record>
+
+</odoo>
