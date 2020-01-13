@@ -69,6 +69,7 @@ class BusConfigurationExport(models.Model):
         for rec in self:
             rec.nb_messages = len(rec.bus_message_ids)
 
+    @api.multi
     def view_messages(self):
         self.ensure_one()
         return {
