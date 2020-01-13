@@ -17,6 +17,7 @@
         'base',
         'mail',
         'account',
+        'queue_job_cron',
     ],
     'data': [
         'data/cron.xml',

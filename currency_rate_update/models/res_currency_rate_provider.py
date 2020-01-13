@@ -5,10 +5,11 @@
 
 import logging
 from datetime import datetime, time
+
 from dateutil.relativedelta import relativedelta
+from odoo.exceptions import UserError
 
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -133,20 +134,12 @@ class ResCurrencyRateProvider(models.Model):
     def _update(self, date_from, date_to, newest_only=False):
         is_scheduled = self.env.context.get('scheduled')
         for provider in self:
-            try:
-                data = provider._obtain_rates(
-                    provider.company_id.currency_id.name,
-                    provider.currency_ids.mapped('name'),
-                    date_from,
-                    date_to
-                ).items()
-            except Exception as e:
-                _logger.warning('Currency Rate Provider Failure: %s', e)
-                provider.message_post(
-                    body=str(e),
-                    subject=_('Currency Rate Provider Failure'),
-                )
-                continue
+            data = provider._obtain_rates(
+                provider.company_id.currency_id.name,
+                provider.currency_ids.mapped('name'),
+                date_from,
+                date_to
+            ).items()
 
             if not data:
                 if is_scheduled:
