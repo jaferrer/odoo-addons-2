@@ -27,7 +27,6 @@ def job_asynchronous_report_generation(session, model_name, report_id, values, c
     return session.env[model_name].browse(report_id).with_context(context).asynchronous_report_generation(values)
 
 class DelayReport(models.Model):
-
     _inherit = 'ir.actions.report.xml'
 
     async_report = fields.Boolean(u"Asynchronous generation")
@@ -53,12 +52,14 @@ class DelayReport(models.Model):
         })
 
     @api.multi
-    def launch_asynchronous_report_generation(self, values):
+    def launch_asynchronous_report_generation(self, values, date_start_for_job_creation=None):
         self.ensure_one()
-        running_job_for_user_and_report = self.env['queue.job']. \
-            search([('user_id', '=', self.env.user.id),
-                    ('asynchronous_job_for_report_id', '=', self.id),
-                    ('state', 'not in', ['done', 'failed'])])
+        running_jobs_domain = [('user_id', '=', self.env.user.id),
+                               ('asynchronous_job_for_report_id', '=', self.id),
+                               ('state', 'not in', ['done', 'failed'])]
+        if date_start_for_job_creation:
+            running_jobs_domain += [('date_created', '<', date_start_for_job_creation)]
+        running_job_for_user_and_report = self.env['queue.job'].search(running_jobs_domain, limit=1)
         if running_job_for_user_and_report:
             return True
         job_uuid = job_asynchronous_report_generation.delay(ConnectorSession.from_env(self.env), self._name, self.id, values,
