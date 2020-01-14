@@ -3,31 +3,44 @@ odoo.define('web_treetable.web_treetable', function (require) {
 var ListRenderer = require('web.ListRenderer');
 var FormRenderer = require('web.FormRenderer');
 
-var registerTreetable = function() {
-     $('.web_treetable > table.o_list_view').treetable({
-            expandable: true,
-            indent: 19
-        });
-     $('a.treetable-control').remove();
-     $('.web_treetable > table.o_list_view').before(
-         "<a href='#' class='treetable-control' onclick=\"$('.web_treetable > table.o_list_view').treetable('collapseAll');\"><i class='fa fa-fw o_button_icon fa-compress'></i></a>"
-     );
-     $('.web_treetable > table.o_list_view').before(
-        "<a href='#' class='treetable-control' onclick=\"$('.web_treetable > table.o_list_view').treetable('expandAll');\"><i class='fa fa-fw o_button_icon fa-expand'></i></a>"
-     );
+let treetable = '.web_treetable > table.o_list_view';
 
-     $('.web_treetable > table.o_list_view > tbody > tr.o_data_row').each(function(index, value) {
-         if (Number.isInteger(parseInt($(value).attr('data-tt-id'))) && $(value).attr('data-tt-collapsed') === 'false') {
-             $('.web_treetable > table.o_list_view').treetable('expandNode', $(value).attr('data-tt-id'));
-         }
-     });
+let registerTreetable = function () {
+
+    // Initiate the treetable
+    $(treetable + ' span.indenter').remove();
+    $(treetable).treetable({
+        expandable: true,
+        indent: 19
+    }, true);
+
+    // Add controls
+    $('a.treetable-control').remove();
+    $(treetable).before("<a href='#' class='treetable-control' onclick=\"$(treetable).treetable('collapseAll');\"><i class='fa fa-fw o_button_icon fa-compress'></i></a>");
+    $(treetable).before("<a href='#' class='treetable-control' onclick=\"$(treetable).treetable('expandAll');\"><i class='fa fa-fw o_button_icon fa-expand'></i></a>");
+
+    // Expand rows
+    $(treetable + ' > tbody > tr.o_data_row').each(function (index, value) {
+        if (Number.isInteger(parseInt($(value).attr('data-tt-id'))) && $(value).attr('data-tt-collapsed') === 'false') {
+            $(treetable).treetable('expandNode', $(value).attr('data-tt-id'));
+        }
+    });
+
+    // Sort update events
+    $(treetable).on("sortupdate", function (event, ui) {
+        let itemParent = ui.item.attr('data-tt-parent-id');
+        let nextParent = ui.item.next().attr('data-tt-parent-id');
+        let prevParent = ui.item.prev().attr('data-tt-parent-id');
+        if (itemParent !== nextParent && itemParent !== prevParent) {
+            $(event.target).sortable("cancel");
+        }
+    });
 };
 
-var getLevel = function(numPoste) {
+let getLevel = function (numPoste) {
     if (numPoste) {
         return "level-" + (numPoste.split(".").length - 1);
-    }
-    else {
+    } else {
         return "level-0";
     }
 };
@@ -57,27 +70,29 @@ ListRenderer.include({
         return result;
     },
 
-    on_attach_callback: function () {
-        registerTreetable();
-        return this._super.apply(this, arguments);
-    }
+    unselectRow: function () {
+        return this._super.apply(this, arguments).then(function () {
+            if (arguments.length === 1) {
+                registerTreetable();
+            }
+        });
+    },
 });
 
 // Pour la vue liste dans une vue form
 FormRenderer.include({
     on_attach_callback: function () {
-       registerTreetable();
-       return this._super.apply(this, arguments);
+        registerTreetable();
+        return this._super.apply(this, arguments);
     },
-     _updateView: function ($newContent) {
-       let result = this._super.apply(this, arguments);
-       registerTreetable();
-       return result;
+    _updateView: function ($newContent) {
+        let result = this._super.apply(this, arguments);
+        registerTreetable();
+        return result;
     },
     confirmChange: function (state, id, fields, e) {
         return this._super.apply(this, arguments).then(function () {
             registerTreetable();
-            return;
         });
     },
 });
