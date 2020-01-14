@@ -75,7 +75,7 @@ class EnterRateAccountPayment(models.Model):
     @api.multi
     def action_validate_invoice_payment(self):
         for rec in self:
-            if not rec.same_currency_as_company and rec.payment_date:
+            if rec.rate and not rec.same_currency_as_company and rec.payment_date:
                 rate = self.env['res.currency.rate'].sudo().search([('currency_id', '=', rec.currency_id.id),
                                                                     ('name', '=', rec.payment_date),
                                                                     ('company_id', '=', rec.company_id.id)])
