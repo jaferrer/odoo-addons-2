@@ -392,9 +392,9 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
                                                  'procurement.order', procs_to_delete.ids)
         moves_to_delete = self.env['stock.move'].search([('to_delete', '=', True)])
         if jobify:
-            for moves in moves_to_delete:
+            for move in moves_to_delete:
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
-                                                           'stock.move', moves.ids)
+                                                           'stock.move', move.ids)
         else:
             job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
                                                  'stock.move', moves_to_delete.ids)
@@ -1021,13 +1021,16 @@ class StockSchedulerController(models.Model):
                         while controller_lines_no_run:
                             chunk_line = controller_lines_no_run[:POP_PROCESS_CHUNK]
                             controller_lines_no_run = controller_lines_no_run[POP_PROCESS_CHUNK:]
-                            _logger.info(u"Launch jobs to pop orderpoints jobs for %s items: %s",
-                                         len(chunk_line), chunk_line.ids)
+                            _logger.info(u"Launch jobs to pop orderpoints jobs for %s (%s remaining) items: %s",
+                                         len(chunk_line), len(controller_lines_no_run) // POP_PROCESS_CHUNK,
+                                         chunk_line.ids)
                             job_uuid = pop_sub_process_orderpoints. \
                                 delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
                                       chunk_line.ids, description="Pop job Computing orderpoints")
+                            _logger.info(u"Pop job generated, UUID: %s", job_uuid)
                             controller_lines_no_run.write({'job_uuid': job_uuid,
                                                            'job_creation_date': fields.Datetime.now()})
+                            _logger.info(u"Controller lines updated")
                     else:
                         for line in controller_lines_no_run:
                             line.job_uuid = str(line.orderpoint_id.id)
