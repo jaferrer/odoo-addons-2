@@ -27,15 +27,24 @@ from odoo import fields, models, api, _
 class CalendarAttendee(models.Model):
     _inherit = 'calendar.attendee'
 
-    mobile = fields.Char(u"Mobile phone", related='partner_id.mobile')
-    is_mobile_phone_correct = fields.Boolean("mobile phone defined", compute="_compute_is_mobile_phone_correct")
+    mobile = fields.Char(u"Mobile phone", compute="_compute_mobile")
+    is_mobile_phone_correct = fields.Boolean("mobile phone defined", compute="_compute_mobile")
     sms_date_sent = fields.Datetime(u"Date SMS", readonly=True)
 
     @api.multi
-    def _compute_is_mobile_phone_correct(self):
+    @api.depends("partner_id.mobile")
+    def _compute_mobile(self):
         for rec in self:
-            if rec.mobile and rec.partner_id.country_id.code:
-                phone_number = phonenumbers.parse(rec.mobile, rec.partner_id.country_id.code)
+            rec.mobile = rec.partner_id and rec.partner_id.mobile
+            if rec.mobile:
+                # makes mobile phone format compatible with "base phone" oca module
+                rec.mobile = rec.mobile.replace(u" ", u"").replace(u"\xa0", u"").encode('ascii')
+
+            if not rec.mobile:
+                rec.is_mobile_phone_correct = False
+            else:
+                country_code = rec.partner_id.country_id and rec.partner_id.country_id.code
+                phone_number = phonenumbers.parse(rec.mobile, country_code or None)
                 rec.is_mobile_phone_correct = phonenumbers.is_valid_number(phone_number)
 
     @api.multi
