@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import os
 
 from odoo import models, fields, api
 
@@ -37,9 +38,13 @@ class IrAttachmentRename(models.TransientModel):
         res = {}
         attachment_domain = self.get_attachment_domain()
         for att in self.env['ir.attachment'].search(attachment_domain):
+            att_record = self.env[att.res_model].browse(att.res_id)
+            folder_name = att_record._name == 'folder' and att_record.name or att_record.folder_id.name
             line_ids.append((0, 0, {
+                'folder_name': folder_name,
                 'attachment_id': att.id,
                 'old_name': att.name,
+                'prefix_folder_name': True,
             }))
 
         res['line_ids'] = line_ids
@@ -58,12 +63,25 @@ class IrAttachmentRenameLine(models.TransientModel):
     attachment_id = fields.Many2one('ir.attachment', required=True)
     old_name = fields.Char(u"Nom actuel du document", related='attachment_id.name', readonly=True, required=True)
     new_name = fields.Char(u"Nouveau nom")
+    folder_name = fields.Char(u"Nom du dossier")
+    prefix_folder_name = fields.Boolean(u"Préfixer par le numéro de dossier", default=True)
 
     @api.multi
     def change_name(self):
         for rec in self:
             if rec.new_name:
+                # Permet de garder l'extension si elle a été oubliée
+                new_filename, new_extension = os.path.splitext(rec.new_name)
+                _, old_extension = os.path.splitext(rec.old_name)
+                if not new_extension:
+                    rec.new_name += old_extension
+                elif new_extension != old_extension:
+                    rec.new_name = new_filename + old_extension
+
+                final_name = rec.prefix_folder_name and u"-".join(
+                    [rec.folder_name, rec.new_name]) or rec.new_name
+
                 rec.attachment_id.write({
-                    'name': rec.new_name,
+                    'name': final_name,
                     'fs_name': rec.new_name,
                 })
