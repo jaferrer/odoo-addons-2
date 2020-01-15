@@ -67,6 +67,24 @@ class BusConnexionAbstract(models.AbstractModel):
         return server, result, connection
 
     @api.multi
+    def send_search_read(self, model, domain=[], fields=[]):
+        server, result, login = self.try_connexion(raise_error=True)
+        args = [
+            self.database,
+            login,
+            self.password,
+            model,
+            'search_read',
+            domain,
+            fields
+        ]
+        try:
+            result = server.call(service='object', method='execute', args=args)
+            return result
+        except jsonrpclib.ProtocolError:
+            raise FailedJobError(self._return_last_jsonrpclib_error())
+
+    @api.multi
     def send_odoo_message(self, model, function, code, message):
         server, result, login = self.try_connexion(raise_error=True)
         args = [
