@@ -1010,6 +1010,8 @@ class StockSchedulerController(models.Model):
                         while controller_lines_no_run:
                             chunk_line = controller_lines_no_run[:POP_PROCESS_CHUNK]
                             controller_lines_no_run = controller_lines_no_run[POP_PROCESS_CHUNK:]
+                            _logger.info(u"Launch jobs to pop orderpoints jobs for %s items: %s",
+                                         len(chunk_line), chunk_line.ids)
                             job_uuid = pop_sub_process_orderpoints. \
                                 delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
                                       chunk_line.ids, description="Pop job Computing orderpoints")
