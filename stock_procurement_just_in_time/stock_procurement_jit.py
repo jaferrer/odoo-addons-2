@@ -159,38 +159,14 @@ class ProcurementOrderQuantity(models.Model):
         return self.env['product.supplierinfo'].search([('name', 'in', self.env.context['compute_supplier_ids'])])
 
     @api.model
-    def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
-                                    run_moves=True, force_orderpoints=None):
-        """
-        Create procurement based on orderpoint
+    def delete_old_controller_lines(self):
+        last_date_done = dt.now() - relativedelta(months=1)
+        last_date_done = fields.Datetime.to_string(last_date_done)
+        self.env.cr.execute("""DELETE FROM stock_scheduler_controller WHERE done IS TRUE AND date_done < %s""",
+                            (last_date_done,))
 
-        :param bool use_new_cursor: if set, use a dedicated cursor and auto-commit after processing each procurement.
-            This is appropriate for batch jobs only.
-        """
-        orderpoint_env = self.env['stock.warehouse.orderpoint']
-        if force_orderpoints:
-            orderpoints = force_orderpoints
-        else:
-            dom = company_id and [('company_id', '=', company_id)] or []
-            if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
-                dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
-            if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
-                supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
-                read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
-                dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
-            orderpoints = orderpoint_env.search(dom)
-        if run_procurements:
-            self.env['procurement.order'].run_confirm_procurements(company_id=company_id)
-        if run_moves:
-            domain = company_id and [('company_id', '=', company_id)] or False
-            self.env['procurement.order'].run_confirm_moves(domain)
-        # we invalidate the already existing line of stock controller not yet started
-        # done_date is kept to NULL, so we have a way to identify controller line invalidated
-        msg = "set to done before starting execution of Stock scheduler on {}".format(fields.Datetime.to_string(dt.now()))
-        self.env.cr.execute("""UPDATE stock_scheduler_controller SET done=TRUE,
-         job_uuid=%s 
-          WHERE done IS FALSE AND job_uuid IS NULL;""", (msg, )
-                            )
+    @api.model
+    def insert_new_controller_lines(self, orderpoints):
         self.env.cr.execute("""INSERT INTO stock_scheduler_controller
 (orderpoint_id,
  product_id,
@@ -280,6 +256,41 @@ SELECT NULL              AS orderpoint_id,
        (SELECT user_id
         FROM user_id)    AS write_uid
 FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
+
+    @api.model
+    def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
+                                    run_moves=True, force_orderpoints=None):
+        """
+        Create procurement based on orderpoint
+
+        :param bool use_new_cursor: if set, use a dedicated cursor and auto-commit after processing each procurement.
+            This is appropriate for batch jobs only.
+        """
+        orderpoint_env = self.env['stock.warehouse.orderpoint']
+        if force_orderpoints:
+            orderpoints = force_orderpoints
+        else:
+            dom = company_id and [('company_id', '=', company_id)] or []
+            if self.env.context.get('compute_product_ids') and not self.env.context.get('compute_all_products'):
+                dom += [('product_id', 'in', self.env.context.get('compute_product_ids'))]
+            if self.env.context.get('compute_supplier_ids') and not self.env.context.get('compute_all_products'):
+                supplierinfos = self.get_default_supplierinfos_for_orderpoint_confirm()
+                read_supplierinfos = supplierinfos.read(['id', 'product_tmpl_id'], load=False)
+                dom += [('product_id.product_tmpl_id', 'in', [item['product_tmpl_id'] for item in read_supplierinfos])]
+            orderpoints = orderpoint_env.search(dom)
+        if run_procurements:
+            self.env['procurement.order'].run_confirm_procurements(company_id=company_id)
+        if run_moves:
+            domain = company_id and [('company_id', '=', company_id)] or False
+            self.env['procurement.order'].run_confirm_moves(domain)
+        # we invalidate the already existing line of stock controller not yet started
+        # done_date is kept to NULL, so we have a way to identify controller line invalidated
+        msg = "set to done before starting execution of Stock scheduler on {}".format(fields.Datetime.to_string(dt.now()))
+        self.env.cr.execute("""UPDATE stock_scheduler_controller SET done=TRUE,
+         job_uuid=%s 
+          WHERE done IS FALSE AND job_uuid IS NULL;""", (msg, )
+        self.delete_old_controller_lines()
+        self.insert_new_controller_lines(orderpoints)
         return {}
 
     @api.multi
