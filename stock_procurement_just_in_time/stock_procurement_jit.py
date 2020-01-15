@@ -1028,8 +1028,8 @@ class StockSchedulerController(models.Model):
                                 delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
                                       chunk_line.ids, description="Pop job Computing orderpoints")
                             _logger.info(u"Pop job generated, UUID: %s", job_uuid)
-                            controller_lines_no_run.write({'job_uuid': job_uuid,
-                                                           'job_creation_date': fields.Datetime.now()})
+                            chunk_line.write({'job_uuid': job_uuid,
+                                              'job_creation_date': fields.Datetime.now()})
                             _logger.info(u"Controller lines updated")
                     else:
                         for line in controller_lines_no_run:
