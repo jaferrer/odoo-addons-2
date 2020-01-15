@@ -88,9 +88,8 @@ class HrHolidays(models.Model):
             # Add analytic lines for these leave hours
             leave.analytic_line_ids.sudo(user.id).unlink()  # to be sure
             dt_from = fields.Datetime.from_string(leave.date_from)
-            dt_to = fields.Datetime.from_string(leave.date_to)
 
-            for index_day in range((dt_to - dt_from).days):
+            for index_day in range(0, int(round(leave.number_of_days_temp))):
                 dt_current = dt_from + timedelta(days=index_day)
                 unit_amount = 7
 

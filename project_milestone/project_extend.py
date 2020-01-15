@@ -160,6 +160,6 @@ class ProjectTaskMilestone(models.Model):
                                       readonly=True, store=True)
     should_be_test_before = fields.Date(u"Should be tested before", related="milestone_id.should_be_test_before",
                                         readonly=True, store=True)
-    functional_description = fields.Text(u"Description fonctionnelle", translate=True)
+    functional_description = fields.Html(u"Description fonctionnelle", translate=True)
     technical_description = fields.Text(u"Description technique")
     has_functional_description = fields.Boolean(related='project_id.has_functional_description', readonly=True)
