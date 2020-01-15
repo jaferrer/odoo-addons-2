@@ -25,8 +25,8 @@ class SSHServer(models.Model):
     _description = u"SSH Server"
 
     name = fields.Char(u"Server's FQDN", required=True, index=True)
-    project_id = fields.Many2one('project.project', string=u"Linked Project")
     allowed_user_ids = fields.One2many('ssh.server.user', 'server_id', string=u"Allowed Users")
+    note = fields.Text(u"Notes")
 
     def allowed_keys_contents(self, role_name):
         """Returns a list of allowed keys contents for the given role on this server."""
@@ -34,7 +34,8 @@ class SSHServer(models.Model):
         role = self.env['ssh.role'].search([('name', '=', role_name)])
         if not role:
             return []
-        allowed_users = self.env['ssh.server.user'].search([('server_id', '=', self.id), ('role_id', '=', role.id)])
+        roles = self.env['ssh.role'].search(['|', ('id', '=', role.id), ('implied_ids', '=', role.id)])
+        allowed_users = self.env['ssh.server.user'].search([('server_id', '=', self.id), ('role_id', 'in', roles.ids)])
         keys = []
         for allowed_user in allowed_users:
             for key in allowed_user.user_id.ssh_key_ids:

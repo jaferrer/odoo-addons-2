@@ -25,8 +25,8 @@ msgstr "Annuler"
 #: code:addons/stock_quant_moving_wizard/stock_quant_moving_wizard.py:51
 #: code:addons/stock_quant_moving_wizard/stock_quant_moving_wizard.py:73
 #, python-format
-msgid "Create a stock operation"
-msgstr "Créer une opération de stock"
+msgid "Create a stock operation (from %s)"
+msgstr "Créer un transfert de stock (depuis %s)"
 
 #. module: stock_quant_moving_wizard
 #: model:ir.model.fields,field_description:stock_quant_moving_wizard.field_stock_quant_moving_wizard_create_uid

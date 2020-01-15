@@ -27,3 +27,5 @@ class SSHRole(models.Model):
 
     name = fields.Char(u"Name")
     sequence = fields.Integer(u"Sequence")
+    implied_ids = fields.Many2many('ssh.role', 'ssh_role_implied_rel', 'master_id', 'implied_id',
+                                   string=u"Implied Roles")

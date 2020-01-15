@@ -23,7 +23,10 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Manufacture',
-    'depends': ['base_user_role'],
+    'depends': [
+        'hr',
+        'base_user_role'
+    ],
     'description': """
 Role Delegation
 ===============
@@ -31,9 +34,13 @@ Allows res.users to delegate all their roles to other users, for a limited perio
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'data/delegation_notification_subtype.xml',
+        'data/notification_templates.xml',
         'views/role_delegation.xml',
         'views/res_users.xml',
+        'views/hr_employee.xml',
         'security/ir.model.access.csv',
+        'security/security.xml',
     ],
     'external_dependencies': {
         'python': [

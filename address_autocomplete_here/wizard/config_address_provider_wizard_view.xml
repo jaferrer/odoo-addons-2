@@ -7,8 +7,7 @@
             <group name="google" position="before">
             <group name="address_provider" string="Paramètres de Géocoding">
                 <field name="url_address_provider"/>
-                <field name="login_address_provider"/>
-                <field name="password_address_provider" password="True"/>
+                <field name="apikey_address_provider"/>
                 <field name="country_address_provider"/>
             </group>
         </group>

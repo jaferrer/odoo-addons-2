@@ -9,7 +9,6 @@
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
-                    <field name="project_id"/>
                 </tree>
             </field>
         </record>
@@ -28,8 +27,7 @@
                             </h1>
                         </div>
                         <group>
-                            <group>
-                                <field name="project_id"/>
+                            <group name="data_links">
                             </group>
                         </group>
                         <separator string="Allowed Users"/>
@@ -39,6 +37,8 @@
                                 <field name="role_id"/>
                             </tree>
                         </field>
+                        <separator string="Notes"/>
+                        <field name="note" widget="bootstrap_markdown"/>
                     </sheet>
                 </form>
             </field>

@@ -33,17 +33,22 @@ odoo.define('web_webcam_screenshot.webcam_screenshot_widget', function (require)
                         {
                             text: _t("Launch webcam"), classes: 'btn btn-primary capture-button',
                             click: function () {
-                                navigator.mediaDevices.getUserMedia({
-                                    video: {width: {max: 320}, height: {max: 240}}
-                                }).then(function (stream) {
-                                    videostream = stream;
-                                    video = document.querySelector('#screenshot video');
-                                    video.srcObject = videostream;
-                                    canvas = document.createElement('canvas');
-                                    img = document.querySelector('#screenshot-img');
-                                }).catch(function (error) {
-                                    alert("Error with webcam : " + error);
-                                });
+                                if (navigator.mediaDevices !== undefined) {
+                                    navigator.mediaDevices.getUserMedia({
+                                        video: {width: {max: 320}, height: {max: 240}}
+                                    }).then(function (stream) {
+                                        videostream = stream;
+                                        video = document.querySelector('#screenshot video');
+                                        video.srcObject = videostream;
+                                        canvas = document.createElement('canvas');
+                                        img = document.querySelector('#screenshot-img');
+                                    }).catch(function (error) {
+                                        alert("Error with webcam : " + error);
+                                    });
+                                } else {
+                                    alert("Error : unable to load media device on your navigator, your website must be in HTTPS");
+                                }
+
                             }
                         },
                         {
@@ -103,18 +108,22 @@ odoo.define('web_webcam_screenshot.webcam_screenshot_widget', function (require)
                         {
                             text: _t("Launch webcam"), classes: 'btn btn-primary capture-button',
                             click: function () {
-                                navigator.mediaDevices.getUserMedia({
-                                    video: {width: {max: 320}, height: {max: 240}}
-                                }).then(function (stream) {
-                                    videostream = stream;
-                                    video = document.querySelector('#screenshot video');
-                                    video.srcObject = videostream;
-                                    canvas = document.createElement('canvas');
-                                    canvas.style = 'display:none;';
-                                    img = document.querySelector('#screenshot-img');
-                                }).catch(function (error) {
-                                    alert("Error with webcam : " + error);
-                                });
+                                if (navigator.mediaDevices !== undefined) {
+                                    navigator.mediaDevices.getUserMedia({
+                                        video: {width: {max: 320}, height: {max: 240}}
+                                    }).then(function (stream) {
+                                        videostream = stream;
+                                        video = document.querySelector('#screenshot video');
+                                        video.srcObject = videostream;
+                                        canvas = document.createElement('canvas');
+                                        canvas.style = 'display:none;';
+                                        img = document.querySelector('#screenshot-img');
+                                    }).catch(function (error) {
+                                        alert("Error with webcam : " + error);
+                                    });
+                                } else {
+                                    alert("Error : unable to load media device on your navigator, your website must be in HTTPS");
+                                }
                             }
                         },
                         {
@@ -174,7 +183,8 @@ odoo.define('web_webcam_screenshot.webcam_screenshot_widget', function (require)
     Dialog.include({
         destroy: function () {
             if (videostream !== undefined) {
-                videostream.getTracks()[0].stop();            }
+                videostream.getTracks()[0].stop();
+            }
             this._super.apply(this, arguments);
         }
         ,
