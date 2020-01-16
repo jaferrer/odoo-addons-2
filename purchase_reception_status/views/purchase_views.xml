@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.ui.view" id="purchase_order_tree_reception_status">
+            <field name="name">purchase_order_tree_reception_status</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="invoice_status" position="before">
+                    <field name="reception_status"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="purchase_order_form_reception_status">
+            <field name="name">purchase_order_form_reception_status</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.purchase_order_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <field name="invoice_status" position="before">
+                    <field name="reception_status"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="purchase_order_search_reception_status">
+            <field name="name">purchase_order_search_reception_status</field>
+            <field name="model">purchase.order</field>
+            <field name="inherit_id" ref="purchase.view_purchase_order_filter"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search position="inside">
+                    <field name="reception_status"/>
+                    <group position="inside">
+                        <filter name="group_by_reception_status" string="Reception Status" domain="[]"
+                                context="{'group_by': 'reception_status'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+    </data>
+</odoo>
