@@ -313,12 +313,12 @@ class PurchaseOrderLineJustInTime(models.Model):
                          precision_rounding=self.product_uom.rounding) > 0:
             moves_to_cancel = running_moves
             # If we cancel all the moves, the order may switch to 'picking_except' state.
-            moves_to_cancel.write({'product_uom_qty': 0})
+            moves_to_cancel.with_context(allow_move_null_qty=True).write({'product_uom_qty': 0})
             qty_running_pol_uom -= qty_running_pol_uom
         if float_compare(qty_running_pol_uom, final_running_qty,
                          precision_rounding=self.product_uom.rounding) < 0:
             self.order_id._create_stock_moves(self.order_id, order_lines=self)
-        moves_to_cancel.action_cancel()
+        moves_to_cancel.with_context(allow_move_null_qty=True).action_cancel()
 
     @api.multi
     def compute_remaining_qty(self, line_uom_id=False):
