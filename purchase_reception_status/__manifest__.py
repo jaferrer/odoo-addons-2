@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,29 +18,21 @@
 #
 
 {
-    'name': 'No Auto-Subscription of Partners',
+    'name': 'Purchase Reception Status',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Usability',
-    'depends': ['mail'],
+    'category': 'Purchase',
+    'depends': ['purchase'],
     'description': """
-No Auto-Subscription of Partners
-================================
-Automatically remove partners that are not users from automatic subscription to objects.
-
-This typically prevents customers from being automatically subscribed to their quotes, invoices, etc.
-
-We use this hack because we can't inherit of an Abstract model
-
-link to how and why we do that
-
-http://stackoverflow.com/questions/31936122/how-to-inherit-mail-thread-abstractmodel-and-override-function-from-this-class-i
-
-https://github.com/odoo/odoo/issues/9084
+Purchase Reception Status
+=========================
+This module adds a "reception status" field on purchase orders.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': [
+        'views/purchase_views.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,
