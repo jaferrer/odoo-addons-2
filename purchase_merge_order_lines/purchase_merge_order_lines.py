@@ -46,6 +46,7 @@ class MergePolPurchaseOrder(models.Model):
     @api.multi
     def do_merge(self):
         result = super(MergePolPurchaseOrder, self).do_merge()
+        # do_merge retourne un dic { new_po_id: [po_to_merge_id, po_to_merge_id, ]}
         for key in result.keys():
             order = self.env['purchase.order'].browse(key)
             result = order.check_line_quantities(result)

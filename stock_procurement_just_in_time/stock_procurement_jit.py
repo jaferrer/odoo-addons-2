@@ -287,7 +287,7 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
         # done_date is kept to NULL, so we have a way to identify controller line invalidated
         msg = "set to done before starting execution of Stock scheduler on {}".format(fields.Datetime.to_string(dt.now()))
         self.env.cr.execute("""UPDATE stock_scheduler_controller SET done=TRUE,
-         job_uuid=%s 
+         job_uuid = %s 
           WHERE done IS FALSE AND job_uuid IS NULL;""", (msg, ))
         self.delete_old_controller_lines()
         self.insert_new_controller_lines(orderpoints)
