@@ -53,20 +53,20 @@ class PurchaseOrderOverCover(models.Model):
         nb_days_max_cover = int(self.env['ir.config_parameter'].
                                 get_param('purchase_over_cover_validation.nb_days_max_cover') or 0)
         for rec in self:
-            # any_line_over_covered = False
-            # for line in rec.order_line:
-            #     pol_requested_date = fields.Datetime.from_string(line.requested_date)
-            #     pol_covering_date = fields.Datetime.from_string(line.covering_date) if line.covering_date else False
-            #     date_coverage_max = rec.location_id.schedule_working_days(nb_days_max_cover, pol_requested_date)
-            #     if not pol_covering_date or pol_covering_date and pol_covering_date > date_coverage_max:
-            #         any_line_over_covered = True
-            #         if not line.coverage_to_approve:
-            #             line.coverage_to_approve = True
-            # if any_line_over_covered and not rec.coverage_to_approve:
-            #     rec.coverage_to_approve = True
-            # elif rec.coverage_to_approve and not any_line_over_covered:
-            #     rec.coverage_to_approve = False
-            # elif confirm_is_possible:
+            any_line_over_covered = False
+            for line in rec.order_line:
+                pol_requested_date = fields.Datetime.from_string(line.requested_date)
+                pol_covering_date = fields.Datetime.from_string(line.covering_date) if line.covering_date else False
+                date_coverage_max = rec.location_id.schedule_working_days(nb_days_max_cover, pol_requested_date)
+                if not pol_covering_date or pol_covering_date and pol_covering_date > date_coverage_max:
+                    any_line_over_covered = True
+                    if not line.coverage_to_approve:
+                        line.coverage_to_approve = True
+            if any_line_over_covered and not rec.coverage_to_approve:
+                rec.coverage_to_approve = True
+            elif rec.coverage_to_approve and not any_line_over_covered:
+                rec.coverage_to_approve = False
+            elif confirm_is_possible:
                 rec.signal_workflow('purchase_confirm')
 
     @api.multi
