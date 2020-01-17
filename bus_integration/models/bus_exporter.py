@@ -121,7 +121,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         elif message_type == 'BUS_SYNCHRONIZATION':
             result = self._generate_bus_synchronization_msg_body(exported_records)
         elif message_type == 'RESTRICT_IDS_SYNCHRONIZATION':
-            result = {'body': {'root': {exported_records._name: exported_records.ids}}}
+            result = {'body': {'root': {exported_records._name: exported_records.ids or [0]}}}
         elif message_type == 'SYNCHRONIZATION':
             result = self._generate_msg_body(exported_records, model_name)
         else:
@@ -131,7 +131,7 @@ class BusSynchronizationExporter(models.AbstractModel):
         message = self.env['bus.message'].create_message_from_batch(message_dict, batch,
                                                                     self.env.context['job_uuid'], msgs_group_uuid)
 
-        if not ids:
+        if not ids and message_type not in ['RESTRICT_IDS_SYNCHRONIZATION']:
             message.add_log(u"no models to export")
             message.date_done = datetime.datetime.now()
             return
