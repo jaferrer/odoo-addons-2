@@ -17,11 +17,13 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
+from openerp import models, api, fields
 
 
 class QueueJob(models.Model):
     _inherit = "queue.job"
+
+    date_requeued = fields.Datetime(string=u"Requeued at", track_visibility='onchange')
 
     @api.multi
     def set_to_done(self):
@@ -29,3 +31,19 @@ class QueueJob(models.Model):
         for job in self:
             if job.state != 'Started':
                 job.button_done()
+
+    @api.multi
+    def requeue(self):
+        result = super(QueueJob, self).requeue()
+        self.write({'date_requeued': fields.Datetime.now()})
+        return result
+
+    @api.model
+    def create(self, vals):
+        # The creation message is useless
+        return super(QueueJob, self.with_context(mail_notrack=True, mail_create_nolog=True)).create(vals)
+
+    @api.multi
+    def write(self, vals):
+        # The fail message is useless
+        return super(QueueJob, self.with_context(mail_notrack=vals.get('state') == 'failed')).write(vals)
