@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-09 14:43+0000\n"
-"PO-Revision-Date: 2019-10-09 14:43+0000\n"
+"POT-Creation-Date: 2020-01-20 10:37+0000\n"
+"PO-Revision-Date: 2020-01-20 10:37+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,13 +16,13 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: account_move_export
-#: code:addons/account_move_export/wizard/account_move_export_wizard.py:110
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:131
 #, python-format
 msgid " from %s to %s"
 msgstr " du %s au %s"
 
 #. module: account_move_export
-#: code:addons/account_move_export/wizard/account_move_export_wizard.py:112
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:133
 #, python-format
 msgid " on %s"
 msgstr " sur %s"
@@ -38,7 +38,7 @@ msgid "Account moves"
 msgstr "Pièces comptables"
 
 #. module: account_move_export
-#: code:addons/account_move_export/wizard/account_move_export_wizard.py:108
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:129
 #: model:ir.ui.view,arch_db:account_move_export.view_account_config_settings_export
 #, python-format
 msgid "Accounting export"
@@ -55,7 +55,7 @@ msgid "Cancel"
 msgstr "Annuler"
 
 #. module: account_move_export
-#: code:addons/account_move_export/wizard/account_move_export_wizard.py:199
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:212
 #, python-format
 msgid "Cannot connect to the FTP : missing parameters"
 msgstr "Impossible de se connecter au FTP : paramètres manquants"
@@ -92,6 +92,7 @@ msgstr "Nom affiché"
 
 #. module: account_move_export
 #: model:ir.ui.menu,name:account_move_export.account_export_menu
+#: model:ir.ui.view,arch_db:account_move_export.account_move_export_view_move_line_form
 #: model:ir.ui.view,arch_db:account_move_export.account_move_export_wizard_form
 msgid "Export"
 msgstr "Exporter"
@@ -116,6 +117,11 @@ msgstr "Export comptable"
 #: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_mode
 msgid "Export mode"
 msgstr "Mode d'export"
+
+#. module: account_move_export
+#: model:ir.ui.view,arch_db:account_move_export.account_move_export_view_account_move_line_filter
+msgid "Exported"
+msgstr "Exporté"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_destination
@@ -260,7 +266,7 @@ msgid "account.move.export.wizard"
 msgstr "account.move.export.wizard"
 
 #. module: account_move_export
-#: code:addons/account_move_export/wizard/account_move_export_wizard.py:180
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:193
 #, python-format
 msgid "account_export_%s.tra"
 msgstr "account_export_%s.tra"
