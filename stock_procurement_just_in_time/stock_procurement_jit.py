@@ -283,6 +283,12 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
         if run_moves:
             domain = company_id and [('company_id', '=', company_id)] or False
             self.env['procurement.order'].run_confirm_moves(domain)
+        # we invalidate the already existing line of stock controller not yet started
+        # done_date is kept to NULL, so we have a way to identify controller line invalidated
+        msg = "set to done before starting execution of Stock scheduler on {}".format(fields.Datetime.to_string(dt.now()))
+        self.env.cr.execute("""UPDATE stock_scheduler_controller SET done=TRUE,
+         job_uuid = %s 
+          WHERE done IS FALSE AND job_uuid IS NULL;""", (msg, ))
         self.delete_old_controller_lines()
         self.insert_new_controller_lines(orderpoints)
         return {}
@@ -386,9 +392,9 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
                                                  'procurement.order', procs_to_delete.ids)
         moves_to_delete = self.env['stock.move'].search([('to_delete', '=', True)])
         if jobify:
-            for moves in moves_to_delete:
+            for move in moves_to_delete:
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
-                                                           'stock.move', moves.ids)
+                                                           'stock.move', move.ids)
         else:
             job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
                                                  'stock.move', moves_to_delete.ids)
@@ -1015,9 +1021,16 @@ class StockSchedulerController(models.Model):
                         while controller_lines_no_run:
                             chunk_line = controller_lines_no_run[:POP_PROCESS_CHUNK]
                             controller_lines_no_run = controller_lines_no_run[POP_PROCESS_CHUNK:]
-                            pop_sub_process_orderpoints. \
+                            _logger.info(u"Launch jobs to pop orderpoints jobs for %s (%s remaining) items: %s",
+                                         len(chunk_line), len(controller_lines_no_run) // POP_PROCESS_CHUNK,
+                                         chunk_line.ids)
+                            job_uuid = pop_sub_process_orderpoints. \
                                 delay(ConnectorSession.from_env(self.env), 'stock.scheduler.controller',
                                       chunk_line.ids, description="Pop job Computing orderpoints")
+                            _logger.info(u"Pop job generated, UUID: %s", job_uuid)
+                            chunk_line.write({'job_uuid': job_uuid,
+                                              'job_creation_date': fields.Datetime.now()})
+                            _logger.info(u"Controller lines updated")
                     else:
                         for line in controller_lines_no_run:
                             line.job_uuid = str(line.orderpoint_id.id)

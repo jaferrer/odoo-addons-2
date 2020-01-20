@@ -311,12 +311,12 @@ class LeavesWorkingDays(models.Model):
 class PreComputedCalendarDelays(models.Model):
     _name = 'pre.computed.calendar.delays'
 
-    days = fields.Integer(string=u"Nb of days")
-    day_date = fields.Date(string=u"Day date")
-    compute_leaves = fields.Boolean(string=u"Compute leaves")
-    resource_id = fields.Integer(string=u"Resource ID")
-    default_interval = fields.Char(string=u"Default interval")
-    result = fields.Datetime(string=u"Scheduled day")
+    days = fields.Integer(string=u"Nb of days", index=True)
+    day_date = fields.Date(string=u"Day date", index=True)
+    compute_leaves = fields.Boolean(string=u"Compute leaves", index=True)
+    resource_id = fields.Integer(string=u"Resource ID", index=True)
+    default_interval = fields.Char(string=u"Default interval", index=True)
+    result = fields.Datetime(string=u"Scheduled day", index=True)
 
     @api.model
     def sweep_table(self):

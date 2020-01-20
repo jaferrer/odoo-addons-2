@@ -108,7 +108,8 @@ class BusReceiveTransfer(models.Model):
                                 'data received (%s)' % (transfer.display_name, transfer.external_key,
                                                         transfer.origin_write_date, received_record_write_date)
                 return transfer, odoo_record, ('info', error_message)
-            transfer.origin_write_date = received_record_write_date
+            if transfer.origin_write_date != received_record_write_date:
+                transfer.origin_write_date = received_record_write_date
 
         vals = self.sanitize_vals(odoo_record, record_vals)
         if not odoo_record:
@@ -117,5 +118,6 @@ class BusReceiveTransfer(models.Model):
                 .create(vals)
         elif vals:
             odoo_record.write(vals)
-        transfer.local_id = odoo_record.id
+        if vals and transfer.local_id  != odoo_record.id:
+            transfer.local_id = odoo_record.id
         return transfer, odoo_record, False
