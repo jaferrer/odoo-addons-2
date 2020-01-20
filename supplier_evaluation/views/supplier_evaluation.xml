@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--EVALUATION.FOURNISSEUR-->
+
+    <record id="purchase_supplier_evaluation_tree" model="ir.ui.view">
+        <field name="name">purchase_supplier_evaluation_tree</field>
+        <field name="model">purchase.supplier.evaluation</field>
+        <field name="arch" type="xml">
+            <tree editable="top" create="false">
+                <field name="sequence" widget="handle"/>
+                <field name="eval_question_id"/>
+                <field name="eval_answer_id" domain="[('eval_question_id', '=', eval_question_id)]"/>
+                <field name="comment"/>
+                <field name="purchase_id" invisible="1"/>
+                <field name="partner_id" invisible="1"/>
+                <field name="grade" sum="Note fournisseur"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="purchase_supplier_evaluation_action" model="ir.actions.act_window">
+        <field name="name">Évaluation fournisseur</field>
+        <field name="res_model">purchase.supplier.evaluation</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <!--En-tête-->
+    <menuitem id="purchase_supplier_evaluation_menu_header"
+              name="Évaluation fournisseur"
+              parent="purchase.menu_purchase_config"
+              sequence="60"/>
+
+    <!--EVALUATION.FOURNISSEUR.QUESTION-->
+
+    <record id="purchase_supplier_evaluation_question_tree" model="ir.ui.view">
+        <field name="name">purchase_supplier_evaluation_question_tree</field>
+        <field name="model">purchase.supplier.evaluation.question</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="eval_answer_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="purchase_supplier_evaluation_question_form" model="ir.ui.view">
+        <field name="name">purchase_supplier_evaluation_question_form</field>
+        <field name="model">purchase.supplier.evaluation.question</field>
+        <field name="arch" type="xml">
+            <form string="Questions fournisseur">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <separator name="answers" string="Réponses possibles"/>
+                            <div/>
+                            <field name="eval_answer_ids" nolabel="1" context="{'default_eval_question_id': active_id}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="purchase_supplier_evaluation_question_action" model="ir.actions.act_window">
+        <field name="name">Questions</field>
+        <field name="res_model">purchase.supplier.evaluation.question</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="purchase_supplier_evaluation_question_menu"
+              parent="purchase_supplier_evaluation_menu_header"
+              action="purchase_supplier_evaluation_question_action"
+              sequence="10"/>
+
+    <!--EVALUATION.FOURNISSEUR.REPONSE-->
+
+    <record id="purchase_supplier_evaluation_answer_tree" model="ir.ui.view">
+        <field name="name">purchase_supplier_evaluation_answer_tree</field>
+        <field name="model">purchase.supplier.evaluation.answer</field>
+        <field name="arch" type="xml">
+            <tree editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="eval_question_id"/>
+                <field name="grade"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="purchase_supplier_evaluation_answer_form" model="ir.ui.view">
+        <field name="name">purchase_supplier_evaluation_answer_form</field>
+        <field name="model">purchase.supplier.evaluation.answer</field>
+        <field name="arch" type="xml">
+            <form string="Réponses fournisseur">
+                <sheet>
+                    <group>
+                        <field name="eval_question_id"/>
+                        <field name="name"/>
+                        <field name="grade"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>
