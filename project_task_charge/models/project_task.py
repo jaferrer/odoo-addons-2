@@ -27,8 +27,6 @@ class ProjectTask(models.Model):
     duration_per_day = fields.Float(u"Duration of the task per day", help=u"In hours", compute='_get_duration',
                                     store=True, digits=(8, 2))
     planned_hours = fields.Float(required=True, default=0)
-    date_start = fields.Datetime(required=True, default=fields.Datetime.now)
-    date_end = fields.Datetime(required=True, default=fields.Datetime.now)
 
     @api.depends('date_start', 'date_end', 'planned_hours')
     @api.multi
