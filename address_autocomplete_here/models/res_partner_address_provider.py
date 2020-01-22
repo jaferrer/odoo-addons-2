@@ -41,14 +41,13 @@ class ResPartnerHereAddress(models.Model):
     @api.model
     def name_search(self, name='', args=None, operator='ilike', limit=100):
         res = super(ResPartnerHereAddress, self).name_search(name, args, operator, limit)
-
         if len(res) < limit:
             addresses = self.request_address(name)
             for address in addresses:
                 result = self.search([('locationId', '=', address['locationId'])])
                 if not result:
                     result = self.create(address)
-                res.append((result.id, result.label))
+                res.append((result[0].id, result[0].label))
         return res
 
     @api.multi
