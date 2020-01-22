@@ -29,7 +29,7 @@ class Base(models.AbstractModel):
         Renvoi le premier element de self si plusieurs `ids` sinon renvoie self"""
         if not func_filter:
             return self and self[0] or self
-        if isinstance(func_filter, (unicode, str)):
+        if isinstance(func_filter, (str, bytes)):
             func_filter = getattr(self, func_filter)
         for rec in self:
             if func_filter(rec):
@@ -41,7 +41,7 @@ class Base(models.AbstractModel):
         Renvoi le dernier element de self si plusieurs `ids` sinon renvoie self"""
         if not func_filter:
             return self and self[-1] or self
-        if isinstance(func_filter, (unicode, str)):
+        if isinstance(func_filter, (str, bytes)):
             func_filter = getattr(self, func_filter)
         for rec in reversed(self):
             if func_filter(rec):

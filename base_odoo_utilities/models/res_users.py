@@ -29,7 +29,7 @@ class ResPartner(models.Model):
     @api.multi
     def format_local_date(self, date=None):
         date_py = date or datetime.date.today()
-        if isinstance(date_py, (str, unicode)):
+        if isinstance(date_py, (bytes, str)):
             date_py = fields.Date.from_string(date_py)
         lang = self.env['res.lang'].search([('code', '=', self.first().lang or self.env.user.lang)])
         return date_py.strftime(lang.date_format)
@@ -37,7 +37,7 @@ class ResPartner(models.Model):
     @api.multi
     def format_local_datetime(self, date=None):
         date_py = date or datetime.datetime.now()
-        if isinstance(date_py, (str, unicode)):
+        if isinstance(date_py, (bytes, str)):
             date_py = fields.Datetime.from_string(date_py)
         lang = self.env['res.lang'].search([('code', '=', self.first().lang or self.env.user.lang)])
         return date_py.strftime("%s %s" % (lang.date_format, lang.time_format))
