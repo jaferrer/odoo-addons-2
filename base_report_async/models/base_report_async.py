@@ -10,6 +10,7 @@ import time
 import zipfile
 from datetime import datetime as dt
 
+import unidecode
 from dateutil.relativedelta import relativedelta
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
@@ -26,6 +27,7 @@ _logger = logging.getLogger(__name__)
 def job_asynchronous_report_generation(session, model_name, report_id, values, context):
     return session.env[model_name].browse(report_id).with_context(context).asynchronous_report_generation(values)
 
+
 class DelayReport(models.Model):
     _inherit = 'ir.actions.report.xml'
 
@@ -40,11 +42,12 @@ class DelayReport(models.Model):
             extension = '.xls'
         if extension:
             name += extension
+        unaccented_name = unidecode.unidecode(name)
         return self.env['ir.attachment'].create({
             'type': 'binary',
-            'res_name': name,
-            'datas_fname': name,
-            'name': name,
+            'res_name': unaccented_name,
+            'datas_fname': unaccented_name,
+            'name': unaccented_name,
             'mimetype': mimetype,
             'public': True,
             'datas': binary,
@@ -62,9 +65,10 @@ class DelayReport(models.Model):
         running_job_for_user_and_report = self.env['queue.job'].search(running_jobs_domain, limit=1)
         if running_job_for_user_and_report:
             return True
-        job_uuid = job_asynchronous_report_generation.delay(ConnectorSession.from_env(self.env), self._name, self.id, values,
-                                                 context=dict(self.env.context),
-                                                 description=u"Asynchronous generation of report %s" % self.name)
+        description = u"Asynchronous generation of report %s" % self.name
+        job_uuid = job_asynchronous_report_generation.delay(ConnectorSession.from_env(self.env), self._name, self.id,
+                                                            values, context=dict(self.env.context),
+                                                            description=description)
         job = self.env['queue.job'].search([('uuid', '=', job_uuid)])
         job.write({'asynchronous_job_for_report_id': self.id})
         return False
@@ -184,6 +188,7 @@ This is an automated message please do not reply.</span></p>""").format(tools.us
             'domain': []
         }
 
+
 class IrAttachment(models.Model):
     _inherit = 'ir.attachment'
 
@@ -195,6 +200,7 @@ class IrAttachment(models.Model):
         date_to_delete = fields.Date.to_string(dt.today() + relativedelta(days=-int(time_to_live)))
         self.search([('create_date', '<=', date_to_delete),
                      ('is_temporary_report_file', '=', True)]).unlink()
+
 
 class QuaueJob(models.Model):
     _inherit = 'queue.job'
