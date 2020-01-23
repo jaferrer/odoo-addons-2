@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates>
+    <t t-extend="calendar-box">
+        <t t-jquery=".fc-time" t-operation="before">
+            <t t-set="background_color" t-value="record.color"/>
+        </t>
+        <t t-jquery=".o_fields" t-operation="attributes">
+            <attribute name="t-att-style">'background-color:'+background_color</attribute>
+        </t>
+    </t>
+</templates>
