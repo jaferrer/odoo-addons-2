@@ -38,6 +38,8 @@ class StockQuant(models.Model):
 
     @api.multi
     def write(self, vals):
+        if 'product_qty' not in vals or 'product_uom_qty' not in vals:
+            return super(StockQuant, self).write(vals)
         for rec in self:
             uom_id = vals.get('product_uom', rec.product_uom.id)
             product_id = vals.get('product_id', rec.product_id.id)
