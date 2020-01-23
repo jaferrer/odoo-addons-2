@@ -16,8 +16,8 @@ let registerTreetable = function () {
 
     // Add controls
     $('a.treetable-control').remove();
-    $(treetable).before("<a href='#' class='treetable-control' onclick=\"$(treetable).treetable('collapseAll');\"><i class='fa fa-fw o_button_icon fa-compress'></i></a>");
-    $(treetable).before("<a href='#' class='treetable-control' onclick=\"$(treetable).treetable('expandAll');\"><i class='fa fa-fw o_button_icon fa-expand'></i></a>");
+    $(treetable).before("<a href='#' class='treetable-control' onclick=\"$('.web_treetable > table.o_list_view').treetable('collapseAll');\"><i class='fa fa-fw o_button_icon fa-compress'></i></a>");
+    $(treetable).before("<a href='#' class='treetable-control' onclick=\"$('.web_treetable > table.o_list_view').treetable('expandAll');\"><i class='fa fa-fw o_button_icon fa-expand'></i></a>");
 
     // Expand rows
     $(treetable + ' > tbody > tr.o_data_row').each(function (index, value) {
