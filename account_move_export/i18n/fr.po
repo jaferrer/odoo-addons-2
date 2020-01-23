@@ -154,8 +154,8 @@ msgstr "Mot de passe du FTP"
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_ftp_path
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_ftp_path
-msgid "FTP path"
-msgstr "Chemin du dossier sur le FTP"
+msgid "FTP export path"
+msgstr "Chemin du dossier d'export sur le FTP"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_data_fname
