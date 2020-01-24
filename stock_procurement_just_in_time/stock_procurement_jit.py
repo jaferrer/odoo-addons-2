@@ -957,12 +957,15 @@ class StockSchedulerController(models.Model):
             controller_line.write({'job_uuid': job_uuid, 'job_creation_date': fields.Datetime.now()})
 
     @api.model
-    def is_pop_orderpoints_process_running(self):
+    def get_stock_scheduler_blocking_job_function_names(self):
+        return ['openerp.addons.stock_procurement_just_in_time.stock_procurement_jit.pop_sub_process_orderpoints',
+                'openerp.addons.scheduler_async.scheduler_async.run_procure_orderpoint_async']
+
+    @api.model
+    def is_any_stock_scheduler_blocking_process(self):
         return self.env['queue.job']. \
-            search(
-            [('job_function_id.name', '=',
-              'openerp.addons.stock_procurement_just_in_time.stock_procurement_jit.pop_sub_process_orderpoints'),
-             ('state', 'not in', ('done', 'failed'))], limit=1)
+            search([('job_function_id.name', 'in', self.get_stock_scheduler_blocking_job_function_names()),
+                    ('state', 'not in', ('done', 'failed'))], limit=1)
 
     @api.model
     def is_head_scheduler_function_running(self):
@@ -975,9 +978,7 @@ class StockSchedulerController(models.Model):
     @api.model
     def update_scheduler_controller(self, jobify=True, run_procurements=True):
         line_min_sequence = self.search([('done', '=', False)], order='location_sequence', limit=1)
-        if self.is_pop_orderpoints_process_running():
-            return
-        if self.is_head_scheduler_function_running():
+        if self.is_any_stock_scheduler_blocking_process():
             return
         if line_min_sequence:
             min_sequence = line_min_sequence.location_sequence
