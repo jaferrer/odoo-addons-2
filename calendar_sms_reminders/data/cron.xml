@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record model="ir.cron" id="calendar_send_sms_reminder">
+            <field name="name">Send reminder sms for calendar event</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="nextcall">2020-01-01 05:00:00</field>
+            <field name="numbercall">-1</field>
+            <field name="model">calendar.event</field>
+            <field name="function">cron_send_reminder_sms</field>
+            <field name="args" eval="'()'"/>
+            <field name="active" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

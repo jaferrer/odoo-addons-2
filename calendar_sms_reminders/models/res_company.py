@@ -27,6 +27,6 @@ class ResCompany(models.Model):
     def _get_default_sms_message(self):
         return _(u"We remind you that you have an appointment on %(date)s at %(time)s with %(owner)s at %(location)s")
 
-    sms_reminder_message = fields.Char(u"Calendar event reminder", default=_get_default_sms_message)
+    sms_reminder_message = fields.Text(u"Calendar event reminder", default=_get_default_sms_message)
     sms_api_login = fields.Char("API login")
     sms_api_key = fields.Char("API key")
