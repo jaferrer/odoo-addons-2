@@ -31,14 +31,10 @@ class SaleOrderProjectImproved(models.Model):
     @api.onchange('project_project_id')
     def _onchange_project_id(self):
         """
-        Lorsqu'on sélectionne une affaire dans un devis, les données fixes de l'affaires remplacent celles du devis.
+        Lorsqu'on sélectionne une affaire dans un devis, les données fixes de l'affaire remplacent celles du devis.
         """
-
         if self.project_project_id:
             self.partner_id = self.project_project_id.partner_id.id
-            self.partner_shipping_id = self.project_project_id.partner_delivery_id.id
-            self.activity_id = self.project_project_id.activity_id.id
-            self.activity_domain_id = self.project_project_id.activity_domain_id.id
 
     @api.multi
     def _compute_project_project_id(self):

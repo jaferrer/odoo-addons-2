@@ -40,7 +40,7 @@ This module links a Sale order to a Project corresponding to the right analytic 
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': True,
+    'auto_install': False,
     'license': 'AGPL-3',
     'application': False,
 }
