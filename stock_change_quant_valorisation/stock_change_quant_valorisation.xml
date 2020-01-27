@@ -60,8 +60,12 @@ action = self.change_quants_valorisation(cr, uid, context.get('active_ids'), con
             <field name="arch" type="xml">
                 <form position="inside">
                     <field name="display_cost_history" invisible="1"/>
-                    <group string="Unit Cost History" attrs="{'invisible': [('display_cost_history', '=', False)]}"/>
-                    <field name="cost_history_ids" attrs="{'invisible': [('display_cost_history', '=', False)]}"/>
+                    <notebook>
+                        <page name="unit_cost_history" string="Unit Cost History"
+                              attrs="{'invisible': [('display_cost_history', '=', False)]}">
+                            <field name="cost_history_ids"/>
+                        </page>
+                    </notebook>
                 </form>
             </field>
         </record>
