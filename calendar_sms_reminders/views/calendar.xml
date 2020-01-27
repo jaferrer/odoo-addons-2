@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+          <record model="ir.ui.view" id="calendar_event_sms_reminder_form">
+            <field name="name">calendar.event.sms.reminder.form</field>
+            <field name="model">calendar.event</field>
+            <field name="inherit_id" ref="calendar.view_calendar_event_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='action_sendmail']" position="after">
+                    <field name="id" invisible="True" />
+                    <button name="action_open_sms_wizard"  type="object" string="Send sms" icon="fa-comment" class="oe_link"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
