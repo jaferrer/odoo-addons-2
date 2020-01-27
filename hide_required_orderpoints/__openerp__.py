@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 {
-    'name': 'SIRAIL hide required orderpoints',
+    'name': 'hide required orderpoints',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
@@ -26,9 +26,10 @@
                 'stock_mandatory_orderpoints',
                 'stock_procurement_just_in_time', ],
     'description': """
-SIRAIL hide required orderpoints
+hide required orderpoints
 ===============
- customisations for SIRAIL : hide required orderpoints field in Settings/Warehouse form
+ customisations : hide required orderpoints field in Settings/Warehouse form
+ required orderpoints declaration are replaced by scheduler sequence in stock location
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
