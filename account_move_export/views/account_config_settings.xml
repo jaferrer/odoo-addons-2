@@ -21,12 +21,12 @@
                         <field name="export_date_from"/>
                         <field name="export_date_to"/>
                     </group>
-                    <group string="FTP" colspan="2" attrs="{'invisible': ['|', ('export_mode', '!=', 'auto')]}">
-                        <field name="export_ftp_url"/>
-                        <field name="export_ftp_login"/>
-                        <field name="export_ftp_password"/>
-                        <field name="export_ftp_path"/>
-                    </group>
+                </group>
+                <group name="ftp" string="FTP" colspan="2">
+                    <field name="export_ftp_url"/>
+                    <field name="export_ftp_login"/>
+                    <field name="export_ftp_password"/>
+                    <field name="export_ftp_path"/>
                 </group>
             </xpath>
         </field>

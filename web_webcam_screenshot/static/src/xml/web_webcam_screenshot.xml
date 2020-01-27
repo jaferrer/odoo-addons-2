@@ -30,9 +30,9 @@
     <t t-extend="Sidebar">
         <t t-jquery='li.o_sidebar_add_attachment' t-operation="append">
             <li class="oe_sidebar_webcam_screenshot">
-                <a href="#" data-index="0" data-section="files">
+                <span href="#" data-section="files" style="padding:25px">
                     <span>Take Webcam screenshot</span>
-                </a>
+                </span>
              </li>
         </t>
     </t>

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,33 +18,18 @@
 #
 
 {
-    'name': 'Account Move Export',
+    'name': 'Fetchmail Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Hidden',
-    'depends': [
-        'account',
-    ],
-    'external_dependencies': {
-        'python': [
-            'ftplib',
-            'io',
-            'base64',
-        ],
-    },
+    'category': 'Mail',
+    'depends': ['mail'],
     'description': """
-Account Move Export
+Fetchmail Improved
 ==================
-Add an interface to export account.move
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'data/cron.xml',
-        'views/account_config_settings.xml',
-        'views/account_move_line.xml',
-        'wizard/account_move_export_wizard.xml',
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,

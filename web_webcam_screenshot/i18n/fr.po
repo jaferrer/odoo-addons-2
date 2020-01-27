@@ -56,3 +56,11 @@ msgstr "Prendre la capture d'écran"
 #, python-format
 msgid "Save & Close"
 msgstr "Sauvegarder et fermer"
+
+#. module: web_webcam_screenshot
+#. openerp-web
+#: code:addons/web_widget_image_webcam/static/src/js/web_webcam_screenshot.js:50
+#: code:addons/web_widget_image_webcam/static/src/js/web_webcam_screenshot.js:125
+#, python-format
+msgid "Error : unable to load media device on your navigator, the website must be in HTTPS"
+msgstr "Erreur : Impossible de charger des médias sur voptre navigateur, le site doit être en HTTPS"
