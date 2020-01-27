@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,33 +18,27 @@
 #
 
 {
-    'name': 'Account Move Export',
+    'name': 'Calendar SMS reminders',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Hidden',
-    'depends': [
-        'account',
-    ],
-    'external_dependencies': {
-        'python': [
-            'ftplib',
-            'io',
-            'base64',
-        ],
-    },
+    'category': 'Project',
+    'depends': ['base', 'calendar'],
+    'external_dependencies': {'python': ['phonenumbers', 'octopush']},
     'description': """
-Account Move Export
-==================
-Add an interface to export account.move
+SEND SMS FROM CALENDAR EVENTS
+===============================
+requirements: octopush sms plateform subscription
+configuration: go to company settings in the SMS tab and define the SMS API login and key
+usage: open a calendar event and clic on `send SMS` button.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/cron.xml',
-        'views/account_config_settings.xml',
-        'views/account_move_line.xml',
-        'wizard/account_move_export_wizard.xml',
+        'views/sms_wizard.xml',
+        'views/calendar.xml',
+        'views/company.xml',
     ],
+    'qweb': [],
     'demo': [],
     'test': [],
     'installable': True,
