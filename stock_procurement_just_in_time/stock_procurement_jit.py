@@ -67,6 +67,9 @@ def job_delete_cancelled_moves_and_procs(session, model_name, ids):
     objects_to_delete = session.env[model_name].search([('id', 'in', ids)])
     objects_to_delete.unlink()
 
+@job(default_channel='root.auto_delete_cancelled_moves_procs')
+def pop_delete_cancelled_moves_and_procs_jobs(session, model_name):
+    session.env[model_name].delete_cancelled_moves_and_procs()
 
 @job(default_channel='root.update_rsm_treat_by_scheduler')
 def job_rsm_treat_by_scheduler(session, model_name, ids):
@@ -379,6 +382,10 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
         except ForbiddenCancelProtectedProcurement as e:
             _logger.info(e.value)
         return result
+
+    @api.model
+    def pop_delete_cancelled_moves_and_procs_jobs(self):
+        pop_delete_cancelled_moves_and_procs_jobs.delay(ConnectorSession.from_env(self.env), 'procurement.order')
 
     @api.model
     def delete_cancelled_moves_and_procs(self, jobify=True):

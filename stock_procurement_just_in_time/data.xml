@@ -67,7 +67,7 @@
             <field name="numbercall">-1</field>
             <field name="doall"/>
             <field name="model">procurement.order</field>
-            <field name="function">delete_cancelled_moves_and_procs</field>
+            <field name="function">pop_delete_cancelled_moves_and_procs_jobs</field>
             <field name="args"/>
         </record>
 
