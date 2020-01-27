@@ -816,7 +816,6 @@ class StockMove(models.Model):
                                                "assigned a picking as soon as the move is confirmed.")
     origin_returned_move_id = fields.Many2one('stock.move', index=True)
     split_from = fields.Many2one('stock.move', index=True)
-    picking_type_code = fields.Selection(related='picking_type_id.code', store=True, index=True)
 
     @api.multi
     def _check_package_from_moves(self):
