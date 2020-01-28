@@ -229,8 +229,8 @@ class PurchaseOrderLineJustInTime(models.Model):
     supplier_code = fields.Char(string=u"Supplier Code", compute='_compute_supplier_code', store=True)
     ack_ref = fields.Char("Acknowledge Reference", help="Reference of the supplier's last reply to confirm the delivery"
                                                         " at the planned date")
-    date_ack = fields.Date("Last Acknowledge Date",
-                           help="Last date at which the supplier confirmed the delivery at the planned date.")
+    date_ack = fields.Date("Date of Acknowledgment Reception",
+                           help="Date at which the supplier confirmed the delivery.")
     father_line_id = fields.Many2one('purchase.order.line', string="Very first line splited", readonly=True)
     children_line_ids = fields.One2many('purchase.order.line', 'father_line_id', string="Children lines")
     children_number = fields.Integer(string="Number of children", readonly=True, compute='_compute_children_number')
