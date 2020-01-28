@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="stock_picking_operation_action" model="ir.actions.act_window">
+            <field name="name">Opération de Transfert</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">tcb.stock.picking.operation</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <!-- This Menu Item must have a parent and an action -->
+        <menuitem id="stock_picking_operation_menu"
+                  name="Opération de Transfert"
+                  parent="stock.menu_stock_warehouse_mgmt"
+                  action="stock_picking_operation_action"
+                  sequence="11"/>
+
+        <!-- Inherit Form View to Modify it -->
+        <record id="stock_view_picking_type_form" model="ir.ui.view">
+            <field name="name">stock_view_picking_type_form</field>
+            <field name="model">stock.picking.type</field>
+            <field name="inherit_id" ref="stock.view_picking_type_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='code']" position="after">
+                    <field name="tcb_type"/>
+                </xpath>
+
+            </field>
+        </record>
+
+        <record id="stock_picking_operation_view_tree" model="ir.ui.view">
+            <field name="name">stock_picking_operation_view_tree</field>
+            <field name="model">tcb.stock.picking.operation</field>
+            <field name="arch" type="xml">
+                <tree string="Opération de Transfert">
+                    <field name="picking_batch_id"/>
+                    <field name="picking_type_id"/>
+                    <field name="picking_id"/>
+                    <field name="product_id"/>
+                    <field name="loc_src_id"/>
+                    <field name="loc_desc_id"/>
+                    <field name="qty_todo"/>
+                    <field name="owner_id"/>
+                    <field name="user_id"/>
+                    <field name="tcb_type"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="stock_picking_operation_view_search" model="ir.ui.view">
+            <field name="name">stock_picking_operation_view_search</field>
+            <field name="model">tcb.stock.picking.operation</field>
+            <field name="arch" type="xml">
+                <search string="Opération de Transfert">
+                    <field name="picking_id"/>
+                    <field name="picking_type_id"/>
+                    <field name="picking_batch_id"/>
+                    <field name="product_id"/>
+                    <field name="loc_src_id"/>
+                    <field name="loc_desc_id"/>
+                    <field name="owner_id"/>
+                    <field name="user_id"/>
+                    <filter string="Rangement" name="put_in_stock" domain="[('android_type', '=', 'put_in_stock')]"/>
+                    <filter string="Sortie de Stock" name="put_out_of_stock" domain="[('android_type', '=', 'put_out_of_stock')]"/>
+                    <group>
+                        <filter name="group_picking_wave_id" string="Vague de Transfert" context="{'group_by':picking_batch_id}"/>
+                        <filter name="group_picking_id" string="Bon de Transfert" context="{'group_by':picking_id}"/>
+                        <filter name="group_picking_type_id" string="Type de Transfert" context="{'group_by':picking_type_id}"/>
+                        <filter name="group_product_id" string="Article" context="{'group_by':product_id}"/>
+                        <filter name="group_loc_src_id" string="Emplacement source" context="{'group_by':loc_src_id}"/>
+                        <filter name="group_loc_desc_id" string="Emplacement de destination" context="{'group_by':loc_desc_id}"/>
+                        <filter name="group_owner_id" string="Propriétaire" context="{'group_by':owner_id}"/>
+                        <filter name="group_user_id" string="Assigné à" context="{'group_by':user_id}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+    </data>
+</odoo>

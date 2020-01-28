@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record model="ir.ui.view" id="puch_tcb_pack_op_tree">
+            <field name="name">puch_tcb_pack_op_tree</field>
+            <field name="model">tcb.push.pack.op</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree create="false" delete="false">
+                    <field name="create_date"/>
+                    <field name="user_id"/>
+                    <field name="flag"/>
+                    <field name="sequence"/>
+                    <field name="picking_batch_id"/>
+                    <field name="picking_batch_user_id"/>
+                    <field name="picking_batch_state"/>
+                    <field name="picking_id"/>
+                    <field name="stock_op_id"/>
+                    <field name="product_code"/>
+                    <field name="location_code"/>
+                    <field name="qty"/>
+                    <field name="timestamp"/>
+                    <field name="date_done"/>
+                    <field name="state"/>
+                    <field name="deleted"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="puch_tcb_pack_op_tree_manager">
+            <field name="name">puch_tcb_pack_op_tree_manager</field>
+            <field name="model">tcb.push.pack.op</field>
+            <field name="priority" eval="16"/>
+            <field name="groups_id" eval="[(4, ref('stock.group_stock_manager'))]"/>
+            <field name="inherit_id" ref="puch_tcb_pack_op_tree"/>
+            <field name="arch" type="xml">
+                <tree position="attributes">
+                    <attribute name="create"/>
+                    <attribute name="delete"/>
+                    <attribute name="editable">top</attribute>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="puch_tcb_pack_op_search">
+            <field name="name">puch_tcb_pack_op_search</field>
+            <field name="model">tcb.push.pack.op</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="flag"/>
+                    <field name="picking_batch_id"/>
+                    <field name="picking_id"/>
+                    <field name="stock_op_id"/>
+                    <field name="product_code"/>
+                    <field name="location_code"/>
+                    <filter name="en_retard" string="En retard" domain="[('timestamp', '&lt;', context_today().strftime('%%Y-%%m-%%d')), ('state', '=', 'draft')]"/>
+                    <filter name="not_done" string="À Traiter" domain="[('state', '=', 'draft')]"/>
+                    <filter name="brang" string="Bon de rangement" domain="[('picking_batch_id','=',False)]"/>
+                    <group string="Grouper par...">
+                        <filter name="flag" string="Flag" domain="[]" context="{'group_by': 'flag'}"/>
+                        <filter name="picking_batch_id" string="Picking batch" domain="[]" context="{'group_by': 'picking_batch_id'}"/>
+                        <filter name="picking_id" string="Tranfert" domain="[]" context="{'group_by': 'picking_id'}"/>
+<!--                        <filter name="pack_op_id" string="Opération de colisage" domain="[]" context="{'group_by': 'pack_op_id'}"/>-->
+                        <filter name="product_code" string="Code produit" domain="[]" context="{'group_by': 'product_code'}"/>
+                        <filter name="location_code" string="Code emplacement" domain="[]" context="{'group_by': 'location_code'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_puch_tcb_pack_op_batch">
+            <field name="name">Ordres Picking</field>
+            <field name="res_model">tcb.push.pack.op</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[('picking_batch_id', '!=', False)]</field>
+            <field name="context">{'search_default_en_retard': True}</field>
+        </record>
+
+        <record model="ir.ui.view" id="puch_tcb_cart_tree">
+            <field name="name">puch_tcb_cart_tree</field>
+            <field name="model">tcb.push.cart</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="create_date" />
+                    <field name="flag"/>
+                    <field name="sequence"/>
+                    <field name="product_id"/>
+                    <field name="qty"/>
+                    <field name="stock_product_line_id"/>
+                    <field name="owner_id"/>
+                    <field name="cart_id"/>
+                    <field name="warning_tcb"/>
+                    <field name="last_tcb_status"/>
+                    <field name="date_last_tcb_status"/>
+                    <field name="date_done"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="puch_tcb_cart_search">
+            <field name="name">puch_tcb_cart_search</field>
+            <field name="model">tcb.push.cart</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search>
+                    <field name="flag"/>
+                    <field name="product_id"/>
+                    <field name="stock_product_line_id"/>
+                    <field name="owner_id"/>
+                    <field name="cart_id"/>
+                    <filter name="warning_tcb" string="Erreur TCB" domain="[('warning_tcb', '=', True)]"/>
+                    <filter name="done" string="Terminé" domain="[('state', '=', 'done')]"/>
+                </search>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="action_open_tcb_pack_op_from_picking" model="ir.actions.act_window">
+            <field name="name">Ordres liés au picking</field>
+            <field name="res_model">tcb.push.pack.op</field>
+            <field name="view_mode">list</field>
+            <field name="target">current</field>
+            <field name="domain">[('picking_id', '=', active_id)]</field>
+        </record>
+
+        <record id="action_open_tcb_pack_op_from_batch" model="ir.actions.act_window">
+            <field name="name">Ordres liés à la vague</field>
+            <field name="res_model">tcb.push.pack.op</field>
+            <field name="view_mode">list</field>
+            <field name="target">current</field>
+            <field name="domain">[('picking_batch_id', '=', active_id)]</field>
+        </record>
+
+        <record model="ir.ui.view" id="flux_tend_picking_batch_tree">
+            <field name="name">flux_tend_picking_batch_tree</field>
+            <field name="model">stock.picking.batch</field>
+            <field name="inherit_id" ref="stock_picking_batch.stock_picking_batch_tree"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree position="inside">
+                    <field name="warning_tcb"/>
+                    <field name="date_last_tcb_status"/>
+                    <field name="last_tcb_status"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="flux_tend_picking_batch_search">
+            <field name="name">flux_tend_picking_batch_search</field>
+            <field name="model">stock.picking.batch</field>
+            <field name="inherit_id" ref="stock_picking_batch.view_picking_batch_filter"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search position="inside">
+                    <separator/>
+                    <filter name="warning_tcb" string="Warning TCB" domain="[('warning_tcb', '=', True)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="flux_tendu_picking_batch_form">
+            <field name="name">flux_tendu_picking_batch_form</field>
+            <field name="model">stock.picking.batch</field>
+            <field name="inherit_id" ref="stock_picking_batch.stock_picking_batch_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header//button[last()]" position="after">
+                    <button name="%(flux_tendu_tcb.action_open_tcb_pack_op_from_batch)d" type="action"
+                            string="Voir les ordres"
+                            class="btn-primary" attrs="{'invisible': [('warning_tcb', '=', False)]}"/>
+                </xpath>
+                <sheet position="inside">
+                    <notebook>
+                        <page string="Synchronisation TCB">
+                            <group>
+                                <field name="warning_tcb"/>
+                                <field name="date_last_tcb_status"/>
+                                <field name="last_tcb_status"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="flux_tendu_picking_form_tcb">
+            <field name="name">flux_tendu_picking_form_tcb</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header//button[last()]" position="after">
+                    <button name="%(flux_tendu_tcb.action_open_tcb_pack_op_from_picking)d" type="action"
+                            string="Voir les ordres"
+                            class="btn-primary" attrs="{'invisible': [('warning_tcb', '=', False)]}"/>
+                </xpath>
+                <xpath expr="//notebook" position="inside">
+                    <page string="Synchronisation TCB">
+                        <group>
+                            <field name="warning_tcb"/>
+                            <field name="date_last_tcb_status"/>
+                            <field name="last_tcb_status"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.actions.server" id="ir_actions_server_stock_picking_apply_order_tcb_brang">
+            <field name="name">Executer les ordres TCB</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="code">
+self.apply_order_tcb_brang(cr, uid, context.get('active_ids'), context=context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="stock_picking_batch_apply_order_tcb">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">stock.picking</field>
+            <field name="name">Executer les ordres TCB</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_stock_picking_apply_order_tcb_brang)"/>
+        </record>
+
+        <record model="ir.actions.server" id="ir_actions_server_stock_picking_batch_apply_order_tcb">
+            <field name="name">Executer les ordres TCB</field>
+            <field name="model_id" ref="stock_picking_batch.model_stock_picking_batch"/>
+            <field name="code">
+self.apply_order_tcb_batch(cr, uid, context.get('active_ids'), context=context)
+            </field>
+        </record>
+
+        <record model="ir.values" id="stock_picking_batch_apply_order_tcb">
+            <field name="key">action</field>
+            <field name="key2">client_action_multi</field>
+            <field name="model">stock.picking.batch</field>
+            <field name="name">Executer les ordres TCB</field>
+            <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_stock_picking_batch_apply_order_tcb)"/>
+        </record>
+
+
+        <record model="ir.actions.server" id="ir_actions_server_tcb_synchronize_batchs">
+            <field name="name">Synchroniser les picking batchs</field>
+            <field name="model_id" ref="stock_picking_batch.model_stock_picking_batch"/>
+            <field name="code">
+self.tcb_synchronize_batchs(cr, uid, context)
+            </field>
+        </record>
+
+        <menuitem id="menu_tcb_synchronize_batchs" name="Synchroniser les picking batchs"
+                  action="ir_actions_server_tcb_synchronize_batchs"
+                  parent="menu_synchronisation_tcb" sequence="20"/>
+
+
+        <record model="ir.actions.server" id="ir_actions_server_tcb_synchronize_brang">
+            <field name="name">Synchroniser les BRANGs</field>
+            <field name="model_id" ref="stock.model_stock_picking"/>
+            <field name="code">
+self.tcb_synchronize_brang(cr, uid, context)
+            </field>
+        </record>
+
+        <menuitem id="menu_tcb_synchronize_brang" name="Synchroniser les BRANGs"
+                  action="ir_actions_server_tcb_synchronize_brang"
+                  parent="menu_synchronisation_tcb" sequence="21"/>
+
+    </data>
+</openerp>
