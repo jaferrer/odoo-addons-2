@@ -300,13 +300,13 @@ msgstr "Juste-à-temps"
 
 #. module: purchase_procurement_just_in_time
 #: field:purchase.order.line,date_ack:0
-msgid "Last Acknowledge Date"
+msgid "Date of Acknowledgment Reception"
 msgstr "Date de réception de l'AR"
 
 #. module: purchase_procurement_just_in_time
 #: help:purchase.order.line,date_ack:0
-msgid "Last date at which the supplier confirmed the delivery at the planned date."
-msgstr "Dernière date à laquelle le fournisseur a confirmé la livraison à la date prévue."
+msgid "Date at which the supplier confirmed the delivery."
+msgstr "Date à laquelle le fournisseur a confirmé la livraison."
 
 #. module: purchase_procurement_just_in_time
 #: field:split.line,write_uid:0

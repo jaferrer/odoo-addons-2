@@ -214,7 +214,7 @@ class StockPicking(models.Model):
     picking_type_code_store = fields.Selection([('incoming', 'Suppliers'),
                                                 ('outgoing', 'Customers'),
                                                 ('internal', 'Internal')],
-                                               string=u"Picking type code (store)", readonly=True)
+                                               string=u"Picking type code (store)", readonly=True, index=True)
     picking_type_code = fields.Selection([('incoming', 'Suppliers'),
                                           ('outgoing', 'Customers'),
                                           ('internal', 'Internal')], string=u"Picking type code", readonly=True,
@@ -810,6 +810,12 @@ class StockMove(models.Model):
     group_id = fields.Many2one('procurement.group', index=True)
     picking_type_id = fields.Many2one('stock.picking.type', index=True)
     partially_available = fields.Boolean(index=True)
+    defer_picking_assign = fields.Boolean("Defer Picking Assignement", default=False,
+                                          help="If checked, the stock move will be assigned to a picking only if there "
+                                               "is available quants in the source location. Otherwise, it will be "
+                                               "assigned a picking as soon as the move is confirmed.")
+    origin_returned_move_id = fields.Many2one('stock.move', index=True)
+    split_from = fields.Many2one('stock.move', index=True)
 
     @api.multi
     def _check_package_from_moves(self):
@@ -902,13 +908,6 @@ class StockMove(models.Model):
                                              string="Moved Quants", copy=False, fnct_inv=_set_quants_ids,
                                              help="Computed field, faster than Many2many one"),
     }
-
-    defer_picking_assign = fields.Boolean("Defer Picking Assignement", default=False,
-                                          help="If checked, the stock move will be assigned to a picking only if there "
-                                               "is available quants in the source location. Otherwise, it will be "
-                                               "assigned a picking as soon as the move is confirmed.")
-    origin_returned_move_id = fields.Many2one('stock.move', index=True)
-    split_from = fields.Many2one('stock.move', index=True)
 
     @api.multi
     def _picking_assign(self, procurement_group, location_from, location_to):
