@@ -115,7 +115,8 @@ class BusSynchronizationExporter(models.AbstractModel):
         exported_records = self.with_context(active_test=active_test).env[model_name].search([('id', 'in', ids)])
         if 'exported_to_bus_base_ids' in self.env[model_name]._fields.keys():
             for record in exported_records:
-                record.exported_to_bus_base_ids |= batch.recipient_id
+                base_ids = list(set(record.exported_to_bus_base_ids.ids + [batch.recipient_id.id]))
+                record.sudo().write({'exported_to_bus_base_ids': [(6, 0, base_ids)]})
         message_type = message_dict.get('header').get('treatment')
         if message_type == 'DELETION_SYNCHRONIZATION':
             result = self._generate_msg_body_deletion(exported_records, model_name)
