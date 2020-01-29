@@ -394,6 +394,7 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
             for proc in procs_to_delete:
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
                                                            'procurement.order', proc.ids)
+                self.env.cr.commit()
         else:
             job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
                                                  'procurement.order', procs_to_delete.ids)
@@ -402,6 +403,7 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
             for move in moves_to_delete:
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
                                                            'stock.move', move.ids)
+                self.env.cr.commit()
         else:
             job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
                                                  'stock.move', moves_to_delete.ids)
