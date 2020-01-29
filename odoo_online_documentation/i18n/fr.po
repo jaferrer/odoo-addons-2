@@ -91,3 +91,13 @@ msgstr "Erreur!"
 #: code:addons/odoo_online_documentation/odoo_online_documentation.py:0
 msgid "No file related to this documentation."
 msgstr "Pas de fichier lié à cette documentation."
+
+#. module: odoo_online_documentation
+#: code:addons/odoo_online_documentation/odoo_online_documentation.py:0
+msgid "Different document of type sharepoint cannot have the same path %s"
+msgstr "Plusieurs documents de type sharepoint ne peuvent avoir le même emplacement : %s"
+
+#. module: odoo_online_documentation
+#: code:addons/odoo_online_documentation/odoo_online_documentation.py:0
+msgid "Path must be completed for document of type sharepoint %s"
+msgstr "Le champ emplacement est requis pour les documents de type sharepoint : %s"
