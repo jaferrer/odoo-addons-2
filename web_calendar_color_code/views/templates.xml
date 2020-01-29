@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="assets_backend" name="web_calendar_color_code assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_calendar_color_code/static/src/js/web_calendar_color_code.js"></script>
+            </xpath>
+        </template>
+
+    </data>
+</odoo>
