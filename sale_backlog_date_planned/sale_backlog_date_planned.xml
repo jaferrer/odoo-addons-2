@@ -8,7 +8,7 @@
             <field name="priority" eval="2"/>
             <field name="inherit_id" ref="sale_backlog.sale_order_line_tree"/>
             <field name="arch" type="xml">
-                <field name="price_unit" position="before">
+                <field name="product_uom_qty" position="before">
                     <field name="date_planned" widget="date"/>
                 </field>
             </field>
