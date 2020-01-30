@@ -40,7 +40,7 @@ class AccountConfigSettings(models.TransientModel):
     export_ftp_url = fields.Char(u"FTP URL")
     export_ftp_login = fields.Char(u"FTP login")
     export_ftp_password = fields.Char(u"FTP password")
-    export_ftp_path = fields.Char(u"FTP path")
+    export_ftp_path = fields.Char(u"FTP export path")
     export_cron_id = fields.Many2one('ir.cron', u"Export cron", readonly=True,
                                      default=lambda self: self.env.ref('account_move_export.account_move_export_cron'))
 

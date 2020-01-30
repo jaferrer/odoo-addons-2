@@ -80,7 +80,7 @@ class ProjectTask(models.Model):
         result = dict(super(ProjectTask, self).name_search(name, args, operator, limit))
         if name:
             result.update(dict(self.search([('number', operator, name)] + args, limit=limit).name_get()))
-        return result
+        return result.items()
 
     @api.multi
     def name_get(self):

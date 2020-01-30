@@ -42,6 +42,7 @@ Add an interface to export account.move
     'data': [
         'data/cron.xml',
         'views/account_config_settings.xml',
+        'views/account_move_line.xml',
         'wizard/account_move_export_wizard.xml',
     ],
     'demo': [],
