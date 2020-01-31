@@ -27,7 +27,7 @@ class CheckQtySupplierPurchaseOrder(models.Model):
     @api.model
     def create(self, vals):
         result = super(CheckQtySupplierPurchaseOrder, self.with_context(check_product_qty=False)).create(vals)
-        if self.env.context.get('check_product_qty', True) and self.state != 'cancel' and 'order_line' in vals:
+        if self.env.context.get('check_product_qty', True) and self.state == 'draft' and 'order_line' in vals:
             self._check_qty_on_order()
         return result
 
@@ -35,7 +35,7 @@ class CheckQtySupplierPurchaseOrder(models.Model):
     def write(self, vals):
         result = super(CheckQtySupplierPurchaseOrder, self.with_context(check_product_qty=False)).write(vals)
         if self.env.context.get('check_product_qty', True) and 'order_line' in vals:
-            for rec in self.filtered(lambda it: it.state != 'cancel'):
+            for rec in self.filtered(lambda it: it.state == 'draft'):
                 rec._check_qty_on_order()
         return result
 
@@ -75,7 +75,7 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
     def create(self, vals):
         result = super(CheckQtySupplierPurchaseOrderLine, self).create(vals)
         if self.env.context.get('check_product_qty', True) \
-                and (result.state != 'cancel' or result.order_id.state != 'cancel') \
+                and (result.state == 'cancel' or result.order_id.state == 'draft') \
                 and 'product_qty' in vals:
             result.order_id._check_qty_for_product(result.product_id)
         return result
@@ -84,7 +84,7 @@ class CheckQtySupplierPurchaseOrderLine(models.Model):
     def write(self, vals):
         result = super(CheckQtySupplierPurchaseOrderLine, self).write(vals)
         if self.env.context.get('check_product_qty', True) and 'product_qty' in vals:
-            for rec in self.filtered(lambda it: it.state != 'cancel' or it.order_id.state != 'cancel'):
+            for rec in self.filtered(lambda it: it.state == 'cancel' or it.order_id.state == 'draft'):
                 rec.order_id._check_qty_for_product(rec.product_id)
         return result
 
