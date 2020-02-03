@@ -28,6 +28,23 @@ from odoo.tools.safe_eval import safe_eval
 class AccountMoveExportWizard(models.TransientModel):
     _name = 'account.move.export.wizard'
 
+    # Defaults for FTP
+    @api.model
+    def _get_default_ftp_url(self):
+        return self.env['ir.config_parameter'].sudo().get_param('account_move_export.export_ftp_url', False)
+
+    @api.model
+    def _get_default_ftp_login(self):
+        return self.env['ir.config_parameter'].sudo().get_param('account_move_export.export_ftp_login', False)
+
+    @api.model
+    def _get_default_ftp_password(self):
+        return self.env['ir.config_parameter'].sudo().get_param('account_move_export.export_ftp_password', False)
+
+    @api.model
+    def _get_default_ftp_path(self):
+        return self.env['ir.config_parameter'].sudo().get_param('account_move_export.export_ftp_path', False)
+
     destination = fields.Selection([
         ('ftp', u"On FTP"),
         ('screen', u"On screen"),
@@ -41,12 +58,12 @@ class AccountMoveExportWizard(models.TransientModel):
     date_from = fields.Date(u"Date from")
     date_to = fields.Date(u"Date to")
     move_ids = fields.Many2many('account.move', string=u"Account moves")
-    group_by_account = fields.Boolean(u"Group by accounting account")
+    group_by_account = fields.Boolean(u"Group by accounting account", default=True)
 
-    ftp_url = fields.Char(u"FTP URL")
-    ftp_login = fields.Char(u"FTP login")
-    ftp_password = fields.Char(u"FTP password")
-    ftp_path = fields.Char(u"FTP path")
+    ftp_url = fields.Char(u"FTP URL", default=_get_default_ftp_url)
+    ftp_login = fields.Char(u"FTP login", default=_get_default_ftp_login)
+    ftp_password = fields.Char(u"FTP password", default=_get_default_ftp_password)
+    ftp_path = fields.Char(u"FTP path", default=_get_default_ftp_path)
 
     binary_export = fields.Binary("Export file")
     data_fname = fields.Char("File name")
@@ -59,13 +76,15 @@ class AccountMoveExportWizard(models.TransientModel):
         """
         self.ensure_one()
 
+        journals = self.journal_ids or self.env['account.journal'].search([])
+
         moves = self.env['account.move']
         if self.line_selection == 'bounded':
-            moves = self._get_moves_by_dates_and_journals(self.date_from, self.date_to, self.journal_ids)
+            moves = self._get_moves_by_dates_and_journals(self.date_from, self.date_to, journals)
         elif self.line_selection == 'manual':
             moves = self.move_ids
         elif self.line_selection == 'not_exported':
-            moves = self._get_unexported_moves(self.journal_ids)
+            moves = self._get_unexported_moves(journals)
 
         self.binary_export = base64.encodestring(self._create_export_from_moves(moves))
 
