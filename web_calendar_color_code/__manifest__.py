@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,32 +18,31 @@
 #
 
 {
-    'name': 'Account Move Export',
+    'name': 'Color Code for Calendar View',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Hidden',
-    'depends': [
-        'account',
-    ],
-    'external_dependencies': {
-        'python': [
-            'ftplib',
-            'io',
-            'base64',
-        ],
-    },
+    'depends': ['web_calendar'],
     'description': """
-Account Move Export
-==================
-Add an interface to export account.move
+Color Code for Calendar View
+============================
+This function adds a `color_code` attribute to the calendar tag, that allows to specify a field on the model containing
+the color code (any valid css code) to apply to each cell.
+It is different from the "color" field, in that it allows to chose the color instead of having a pseudorandom one.
+
+Usage
+-----
+```
+<calendar ... color_code="my_color_field">
+    <field name="name"/>
+</calendar>
+```
+
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/cron.xml',
-        'views/account_config_settings.xml',
-        'views/account_move_line.xml',
-        'wizard/account_move_export_wizard.xml',
+        'views/templates.xml',
     ],
     'demo': [],
     'test': [],

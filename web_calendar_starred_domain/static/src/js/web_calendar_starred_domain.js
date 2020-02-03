@@ -57,7 +57,7 @@ odoo.define('web_calendar_starred_domain.SidebarFilter', function (require) {
                                 _.each(favorites, function (favorite) {
                                     let ticked = favorite_ticked_ids.includes(favorite.id);
                                     let name = favorite.name;
-                                    if (active_partner && favorite.id === session.patner_id) {
+                                    if (active_partner && favorite.id === session.partner_id) {
                                         me_added = true;
                                         name = session.name + _lt(" [Me]");
                                         ticked = ticked || active_partner === true
