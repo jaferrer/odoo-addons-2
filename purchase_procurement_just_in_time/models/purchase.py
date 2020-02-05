@@ -74,21 +74,8 @@ class PurchaseOrderJustInTime(models.Model):
             name = order_line.product_id.with_context(lang=order.dest_address_id.lang).display_name
         else:
             name = order_line.name or ''
-        self.env.cr.execute("""SELECT sum(CASE
-             WHEN loc_src.usage = 'supplier' AND loc_dest.usage in ('internal', 'transit') THEN sm.product_qty
-             WHEN loc_src.usage in ('internal', 'transit') AND loc_dest.usage = 'supplier' THEN (-1) * sm.product_qty
-             ELSE 0 END) AS existing_quantity
-FROM purchase_order_line pol
-       LEFT JOIN stock_move sm ON sm.purchase_line_id = pol.id AND sm.state != 'cancel'
-       INNER JOIN stock_location loc_src ON loc_src.id = sm.location_id
-       INNER JOIN stock_location loc_dest ON loc_dest.id = sm.location_dest_id
-WHERE pol.id = %s
-        """ % (order_line.id))
-        existing_quantity = self.env.cr.fetchall()[0][0] or 0
-        existing_quantity_pol_uom = self.env['product.uom']._compute_qty(order_line.product_id.uom_id.id,
-                                                                         existing_quantity,
-                                                                         order_line.product_uom.id)
-        qty_to_add = float_round(order_line.product_qty - existing_quantity_pol_uom,
+        qty_running_pol_uom = self.compute_remaining_qty()['qty_running_pol_uom']
+        qty_to_add = float_round(order_line.product_qty - qty_running_pol_uom,
                                  precision_rounding=order_line.product_uom.rounding)
         if float_compare(qty_to_add, 0.0, precision_rounding=order_line.product_uom.rounding) == 0:
             return []
@@ -294,8 +281,11 @@ class PurchaseOrderLineJustInTime(models.Model):
         :param target_qty: new quantity of the purchase order line
         """
         self.ensure_one()
-        delivered_qty, remaining_qty, returned_qty, qty_running_pol_uom, running_moves = self. \
-            compute_remaining_qty(line_uom_id)
+        data_remaining_qty = self.compute_remaining_qty(line_uom_id)
+        delivered_qty = data_remaining_qty['delivered_qty']
+        returned_qty = data_remaining_qty['returned_qty']
+        qty_running_pol_uom = data_remaining_qty['qty_running_pol_uom']
+        running_moves = data_remaining_qty['running_moves']
         if self.product_id.type == 'service':
             running_moves.action_cancel()
             return

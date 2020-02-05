@@ -40,7 +40,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
             for line in self.browse(cr, uid, ids, context=context):
                 res[line.id] = 0
                 if line.product_id and line.product_id.type != 'service':
-                    remaining_qty = line.compute_remaining_qty()[1]
+                    remaining_qty = line.compute_remaining_qty()['remaining_qty']
                     res[line.id] = float_round(remaining_qty, precision_rounding=line.product_uom.rounding)
                 if res[line.id] == line.remaining_qty:
                     del res[line.id]
@@ -90,7 +90,11 @@ WHERE pol.id = %s""", (self.id,))
                                                                        line_uom.id)
             delivered_qty_pol_uom = delivered_qty_pol_uom
             remaining_qty = self.product_qty - delivered_qty_pol_uom + returned_qty_pol_uom
-        return delivered_qty, remaining_qty, returned_qty, qty_running_pol_uom, running_moves
+        return {'delivered_qty': delivered_qty,
+                'remaining_qty': remaining_qty,
+                'returned_qty': returned_qty,
+                'qty_running_pol_uom': qty_running_pol_uom,
+                'running_moves': running_moves}
 
     @api.cr_uid_ids_context
     def _get_purchase_order_lines(self, cr, uid, ids, context=None):
