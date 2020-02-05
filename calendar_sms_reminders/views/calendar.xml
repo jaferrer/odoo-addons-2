@@ -10,6 +10,12 @@
                     <field name="id" invisible="True" />
                     <button name="action_open_sms_wizard"  type="object" string="Send sms" icon="fa-comment" class="oe_link"/>
                 </xpath>
+                <field name="attendee_ids" position="before">
+                    <group>
+                        <field name="send_sms_day_before"/>
+                        <field name="sms_reminder_send"/>
+                    </group>
+                </field>
             </field>
         </record>
     </data>
