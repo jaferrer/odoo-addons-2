@@ -74,7 +74,7 @@ class PurchaseOrderJustInTime(models.Model):
             name = order_line.product_id.with_context(lang=order.dest_address_id.lang).display_name
         else:
             name = order_line.name or ''
-        data_remaining_qty = self.compute_remaining_qty()
+        data_remaining_qty = order_line.compute_remaining_qty()
         remaining_qty = data_remaining_qty['remaining_qty']
         qty_running_pol_uom = data_remaining_qty['qty_running_pol_uom']
         qty_to_add = float_round(remaining_qty - qty_running_pol_uom,
