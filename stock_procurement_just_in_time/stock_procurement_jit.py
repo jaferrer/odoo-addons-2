@@ -139,7 +139,7 @@ class StockLocationRoute(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
+    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True, index=True)
 
 
 class ProcurementOrderQuantity(models.Model):
@@ -148,7 +148,7 @@ class ProcurementOrderQuantity(models.Model):
     qty = fields.Float(string="Quantity", digits_compute=dp.get_precision('Product Unit of Measure'),
                        help='Quantity in the default UoM of the product', compute="_compute_qty", store=True)
     protected_against_scheduler = fields.Boolean(u"Protected Against Scheduler", track_visibility='onchange')
-    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True)
+    to_delete = fields.Boolean(string=u"To delete", default=False, readonly=True, index=True)
 
     @api.multi
     @api.depends('product_qty', 'product_uom')
@@ -389,24 +389,30 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
 
     @api.model
     def delete_cancelled_moves_and_procs(self, jobify=True):
-        procs_to_delete = self.search([('to_delete', '=', True)])
+        self.env.cr.execute("""SELECT id
+FROM procurement_order
+WHERE coalesce(to_delete, FALSE) IS TRUE""")
+        procurement_to_delete_ids = [item[0] for item in self.env.cr.fetchall()]
         if jobify:
-            for proc in procs_to_delete:
+            for procurement_to_delete_id in procurement_to_delete_ids:
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
-                                                           'procurement.order', proc.ids)
+                                                           'procurement.order', [procurement_to_delete_id])
                 self.env.cr.commit()
         else:
             job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
-                                                 'procurement.order', procs_to_delete.ids)
-        moves_to_delete = self.env['stock.move'].search([('to_delete', '=', True)])
+                                                 'procurement.order', procurement_to_delete_ids)
+        self.env.cr.execute("""SELECT id
+FROM stock_move
+WHERE coalesce(to_delete, FALSE) IS TRUE""")
+        move_to_delete_ids = [item[0] for item in self.env.cr.fetchall()]
         if jobify:
-            for move in moves_to_delete:
+            for move_to_delete_id in move_to_delete_ids:
                 job_delete_cancelled_moves_and_procs.delay(ConnectorSession.from_env(self.env),
-                                                           'stock.move', move.ids)
+                                                           'stock.move', [move_to_delete_id])
                 self.env.cr.commit()
         else:
             job_delete_cancelled_moves_and_procs(ConnectorSession.from_env(self.env),
-                                                 'stock.move', moves_to_delete.ids)
+                                                 'stock.move', move_to_delete_ids)
 
 
 class StockMoveJustInTime(models.Model):
