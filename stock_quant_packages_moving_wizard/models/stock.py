@@ -692,6 +692,16 @@ class StockLocation(models.Model):
                                                                     ('route_id.warehouse_selectable', '=', True),
                                                                     ('route_id', 'in', warehouse.route_ids.ids)],
                                                                    order='sequence, id', limit=1)
+        if not pull_rule and not push_rule and self:
+            # look for rules not affected to route
+            pull_rule = self.env['procurement.rule'].search([('location_src_id', 'in', parent_locations.ids),
+                                                             ('route_id', '=', False),
+                                                             ],
+                                                            order='sequence, id', limit=1)
+            push_rule = self.env['stock.location.path'].search([('location_from_id', '=', self.id),
+                                                                ('route_id', '=', False),
+                                                                ],
+                                                               order='sequence, id', limit=1)
         if pull_rule:
             return pull_rule.location_id, pull_rule.picking_type_id
         elif push_rule:
