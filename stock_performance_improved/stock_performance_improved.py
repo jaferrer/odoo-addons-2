@@ -728,7 +728,9 @@ WHERE nb_moves = 0""")
         res = set()
         for sm in self.browse(cr, uid, ids, context=context):
             if sm.picking_id:
-                res.add(sm.picking_id.id)
+                if sm.location_id != sm.picking_id.location_id_store or \
+                        sm.location_dest_id != sm.picking_id.location_dest_id_store:
+                    res.add(sm.picking_id.id)
         return list(res)
 
     _columns = {

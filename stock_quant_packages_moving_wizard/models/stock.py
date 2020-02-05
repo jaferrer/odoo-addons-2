@@ -332,7 +332,7 @@ class StockPicking(models.Model):
     def _get_pickings(self, cr, uid, ids, context=None):
         res = set()
         for move in self.browse(cr, uid, ids, context=context):
-            if move.picking_id:
+            if move.picking_id and move.group_id != move.picking_id.group_id:
                 res.add(move.picking_id.id)
         return list(res)
 
