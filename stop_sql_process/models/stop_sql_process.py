@@ -30,13 +30,16 @@ class StopSqlProcess(models.TransientModel):
     @api.multi
     def kill_all(self):
         for rec in self:
-            self.env.cr.execute("""
-            SELECT
-            pg_terminate_backend(pg_stat_activity.pid)
-            FROM pg_stat_activity
-            WHERE datname = current_database()
-            AND pid <> pg_backend_pid();
-            """)
+            count = 0
+            while count < 1000:
+                self.env.cr.execute("""
+                SELECT
+                pg_terminate_backend(pg_stat_activity.pid)
+                FROM pg_stat_activity
+                WHERE datname = current_database()
+                AND pid <> pg_backend_pid();
+                """)
+                count += 1
             rec.write({'line_ids': [(6, 0, [])]})
             rec.analyze()
 
