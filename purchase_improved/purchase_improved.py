@@ -40,7 +40,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
             for line in self.browse(cr, uid, ids, context=context):
                 res[line.id] = 0
                 if line.product_id and line.product_id.type != 'service':
-                    remaining_qty = line.compute_remaining_qty()[1]
+                    remaining_qty = line.compute_remaining_qty()['remaining_qty']
                     res[line.id] = float_round(remaining_qty, precision_rounding=line.product_uom.rounding)
                 if res[line.id] == line.remaining_qty:
                     del res[line.id]
@@ -61,7 +61,7 @@ class PurchaseOrderLinePlanningImproved(models.Model):
         returned_qty = 0
         qty_running_pol_uom = 0
         line_uom = line_uom_id and self.env['product.uom'].search([('id', '=', line_uom_id)]) or self.product_uom
-        running_move = self.env['stock.move']
+        running_moves = self.env['stock.move']
         if self.product_id and self.product_id.type != 'service':
             self.env.cr.execute("""SELECT sum(sm.product_qty)
 FROM purchase_order_line pol
@@ -84,13 +84,17 @@ WHERE pol.id = %s""", (self.id,))
                                                                         returned_qty,
                                                                         self.product_uom.id)
             running_moves = self.get_running_moves_for_line()
-            qty_running_product_uom = sum(x.product_qty for x in running_move)
+            qty_running_product_uom = sum(x.product_qty for x in running_moves)
             qty_running_pol_uom = self.env['product.uom']._compute_qty(self.product_id.uom_id.id,
                                                                        qty_running_product_uom,
                                                                        line_uom.id)
             delivered_qty_pol_uom = delivered_qty_pol_uom
             remaining_qty = self.product_qty - delivered_qty_pol_uom + returned_qty_pol_uom
-        return delivered_qty, remaining_qty, returned_qty, qty_running_pol_uom, running_moves
+        return {'delivered_qty': delivered_qty,
+                'remaining_qty': remaining_qty,
+                'returned_qty': returned_qty,
+                'qty_running_pol_uom': qty_running_pol_uom,
+                'running_moves': running_moves}
 
     @api.cr_uid_ids_context
     def _get_purchase_order_lines(self, cr, uid, ids, context=None):
