@@ -1,0 +1,29 @@
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="account_invoice_factor_ref_account_invoice_form">
+            <field name="name">sirail.compta.account.invoice.form</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <header position="inside">
+                    <div attrs="{'invisible': ['|', '|',('allow_transmit_factor', '=', False),('factor_needs_transmission', '=', True), ('state', '=', 'paid')]}">
+                        <button name="resend_to_factor" string="send to factor" type="object"/>
+                    </div>
+                </header>
+                <field name="fiscal_position" position="after">
+                    <field name="partner_non_eligible_factor" invisible="1"/>
+                    <field name="allow_transmit_factor"
+                           attrs="{'readonly': [('partner_non_eligible_factor', '=', True)]}"/>
+                    <field name="factor_needs_transmission" />
+                </field>
+                <notebook position="inside">
+                    <page string="Factor transmissions">
+                        <field name="factor_transmission_ids" widget="many2many"/>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+    </data>
+</openerp>
