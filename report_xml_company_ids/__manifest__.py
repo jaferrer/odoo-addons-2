@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,28 +18,21 @@
 #
 
 {
-    'name': 'Calendar SMS reminders',
+    'name': 'Manage company_ids for ir.actions.report.xml',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['base', 'calendar'],
-    'external_dependencies': {'python': ['phonenumbers', 'octopush']},
+    'category': 'Dependency',
+    'depends': ['web', 'web_actions_groups_id'],
     'description': """
-SEND SMS FROM CALENDAR EVENTS
-===============================
-requirements: octopush sms plateform subscription
-configuration: go to company settings in the SMS tab and define the SMS API login and key
-usage: open a calendar event and clic on `send SMS` button.
+Manage company_ids for ir.actions.report.xml
+============================
+Add a field company_ids  inside the model ir.actions.report.xml
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/sms_wizard.xml',
-        'views/calendar.xml',
-        'views/company.xml',
-        'data/cron.xml',
+        'views/reports.xml',
     ],
-    'qweb': [],
     'demo': [],
     'test': [],
     'installable': True,
