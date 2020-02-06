@@ -25,7 +25,7 @@ class StopSqlProcess(models.TransientModel):
     _name = 'stop.sql.process'
 
     nb_lines = fields.Integer(u"Number of rows", compute='get_nb_lines')
-    line_ids = fields.Many2many('stop.sql.process.line', string=u"Lines")
+    line_ids = fields.Many2many('stop.sql.process.line', string=u"Lines", readonly=True)
 
     @api.multi
     def kill_all(self):
@@ -41,7 +41,6 @@ class StopSqlProcess(models.TransientModel):
                 """)
                 count += 1
             rec.write({'line_ids': [(6, 0, [])]})
-            rec.analyze()
 
     @api.multi
     def analyze(self):
