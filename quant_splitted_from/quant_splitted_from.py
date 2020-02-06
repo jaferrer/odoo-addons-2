@@ -29,5 +29,5 @@ class QuantSplittedFrom(models.Model):
     def _quant_split(self, quant, qty):
         new_quant = super(QuantSplittedFrom, self)._quant_split(quant, qty)
         if new_quant:
-            new_quant.splitted_from_id = quant
+            new_quant.sudo().write({'splitted_from_id': quant.id})
         return new_quant
