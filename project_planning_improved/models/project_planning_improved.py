@@ -376,8 +376,10 @@ class ProjectImprovedTask(models.Model):
     objective_start_date = fields.Date(string=u"Objective start date", readonly=True)
     expected_start_date = fields.Date(string=u"Expected start date", index=True)
     expected_end_date = fields.Date(string=u"Expected end date", index=True)
-    expected_start_date_display = fields.Datetime(string=u"Expected start date (display)", readonly=True)
-    expected_end_date_display = fields.Datetime(string=u"Expected end date (display)", readonly=True)
+    expected_start_date_display = fields.Datetime(string=u"Expected start date (display)", readonly=True,
+                                                  compute='_compute_expected_start_date_display', store=True)
+    expected_end_date_display = fields.Datetime(string=u"Expected end date (display)", readonly=True,
+                                                compute='_compute_expected_end_date_display', store=True)
     expected_duration = fields.Float(string=u"Expected duration (days)", readonly=True)
     allocated_duration = fields.Float(string=u"Allocated duration (days)")
     allocated_duration_unit_tasks = fields.Float(string=u"Allocated duration for unit tasks",
@@ -403,6 +405,22 @@ class ProjectImprovedTask(models.Model):
                 raise StartDateNotWorkingPeriod(rec, rec.expected_start_date)
             if rec.expected_end_date and not rec.is_working_day(fields.Date.from_string(rec.expected_end_date)):
                 raise EndDateNotWorkingPeriod(rec, rec.expected_end_date)
+
+    @api.depends('expected_start_date')
+    def _compute_expected_start_date_display(self):
+        for rec in self:
+            expected_start_date_display = False
+            if rec.expected_start_date:
+                expected_start_date_display = rec.expected_start_date + (' %s:00:00' % ('%02d' % HOUR_START_DAY))
+            rec.expected_start_date_display = expected_start_date_display
+
+    @api.depends('expected_end_date')
+    def _compute_expected_end_date_display(self):
+        for rec in self:
+            expected_end_date_display = False
+            if rec.expected_end_date:
+                expected_end_date_display = rec.expected_end_date + (' %s:00:00' % ('%02d' % HOUR_END_DAY))
+            rec.expected_end_date_display = expected_end_date_display
 
     @api.depends('children_task_ids', 'children_task_ids.total_allocated_duration', 'allocated_duration')
     @api.multi
