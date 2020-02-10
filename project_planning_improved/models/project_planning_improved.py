@@ -713,6 +713,8 @@ class ProjectImprovedTask(models.Model):
         self.ensure_one()
         if self.expected_start_date == expected_start_date and self.expected_end_date == expected_end_date:
             return
+        if expected_start_date > expected_end_date:
+            raise UserError(_(u"Task %s: impossible to set start date after end date") % self.display_name)
         self.check_not_tia()
         query = """WITH data AS (
   SELECT %s::DATE AS new_start_date,
@@ -829,6 +831,10 @@ WHERE id = %s"""
                 self.check_not_tia()
             propagate_to_the_future, propagate_to_the_past = rec. \
                 propagate_to_the_past_or_to_the_future(vals_copy, start_date_changed, end_date_changed)
+            expected_start_date = vals_copy.get('expected_start_date', rec.expected_start_date)
+            expected_end_date = vals_copy.get('expected_end_date', rec.expected_end_date)
+            if expected_start_date and expected_end_date and expected_start_date > expected_end_date:
+                raise UserError(_(u"Task %s: impossible to set start date after end date") % rec.display_name)
             super(ProjectImprovedTask, rec).write(vals_copy)
             self.env.invalidate_all()
             do_not_rechedule_parent_task_ids = self.env.context.get('do_not_rechedule_parent_task_ids', [])
