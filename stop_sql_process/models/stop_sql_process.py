@@ -29,6 +29,7 @@ class StopSqlProcess(models.TransientModel):
 
     @api.multi
     def kill_all(self):
+        self.remove_waiting_jobs()
         for rec in self:
             count = 0
             while count < 1000:
@@ -66,6 +67,11 @@ AND pid <> pg_backend_pid();
     def get_nb_lines(self):
         for rec in self:
             rec.nb_lines = len(rec.line_ids)
+
+    @api.multi
+    def remove_waiting_jobs(self):
+        jobs = self.env['queue.job'].search([('state', 'in', ['pending', 'enqueued', 'started'])])
+        jobs.button_done()
 
 
 class StopSqlProcessLine(models.TransientModel):
