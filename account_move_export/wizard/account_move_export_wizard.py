@@ -33,6 +33,10 @@ class AccountMoveExportWizard(models.TransientModel):
         return self.env['ir.config_parameter'].sudo().get_param('account_move_export.export_ftp_url', False)
 
     @api.model
+    def _get_default_ftp_port(self):
+        return self.env['ir.config_parameter'].sudo().get_param('account_move_export.export_ftp_port', False)
+
+    @api.model
     def _get_default_ftp_login(self):
         return self.env['ir.config_parameter'].sudo().get_param('account_move_export.export_ftp_login', False)
 
@@ -60,6 +64,7 @@ class AccountMoveExportWizard(models.TransientModel):
     group_by_account = fields.Boolean(u"Group by accounting account", default=True)
 
     ftp_url = fields.Char(u"FTP URL", default=_get_default_ftp_url)
+    ftp_port = fields.Char(u"FTP port", default=_get_default_ftp_port)
     ftp_login = fields.Char(u"FTP login", default=_get_default_ftp_login)
     ftp_password = fields.Char(u"FTP password", default=_get_default_ftp_password)
     ftp_path = fields.Char(u"FTP path", default=_get_default_ftp_path)
@@ -97,10 +102,11 @@ class AccountMoveExportWizard(models.TransientModel):
             return self._onscreen_export()
 
     @api.multi
-    def get_ftp_instance(self, host, username, password):
+    def get_ftp_instance(self, host, port, username, password):
         """ Create a FTPWizard instance and return it """
         return self.env['ftp.wizard'].create({
             'host': host,
+            'port': port or 21,
             'username': username,
             'password': password,
         })
@@ -207,7 +213,7 @@ class AccountMoveExportWizard(models.TransientModel):
         if not (self.ftp_url and self.ftp_login and self.ftp_password and self.ftp_path):
             raise UserError(_(u"Cannot connect to the FTP : missing parameters"))
 
-        ftp_wizard = self.get_ftp_instance(self.ftp_url, self.ftp_login, self.ftp_password)
+        ftp_wizard = self.get_ftp_instance(self.ftp_url, self.ftp_port, self.ftp_login, self.ftp_password)
         dest_ftp = ftp_wizard.get_conn()
         ftp_wizard.mkdir(dest_ftp, self.ftp_path)
         ftp_wizard.chdir(dest_ftp, self.ftp_path)

@@ -16,14 +16,27 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import base64
+import logging
+import os
 
-from odoo import models, api
+import pysftp
+import paramiko
+from paramiko import ECDSAKey, DSSKey, RSAKey, Ed25519Key
+
+from odoo import models, fields, api, _ as _t
+
+
+_logger = logging.getLogger(__name__)
 
 
 class STFPWizard(models.Model):
     _inherit = 'ftp.wizard'
     _name = 'sftp.wizard'
     _description = u"SFTP Connection"
+
+    key_type = fields.Char(u"Key type")
+    key_str = fields.Char(u"Key")
 
     def join(self, sftp, *paths):
         """ Join several sftp paths or filenames into one single path
@@ -32,7 +45,7 @@ class STFPWizard(models.Model):
         :param paths: paths to join
         :return: resulting path (str)
         """
-        pass
+        return os.path.join(*map(unicode, paths))
 
     def split(self, sftp, path):
         """ Splits a path into several directories/file names
@@ -41,12 +54,39 @@ class STFPWizard(models.Model):
         :param path: path to split
         :return: list of directories and file
         """
-        pass
+        head = path
+        paths = []
+        while head and head != '/':
+            head, tail = os.path.split(head)
+            paths.insert(0, tail)
+        return paths
 
     @api.multi
     def get_conn(self):
         """ Return a sftp connection corresponding to the current record parameters """
-        pass
+        key_type = self.key_type
+        key = None
+
+        if key_type:
+            bkey = base64.decodestring(self.key_str)
+            if key_type == "ssh-rsa":
+                key = RSAKey(data=bkey)
+            elif key_type == "ssh-dss":
+                key = DSSKey(data=bkey)
+            elif key_type in ECDSAKey.supported_key_format_identifiers():
+                key = ECDSAKey(data=bkey, validate_point=False)
+            elif key_type == "ssh-ed25519":
+                key = Ed25519Key(data=bkey)
+
+        cnopts = pysftp.CnOpts()
+        cnopts.hostkeys = paramiko.hostkeys.HostKeys()
+        if key:
+            cnopts.hostkeys.add(self.host, key_type, key)
+        else:
+            cnopts.hostkeys = None
+            _logger.warning(_t(u"Running in insecure mode : any host can pretend to be the SFTP server"))
+        return pysftp.Connection(host=self.host, port=self.port, username=self.username, password=self.password,
+                                 cnopts=cnopts)
 
     def listdir(self, sftp, path=None):
         """ List content of a certain path on sftp
@@ -55,7 +95,7 @@ class STFPWizard(models.Model):
         :param path: path to the directory to list. If None, current directory will be used
         :return: list of files/directories contained in the directory
         """
-        pass
+        return sftp.listdir(path or '.')
 
     def mkdir(self, sftp, path):
         """ Create directories to make all this path exist
@@ -63,7 +103,7 @@ class STFPWizard(models.Model):
         :param sftp: sftp handle
         :param path: path to create
         """
-        pass
+        sftp.makedirs(path)
 
     def get(self, sftp, lfobj, path):
         """ Download a file
@@ -72,7 +112,7 @@ class STFPWizard(models.Model):
         :param lfobj: file object to write copy the distant file content in
         :param path: path to the file on the sftp server
         """
-        pass
+        sftp.getfo(path, lfobj)
 
     def put(self, sftp, lfobj, path):
         """ Upload a file
@@ -81,20 +121,20 @@ class STFPWizard(models.Model):
         :param lfobj: file object to read data from
         :param path: path to the destination on the sftp server
         """
-        pass
+        sftp.putfo(lfobj, path)
 
     def chdir(self, sftp, path):
         """ Change current directory on the SFTP server """
-        pass
+        sftp.cwd(path)
 
     def cwd(self, sftp):
         """ Return the current working directory on the SFTP server """
-        pass
+        return sftp.pwd
 
     def move(self, sftp, old_path, new_path):
         """ Moves a file on the SFTP server from one path to another"""
-        pass
+        sftp.rename(old_path, new_path)
 
     def close(self, sftp):
-        """ Close SSFTP connexion """
-        pass
+        """ Close SFTP connexion """
+        sftp.close()
