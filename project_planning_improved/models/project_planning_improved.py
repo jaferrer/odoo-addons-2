@@ -316,8 +316,7 @@ class ProjectImprovedProject(models.Model):
         for rec in self:
             parent_tasks = self.env['project.task']
             domain_parent_tasks  = [('project_id', '=', rec.id),
-                                    ('parent_task_id', '!=', False),
-                                    ('taken_into_account', '=', False)]
+                                    ('parent_task_id', '!=', False)]
             if avoid_task_ids:
                 domain_parent_tasks += [('parent_task_id', 'not in', avoid_task_ids)]
             for task in self.env['project.task'].search(domain_parent_tasks):
