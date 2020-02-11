@@ -33,7 +33,7 @@ msgid "API login"
 msgstr "API login"
 
 #. module: calendar_sms_reminders
-#: model:ir.model.fields,field_description:calendar_sms_reminders.field_res_company_sms_api_login
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_res_company_sms_api_key
 msgid "API key"
 msgstr "API key"
 
@@ -72,3 +72,13 @@ msgstr "Portable"
 #: model:ir.model.fields,field_description:calendar_sms_reminders.field_calendar_event_sms_wizard_sms_message
 msgid "SMS message"
 msgstr "Message SMS"
+
+#. module: calendar_sms_reminders
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_calendar_event_send_sms_day_before
+msgid "Send sms the day before"
+msgstr "Envoyer un sms la veille du rendez-vous"
+
+#. module: calendar_sms_reminders
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_calendar_event_sms_reminder_send
+msgid "Sms reminder send"
+msgstr "Sms de rappel envoyé"

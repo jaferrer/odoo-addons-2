@@ -16,11 +16,22 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from odoo import models, api, _
+
+import logging
+
+from datetime import datetime, timedelta
+from odoo import models, api, fields, _
+from odoo.exceptions import UserError
+
+
+_logger = logging.getLogger(__name__)
 
 
 class CalendarEvent(models.Model):
     _inherit = 'calendar.event'
+
+    send_sms_day_before = fields.Boolean(u"Send sms the day before")
+    sms_reminder_send = fields.Boolean(u"Sms reminder send", readonly=True)
 
     @api.multi
     def action_open_sms_wizard(self):
@@ -38,3 +49,19 @@ class CalendarEvent(models.Model):
             'view_mode': 'form',
             'target': 'new'
         }
+
+    @api.model
+    def cron_send_reminder_sms(self):
+        events_to_reminder = self.search([
+            ('send_sms_day_before', '=', True), ('sms_reminder_send', '=', False),
+            ('start_datetime', '>=', datetime.strftime(datetime.now() + timedelta(1), '%Y-%m-%d 00:00:00')),
+            ('start_datetime', '<=', datetime.strftime(datetime.now() + timedelta(1), '%Y-%m-%d 23:59:00'))])
+
+        for event in events_to_reminder:
+            wizard = self.env['calendar.event.sms.wizard'].create({})
+            wizard.populate(event)
+            try:
+                wizard.action_send_sms()
+                event.sms_reminder_send = True
+            except UserError as e:
+                _logger.error('An error occurred while sending an SMS : %s', e)
