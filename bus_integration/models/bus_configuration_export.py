@@ -64,6 +64,12 @@ class BusConfigurationExport(models.Model):
     cron_sync_all = fields.Many2one('ir.cron', compute="_compute_cron")
     cron_sync_diff = fields.Many2one('ir.cron', compute="_compute_cron")
     active = fields.Boolean(u"Active", related='recipient_id.active', store=True)
+    hide_create_cron = fields.Boolean(string="Hide cron creation button", default=False,
+                                      help=u"This will prevent the apparition of the cron creation button")
+    hide_sync_all = fields.Boolean(string="Hide sync all button", default=False,
+                                      help=u"This will prevent the apparition of the <sync all> button")
+    hide_sync_diff = fields.Boolean(string="Hide sync diff button", default=False,
+                                      help=u"This will prevent the apparition of the <sync diff> button")
 
     def _compute_nb_messages(self):
         for rec in self:
