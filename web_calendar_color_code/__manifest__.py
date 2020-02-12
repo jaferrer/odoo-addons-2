@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,28 +18,32 @@
 #
 
 {
-    'name': 'Calendar SMS reminders',
+    'name': 'Color Code for Calendar View',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['base', 'calendar'],
-    'external_dependencies': {'python': ['phonenumbers', 'octopush']},
+    'category': 'Hidden',
+    'depends': ['web_calendar'],
     'description': """
-SEND SMS FROM CALENDAR EVENTS
-===============================
-requirements: octopush sms plateform subscription
-configuration: go to company settings in the SMS tab and define the SMS API login and key
-usage: open a calendar event and clic on `send SMS` button.
+Color Code for Calendar View
+============================
+This function adds a `color_code` attribute to the calendar tag, that allows to specify a field on the model containing
+the color code (any valid css code) to apply to each cell.
+It is different from the "color" field, in that it allows to chose the color instead of having a pseudorandom one.
+
+Usage
+-----
+```
+<calendar ... color_code="my_color_field">
+    <field name="name"/>
+</calendar>
+```
+
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/sms_wizard.xml',
-        'views/calendar.xml',
-        'views/company.xml',
-        'data/cron.xml',
+        'views/templates.xml',
     ],
-    'qweb': [],
     'demo': [],
     'test': [],
     'installable': True,

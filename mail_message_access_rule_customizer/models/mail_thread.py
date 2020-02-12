@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,20 +17,21 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, fields, api
+from odoo import models, api
 
 
-class AccountInvoiceChangeType(models.Model):
-    _name = 'account.invoice.confirm.set.number'
+class MailThread(models.AbstractModel):
+    _inherit = 'mail.thread'
 
-    invoice_id = fields.Many2one('account.invoice', string=u"Invoice", readonly=True, required=True, ondelete='cascade')
-    force_number = fields.Char(string=u"Force number")
-    done = fields.Boolean(string=u"Done", readonly=True)
+    @api.model
+    def check_mail_message_access(self, res_ids, operation, model_name=None):
+        if model_name:
+            doc_model = self.env[model_name]
+        else:
+            doc_model = self
 
-    @api.multi
-    def apply(self):
-        self.ensure_one()
-        self.invoice_id.move_name = self.force_number
-        self.invoice_id.with_context(set_number_and_confirm=True).action_invoice_open()
-        self.done = True
-        return {'type': 'ir.actions.act_window_close'}
+        custom_check_method = getattr(doc_model, 'custom_check_mail_message_access', None)
+        if callable(custom_check_method):
+            return custom_check_method()
+
+        return super(MailThread, self).check_mail_message_access(res_ids, operation, model_name)

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2014 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,28 +18,19 @@
 #
 
 {
-    'name': 'Calendar SMS reminders',
+    'name': 'Mail Message Access Rule customizer',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Project',
-    'depends': ['base', 'calendar'],
-    'external_dependencies': {'python': ['phonenumbers', 'octopush']},
+    'category': 'Manufacture',
+    'depends': ['mail'],
     'description': """
-SEND SMS FROM CALENDAR EVENTS
-===============================
-requirements: octopush sms plateform subscription
-configuration: go to company settings in the SMS tab and define the SMS API login and key
-usage: open a calendar event and clic on `send SMS` button.
+Mail Message Access Rule customizer
+===================================
+Permet de modifier / choisir la methode du check_access_rule utilisé par mail.thread pour un model donné.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/sms_wizard.xml',
-        'views/calendar.xml',
-        'views/company.xml',
-        'data/cron.xml',
-    ],
-    'qweb': [],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,
