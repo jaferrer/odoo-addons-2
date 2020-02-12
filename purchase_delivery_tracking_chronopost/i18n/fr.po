@@ -39,7 +39,7 @@ msgid "Purchase Order"
 msgstr "Bon de commande"
 
 #. module: purchase_delivery_tracking_chronopost
-#: code:addons\purchase_delivery_tracking_chronopost\purchase_delivery_tracking_chronopost.py:34
+#: code:addons\purchase_delivery_tracking_chronopost\purchase_delivery_tracking_chronopost.py:47
 #, python-format
 msgid "https://www.chronopost.fr/tracking-cxf/TrackingServiceWS/trackSkybill?language=en_US&skybillNumber="
 msgstr "https://www.chronopost.fr/tracking-cxf/TrackingServiceWS/trackSkybill?language=fr_FR&skybillNumber="
