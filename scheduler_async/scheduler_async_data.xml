@@ -33,7 +33,7 @@
         </record>
 
         <record model="queue.job.channel" id="root_actions_on_procs">
-            <field name="name">root_actions_on_procs</field>
+            <field name="name">actions_on_procs</field>
             <field name="parent_id" ref="connector.channel_root"/>
         </record>
 

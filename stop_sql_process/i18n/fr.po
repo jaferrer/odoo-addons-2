@@ -1,0 +1,41 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-05-28 15:29+0000\n"
+"PO-Revision-Date: 2015-05-28 15:29+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: stop_sql_process
+#: field:stop.sql.process,nb_lines:0
+msgid "Number of rows"
+msgstr "Nombre de lignes"
+
+#. module: stop_sql_process
+#: field:stop.sql.process,line_ids:0
+msgid "Lines"
+msgstr "Lignes"
+
+#. module: stop_sql_process
+#: field:stop.sql.process.line,query_start:0
+msgid "Query start"
+msgstr "Début de la requête"
+
+#. module: stop_sql_process
+#: field:stop.sql.process.line,query:0
+msgid "Query"
+msgstr "Requête"
+
+#. module: stop_sql_process
+#: model:ir.actions.act_window,name:stop_sql_process.stop_sql_process_action
+#: model:ir.ui.menu,name:stop_sql_process.stop_sql_process_menu
+msgid "Stop sql process"
+msgstr "Arret des requêtes SQL"

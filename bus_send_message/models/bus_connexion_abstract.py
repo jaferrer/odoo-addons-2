@@ -63,7 +63,8 @@ class BusConnexionAbstract(models.AbstractModel):
             result = self._return_last_jsonrpclib_error()
         if raise_error and result != "OK":
             raise FailedJobError(result)
-        self.connection_status = result
+        if self.connection_status != result:
+            self.connection_status = result
         return server, result, connection
 
     @api.multi

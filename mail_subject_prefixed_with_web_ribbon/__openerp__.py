@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,23 +17,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+
 {
-    'name': 'Base delivery tracking',
+    'name': 'Prefix mail subject with ribbon name',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Purchase',
-    'depends': ['base', 'stock'],
+    'category': 'Usability',
+    'depends': ['mail', 'web_environment_ribbon'],
     'description': """
-Base delivery tracking
-======================
-This module allows to upload the status of a tracking number
+Prefix mail subject with web ribbon name
+========================================
+This module prefix subject of emails by [ribbon.name] parameter. If this parameter is not set it does nothing
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['base_delivery_tracking.xml',
-             'security/ir.model.access.csv',
-             ],
-    'demo': [],
+    'data': [],
+    'demo': ['demo.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,

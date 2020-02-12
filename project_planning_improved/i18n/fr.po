@@ -305,6 +305,13 @@ msgid "Replanification of task %s in project %s"
 msgstr "Replanification de la tâche %s dans le projet %s"
 
 #. module: project_planning_improved
+#: code:addons\project_planning_improved\project_planning_improved.py:717
+#: code:addons\project_planning_improved\project_planning_improved.py:837
+#, python-format
+msgid "Task %s: impossible to set start date after end date"
+msgstr "Tâche %s : impossible de définir la date de début après la date de fin"
+
+#. module: project_planning_improved
 #: code:addons\project_planning_improved\project_planning_improved.py:803
 #, python-format
 msgid "%s has changed the dates of task %s in project %s: expected start date %s, expected end date %s."
