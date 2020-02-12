@@ -16,12 +16,15 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import logging
+
 import requests
-from .mondialrelay_pyt import MRWebService
+from .mondialrelay_pyt import MRWebService, MondialRelayException, MondialRelayExceptionInvalidData
 from openerp import models, api, fields, tools
 from openerp.exceptions import UserError
 from openerp.tools import ustr
 
+_logger = logging.getLogger(__name__)
 
 class GenerateTrackingLabelsWizardMR(models.TransientModel):
     _inherit = 'generate.tracking.labels.wizard'
@@ -93,11 +96,12 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
 
             # TODO: calculer
             recipient_ref = self.id_relais
+            if not recipient_ref:
+                raise UserError(u"Pas de point relais fournis")
             customer_sky_bill_number = ''
 
             number_of_parcel = len(packages_data)
 
-            connexion = MRWebService(login_dict["password_mondial"])
             vals = {
                 'Enseigne': login_dict["login_mondial"],
                 'ModeCol': 'CCC',
@@ -127,10 +131,22 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
                 'NbColis': str(number_of_parcel),
                 'CRT_Valeur': str(0)
             }
-            reqst = connexion.make_shipping_label(vals, labelformat=self.output_printing_type_id.code)
+            try:
+                MRWebService.valid_dict(vals)
+            except MondialRelayExceptionInvalidData as e:
+                _logger.exception(e)
+                raise UserError(e.message)
+
+            connexion = MRWebService(login_dict["password_mondial"])
+            try:
+                reqst = connexion.make_shipping_label(vals, labelformat=self.output_printing_type_id.code)
+            except MondialRelayException as e:
+                _logger.exception(e)
+                raise UserError(e.message)
+
             if reqst and reqst.get("ExpeditionNum") and reqst.get("URL_Etiquette"):
-#                reservation_number = '%s%s' % (login_dict["code_marque_mondial"],
-#                                               str(reqst.get("ExpeditionNum")).zfill(8))
+                #                reservation_number = '%s%s' % (login_dict["code_marque_mondial"],
+                #                                               str(reqst.get("ExpeditionNum")).zfill(8))
                 reservation_number = '%s' % str(reqst.get("ExpeditionNum")).zfill(8)
                 tracking_numbers = [reservation_number]
                 label = requests.get(reqst.get("URL_Etiquette"))
