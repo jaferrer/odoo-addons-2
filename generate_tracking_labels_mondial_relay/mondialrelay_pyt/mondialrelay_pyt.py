@@ -192,6 +192,39 @@ API_ERRORS_MESSAGE = {
         u"envoyés afin d'effectuer une vérification.",
 }
 
+class MondialRelayException(Exception):
+    def __init__(self, msg):
+        self.message = msg
+
+    def __str__(self):
+        return self.message
+
+class MondialRelayExceptionInvalidData(MondialRelayException):
+
+    def __init__(self, msg):
+        super(MondialRelayExceptionInvalidData, self).__init__(msg)
+
+
+class MondialRelayExceptionInvalidDict(MondialRelayExceptionInvalidData):
+
+    def __init__(self, key, msg):
+        super(MondialRelayExceptionInvalidData, self).__init__(msg)
+        self.key = key
+
+class MondialRelayExceptionWS(MondialRelayException):
+
+    def __init__(self, error_code):
+        super(MondialRelayExceptionWS, self).__init__(API_ERRORS_MESSAGE.get(error_code))
+        self.error_code = error_code
+        self.full_msg = 'The server returned %s . The mondial relay documentation says %s' % \
+                        (self.error_code, self.message)
+
+    def __str__(self):
+        return self.full_msg
+
+
+
+
 #------------------------------------------#
 #       Mondial Relay WEBService           #
 #        WSI2_CreationEtiquette            #
@@ -202,7 +235,8 @@ class MRWebService(object):
     def __init__(self, security_key):
         self.security_key = security_key
 
-    def valid_dict(self, dico):
+    @staticmethod
+    def valid_dict(dico):
         ''' Get a dictionnary, check if all required fields are provided,
         and if the values correpond to the required format.'''
 
@@ -230,11 +264,11 @@ class MRWebService(object):
 
 
         if ('ModeLiv' or 'ModeCol') not in dico:
-            raise Exception('The given dictionnary is not valid.')
+            raise MondialRelayExceptionInvalidData('The given dictionnary is not valid.')
 
         for element in dico:
             if element not in MR_KEYS:
-                raise Exception('Key %s not valid in given dictionnary' %element)
+                raise MondialRelayExceptionInvalidDict(element, 'Key %s not valid in given dictionnary' %element)
             formt = MR_KEYS[element]
             #if dico[element] and re.match(formt, dico[element].upper()) == None:
             #    raise Exception('Value %s not valid in given dictionary, key %s, expected format %s' %(dico[element],element, MR_KEYS[element]))
@@ -250,7 +284,7 @@ class MRWebService(object):
 
         for mandatkey in mandatory:
             if mandatkey not in dico:
-                raise Exception('Mandatory key %s not given in the dictionnary' %mandatkey)
+                raise MondialRelayExceptionInvalidDict(mandatkey, 'Mandatory key %s not given in the dictionnary' %mandatkey)
 
         return True
 
@@ -304,7 +338,7 @@ class MRWebService(object):
         OUT = XML (as an utf-8 encoded string) ready to send a request '''
 
         #check if the given dictionnary is correct to make an xml
-        mandat_dic = MRWebService.valid_dict(self, vals)
+        mandat_dic = MRWebService.valid_dict(vals)
 
         #initialisation of future md5key
         security = ""
@@ -380,8 +414,7 @@ class MRWebService(object):
             resultat={'STAT':stat,'ExpeditionNum':NumExpe,'URL_Etiquette':urlpdf}
         else:
             resultat={'STAT':stat}
-            explanation = API_ERRORS_MESSAGE.get(stat)
-            raise Exception('The server returned %s . The mondial relay documentation says %s' % (stat,explanation))
+            raise MondialRelayExceptionWS(stat)
 
         return resultat
         #TOFIX ?
@@ -398,14 +431,15 @@ class MRWebService(object):
 
         #MondialRelay api required only ascii in uppercase
         for key in dictionnary:
+            print key
             dictionnary[key] = unidecode(dictionnary[key]).upper()
 
-        xmlstring = MRWebService.create_xmlrequest(self, dictionnary)
+        xmlstring = self.create_xmlrequest(dictionnary)
 
         storename=dictionnary['Enseigne']
-        resp = MRWebService.sendsoaprequest(self,xmlstring, storename)
+        resp = self.sendsoaprequest(xmlstring, storename)
 
-        result = MRWebService.parsexmlresponse(self,resp)
+        result = self.parsexmlresponse(resp)
         url = result['URL_Etiquette']
 
         #switch url if default format is not A4

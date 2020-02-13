@@ -24,14 +24,17 @@ class TrackingTransporter(models.Model):
 
     number_ids = fields.One2many('tracking.number', 'transporter_id', domain=[('order_id', '!=', False)])
     order_ids = fields.One2many('purchase.order', 'transporter_id', groups='purchase.group_purchase_user',
-                                string="List of related purchase orders")
-    number_orders = fields.Integer(string="Number of related purchase orders", compute='_compute_number_orders',
-                                   groups='purchase.group_purchase_user', store=True)
+                                string=u"List of related purchase orders")
+    number_orders = fields.Integer(u"Number of related purchase orders", compute='_compute_number_orders',
+                                   groups='purchase.group_purchase_user')
 
-    @api.depends('order_ids')
+    @api.multi
     def _compute_number_orders(self):
+        res = self.env['purchase.order'].read_group([], ['transporter_id'], ['transporter_id'])
+        # Return a dict key = id transporter ans value is the number of tracking.number
+        res = {it['transporter_id'][0]: it['transporter_id_count'] for it in res}
         for rec in self:
-            rec.number_orders = len(rec.order_ids)
+            rec.number_orders = res.get(rec.id, 0)
 
     @api.multi
     def open_purchase_orders(self):
