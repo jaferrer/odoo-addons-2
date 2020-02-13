@@ -1,0 +1,89 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* account_move_export_sftp
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-02-11 11:09+0000\n"
+"PO-Revision-Date: 2020-02-11 11:09+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_sftp_wizard_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_sftp_wizard_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_sftp_wizard_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_account_config_settings_export_sftp_key
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_account_move_export_wizard_key
+msgid "Host key"
+msgstr "Clé publique du serveur"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_account_config_settings_export_sftp_key_type
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_account_move_export_wizard_key_type
+msgid "Host key type"
+msgstr "Type de clé"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_sftp_wizard_id
+msgid "ID"
+msgstr "ID"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_sftp_wizard_key_str
+msgid "Key"
+msgstr "Clé"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_sftp_wizard_key_type
+msgid "Key type"
+msgstr "Type de clé"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_sftp_wizard___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_sftp_wizard_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: account_move_export_sftp
+#: model:ir.model.fields,field_description:account_move_export_sftp.field_sftp_wizard_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: account_move_export_sftp
+#: model:ir.model,name:account_move_export_sftp.model_sftp_wizard
+msgid "SFTP Connection"
+msgstr "Connexion SFTP"
+
+#. module: account_move_export_sftp
+#: model:ir.model,name:account_move_export_sftp.model_account_config_settings
+msgid "account.config.settings"
+msgstr "account.config.settings"
+
+#. module: account_move_export_sftp
+#: model:ir.model,name:account_move_export_sftp.model_account_move_export_wizard
+msgid "account.move.export.wizard"
+msgstr "account.move.export.wizard"
+

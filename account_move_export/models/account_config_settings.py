@@ -38,6 +38,7 @@ class AccountConfigSettings(models.TransientModel):
     export_group_by_account = fields.Boolean(u"Group by account")
 
     export_ftp_url = fields.Char(u"FTP URL")
+    export_ftp_port = fields.Char(u"FTP port")
     export_ftp_login = fields.Char(u"FTP login")
     export_ftp_password = fields.Char(u"FTP password")
     export_ftp_path = fields.Char(u"FTP export path")
@@ -130,6 +131,17 @@ class AccountConfigSettings(models.TransientModel):
     def set_export_ftp_url(self):
         self.ensure_one()
         self.env['ir.config_parameter'].sudo().set_param('account_move_export.export_ftp_url', self.export_ftp_url)
+
+    @api.model
+    def get_default_export_ftp_port(self, fields):
+        return {
+            'export_ftp_port': self.env['ir.config_parameter'].sudo().get_param('account_move_export.export_ftp_port')
+        }
+
+    @api.multi
+    def set_export_ftp_port(self):
+        self.ensure_one()
+        self.env['ir.config_parameter'].sudo().set_param('account_move_export.export_ftp_port', self.export_ftp_port)
 
     @api.model
     def get_default_export_ftp_login(self, fields):
