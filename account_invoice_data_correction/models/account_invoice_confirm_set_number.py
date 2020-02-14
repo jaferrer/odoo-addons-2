@@ -23,7 +23,7 @@ from odoo import models, fields, api
 class AccountInvoiceChangeType(models.Model):
     _name = 'account.invoice.confirm.set.number'
 
-    invoice_id = fields.Many2one('account.invoice', string=u"Invoice", readonly=True, required=True)
+    invoice_id = fields.Many2one('account.invoice', string=u"Invoice", readonly=True, required=True, ondelete='cascade')
     force_number = fields.Char(string=u"Force number")
     done = fields.Boolean(string=u"Done", readonly=True)
 
