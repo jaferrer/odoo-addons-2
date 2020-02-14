@@ -19,7 +19,7 @@
 
 from datetime import timedelta, datetime as dt
 
-from openerp import models, api, fields
+from openerp import models, api, fields, _
 from openerp.tools import config
 
 
@@ -70,9 +70,17 @@ class QueueJob(models.Model):
 
     @api.multi
     def requeue(self):
+        if self.state == 'done':
+            return False
         result = super(QueueJob, self).requeue()
         self.write({'date_requeued': fields.Datetime.now()})
         return result
+
+    @api.multi
+    def button_requeue(self):
+        self.requeue()
+        result = _('Manually requeued by %s') % self.env.user.name
+        self.write({'result': result})
 
     @api.model
     def create(self, vals):
