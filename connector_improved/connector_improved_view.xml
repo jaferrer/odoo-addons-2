@@ -24,6 +24,12 @@ self.set_to_done(cr, uid, context.get('active_ids'), context=context)
             <field name="inherit_id" ref="connector.view_queue_job_form"/>
             <field name="priority" eval="16"/>
             <field name="arch" type="xml">
+                <xpath  expr="//button[@name='requeue']" position="after">
+                    <button name="button_requeue" states="failed" class="oe_highlight" string="Requeue Job" type="object" groups="connector.group_connector_manager"/>
+                </xpath>
+                 <xpath  expr="//button[@name='requeue']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
                 <field name="date_enqueued" position="after">
                     <field name="date_requeued"/>
                 </field>
