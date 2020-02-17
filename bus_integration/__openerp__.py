@@ -36,6 +36,7 @@ Connector to Odoo Databus
     'data': [
         'security/ir.model.access.csv',
         'data/bus_configuration.xml',
+        'data/cron.xml',
         'data/mapping_configuration.xml',
         'views/bus_receive_transfer.xml',
         'views/bus_check_transfer.xml',
