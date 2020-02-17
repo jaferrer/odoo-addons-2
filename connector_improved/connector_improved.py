@@ -21,6 +21,7 @@ from datetime import timedelta, datetime as dt
 
 from openerp import models, api, fields, _
 from openerp.tools import config
+from openerp import exceptions
 
 
 class QueueJob(models.Model):
@@ -71,7 +72,7 @@ class QueueJob(models.Model):
     @api.multi
     def requeue(self):
         if self.state == 'done':
-            return False
+            raise exceptions.ValidationError(_(u"Job in state done cannot be requeued"))
         result = super(QueueJob, self).requeue()
         self.write({'date_requeued': fields.Datetime.now()})
         return result
