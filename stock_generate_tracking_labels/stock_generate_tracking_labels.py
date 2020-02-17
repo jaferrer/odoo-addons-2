@@ -47,11 +47,11 @@ class DeliveryTrackingStockPicking(models.Model):
     _inherit = 'stock.picking'
 
     use_tracking_labels = fields.Boolean(string="Use tracking labels", related='picking_type_id.use_tracking_labels')
-    tracking_defined = fields.Boolean(compute='_compute_tracking_defined', store=True)
+    tracking_defined = fields.Boolean(compute='_compute_tracking_defined')
     binary_label = fields.Binary(string="Label (binary)", attachment=True)
     data_fname = fields.Char(string="Label name")
 
-    @api.depends('tracking_ids')
+    @api.multi
     def _compute_tracking_defined(self):
         for rec in self:
             rec.tracking_defined = bool(rec.tracking_ids)

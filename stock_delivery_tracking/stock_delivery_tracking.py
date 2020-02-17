@@ -28,12 +28,16 @@ class TrackingTransporter(models.Model):
     picking_ids = fields.One2many('stock.picking', 'transporter_id', groups='stock.group_stock_user',
                                   string="List of related pickings")
     number_pickings = fields.Integer(string="Number of related pickings", compute='_compute_number_pickings',
-                                     groups='stock.group_stock_user', store=True)
+                                     groups='stock.group_stock_user')
 
     @api.depends('picking_ids')
     def _compute_number_pickings(self):
+        res = self.env['stock.picking'].read_group([], ['transporter_id'], ['transporter_id'])
+        # Return a dict key = id transporter ans value is the number of tracking.number
+        print res
+        res = {it['transporter_id'][0]: it['transporter_id_count'] for it in res if it['transporter_id']}
         for rec in self:
-            rec.number_pickings = len(rec.picking_ids)
+            rec.number_pickings = res.get(rec.id, 0)
 
     @api.multi
     def open_pickings(self):
@@ -63,9 +67,8 @@ class TrackingTransporter(models.Model):
 class TrackingNumber(models.Model):
     _inherit = 'tracking.number'
 
-    picking_id = fields.Many2one('stock.picking', string="Stock picking",
-                                 groups='stock.group_stock_user')
-    group_id = fields.Many2one('procurement.group', string="Procurement Group")
+    picking_id = fields.Many2one('stock.picking', u"Stock picking", groups='stock.group_stock_user')
+    group_id = fields.Many2one('procurement.group', u"Procurement Group")
 
     @api.multi
     def _compute_partner_id(self):
@@ -79,8 +82,8 @@ class TrackingNumber(models.Model):
 class DeliveryTrackingStockPicking(models.Model):
     _inherit = 'stock.picking'
 
-    transporter_id = fields.Many2one('tracking.transporter', string="Transporter used",
+    transporter_id = fields.Many2one('tracking.transporter', u"Transporter used",
                                      related='tracking_ids.transporter_id', store=True, readonly=True)
-    last_status_update = fields.Datetime(string="Date of the last update")
-    tracking_ids = fields.One2many('tracking.number', 'picking_id', string="Delivery Tracking",
+    last_status_update = fields.Datetime(u"Date of the last update")
+    tracking_ids = fields.One2many('tracking.number', 'picking_id', u"Delivery Tracking",
                                    groups='stock.group_stock_user')

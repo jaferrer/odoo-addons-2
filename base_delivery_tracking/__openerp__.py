@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Purchase',
-    'depends': ['base'],
+    'depends': ['base', 'stock'],
     'description': """
 Base delivery tracking
 ======================

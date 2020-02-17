@@ -25,9 +25,7 @@
             <field name="view_id" ref="tracking_status_tree_view"/>
         </record>
 
-        <!-- New menu for delivery tracking data-->
-        <menuitem id="menu_delivery_tracking" name="Delivery tracking"
-                  parent="base.menu_sale_config" sequence="3"/>
+
 
         <record model="ir.actions.server" id="ir_actions_server_update_numbers_delivery_status">
             <field name="name">Update delivery status</field>
@@ -110,8 +108,7 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="help"></field>
         </record>
 
-        <menuitem id="menu_tracking_numbers" name="Tracking numbers" action="act_window_tracking_number"
-                  parent="menu_delivery_tracking" sequence="20"/>
+
 
         <record model="ir.ui.view" id="tracking_transporter_kanban">
             <field name="name">tracking.transporter.kanban</field>
@@ -190,7 +187,16 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             <field name="help"></field>
         </record>
 
-        <menuitem id="menu_tracking_by_transporter" name="Tracking numbers by transporter" action="act_window_tracking_number_by_transporter"
+        <!-- New menu for delivery tracking data-->
+        <menuitem id="menu_delivery_tracking" name="Delivery tracking"
+                  parent="stock.menu_stock_root" sequence="3"/>
+
+        <menuitem id="menu_tracking_numbers" name="Tracking numbers"
+                  action="act_window_tracking_number"
+                  parent="menu_delivery_tracking" sequence="20"/>
+
+        <menuitem id="menu_tracking_by_transporter" name="Tracking numbers by transporter"
+                  action="act_window_tracking_number_by_transporter"
                   parent="menu_delivery_tracking" sequence="30"/>
 
     </data>
