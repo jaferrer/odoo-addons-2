@@ -18,12 +18,13 @@
 #
 
 import json
-from datetime import datetime, timedelta
+
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from openerp.addons.connector.queue.job import job
 from openerp import models, fields, api
 from openerp.addons.connector.session import ConnectorSession
 from ..connector.jobs import job_send_response
-from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
 
 
 @job
@@ -354,9 +355,8 @@ class BusMessage(models.Model):
 
     @api.model
     def clean_old_messages_async(self):
-        limit_date = datetime.utcnow() - timedelta(weeks=4 * 2)  # 2 months ago
-        limit_date_str = datetime.strftime(limit_date, DEFAULT_SERVER_DATETIME_FORMAT)
-        old_msgs = self.search([('create_date', '<', limit_date_str)])
+        limit_date = datetime.now() - relativedelta(months=2)
+        old_msgs = self.search([('create_date', '<', fields.Datetime.to_string(limit_date))])
         old_msgs.unlink()
 
     @api.model
