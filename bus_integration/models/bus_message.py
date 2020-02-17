@@ -18,9 +18,18 @@
 #
 
 import json
+from datetime import datetime, timedelta
+from openerp.addons.connector.queue.job import job
 from openerp import models, fields, api
 from openerp.addons.connector.session import ConnectorSession
 from ..connector.jobs import job_send_response
+from openerp.tools.misc import DEFAULT_SERVER_DATETIME_FORMAT
+
+
+@job
+def job_bus_message_cleaner(session, model_name):
+    session.env[model_name].clean_old_messages_async()
+    return "unlink old bus messages : job done."
 
 
 class BusMessage(models.Model):
@@ -343,10 +352,22 @@ class BusMessage(models.Model):
                                                      self.configuration_id.id, json.dumps(msg_content_dict))
         return self.job_send_uuid
 
+    @api.model
+    def clean_old_messages_async(self):
+        limit_date = datetime.utcnow() - timedelta(weeks=4 * 2)  # 2 months ago
+        limit_date_str = datetime.strftime(limit_date, DEFAULT_SERVER_DATETIME_FORMAT)
+        old_msgs = self.search([('create_date', '<', limit_date_str)])
+        old_msgs.unlink()
+
+    @api.model
+    def cron_bus_message_cleaner(self):
+        job_bus_message_cleaner.delay(ConnectorSession.from_env(self.env), 'bus.message',
+                                      description=u"bus message cleaner - remove old messages.")
+
 
 class BusMessageHearderParam(models.Model):
     _name = 'bus.message.header.param'
 
-    message_id = fields.Many2one('bus.message', u"Message", required=True)
+    message_id = fields.Many2one('bus.message', u"Message", required=True, ondelete='cascade')
     name = fields.Char(u"Key", required=True)
     value = fields.Char(u"Value")
