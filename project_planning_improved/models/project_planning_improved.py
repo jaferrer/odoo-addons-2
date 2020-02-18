@@ -978,6 +978,21 @@ WHERE id = %s"""
         return task_rate
 
     @api.multi
+    def get_all_working_days_for_tasks(self):
+        list_working_days = []
+        if self:
+            min_date = min([task.expected_start_date for task in self if task.expected_start_date])
+            max_date = max([task.expected_end_date for task in self if task.expected_end_date])
+            if min_date and max_date:
+                ref_date = fields.Date.from_string(min_date)
+                max_date = fields.Date.from_string(max_date)
+                while ref_date <= max_date:
+                    if self[0].is_working_day(ref_date):
+                        list_working_days += [ref_date]
+                    ref_date += relativedelta(days=1)
+        return list_working_days
+
+    @api.multi
     def update_ready_for_execution(self):
         for rec in self:
             rec.ready_for_execution = all([task.kanban_state == 'ready' for task in rec.previous_task_ids])
