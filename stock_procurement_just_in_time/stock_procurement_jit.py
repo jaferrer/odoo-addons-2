@@ -385,6 +385,10 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
 
     @api.model
     def pop_delete_cancelled_moves_and_procs_jobs(self):
+        job = self.env['queue.job'].search([('state', 'not in', ['done', 'failed']),
+                                            ('func_name', 'ilike', "%delete_cancelled_moves_and_procs%"),], limit=1)
+        if job:
+            return u"Job %s already in execution" % job.name
         pop_delete_cancelled_moves_and_procs_jobs.delay(ConnectorSession.from_env(self.env), 'procurement.order')
 
     @api.model

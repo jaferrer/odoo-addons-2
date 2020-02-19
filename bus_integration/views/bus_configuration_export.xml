@@ -29,10 +29,14 @@
             <field name="arch" type="xml">
                 <form>
                     <header>
-                        <button name="sync_all" string="Sync. ALL" class="oe_highlight" type="object"/>
-                        <button name="sync_diff" string="Sync. Diff" class="oe_highlight" type="object"/>
-                        <button name="create_cron_sync_all" string="Create cron: Sync. ALL" class="oe_button" type="object" attrs="{'invisible': [('cron_sync_all','!=',False)]}"/>
-                        <button name="create_cron_sync_diff" string="Create cron: Sync. diff." class="oe_button" type="object" attrs="{'invisible': [('cron_sync_diff','!=',False)]}"/>
+                        <button name="sync_all" string="Sync. ALL" class="oe_highlight" type="object"
+                        attrs="{'invisible': ['|', ('cron_sync_all','=',False), ('hide_sync_all','=',True)]}"/>
+                        <button name="sync_diff" string="Sync. Diff" class="oe_highlight" type="object"
+                        attrs="{'invisible': ['|', ('cron_sync_diff','=',False), ('hide_sync_diff','=',True)]}"/>
+                        <button name="create_cron_sync_all" string="Create cron: Sync. ALL" class="oe_button"
+                                type="object" attrs="{'invisible': [('cron_sync_all','!=',False), ('hide_create_cron','=',True)]}"/>
+                        <button name="create_cron_sync_diff" string="Create cron: Sync. diff." class="oe_button"
+                                type="object" attrs="{'invisible': [('cron_sync_diff','!=',False), ('hide_create_cron','=',True)]}"/>
                         <field name="last_transfer_state" widget="statusbar" statusbar_visible=""
                                statusbar_colors="{'done':'green', 'error': 'red'}"/>
 
@@ -71,6 +75,10 @@
                                 <field name="cron_sync_diff" />
                             </group>
                         </group>
+                        <!-- field must be included to be used in domain -->
+                        <field name="hide_sync_diff" invisible="1"/>
+                        <field name="hide_sync_all" invisible="1"/>
+                        <field name="hide_create_cron" invisible="1"/>
                     </sheet>
                 </form>
             </field>

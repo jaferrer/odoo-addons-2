@@ -18,9 +18,26 @@
 #
 
 import json
+import math
+
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from openerp.addons.connector.queue.job import job
 from openerp import models, fields, api
 from openerp.addons.connector.session import ConnectorSession
 from ..connector.jobs import job_send_response
+
+
+@job
+def job_bus_message_cleaner(session, model_name):
+    session.env[model_name].clean_old_messages_async()
+
+
+@job
+def job_bus_message_cleaner_chunk(session, model_name, message_ids):
+    old_msgs = session.env[model_name].browse(message_ids)
+    old_msgs.unlink()
+    return "unlink old bus messages %s: job done." % message_ids
 
 
 class BusMessage(models.Model):
@@ -343,10 +360,30 @@ class BusMessage(models.Model):
                                                      self.configuration_id.id, json.dumps(msg_content_dict))
         return self.job_send_uuid
 
+    @api.model
+    def clean_old_messages_async(self):
+        limit_date = datetime.now() - relativedelta(months=2)
+        old_msgs = self.search([('create_date', '<', fields.Datetime.to_string(limit_date))])
+        chunk_size = 100
+        cpt = 0
+        max = int(math.ceil(len(old_msgs) / float(chunk_size)))
+        while old_msgs:
+            cpt += 1
+            chunk = old_msgs[:chunk_size]
+            old_msgs = old_msgs[chunk_size:]
+            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+            job_bus_message_cleaner_chunk.delay(session, 'bus.message', chunk.ids,
+                                                description="bus message cleaner (chunk %s/%s)" % (cpt, max))
+
+    @api.model
+    def cron_bus_message_cleaner(self):
+        job_bus_message_cleaner.delay(ConnectorSession.from_env(self.env), 'bus.message',
+                                      description=u"bus message cleaner - remove old messages.")
+
 
 class BusMessageHearderParam(models.Model):
     _name = 'bus.message.header.param'
 
-    message_id = fields.Many2one('bus.message', u"Message", required=True)
+    message_id = fields.Many2one('bus.message', u"Message", required=True, ondelete='cascade')
     name = fields.Char(u"Key", required=True)
     value = fields.Char(u"Value")
