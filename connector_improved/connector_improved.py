@@ -73,7 +73,7 @@ class QueueJob(models.Model):
     def requeue(self):
         for rec in self:
             if rec.state == 'done':
-                raise exceptions.ValidationError(_(u"Job in state done cannot be requeued"))
+                raise exceptions.except_orm(_(u"Error"), _(u"Job in state done cannot be requeued"))
         result = super(QueueJob, self).requeue()
         self.write({'date_requeued': fields.Datetime.now()})
         return result
