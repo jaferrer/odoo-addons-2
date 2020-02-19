@@ -13,9 +13,6 @@
     'data': [
         'views/templates.xml',
     ],
-    'qweb': [
-        'static/src/xml/web_treetable.xml',
-    ],
     'installable': True,
     'application': True
 }
