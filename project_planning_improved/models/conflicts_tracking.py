@@ -54,13 +54,13 @@ class OpenConflictTracking(models.TransientModel):
         conflict_tasks = self.env['project.task']
         display_tasks = self.env['project.task']
         tasks_occupation_rate = {}
-        for user in self.user_ids:
+        for user in self.user_ids or self.env['res.users'].search([]):
             tasks_user = user.get_tasks(self.start_date, self.end_date)
             display_tasks |= tasks_user
             list_working_days = tasks_user.get_all_working_days_for_tasks()
             for working_day in list_working_days:
-                date_start_day = fields.Datetime.to_string(working_day.replace(hour=0, minute=0, second=0))
-                date_end_day = fields.Datetime.to_string(working_day.replace(hour=23, minute=59, second=59))
+                date_start_day = fields.Date.to_string(working_day)
+                date_end_day = fields.Date.to_string(working_day)
                 total_task_rate = 0
                 concerned_tasks = self.env['project.task'].search([('id', 'in', tasks_user.ids),
                                                                   ('expected_end_date', '>=', date_start_day),
@@ -89,5 +89,3 @@ class OpenConflictTracking(models.TransientModel):
                 'domain': [('id', 'in', display_tasks.ids)],
                 'context': ctx
             }
-        else:
-            raise UserError(_(u"No conflict found"))
