@@ -316,8 +316,7 @@ class ProjectImprovedProject(models.Model):
         for rec in self:
             parent_tasks = self.env['project.task']
             domain_parent_tasks  = [('project_id', '=', rec.id),
-                                    ('parent_task_id', '!=', False),
-                                    ('taken_into_account', '=', False)]
+                                    ('parent_task_id', '!=', False)]
             if avoid_task_ids:
                 domain_parent_tasks += [('parent_task_id', 'not in', avoid_task_ids)]
             for task in self.env['project.task'].search(domain_parent_tasks):
@@ -713,6 +712,8 @@ class ProjectImprovedTask(models.Model):
         self.ensure_one()
         if self.expected_start_date == expected_start_date and self.expected_end_date == expected_end_date:
             return
+        if expected_start_date > expected_end_date:
+            raise UserError(_(u"Task %s: impossible to set start date after end date") % self.display_name)
         self.check_not_tia()
         query = """WITH data AS (
   SELECT %s::DATE AS new_start_date,
@@ -829,6 +830,10 @@ WHERE id = %s"""
                 self.check_not_tia()
             propagate_to_the_future, propagate_to_the_past = rec. \
                 propagate_to_the_past_or_to_the_future(vals_copy, start_date_changed, end_date_changed)
+            expected_start_date = vals_copy.get('expected_start_date', rec.expected_start_date)
+            expected_end_date = vals_copy.get('expected_end_date', rec.expected_end_date)
+            if expected_start_date and expected_end_date and expected_start_date > expected_end_date:
+                raise UserError(_(u"Task %s: impossible to set start date after end date") % rec.display_name)
             super(ProjectImprovedTask, rec).write(vals_copy)
             self.env.invalidate_all()
             do_not_rechedule_parent_task_ids = self.env.context.get('do_not_rechedule_parent_task_ids', [])
@@ -971,6 +976,21 @@ WHERE id = %s"""
         if open_days > 0:
             task_rate = self.allocated_duration / open_days
         return task_rate
+
+    @api.multi
+    def get_all_working_days_for_tasks(self):
+        list_working_days = []
+        if self:
+            min_date = min([task.expected_start_date for task in self if task.expected_start_date])
+            max_date = max([task.expected_end_date for task in self if task.expected_end_date])
+            if min_date and max_date:
+                ref_date = fields.Date.from_string(min_date)
+                max_date = fields.Date.from_string(max_date)
+                while ref_date <= max_date:
+                    if self[0].is_working_day(ref_date):
+                        list_working_days += [ref_date]
+                    ref_date += relativedelta(days=1)
+        return list_working_days
 
     @api.multi
     def update_ready_for_execution(self):

@@ -354,7 +354,8 @@ class TestTemplateTasksPlanningImproved(common.TransactionCase):
         self.parent_task_1.taken_into_account = True
         error = False
         try:
-            self.parent_task_4.expected_end_date = '2017-07-11'
+            self.parent_task_4.write({'expected_start_date': '2017-07-11',
+                                      'expected_end_date': '2017-07-11'})
         except NotReschedulableTiaTaskError as e:
             error = e
         if error:
