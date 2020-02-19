@@ -594,7 +594,7 @@ class ResUsersOutlook(models.Model):
             self_sudo.job_outlook_sync_contacts()
         else:
             self_sudo.with_delay(
-                description=f"Synchronisation contacts Outlook {self.env.user.name}",
+                description=u"Synchronisation contacts Outlook %s" % self.env.user.name,
                 max_retries=0
             ).job_outlook_sync_contacts()
 
@@ -610,7 +610,7 @@ class ResUsersOutlook(models.Model):
             self_sudo.job_outlook_sync_calendars()
         else:
             self_sudo.with_delay(
-                description=f"Synchronisation évènements Outlook {self.env.user.name}",
+                description=u"Synchronisation évènements Outlook %s" % self.env.user.name,
                 max_retries=0
             ).job_outlook_sync_calendars()
 
