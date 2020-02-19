@@ -20,7 +20,14 @@
 from openerp.addons.connector.queue.job import job
 
 
-@job(default_channel='root.receive_message')
+# 5 first retries postponed 10 minutes later => default retry time
+# retries 5 to 10 postponed 20 minutes later
+# all subsequent retries postponed 1 hour later
+@job(default_channel='root.receive_message', retry_pattern={
+    1: 10 * 60,
+    5: 20 * 60,
+    10: 1 * 60 * 60
+})
 def job_receive_message(session, model_name, message_id):
     return session.env[model_name].process_received_message(message_id)
 

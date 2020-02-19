@@ -23,7 +23,6 @@ from openerp import models, api, fields, _
 from openerp.tools import config
 from openerp import exceptions
 
-
 class QueueJob(models.Model):
     _inherit = 'queue.job'
 
@@ -37,9 +36,9 @@ class QueueJob(models.Model):
             job.button_done()
 
     @api.model
-    def enqueue_oudated_jobs(self):
+    def enqueue_outdated_jobs(self):
         started_jobs = self.search([('state', '=', 'started')])
-        worker_real_limit_seconds = config.parser.get_option_group('limit_time_real') or 120
+        worker_real_limit_seconds = config['limit_time_real'] or 120  # jobs CPU timeout
         jobs_to_enqueue = self
         for job in started_jobs:
             ref_date = job.eta or job.date_started
