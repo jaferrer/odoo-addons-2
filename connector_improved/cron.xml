@@ -2,7 +2,7 @@
 <openerp>
     <data noupdate="1">
 
-        <record model="ir.cron" id="connecteur_improved_enqueue_oudated_jobs">
+        <record model="ir.cron" id="connecteur_improved_enqueue_outdated_jobs">
             <field name="name">Enqueue Outdated Jobs</field>
             <field name="user_id" ref="base.user_root"/>
             <field name="active" eval="True"/>
@@ -13,7 +13,7 @@
             <field name="numbercall">-1</field>
             <field name="doall"/>
             <field name="model">queue.job</field>
-            <field name="function">enqueue_oudated_jobs</field>
+            <field name="function">enqueue_outdated_jobs</field>
             <field name="args"/>
         </record>
 
