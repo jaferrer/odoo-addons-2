@@ -18,6 +18,7 @@
 #
 
 import json
+import math
 
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -30,7 +31,13 @@ from ..connector.jobs import job_send_response
 @job
 def job_bus_message_cleaner(session, model_name):
     session.env[model_name].clean_old_messages_async()
-    return "unlink old bus messages : job done."
+
+
+@job
+def job_bus_message_cleaner_chunk(session, model_name, message_ids):
+    old_msgs = session.env[model_name].browse(message_ids)
+    old_msgs.unlink()
+    return "unlink old bus messages %s: job done." % message_ids
 
 
 class BusMessage(models.Model):
@@ -357,7 +364,16 @@ class BusMessage(models.Model):
     def clean_old_messages_async(self):
         limit_date = datetime.now() - relativedelta(months=2)
         old_msgs = self.search([('create_date', '<', fields.Datetime.to_string(limit_date))])
-        old_msgs.unlink()
+        chunk_size = 100
+        cpt = 0
+        max = int(math.ceil(len(old_msgs) / float(chunk_size)))
+        while old_msgs:
+            cpt += 1
+            chunk = old_msgs[:chunk_size]
+            old_msgs = old_msgs[chunk_size:]
+            session = ConnectorSession(self.env.cr, self.env.uid, self.env.context)
+            job_bus_message_cleaner_chunk.delay(session, 'bus.message', chunk.ids,
+                                                description="bus message cleaner (chunk %s/%s)" % (cpt, max))
 
     @api.model
     def cron_bus_message_cleaner(self):
