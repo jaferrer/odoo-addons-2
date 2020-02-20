@@ -123,10 +123,10 @@ class BusConfigurationExport(models.Model):
                 .search([('bus_configuration_export_diff_id', '=', rec.id)], limit=1)
 
     @api.multi
-    def sync_all(self):
+    def sync_all(self, jobify=True):
         """ run the batch, exports all self.model's records matching self.domain"""
         self.ensure_one()
-        self.env['bus.exporter'].run_export(self.id)
+        self.env['bus.exporter'].run_export(self.id, jobify=jobify)
 
     @api.multi
     def sync_diff(self):
