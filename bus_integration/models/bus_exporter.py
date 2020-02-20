@@ -35,7 +35,7 @@ class BusSynchronizationExporter(models.AbstractModel):
     # TODO :  a vérifier :  'binary', 'reference', 'serialized]
 
     @api.model
-    def run_export(self, backend_bus_configuration_export_id, force_domain=False):
+    def run_export(self, backend_bus_configuration_export_id, force_domain=False, jobify=True):
         """
         Create and send messages
         :param backend_bus_configuration_export_id: models to export with their conf
@@ -92,8 +92,12 @@ class BusSynchronizationExporter(models.AbstractModel):
 
         msgs_group_uuid = "%s %s" % (str(uuid.uuid4()), batch.display_name)
         for export_msg in message_list:
-            job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
-                                       msgs_group_uuid)
+            if jobify:
+                job_generate_message.delay(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
+                                           msgs_group_uuid)
+            else:
+                job_generate_message(ConnectorSession.from_env(self.env), self._name, batch.id, export_msg,
+                                     msgs_group_uuid)
         return msgs_group_uuid
 
     @api.model
