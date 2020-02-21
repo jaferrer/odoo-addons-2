@@ -1,10 +1,12 @@
 Crée une hierachie entre les lignes d'un tableau.
 
 Sur une vue tree, ajouter les contexts context="{'tt-id': True}" et context="{'tt-parent-id': True}" sur les fields pour indiquer les ID a utiliser.
+Ajouter context="{'tt-collapsed': True}" sur un boolean pour indiquer si la ligne doit etre collapsée ou non
 Ajouter aussi la class web_treetable a la vue tree
 
 Example:
 <tree string="Lignes de vente" class="web_treetable">
     <field name="num_poste" context="{'tt-id': True}"/>
     <field name="parent_num_poste" invisible="1" context="{'tt-parent-id': True}"/>
+    <field name="is_collapsed" invisible="1" context="{'tt-collapsed': True}"/>
 </tree>

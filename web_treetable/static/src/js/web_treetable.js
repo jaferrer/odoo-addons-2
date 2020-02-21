@@ -5,13 +5,18 @@ var FormRenderer = require('web.FormRenderer');
 
 let treetable = '.web_treetable > table.o_list_view';
 
-let registerTreetable = function () {
+let registerTreetable = function (isListView=true) {
+
+    if (!$(treetable).length) {
+        return;
+    }
 
     // Initiate the treetable
     $(treetable + ' span.indenter').remove();
     $(treetable).treetable({
         expandable: true,
-        indent: 19
+        indent: 19,
+        column: isListView ? 1 : 0
     }, true);
 
     // Add controls
@@ -77,22 +82,29 @@ ListRenderer.include({
             }
         });
     },
+
+    on_attach_callback: function () {
+        $('.o_cp_searchview').css('visibility', 'hidden');
+        $('.o_cp_right').css('visibility', 'hidden');
+        registerTreetable();
+        return this._super.apply(this, arguments);
+    }
 });
 
 // Pour la vue liste dans une vue form
 FormRenderer.include({
     on_attach_callback: function () {
-        registerTreetable();
+        registerTreetable(false);
         return this._super.apply(this, arguments);
     },
     _updateView: function ($newContent) {
         let result = this._super.apply(this, arguments);
-        registerTreetable();
+        registerTreetable(false);
         return result;
     },
     confirmChange: function (state, id, fields, e) {
         return this._super.apply(this, arguments).then(function () {
-            registerTreetable();
+            registerTreetable(false);
         });
     },
 });
