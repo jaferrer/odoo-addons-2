@@ -18,4 +18,3 @@
 #
 
 from . import generate_tracking_labels
-from . import wizard

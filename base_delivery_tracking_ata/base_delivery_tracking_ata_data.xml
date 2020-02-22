@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-
         <record id="transporter_ata" model="tracking.transporter">
             <field name="name">ATA</field>
             <field name="image" type="base64" file="base_delivery_tracking_ata/static/img/ATA.png"/>

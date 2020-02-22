@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,15 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import models, api
-
-
-class VarillonTrackingTransporter(models.Model):
-    _inherit = 'tracking.transporter'
-
-    @api.multi
-    def _compute_logo(self):
-        super(VarillonTrackingTransporter, self)._compute_logo()
-        for rec in self:
-            if rec == self.env.ref('base_delivery_tracking_varillon.transporter_varillon'):
-                rec.logo = "/base_delivery_tracking_varillon/static/img/varillon.png"
+from . import main

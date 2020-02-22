@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,21 +18,19 @@
 #
 
 {
-    'name': 'Base delivery tracking',
+    'name': 'Génération des étiquettes de suivi depuis une vente',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Stock',
-    'depends': ['base'],
+    'category': 'Delivery Tracking',
+    'depends': ['sale', 'generate_tracking_labels'],
     'description': """
-Base delivery tracking
-======================
-This module allows to upload the status of a tracking number
+Génération des étiquettes de suivi depuis une vente
+===================================================
+Ce module permet de générer des étiquettes d'envoi depuis une vente Odoo.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': ['base_delivery_tracking.xml',
-             'security/ir.model.access.csv',
-             ],
+    'data': ['generate_tracking_labels.xml'],
     'demo': [],
     'test': [],
     'installable': True,
