@@ -84,8 +84,8 @@ ListRenderer.include({
     },
 
     on_attach_callback: function () {
-        $('.o_cp_searchview').css('visibility', 'hidden');
-        $('.o_cp_right').css('visibility', 'hidden');
+        // $('.o_cp_searchview').css('visibility', 'hidden');
+        // $('.o_cp_right').css('visibility', 'hidden');
         registerTreetable();
         return this._super.apply(this, arguments);
     }

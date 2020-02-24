@@ -11,7 +11,7 @@ RelationalFields.FieldOne2Many.include({
 
         let isEditableForm = !this.el.classList.contains('editable-form');
 
-        if ((this.editable && isEditableForm) || ev.data.forceEditableLine) {
+        if ((this.editable && isEditableForm) || (ev.data && ev.data.forceEditableLine)) {
             if (!this.activeActions.create) {
                 if (ev.data.onFail) {
                     ev.data.onFail();
