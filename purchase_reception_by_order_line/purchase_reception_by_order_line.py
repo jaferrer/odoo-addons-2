@@ -133,10 +133,15 @@ ORDER BY poids ASC,""" + self.pool.get('stock.move')._order + """
         for move in move_with_purchase_lines:
             if move.product_id and move.purchase_line_id.id not in processed_purchase_lines:
                 uom = move.purchase_line_id.product_uom
-                sum_quantities_moves_on_line = sum([sm.product_qty for sm in move_with_purchase_lines if
-                                                    sm.purchase_line_id == move.purchase_line_id and
-                                                    sm.product_id == move.product_id and
-                                                    sm.state not in ['done', 'cancel']])
+                sum_quantities_moves_on_line = 0
+                for sm in move_with_purchase_lines:
+                    if sm.purchase_line_id == move.purchase_line_id and \
+                            sm.product_id == move.product_id and \
+                            sm.state not in ['done', 'cancel']:
+                        if sm.location_id.usage in ['internal', 'transit']:
+                            sum_quantities_moves_on_line += sum([sq.qty for sq in move.reserved_quant_ids])
+                        else:
+                            sum_quantities_moves_on_line += sm.product_qty
                 sum_quantities_moves_on_line = self.env['product.uom']. \
                     _compute_qty(move.product_id.uom_id.id, sum_quantities_moves_on_line, uom.id)
                 global_qty_to_remove = sum_quantities_moves_on_line
