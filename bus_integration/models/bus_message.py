@@ -33,7 +33,7 @@ def job_bus_message_cleaner(session, model_name):
     session.env[model_name].clean_old_messages_async()
 
 
-@job
+@job(default_channel='root.bus_message_cleaner_chunk')
 def job_bus_message_cleaner_chunk(session, model_name, message_ids):
     old_msgs = session.env[model_name].browse(message_ids)
     old_msgs.unlink()
