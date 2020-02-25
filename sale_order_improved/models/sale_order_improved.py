@@ -45,22 +45,25 @@ class SaleOrderImproved(models.Model):
                 'invoice_status': invoice_status
             })
 
+    @api.multi
     def _get_invoice_lines_status(self):
-
         # Ignore the status of the deposit product
         deposit_product_id = self.env['sale.advance.payment.inv']._default_product_id()
-        line_invoice_status_all = [(d['order_id'][0], d['invoice_status']) for d in
-                                   self.env['sale.order.line'].read_group(
-                                       self._get_invoice_lines_status_domain(deposit_product_id),
-                                       ['order_id', 'invoice_status'], ['order_id', 'invoice_status'], lazy=False)]
+        line_invoice_status_all = [
+            (d['order_id'][0], d['invoice_status']) for d in self.env['sale.order.line'].read_group(
+                self._get_invoice_lines_status_domain(deposit_product_id),
+                ['order_id', 'invoice_status'],
+                ['order_id', 'invoice_status'],
+                lazy=False)
+        ]
         return line_invoice_status_all
 
+    @api.multi
     def _get_invoice_lines_status_domain(self, deposit_product_id):
-
         return [('order_id', 'in', self.ids), ('product_id', '!=', deposit_product_id.id)]
 
+    @api.multi
     def _get_invoice_refund_and_cancelled(self):
-
         self.ensure_one()
         invoice_ids = self.order_line.mapped('invoice_lines').mapped('invoice_id').filtered(
             lambda r: r.type in ['out_invoice', 'out_refund'])
@@ -86,8 +89,8 @@ class SaleOrderImproved(models.Model):
 
         return invoice_ids, refund_ids
 
+    @api.multi
     def _compute_sale_order_invoice_status(self, line_invoice_status_all):
-
         self.ensure_one()
         line_invoice_status = [d[1] for d in line_invoice_status_all if d[0] == self.id]
 
