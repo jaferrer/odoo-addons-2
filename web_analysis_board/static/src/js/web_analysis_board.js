@@ -80,6 +80,7 @@ odoo.define('web_analysis_board.AnalysisBoard', function (require) {
             console.log('do_show')
             _.each(this.subViews, function (sv) {
                 console.log(">", sv)
+                sv.widget.mode =  sv.fields_view.arch.attrs.type ? sv.fields_view.arch.attrs.type : 'bar';
                 sv.do_show();
             });
             this.do_push_state({});
