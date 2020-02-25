@@ -31,7 +31,7 @@ class AccountConfigSettings(models.TransientModel):
     export_line_selection = fields.Selection([
         ('bounded', u"From date to date"),
         ('not_exported', u"Lines not previously exported"),
-    ], u"Line selection")
+    ], u"Line selection", default='not_exported')
     export_journal_ids = fields.Many2many('account.journal', string=u"Account journals")
     export_date_from = fields.Date(u"From")
     export_date_to = fields.Date(u"To")
