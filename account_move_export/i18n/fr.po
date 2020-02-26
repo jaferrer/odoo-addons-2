@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-09 14:43+0000\n"
-"PO-Revision-Date: 2019-10-09 14:43+0000\n"
+"POT-Creation-Date: 2020-02-11 10:51+0000\n"
+"PO-Revision-Date: 2020-02-11 10:51+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,13 +16,13 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: account_move_export
-#: code:addons/account_move_export/wizard/account_move_export_wizard.py:110
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:145
 #, python-format
 msgid " from %s to %s"
 msgstr " du %s au %s"
 
 #. module: account_move_export
-#: code:addons/account_move_export/wizard/account_move_export_wizard.py:112
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:147
 #, python-format
 msgid " on %s"
 msgstr " sur %s"
@@ -38,7 +38,7 @@ msgid "Account moves"
 msgstr "Pièces comptables"
 
 #. module: account_move_export
-#: code:addons/account_move_export/wizard/account_move_export_wizard.py:108
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:143
 #: model:ir.ui.view,arch_db:account_move_export.view_account_config_settings_export
 #, python-format
 msgid "Accounting export"
@@ -55,7 +55,7 @@ msgid "Cancel"
 msgstr "Annuler"
 
 #. module: account_move_export
-#: code:addons/account_move_export/wizard/account_move_export_wizard.py:199
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:214
 #, python-format
 msgid "Cannot connect to the FTP : missing parameters"
 msgstr "Impossible de se connecter au FTP : paramètres manquants"
@@ -67,11 +67,13 @@ msgstr "Fermer"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_create_uid
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard_create_uid
 msgid "Created by"
 msgstr "Créé par"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_create_date
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard_create_date
 msgid "Created on"
 msgstr "Créé le"
 
@@ -87,11 +89,13 @@ msgstr "Jusqu'à"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_display_name
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard_display_name
 msgid "Display Name"
 msgstr "Nom affiché"
 
 #. module: account_move_export
 #: model:ir.ui.menu,name:account_move_export.account_export_menu
+#: model:ir.ui.view,arch_db:account_move_export.account_move_export_view_move_line_form
 #: model:ir.ui.view,arch_db:account_move_export.account_move_export_wizard_form
 msgid "Export"
 msgstr "Exporter"
@@ -118,6 +122,11 @@ msgid "Export mode"
 msgstr "Mode d'export"
 
 #. module: account_move_export
+#: model:ir.ui.view,arch_db:account_move_export.account_move_export_view_account_move_line_filter
+msgid "Exported"
+msgstr "Exporté"
+
+#. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_destination
 msgid "Extraction type"
 msgstr "Type d'extraction"
@@ -128,10 +137,20 @@ msgid "FTP"
 msgstr "FTP"
 
 #. module: account_move_export
+#: model:ir.model,name:account_move_export.model_ftp_wizard
+msgid "FTP Connection"
+msgstr "Connexion FTP"
+
+#. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_ftp_url
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_ftp_url
 msgid "FTP URL"
 msgstr "URL du FTP"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_ftp_path
+msgid "FTP export path"
+msgstr "Chemin du dossier d'export sur le FTP"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_ftp_login
@@ -146,10 +165,15 @@ msgid "FTP password"
 msgstr "Mot de passe du FTP"
 
 #. module: account_move_export
-#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_ftp_path
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_ftp_path
 msgid "FTP path"
-msgstr "Chemin du dossier sur le FTP"
+msgstr "Chemin sur le FTP"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_ftp_port
+#: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_ftp_port
+msgid "FTP port"
+msgstr "Port du FTP"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_data_fname
@@ -184,6 +208,7 @@ msgstr "A été exporté"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_id
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard_id
 msgid "ID"
 msgstr "ID"
 
@@ -199,16 +224,19 @@ msgstr "Journaux"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard___last_update
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard___last_update
 msgid "Last Modified on"
 msgstr "Dernière Modification le"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_write_uid
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard_write_uid
 msgid "Last Updated by"
 msgstr "Dernière mise à jour par"
 
 #. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_move_export_wizard_write_date
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard_write_date
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
 
@@ -245,9 +273,27 @@ msgid "On screen"
 msgstr "En direct"
 
 #. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard_password
+#: model:ir.model.fields,field_description:account_move_export.field_sftp_wizard_password
+msgid "Password"
+msgstr "Mot de passe"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard_port
+#: model:ir.model.fields,field_description:account_move_export.field_sftp_wizard_port
+msgid "Port"
+msgstr "Port"
+
+#. module: account_move_export
 #: model:ir.model.fields,field_description:account_move_export.field_account_config_settings_export_date_to
 msgid "To"
 msgstr "Jusqu'au"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard_username
+#: model:ir.model.fields,field_description:account_move_export.field_sftp_wizard_username
+msgid "Username"
+msgstr "Nom d’utilisateur"
 
 #. module: account_move_export
 #: model:ir.model,name:account_move_export.model_account_config_settings
@@ -260,8 +306,14 @@ msgid "account.move.export.wizard"
 msgstr "account.move.export.wizard"
 
 #. module: account_move_export
-#: code:addons/account_move_export/wizard/account_move_export_wizard.py:180
+#: code:addons/account_move_export/wizard/account_move_export_wizard.py:207
 #, python-format
 msgid "account_export_%s.tra"
 msgstr "account_export_%s.tra"
+
+#. module: account_move_export
+#: model:ir.model.fields,field_description:account_move_export.field_ftp_wizard_host
+#: model:ir.model.fields,field_description:account_move_export.field_sftp_wizard_host
+msgid "host"
+msgstr "Nom d'hôte"
 

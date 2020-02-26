@@ -8,9 +8,22 @@
             <notebook position="inside">
                 <page name="delegations" string="Role delegations">
                     <group string="Role delegations" col="1">
-                        <field name="delegation_ids" nolabel="1">
+                        <field name="delegation_ids" nolabel="1" context="{'default_user_id': id}">
                             <tree editable="top">
+                                <field name="user_id" invisible="1"/>
+                                <field name="allowed_role_ids" invisible="1"/>
                                 <field name="target_id"/>
+                                <field name="role_id" domain="[('id', 'in', allowed_role_ids[0][2])]"/>
+                                <field name="date_from"/>
+                                <field name="date_to"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Roles delegated to current user">
+                        <field name="received_delegation_ids" nolabel="1">
+                            <tree>
+                                <field name="user_id"/>
+                                <field name="role_id"/>
                                 <field name="date_from"/>
                                 <field name="date_to"/>
                             </tree>
@@ -18,6 +31,34 @@
                     </group>
                 </page>
             </notebook>
+            <form position="inside">
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="role_delegation_view_users_form_simple_modif" model="ir.ui.view">
+        <field name="name">role_delegation_view_users_form_simple_modif</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[field[@name='signature']]" position="after">
+                <group string="Role delegation">
+                    <field name="delegation_ids" nolabel="1" context="{'default_user_id': id}" readonly="0">
+                        <tree editable="top">
+                            <field name="user_id" invisible="1"/>
+                            <field name="allowed_role_ids" invisible="1"/>
+                            <field name="target_id"/>
+                            <field name="role_id" domain="[('id', 'in', allowed_role_ids[0][2])]"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </tree>
+                    </field>
+                </group>
+            </xpath>
         </field>
     </record>
 </odoo>

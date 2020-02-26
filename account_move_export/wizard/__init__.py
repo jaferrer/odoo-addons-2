@@ -18,3 +18,4 @@
 #
 
 from . import account_move_export_wizard
+from . import ftp_wizard

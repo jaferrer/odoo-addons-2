@@ -1,0 +1,84 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* calendar_sms_reminders
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-20 10:29+0000\n"
+"PO-Revision-Date: 2019-03-20 10:29+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: calendar_sms_reminders
+#: model:ir.ui.view,arch_db:calendar_sms_reminders.calendar_event_sms_wizard_view
+#: model:ir.ui.view,arch_db:calendar_sms_reminders.calendar_event_sms_reminder_form
+#: code:addons/calendar_sms_reminders/models/calendar_event.py:33
+msgid "Send SMS"
+msgstr "Envoyer SMS"
+
+#. module: calendar_sms_reminders
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_res_company_sms_reminder_message
+msgid "Calendar event reminder"
+msgstr "SMS rappel de rendez-vous"
+
+#. module: calendar_sms_reminders
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_res_company_sms_api_login
+msgid "API login"
+msgstr "API login"
+
+#. module: calendar_sms_reminders
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_res_company_sms_api_key
+msgid "API key"
+msgstr "API key"
+
+#. module: calendar_sms_reminders
+#: model:ir.ui.view,arch_db:calendar_sms_reminders.res_company_form_sms_reminder
+msgid "SMS Reminders"
+msgstr "Rappels SMS"
+
+#. module: calendar_sms_reminders
+#: code:addons/calendar_sms_reminders/models/calendar_attendee.py:65
+msgid "Please set the sms API key and login in the company settings"
+msgstr "Veuillez définir l'API key et l'API login dans la configuration de la société"
+
+#. module: calendar_sms_reminders
+#: code:addons/calendar_sms_reminders/models/res_company.py:28
+msgid "We remind you that you have an appointment on %(date)s at %(time)s with %(owner)s at %(location)s"
+msgstr "Nous vous rappelons que vous avez rendez-vous le %(date)s à %(time)s avec %(owner)s à %(location)s \"STOP au XXXXX\""
+
+#. modules: calendar_sms_reminders
+#: model:ir.ui.view,arch_db:calendar_sms_reminders.calendar_event_sms_wizard_view
+#, python-format
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: calendar_sms_reminders
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_calendar_attendee_sms_date_sent
+msgid "Date SMS"
+msgstr "Dernier envoi SMS"
+
+#. module: calendar_sms_reminders
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_calendar_attendee_mobile
+msgid "Mobile phone"
+msgstr "Portable"
+
+#. module: calendar_sms_reminders
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_calendar_event_sms_wizard_sms_message
+msgid "SMS message"
+msgstr "Message SMS"
+
+#. module: calendar_sms_reminders
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_calendar_event_send_sms_day_before
+msgid "Send sms the day before"
+msgstr "Envoyer un sms la veille du rendez-vous"
+
+#. module: calendar_sms_reminders
+#: model:ir.model.fields,field_description:calendar_sms_reminders.field_calendar_event_sms_reminder_send
+msgid "Sms reminder send"
+msgstr "Sms de rappel envoyé"
