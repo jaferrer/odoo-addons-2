@@ -45,7 +45,10 @@ class BetterZipWithUpdate(models.Model):
         for line in ans.readlines():
             line = line.strip()
             try:
-                code, _, name, city, city_complement, coordinates = line.split(';')
+                # TO CHECK: le format CSV a été modifié par La Poste, et ne correspond pas à sa propre doc.
+                # À surveiller car doublon du libellé d'acheminement
+                # Le format de la ligne suivante a été modifié le 25/02/2020
+                code, _, name, city_complement, city, _, coordinates = line.split(';')
                 latitude, longitude = (0, 0)
                 coordinates = coordinates and unicode(coordinates).replace(u" ", u"")
                 if coordinates:
