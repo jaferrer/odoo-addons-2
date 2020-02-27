@@ -113,11 +113,13 @@ class BusReceiveTransfer(models.Model):
 
         vals = self.sanitize_vals(odoo_record, record_vals)
         if not odoo_record:
-            odoo_record = odoo_record\
-                .with_context(bus_receive_transfer_external_key=transfer.external_key)\
+            odoo_record = odoo_record \
+                .with_context(bus_receive_transfer_external_key=transfer.external_key) \
                 .create(vals)
         elif vals:
-            odoo_record.write(vals)
-        if vals and transfer.local_id  != odoo_record.id:
+            odoo_record \
+                .with_context(bus_receive_transfer_external_key=transfer.external_key) \
+                .write(vals)
+        if vals and transfer.local_id != odoo_record.id:
             transfer.local_id = odoo_record.id
         return transfer, odoo_record, False
