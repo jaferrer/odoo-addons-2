@@ -36,7 +36,7 @@ class BetterZipWithUpdate(models.Model):
         france_id = self.env.ref('base.fr')
 
         already_known = set(self.env['res.better.zip'].search(
-            [('country_id', '=', france_id.id)]).mapped(lambda x: (x.name, x.city)))
+            [('country_id', '=', france_id.id)]).mapped(lambda x: (x.name, x.code)))
 
         ans = urllib.urlopen('https://datanova.legroupe.laposte.fr/explore/dataset/laposte_hexasmal/download/'
                              '?format=csv&timezone=Europe/Berlin&use_labels_for_header=true')
@@ -48,7 +48,7 @@ class BetterZipWithUpdate(models.Model):
                 # TO CHECK: le format CSV a été modifié par La Poste, et ne correspond pas à sa propre doc.
                 # À surveiller car doublon du libellé d'acheminement
                 # Le format de la ligne suivante a été modifié le 25/02/2020
-                code, _, name, city_complement, city, _, coordinates = line.split(';')
+                code, city, name, city_complement, _, _, coordinates = line.split(';')
                 latitude, longitude = (0, 0)
                 coordinates = coordinates and unicode(coordinates).replace(u" ", u"")
                 if coordinates:
@@ -58,7 +58,7 @@ class BetterZipWithUpdate(models.Model):
                 if city_complement:
                     city += " - %s" % city_complement
                 _logger.info(u"Creating zip %s - %s from 'La Poste' API", name, city)
-                if (name, city) not in already_known:
+                if (name, code) not in already_known:
                     self.env['res.better.zip'].create({
                         'name': name,
                         'code': code,
