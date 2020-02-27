@@ -181,6 +181,11 @@ class ProductSupplierinfoImproved(models.Model):
 
     @api.multi
     def update_seller_ids_for_products(self):
+        # odoo-addons/sirail#2521 :
+        # avoid deadlocks when receiving product.supplier info from bus.
+        # seller id will be computed later
+        if self.env.context.get('bus_receive_transfer_external_key'):
+            return
         templates = self.env['product.template'].search([('id', 'in', [rec.product_tmpl_id.id for rec in self])])
         if templates:
             self.env['product.template'].with_context(restrict_to_template_ids=templates.ids).update_seller_ids()
@@ -212,7 +217,6 @@ class PricelistImproved(models.Model):
             seller = product.seller_ids[0]
         return seller
 
-
     @api.model
     def find_supplierinfos_for_product(self, product, partner_id):
         """ :return: recordset of supplierinfo (fourniture d'achat
@@ -224,4 +228,3 @@ class PricelistImproved(models.Model):
         if not sellers and product.seller_ids:
             sellers = [product.seller_ids[0]]
         return sellers
-
