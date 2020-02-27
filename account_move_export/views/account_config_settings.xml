@@ -24,8 +24,9 @@
                 </group>
                 <group name="ftp" string="FTP" colspan="2">
                     <field name="export_ftp_url"/>
+                    <field name="export_ftp_port"/>
                     <field name="export_ftp_login"/>
-                    <field name="export_ftp_password"/>
+                    <field name="export_ftp_password" password="True"/>
                     <field name="export_ftp_path"/>
                 </group>
             </xpath>

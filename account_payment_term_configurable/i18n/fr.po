@@ -1,0 +1,42 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* account_payment_term_configurable
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-02-25 14:13+0000\n"
+"PO-Revision-Date: 2020-02-25 14:13+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: account_payment_term_configurable
+#: model:ir.ui.view,arch_db:account_payment_term_configurable.account_payment_term_line_form_configurable
+msgid "Day of month"
+msgstr "Jour du mois"
+
+#. module: account_payment_term_configurable
+#: model:ir.model.fields,field_description:account_payment_term_configurable.field_account_payment_term_line_days2
+msgid "Day of the month"
+msgstr "Jour du mois"
+
+#. module: account_payment_term_configurable
+#: model:ir.model.fields,help:account_payment_term_configurable.field_account_payment_term_line_days2
+msgid "Day of the month, set -1 for the last day of the current month. If it's positive, it gives the day of the next month. Set 0 for net days (otherwise it's based on the beginning of the month)."
+msgstr "Jour du mois. Mettez -1 pour le dernier jour du mois courant. Si le chiffre est positif, il fait référence au jour du mois suivant. Mettez 0 pour un nombre de jours nets."
+
+#. module: account_payment_term_configurable
+#: model:ir.model,name:account_payment_term_configurable.model_account_payment_term
+msgid "Payment Term"
+msgstr "Conditions de paiement"
+
+#. module: account_payment_term_configurable
+#: model:ir.model,name:account_payment_term_configurable.model_account_payment_term_line
+msgid "Payment Term Line"
+msgstr "Ligne de conditions de paiement"
+

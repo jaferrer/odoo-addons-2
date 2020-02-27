@@ -23,8 +23,10 @@
                     </group>
                     <group attrs="{'invisible': [('destination', '!=', 'ftp')]}" col="4">
                         <field name="ftp_url" attrs="{'required': [('destination', '=', 'ftp')]}"/>
+                        <field name="ftp_port" attrs="{'required': [('destination', '=', 'ftp')]}"/>
                         <field name="ftp_login" attrs="{'required': [('destination', '=', 'ftp')]}"/>
-                        <field name="ftp_password" attrs="{'required': [('destination', '=', 'ftp')]}"/>
+                        <field name="ftp_password" password="True"
+                               attrs="{'required': [('destination', '=', 'ftp')]}"/>
                         <field name="ftp_path" attrs="{'required': [('destination', '=', 'ftp')]}"/>
                     </group>
                 </sheet>
