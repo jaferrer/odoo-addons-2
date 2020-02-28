@@ -20,13 +20,13 @@
 from odoo import api, models, fields, exceptions, _
 
 
-class HamacStockQuantMovingWizard(models.TransientModel):
+class StockQuantMovingWizard(models.TransientModel):
     _name = 'stock.quant.moving.wizard'
 
     location_id = fields.Many2one('stock.location', u"Origin location", required=True)
     location_dest_id = fields.Many2one('stock.location', u"Destination location", required=False)
 
-    @api.model
+    @api.multi
     def get_default_picking_type(self):
         # You may override this function to fit your needs.
         return False
@@ -64,7 +64,7 @@ class HamacStockQuantMovingWizard(models.TransientModel):
         }
 
 
-class HamacStockQuant(models.Model):
+class StockQuantMoving(models.Model):
     _inherit = 'stock.quant'
 
     @api.multi
