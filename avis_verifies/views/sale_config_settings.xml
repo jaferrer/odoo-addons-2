@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="avis_verifies_view_sale_config_settings" model="ir.ui.view">
+        <field name="name">avis_verifies_view_sale_config_settings</field>
+        <field name="model">sale.config.settings</field>
+        <field name="inherit_id" ref="sales_team.view_sale_config_settings"/>
+        <field name="arch" type="xml">
+            <form position="inside">
+                <group string="Avis Vérifiés">
+                    <field name="avis_verifies_site_reviews_url"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+</odoo>
