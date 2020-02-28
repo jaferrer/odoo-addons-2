@@ -41,6 +41,10 @@ def job_synchronize_lines(session, model_name, chunk_list_lines_to_synchronize, 
 def job_update_remaining_qty(session, model_name, order_id):
     order = session.env[model_name].browse(order_id)
     order.update_remaining_qties()
+    if not order.partner_id.is_company:
+        raise exceptions.except_orm(u"Error!",
+                                    u"This operation is forbidden, because order %s is linked to "
+                                    u"not-company customer %s" % (order.display_name, order.partner_id.display_name))
     order.compute_workflow_state()
     order.remove_old_delivery_moves()
 
