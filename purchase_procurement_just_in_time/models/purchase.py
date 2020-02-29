@@ -75,9 +75,9 @@ class PurchaseOrderJustInTime(models.Model):
         else:
             name = order_line.name or ''
         data_remaining_qty = order_line.compute_remaining_qty()
-        remaining_qty = data_remaining_qty['remaining_qty']
+        remaining_qty_pol_uom = data_remaining_qty['remaining_qty_pol_uom']
         qty_running_pol_uom = data_remaining_qty['qty_running_pol_uom']
-        qty_to_add = float_round(remaining_qty - qty_running_pol_uom,
+        qty_to_add = float_round(remaining_qty_pol_uom - qty_running_pol_uom,
                                  precision_rounding=order_line.product_uom.rounding)
         if float_compare(qty_to_add, 0.0, precision_rounding=order_line.product_uom.rounding) == 0:
             return []
@@ -284,16 +284,17 @@ class PurchaseOrderLineJustInTime(models.Model):
         """
         self.ensure_one()
         data_remaining_qty = self.compute_remaining_qty(line_uom_id)
-        delivered_qty = data_remaining_qty['delivered_qty']
-        returned_qty = data_remaining_qty['returned_qty']
+        delivered_qty_pol_uom = data_remaining_qty['delivered_qty_pol_uom']
+        returned_qty_pol_uom = data_remaining_qty['returned_qty_pol_uom']
         qty_running_pol_uom = data_remaining_qty['qty_running_pol_uom']
         running_moves = data_remaining_qty['running_moves']
         if self.product_id.type == 'service':
             running_moves.action_cancel()
             return
-        if float_compare(target_qty, delivered_qty - returned_qty, precision_rounding=self.product_uom.rounding) < 0:
+        if float_compare(target_qty, delivered_qty_pol_uom - returned_qty_pol_uom,
+                         precision_rounding=self.product_uom.rounding) < 0:
             raise exceptions.except_orm(_(u"Error!"), _(u"Impossible to cancel moves at state done."))
-        final_running_qty = target_qty - delivered_qty + returned_qty
+        final_running_qty = target_qty - delivered_qty_pol_uom + returned_qty_pol_uom
         moves_to_cancel = self.env['stock.move']
         if float_compare(qty_running_pol_uom, final_running_qty,
                          precision_rounding=self.product_uom.rounding) > 0:

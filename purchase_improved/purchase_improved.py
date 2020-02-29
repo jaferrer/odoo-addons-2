@@ -40,8 +40,8 @@ class PurchaseOrderLinePlanningImproved(models.Model):
             for line in self.browse(cr, uid, ids, context=context):
                 res[line.id] = 0
                 if line.product_id and line.product_id.type != 'service':
-                    remaining_qty = line.compute_remaining_qty()['remaining_qty']
-                    res[line.id] = float_round(remaining_qty, precision_rounding=line.product_uom.rounding)
+                    remaining_qty_pol_uom = line.compute_remaining_qty()['remaining_qty_pol_uom']
+                    res[line.id] = float_round(remaining_qty_pol_uom, precision_rounding=line.product_uom.rounding)
                 if res[line.id] == line.remaining_qty:
                     del res[line.id]
         return res
@@ -56,9 +56,9 @@ class PurchaseOrderLinePlanningImproved(models.Model):
     @api.multi
     def compute_remaining_qty(self, line_uom_id=False):
         self.ensure_one()
-        delivered_qty = 0
-        remaining_qty = 0
-        returned_qty = 0
+        delivered_qty_pol_uom = 0
+        remaining_qty_pol_uom = 0
+        returned_qty_pol_uom = 0
         qty_running_pol_uom = 0
         line_uom = line_uom_id and self.env['product.uom'].search([('id', '=', line_uom_id)]) or self.product_uom
         running_moves = self.env['stock.move']
@@ -89,10 +89,10 @@ WHERE pol.id = %s""", (self.id,))
                                                                        qty_running_product_uom,
                                                                        line_uom.id)
             delivered_qty_pol_uom = delivered_qty_pol_uom
-            remaining_qty = self.product_qty - delivered_qty_pol_uom + returned_qty_pol_uom
-        return {'delivered_qty': delivered_qty,
-                'remaining_qty': remaining_qty,
-                'returned_qty': returned_qty,
+            remaining_qty_pol_uom = self.product_qty - delivered_qty_pol_uom + returned_qty_pol_uom
+        return {'delivered_qty_pol_uom': delivered_qty_pol_uom,
+                'remaining_qty_pol_uom': remaining_qty_pol_uom,
+                'returned_qty_pol_uom': returned_qty_pol_uom,
                 'qty_running_pol_uom': qty_running_pol_uom,
                 'running_moves': running_moves}
 
