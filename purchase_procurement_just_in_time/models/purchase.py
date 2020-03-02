@@ -22,6 +22,14 @@ from openerp.tools import float_round
 from openerp.tools.float_utils import float_compare
 
 
+class PurchaseLineQtyUnderReceivedQty(exceptions.except_orm):
+
+    def __init__(self, purchase_order_line, qty, received_qty):
+        reason = _(u"Line %s of order %s : impossible to set quantity to %s, because %s is already received.") % \
+            (purchase_order_line.line_no, purchase_order_line.order_id.name,qty, received_qty)
+        super(PurchaseLineQtyUnderReceivedQty, self).__init__(_(u"Error!"), reason)
+
+
 class PurchaseOrderJustInTime(models.Model):
     _inherit = 'purchase.order'
 
@@ -293,7 +301,7 @@ class PurchaseOrderLineJustInTime(models.Model):
             return
         if float_compare(target_qty, delivered_qty_pol_uom - returned_qty_pol_uom,
                          precision_rounding=self.product_uom.rounding) < 0:
-            raise exceptions.except_orm(_(u"Error!"), _(u"Impossible to cancel moves at state done."))
+            raise PurchaseLineQtyUnderReceivedQty(self, target_qty, delivered_qty_pol_uom - returned_qty_pol_uom)
         final_running_qty = target_qty - delivered_qty_pol_uom + returned_qty_pol_uom
         moves_to_cancel = self.env['stock.move']
         if float_compare(qty_running_pol_uom, final_running_qty,
@@ -323,7 +331,7 @@ class PurchaseOrderLineJustInTime(models.Model):
         qty_done = self.product_qty - self.remaining_qty
         qty_done_pol_uom = self.env['product.uom']._compute_qty(product.uom_id.id, qty_done, uom.id)
         if vals['product_qty'] < qty_done_pol_uom:
-            raise exceptions.except_orm(_(u"Error!"), _(u"Impossible to cancel moves at state done."))
+            raise PurchaseLineQtyUnderReceivedQty(self, vals['product_qty'], qty_done_pol_uom)
         if self.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
             self.adjust_moves_qties(vals['product_qty'], vals.get('product_uom'))
 
