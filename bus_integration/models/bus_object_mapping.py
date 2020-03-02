@@ -18,7 +18,7 @@
 #
 
 import logging
-
+from openerp.addons.bus_integration.models.bus_synchronized_model_abstract import BusSynchronizedModelAbstract
 from openerp import models, fields, api, exceptions, _ as _t
 
 _logger = logging.getLogger(__name__)
@@ -39,6 +39,13 @@ class BusObjectMappingAbstract(models.AbstractModel):
     deactivated_sync = fields.Boolean(string=u"Synchronize inactive items")
     deactivate_on_delete = fields.Boolean(string=u"Deactivate on delete")
     update_prohibited = fields.Boolean(string=u"Update prohibited", help=u"When field are importable", default=True)
+
+    @api.constrains('model_id', 'is_exportable')
+    def _check_validity(self):
+        for rec in self:
+            if rec.is_exportable and not isinstance(self.env[rec.model_id.model], BusSynchronizedModelAbstract):
+                raise exceptions.except_orm(u"error", u"Bus exported model '%s' must inherit from '%s'" %
+                                            (rec.model_id.name, BusSynchronizedModelAbstract._name))
 
     @api.multi
     def name_get(self):

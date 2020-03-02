@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from . import bus_synchronized_model_abstract
 from . import bus_base
 from . import bus_binder
 from . import bus_mapper
