@@ -113,13 +113,14 @@ class StockPickingPlanningImproved(models.Model):
 
     @api.model
     def compute_date_due_auto(self):
-        self.env.cr.execute("""SELECT sp.id AS picking_id,
+        self.env.cr.execute("""SELECT sp.id        AS picking_id,
        min(sm.date) AS date_due
 FROM stock_move sm
        INNER JOIN stock_picking sp ON sp.id = sm.picking_id
 WHERE sp.state NOT IN ('cancel', 'done')
 GROUP BY sp.id
-HAVING sp.date_due != min(sm.date)""")
+HAVING sp.date_due IS NULL
+    OR sp.date_due::DATE != MIN(sm.date)::DATE""")
         result = self.env.cr.dictfetchall()
         while result:
             chunk_result = result[:100]
