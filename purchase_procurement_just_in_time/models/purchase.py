@@ -323,7 +323,9 @@ class PurchaseOrderLineJustInTime(models.Model):
         qty_done = self.product_qty - self.remaining_qty
         qty_done_pol_uom = self.env['product.uom']._compute_qty(product.uom_id.id, qty_done, uom.id)
         if vals['product_qty'] < qty_done_pol_uom:
-            raise exceptions.except_orm(_(u"Error!"), _(u"Impossible to cancel moves at state done."))
+            raise exceptions.except_orm(_(u"Error!"), _(u"Line %s of order %s : impossible to set quantity to %s, "
+                                                        u"because %s is already received.") %
+                                        (self.line_no, self.order_id.name, vals['product_qty'], qty_done_pol_uom))
         if self.order_id.state in self.env['purchase.order'].get_purchase_order_states_with_moves():
             self.adjust_moves_qties(vals['product_qty'], vals.get('product_uom'))
 
