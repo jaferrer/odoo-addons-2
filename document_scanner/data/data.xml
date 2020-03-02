@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
-    <data>
+    <data noupdate="1">
 
         <record id="scanner_bot_user" model="res.users">
             <field name="name">Scanner Bot</field>
@@ -13,24 +13,35 @@
             <field name="groups_id"
                    eval="[(6,0,[ref('base.group_user'), ref('document_scanner.group_scanner_bot'), ref('document_scanner.bot_ir_attachment'), ref('base.group_document_user'), ref('document_scanner.group_scanner_manager')])]"/>
         </record>
+
+    </data>
+
+    <data>
+
         <record id="scanner_info_resolution_100_dpi" model="scanner.info.dpi">
             <field name="name">100</field>
         </record>
+
         <record id="scanner_info_resolution_150_dpi" model="scanner.info.dpi">
             <field name="name">150</field>
         </record>
+
         <record id="scanner_info_resolution_200_dpi" model="scanner.info.dpi">
             <field name="name">200</field>
         </record>
+
         <record id="scanner_info_resolution_300_dpi" model="scanner.info.dpi">
             <field name="name">300</field>
         </record>
+
         <record id="scanner_info_resolution_400_dpi" model="scanner.info.dpi">
             <field name="name">400</field>
         </record>
+
         <record id="scanner_info_resolution_600_dpi" model="scanner.info.dpi">
             <field name="name">600</field>
         </record>
+
         <record id="scanner_info_resolution_1200_dpi" model="scanner.info.dpi">
             <field name="name">1200</field>
         </record>
@@ -38,6 +49,7 @@
         <record id="scanner_info_color_bw" model="scanner.info.color">
             <field name="name">bw</field>
         </record>
+
         <record id="scanner_info_color_color" model="scanner.info.color">
             <field name="name">color</field>
         </record>

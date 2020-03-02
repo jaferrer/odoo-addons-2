@@ -17,7 +17,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+from openerp.addons.connector.queue.job import job
+from openerp.addons.connector.session import ConnectorSession
+
 from openerp import fields, models, api, _
+
+
+@job
+def job_compute_date_due(session, model_name, data, context):
+    session.env[model_name].with_context(context).compute_date_due(data)
+    return "End update"
 
 
 class ProcurementOrderPlanningImproved(models.Model):
@@ -95,28 +104,28 @@ class StockPickingPlanningImproved(models.Model):
     date_due = fields.Datetime("Due Date", help="Date before which the first moves of this picking must be made so as "
                                                 "not to be late on schedule.")
 
-    @api.multi
-    def compute_date_due(self):
-        if not self.ids:
+    @api.model
+    def compute_date_due(self, data):
+        if not data:
             return
-        cr = self.env.cr
-        cr.execute("""SELECT
-            picking_id,
-            min(date)
-        FROM
-            stock_move
-        WHERE
-            picking_id IN %s
-        GROUP BY
-            picking_id""", (tuple(self.ids),))
-        dates = dict(cr.fetchall())
-        for picking in self:
-            picking.date_due = dates.get(picking.id, False)
+        for item in data:
+            self.browse(item['picking_id']).date_due = item['date_due'] or False
 
     @api.model
     def compute_date_due_auto(self):
-        pickings = self.search([('state', 'not in', ['cancel', 'done'])])
-        pickings.compute_date_due()
+        self.env.cr.execute("""SELECT sp.id AS picking_id,
+       min(sm.date) AS date_due
+FROM stock_move sm
+       INNER JOIN stock_picking sp ON sp.id = sm.picking_id
+WHERE sp.state NOT IN ('cancel', 'done')
+GROUP BY sp.id
+HAVING sp.date_due != min(sm.date)""")
+        result = self.env.cr.dictfetchall()
+        while result:
+            chunk_result = result[:100]
+            job_compute_date_due.delay(ConnectorSession.from_env(self.env), 'stock.picking', chunk_result,
+                                       dict(self.env.context))
+            result = result[100:]
 
 
 class OpenGroupedMoves(models.TransientModel):
