@@ -145,16 +145,21 @@ class PurchaseOrderLinePlanningImproved(models.Model):
                 msg += _(u"LATE by %i day(s)") % rec.opmsg_delay
             rec.opmsg_text = msg
 
+    @api.model
+    def get_path_covering_dates_query(self):
+        module_path = modules.get_module_path('purchase_planning_improved')
+        return module_path + '/sql/' + 'covering_dates_query.sql'
+
     @api.multi
     def compute_coverage_state(self, force_product_ids=None):
-        module_path = modules.get_module_path('purchase_planning_improved')
         product_ids = force_product_ids or []
         if not force_product_ids:
             products = self.mapped('product_id')
             if not products:
                 return
             product_ids = products.ids
-        with open(module_path + '/sql/' + 'covering_dates_query.sql') as sql_file:
+        path_covering_dates_query = self.get_path_covering_dates_query()
+        with open(path_covering_dates_query) as sql_file:
             self.env.cr.execute(sql_file.read(), (tuple(product_ids),))
             for result_line in self.env.cr.dictfetchall():
                 line = self.env['purchase.order.line'].search([('id', '=', result_line['pol_id'])])
