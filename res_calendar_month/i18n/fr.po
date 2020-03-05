@@ -1,0 +1,123 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* res_calendar_month
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-03-04 15:02+0000\n"
+"PO-Revision-Date: 2020-03-04 15:02+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_april
+msgid "April"
+msgstr "Avril"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_august
+msgid "August"
+msgstr "Août"
+
+#. module: res_calendar_month
+#: model:ir.model.fields,field_description:res_calendar_month.field_res_calendar_month__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: res_calendar_month
+#: model:ir.model.fields,field_description:res_calendar_month.field_res_calendar_month__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_december
+msgid "December"
+msgstr "Décembre"
+
+#. module: res_calendar_month
+#: model:ir.model.fields,field_description:res_calendar_month.field_res_calendar_month__display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_february
+msgid "February"
+msgstr "Février"
+
+#. module: res_calendar_month
+#: model:ir.model.fields,field_description:res_calendar_month.field_res_calendar_month__id
+msgid "ID"
+msgstr "ID"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_january
+msgid "January"
+msgstr "Janvier"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_july
+msgid "July"
+msgstr "Juillet"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_june
+msgid "June"
+msgstr "Juin"
+
+#. module: res_calendar_month
+#: model:ir.model.fields,field_description:res_calendar_month.field_res_calendar_month____last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: res_calendar_month
+#: model:ir.model.fields,field_description:res_calendar_month.field_res_calendar_month__write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: res_calendar_month
+#: model:ir.model.fields,field_description:res_calendar_month.field_res_calendar_month__write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_march
+msgid "March"
+msgstr "Mars"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_may
+msgid "May"
+msgstr "Mai"
+
+#. module: res_calendar_month
+#: model:ir.model.fields,field_description:res_calendar_month.field_res_calendar_month__name
+#: model:ir.model.fields,field_description:res_calendar_month.field_res_calendar_month__number
+msgid "Name"
+msgstr "Nom"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_november
+msgid "November"
+msgstr "Novembre"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_october
+msgid "October"
+msgstr "Octobre"
+
+#. module: res_calendar_month
+#: model:res.calendar.month,name:res_calendar_month.month_september
+msgid "September"
+msgstr "Septembre"
+
+#. module: res_calendar_month
+#: model:ir.model,name:res_calendar_month.model_res_calendar_month
+msgid "res.calendar.month"
+msgstr "res.calendar.month"
+
