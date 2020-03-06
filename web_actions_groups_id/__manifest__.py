@@ -26,8 +26,8 @@
     'depends': ['web'],
     'description': """
 Manage groups_id for all ir.actions.X type
-============================
-Add a field groups_id  inside the model ir.actions.server
+==========================================
+Add a field groups_id inside the ir.actions models
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
