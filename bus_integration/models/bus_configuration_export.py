@@ -132,7 +132,7 @@ class BusConfigurationExport(models.Model):
     def sync_diff(self):
         """ run the batch, exports all self.model's records matching self.domain and created or update
         since the last last export"""
-        force_domain = "[('write_date', '>', last_send_date)]"
+        force_domain = "[('write_date_bus', '>', last_send_date)]"
         job_uuids = {}
         for rec in self:
             uuid = self.env['bus.exporter'].run_export(rec.id, force_domain)
