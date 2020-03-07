@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Pour passer les tests de 'account' -->
+    <record id="res_config_settings_v11" model="res.config.settings">
+        <field name="tax_calculation_rounding_method">round_per_line</field>
+    </record>
+
+</odoo>

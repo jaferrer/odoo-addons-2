@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Account',
-    'depends': ['base'],
+    'depends': ['base', 'account'],
     'description': """
 L10n - French Company
 =====================
@@ -31,7 +31,7 @@ This modules switches main company to France. If it is not done, l10n_us and l10
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': ['data.xml'],
-    'demo': [],
+    'demo': ['demo_data.xml'],
     'test': [],
     'installable': True,
     'auto_install': False,
