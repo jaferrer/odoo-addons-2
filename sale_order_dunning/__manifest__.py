@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,24 +16,29 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Manage groups_id for all ir.actions.X type',
+    'name': 'Sale Order Dunning',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Dependency',
-    'depends': ['web'],
+    'category': 'Init',
+    'depends': ['report_aeroo',
+                'sale'
+                ],
     'description': """
-Manage groups_id for all ir.actions.X type
-==========================================
-Add a field groups_id inside the ir.actions models
+Account Invoice Dunning
+=======================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
     'demo': [],
     'test': [],
-    'installable': True,
+    'data': [
+        'security/ir.model.access.csv',
+        'views/dunning.xml',
+        'views/dunning_type.xml',
+        'views/dunning_sale_order_link.xml',
+        'views/dunning_config_settings_views.xml',
+    ],
     'auto_install': False,
     'license': 'AGPL-3',
     'application': False,

@@ -5,6 +5,7 @@ odoo.define('web_kanban_state_selection.ListView', function (require) {
     var ListView = require('web.ListView');
     var KanbanWidgets = require('web_kanban.widgets');
 
+    var form_widget_registry = core.form_widget_registry;
     var list_widget_registry = core.list_widget_registry;
 
     var KanbanSelection = ListView.Column.extend({
@@ -32,8 +33,19 @@ odoo.define('web_kanban_state_selection.ListView', function (require) {
         }
     });
 
-
     list_widget_registry.add('field.kanban_state_selection', KanbanSelection);
+
+    // Readonly fields in a form with this widget will now be readonly for real
+    var KanbanSelectionForm = form_widget_registry.get('kanban_state_selection')
+    KanbanSelectionForm.include({
+        render_value: function() {
+            this._super();
+            if (this.modifiers['readonly']) {
+                var $dropdown = this.$el.find('.dropdown-menu');
+                $dropdown.remove();
+            }
+        },
+    });
 
     KanbanWidgets.registry.get('kanban_state_selection').include({
         prepare_dropdown_selection: function () {

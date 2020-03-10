@@ -62,6 +62,11 @@ msgstr "Avoir Fournisseur"
 
 #. module: account_invoice_report_aeroo
 #: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
+msgid "Supplier Invoice"
+msgstr "Facture Fournisseur"
+
+#. module: account_invoice_report_aeroo
+#: report:ir.actions.report.xml:account_invoice_report_aeroo.account_invoice_report_aeroo
 msgid "Dated"
 msgstr "Document daté du"
 

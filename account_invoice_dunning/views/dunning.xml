@@ -51,6 +51,7 @@
                                 <field name="date_due"/>
                                 <field name="amount_total"/>
                                 <field name="residual"/>
+                                <field name="date_next_dunning"/>
                             </tree>
                         </field>
                     </sheet>
@@ -73,6 +74,8 @@
                     <field name="user_id"/>
                     <field name="date_done"/>
                     <field name="state"/>
+                    <field name="amount_total_signed"/>
+                    <field name="residual_signed"/>
                 </tree>
             </field>
         </record>
