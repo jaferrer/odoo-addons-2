@@ -207,7 +207,7 @@ class SaleOrder(models.Model):
         return self._create_dunning()._get_action_view()
 
     @api.multi
-    def _no_next_dunning(self):
+    def _no_next_dunning(self, raise_if_not_valid=True):
         self.ensure_one()
         raise UserError(_(u"No next Dunning Type for the sale order %s" % self.display_name))
 
