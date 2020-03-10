@@ -7,9 +7,8 @@
         <field name="inherit_id" ref="sale.view_sales_config"/>
         <field name="arch" type="xml">
             <field name="module_sale_margin" position="after">
-                <field name="sending_validity_duration"/>
+                <field name="delay_first_dunning"/>
             </field>
         </field>
     </record>
-
 </odoo>

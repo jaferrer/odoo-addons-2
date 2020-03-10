@@ -17,23 +17,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 import datetime
-from odoo import fields, models, api, _, osv
+from odoo import fields, models, api, _
+from odoo.exceptions import UserError
 
 
 class SaleOrderRelanceConfig(models.Model):
     _name = 'sale.order.dunning.type'
+    _order = 'number DESC'
 
     def _get_domain_mail_template(self):
         return [('model_id', '=', self.env.ref('sale_order_dunning.model_sale_order_dunning').id)]
 
-    name = fields.Char(required=True, string="Name")
-    number = fields.Integer("Dunning number", default=1, required=True)
-    sequence_id = fields.Many2one('ir.sequence', string="Sequence")
-    report_id = fields.Many2one('ir.actions.report.xml', string="Report",
+    name = fields.Char(required=True, string=u"Name")
+    number = fields.Integer(u"Dunning number", default=1, required=True)
+    sequence_id = fields.Many2one('ir.sequence', string=u"Sequence")
+    report_id = fields.Many2one('ir.actions.report.xml', string=u"Report",
                                 domain=[('model', '=', 'sale.order.dunning')], required=True)
-    mail_template_id = fields.Many2one('mail.template', string="Mail Template", domain=_get_domain_mail_template,
+    mail_template_id = fields.Many2one('mail.template', string=u"Mail Template", domain=_get_domain_mail_template,
                                        required=True)
     company_id = fields.Many2one('res.company', string="Company", default=lambda self: self.env.user.company_id)
+    delay_next_dunning_date = fields.Integer(u"Delay before next dunning")
 
     @api.multi
     def _get_dunning_name(self):
@@ -60,24 +63,21 @@ class SaleOrderRelance(models.Model):
     partner_id = fields.Many2one('res.partner', string=u"Partner")
     company_id = fields.Many2one('res.company', string=u"Company", default=lambda self: self.env.user.company_id)
     dunning_type_id = fields.Many2one('sale.order.dunning.type', string=u"Dunning Type")
+    dunning_type_number = fields.Integer(related='dunning_type_id.number', string=u"Sequence")
     report_id = fields.Many2one('ir.actions.report.xml', string=u"Report", related='dunning_type_id.report_id',
                                 readonly=True)
     sequence_id = fields.Many2one('ir.sequence', related='dunning_type_id.sequence_id', readonly=True)
     mail_template_id = fields.Many2one('mail.template', string=u"Mail Template",
                                        related='dunning_type_id.mail_template_id', readonly=True)
-    order_ids = fields.Many2many('sale.order', string=u"Sale Orders")
-    folder_id = fields.Many2one('folder', string=u"Dossier")
-    amount_total_signed = fields.Float(u"Total", compute='_compute_amounts')
-    note = fields.Text(u"Notes")
-    user_id = fields.Many2one('res.users', u"Responsible")
+    order_ids = fields.Many2many('sale.order', string=u"Sale Orders", track_visibility='onchange')
+    amount_total_signed = fields.Float(u"Total", compute='_compute_amounts', track_visibility='onchange')
+    note = fields.Text(u"Notes", track_visibility='onchange')
+    user_id = fields.Many2one('res.users', u"Responsible", track_visibility='onchange')
 
     @api.multi
     def _compute_amounts(self):
         for rec in self:
-            amount = 0
-            for order in rec.order_ids:
-                amount += order.amount_total
-            rec.amount_total_signed = amount
+            rec.amount_total_signed = sum(rec.order_ids.mapped('amount_total'))
 
     @api.model
     def _get_existing_dunning(self, order_id, dunning_config_id):
@@ -86,8 +86,11 @@ class SaleOrderRelance(models.Model):
     @api.multi
     def action_done(self):
         self.write({'state': 'done'})
-        next_date = fields.Datetime.to_string(datetime.datetime.now() + datetime.timedelta(days=7))
-        self.order_ids.write({'date_next_dunning': next_date})
+        for order in self.order_ids:
+            next_type = order._get_next_dunning_type()
+            if next_type and next_type.delay_next_dunning_date:
+                next_date = datetime.datetime.now() + datetime.timedelta(days=next_type.delay_next_dunning_date)
+                self.order_ids.write({'next_dunning_date': next_date})
 
     @api.multi
     def action_cancel(self):
@@ -115,6 +118,8 @@ class SaleOrderRelance(models.Model):
     @api.multi
     def action_send_mail(self):
         self.ensure_one()
+        if not self.mail_template_id:
+            raise UserError(_(u"No Mail Template provided by the dunning type"))
         compose_form = self.env.ref('mail.email_compose_message_wizard_form', False)
         ctx = dict(
             default_model=self._name,
@@ -163,49 +168,34 @@ class SaleOrderRelance(models.Model):
                 'res_model': 'sale.order.dunning',
                 'res_id': self.id,
                 'type': 'ir.actions.act_window',
+                'context': self.env.context,
             }
 
         return res
 
     @api.model
-    def cron_sale_order_dunning_update(self):
-        """Si le devis dépasse la date d'échéance, alors une relance se créé.
+    def _get_sale_to_auto_create_dunning_domain(self):
+        return [
+            ('next_dunning_date', '<=', fields.Date.today()),
+        ]
 
-        Jusqu'à 6 relances pour 2 états chacuns: sent et recorded."""
-        orders = self.env['sale.order'].search([
-            ('state', 'in', ['sent', 'recorded']),
-            ('date_next_dunning', '<', fields.Datetime.to_string(datetime.datetime.now()))
-        ])
+    @api.model
+    def cron_sale_order_dunning_update(self):
+        orders = self.env['sale.order'].search(self._get_sale_to_auto_create_dunning_domain())
         for order in orders:
-            dunnings = self.env['sale.order.dunning'].search([('order_ids', '=', order.id)])
-            last_dunning = self.env['sale.order.dunning']
-            for dunning in dunnings:
-                if dunning.dunning_type_id.number > last_dunning.dunning_type_id.number and dunning.state != 'cancel':
-                    last_dunning = dunning
-            if ((not last_dunning) or
-                    (last_dunning.dunning_type_id.number < 12 and last_dunning.state in ['done', 'cancel'])):
-                next_number = last_dunning.dunning_type_id.number + 1
-                dunning_type = self.env['sale.order.dunning.type'].search([('number', '=', next_number)])
-                self.env['sale.order.dunning'].create({
-                    'name': u"Relance" + u"-" + order.name + u"-" + str(next_number),
-                    'order_ids': [(6, 0, [order.id])],
-                    'partner_id': order.partner_id.id,
-                    'user_id': self.env.user.id,
-                    'dunning_type_id': dunning_type.id,
-                    'folder_id': order.folder_id.id,
-                })
+            order._create_dunning(raise_if_not_valid=False)
 
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    def _get_default_date_next_dunning(self):
+    def _get_default_next_dunning_date(self):
         date = datetime.datetime.now() + datetime.timedelta(days=7)
         return fields.Datetime.to_string(date)
 
     sale_order_dunning_ids = fields.Many2many('sale.order.dunning', string=u"Dunnings")
     dunning_number = fields.Integer(u"Number of Dunning send", compute='_compute_dunning_number')
-    date_next_dunning = fields.Datetime(u"Date de prochaine relance", default=_get_default_date_next_dunning)
+    next_dunning_date = fields.Date(u"Date de prochaine relance", default=_get_default_next_dunning_date)
 
     @api.multi
     def _compute_dunning_number(self):
@@ -218,28 +208,38 @@ class SaleOrder(models.Model):
 
     @api.multi
     def _no_next_dunning(self):
-        raise osv.osv.except_orm(_(u"Error !"), _(u"No next Dunning Type for the sale order %s" % self.number))
+        self.ensure_one()
+        raise UserError(_(u"No next Dunning Type for the sale order %s" % self.display_name))
 
     @api.multi
-    def _validate_to_create_dunning(self):
-        if self.state not in ['sent', 'recorded']:
-            raise osv.osv.except_orm(
-                _(u"Error !"), _(u"You can't create a Dunning on a sale order which is not sent or recorded")
-            )
+    def _is_valid_to_create_dunning(self):
+        self.ensure_one()
+        return self.state in self._allowed_state_to_create_dunning()
+
+    @api.model
+    def _allowed_state_to_create_dunning(self):
+        return ['sent']
 
     @api.multi
     def _get_next_dunning_type(self):
-        dunning_type_ids = self.sale_order_dunning_ids.filtered(lambda it: it.state == 'send').mapped('dunning_type_id')
+        self.ensure_one()
         return self.env['sale.order.dunning.type'].search(
-            [('id', 'not in', dunning_type_ids.ids), ('company_id', '=', self.company_id.id)],
-            order='number asc', limit=1)
+            self._get_next_dunning_type_domain(),
+            order="number ASC", limit=1
+        )
 
     @api.multi
-    def _prepare_sale_order_dunning(self, dunning_type_id):
+    def _get_next_dunning_type_domain(self):
+        self.ensure_one()
+        dunnings = self.sale_order_dunning_ids.filtered(lambda it: it.state not in ['draft', 'cancel'])
+        return [('id', 'not in', dunnings.mapped('dunning_type_id').ids), ('company_id', '=', self.company_id.id)]
+
+    @api.multi
+    def _prepare_sale_dunning(self, dunning_type_id):
         self.ensure_one()
         return {
             'dunning_type_id': dunning_type_id.id,
-            'sale_order_ids': [(4, self.id, {})],
+            'order_ids': [(4, self.id, None)],
             'partner_id': self.partner_id.id,
             'company_id': self.company_id.id,
             'user_id': self.user_id.id,
@@ -256,21 +256,23 @@ class SaleOrder(models.Model):
         return super(SaleOrder, self).action_sale_order_paid()
 
     @api.multi
-    def _create_dunning(self):
+    def _create_dunning(self, raise_if_not_valid=True):
         result = self.env['sale.order.dunning']
         for rec in self:
-            rec._validate_to_create_dunning()
+            if not rec._is_valid_to_create_dunning():
+                if raise_if_not_valid:
+                    raise UserError(_(u"You can't create a Dunning on a sale order in state %s" % rec.state))
+
             next_dunning_type = rec._get_next_dunning_type()
             if next_dunning_type:
-                existing_dunning = self.env['sale.order.dunning']._get_existing_dunning(rec, next_dunning_type)
-                if existing_dunning:
-                    existing_dunning.order_ids = [(4, rec.id, {})]
+                dunning = self.env['sale.order.dunning']._get_existing_dunning(rec, next_dunning_type)
+                if dunning:
+                    dunning.order_ids = [(4, rec.id, None)]
                 else:
-                    existing_dunning = self.env['sale.order.dunning'].create(
-                        rec._prepare_sale_order_dunning(next_dunning_type))
-                result |= existing_dunning
+                    dunning = self.env['sale.order.dunning'].create(rec._prepare_sale_dunning(next_dunning_type))
+                result |= dunning
             else:
-                rec._no_next_dunning()
+                rec._no_next_dunning(raise_if_not_valid)
         return result
 
     @api.model

@@ -23,4 +23,4 @@ from odoo import models, fields
 class AccountInvoiceDunningResCompany(models.Model):
     _inherit = 'res.company'
 
-    sending_validity_duration = fields.Integer(default=15)
+    delay_first_dunning = fields.Integer(default=15)

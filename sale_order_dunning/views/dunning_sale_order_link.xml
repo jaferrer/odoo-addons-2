@@ -10,13 +10,13 @@
                 <separator/>
                 <filter string="Dunning 30 days before"
                         name="days_30"
-                        domain="[('validity_date', '&lt;=', (context_today() + relativedelta(days=30)).strftime('%Y-%m-%d')), ('state', '=', 'sent')]"/>
+                        domain="[('next_dunning_date', '&lt;=', (context_today() + relativedelta(days=30)).strftime('%Y-%m-%d')), ('state', '=', 'sent')]"/>
                 <filter string="Dunning 15 days before"
                         name="days_15"
-                        domain="[('validity_date', '&lt;=', (context_today() + relativedelta(days=15)).strftime('%Y-%m-%d')), ('state', '=', 'sent')]"/>
+                        domain="[('next_dunning_date', '&lt;=', (context_today() + relativedelta(days=15)).strftime('%Y-%m-%d')), ('state', '=', 'sent')]"/>
                 <filter string="Dunning 7 days before"
                         name="days_7"
-                        domain="[('validity_date', '&lt;=', (context_today() + relativedelta(days=7)).strftime('%Y-%m-%d')), ('state', '=', 'sent')]"/>
+                        domain="[('next_dunning_date', '&lt;=', (context_today() + relativedelta(days=7)).strftime('%Y-%m-%d')), ('state', '=', 'sent')]"/>
             </xpath>
         </field>
     </record>
@@ -27,7 +27,7 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <field name="date_order" position="after">
-                <field name="date_next_dunning" widget="date"/>
+                <field name="next_dunning_date" widget="date"/>
             </field>
             <xpath expr="//notebook" position="inside">
                 <page string="Dunning">
@@ -38,6 +38,8 @@
                             <field name="date_done"/>
                             <field name="note"/>
                             <field name="state"/>
+                            <button name="action_send_mail" type="object" icon="fa-envelope-o"/>
+                            <button name="action_done" type="object"  icon="fa-check" style="color: green;"/>
                         </tree>
                     </field>
                 </page>
@@ -60,11 +62,18 @@
     <record model="ir.actions.server" id="ir_actions_server_report_relance_for_sale_order">
         <field name="name">Create Dunning</field>
         <field name="model_id" ref="sale.model_sale_order"/>
-        <field name="binding_model_id" ref="sale.model_sale_order"/>
         <field name="state">code</field>
         <field name="code">
             action = records.action_create_dunning()
         </field>
+    </record>
+
+    <record model="ir.values" id="ir_values_report_relance_for_sale_order">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">sale.order</field>
+        <field name="name">Create Dunning</field>
+        <field name="value" eval="'ir.actions.server,'+str(ir_actions_server_report_relance_for_sale_order)"/>
     </record>
 
 </odoo>

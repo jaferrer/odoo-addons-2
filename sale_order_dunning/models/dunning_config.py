@@ -23,5 +23,4 @@ from odoo import fields, models
 class SaleOrderDunningConfigSettings(models.TransientModel):
     _inherit = 'sale.config.settings'
 
-    sending_validity_duration = fields.Integer(
-        related='company_id.sending_validity_duration', string=u"Duration of validity of the sendings")
+    delay_first_dunning = fields.Integer(u"Default Delay For Dunning", related='company_id.delay_first_dunning')
