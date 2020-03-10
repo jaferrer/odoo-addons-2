@@ -173,3 +173,9 @@ msgstr "Entrepôt"
 #: view:procurement.sale.link:sale_stock_manual_link.procurement_sale_link_search
 msgid "Group By..."
 msgstr "Grouper par"
+
+#. module: sale_stock_manual_link
+#: model:ir.actions.server,name:sale_stock_manual_link.ir_actions_server_update_table
+#: model:ir.values,name:sale_stock_manual_link.ir_value_update_table
+msgid "Update table"
+msgstr "Mettre à jour la table"
