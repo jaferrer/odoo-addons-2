@@ -27,5 +27,5 @@ msgstr "Erreur !"
 #. module: stock_forbid_negative_moves
 #: code:addons/stock_forbid_negative_moves/stock_forbid_negative_moves.py:29
 #, python-format
-msgid "You are not allowed to create a negative or null move."
-msgstr "Il est interdit de créer un mouvement négatif ou nul."
+msgid "Product %s: you are not allowed to create a negative or null move."
+msgstr "Article %s : il est interdit de créer un mouvement négatif ou nul."

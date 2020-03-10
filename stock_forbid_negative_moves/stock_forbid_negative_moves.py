@@ -33,7 +33,10 @@ class StockQuant(models.Model):
             self.env['product.product'].search([('id', '=', product_id)]).uom_id or False
         negative_move = uom and float_compare(move_qty, 0.0, precision_rounding=uom.rounding) <= 0 or move_qty <= 0
         if negative_move:
-            raise exceptions.except_orm(_(u"Error!"), _(u"You are not allowed to create a negative or null move."))
+            product = self.env['product.product'].browse(product_id)
+            raise exceptions.except_orm(_(u"Error!"),
+                                        _(u"Product %s: you are not allowed to create a negative or null move.") %
+                                        product.display_name)
         return super(StockQuant, self).create(vals)
 
     @api.multi
@@ -48,5 +51,8 @@ class StockQuant(models.Model):
                 self.env['product.product'].search([('id', '=', product_id)]).uom_id or False
             negative_move = uom and float_compare(move_qty, 0.0, precision_rounding=uom.rounding) <= 0 or move_qty <= 0
             if negative_move and not self.env.context.get('allow_move_null_qty', False):
-                raise exceptions.except_orm(_(u"Error!"), _(u"You are not allowed to create a negative or null move."))
+                product = self.env['product.product'].browse(product_id)
+                raise exceptions.except_orm(_(u"Error!"),
+                                            _(u"Product %s: you are not allowed to create a negative or null move.") %
+                                            product.display_name)
         return super(StockQuant, self).write(vals)
