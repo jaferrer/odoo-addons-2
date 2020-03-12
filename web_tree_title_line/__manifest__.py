@@ -1,4 +1,4 @@
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
@@ -16,3 +16,21 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
+{
+    'name': 'Web Tree Title Line',
+    'version': '1.0',
+    'author': 'NDP Systèmes',
+    'website': 'https://ndp-systemes.fr',
+    'category': 'Web',
+    'description': """
+Web Tree Title Line
+===================
+Allows to create a title line in a tree view with a boolean field 'is_title_line' (see sale order lines v12)""",
+    'depends': ['web'],
+    'data': [
+        'views/templates.xml',
+    ],
+    'installable': True,
+    'application': True
+}

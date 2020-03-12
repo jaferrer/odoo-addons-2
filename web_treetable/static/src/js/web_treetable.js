@@ -75,6 +75,16 @@ ListRenderer.include({
         return result;
     },
 
+    // Disable tree sorting by column cf list_renderer.js -> line 548
+    _renderHeaderCell: function (node) {
+        let result = this._super(node);
+
+        if (this.arch.attrs.class === 'web_treetable') {
+            result.removeClass('o_column_sortable');
+        }
+        return result
+    },
+
     unselectRow: function () {
         return this._super.apply(this, arguments).then(function () {
             if (arguments.length === 1) {

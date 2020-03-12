@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <template id="web_tree_fix_assets_backend" name="web treetable assets" inherit_id="web.assets_backend">
+    <template id="web_tree_fix_assets_backend" name="web tree fix assets" inherit_id="web.assets_backend">
         <xpath expr="." position="inside">
             <script type="text/javascript" src="/web_tree_fix/static/src/js/web_tree_fix.js"/>
         </xpath>
