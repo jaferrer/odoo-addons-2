@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="odoo_monitoring_nb_deleted_events_tree">
+            <field name="name">odoo_monitoring_nb_deleted_events_tree</field>
+            <field name="model">odoo.monitoring.database.table</field>
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="current_cardinality"/>
+                    <field name="current_disk_size_total"/>
+                    <field name="nb_deleted_lines_since_last_vacuum_full"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_odoo_monitoring_nb_deleted_events">
+            <field name="name">Number of Recently Deleted Lines</field>
+            <field name="res_model">odoo.monitoring.database.table</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="odoo_monitoring_nb_deleted_events_tree"/>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+            <field name="help"/>
+        </record>
+
+        <menuitem id="menu_odoo_monitoring_nb_deleted_events" name="Number of Recently Deleted Lines"
+                  action="act_window_odoo_monitoring_nb_deleted_events"
+                  parent="base_database_monitoring.menu_monitoring_indicators" sequence="20"/>
+
+    </data>
+</openerp>

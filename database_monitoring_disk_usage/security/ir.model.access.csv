@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_odoo_monitoring_disk_usage_by_table,access_odoo_monitoring_disk_usage_by_table,model_odoo_monitoring_disk_usage_by_table,base_database_monitoring.group_monitoring_user,1,0,0,0
