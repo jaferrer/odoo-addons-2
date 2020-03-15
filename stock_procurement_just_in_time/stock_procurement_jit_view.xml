@@ -143,6 +143,7 @@
                     <field name="job_uuid"/>
                     <field name="date_done"/>
                     <field name="done"/>
+                    <field name="company_id"/>
                 </tree>
             </field>
         </record>
