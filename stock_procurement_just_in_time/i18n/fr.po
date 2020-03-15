@@ -338,6 +338,11 @@ msgid "Done"
 msgstr "Terminé"
 
 #. module: stock_procurement_just_in_time
+#: field:stock.scheduler.controller,company_id:0
+msgid "Company"
+msgstr "Société"
+
+#. module: stock_procurement_just_in_time
 #: view:stock.scheduler.controller:stock_procurement_just_in_time.stock_scheduler_controller_search
 msgid "Running"
 msgstr "En cours"
