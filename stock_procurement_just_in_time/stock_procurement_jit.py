@@ -729,7 +729,6 @@ ORDER BY po.date_planned"""
 
         # outgoing items
         for sm in moves_out_tuples:
-            print 'move_out', sm
             intermediate_result += [{
                 'proc_id': False,
                 'location_id': self.location_id.id,
