@@ -22,6 +22,7 @@ from odoo import models, fields
 
 class MrpSubcontractor(models.TransientModel):
     _name = 'mrp.subcontractor'
+    _description = "Mrp Subcontractor"
 
     def _get_partner_id_domain(self):
         return [('id', 'in',

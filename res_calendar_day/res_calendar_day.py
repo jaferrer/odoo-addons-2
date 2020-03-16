@@ -22,6 +22,7 @@ from odoo import fields, models, api
 
 class PoseMeetingLine(models.Model):
     _name = 'res.calendar.day'
+    _description = "Calendar Day"
     _order = 'iso_week_day'
 
     name = fields.Char(u"Name", required=True, translate=True)

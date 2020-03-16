@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,19 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models, api
+from odoo import models, api
 
 
-class ResCalendarYear(models.Model):
-    _name = 'res.calendar.year'
-    _description = "Calendar Year"
-    _order = 'number'
+class ProductProduct(models.Model):
+    _inherit = 'product.product'
 
-    number = fields.Integer(u"Number", required=True)
-
-    @api.multi
-    def name_get(self):
-        res = []
-        for rec in self:
-            res.append((rec.id, rec.number))
-        return res
+    @api.model
+    def _get_products_for_purchase_forecast(self):
+        return self.search([('purchase_ok', '=', True)])

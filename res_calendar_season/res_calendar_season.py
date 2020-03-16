@@ -25,6 +25,7 @@ from odoo import fields, models, api, _
 
 class ResCalendarSeason(models.Model):
     _name = 'res.calendar.season'
+    _description = "Calendar Season"
     _order = 'sequence'
 
     sequence = fields.Integer(u"Sequence", required=True)
@@ -50,7 +51,10 @@ class ResCalendarSeason(models.Model):
         self.ensure_one()
         today = date.today()
         start_date = today + relativedelta(year=year, month=self.start_month_id.number, day=1)
-        end_date = today + relativedelta(year=year, month=self.end_month_id.number, day=31)
+        current_date = start_date
+        while current_date.month != self.end_month_id.number:
+            current_date = current_date + relativedelta(months=1)
+        end_date = current_date + relativedelta(day=31)
         return start_date, end_date
 
     @api.multi

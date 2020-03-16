@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="purchase_planning_rule" model="ir.rule">
+        <field name="name">purchase_planning_rule</field>
+        <field name="model_id" ref="model_purchase_planning"/>
+        <field name="domain_force">[('purchase_order_line_id','!=',False)]</field>
+        <field name="perm_write" eval="1"/>
+        <field name="perm_create" eval="1"/>
+        <field name="perm_read" eval="0"/>
+        <field name="perm_unlink" eval="1"/>
+    </record>
+
+</odoo>
