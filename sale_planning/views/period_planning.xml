@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="period_sale_planning_kanban" model="ir.ui.view">
+        <field name="name">period_sale_planning_kanban</field>
+        <field name="model">period.planning</field>
+        <field name="arch" type="xml">
+            <kanban class="oe_background_grey o_kanban_dashboard" create="0">
+                <field name="season_id"/>
+                <field name="year_id"/>
+                <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_global_click">
+                                <a type="action" name="%(sale_planning_view_action)d">
+                                    <div t-attf-class="o_kanban_card_header">
+                                        <div class="o_kanban_card_header_title">
+                                            <field name="season_id"/>
+                                            <field name="year_id"/>
+                                            <span class="float-right text-right">
+                                                <field name="sale_state" widget="label_selection" options="{'classes': {'confirm': 'warning','done': 'success'}}"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="container o_kanban_card_content">
+                                        <div class="col-6 o_kanban_primary_left">
+                                            <div t-if="record.count_sale_planning.raw_value > 0" class="row">
+                                                <div class="col-9">
+                                                    Forecast
+                                                </div>
+                                                <div class="col-3">
+                                                    <field name="count_sale_planning"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </t>
+                    </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="period_sale_planning_view_action" model="ir.actions.act_window">
+        <field name="name">Period planning</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">period.planning</field>
+        <field name="view_id" ref="sale_planning.period_sale_planning_kanban"/>
+        <field name="view_mode">kanban</field>
+    </record>
+
+</odoo>

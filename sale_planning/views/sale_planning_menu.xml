@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <menuitem id="menu_sale_sale_planning"
+            name="Sale Forecast"
+            parent="sale.sale_menu_root"
+            sequence="5"
+            groups="sales_team.group_sale_manager"/>
+
+    <menuitem id="create_forecast_menu"
+          name="Create new forecast"
+          parent="menu_sale_sale_planning"
+          action="sale_planning_create_action"
+          sequence="1"/>
+
+    <menuitem id="view_forecast_menu"
+          name="Forecast"
+          parent="menu_sale_sale_planning"
+          action="period_sale_planning_view_action"
+          sequence="2"/>
+
+    <menuitem id="confirm_forecast_menu"
+          name="Confirm forecast"
+          parent="menu_sale_sale_planning"
+          action="sale_planning_confirm_action"
+          sequence="3"/>
+
+</odoo>
