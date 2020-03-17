@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
+<odoo>
     <data>
 
         <menuitem id="top_menu_importation" name="Importation" sequence="1000"
@@ -70,7 +70,7 @@
             <field name="arch" type="xml">
                 <form create="false" delete="false">
                     <header>
-                        <button name="generate_out_csv_files" string="Update CSV Files" confirm="Are-you sure? This will overwrite old generated CSV files" type="object"/>
+                        <button name="action_generate_out_csv_files" string="Update CSV Files" confirm="Are-you sure? This will overwrite old generated CSV files" type="object"/>
                         <button name="import_actual_files" string="Import actual files" confirm="Are-you sure? This will overwrite current database data" type="object"
                                 attrs="{'invisible': [('csv_file_ids', '=', False)]}"/>
                         <field name="state" widget="statusbar"/>
@@ -166,6 +166,7 @@
                             <field name="chunk_size"/>
                             <field name="fields_to_import"/>
                             <field name="original_file_id"/>
+                            <field name="context_to_add"/>
                             <field name="error" invisible="True"/>
                             <field name="done" invisible="True"/>
                             <field name="error_msg"/>
@@ -214,4 +215,4 @@
         </record>
 
     </data>
-</openerp>
+</odoo>
