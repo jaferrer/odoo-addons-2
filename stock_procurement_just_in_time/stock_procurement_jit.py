@@ -163,7 +163,9 @@ class ProcurementOrderQuantity(models.Model):
 
     @api.model
     def delete_old_controller_lines(self):
-        last_date_done = dt.now() - relativedelta(months=1)
+        keep_stock_controller_lines_for = bool(self.env['ir.config_parameter'].get_param(
+            'stock_procurement_just_in_time.keep_stock_controller_lines_for', default=0))
+        last_date_done = dt.now() - relativedelta(days=keep_stock_controller_lines_for)
         last_date_done = fields.Datetime.to_string(last_date_done)
         self.env.cr.execute("""DELETE FROM stock_scheduler_controller WHERE done IS TRUE AND date_done < %s""",
                             (last_date_done,))
