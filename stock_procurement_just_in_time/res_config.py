@@ -26,6 +26,7 @@ class StockProcurementJitConfig(models.TransientModel):
     consider_end_contract_effect = fields.Boolean(string=u"Consider end contract effects")
     relative_stock_delta = fields.Float(string=u"Relative stock delta allowed (%)")
     absolute_stock_delta = fields.Float(string=u"Absolute stock delta allowed (product UoM)")
+    keep_stock_controller_lines_for = fields.Integer(string=u"Keep stock controller lines for (in days)")
 
     @api.multi
     def get_default_consider_end_contract_effect(self):
@@ -65,3 +66,16 @@ class StockProcurementJitConfig(models.TransientModel):
         for record in self:
             config_parameters.set_param("stock_procurement_just_in_time.absolute_stock_delta",
                                         record.absolute_stock_delta or '0.0')
+
+    @api.multi
+    def get_default_keep_stock_controller_lines_for(self):
+        keep_stock_controller_lines_for = self.env['ir.config_parameter'].get_param(
+            "stock_procurement_just_in_time.keep_stock_controller_lines_for", default=0) or 0
+        return {'keep_stock_controller_lines_for': int(keep_stock_controller_lines_for)}
+
+    @api.multi
+    def set_keep_stock_controller_lines_for(self):
+        config_parameters = self.env["ir.config_parameter"]
+        for record in self:
+            config_parameters.set_param("stock_procurement_just_in_time.keep_stock_controller_lines_for",
+                                        record.keep_stock_controller_lines_for or '0')

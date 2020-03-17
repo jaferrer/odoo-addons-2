@@ -23,7 +23,7 @@ from openerp import models, fields
 class BusMessageLog(models.Model):
     _name = 'bus.message.log'
 
-    message_id = fields.Many2one('bus.message', string=u"Message", ondelete='cascade', index=True)
+    message_id = fields.Many2one('bus.message', string=u"Message", ondelete='cascade', index=True, required=True)
     type = fields.Selection([('warning', u"Warning"), ('error', u"Error"), ('info', u"Info"),
                              ('processed', u"Processed")], string=u"Log type", index=True)
     information = fields.Text(srtring=u"Log information")
