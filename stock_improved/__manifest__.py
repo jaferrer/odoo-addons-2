@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,16 +18,16 @@
 #
 
 {
-    'name': 'Manage groups_id for all ir.actions.X type',
+    'name': 'Stock Improved',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Dependency',
-    'depends': ['web'],
+    'category': 'Warehouse',
+    'depends': ['stock'],
     'description': """
-Manage groups_id for all ir.actions.X type
-==========================================
-Add a field groups_id inside the ir.actions models
+Stock Improved
+==============
+Split sock functions to override them easily
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],

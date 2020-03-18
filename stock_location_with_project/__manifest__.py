@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,19 +18,25 @@
 #
 
 {
-    'name': 'Manage groups_id for all ir.actions.X type',
+    'name': 'Stock Location with Project',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Dependency',
-    'depends': ['web'],
+    'category': 'Warehouse',
+    'depends': [
+        'stock',
+        'queue_job'
+    ],
     'description': """
-Manage groups_id for all ir.actions.X type
-==========================================
-Add a field groups_id inside the ir.actions models
+Stock Location with Project
+===========================
+Link stock.location records to project.project records, in order to allow each project to own one or many locations
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': [
+        'views/project_project.xml',
+        'views/stock_location.xml',
+    ],
     'demo': [],
     'test': [],
     'installable': True,
