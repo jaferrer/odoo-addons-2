@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,8 +16,19 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+import os
 
-from . import stock_quantity
-from . import product_product
-from . import stock_warehouse_orderpoint
-from . import stock_quantity_product
+from odoo import api, models
+
+
+class ProductProduct(models.Model):
+    _inherit = 'product.product'
+
+    @api.multi
+    def action_view_graph_move(self):
+        action = self.env.ref('stock_out_of_stock.action_stock_product_quantity').read()[0]
+        action['domain'] = [('product_id', 'in', self.ids)]
+        action['context'] = {
+            'graph_measure': 'stock_qty'
+        }
+        return action

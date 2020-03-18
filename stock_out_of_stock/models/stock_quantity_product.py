@@ -21,9 +21,9 @@ import os
 from odoo import api, fields, models, tools, modules
 
 
-class StockQuantity(models.Model):
-    _name = 'stock.quantity'
-    _description = 'Stock Quantity'
+class StockQuantityProduct(models.Model):
+    _name = 'stock.quantity.product'
+    _description = 'Stock Quantity Product'
     _auto = False
 
     def _get_sql_path(self):
@@ -37,9 +37,5 @@ class StockQuantity(models.Model):
             self.env.cr.execute("""CREATE OR REPLACE VIEW %s AS (%s)""" % (self._table, sql_file.read()))
 
     product_id = fields.Many2one('product.product')
-    stock_change = fields.Integer(u"Move Quantity")
-    date_stock_change = fields.Date(u"Date Move")
-    company_id = fields.Many2one('res.company', u"Owner")
-    location_id = fields.Many2one('stock.location', u"Stock Location")
     stock_qty = fields.Integer(u"Stock Quantity")
     date_stock = fields.Date(u"Date Stock")
