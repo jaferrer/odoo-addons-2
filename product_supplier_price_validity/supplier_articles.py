@@ -16,11 +16,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
-import time
-
 from openerp.exceptions import except_orm
-from openerp import fields, models, api, _
+from openerp import fields, models, api
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 
@@ -30,7 +27,7 @@ def job_update_active_line(session, model_name):
     session.env[model_name].update_active_lines()
 
 
-class productSupplierinfoImproved (models.Model):
+class ProductSupplierInfoImproved(models.Model):
     _inherit = "product.supplierinfo"
 
     validity_date_2 = fields.Date(
@@ -43,13 +40,13 @@ class productSupplierinfoImproved (models.Model):
 
     @api.multi
     def write(self, vals):
-        result = super(productSupplierinfoImproved, self).write(vals)
+        result = super(ProductSupplierInfoImproved, self).write(vals)
         if 'pricelist_ids' in vals:
             self.update_active_line()
         return result
 
 
-class pricelist_partnerinfo_improved (models.Model):
+class PriceListPartnerInfoImproved(models.Model):
     _inherit = 'pricelist.partnerinfo'
     _order = 'min_quantity asc, validity_date asc'
 
@@ -97,19 +94,19 @@ class pricelist_partnerinfo_improved (models.Model):
 
     @api.model
     def create(self, vals):
-        res = super(pricelist_partnerinfo_improved, self).create(vals)
+        res = super(PriceListPartnerInfoImproved, self).create(vals)
         res.update_active_lines()
         return res
 
     @api.multi
     def write(self, vals):
-        result = super(pricelist_partnerinfo_improved, self).write(vals)
+        result = super(PriceListPartnerInfoImproved, self).write(vals)
         if 'force_inactive' in vals:
             self.update_active_lines()
         return result
 
 
-class product_pricelist_improved(models.Model):
+class ProductPriceListImproved(models.Model):
     _inherit = 'product.pricelist'
 
     @api.model
@@ -122,7 +119,7 @@ class product_pricelist_improved(models.Model):
         :param products_by_qty_by_partner:
         :return: result from super, with modified price calculation
         """
-        results = super(product_pricelist_improved, self)._price_rule_get_multi(pricelist, products_by_qty_by_partner)
+        results = super(ProductPriceListImproved, self)._price_rule_get_multi(pricelist, products_by_qty_by_partner)
         context = self.env.context or {}
         for product_id in results.keys():
             price = False
@@ -135,7 +132,7 @@ class product_pricelist_improved(models.Model):
             if rule.base == -2:
                 for product2, qty, partner in products_by_qty_by_partner:
                     if product2 == product:
-                        results[product.id] = (0.0, -2)
+                        results[product.id] = (0.0, -2)  # results from super._price_rule_get_multi is {id: 0} no tuple
                         qty_uom_id = context.get('uom') or product.uom_id.id
                         if qty_uom_id != product.uom_id.id:
                             try:
@@ -145,7 +142,7 @@ class product_pricelist_improved(models.Model):
                                 # Ignored - incompatible UoM in context, use default product UoM
                                 pass
                         suppinfos = self.find_supplierinfos_for_product(product, partner)
-                        valid_pricelists = self.env['pricelist.partnerinfo']
+                        valid_price_list = self.env['pricelist.partnerinfo']
                         price_uom_ids = {}
 
                         for suppinfo in suppinfos:  # we iterate over supplier_info (fourniture achat) because they
@@ -158,18 +155,17 @@ class product_pricelist_improved(models.Model):
                             # the one associated with the choosen supplier_info
                             # we retrieve valid price list = active, min quantity respected  and validity date ok
                             # note that pricelist_ids returns pricelist.partnerinfo object
-                            valid_pricelists |= \
-                                suppinfo.pricelist_ids.filtered(lambda pricelist: not pricelist.force_inactive
-                                                                and pricelist.active_line
-                                                                and pricelist.min_quantity <= qty_in_seller_uom)
+                            valid_price_list |= suppinfo.pricelist_ids\
+                                .filtered(lambda pricelist: not pricelist.force_inactive and pricelist.active_line and
+                                          pricelist.min_quantity <= qty_in_seller_uom)
                         # the right pricelist is the one with highest priority, higher quantity and newer validity_date
-                        good_pricelist = valid_pricelists.search([('id', 'in', valid_pricelists.ids)],
-                                                                 order='supplierinfo_sequence asc, suppinfo_id asc, '
-                                                                       'min_quantity desc, validity_date desc',
-                                                                 limit=1)
-                        if price_uom_ids and good_pricelist and good_pricelist.suppinfo_id:
-                            price = good_pricelist.price
-                            price_uom_id = price_uom_ids[good_pricelist.suppinfo_id.id]
+                        good_price_list = valid_price_list and valid_price_list \
+                            .sorted(key=lambda plist: plist.validity_date, reverse=True) \
+                            .sorted(key=lambda plist: plist.min_quantity, reverse=True) \
+                            .sorted(key=lambda plist: plist.suppinfo_id.sequence)[0] or False
+                        price = self._get_price_from_price_list(good_price_list)
+                        if price_uom_ids and good_price_list and good_price_list.suppinfo_id:
+                            price_uom_id = price_uom_ids[good_price_list.suppinfo_id.id]
                         break
 
                 if price_uom_id and qty_uom_id and rule_id:
@@ -177,8 +173,13 @@ class product_pricelist_improved(models.Model):
                     results[product.id] = (price, rule_id)
         return results
 
+    @api.model
+    def _get_price_from_price_list(self, price_list):
+        """ extract the method from price_get_rule_multi to be able to override"""
+        return price_list and price_list.price or 0.0
 
-class procurement_order(models.Model):
+
+class ProcurementOrder(models.Model):
     _inherit = 'procurement.order'
 
     @api.model
@@ -186,6 +187,6 @@ class procurement_order(models.Model):
         context = dict(self.env.context)
         if 'force_date_for_partnerinfo_validity' not in context:
             context['force_date_for_partnerinfo_validity'] = fields.Date.to_string(schedule_date)
-        result = super(procurement_order, self.with_context(context)). \
+        result = super(ProcurementOrder, self.with_context(context)). \
             _get_po_line_values_from_proc(procurement, partner, company, schedule_date)
         return result
