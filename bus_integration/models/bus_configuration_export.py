@@ -1,6 +1,26 @@
 # -*- coding: utf8 -*-
+
+#  -*- coding: utf8 -*-
 #
-#    Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Affero General Public License as
+#     published by the Free Software Foundation, either version 3 of the
+#     License, or (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Affero General Public License for more details.
+#
+#     You should have received a copy of the GNU Affero General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+
+#
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -67,9 +87,9 @@ class BusConfigurationExport(models.Model):
     hide_create_cron = fields.Boolean(string="Hide cron creation button", default=False,
                                       help=u"This will prevent the apparition of the cron creation button")
     hide_sync_all = fields.Boolean(string="Hide sync all button", default=False,
-                                      help=u"This will prevent the apparition of the <sync all> button")
+                                   help=u"This will prevent the apparition of the <sync all> button")
     hide_sync_diff = fields.Boolean(string="Hide sync diff button", default=False,
-                                      help=u"This will prevent the apparition of the <sync diff> button")
+                                    help=u"This will prevent the apparition of the <sync diff> button")
 
     def _compute_nb_messages(self):
         for rec in self:
@@ -218,11 +238,11 @@ class BusConfigurationExport(models.Model):
         elif self.cron_sync_diff:
             negative_interval = self.cron_sync_diff.interval_number * -1
             last_send_date = fields.Datetime.from_string(self.cron_sync_diff.nextcall) + \
-                             _intervalTypes[self.cron_sync_diff.interval_type](negative_interval)
+                _intervalTypes[self.cron_sync_diff.interval_type](negative_interval)
         if self.cron_sync_all:
             negative_interval_all = self.cron_sync_diff.interval_number * -1
             last_send_date_sync_all = fields.Datetime.from_string(self.cron_sync_all.nextcall) + \
-                                      _intervalTypes[self.cron_sync_all.interval_type](negative_interval_all)
+                _intervalTypes[self.cron_sync_all.interval_type](negative_interval_all)
             if last_send_date_sync_all > last_send_date:
                 last_send_date = last_send_date_sync_all
         return fields.Datetime.to_string(last_send_date)
