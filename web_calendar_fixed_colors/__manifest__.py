@@ -27,13 +27,16 @@
     'description': """
 Fixed colors for calendar
 =========================
-This modules enables calendar colors based on formula.
+This modules enables calendar text and cell colors based on formula, by adding to the calendar widget the arguments
+ * `colors` (for cell color)
+ * `text_colors` (for text color)
 
 Usage
 -----
 ```
 <calendar string="Events" date_start="date_start" date_stop="date_stop"
-          colors="red:alert==True;green:date_start<current_date">
+          colors="red:alert==True;green:date_start<current_date"
+          text_colors="black:alert==True;green:date_start<current_date">
     <field name="name"/>
     <field name="alert" invisible="1"/>
 </calendar>

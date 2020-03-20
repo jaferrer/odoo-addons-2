@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_location_with_project_edit_project" model="ir.ui.view">
+        <field name="name">stock_location_with_project_edit_project</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <field name="partner_id" position="after">
+                <field name="location_id" attrs="{'invisible': [('is_using_stock', '=', False)]}"/>
+            </field>
+            <div name="button_box" position="inside">
+                <button string="Current Stock" class="oe_stat_button" icon="fa-building-o"
+                        name="action_show_location_current_stock" type="object"
+                        attrs="{'invisible': [('location_id', '=', False)]}"/>
+                <button string="Products" class="oe_stat_button" icon="fa-filter"
+                        name="action_show_location_products" type="object"
+                        attrs="{'invisible': [('location_id', '=', False)]}"/>
+            </div>
+            <xpath expr="//page[@name='settings']/group" position="inside">
+                <field name="is_using_stock"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.actions.server" id="synchronize_location_action_server">
+        <field name="name">Synchronize locations with projects</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="code">
+            records.sync_location_to_project_current_values()
+        </field>
+    </record>
+
+    <record model="ir.values" id="synchronize_location_ir_value">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">project.project</field>
+        <field name="name">Synchronize locations with projects</field>
+        <field name="value" eval="'ir.actions.server,'+str(synchronize_location_action_server)"/>
+    </record>
+</odoo>

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,27 +16,23 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Web Calendar Text Color',
+    'name': 'Stock Picking Link Origin',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'web',
-    'depends': [
-        'web',
-        'web_calendar'
-    ],
+    'category': 'Account',
+    'depends': ['sale', 'purchase', 'stock'],
     'description': """
-Web Calendar Text Color
-=======================
+Stock Picking Link Origin
+=========================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/templates.xml',
-    ],
     'demo': [],
     'test': [],
+    'data': [
+        'stock_picking.xml',
+    ],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',
