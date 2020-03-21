@@ -61,8 +61,6 @@ class ReceptionByOrderTransferDetails(models.TransientModel):
                     'owner_id': item.owner_id and item.owner_id.id or False,
                 })
                 item.packop_id = new_packop
-                print("création d'un pack-op pour product %s   picking %s   qty %s " % (
-                new_packop.product_id, new_packop.picking_id, new_packop.product_qty))
             item.packop_id.purchase_line_id = item.purchase_line_id
         return super(ReceptionByOrderTransferDetails, self).do_detailed_transfer()
 

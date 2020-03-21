@@ -26,6 +26,7 @@ class res_partner_vat(models.Model):
     @api.multi
     def check_vat(self):
         for rec in self:
-            if len(rec.vat) < 2:
+            # rec.vat can be False
+            if not rec.vat or len(rec.vat) < 2:
                 raise osv.except_orm(_(u"Error !"), _(u"Your vat number length is less than 3"))
         return super(res_partner_vat, self).check_vat()

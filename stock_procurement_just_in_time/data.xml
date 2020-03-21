@@ -85,6 +85,12 @@
             <field name="function">cron_update_treat_by_scheduler_rsm</field>
             <field name="args"/>
         </record>
+
+        <record model="ir.config_parameter" id="parameter_keep_stock_controller_lines_for">
+            <field name="key">stock_procurement_just_in_time.keep_stock_controller_lines_for</field>
+            <field name="value">3</field>
+        </record>
+
     </data>
 
 </openerp>

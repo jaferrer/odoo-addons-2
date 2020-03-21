@@ -163,13 +163,15 @@ class ProcurementOrderQuantity(models.Model):
 
     @api.model
     def delete_old_controller_lines(self):
-        last_date_done = dt.now() - relativedelta(months=1)
+        keep_stock_controller_lines_for = bool(self.env['ir.config_parameter'].get_param(
+            'stock_procurement_just_in_time.keep_stock_controller_lines_for', default=0))
+        last_date_done = dt.now() - relativedelta(days=keep_stock_controller_lines_for)
         last_date_done = fields.Datetime.to_string(last_date_done)
         self.env.cr.execute("""DELETE FROM stock_scheduler_controller WHERE done IS TRUE AND date_done < %s""",
                             (last_date_done,))
 
     @api.model
-    def insert_new_controller_lines(self, orderpoints):
+    def insert_new_controller_lines(self, orderpoints, company_id):
         self.env.cr.execute("""INSERT INTO stock_scheduler_controller
 (orderpoint_id,
  product_id,
@@ -180,9 +182,12 @@ class ProcurementOrderQuantity(models.Model):
  create_date,
  write_date,
  create_uid,
- write_uid)
+ write_uid,
+ company_id)
 
 WITH user_id AS (SELECT %s AS user_id),
+
+     company_id AS (SELECT %s AS company_id),
 
      manufactured_products AS (
        SELECT pp.id AS product_id,
@@ -241,24 +246,26 @@ WITH user_id AS (SELECT %s AS user_id),
        FROM orderpoints_to_insert
        GROUP BY location_sequence)
 
-SELECT *
+SELECT *,
+       (SELECT company_id FROM company_id) AS company_id
 FROM orderpoints_to_insert
 
 UNION ALL
 
-SELECT NULL              AS orderpoint_id,
-       NULL              AS product_id,
-       NULL              AS location_id,
+SELECT NULL                                AS orderpoint_id,
+       NULL                                AS product_id,
+       NULL                                AS location_id,
        location_sequence,
-       TRUE              AS run_procs,
-       FALSE             AS done,
-       CURRENT_TIMESTAMP AS create_date,
-       CURRENT_TIMESTAMP AS write_date,
+       TRUE                                AS run_procs,
+       FALSE                               AS done,
+       CURRENT_TIMESTAMP                   AS create_date,
+       CURRENT_TIMESTAMP                   AS write_date,
        (SELECT user_id
-        FROM user_id)    AS create_uid,
+        FROM user_id)                      AS create_uid,
        (SELECT user_id
-        FROM user_id)    AS write_uid
-FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
+        FROM user_id)                      AS write_uid,
+       (SELECT company_id FROM company_id) AS company_id
+FROM list_sequences""", (self.env.uid, company_id, tuple(orderpoints.ids + [0])))
 
     @api.model
     def _procure_orderpoint_confirm(self, use_new_cursor=False, company_id=False, run_procurements=True,
@@ -288,12 +295,16 @@ FROM list_sequences""", (self.env.uid, tuple(orderpoints.ids + [0])))
             self.env['procurement.order'].run_confirm_moves(domain)
         # we invalidate the already existing line of stock controller not yet started
         # done_date is kept to NULL, so we have a way to identify controller line invalidated
-        msg = "set to done before starting execution of Stock scheduler on {}".format(fields.Datetime.to_string(dt.now()))
-        self.env.cr.execute("""UPDATE stock_scheduler_controller SET done=TRUE,
-         job_uuid = %s 
-          WHERE done IS FALSE AND job_uuid IS NULL;""", (msg, ))
+        if company_id:
+            msg = "set to done before starting execution of Stock scheduler on {}".format(fields.Datetime.now())
+            self.env.cr.execute("""UPDATE stock_scheduler_controller
+    SET done= TRUE,
+        job_uuid = %s
+    WHERE coalesce(done, FALSE) IS FALSE
+      AND job_uuid IS NULL
+      AND company_id = %s;""", (msg, company_id,))
         self.delete_old_controller_lines()
-        self.insert_new_controller_lines(orderpoints)
+        self.insert_new_controller_lines(orderpoints, company_id=company_id or self.env.user.company_id.id)
         return {}
 
     @api.multi
@@ -962,6 +973,7 @@ class StockSchedulerController(models.Model):
     job_uuid = fields.Char(string=u"Job UUID", readonly=True, index=True)
     date_done = fields.Datetime(string=u"Date done")
     done = fields.Boolean(string=u"Done", index=True)
+    company_id = fields.Many2one('res.company', string=u"Company", required=True, index=True)
 
     @api.multi
     def set_to_done(self):

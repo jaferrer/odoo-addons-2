@@ -4,7 +4,7 @@ variables:
   ODOO_VERSION: "8.0"
   ODOO_DEPENDS: "odoo-addons/community-addons"
   ODOO_MODULE: "ALL"
-  ODOO_IMG: "8.0-ndp"
+  ODOO_IMG: "8.0"
   VERBOSE: "True"
   BEFORE_ODOO_MODULE: "sale_mrp"
 

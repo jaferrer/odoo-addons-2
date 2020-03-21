@@ -154,7 +154,7 @@ msgstr "Date limite de commande"
 #. module: purchase_planning_improved
 #: help:purchase.order.line,date_required:0
 msgid "Required date for this purchase line. Computed as planned date of the first proc - supplier purchase lead time - company purchase lead time"
-msgstr "Date de besoin pour cette ligne de commande. Calculée comme la date prévue du premier approvisionnement - délai de sécurité pour les approvisionnements sur le fournisseur considéré - marge d'approvisionnemenrt de la société"
+msgstr "Date de besoin pour cette ligne de commande. Calculée comme la date prévue du premier approvisionnement - délai de sécurité pour les approvisionnements sur le fournisseur considéré - marge d'approvisionnement de la société"
 
 #. module: purchase_planning_improved
 #: field:purchase.order.line,covering_date:0

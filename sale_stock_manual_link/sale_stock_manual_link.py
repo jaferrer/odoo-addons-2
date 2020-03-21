@@ -107,7 +107,7 @@ class ProcurementSaleLink(models.Model):
 
     @api.model
     def update_table_model(self):
-        self.search([]).unlink()
+        self.search([]).sudo().unlink()
         query = """WITH procurements_no_sol AS (
       SELECT
         po.id                        AS procurement_id,
@@ -152,7 +152,7 @@ class ProcurementSaleLink(models.Model):
   FROM sol_no_procs"""
         self.env.cr.execute(query, (self.env.ref('base.user_root').id,))
         for item in self.env.cr.dictfetchall():
-            self.create({
+            self.sudo().create({
                 'procurement_id': item['procurement_id'] or False,
                 'partner_id': item['partner_id'] or False,
                 'product_id': item['product_id'] or False,

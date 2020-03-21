@@ -35,8 +35,8 @@ def job_bus_message_cleaner(session, model_name):
 
 @job(default_channel='root.bus_message_cleaner_chunk')
 def job_bus_message_cleaner_chunk(session, model_name, message_ids):
-    old_msgs = session.env[model_name].browse(message_ids)
-    old_msgs.unlink()
+    for message in session.env[model_name].browse(message_ids):
+        message.unlink()
     return "unlink old bus messages %s: job done." % message_ids
 
 
@@ -92,7 +92,7 @@ class BusMessage(models.Model):
                                   ], u"Treatment", required=True)
     log_ids = fields.One2many('bus.message.log', 'message_id', string=u"Logs")
     exported_ids = fields.Text(string=u"Exported ids", compute='get_export_eported_ids', store=True)
-    message_parent_id = fields.Many2one('bus.message', string=u"Parent message")
+    message_parent_id = fields.Many2one('bus.message', string=u"Parent message", index = True)
     message_children_ids = fields.One2many('bus.message', 'message_parent_id', string=u"Children messages")
 
     # enable to identify a message across all the databases (mother/bus/child)
@@ -384,6 +384,6 @@ class BusMessage(models.Model):
 class BusMessageHearderParam(models.Model):
     _name = 'bus.message.header.param'
 
-    message_id = fields.Many2one('bus.message', u"Message", required=True, ondelete='cascade')
+    message_id = fields.Many2one('bus.message', u"Message", required=True, ondelete='cascade', index=True)
     name = fields.Char(u"Key", required=True)
     value = fields.Char(u"Value")
