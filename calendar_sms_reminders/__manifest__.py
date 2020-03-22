@@ -37,6 +37,7 @@ usage: open a calendar event and clic on `send SMS` button.
         'views/sms_wizard.xml',
         'views/calendar.xml',
         'views/company.xml',
+        'data/cron.xml',
     ],
     'qweb': [],
     'demo': [],

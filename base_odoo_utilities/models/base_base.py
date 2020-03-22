@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models
+from odoo import models, api
 
 
 class Base(models.AbstractModel):
@@ -47,3 +47,7 @@ class Base(models.AbstractModel):
             if func_filter(rec):
                 return rec
         return self.env[self._name]
+
+    @api.multi
+    def save_and_close(self):
+        return {'type': 'ir.actions.act_window_close'}
