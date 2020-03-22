@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="ir_actions_report_xml_package_cb" model="ir.actions.report">
+        <field name="name">Package Label</field>
+        <field name="type">ir.actions.report</field>
+        <field name="model">stock.quant.package</field>
+        <field name="report_name">report_etiquettes_package_cb</field>
+        <field name="report_type">aeroo</field>
+        <field name="report_file">report_label_stock/reports/report_etiquettes_package_cb.odt</field>
+        <field name="attachment">object.name.replace('/','')</field>
+        <field name="tml_source">file</field>
+        <field name="in_format">oo-odt</field>
+        <field name="binding_model_id" ref="stock.model_stock_quant_package"/>
+        <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>
+    </record>
+
+<!--     <record model="ir.actions.report.xml" id="ir_actions_report_xml_quant_product_cb">-->
+<!--            <field name="name">Etiquettes codes barres produits</field>-->
+<!--            <field name="type">ir.actions.report.xml</field>-->
+<!--            <field name="model">stock.quant</field>-->
+<!--            <field name="report_name">fluxtendu_etiquette_quant_produits_cb</field>-->
+<!--            <field name="report_type">aeroo</field>-->
+<!--            <field name="in_format">oo-odt</field>-->
+<!--            <field name="out_format" ref="report_aeroo.report_mimetypes_pdf_odt"/>-->
+<!--            <field name="report_rml">flux_tendu_stock/report/report_etiquettes_quant_produits_cb.odt</field>-->
+<!--            <field name="parser_state">loc</field>-->
+<!--            <field name="parser_loc">flux_tendu_stock/report/etiquettes_identifiants_produits.py</field>-->
+<!--            <field name="tml_source">file</field>-->
+<!--        </record>-->
+
+</odoo>

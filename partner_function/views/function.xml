@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="function_tree" model="ir.ui.view">
+        <field name="name">function_tree</field>
+        <field name="model">function</field>
+        <field name="arch" type="xml">
+            <tree string="Functions" editable="top">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="function_action" model="ir.actions.act_window">
+        <field name="name">Functions</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">function</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <menuitem id="function_menu"
+              name="Functions"
+              parent="contacts.res_partner_menu_config"
+              action="function_action"
+              sequence="1"/>
+
+    <record id="function_base_view_partner_form" model="ir.ui.view">
+            <field name="name">function_base_view_partner_form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <field name="function" position="after">
+                    <field name="function_selection"/>
+                </field>
+                <field name="function" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </field>
+            </field>
+        </record>
+
+</odoo>
