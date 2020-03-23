@@ -34,6 +34,7 @@ Account Invoice Dunning
     'test': [],
     'data': ['security/ir.model.access.csv',
              'data/cron.xml',
+             'views/account_invoice.xml',
              'views/dunning.xml',
              'views/dunning_type.xml',
              'views/dunning_invoice_link.xml',

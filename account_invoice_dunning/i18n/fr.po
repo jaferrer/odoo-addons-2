@@ -184,7 +184,7 @@ msgstr "Il n'existe pas de prochain type de relance pour la facture : %s"
 
 #. module: account_invoice_dunning
 #: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_number
-msgid "Nomber of Dunning send"
+msgid "Number of Dunning send"
 msgstr "Nombre de relances envoyées"
 
 #. module: account_invoice_dunning
@@ -275,16 +275,23 @@ msgid "account.invoice.dunning.type"
 msgstr "account.invoice.dunning.type"
 
 #. module: account_invoice_dunning
-#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_config_settings_sending_validity_duration
-#: model:ir.model.fields,field_description:account_invoice_dunning.field_base_config_settings_sending_validity_duration
-#: model:ir.model.fields,field_description:account_invoice_dunning.field_res_config_settings_sending_validity_duration
-#: model:ir.model.fields,field_description:account_invoice_dunning.field_sale_config_settings_sending_validity_duration
-msgid "Duration of validity of the sendings"
-msgstr "Durée de validité des envois"
-
-#. module: account_invoice_dunning
 #: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_search_view
 #: model:ir.ui.view,arch_db:account_invoice_dunning.invoice_dunning_form_view
 #: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_user_id
 msgid "Responsible"
 msgstr "Responsable"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_dunning_type_delay
+msgid "Delay before next dunning"
+msgstr "Délai avant la prochaine relance"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,help:account_invoice_dunning.field_account_invoice_dunning_type_delay
+msgid "Number of days before next dunning"
+msgstr "Nombre de jours avant la prochaine relance"
+
+#. module: account_invoice_dunning
+#: model:ir.model.fields,field_description:account_invoice_dunning.field_account_invoice_date_next_dunning
+msgid "Date next dunning"
+msgstr "Date de prochaine relance"
