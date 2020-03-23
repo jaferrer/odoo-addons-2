@@ -196,7 +196,7 @@ msgstr "Date de publication"
 #. module: avis_verifies
 #: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_review_rate
 msgid "Rate"
-msgstr "Taux"
+msgstr "Note"
 
 #. module: avis_verifies
 #: model:ir.model.fields,field_description:avis_verifies.field_avis_verifies_comment_review_id
