@@ -1,0 +1,116 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_out_of_stock
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-03-24 17:50+0000\n"
+"PO-Revision-Date: 2020-03-24 17:50+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: stock_out_of_stock
+#: model_terms:ir.ui.view,arch_db:stock_out_of_stock.view_product_template_stock_quantity
+#: model_terms:ir.ui.view,arch_db:stock_out_of_stock.view_warehouse_orderpoint_form_point_of_break
+msgid "<span class=\"o_stat_text\">Operations</span>"
+msgstr "<span class=\"o_stat_text\">Opérations</span>"
+
+#. module: stock_out_of_stock
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity__date_stock_change
+msgid "Date Move"
+msgstr ""
+
+#. module: stock_out_of_stock
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity__date_stock
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity_product__date_stock
+msgid "Date Stock"
+msgstr ""
+
+#. module: stock_out_of_stock
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity__display_name
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity_product__display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: stock_out_of_stock
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity__id
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity_product__id
+msgid "ID"
+msgstr ""
+
+#. module: stock_out_of_stock
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity____last_update
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity_product____last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: stock_out_of_stock
+#: model:ir.model,name:stock_out_of_stock.model_stock_warehouse_orderpoint
+msgid "Minimum Inventory Rule"
+msgstr "Règle de stock minimum."
+
+#. module: stock_out_of_stock
+#: model:ir.actions.server,name:stock_out_of_stock.update_point_of_break2_ir_actions_server
+#: model:ir.actions.server,name:stock_out_of_stock.update_point_of_break3_ir_actions_server
+#: model:ir.actions.server,name:stock_out_of_stock.update_point_of_break_ir_actions_server
+#: model:ir.cron,cron_name:stock_out_of_stock.update_point_of_break3
+#: model:ir.cron,name:stock_out_of_stock.update_point_of_break3
+msgid "Mise à jour des coûts des produits"
+msgstr ""
+
+#. module: stock_out_of_stock
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity__stock_change
+msgid "Move Quantity"
+msgstr ""
+
+#. module: stock_out_of_stock
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity__company_id
+msgid "Owner"
+msgstr "Propriétaire"
+
+#. module: stock_out_of_stock
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_warehouse_orderpoint__point_of_break
+msgid "Point Of Break Date"
+msgstr ""
+
+#. module: stock_out_of_stock
+#: model:ir.model,name:stock_out_of_stock.model_product_product
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity__product_id
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity_product__product_id
+msgid "Product"
+msgstr "Article"
+
+#. module: stock_out_of_stock
+#: model:ir.model,name:stock_out_of_stock.model_mrp_production
+msgid "Production Order"
+msgstr ""
+
+#. module: stock_out_of_stock
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity__location_id
+msgid "Stock Location"
+msgstr "Emplacement de stock"
+
+#. module: stock_out_of_stock
+#: model:ir.actions.act_window,name:stock_out_of_stock.action_stock_product_quantity
+#: model:ir.actions.act_window,name:stock_out_of_stock.action_stock_quantity
+#: model:ir.model,name:stock_out_of_stock.model_stock_quantity
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity__stock_qty
+#: model:ir.model.fields,field_description:stock_out_of_stock.field_stock_quantity_product__stock_qty
+#: model_terms:ir.ui.view,arch_db:stock_out_of_stock.view_stock_quantity_graph
+#: model_terms:ir.ui.view,arch_db:stock_out_of_stock.view_stock_quantity_product_graph
+#: model_terms:ir.ui.view,arch_db:stock_out_of_stock.view_stock_quantity_product_tree
+#: model_terms:ir.ui.view,arch_db:stock_out_of_stock.view_stock_quantity_tree
+msgid "Stock Quantity"
+msgstr ""
+
+#. module: stock_out_of_stock
+#: model:ir.model,name:stock_out_of_stock.model_stock_quantity_product
+msgid "Stock Quantity Product"
+msgstr ""
+

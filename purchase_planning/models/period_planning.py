@@ -23,6 +23,7 @@ from odoo import fields, models, api
 class PeriodPlanning(models.Model):
     _name = 'period.planning'
     _description = "Period Planning"
+    _order = 'year_id, season_id'
 
     season_id = fields.Many2one('res.calendar.season', u"Season", required=True)
     year_id = fields.Many2one('res.calendar.year', u"Year", required=True)
@@ -32,6 +33,8 @@ class PeriodPlanning(models.Model):
         ('done', u"Done"),
     ], required=True, readonly=True, default='draft')
     count_purchase_planning = fields.Integer(compute='_compute_purchase_planning')
+
+    _sql_constraints = [('period_unique', 'unique (season_id, year_id)', u"The period must be unique")]
 
     @api.multi
     def name_get(self):
@@ -50,4 +53,4 @@ class PeriodPlanning(models.Model):
     @api.multi
     def _compute_purchase_planning(self):
         for rec in self:
-            rec.count_purchase_planning = len(rec.purchase_planning_ids)
+            rec.count_purchase_planning = self.env['purchase.planning'].search_count([('period_id', '=', self.id)])

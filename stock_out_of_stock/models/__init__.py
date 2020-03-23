@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import stock_quantity
 from . import product_product
-from . import stock_warehouse_orderpoint
+from . import stock_quantity
 from . import stock_quantity_product
+from . import stock_warehouse_orderpoint

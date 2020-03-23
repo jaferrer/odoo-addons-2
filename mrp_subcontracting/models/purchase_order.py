@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, fields, api, _
+from odoo import models, fields, api, _ as _t
 
 from odoo.exceptions import UserError
 
@@ -26,17 +26,14 @@ class PurchaseOrder(models.Model):
     _inherit = 'purchase.order'
 
     picking_out_count = fields.Integer(compute='_compute_picking_out', string='Picking out count', default=0)
-    picking_out_ids = fields.Many2many('stock.picking', compute='_compute_picking_out', string='Livraison', copy=False)
 
     @api.multi
     def _compute_picking_out(self):
         for rec in self:
-            picking_out_ids = self.env['stock.picking'].search([
+            rec.picking_out_count = self.env['stock.picking'].search_count([
                 ('origin', '=', rec.name),
                 ('picking_type_id', '=', self.env.ref('stock.picking_type_out').id)
             ])
-            rec.picking_out_ids = picking_out_ids
-            rec.picking_out_count = len(picking_out_ids)
 
     @api.multi
     def button_confirm(self):
@@ -66,11 +63,15 @@ class PurchaseOrder(models.Model):
     def button_cancel(self):
         res = super(PurchaseOrder, self).button_cancel()
         for rec in self:
-            for picking_out in rec.picking_out_ids:
+            picking_out_ids = self.env['stock.picking'].search([
+                ('origin', '=', rec.name),
+                ('picking_type_id', '=', self.env.ref('stock.picking_type_out').id)
+            ])
+            for picking_out in picking_out_ids:
                 if picking_out.state != 'done':
                     picking_out.action_cancel()
                 else:
-                    raise UserError(_('Unable to cancel purchase order %s as some receptions have already been done.')
+                    raise UserError(_t('Unable to cancel purchase order %s as some receptions have already been done.')
                                     % rec.name)
             rec.mapped('order_line').mapped('production_move_id').action_subcontracting_cancel()
         return res
@@ -84,11 +85,12 @@ class PurchaseOrder(models.Model):
         result = action.read()[0]
         # override the context to get rid of the default filtering on operation type
         result['context'] = {}
-        pick_ids = self.mapped('picking_out_ids')
+        pick_ids = self.env['stock.picking'].search([
+            ('origin', '=', self.name),
+            ('picking_type_id', '=', self.env.ref('stock.picking_type_out').id)
+        ])
         # choose the view_mode accordingly
-        if not pick_ids or len(pick_ids) > 1:
-            result['domain'] = "[('id','in',%s)]" % (pick_ids.ids)
-        elif len(pick_ids) == 1:
+        if self.picking_out_count == 1:
             res = self.env.ref('stock.view_picking_form', False)
             form_view = [(res and res.id or False, 'form')]
             if 'views' in result:
@@ -96,4 +98,7 @@ class PurchaseOrder(models.Model):
             else:
                 result['views'] = form_view
             result['res_id'] = pick_ids.id
+        else:
+            result['domain'] = "[('origin', '=', self.name)," \
+                               "('picking_type_id', '=', self.env.ref('stock.picking_type_out').id)]"
         return result

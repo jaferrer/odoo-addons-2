@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
     <record id="period_planning_kanban" model="ir.ui.view">
         <field name="name">period_planning_kanban</field>
         <field name="model">period.planning</field>
@@ -47,5 +46,4 @@
         <field name="res_model">period.planning</field>
         <field name="view_mode">kanban</field>
     </record>
-
 </odoo>

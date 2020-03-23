@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,7 +18,7 @@
 #
 
 {
-    'name': 'Flux tendu TCB',
+    'name': 'Android NDP TCB',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
@@ -28,8 +28,8 @@
         'stock_picking_batch',
     ],
     'description': """
-"Flux tendu" Terminal code barre
-================================
+NDP Terminal code barre
+=======================
 Modules pour la synchro entre android et Odoo
 """,
     'website': 'http://www.ndp-systemes.fr',

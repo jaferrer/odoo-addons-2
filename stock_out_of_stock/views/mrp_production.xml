@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="mrp_production_form_view_point_of_break" model="ir.ui.view">
+        <field name="name">mrp_production_form_view_point_of_break</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <field name="company_id" position="after">
+                <field name="point_of_break"/>
+                <field name="deprioritize_point_of_break"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="mrp_production_tree_view_point_of_break" model="ir.ui.view">
+        <field name="name">mrp_production_tree_view_point_of_break</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+        <field name="arch" type="xml">
+            <tree position="attributes">
+                <attribute name="default_order">point_of_break, date_planned_start desc</attribute>
+            </tree>
+            <field name="state" position="after">
+                <field name="point_of_break"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

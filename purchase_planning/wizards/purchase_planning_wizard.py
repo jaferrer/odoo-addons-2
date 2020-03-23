@@ -31,11 +31,14 @@ class PurchasePlanningWizard(models.TransientModel):
     def generate_purchase_forecast(self):
         self.ensure_one()
         products = self.env['product.product']._get_products_for_purchase_forecast()
-        purchase_plannings = self.env['purchase.planning']
+        # Création de la période
+        period_id = self.env['period.planning'].create({
+            'season_id': self.season_id.id,
+            'year_id': self.year_id.id,
+        })
         for product in products:
-            purchase_plannings |= self.env['purchase.planning'].create({
-                'season_id': self.season_id.id,
-                'year_id': self.year_id.id,
+            self.env['purchase.planning'].create({
+                'period_id': period_id.id,
                 'product_id': product.id,
                 'supplier_id': product.seller_ids[:1].id,
             })
@@ -46,6 +49,6 @@ class PurchasePlanningWizard(models.TransientModel):
             'view_type': 'form',
             'view_mode': 'tree',
             'context': self.env.context,
-            'domain': [('id', 'in', purchase_plannings.ids)],
+            'domain': [('period_id', '=', period_id.id)],
             'target': 'current',
         }

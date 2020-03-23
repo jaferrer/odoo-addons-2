@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -23,7 +23,7 @@ from odoo import models, fields, api
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
-    price_cost = fields.Float("Prix de revient", readonly=True)
+    price_cost = fields.Float("Price cost", readonly=True)
 
     @api.multi
     def _use_standard_price(self):
@@ -40,12 +40,11 @@ class ProductProduct(models.Model):
         self.ensure_one()
         if self._use_standard_price():
             return self._get_price()
-        else:
-            price_cost = 0.0
-            for rec in self.bom_ids[:1].bom_line_ids:
-                bom_qty = rec.product_uom_id._compute_quantity(rec.product_qty, self.uom_id)
-                price_cost += rec.product_id.search_price_cost_for_product() * bom_qty
-            return price_cost
+        price_cost = 0.0
+        for rec in self.bom_ids[:1].bom_line_ids:
+            bom_qty = rec.product_uom_id._compute_quantity(rec.product_qty, self.uom_id)
+            price_cost += rec.product_id.search_price_cost_for_product() * bom_qty
+        return price_cost
 
     @api.multi
     def cron_update_price_cost(self):

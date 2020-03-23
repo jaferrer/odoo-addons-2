@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2016 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,7 +18,7 @@
 #
 
 from odoo import models, fields, api
-from odoo.exceptions import ValidationError, UserError
+from odoo.exceptions import ValidationError
 
 
 class TcbPushPackOp(models.Model):
@@ -26,6 +26,7 @@ class TcbPushPackOp(models.Model):
     """Table syncronisé avec android, ne traiter les que les picking wave qui possede le Flag START
     et qui fini par END. Il faut bien verifier que la sequence soit complete."""
     _name = 'tcb.push.pack.op'
+    _description = "Tcb Push Pack Op"
     _order = 'picking_batch_id, sequence'
 
     # flag chaque ligner possede un flag
@@ -47,7 +48,7 @@ class TcbPushPackOp(models.Model):
     user_id = fields.Many2one('res.users', string=u"Utilisateur", required=True)
     picking_batch_id = fields.Many2one('stock.picking.batch', string=u"Picking Batch")
     picking_batch_user_id = fields.Many2one('res.users', string=u"Responsable Picking Batch",
-                                           related='picking_batch_id.user_id')
+                                            related='picking_batch_id.user_id')
     picking_batch_state = fields.Selection(string=u"Statut Picking Batch", related='picking_batch_id.state')
     # Id du pack op concerné toujours renseigné sauf lors d'un decoupage (flag = PACK_OP_SPLIT)
     stock_op_id = fields.Many2one('tcb.stock.picking.operation', string=u"Opération de stock")
@@ -81,6 +82,7 @@ class TcbPushPackOp(models.Model):
 
 class TcbPushcart(models.Model):
     _name = 'tcb.push.cart'
+    _description = "Tcb Push Cart"
     _order = 'cart_id, sequence'
 
     # flag chaque ligne possede un flag

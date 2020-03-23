@@ -18,23 +18,22 @@
 #
 
 {
-    'name': 'Stock Report Label Product',
+    'name': 'Mrp Out Of Stock',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Stock',
     'depends': [
-        'product',
-        'report_aeroo',
+        'stock_out_of_stock',
     ],
     'description': """
-Stock Report Label Product
-==========================
-Add-on to print label for product
+Mrp out of stock
+================
+Order manufacturing orders by point of break date
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'reports/report_label_product.xml'
+        'mrp_production.xml',
     ],
     'demo': [],
     'test': [],

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -29,11 +29,7 @@ class MrpSubcontractor(models.TransientModel):
                 self.env['mrp.production'].browse(
                     self.env.context.get('active_id')).product_id.seller_ids.mapped('name').ids)]
 
-    def _get_default_quantity(self):
-        return self.env['mrp.production'].browse(self.env.context.get('active_id')).product_qty
-
-    quantity = fields.Integer(u"Quantité", default=_get_default_quantity)
-    partner_id = fields.Many2one('res.partner', u"Fournisseur", domain=_get_partner_id_domain)
+    partner_id = fields.Many2one('res.partner', u"Seller", domain=_get_partner_id_domain)
 
     def subcontract(self):
         # On va créer un PO pour le fournisseur
@@ -46,7 +42,7 @@ class MrpSubcontractor(models.TransientModel):
         })
         purchase_order_line = self.env['purchase.order.line'].create({
             'name': mrp.product_id.name,
-            'product_qty': self.quantity,
+            'product_qty': mrp.product_qty,
             'partner_id': self.partner_id.id,
             'date_planned': mrp.date_planned_start,
             'product_uom': mrp.product_id.uom_id.id,
@@ -58,7 +54,7 @@ class MrpSubcontractor(models.TransientModel):
         purchase_order.onchange_partner_id()
         purchase_order_line.onchange_product_id()
         purchase_order_line.product_qty = purchase_order_line.product_id.seller_ids.filtered(
-            lambda r: r.name == purchase_order.partner_id)[:1].get_seller_max_quantity(self.quantity)
+            lambda r: r.name == purchase_order.partner_id)[:1].get_seller_max_quantity(mrp.product_qty)
         purchase_order_line._onchange_quantity()
         mrp.update({
             'purchase_line_subcontract_id': purchase_order_line,

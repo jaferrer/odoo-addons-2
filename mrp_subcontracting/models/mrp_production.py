@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,24 +17,24 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, fields, api
+from odoo import models, fields, api, _ as _t
 from odoo.exceptions import UserError
 
 
 class MrpProduction(models.Model):
     _inherit = 'mrp.production'
 
-    purchase_line_subcontract_id = fields.Many2one('purchase.order.line', u"Ligne d'achat", copy=False, readonly=True)
-    order_line_subcontract_id = fields.Many2one('purchase.order', u"Commande d'achat", readonly=True, copy=False,
+    purchase_line_subcontract_id = fields.Many2one('purchase.order.line', u"Purchase line", copy=False, readonly=True)
+    order_line_subcontract_id = fields.Many2one('purchase.order', u"Purchase order", readonly=True, copy=False,
                                                 related='purchase_line_subcontract_id.order_id')
-    subcontractor_id = fields.Many2one('res.partner', u"Sous-traitant", readonly=True, copy=False,
+    subcontractor_id = fields.Many2one('res.partner', u"Subcontractor", readonly=True, copy=False,
                                        related='purchase_line_subcontract_id.partner_id')
     warning_subcontractor = fields.Char(u"Message warning", compute='_compute_warning_subcontractor')
 
     state = fields.Selection(track_visibility='onchange')
 
     def _compute_warning_subcontractor(self):
-        self.warning_subcontractor = "Ordre de fabrication sous-traité par %s" % self.subcontractor_id.display_name
+        self.warning_subcontractor = _t("Manufacturing order subcontract by %s" % self.subcontractor_id.display_name)
 
     @api.multi
     def write(self, vals):
@@ -65,4 +65,4 @@ class MrpProduction(models.Model):
             for rec in self:
                 if rec.purchase_line_subcontract_id:
                     raise UserError(
-                        u"Vous ne pouvez modifier l'ordre de fabrication car il est lié à un sous-traitant.")
+                        _t(u"You can't modify manufacturing order with subcontractor."))

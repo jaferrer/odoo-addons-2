@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,6 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+
 import os
 
 from odoo import api, fields, models, tools, modules
@@ -47,4 +48,4 @@ class StockPickingOperation(models.Model):
     owner_id = fields.Many2one('res.partner', u"Propriétaire", domain=[('stock_owner', '=', True)])
     user_id = fields.Many2one('res.users', u"Assigné à")
     tcb_type = fields.Selection(SELECTION_TCB_TYPE, string=u"Type TCB", default="not_managed",
-                                        help=u"Type de Transfert Pour l'application android")
+                                help=u"Type de Transfert Pour l'application android")

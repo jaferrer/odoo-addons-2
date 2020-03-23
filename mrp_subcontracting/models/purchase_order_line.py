@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -23,4 +23,4 @@ from odoo import models, fields
 class PurchaseOrderLine(models.Model):
     _inherit = 'purchase.order.line'
 
-    production_move_id = fields.One2many('mrp.production', 'purchase_line_subcontract_id', 'Ordre de fabrication')
+    production_move_id = fields.One2many('mrp.production', 'purchase_line_subcontract_id', 'Manufacturing order')

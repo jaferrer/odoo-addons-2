@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -25,7 +25,6 @@
     'category': 'Module Client',
     'depends': [
         'mrp',
-    #     dépend
     ],
     'description': """
 Permet de calculer le cout de revient d'un produit en fonction de sa nomenclature
