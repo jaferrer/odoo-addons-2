@@ -26,6 +26,11 @@ msgid "Table"
 msgstr "Table"
 
 #. module: database_monitoring_disk_usage
+#: field:odoo.monitoring.disk.usage.by.table,table_name:0
+msgid "Table name"
+msgstr "Nom de la table"
+
+#. module: database_monitoring_disk_usage
 #: field:odoo.monitoring.disk.usage.by.table,cardinality:0
 #: field:odoo.monitoring.database.table,current_cardinality:0
 msgid "Cardinality"
@@ -62,6 +67,12 @@ msgid "Disk Usage By Table"
 msgstr "Utilisation du disque par table"
 
 #. module: database_monitoring_disk_usage
+#: model:ir.actions.act_window,name:database_monitoring_disk_usage.act_window_total_disk_usage
+#: model:ir.ui.menu,name:database_monitoring_disk_usage.menu_total_disk_usage
+msgid "Total Disk Usage"
+msgstr "Utilisation totale du disque"
+
+#. module: database_monitoring_disk_usage
 #: view:odoo.monitoring.database.table:database_monitoring_disk_usage.odoo_monitoring_disk_usage_by_table_tree
 msgid "View cardinality evolution"
 msgstr "Voir l'évolution de la cardinalité"
@@ -70,6 +81,31 @@ msgstr "Voir l'évolution de la cardinalité"
 #: view:odoo.monitoring.database.table:database_monitoring_disk_usage.odoo_monitoring_disk_usage_by_table_tree
 msgid "View disk usage evolution"
 msgstr "Voir l'évolution de l'utilisation du disque"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Last 30 days"
+msgstr "30 derniers jours"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Last 60 days"
+msgstr "60 derniers jours"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Last 90 days"
+msgstr "90 derniers jours"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Last 120 days"
+msgstr "120 derniers jours"
+
+#. module: database_monitoring_disk_usage
+#: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
+msgid "Last 150 days"
+msgstr "150 derniers jours"
 
 #. module: database_monitoring_disk_usage
 #: view:odoo.monitoring.disk.usage.by.table:database_monitoring_disk_usage.odoo_monitoring_disk_measure_search
