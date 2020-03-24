@@ -362,7 +362,10 @@ class BusMessage(models.Model):
 
     @api.model
     def clean_old_messages_async(self):
-        limit_date = datetime.now() - relativedelta(months=2)
+        keep_messages_for = self.env.ref('bus_integration.backend').keep_messages_for
+        if not keep_messages_for:
+            return
+        limit_date = datetime.now() - relativedelta(days=keep_messages_for)
         old_msgs = self.search([('create_date', '<', fields.Datetime.to_string(limit_date))])
         chunk_size = 100
         cpt = 0

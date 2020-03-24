@@ -20,6 +20,7 @@
                             <field name="reception_treatment"/>
                             <field name="module_disabled_mapping"/>
                             <field name="code"/>
+                            <field name="keep_messages_for"/>
                             <group colspan="2">
                                 <button name="try_connexion" type="object" string="Test Connexion"/>
                                 <field name="connexion_state" nolabel="1"/>
