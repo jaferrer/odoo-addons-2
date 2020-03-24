@@ -17,10 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 
 from openerp import models, fields, api, _
+
+_logger = logging.getLogger(__name__)
 
 
 @job
@@ -59,7 +63,8 @@ class OdooMonitoringDatabaseTable(models.Model):
                                            compute='_compute_current_disk_usage', store=True)
 
     @api.multi
-    @api.depends('disk_usage_line_ids')
+    @api.depends('disk_usage_line_ids', 'disk_usage_line_ids.cardinality',
+                 'disk_usage_line_ids.disk_size_data', 'disk_usage_line_ids.disk_size_total')
     def _compute_current_disk_usage(self):
         for rec in self:
             last_disk_usage_measure = self.env['odoo.monitoring.disk.usage.by.table']. \
@@ -115,7 +120,12 @@ WHERE table_name = %s""", (rec.name,))
 
     @api.model
     def cron_measure_of_disk_usage(self):
-        for rec in self.search([]):
+        tables_to_process = self.search([])
+        nb_tables = len(tables_to_process)
+        index = 0
+        for rec in tables_to_process:
+            index += 1
+            _logger.info(u"Creating job to measure disk usage for table %s (%s/%s)", rec.name, index, nb_tables)
             job_create_measure_of_disk_usage.delay(ConnectorSession.from_env(self.env), self._name, rec.ids,
                                                    description=u"Update disk usage for table %s" % rec.name)
 
