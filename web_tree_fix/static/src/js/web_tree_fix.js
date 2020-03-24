@@ -7,6 +7,9 @@ odoo.define('web_tree_fix.web_tree_fix', function (require) {
 
         _renderBodyCell: function (record, node, colIndex, options) {
             let result = this._super(record, node, colIndex, options);
+            if (node.attrs.widget || (options && options.renderWidgets)){
+                return result;
+            }
             var name = node.attrs.name;
             var field = this.state.fields[name];
             if (field && field.type === "float") {
