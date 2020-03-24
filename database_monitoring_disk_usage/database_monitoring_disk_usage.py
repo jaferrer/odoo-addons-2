@@ -134,7 +134,6 @@ WHERE table_name = %s""", (rec.name,))
         self.ensure_one()
         ctx = dict(self.env.context)
         ctx['search_default_table_id'] = self.id
-        ctx['search_default_card_sup_10k_lines'] = True
         ctx['search_default_last_30_days'] = True
         return {
             'type': 'ir.actions.act_window',
@@ -150,7 +149,6 @@ WHERE table_name = %s""", (rec.name,))
         self.ensure_one()
         ctx = dict(self.env.context)
         ctx['search_default_table_id'] = self.id
-        ctx['search_default_disk_size_sup_10Mb'] = True
         ctx['search_default_last_30_days'] = True
         return {
             'type': 'ir.actions.act_window',
