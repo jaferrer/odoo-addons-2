@@ -34,3 +34,4 @@ class BusConfiguration(models.Model):
     connexion_state = fields.Char(u"Connexion status")
     module_disabled_mapping = fields.Char(u"Module disabled mapping", help=u"Module not used for mapping by xml id",
                                           default='__export__')
+    keep_messages_for = fields.Integer(string=u"Keep messages for", help=u"In days", default=7)
