@@ -12,6 +12,7 @@ odoo.define('web_ui_stock.BarcodeScanner', function (require) {
                     case "Control":
                     case "Alt":
                     case "Shift":
+                    case "CapsLock":
                         return;
                     case "Backspace":
                         code = code.substring(1);
