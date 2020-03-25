@@ -23,4 +23,4 @@ from openerp import models, fields
 class GenerateLabelsResCountry(models.Model):
     _inherit = 'res.country'
 
-    force_custom_declaration = fields.Boolean(string=u"Forcer la génération d'une déclaration douanière")
+    force_custom_declaration = fields.Boolean(u"Need CN23")

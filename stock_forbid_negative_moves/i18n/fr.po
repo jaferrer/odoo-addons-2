@@ -1,0 +1,31 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* stock_forbid_negative_moves
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-11-04 10:44+0000\n"
+"PO-Revision-Date: 2016-11-04 11:54+0100\n"
+"Last-Translator: Nicolas Piganeau <nicolas.piganeau@ndp-systemes.fr>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+"Language: fr\n"
+"X-Generator: Poedit 1.8.7.1\n"
+
+#. module: stock_forbid_negative_moves
+#: code:addons/stock_forbid_negative_moves/stock_forbid_negative_moves.py:29
+#, python-format
+msgid "Error !"
+msgstr "Erreur !"
+
+
+#. module: stock_forbid_negative_moves
+#: code:addons/stock_forbid_negative_moves/stock_forbid_negative_moves.py:29
+#, python-format
+msgid "You are not allowed to create a negative or null move."
+msgstr "Il est interdit de créer un mouvement négatif ou nul."
