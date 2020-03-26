@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="sale_planning_confirm_wizard" model="ir.ui.view">
+        <field name="name">sale_planning_confirm_wizard</field>
+        <field name="model">confirm.period.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirm forecast">
+                <group>
+                    <field name="period_id"/>
+                </group>
+                <footer>
+                    <button name="confirm_sale_forecast" string="Generate" type="object" class="oe_highlight"/>
+                    or
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="sale_planning_confirm_action" model="ir.actions.act_window">
+        <field name="name">Confirm forecast</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">confirm.period.wizard</field>
+        <field name="view_id" ref="sale_planning.sale_planning_confirm_wizard"/>
+        <field name="view_type">form</field>
+        <field name="target">new</field>
+        <field name="view_mode">form</field>
+    </record>
+
+</odoo>

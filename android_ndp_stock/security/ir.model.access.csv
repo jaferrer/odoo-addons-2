@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_tcb_push_pack_op_manager,access_tcb_push_pack_op_manager,model_tcb_push_pack_op,stock.group_stock_manager,1,1,1,1
+access_tcb_push_cart,access_tcb_push_cart,model_tcb_push_cart,stock.group_stock_user,1,1,1,0
+access_tcb_push_pack_op_user,access_tcb_push_pack_op_user,model_tcb_push_pack_op,stock.group_stock_user,1,1,1,0
+access_tcb_push_cart_manager,access_tcb_push_cart_manager,model_tcb_push_cart,stock.group_stock_manager,1,1,1,1
+access_tcb_stock_picking_operation,access_tcb_stock_picking_operation,model_tcb_stock_picking_operation,stock.group_stock_user,1,0,0,0
+access_tcb_product_identifiant,access_tcb_product_identifiant,model_tcb_product_identifiant,stock.group_stock_user,1,0,0,0

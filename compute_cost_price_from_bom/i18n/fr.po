@@ -1,0 +1,48 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* compute_cost_price_from_bom
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-03-24 17:54+0000\n"
+"PO-Revision-Date: 2020-03-24 17:54+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: compute_cost_price_from_bom
+#: model:ir.model.fields,field_description:compute_cost_price_from_bom.field_product_product__price_cost_avg
+#: model:ir.model.fields,field_description:compute_cost_price_from_bom.field_product_template__price_cost_avg
+msgid "Average price cost"
+msgstr "Coût de revient moyen"
+
+#. module: compute_cost_price_from_bom
+#: model:ir.actions.server,name:compute_cost_price_from_bom.update_cost_price_cron_ir_actions_server
+msgid "Update price cost"
+msgstr "Mise à jour des coûts de revient"
+
+#. module: compute_cost_price_from_bom
+#: model:ir.actions.server,name:compute_cost_price_from_bom.update_cost_price_avg_cron_ir_actions_server
+msgid "Update average price cost"
+msgstr "Mise à jour des coûts de revient moyen"
+
+#. module: compute_cost_price_from_bom
+#: model:ir.model.fields,field_description:compute_cost_price_from_bom.field_product_product__price_cost
+msgid "Price cost"
+msgstr "Coût de revient"
+
+#. module: compute_cost_price_from_bom
+#: model:ir.model,name:compute_cost_price_from_bom.model_product_product
+msgid "Product"
+msgstr "Article"
+
+#. module: compute_cost_price_from_bom
+#: model:ir.model,name:compute_cost_price_from_bom.model_product_template
+msgid "Product Template"
+msgstr "Modèle d'article"
+

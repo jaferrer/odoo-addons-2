@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="act_subcontract_of" model="ir.actions.act_window">
+        <field name="name">Subcontract manufacturing</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.subcontractor</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="mrp_subcontractor_form" model="ir.ui.view">
+        <field name="name">mrp_subcontractor_form</field>
+        <field name="model">mrp.subcontractor</field>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <form string="Subcontract manufacturing">
+                <group>
+                    <field name="partner_id" options="{'no_create': True, 'no_create_edit':True}"/>
+                </group>
+                <footer>
+                    <button name="subcontract" string="Subcontract" type="object" class="oe_highlight" />
+                    or
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="subcontract_mrp_production_form_view" model="ir.ui.view">
+        <field name="name">subcontract_mrp_production_form_view</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <header position="after">
+                <div class="alert alert-warning" role="alert" style="margin-bottom:0px;"
+                     attrs="{'invisible':[('purchase_line_subcontract_id', '=', False)]}">
+                    <bold><field name="warning_subcontractor"/></bold>
+                </div>
+            </header>
+            <header position="inside">
+                <button name="%(act_subcontract_of)s" string="Subcontract manufacturing"
+                        type="action"
+                        attrs="{'invisible': [('state', 'not in', ['confirmed'])]}"/>
+            </header>
+            <field name="availability" position="after">
+                <field name="purchase_line_subcontract_id"/>
+                <field name="order_line_subcontract_id"/>
+                <field name="subcontractor_id"/>
+            </field>
+        </field>
+    </record>
+</odoo>

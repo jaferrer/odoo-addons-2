@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record model="ir.ui.view" id="view_stock_quantity_product_graph">
+        <field name="name">view_stock_quantity_product_graph</field>
+        <field name="model">stock.quantity.product</field>
+        <field name="arch" type="xml">
+            <graph string="Stock Quantity" type="bar">
+                <field name="date_stock" interval="day" type="row"/>
+                <field name="product_id"/>
+                <field name="stock_qty" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_stock_quantity_product_tree">
+        <field name="name">view_stock_quantity_product_tree</field>
+        <field name="model">stock.quantity.product</field>
+        <field name="arch" type="xml">
+            <tree string="Stock Quantity">
+                <field name="date_stock"/>
+                <field name="stock_qty"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_stock_product_quantity" model="ir.actions.act_window">
+        <field name="name">Stock Quantity</field>
+        <field name="res_model">stock.quantity.product</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="view_id"></field>  <!-- force empty -->
+    </record>
+
+</odoo>

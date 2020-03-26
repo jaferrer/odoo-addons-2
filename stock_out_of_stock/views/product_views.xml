@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_product_template_stock_quantity" model="ir.ui.view">
+        <field name="name">view_product_template_stock_quantity</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <button name="toggle_active" position="before">
+                <button class="oe_stat_button" name="action_view_graph_move"
+                    type="object" icon="fa-cubes">
+                    <div class="o_field_widget o_stat_info">
+                        <div class="o_form_field o_stat_info">
+                            <span class="o_stat_text">Operations</span>
+                        </div>
+                    </div>
+                </button>
+            </button>
+        </field>
+    </record>
+
+</odoo>

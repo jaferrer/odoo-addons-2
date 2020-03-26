@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="sale_planning_tree" model="ir.ui.view">
+        <field name="name">sale_planning_tree</field>
+        <field name="model">sale.planning</field>
+        <field name="arch" type="xml">
+            <tree string="Sale planning" editable="top" decoration-warning="sale_qty==0 and reserve_qty==0">
+                <field name="product_id"/>
+                <field name="period_id"/>
+                <field name="stock_qty"/>
+                <field name="forecast_qty"/>
+                <field name="sale_last_year"/>
+                <field name="sale_qty"/>
+                <field name="reserve_qty"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="sale_planning_form" model="ir.ui.view">
+        <field name="name">sale_planning_form</field>
+        <field name="model">sale.planning</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Sale planning">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <div>
+                            <group>
+                                <field name="product_id"/>
+                                <field name="period_id"/>
+                            </group>
+                        </div>
+                         <div>
+                             <group>
+                                <field name="stock_qty"/>
+                                <field name="forecast_qty"/>
+                                <field name="sale_last_year"/>
+                                <field name="sale_qty"/>
+                                <field name="reserve_qty"/>
+                             </group>
+                        </div>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="sale_planning_view_action" model="ir.actions.act_window">
+        <field name="name">Sale planning</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.planning</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="sale_planning_create_action" model="ir.actions.act_window">
+        <field name="name">Sale planning</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sale.planning</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <record id="sale_planning_filter" model="ir.ui.view">
+        <field name="name">sale_planning_filter</field>
+        <field name="model">sale.planning</field>
+        <field name="priority" eval="15"/>
+        <field name="arch" type="xml">
+            <search string="Search">
+                <field name="product_id" string="Product"/>
+                <field name="period_id" string="Period"/>
+                <filter name="this_year" string="Current Year" domain="[('period_id.year_id.number', '=', context_today().strftime('%%Y'))]"/>
+                <group expand="0" string="Group By">
+                    <filter name="product_group" string="Product" domain="[]" context="{'group_by':'product_id'}"/>
+                    <filter name="period_group" string="Period" domain="[]" context="{'group_by':'period_id'}"/>
+                </group>
+           </search>
+        </field>
+    </record>
+
+    <!-- Button in action menu -->
+    <record id="confirm_sale_forecast_action" model="ir.actions.server">
+        <field name="name">Confirm Forecast</field>
+        <field name="binding_model_id" ref="model_sale_planning"/>
+        <field name="model_id" ref="model_sale_planning"/>
+        <field name="state">code</field>
+        <field name="code">action = records.confirm_forecast()</field>
+    </record>
+
+
+</odoo>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="subcontract_purchase_order_view_form" model="ir.ui.view">
+        <field name="name">subcontract_purchase_order_view_form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+            <button type="object"
+                name="action_view_picking_out"
+                class="oe_stat_button"
+                icon="fa-truck" attrs="{'invisible':[('picking_out_count','=','0')]}">
+                <field name="picking_out_count" widget="statinfo" string="Delivery" help="Outcoming Shipments"/>
+            </button>
+        </xpath>
+        </field>
+    </record>
+</odoo>

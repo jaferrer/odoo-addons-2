@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="calendar_season_tree" model="ir.ui.view">
+        <field name="name">calendar_season_tree</field>
+        <field name="model">res.calendar.season</field>
+        <field name="arch" type="xml">
+            <tree string="Calendar season" editable="top">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="start_month_id" options="{'no_create_edit': True, 'limit':12}"/>
+                <field name="end_month_id" options="{'no_create_edit': True, 'limit':12}"/>
+                <field name="period"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="season_action" model="ir.actions.act_window">
+        <field name="name">Calendar season</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">res.calendar.season</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <menuitem id="res_calendar_season_menu"
+              name="Calendar season"
+              parent="resource.menu_resource_config"
+              action="season_action"
+              sequence="140"/>
+
+</odoo>
