@@ -1,0 +1,12 @@
+<templates>
+    <t t-extend="DashBoard.action">
+        <t t-jquery="span.oe_minimize" t-operation="after">
+            <t t-if="debug">
+                <a class="oe_icon fa fa-eye" t-attf-href="/web?debug=#action=#{action.attrs.name}" title="Open"/>
+            </t>
+            <t t-else="1">
+                <a class="oe_icon fa fa-eye" t-attf-href="/web#action=#{action.attrs.name}" title="Open"/>
+            </t>
+        </t>
+    </t>
+</templates>
