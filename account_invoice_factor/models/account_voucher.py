@@ -31,5 +31,6 @@ class AccountVoucher(models.Model):
     @api.multi
     def proforma_voucher(self):
         res = super(AccountVoucher, self).proforma_voucher()
-        self.invoice_id.on_new_payment()
+        for rec in self:
+            rec.invoice_id.on_new_payment()
         return res
