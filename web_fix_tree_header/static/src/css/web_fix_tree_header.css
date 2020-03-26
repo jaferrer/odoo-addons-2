@@ -29,3 +29,7 @@ div.table-responsive {
     z-index: -1;
     top: 0;
 }
+
+.o_form_view .o_form_sheet_bg .o_form_statusbar {
+    z-index:10;
+}
