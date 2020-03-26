@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="crm_lead_probability_revenue_kanban" model="ir.ui.view">
+            <field name="name">crm_lead_probability_revenue</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+            <field name="arch" type="xml">
+                <field name="planned_revenue" position="after">
+                    <field name="probability"/>
+                    <field name="probability_revenue"/>
+                </field>
+                <progressbar field="activity_state" position="attributes">
+                    <attribute name="sum_field">probability_revenue</attribute>
+                </progressbar>
+                <xpath expr="//div[hasclass('o_kanban_record_subtitle')]//field[@name='planned_revenue']"
+                       position="after">
+                    at
+                    <field name="probability" widget="integer"/>
+                    % for
+                    <field name="probability_revenue"/>
+                    €
+                </xpath>
+            </field>
+        </record>
+        <record id="crm_lead_probability_revenue_tree" model="ir.ui.view">
+            <field name="name">crm_lead_probability_revenue</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_tree_view_oppor"/>
+            <field name="arch" type="xml">
+                <field name="probability" position="after">
+                    <field name="probability_revenue"/>
+                </field>
+            </field>
+        </record>
+        <record id="crm_lead_probability_revenue_form" model="ir.ui.view">
+            <field name="name">crm_lead_probability_revenue</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_oppor"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('oe_title')]//h2" position="inside">
+                    <div>
+                        <label for="probability_revenue" class="oe_edit_only"/>
+                        <div class="o_row">
+                            <field name="probability_revenue"/>
+                            <span>€</span>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+        <record id="crm_lead_probability_revenue_graph" model="ir.ui.view">
+            <field name="name">crm_lead_probability_revenue</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_graph_view_leads"/>
+            <field name="arch" type="xml">
+                <field name="planned_revenue" position="after">
+                    <field name="probability_revenue" type="measure"/>
+                </field>
+            </field>
+        </record>
+        <record id="crm_lead_probability_revenue_pivot" model="ir.ui.view">
+            <field name="name">crm_lead_probability_revenue</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_pivot_view_leads"/>
+            <field name="arch" type="xml">
+                <field name="planned_revenue" position="after">
+                    <field name="probability_revenue" type="measure"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</openerp>

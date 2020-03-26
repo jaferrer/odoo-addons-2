@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="crm_lead_win_reason_form" model="ir.ui.view">
+            <field name="name">crm_lead_probability_revenue</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_case_form_view_oppor"/>
+            <field name="arch" type="xml">
+               <button name="action_set_won_rainbowman" position="after">
+                   <button name="action_set_won_with_reason" string="Set won" class="oe_highlight" type="object"
+                           attrs="{'invisible': ['|', ('active','=',False), ('probability', '=', 100)]}"/>
+               </button>
+               <button name="action_set_won_rainbowman" position="attributes">
+                   <attribute name="invisible">1</attribute>
+               </button>
+               <field name="lost_reason" position="after">
+                   <field name="win_reason"/>
+               </field>
+            </field>
+        </record>
+
+        <record id="crm_lead_win_form" model="ir.ui.view">
+            <field name="name">crm_lead_win_form</field>
+            <field name="model">crm.lead.win</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group class="oe_title">
+                        <field name="win_reason_id"/>
+                    </group>
+                    <footer>
+                        <button name="action_win_reason_apply" string="Submit" type="object" class="btn btn-sm btn-primary"/>
+                        <button string="Cancel" class="btn btn-sm btn-default" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="crm_win_reason_action" model="ir.actions.act_window">
+            <field name="name">Win Reasons</field>
+            <field name="res_model">crm.win.reason</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to define a new win reason.
+              </p><p>
+                Use win reasons to explain why an opportunity is win.
+              </p>
+            </field>
+        </record>
+
+        <menuitem
+            id="menu_crm_win_reason"
+            action="crm_win_reason_action"
+            parent="crm.menu_crm_config_lead"
+            sequence="6"/>
+    </data>
+</openerp>

@@ -1,0 +1,39 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* crm_lead_win_reason
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 8.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-03-26 08:02+0000\n"
+"PO-Revision-Date: 2020-03-26 08:02+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: crm_lead_win_reason
+#: field:crm.lead,win_reason_id:0
+#: field:crm.lead.win,win_reason:0
+#: code:addons/crm_lead_win_reason/crm_lead_win_reason.py:32
+#, python-format
+msgid "Win reason"
+msgstr "Motif du succès"
+
+#. module: crm_lead_win_reason
+#: model:ir.actions.act_window,name:crm.crm_win_reason_action
+msgid "Win reasons"
+msgstr "Motifs de succès"
+
+#. module: crm_lead_win_reason
+#: field:crm.win.reason,name:0
+msgid "Name"
+msgstr "Nom"
+
+#. module: crm_lead_probability_revenue
+#: model:ir.ui.view,arch_db:crm_lead_win_reason.crm_lead_win_reason_form
+msgid "Set won"
+msgstr "Marquer comme gagné"
