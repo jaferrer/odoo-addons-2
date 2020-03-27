@@ -23,6 +23,8 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from odoo.tools.safe_eval import safe_eval
 
+from odoo.addons.queue_job.job import job
+
 
 class AccountMoveExportWizard(models.TransientModel):
     _name = 'account.move.export.wizard'
@@ -117,6 +119,12 @@ class AccountMoveExportWizard(models.TransientModel):
 
         Automatically export some lines accordingly to the parameters specified in account config settings
         """
+        note = u"Export des lignes comptables du %s" % fields.Date.today()
+        self.with_delay(description=note)._run_export_lines()
+
+    @api.model
+    @job(default_channel='root.account')
+    def _run_export_lines(self):
         get_param = self.env['ir.config_parameter'].get_param
         vals = {
             'destination': 'ftp',
