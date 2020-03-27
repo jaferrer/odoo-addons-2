@@ -34,7 +34,7 @@ Handle the customer's function
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'security/ir.model.access.csv',
-        'views/function.xml',
+        'views/res_partner_function.xml',
     ],
     'demo': [],
     'test': [],

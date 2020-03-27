@@ -20,8 +20,8 @@
 from odoo import fields, models
 
 
-class Function(models.Model):
-    _name = 'function'
+class ResPartnerFunction(models.Model):
+    _name = 'res.partner.function'
     _description = "Job Function"
 
     name = fields.Char('Job Position', required=True)
