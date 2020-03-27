@@ -23,18 +23,20 @@ from odoo import api, fields, models
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
-    function_selection = fields.Many2one('function', string='Job')
+    function_selection = fields.Many2one('res.partner.function', string='Job')
 
     @api.multi
     def write(self, vals):
         res = super(ResPartner, self).write(vals)
         if 'function_selection' in vals:
-            self.function = vals.get('function_selection.name')
+            function = self.env['res.partner.function'].browse(vals.get('function_selection'))
+            self.function = function.name
         return res
 
     @api.model_create_single
     def create(self, vals):
         res = super(ResPartner, self).create(vals)
         if 'function_selection' in vals:
-            self.function = vals.get('function_selection.name')
+            function = self.env['res.partner.function'].browse(vals.get('function_selection'))
+            self.function = function.name
         return res

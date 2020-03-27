@@ -18,4 +18,4 @@
 #
 
 from . import res_partner
-from . import function
+from . import res_partner_function

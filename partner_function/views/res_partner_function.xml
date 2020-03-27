@@ -3,7 +3,7 @@
 
     <record id="function_tree" model="ir.ui.view">
         <field name="name">function_tree</field>
-        <field name="model">function</field>
+        <field name="model">res.partner.function</field>
         <field name="arch" type="xml">
             <tree string="Functions" editable="top">
                 <field name="name"/>
@@ -14,7 +14,7 @@
     <record id="function_action" model="ir.actions.act_window">
         <field name="name">Functions</field>
         <field name="type">ir.actions.act_window</field>
-        <field name="res_model">function</field>
+        <field name="res_model">res.partner.function</field>
         <field name="view_mode">tree</field>
     </record>
 
