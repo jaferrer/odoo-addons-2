@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -14,23 +14,7 @@
 #    GNU Affero General Public License for more details.
 #
 #    You should have received a copy of the GNU Affero General Public License
-#    along with this
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-
-import logging
-
-from openerp import models, api
-
-_logger = logging.getLogger(__name__)
-
-
-class AccountVoucher(models.Model):
-    _inherit = 'account.voucher'
-
-    @api.multi
-    def proforma_voucher(self):
-        res = super(AccountVoucher, self).proforma_voucher()
-        for rec in self:
-            rec.invoice_id.on_new_payment()
-        return res
+from . import fields

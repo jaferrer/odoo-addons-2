@@ -17,10 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import logging
+
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
 
-from openerp import models, fields, api
+from openerp import models, fields, api, _
+
+_logger = logging.getLogger(__name__)
 
 
 @job
@@ -32,15 +36,16 @@ class OdooMonitoringDiskUsageByTable(models.Model):
     _name = 'odoo.monitoring.disk.usage.by.table'
     _order = 'date desc, cardinality desc'
 
-    date = fields.Datetime(string=u"Date", required=True)
+    date = fields.Date(string=u"Date", required=True)
     table_id = fields.Many2one('odoo.monitoring.database.table', string=u"Table", readonly=True, required=True)
-    cardinality = fields.Integer(string=u"Cardinality", readonly=True, group_operator='max')
-    disk_size_data = fields.Float(string=u"Size on disk (data)", help=u"Unit is Gigabyte",
-                                  readonly=True, group_operator='max')
-    disk_size_index = fields.Float(string=u"Size on disk (index)", help=u"Unit is Gigabyte",
-                                   readonly=True, group_operator='max')
-    disk_size_total = fields.Float(string=u"Size on disk (total)", help=u"Unit is Gigabyte",
-                                   readonly=True, group_operator='max')
+    table_name = fields.Char(related='table_id.name', store=True, string=u"Table name")
+    cardinality = fields.Integer(string=u"Cardinality", readonly=True)
+    disk_size_data = fields.Float(string=u"Size on disk (data)", help=u"Unit is Gigabyte", readonly=True)
+    disk_size_index = fields.Float(string=u"Size on disk (index)", help=u"Unit is Gigabyte", readonly=True)
+    disk_size_total = fields.Float(string=u"Size on disk (total)", help=u"Unit is Gigabyte", readonly=True)
+
+    _sql_constraints = [('uq_constraint_date_by_table', 'UNIQUE(table_id, date)',
+                         _(u"Monitoring measures can only be created once a day"))]
 
 
 class OdooMonitoringDatabaseTable(models.Model):
@@ -49,17 +54,17 @@ class OdooMonitoringDatabaseTable(models.Model):
 
     disk_usage_line_ids = fields.One2many('odoo.monitoring.disk.usage.by.table', 'table_id',
                                           string=u"Measures of disk usage")
-    current_cardinality = fields.Integer(string=u"Cardinality", compute='_compute_current_disk_usage', store=True,
-                                         group_operator='max')
+    current_cardinality = fields.Integer(string=u"Cardinality", compute='_compute_current_disk_usage', store=True)
     current_disk_size_data = fields.Float(string=u"Size on disk (data)", help=u"Unit is Gigabyte",
-                                          compute='_compute_current_disk_usage', store=True, group_operator='max')
+                                          compute='_compute_current_disk_usage', store=True)
     current_disk_size_index = fields.Float(string=u"Size on disk (index)", help=u"Unit is Gigabyte",
-                                           compute='_compute_current_disk_usage', store=True, group_operator='max')
+                                           compute='_compute_current_disk_usage', store=True)
     current_disk_size_total = fields.Float(string=u"Size on disk (total)", help=u"Unit is Gigabyte",
-                                           compute='_compute_current_disk_usage', store=True, group_operator='max')
+                                           compute='_compute_current_disk_usage', store=True)
 
     @api.multi
-    @api.depends('disk_usage_line_ids')
+    @api.depends('disk_usage_line_ids', 'disk_usage_line_ids.cardinality',
+                 'disk_usage_line_ids.disk_size_data', 'disk_usage_line_ids.disk_size_total')
     def _compute_current_disk_usage(self):
         for rec in self:
             last_disk_usage_measure = self.env['odoo.monitoring.disk.usage.by.table']. \
@@ -71,13 +76,12 @@ class OdooMonitoringDatabaseTable(models.Model):
 
     @api.multi
     def create_measure_of_disk_usage(self):
-        date = fields.Datetime.now()
+        date = fields.Date.today()
         for rec in self:
             # An approximate value is enough for this usage, and much facster than a count(*)
             self.env.cr.execute("""SELECT *
 FROM (
        SELECT table_name,
-              row_estimate,
               total_bytes,
               index_bytes
        FROM (
@@ -95,19 +99,33 @@ FROM (
      ) a
 WHERE table_name = %s""", (rec.name,))
             data = self.env.cr.dictfetchall()[0]
+            query = """SELECT count(*) from %s""" % rec.name
+            self.env.cr.execute(query)
+            cardinality = self.env.cr.fetchall()[0][0]
             # We convert Bytes to GigaBytes
-            self.env['odoo.monitoring.disk.usage.by.table'].create({
+            existing_line = self.env['odoo.monitoring.disk.usage.by.table'].search([('table_id', '=', rec.id),
+                                                                                    ('date', '=', date)], limit=1)
+            data = {
                 'date': date,
                 'table_id': rec.id,
-                'cardinality': data['row_estimate'],
+                'cardinality': cardinality,
                 'disk_size_data': float(data['total_bytes'] - data['index_bytes']) / 1000000000,
                 'disk_size_index': float(data['index_bytes']) / 1000000000,
                 'disk_size_total': float(data['total_bytes']) / 1000000000,
-            })
+            }
+            if existing_line:
+                existing_line.write(data)
+            else:
+                self.env['odoo.monitoring.disk.usage.by.table'].create(data)
 
     @api.model
     def cron_measure_of_disk_usage(self):
-        for rec in self.search([]):
+        tables_to_process = self.search([])
+        nb_tables = len(tables_to_process)
+        index = 0
+        for rec in tables_to_process:
+            index += 1
+            _logger.info(u"Creating job to measure disk usage for table %s (%s/%s)", rec.name, index, nb_tables)
             job_create_measure_of_disk_usage.delay(ConnectorSession.from_env(self.env), self._name, rec.ids,
                                                    description=u"Update disk usage for table %s" % rec.name)
 
@@ -116,8 +134,7 @@ WHERE table_name = %s""", (rec.name,))
         self.ensure_one()
         ctx = dict(self.env.context)
         ctx['search_default_table_id'] = self.id
-        ctx['search_default_group_by_day'] = True
-        ctx['search_default_card_sup_10k_lines'] = True
+        ctx['search_default_last_30_days'] = True
         return {
             'type': 'ir.actions.act_window',
             'view_type': 'form',
@@ -132,8 +149,7 @@ WHERE table_name = %s""", (rec.name,))
         self.ensure_one()
         ctx = dict(self.env.context)
         ctx['search_default_table_id'] = self.id
-        ctx['search_default_group_by_day'] = True
-        ctx['search_default_disk_size_sup_10Mb'] = True
+        ctx['search_default_last_30_days'] = True
         return {
             'type': 'ir.actions.act_window',
             'view_type': 'form',

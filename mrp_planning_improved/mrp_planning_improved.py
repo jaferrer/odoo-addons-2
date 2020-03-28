@@ -100,9 +100,11 @@ class ManufacturingOrderPlanningImproved(models.Model):
                 else:
                     values['date'] = rec.date_planned
             else:
-                values['date'] = rec.date_required
+                values['date'] = rec.date_required or rec.date_planned
             if self.env.context.get('reschedule_planned_date'):
                 values['date_expected'] = rec.date_required
+            if not values['date']:
+                values.pop('date')
             rec.move_lines.write(values)
 
     @api.model

@@ -49,6 +49,17 @@
             <field name="arch" type="xml">
                 <search>
                     <field name="table_id"/>
+                    <filter name="last_30_days" string="Last 30 days"
+                            domain="[('date', '&gt;=', ((context_today()-relativedelta(days=30)).strftime('%%Y-%%m-%%d')))]"/>
+                    <filter name="last_60_days" string="Last 60 days"
+                            domain="[('date', '&gt;=', ((context_today()-relativedelta(days=60)).strftime('%%Y-%%m-%%d')))]"/>
+                    <filter name="last_90_days" string="Last 90 days"
+                            domain="[('date', '&gt;=', ((context_today()-relativedelta(days=90)).strftime('%%Y-%%m-%%d')))]"/>
+                    <filter name="last_120_days" string="Last 120 days"
+                            domain="[('date', '&gt;=', ((context_today()-relativedelta(days=120)).strftime('%%Y-%%m-%%d')))]"/>
+                    <filter name="last_150_days" string="Last 150 days"
+                            domain="[('date', '&gt;=', ((context_today()-relativedelta(days=150)).strftime('%%Y-%%m-%%d')))]"/>
+                    <separator/>
                     <filter name="disk_size_sup_1Mb" string="Disk Size &gt; 1Mb" domain="[('table_id.current_disk_size_total', '&gt;=', 0.001)]" />
                     <filter name="disk_size_sup_10Mb" string="Disk Size &gt; 10Mb" domain="[('table_id.current_disk_size_total', '&gt;=', 0.01)]" />
                     <filter name="disk_size_sup_100Mb" string="Disk Size &gt; 100Mb" domain="[('table_id.current_disk_size_total', '&gt;=', 0.1)]" />
@@ -98,6 +109,21 @@
         <menuitem id="menu_odoo_monitoring_disk_usage_by_table" name="Disk Usage By Table"
                   action="act_window_odoo_monitoring_disk_usage_by_table"
                   parent="base_database_monitoring.menu_monitoring_indicators" sequence="10"/>
+
+        <record model="ir.actions.act_window" id="act_window_total_disk_usage">
+            <field name="name">Total Disk Usage</field>
+            <field name="res_model">odoo.monitoring.disk.usage.by.table</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">graph</field>
+            <field name="view_id" ref="odoo_monitoring_disk_measure_graph_disk_size"/>
+            <field name="domain">[]</field>
+            <field name="context">{'search_default_last_60_days': True}</field>
+            <field name="help"/>
+        </record>
+
+        <menuitem id="menu_total_disk_usage" name="Total Disk Usage"
+                  action="act_window_total_disk_usage"
+                  parent="base_database_monitoring.menu_monitoring_indicators" sequence="20"/>
 
         <record model="ir.ui.view" id="odoo_monitoring_database_table_tree">
             <field name="name">odoo_monitoring_database_table_tree</field>
