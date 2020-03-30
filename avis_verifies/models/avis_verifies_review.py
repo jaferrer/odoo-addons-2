@@ -95,7 +95,9 @@ class AvisVerifiesReview(models.Model):
     @api.model
     def cron_refresh(self):
         desc = _t(u"Refresh avis-verifies reviews")
-        return self.with_delay(description=desc).refresh_site_reviews()
+        url = self.env['ir.config_parameter'].get_param('avis.verifies.site_reviews_url')
+        if url:
+            return self.with_delay(description=desc).refresh_site_reviews()
 
     @api.model
     @job(default_channel='root.ir_cron')

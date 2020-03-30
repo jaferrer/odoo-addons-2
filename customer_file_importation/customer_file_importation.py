@@ -149,10 +149,10 @@ class CustomerFileToImport(models.Model):
             out_file_csv = csv.writer(out_file)
             field_names = list(fields_to_import)
             if 'id' not in field_names:
-                field_names = ['id'] + fields_to_import
+                field_names = ['id'] + field_names
             out_file_csv.writerow(field_names)
             for record_id in table_dict_result:
-                row = [record_id]
+                row = []
                 if 'id' not in fields_to_import:
                     row = [record_id] + row
                 for field_name in fields_to_import:
