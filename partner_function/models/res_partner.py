@@ -38,5 +38,5 @@ class ResPartner(models.Model):
         res = super(ResPartner, self).create(vals)
         if 'function_selection' in vals:
             function = self.env['res.partner.function'].browse(vals.get('function_selection'))
-            self.function = function.name
+            res.function = function.name
         return res
