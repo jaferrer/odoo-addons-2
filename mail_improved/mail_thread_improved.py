@@ -49,8 +49,6 @@ class MailThreadImprovedModels(models.Model):
     @api.model
     def launch_useless_messages_deletion(self):
         models_list = self.compute_models_to_process()
-
-
         for model in models_list:
             table_name = self.env[model]._table
             self.env.cr.execute("""DELETE FROM mail_message

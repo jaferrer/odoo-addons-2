@@ -152,7 +152,7 @@ def job_reconfirm_procurement(session, model_name, ids, vals):
 @job
 def job_unlink_orderpoints(session, model_name, ids, context):
     """Unlink orderpoints"""
-    orderpoints = session.env[model_name].with_context(context).browse(ids)
+    orderpoints = session.env[model_name].with_context(context).search([('id', 'in', ids)])
     orderpoints.unlink()
 
 
