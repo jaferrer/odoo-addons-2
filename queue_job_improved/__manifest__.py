@@ -28,9 +28,7 @@
 Improves queue.job
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/queue_job.xml',
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,
