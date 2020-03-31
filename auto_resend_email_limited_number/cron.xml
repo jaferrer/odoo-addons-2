@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.cron" id="auto_resend_mail.auto_resend_mails">
+            <field name="run_as_queue_job" eval="True"/>
+            <field name="channel_id" ref="queue_job_cron.channel_root_ir_cron"/>
+        </record>
+
+    </data>
+</openerp>
