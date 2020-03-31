@@ -62,4 +62,4 @@ class SaleOrderReportAeroo(models.Model):
         """
         Replace the Odoo report form view by the aeroo report in the 'Print' button of the form view.
         """
-        return self.env.ref('purchase_order_report_aeroo.purchase_order_report_aeroo').report_action(self, config=False)
+        return self.env.ref('sale_order_report_aeroo.sale_order_report_aeroo').report_action(self, config=False)
