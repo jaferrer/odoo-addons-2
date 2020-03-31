@@ -16,7 +16,13 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: queue_job_improved
-#: model:ir.actions.server,name:queue_job_improved.action_queue_job_set_all_done
-msgid "Set all to done"
-msgstr "Mettre en \"Terminé\""
+#: model:ir.values,name:queue_job.action_set_jobs_done_values
+#: model:ir.actions.act_window,name:queue_job.action_set_jobs_done
+msgid "Set jobs to done"
+msgstr "Mettre les jobs en terminé"
 
+#. module: queue_job_improved
+#: model:ir.values,name:queue_job.action_requeue_job_values
+#: model:ir.actions.act_window,name:queue_job.action_requeue_job
+msgid "Requeue Jobs"
+msgstr "Remettre les jobs en queue"
