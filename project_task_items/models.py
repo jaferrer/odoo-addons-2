@@ -28,7 +28,9 @@ class ProjectTask(models.Model):
 
 class ProjectTaskItem(models.Model):
     _name = 'project.task.item'
+    _order = 'sequence, id'
 
     task_id = fields.Many2one('project.task', u"Task")
     done = fields.Boolean(u"Done")
     description = fields.Char(u"Content", required=True)
+    sequence = fields.Integer(string=u"Sequence")

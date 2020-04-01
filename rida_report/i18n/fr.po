@@ -323,18 +323,6 @@ msgid "Theme"
 msgstr "Client"
 
 #. module: rida_report
-#: model:ir.model.fields,field_description:rida_report.field_rida_line_purchase_id
-#: model:ir.model.fields,field_description:rida_report.field_rida_report_purchase_id
-msgid "Purchase order"
-msgstr "Commande d'achat"
-
-#. module: rida_report
-#: model:ir.model.fields,field_description:rida_report.field_rida_line_invoice_id
-#: model:ir.model.fields,field_description:rida_report.field_rida_report_invoice_id
-msgid "Invoice"
-msgstr "Facture"
-
-#. module: rida_report
 #: selection:rida.report,auth_mode:0
 msgid "Tout le monde"
 msgstr "Tout le monde"

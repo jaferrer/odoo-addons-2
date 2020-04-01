@@ -113,7 +113,7 @@
     <menuitem name="Dunnings"
               id="menu_sale_order_dunning_action"
               parent="sales_team.menu_sales"
-              sequence="100"
+              sequence="150"
               action="dunning_view_action"/>
 
     <record model="ir.cron" id="sale_order_dunning_cron">
