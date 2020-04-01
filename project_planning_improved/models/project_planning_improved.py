@@ -92,7 +92,8 @@ class ProjectImprovedProject(models.Model):
                             ('previous_task_ids', '=', False),
                             ('children_task_ids', '=', False)]
             latest_tasks = self.env['project.task'].search(domain_tasks)
-            longest_ways_to_tasks = {task: {'tasks': task, 'nb_days': task.objective_duration} for task in latest_tasks}
+            longest_ways_to_tasks = {task: {'tasks': task, 'nb_days': task.objective_duration_not_null}
+                                     for task in latest_tasks}
             while latest_tasks:
                 new_tasks_to_proceed = self.env['project.task']
                 for latest_task in latest_tasks:
@@ -104,7 +105,7 @@ class ProjectImprovedProject(models.Model):
                         if next_task in longest_ways_to_tasks:
                             old_duration_to_task = longest_ways_to_tasks[next_task]['nb_days']
                             new_duration_to_task = longest_ways_to_tasks[latest_task]['nb_days'] + \
-                                next_task.objective_duration
+                                next_task.objective_duration_not_null
                             if new_duration_to_task <= old_duration_to_task:
                                 set_new_way = False
                                 # Case of two critical ways
@@ -114,7 +115,8 @@ class ProjectImprovedProject(models.Model):
                         if set_new_way:
                             longest_ways_to_tasks[next_task] = {
                                 'tasks': longest_ways_to_tasks[latest_task]['tasks'] + next_task,
-                                'nb_days': longest_ways_to_tasks[latest_task]['nb_days'] + next_task.objective_duration
+                                'nb_days': longest_ways_to_tasks[latest_task]['nb_days'] +
+                                           next_task.objective_duration_not_null
                             }
                 latest_tasks = new_tasks_to_proceed
             critical_nb_days = longest_ways_to_tasks and \
@@ -179,10 +181,9 @@ class ProjectImprovedProject(models.Model):
             if not reference_task or not rec.reference_task_end_date:
                 raise UserError(_(u"Impossible to update objective dates for project %s if reference task or its date "
                                   u"is not defined.") % rec.display_name)
-            reference_task.objective_end_date = rec.reference_task_end_date
             reference_task.write({
                 'objective_start_date': reference_task.
-                    schedule_get_date(rec.reference_task_end_date, -reference_task.objective_duration + 1),
+                    schedule_get_date(rec.reference_task_end_date, -reference_task.objective_duration_not_null + 1),
                 'objective_end_date': rec.reference_task_end_date,
             })
             previous_tasks = reference_task.previous_task_ids
@@ -199,7 +200,7 @@ class ProjectImprovedProject(models.Model):
                     if objective_end_date:
                         objective_end_date = previous_task.schedule_get_date(objective_end_date, -1)
                     objective_start_date = objective_end_date and previous_task. \
-                        schedule_get_date(objective_end_date, -previous_task.objective_duration + 1) or False
+                        schedule_get_date(objective_end_date, -previous_task.objective_duration_not_null + 1) or False
                     vals_previous_task = {
                         'objective_start_date': objective_start_date,
                         'objective_end_date': objective_end_date,
@@ -220,7 +221,7 @@ class ProjectImprovedProject(models.Model):
                     if objective_start_date:
                         objective_start_date = next_task.schedule_get_date(objective_start_date, 1)
                     objective_end_date = objective_start_date and next_task.\
-                        schedule_get_date(objective_start_date, next_task.objective_duration - 1) or False
+                        schedule_get_date(objective_start_date, next_task.objective_duration_not_null - 1) or False
                     vals_next_task = {
                         'objective_start_date': objective_start_date,
                         'objective_end_date': objective_end_date,
@@ -370,6 +371,8 @@ class ProjectImprovedTask(models.Model):
                                      'next_task_id', string=u"Next tasks")
     children_task_ids = fields.One2many('project.task', 'parent_task_id', string=u"Children tasks")
     objective_duration = fields.Integer(string=u"Objective Needed Time (in days)")
+    objective_duration_not_null = fields.Integer(string=u"Objective Needed Time (in days, not null)",
+                                                 compute='_compute_objective_duration_not_null')
     critical_task = fields.Boolean(string=u"Critical task", readonly=True)
     objective_end_date = fields.Date(string=u"Objective end date", readonly=True)
     objective_start_date = fields.Date(string=u"Objective start date", readonly=True)
@@ -435,6 +438,11 @@ class ProjectImprovedTask(models.Model):
                                                         line in rec.children_task_ids)
                 rec.total_allocated_duration = rec.allocated_duration + rec.allocated_duration_unit_tasks
                 records -= rec
+
+    @api.multi
+    def _compute_objective_duration_not_null(self):
+        for rec in self:
+            rec.objective_duration_not_null = rec.objective_duration or 1
 
     @api.onchange('expected_start_date', 'expected_end_date')
     @api.multi
@@ -802,9 +810,12 @@ WHERE id = %s"""
     def write(self, vals):
         if not self:
             return True
-        if 'objective_end_date' in vals:
-            _logger.info(u"Scheduling task(s) %s for objective end date %s", u",".join([rec.name for rec in self]),
-                         vals.get('objective_end_date'))
+        if 'objective_start_date' in vals or 'objective_end_date' in vals:
+            for rec in self:
+                _logger.info(u"Scheduling task %s for objective_start_date %s and objective end date %s",
+                             rec.name,
+                             vals.get('objective_start_date', rec.objective_start_date),
+                             vals.get('objective_end_date', rec.objective_end_date))
         expected_start_date_display = vals.get('expected_start_date_display')
         if expected_start_date_display:
             expected_start_date_display_dt = fields.Date.from_string(expected_start_date_display[:10])
