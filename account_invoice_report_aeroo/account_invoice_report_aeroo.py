@@ -17,10 +17,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import models, api
+from odoo import models, fields, api
 
 
-class SaleOrderDeleteReport(models.TransientModel):
+class AccountInvoiceResCompany(models.Model):
+    _inherit = 'res.company'
+
+    capital_stock = fields.Float(string=u"Capital stock")
+
+
+class AccountInvoiceDeleteReport(models.TransientModel):
     _inherit = 'res.config.settings'
 
     @api.model
@@ -28,36 +34,32 @@ class SaleOrderDeleteReport(models.TransientModel):
         """
         Replace the Odoo report by the aeroo report in the 'Send by mail' button of the form view.
         """
-        mail_model = self.env.ref('sale.email_template_edi_sale')
+        mail_model = self.env.ref('account.email_template_edi_invoice')
         report = self.env.ref(self._get_report_id())
         mail_model.report_template = report.id
 
     @api.model
     def _get_report_id(self):
-        return 'sale_order_report_aeroo.sale_order_report_aeroo'
+        return 'account_invoice_report_aeroo.account_invoice_report_aeroo'
 
     @api.model
     def hide_odoo_report(self):
         """
-        Get rid of the Odoo report in the list of the 'Print' action.
+        Get rid of the Odoo reports in the list of the 'Print' action.
         """
-        odoo_sale_order_report = self.env.ref('sale.action_report_saleorder')
-        self.env['ir.actions.report'].browse(odoo_sale_order_report.id).unlink_action()
+        odoo_sale_order_report_invoice = self.env.ref('account.account_invoices')
+        odoo_sale_order_report_invoice_with_no_payment = self.env.ref('account.account_invoices_without_payment')
+        self.env['ir.actions.report'].browse(odoo_sale_order_report_invoice.id).unlink_action()
+        self.env['ir.actions.report'].browse(odoo_sale_order_report_invoice_with_no_payment.id).unlink_action()
 
 
-class SaleOrderReportAeroo(models.Model):
-    _inherit = 'sale.order'
+class AccountInvoice(models.Model):
+    _inherit = 'account.invoice'
 
     @api.multi
-    def multi_reports_print_quotation(self, report_xml_id):
-        """
-        In case there are several reports for 'sale.order'.
-        """
-        return self.env.ref(report_xml_id).report_action(self, config=False)
-
-    @api.multi
-    def print_quotation(self):
+    def invoice_print(self):
         """
         Replace the Odoo report form view by the aeroo report in the 'Print' button of the form view.
         """
-        return self.env.ref('sale_order_report_aeroo.sale_order_report_aeroo').report_action(self, config=False)
+        super(AccountInvoice, self).invoice_print()
+        return self.env.ref('account_invoice_report_aeroo.account_invoice_report_aeroo').read()[0]
