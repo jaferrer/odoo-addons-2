@@ -91,11 +91,12 @@ class MoUpdateMrpProduction(models.Model):
                             and float_compare(total_new_need, 0, precision_rounding=prec) != 0:
                         changes_to_do += [(item.product_id, total_new_need, total_old_need, total_done_moves)]
                     done_products += [item.product_id]
+            moves_to_confirm_ids = []
             for product, total_new_need, total_old_need, total_done_moves in changes_to_do:
                 qty = total_new_need - total_old_need
                 if float_compare(qty, 0, precision_rounding=prec) > 0:
-                    move = mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, qty, False, 0)
-                    self.env['stock.move'].browse(move).action_confirm()
+                    moves_to_confirm_ids += [mrp._make_consume_line_from_data(mrp, product, product.uom_id.id, qty,
+                                                                              False, 0)]
                 else:
                     final_running_qty = total_new_need - total_done_moves
                     moves = self.env['stock.move'].search([('raw_material_production_id', '=', mrp.id),
@@ -109,12 +110,11 @@ class MoUpdateMrpProduction(models.Model):
                         qty_ordered -= moves[0].product_qty
                         moves -= moves[0]
                     if float_compare(qty_ordered, final_running_qty, precision_rounding=product.uom_id.rounding) < 0:
-                        move = self._make_consume_line_from_data(mrp, product, product.uom_id.id,
-                                                                 final_running_qty - qty_ordered, False, 0)
-                        self.env['stock.move'].browse(move).action_confirm()
+                        moves_to_confirm_ids += [self._make_consume_line_from_data(mrp, product, product.uom_id.id,
+                                                                                   final_running_qty - qty_ordered,
+                                                                                   False, 0)]
                 post += t("Product %s: quantity changed from %s to %s<br>") % \
                     (product.display_name, total_old_need, total_new_need)
-
             for item in mrp.product_lines:
                 if item.product_id not in [y.product_id for y in mrp.move_lines if y.state != 'cancel']:
                     needed_new_moves += [item]
@@ -122,9 +122,9 @@ class MoUpdateMrpProduction(models.Model):
                         (item.product_qty, item.product_id.display_name)
 
             product_qtys = {}
-            if self.env.context.get('force_production_qty'):
-                needed_products, _ = self.env['mrp.bom']._bom_explode(
-                    mrp.bom_id, mrp.product_id, self.env.context.get('force_production_qty'))
+            if 'force_production_qty' in self.env.context:
+                needed_products, _ = self.env['mrp.bom']._bom_explode(mrp.bom_id, mrp.product_id,
+                                                                      self.env.context.get('force_production_qty'))
                 product_qtys = {products['product_id']: products['product_qty'] for products in needed_products}
 
             for item in needed_new_moves:
@@ -135,8 +135,11 @@ class MoUpdateMrpProduction(models.Model):
                 else:
                     to_consume_qty = product_qtys[product.id]
 
-                move_id = mrp._make_consume_line_from_data(mrp, product, item.product_uom.id, to_consume_qty, False, 0)
-                self.env['stock.move'].browse(move_id).action_confirm()
+                moves_to_confirm_ids += [mrp._make_consume_line_from_data(mrp, product, item.product_uom.id,
+                                                                          to_consume_qty, False, 0)]
+
+            if moves_to_confirm_ids:
+                self.env['stock.move'].browse(moves_to_confirm_ids).action_confirm()
 
             if post:
                 mrp.message_post(post)
