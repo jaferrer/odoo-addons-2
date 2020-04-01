@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="sale_generate_tracking_labels_wizard_form_view">
+            <field name="name">sale_generate_tracking_labels_wizard_form_view</field>
+            <field name="model">generate.tracking.labels.wizard</field>
+            <field name="inherit_id" ref="generate_tracking_labels.generate_tracking_labels_wizard_form_view"/>
+            <field name="arch" type="xml">
+                <field name="partner_orig_id" postion="before">
+                    <field name="sale_order_id"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</openerp>

@@ -25,30 +25,23 @@ from openerp.tools import frozendict
 
 class TrackingTransporter(models.Model):
     _name = 'tracking.transporter'
+    _description = u"Transporter"
 
     name = fields.Char(u"Name")
     image = fields.Binary(u"Image")
     number_ids = fields.One2many('tracking.number', 'transporter_id', u"List of related tracking numbers")
     number_trackings = fields.Integer("Number of related tracking numbers", compute='_compute_number_trackings')
-    logo = fields.Char(u"Logo", compute='_compute_logo')
 
     @api.multi
     def _compute_number_trackings(self):
-        res = self.env['tracking.number'].read_group([], ['transporter_id'], ['transporter_id'])
-        # Return a dict key = id transporter ans value is the number of tracking.number
-        print res
+        groupby = fields = ['transporter_id']
+        res = self.env['tracking.number'].read_group([('transporter_id', 'in', self.ids)], fields, groupby)
         res = {it['transporter_id'][0]: it['transporter_id_count'] for it in res if it['transporter_id']}
         for rec in self:
             rec.number_trackings = res.get(rec.id, 0)
 
-    # Function to overwrite for each transporter.
     @api.multi
-    def _compute_logo(self):
-        for rec in self:
-            rec.logo = False
-
-    @api.multi
-    def open_transporter_numbers(self):
+    def open_tracking_numbers(self):
         self.ensure_one()
         return {
             'name': _('Tracking numbers related to transporter %s' % self.name),
@@ -62,6 +55,7 @@ class TrackingTransporter(models.Model):
 
 class TrackingStatus(models.Model):
     _name = 'tracking.status'
+    _description = u"Tracking Number Status"
 
     tracking_id = fields.Many2one('tracking.number', u"Linked tracking number")
     date = fields.Datetime(u"Status Date")
@@ -70,6 +64,7 @@ class TrackingStatus(models.Model):
 
 class TrackingNumber(models.Model):
     _name = 'tracking.number'
+    _description = u"Tracking Number"
 
     name = fields.Char(u"Tracking number", required=True)
     status_ids = fields.One2many('tracking.status', 'tracking_id', u"Status history")
@@ -77,8 +72,6 @@ class TrackingNumber(models.Model):
     status = fields.Char(u"Last status", compute='_compute_date_and_status')
     transporter_id = fields.Many2one('tracking.transporter', u"Transporter")
     last_status_update = fields.Datetime(u"Date of the last update")
-    logo = fields.Char(u"Logo", related='transporter_id.logo')
-    image = fields.Binary(u"Image", related='transporter_id.image')
     partner_id = fields.Many2one('res.partner', u"Contact", compute='_compute_partner_id')
 
     @api.multi

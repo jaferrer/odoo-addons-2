@@ -17,4 +17,5 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import stock_generate_tracking_labels
+from . import generate_tracking_labels
+from . import wizard
