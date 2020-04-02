@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,22 +16,26 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': 'Queue Job Improved',
+    'name': 'Auto Resend Emails - Limited Numbers',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': ['queue_job'],
+    'category': 'Init',
+    'depends': ['auto_resend_mail', 'queue_job_cron'],
     'description': """
-Improves queue.job
+Auto Resend Emails - Limited Numbers
+====================================
+This module re-launches, once per day, failed emails. After 5 launches, it makes a queue_job swith to failed.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
     'demo': [],
     'test': [],
-    'installable': True,
+    'data': [
+        'cron.xml',
+        'mail.xml',
+    ],
     'auto_install': False,
     'license': 'AGPL-3',
+    'application': False,
 }
