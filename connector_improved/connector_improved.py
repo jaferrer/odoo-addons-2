@@ -41,7 +41,14 @@ class QueueJob(models.Model):
         worker_real_limit_seconds = config['limit_time_real'] or 120  # jobs CPU timeout
         jobs_to_enqueue = self
         for job in started_jobs:
-            ref_date = job.eta or job.date_started
+            dates = []
+            if job.eta:
+                dates += [job.eta]
+            if job.date_started:
+                dates += [job.date_started]
+            if not dates:
+                continue
+            ref_date = max(dates)
             time_delta_seconds = (dt.now() - fields.Datetime.from_string(ref_date)).seconds
             if time_delta_seconds > worker_real_limit_seconds:
                 jobs_to_enqueue |= job
