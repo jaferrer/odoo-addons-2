@@ -19,8 +19,8 @@
 from odoo import models, fields, api
 
 
-class ChooseDeliveryPackage(models.TransientModel):
-    _name = 'choose.delivery.package'
+class ChooseDeliveryPackageEasyPackaging(models.TransientModel):
+    _inherit = 'choose.delivery.package'
 
     delivery_carrier_id = fields.Many2one('delivery.carrier', string="Produit transporteur")
 
@@ -28,14 +28,39 @@ class ChooseDeliveryPackage(models.TransientModel):
 class StockPickingTypeEasyPackaging(models.Model):
     _inherit = 'stock.picking.type'
 
-    is_easy_packaging = fields.Boolean("Mise en colis simplifiée")
-    is_dest_package_mandatory = fields.Boolean("Colis de destination obligatoire")
+    need_easy_packaging = fields.Boolean("Mise en colis simplifiée")
+    need_dest_package = fields.Boolean("Colis de destination obligatoire")
 
 
 class StockPickingEasyPackaging(models.Model):
     _inherit = 'stock.picking'
 
-    need_packaging = fields.Boolean("A besoin d'une mise en colis")
-    is_easy_packaging = fields.Boolean("Mise en colis simplifiée", related='picking_type_id.is_easy_packaging')
-    is_dest_package_mandatory = fields.Boolean("Colis de destination obligatoire",
-                                               related='picking_type_id.is_dest_package_mandatory')
+    need_packaging = fields.Boolean("A besoin d'une mise en colis", compute='_compute_need_packaging')
+    need_easy_packaging = fields.Boolean("Mise en colis simplifiée", related='picking_type_id.need_easy_packaging')
+    need_dest_package = fields.Boolean("Colis de destination obligatoire", related='picking_type_id.need_dest_package')
+
+    @api.multi
+    def _compute_need_packaging(self):
+        for rec in self:
+            rec.need_packaging = rec.need_dest_package and all(
+                not sm_line.result_package_id for sm_line in rec.move_line_ids_without_package)
+
+    @api.multi
+    def put_in_pack(self):
+        """
+        Deux boutons :
+        - Tous dans un colis.
+        - Multi-colis.
+        """
+        if not self.env.context.get('multi_pack'):
+            self.move_line_ids_without_package.fill_qty_done()
+        return super(StockPickingEasyPackaging, self).put_in_pack()
+
+
+class StockMoveLineEasyPackaging(models.Model):
+    _inherit = 'stock.move.line'
+
+    @api.multi
+    def fill_qty_done(self):
+        for rec in self:
+            rec.qty_done = rec.product_qty

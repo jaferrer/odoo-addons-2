@@ -25,6 +25,7 @@
     'category': 'Stock',
     'depends': [
         'stock',
+        'delivery',
     ],
     'description': """
 Stock Easy Packaging

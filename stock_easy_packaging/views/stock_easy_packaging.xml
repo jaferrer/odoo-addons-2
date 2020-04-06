@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--CHOOSE.DELIVERY.PACKAGE-->
+
+    <record id="packaging_choose_delivery_package_view_form" model="ir.ui.view">
+        <field name="name">packaging_choose_delivery_package_view_form</field>
+        <field name="model">choose.delivery.package</field>
+        <field name="inherit_id" ref="delivery.choose_delivery_package_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group/field[@name='delivery_packaging_id']" position="before">
+                <field name="delivery_carrier_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--STOCK.PICKING.TYPE-->
+
+    <record id="packaging_view_picking_type_form" model="ir.ui.view">
+        <field name="name">packaging_view_picking_type_form</field>
+        <field name="model">stock.picking.type</field>
+        <field name="inherit_id" ref="stock.view_picking_type_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group/group/field[@name='show_entire_packs']" position="after">
+                <field name="need_easy_packaging"/>
+                <field name="need_dest_package"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--STOCK.PICKING-->
+
+    <record id="packaging_view_picking_form" model="ir.ui.view">
+        <field name="name">rc_view_picking_form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_validate']" position="attributes">
+                <attribute name="attrs">{'invisible': [('need_packaging', '=', True)]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_validate']" position="after">
+                <button name="put_in_pack"
+                        string="Tous dans un colis"
+                        type="object"
+                        class="oe_highlight"
+                        attrs="{'invisible': [
+                        '|',
+                        ('state', 'in', ('waiting','confirmed')),
+                        ('need_packaging', '=', False),
+                        ('need_easy_packaging', '=', False)
+                        ]}"/>
+                <button name="put_in_pack"
+                        string="Multi-colis"
+                        type="object"
+                        class="oe_highlight"
+                        attrs="{'invisible': [
+                        '|',
+                        ('state', 'in', ('waiting','confirmed')),
+                        ('need_packaging', '=', False),
+                        ('need_easy_packaging', '=', False)
+                        ]}"
+                        context="{'multi_pack': True}"/>
+            </xpath>
+            <xpath expr="//notebook/page[field[@name='move_line_ids_without_package']]/button[@name='put_in_pack']"
+                   position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//notebook/page[field[@name='move_ids_without_package']]/button[@name='put_in_pack']"
+                   position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//notebook/page/group/group/field[@name='move_type']" position="after">
+                <field name="need_packaging" invisible="1"/>
+                <field name="need_easy_packaging" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
