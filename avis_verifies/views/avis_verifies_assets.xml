@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <template id="avis_verifies_assets" name="avis_verifies_assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/avis_verifies/static/src/js/avis_verifies.js"/>
+
+                <link rel='stylesheet' href='/avis_verifies/static/src/css/avis_verifies.less'/>
+            </xpath>
+
+        </template>
+
+    </data>
+</odoo>
