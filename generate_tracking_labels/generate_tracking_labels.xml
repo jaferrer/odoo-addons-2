@@ -8,7 +8,7 @@
             <field name="inherit_id" ref="base_delivery_tracking.tracking_transporter_form"/>
             <field name="arch" type="xml">
                 <sheet position="inside">
-                    <notebook>
+                    <notebook name="transporter_info_pages">
                         <page string="Produit transporteur">
                             <field name="type_produit_expedition_ids">
                                 <tree editable="top">

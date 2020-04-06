@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="transporter_ups" model="tracking.transporter">
+            <field name="name">UPS</field>
+            <field name="transporter_code">transporter_code_ups</field>
+            <field name="image" type="base64" file="base_delivery_tracking_ups/static/img/logo.gif"/>
+        </record>
+    </data>
+</openerp>
