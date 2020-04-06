@@ -172,11 +172,6 @@ msgid "Transporter"
 msgstr "Transporteur"
 
 #. module: base_delivery_tracking
-#: model:ir.ui.view,arch_db:base_delivery_tracking.tracking_transporter_tree
-msgid "Transporters"
-msgstr "Transporteurs"
-
-#. module: base_delivery_tracking
 #: view:tracking.transporter:base_delivery_tracking.tracking_transporter_kanban
 msgid "Transporters"
 msgstr "Transporteurs"

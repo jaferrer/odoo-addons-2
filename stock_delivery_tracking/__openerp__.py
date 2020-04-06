@@ -31,7 +31,6 @@ This module allows to upload the status of a stock picking delivery, knowing the
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'security/ir.model.access.csv',
         'stock_delivery_tracking.xml',
     ],
     'demo': [],

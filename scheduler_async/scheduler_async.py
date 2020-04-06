@@ -21,7 +21,6 @@ import psycopg2
 from openerp.addons.connector.exception import RetryableJobError
 from openerp.addons.connector.queue.job import job
 from openerp.addons.connector.session import ConnectorSession
-
 from openerp import api, models, fields
 
 PROC_CHUNK = 100
@@ -330,7 +329,7 @@ FROM procurement_order po
         self.run_confirm_procurements(company_id)
 
         # Run minimum stock rules
-        self.sudo()._procure_orderpoint_confirm(use_new_cursor=True, company_id=company_id)
+        self.sudo()._procure_orderpoint_confirm(use_new_cursor=use_new_cursor, company_id=company_id)
 
         # Check if running procurements are done
         self.run_check_procurements(company_id)

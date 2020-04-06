@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -20,13 +20,17 @@
 from openerp import models, api
 
 
-class AtaTrackingTransporter(models.Model):
-    _inherit = 'tracking.transporter'
+class StockPackOperation(models.Model):
+    _inherit = 'stock.pack.operation'
+
+    @api.cr_uid_id_context
+    def _copy_remaining_pack_lot_ids(self, cr, uid, id, new_operation_id, context=None):
+        return super(StockPackOperation, self)._copy_remaining_pack_lot_ids(cr, uid, id, new_operation_id, context=None)
 
     @api.multi
-    def _compute_logo(self):
-        super(AtaTrackingTransporter, self)._compute_logo()
+    def _set_product_qty_in_qty_done(self, unlink_if_zero=True):
         for rec in self:
-            if rec == self.env.ref('base_delivery_tracking_ata.transporter_ata'):
-                rec.logo = "/base_delivery_tracking_ata/static/img/ATA.png"
-
+            if rec.product_qty > 0:
+                rec.qty_done = rec.product_qty
+            elif unlink_if_zero:
+                rec.unlink()
