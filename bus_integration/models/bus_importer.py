@@ -38,7 +38,10 @@ class BusSynchronizationImporter(models.AbstractModel):
         if not demand:
             for model in root.keys():
                 import_results[model] = {}
-                for record in root.get(model).values():
+                records_dict = root.get(model)
+                ordered_record_keys = sorted(records_dict, key=lambda k: records_dict[k]['write_date'])
+                for key in ordered_record_keys:
+                    record = records_dict[key]
                     original_id = record.get('id', False)
                     external_key = record.get('external_key', False)
                     result = self.run_import(message, record, model)
