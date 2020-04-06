@@ -1,6 +1,26 @@
 # -*- coding: utf8 -*-
+
+#  -*- coding: utf8 -*-
 #
-#    Copyright (C) 2017 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Affero General Public License as
+#     published by the Free Software Foundation, either version 3 of the
+#     License, or (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Affero General Public License for more details.
+#
+#     You should have received a copy of the GNU Affero General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+
+#
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -30,7 +50,14 @@ class BusSynchronizationImporter(models.AbstractModel):
 
     @api.model
     def import_synchronization_message(self, message_id):
+        """
+        1) check if dependency are needed (from the id listed in the dependency key of the message,
+           check in bus.binder if the id is synchronized)
+        2) if yes, return the list of id needed
+        3) if no, create/update the record and return the post dependencies to complete the one2many fields
+        """
         import_results = {}
+        post_demand = {}
         message = self.env['bus.message'].browse(message_id)
         message_dict = json.loads(message.message, encoding='utf-8')
         root = message_dict.get('body', {}).get('root', {})
@@ -57,7 +84,8 @@ class BusSynchronizationImporter(models.AbstractModel):
                     else:
                         result.update({'bus_original_id': original_id})
                     import_results[model][original_id] = result
-        return import_results, demand
+            post_demand = self.check_needed_post_dependencies(message)
+        return import_results, demand, post_demand
 
     @api.model
     def get_synchronization_errors(self, message_id, model, original_id):
@@ -94,8 +122,15 @@ class BusSynchronizationImporter(models.AbstractModel):
         return result
 
     def check_needed_dependencies(self, message):
-        demand = {}
         dependencies = message.get_json_dependencies()
+        return self.check_for_dependencies(dependencies, message)
+
+    def check_needed_post_dependencies(self, message):
+        post_dependencies = message.get_json_post_dependencies()
+        return self.check_for_dependencies(post_dependencies, message)
+
+    def check_for_dependencies(self, dependencies, message, demand=None):
+        demand = demand if demand else {}
         for model in dependencies.keys():
             for record_id in dependencies[model].keys():
                 needed = self.check_needed_dependency(dependencies[model][record_id], model)
@@ -187,6 +222,11 @@ class BusSynchronizationImporter(models.AbstractModel):
 
     @api.model
     def run_import(self, message, record, model):
+        """
+        :param message: a bus.message object
+        :param record: dictionary containing the fields : value for one record
+        :param model: 'model.model'
+        """
         external_key = record.pop('external_key')
         translation = record.pop('translation', False)
         record_id = record.get('id')
@@ -217,7 +257,7 @@ class BusSynchronizationImporter(models.AbstractModel):
             try:
                 with self.env.cr.savepoint():
                     transfer, odoo_record, error_tuple = transfer \
-                        .import_datas(transfer, odoo_record, binding_data, record_data)
+                        .import_datas(transfer, odoo_record, binding_data, record_data, message)
                     if error_tuple:
                         errors.append(error_tuple)
                     if translation:
