@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="delivery_carrier_tracking_number_tree" model="ir.ui.view">
+        <field name="name">delivery_carrier_tracking_number_tree</field>
+        <field name="model">delivery.carrier.tracking.number</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="carrier_id"/>
+                <field name="name"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="delivery_carrier_tracking_number_search" model="ir.ui.view">
+       <field name="name">delivery_carrier_tracking_number_search</field>
+       <field name="model">delivery.carrier.tracking.number</field>
+       <field name="arch" type="xml">
+           <search string="">
+               <field name="carrier_id" string="Delivery carrier"/>
+               <field name="name" string="Tracking number"/>
+               <filter name="this_week" string="Create date" date="create_date" default_period="this_week"/>
+               <group string="Group by...">
+                   <filter name="group_by_carrier_id"
+                           string="Transporteur"
+                           context="{'group_by': 'carrier_id'}"/>
+               </group>
+           </search>
+       </field>
+    </record>
+
+</odoo>

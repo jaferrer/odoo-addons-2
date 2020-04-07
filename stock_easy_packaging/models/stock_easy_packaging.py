@@ -22,7 +22,7 @@ from odoo import models, fields, api
 class ChooseDeliveryPackageEasyPackaging(models.TransientModel):
     _inherit = 'choose.delivery.package'
 
-    delivery_carrier_id = fields.Many2one('delivery.carrier', string="Produit transporteur")
+    carrier_id = fields.Many2one('delivery.carrier', string="Produit transporteur")
 
 
 class StockPickingTypeEasyPackaging(models.Model):
@@ -54,7 +54,7 @@ class StockPickingEasyPackaging(models.Model):
         """
         if not self.env.context.get('multi_pack'):
             self.move_line_ids_without_package.fill_qty_done()
-        return super(StockPickingEasyPackaging, self).put_in_pack()
+        return super(StockPickingEasyPackaging, self.with_context(default_carrier_id=self.carrier_id.id)).put_in_pack()
 
 
 class StockMoveLineEasyPackaging(models.Model):
