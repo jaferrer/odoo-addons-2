@@ -44,9 +44,9 @@ class DeliveryCarrierDeliveryTracking(models.Model):
 
     image = fields.Binary("Image", default=False)
     number_trackings = fields.Integer("Tracking numbers", compute='_compute_number_trackings')
-    sale_id = fields.One2many('sale.order', 'carrier_id', string="Sale")
+    sale_ids = fields.One2many('sale.order', 'carrier_id', string="Sale")
     number_sales = fields.Integer("Pales numbers", compute='_compute_number_sales')
-    package_id = fields.One2many('stock.quant.package', 'carrier_id', string="Package")
+    package_ids = fields.One2many('stock.quant.package', 'carrier_id', string="Package")
     number_package = fields.Integer("Packages numbers", compute='_compute_number_packages')
     product_id = fields.Many2one('product.product', string="Product", domain=[('delivery_ok', '=', True)])
 
