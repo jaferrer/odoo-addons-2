@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="tracking_transporter_ups">
+            <field name="name">generate_tracking_labels_wizard_mondial_form</field>
+            <field name="model">tracking.transporter</field>
+            <field name="inherit_id" ref="generate_tracking_labels.tracking_transporter_extended_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <notebook name="transporter_info_pages" position="inside">
+                    <page string="UPS" name="ups_data"
+                          attrs="{'invisible':[('transporter_code', '!=', 'transporter_code_ups')]}">
+                        <group>
+                            <group>
+                                <field name="api_login_ups"/>
+                                <field name="api_account_number_ups"/>
+                            </group>
+                            <group>
+                                <field name="api_password_ups"/>
+                                <field name="api_token_ups"/>
+                            </group>
+                        </group>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
+    </data>
+</openerp>

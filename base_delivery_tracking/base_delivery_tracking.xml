@@ -153,15 +153,19 @@
             <field name="arch" type="xml">
                 <form string="Transporter">
                     <sheet>
-                        <field name="image" widget="image" class="oe_avatar" options="{'size': [90, 90]}"/>
-                        <h1 class="hidden-xs">
-                            <field name="name" readonly="1"/>
-                        </h1>
                         <div class="oe_button_box" name="button_box">
                             <button class="oe_stat_button" type="object" name="open_tracking_numbers" icon="fa-tasks">
                                 <field string="Tracking Number" name="number_trackings" widget="statinfo"/>
                             </button>
                         </div>
+                        <field name="image" widget="image" class="oe_avatar" options="{'size': [90, 90]}"/>
+                        <field name="transporter_code" invisible="1"/>
+                        <h1 class="hidden-xs">
+                            <field name="name" readonly="1"/>
+                        </h1>
+                        <group>
+                            <field name="debug_mode"/>
+                        </group>
                     </sheet>
                 </form>
             </field>
