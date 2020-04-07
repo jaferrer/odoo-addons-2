@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--PRODUCT.TEMPLATE-->
+
+    <record id="delivery_tracking_product_template_form_view" model="ir.ui.view">
+        <field name="name">delivery_tracking_product_template_form_view</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_title')]/div/div/label[@for='purchase_ok']" position="after">
+                <div>
+                    <field name="delivery_ok"/>
+                    <label for="delivery_ok"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <!--DELIVERY.CARRIER-->
+
+    <record id="delivery_tracking_view_delivery_carrier_form" model="ir.ui.view">
+        <field name="name">delivery_tracking_view_delivery_carrier_form</field>
+        <field name="model">delivery.carrier</field>
+        <field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <field name="image" widget="image" class="oe_avatar"/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <button name="see_tracking_numbers"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-qrcode">
+                    <field name="number_trackings" string="Tracking numbers" widget="statinfo"/>
+                </button>
+                <button name="see_sales"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-eur">
+                    <field name="number_sales" string="Sales" widget="statinfo"/>
+                </button>
+                <button name="see_packages"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-cubes">
+                    <field name="number_package" string="Packages" widget="statinfo"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="delivery_tracking_view_delivery_carrier_kanban" model="ir.ui.view">
+        <field name="name">delivery_tracking_view_delivery_carrier_kanban</field>
+        <field name="model">delivery.carrier</field>
+        <field name="arch" type="xml">
+            <kanban string="Transporters" create="false">
+                <field name="number_trackings"/>
+                <field name="image"/>
+                <field name="id"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_vignette oe_semantic_html_override oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <t t-if="record.image.raw_value">
+                                    <div class="o_kanban_image_fill_left d-none d-md-block">
+                                        <img class="oe_kanban_avatar" width="48" height="48"
+                                             t-att-alt="record.image.raw_value"
+                                             t-att-src="kanban_image('delivery.carrier', 'image', record.id.raw_value)"/>
+                                    </div>
+                                </t>
+                            </div>
+                            <div class="oe_kanban_details">
+                                <h4>
+                                    <field name="name"/>
+                                </h4>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="delivery.action_delivery_carrier_form" model="ir.actions.act_window">
+        <field name="view_mode">tree,form,kanban</field>
+    </record>
+
+</odoo>
