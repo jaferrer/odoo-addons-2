@@ -27,8 +27,10 @@ except ImportError:
     from StringIO import StringIO
 
 from PIL import Image
+from PIL import PdfImagePlugin  # Force load of this plugin pylint: disable=unused-import
+
 from PyPDF2 import PdfFileWriter, PdfFileReader
-from openerp import models, api, fields, tools, modules
+from openerp import models, api, fields
 from openerp.exceptions import UserError
 from ClassicUPS import UPSConnection
 
@@ -38,10 +40,10 @@ _logger = logging.getLogger(__name__)
 class TrackingTransporter(models.Model):
     _inherit = 'tracking.transporter'
 
-    api_login_ups = fields.Char(u"Login Api", required=True)
-    api_password_ups = fields.Char(u"Mot de passe API", required=True)
-    api_account_number_ups = fields.Char(u"Numéro de compte", required=True)
-    api_token_ups = fields.Char(u"Token API", required=True)
+    api_login_ups = fields.Char(u"Login Api")
+    api_password_ups = fields.Char(u"Mot de passe API")
+    api_account_number_ups = fields.Char(u"Numéro de compte")
+    api_token_ups = fields.Char(u"Token API")
 
     @api.multi
     def _check_valid_credencial(self):
@@ -61,16 +63,15 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
 
     @api.multi
     def generate_label(self):
-        self.transport_id._check_valid_credencial()
+        self.transporter_id._check_valid_credencial()
         if self.transporter_id != self.env.ref('base_delivery_tracking_ups.transporter_ups'):
             return super(GenerateTrackingLabelsWizardMR, self).generate_label()
-
         ups = UPSConnection(
             license_number=self.transporter_id.api_token_ups,
             user_id=self.transporter_id.api_login_ups,
             password=self.transporter_id.api_password_ups,
             shipper_number=self.transporter_id.api_account_number_ups,
-            debug=self.transporter_id.test_mode
+            debug=self.transporter_id.debug_mode
         )
         from_addr = {
             'name': self.partner_orig_id.company_id.name,
@@ -83,7 +84,7 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             'email': self.partner_orig_id.email
         }
         to_addr = {
-            "attn": self.name,
+            "attn": self.last_name,
             "name": self.company_name,
             "address1": self.line2,
             "address2": self.line0,
@@ -91,7 +92,7 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             "city": self.city,
             "country": self.country_id.code,
             "postal_code": self.zip,
-            "state": self.zip,
+            "state": '',
             "email": self.email,
             "phone": self.phone_number,
         }
