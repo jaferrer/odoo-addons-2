@@ -18,15 +18,15 @@
 #
 
 {
-    'name': 'Stock Delivery Tracking',
+    'name': 'Delivery Tracking',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Delivery',
     'depends': ['delivery'],
     'description': """
-Stock Delivery Tracking
-=======================
+Delivery Tracking
+=================
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [

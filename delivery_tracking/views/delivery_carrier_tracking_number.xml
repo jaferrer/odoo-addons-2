@@ -34,10 +34,10 @@
        <field name="model">delivery.carrier.tracking.number</field>
        <field name="arch" type="xml">
            <search string="">
-               <field name="carrier_id" string="Transporteur"/>
-               <field name="name" string="Numéro de suivi"/>
-               <filter name="this_week" string="Date de création" date="create_date" default_period="this_week"/>
-               <group string="Grouper par...">
+               <field name="carrier_id" string="Delivery carrier"/>
+               <field name="name" string="Tracking number"/>
+               <filter name="this_week" string="Create date" date="create_date" default_period="this_week"/>
+               <group string="Group by...">
                    <filter name="group_by_carrier_id"
                            string="Transporteur"
                            context="{'group_by': 'carrier_id'}"/>

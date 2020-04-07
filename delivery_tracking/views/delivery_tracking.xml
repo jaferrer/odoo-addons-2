@@ -54,7 +54,7 @@
         <field name="name">delivery_tracking_view_delivery_carrier_kanban</field>
         <field name="model">delivery.carrier</field>
         <field name="arch" type="xml">
-            <kanban string="Transporters" create="false">
+            <kanban string="Delivery carriers" create="false">
                 <field name="number_trackings"/>
                 <field name="image"/>
                 <field name="id"/>
@@ -83,7 +83,7 @@
     </record>
 
     <record id="delivery.action_delivery_carrier_form" model="ir.actions.act_window">
-        <field name="view_mode">tree,form,kanban</field>
+        <field name="view_mode">kanban,tree,form</field>
     </record>
 
 </odoo>
