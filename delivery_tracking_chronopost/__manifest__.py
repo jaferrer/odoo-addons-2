@@ -17,5 +17,28 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import delivery_carrier
-from . import res_company
+{
+    'name': 'Delivery Tracking Chronopost',
+    'version': '0.1',
+    'author': 'NDP Systèmes',
+    'maintainer': 'NDP Systèmes',
+    'category': 'Delivery',
+    'depends': [
+        'delivery_tracking',
+        'stock_easy_packaging',
+    ],
+    'description': """
+Delivery Tracking Chronopost
+============================
+""",
+    'website': 'http://www.ndp-systemes.fr',
+    'data': [
+        'views/delivery_tracking_chronopost.xml',
+    ],
+    'demo': [],
+    'test': [],
+    'installable': True,
+    'auto_install': False,
+    'license': 'AGPL-3',
+    'application': False,
+}

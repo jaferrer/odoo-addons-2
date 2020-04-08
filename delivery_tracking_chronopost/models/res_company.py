@@ -17,5 +17,16 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import delivery_carrier
-from . import res_company
+from odoo import models, fields
+
+
+class ResCompany(models.Model):
+    _inherit = 'res.company'
+
+    login_chronopost = fields.Char("Login Chronopost")
+    password_chronopost = fields.Char("Password Chronopost")
+    pre_alert_chronopost = fields.Selection([('0', u"Pas de préalerte"),
+                                             ('11', u"Abonnement tracking expéditeur")],
+                                            string=u"Pre Alert Chronopost", default='0')
+    account_number_chronopost = fields.Char("Account Number Chronopost")
+
