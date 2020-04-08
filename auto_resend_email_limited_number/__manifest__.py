@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,30 +16,26 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
 {
-    'name': "RIDA Report",
+    'name': 'Auto Resend Emails - Limited Numbers',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Technical Settings',
-    'depends': [
-        'project',
-        'web_kanban_state_selection',
-    ],
-    'description': u"""
-Implements the RIDA methodology (Relevé d'Information Décision Action) in odoo
+    'category': 'Init',
+    'depends': ['auto_resend_mail', 'queue_job_cron'],
+    'description': """
+Auto Resend Emails - Limited Numbers
+====================================
+This module re-launches, once per day, failed emails. After 5 launches, it makes a queue_job swith to failed.
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/rida.xml',
-        'security/ir.model.access.csv',
-        'data/sequence.xml',
-        'security/rida_security.xml',
-    ],
     'demo': [],
     'test': [],
-    'installable': True,
+    'data': [
+        'cron.xml',
+        'mail.xml',
+    ],
     'auto_install': False,
     'license': 'AGPL-3',
+    'application': False,
 }
