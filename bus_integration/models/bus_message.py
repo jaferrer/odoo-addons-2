@@ -1,6 +1,26 @@
-# -*- coding: utf8 -*-
+#  -*- coding: utf8 -*-
+
+#  -*- coding: utf8 -*-
 #
-#    Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU Affero General Public License as
+#     published by the Free Software Foundation, either version 3 of the
+#     License, or (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU Affero General Public License for more details.
+#
+#     You should have received a copy of the GNU Affero General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+
+#
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -63,6 +83,33 @@ class BusMessage(models.Model):
     | ------------------------------------------------
     | <- #8 - SYNC OK                                       master:1                  #1
     -------------------------------------------------
+
+    messages hierarchy example in case of one2many (sync data from child A  to child B)
+        -------------------------------------------------
+    <<lvl I - mother original request>>                     CROSS ID               parent
+    -------------------------------------------------
+    | -> #1 - SYNC REQUEST                                  master:1                            request product.to.send
+    | <- #2 - DEP REQUEST                                   master:1                  #1        request production.lot
+    | -----------------------------------------------
+    | <<lvl II - 1st  dependency response>>
+    | -----------------------------------------------
+    |   | -> #3 - DEP RESPONSE                              master:1>master:3         #2        send production.lot
+    |   | <- #4 - DEP OK                                    master:1>master:3         #3          ==> rerun #1
+    |   | --------------------------------------------
+    | <- #5 - SYNC OK                                        master:1                 #1
+    | -----------------------------------------------
+    | <<lvl I - post dependency request>>
+    | -----------------------------------------------
+    | <- #6 - POST DEP REQUEST   (POST DEPENDENCY)           master:1>master:3         #3        request pedigree.line
+    | -----------------------------------------------
+    | <<lvl II - post dependency response>>
+    | -----------------------------------------------
+    |   | -> #7 - DEP RESPONSE                              master:1>master:5         #6        send pedigree line
+    |   | <- #8 - DEP OK                                    master:1>master:5         #7        ==> rerun #1
+    |   | --------------------------------------------
+    | ------------------------------------------------
+    | <- #8 - SYNC OK                                       master:1                  #1
+    -------------------------------------------------
     """
     _name = 'bus.message'
     _order = 'create_date DESC'
@@ -80,6 +127,7 @@ class BusMessage(models.Model):
     treatment = fields.Selection([('SYNCHRONIZATION', u"Synchronization request"),
                                   ('DEPENDENCY_SYNCHRONIZATION', u"Dependency response"),
                                   ('DEPENDENCY_DEMAND_SYNCHRONIZATION', u"Dependency request"),
+                                  ('POST_DEPENDENCY_DEMAND_SYNCHRONIZATION', u"Post dependency request"),
                                   ('SYNCHRONIZATION_RETURN', u"Synchronization response"),
                                   ('DELETION_SYNCHRONIZATION', u"Deletion request"),
                                   ('DELETION_SYNCHRONIZATION_RETURN', u"Deletion response"),
@@ -92,7 +140,7 @@ class BusMessage(models.Model):
                                   ], u"Treatment", required=True)
     log_ids = fields.One2many('bus.message.log', 'message_id', string=u"Logs")
     exported_ids = fields.Text(string=u"Exported ids", compute='get_export_eported_ids', store=True)
-    message_parent_id = fields.Many2one('bus.message', string=u"Parent message", index = True)
+    message_parent_id = fields.Many2one('bus.message', string=u"Parent message", index=True)
     message_children_ids = fields.One2many('bus.message', 'message_parent_id', string=u"Children messages")
 
     # enable to identify a message across all the databases (mother/bus/child)
@@ -129,6 +177,11 @@ class BusMessage(models.Model):
     def get_json_dependencies(self):
         self.ensure_one()
         return self.get_json_message().get('body', {}).get('dependency', {})
+
+    @api.multi
+    def get_json_post_dependencies(self):
+        self.ensure_one()
+        return self.get_json_message().get('body', {}).get('post_dependency', {})
 
     @api.multi
     def deactive(self):
