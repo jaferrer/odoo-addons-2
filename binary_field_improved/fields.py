@@ -39,6 +39,7 @@ def binary_write(self, records, value):
                 name = getattr(record, getattr(self, 'fname', self.name + '_fname'), self.name)
                 atts.create({
                     'name': name,
+                    'datas_fname': name,
                     'res_model': record._name,
                     'res_field': self.name,
                     'res_id': record.id,
