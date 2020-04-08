@@ -16,5 +16,12 @@
             <field name="used_to_customer" eval="False"/>
             <field name="output_printing_type_default_id" ref="ups_pdf_a4"/>
         </record>
+
+        <record model="transporter.content.type" id="ups_type_envoi_commercial">
+            <field name="name">Envoi commercial</field>
+            <field name="code">3</field>
+            <field name="transporter_id" ref="base_delivery_tracking_ups.transporter_ups"/>
+            <field name="used_by_default" eval="True"/>
+        </record>
     </data>
 </openerp>
