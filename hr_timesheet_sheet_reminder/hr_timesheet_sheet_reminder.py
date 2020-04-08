@@ -71,11 +71,11 @@ class TimesheetReminderHrEmployee(models.Model):
         if blanks_list:
             if message:
                 message += u"""\n\n"""
-                message += _(u"""List of missing or non-confirmed timesheets in history:""")
-                for blank in blanks_list:
-                    message += u"""\n - """
-                    message += _(u"""Week from %s to %s""") % (fields.Date.to_string(blank[0]),
-                                                               fields.Date.to_string(blank[1]))
+            message += _(u"""List of missing or non-confirmed timesheets in history:""")
+            for blank in blanks_list:
+                message += u"""\n - """
+                message += _(u"""Week from %s to %s""") % (fields.Date.to_string(blank[0]),
+                                                           fields.Date.to_string(blank[1]))
         return message
 
     @api.model
