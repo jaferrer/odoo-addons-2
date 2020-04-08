@@ -5,6 +5,3 @@ variables:
   ODOO_DEPENDS: "odoo-addons/community-addons"
   ODOO_MODULE: "ALL"
   VERBOSE: "True"
-
-lint_flake8:
-  allow_failure: true

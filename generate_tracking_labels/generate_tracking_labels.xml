@@ -7,39 +7,41 @@
             <field name="model">tracking.transporter</field>
             <field name="inherit_id" ref="base_delivery_tracking.tracking_transporter_form"/>
             <field name="arch" type="xml">
-                                <notebook position="inside">
-                    <page string="Produit transporteur">
-                        <field name="type_produit_expedition_ids">
-                            <tree editable="top">
-                                <field name="name" readonly="0" required="1"/>
-                                <field name="code" readonly="0" required="1"/>
-                                <field name="used_from_customer"/>
-                                <field name="used_to_customer"/>
-                                <field name="used_on_demand" readonly="0"/>
-                                <field name="output_printing_type_default_id"/>
-                                <field name="report_id"/>
-                            </tree>
-                        </field>
-                    </page>
-                    <page string="Format d'impression">
-                        <field name="output_printing_type_ids">
-                            <tree editable="top">
-                                <field name="name" readonly="0" required="1"/>
-                                <field name="code" readonly="0" required="1"/>
-                                <field name="print_on_a4"/>
-                            </tree>
-                        </field>
-                    </page>
-                    <page string="Contenu accepté">
-                        <field name="transporter_content_type_ids">
-                            <tree editable="top">
-                                <field name="name" readonly="0" required="1"/>
-                                <field name="code" readonly="0" required="1"/>
-                                <field name="used_by_default"/>
-                            </tree>
-                        </field>
-                    </page>
-                </notebook>
+                <sheet position="inside">
+                    <notebook>
+                        <page string="Produit transporteur">
+                            <field name="type_produit_expedition_ids">
+                                <tree editable="top">
+                                    <field name="name" readonly="0" required="1"/>
+                                    <field name="code" readonly="0" required="1"/>
+                                    <field name="used_from_customer"/>
+                                    <field name="used_to_customer"/>
+                                    <field name="used_on_demand" readonly="0"/>
+                                    <field name="output_printing_type_default_id"/>
+                                    <field name="report_id"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Format d'impression">
+                            <field name="output_printing_type_ids">
+                                <tree editable="top">
+                                    <field name="name" readonly="0" required="1"/>
+                                    <field name="code" readonly="0" required="1"/>
+                                    <field name="print_on_a4"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Contenu accepté">
+                            <field name="transporter_content_type_ids">
+                                <tree editable="top">
+                                    <field name="name" readonly="0" required="1"/>
+                                    <field name="code" readonly="0" required="1"/>
+                                    <field name="used_by_default"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
             </field>
         </record>
 
@@ -86,10 +88,10 @@
                             <field name="sale_order_id"/>
                             <field name="partner_orig_id"/>
                             <field name="partner_id"/>
-                            <field name="company_name"/>
-                            <field name="first_name"/>
-                            <field name="last_name"/>
-                            <field name="email"/>
+                            <field name="company_name" required="1"/>
+                            <field name="first_name" required="1"/>
+                            <field name="last_name" required="1"/>
+                            <field name="email"  required="1"/>
                             <field name="phone_number"/>
                             <field name="mobile_number"/>
                             <field name="door_code1"/>
@@ -100,18 +102,18 @@
                         <group>
                             <field name="line0"/>
                             <field name="line1"/>
-                            <field name="line2"/>
+                            <field name="line2" required="1"/>
                             <field name="line3"/>
                             <field name="country_id"/>
-                            <field name="city"/>
-                            <field name="zip"/>
+                            <field name="city" required="1"/>
+                            <field name="zip" required="1"/>
                             <field name="language"/>
                         </group>
                     </group>
                     <separator name="douanes" string="Douane"/>
                     <group>
                         <field name="generate_custom_declaration"/>
-                        <field name="content_type_id" domain="[('transporter_id', '=', transporter_id)]" attrs="{'invisible': [('generate_custom_declaration', '=', False)]}"/>
+                        <field name="content_type_id" domain="[('transporter_id', '=', transporter_id)]" attrs="{'invisible': [('generate_custom_declaration', '=', False)]}" required="1"/>
                         <field name="ftd" attrs="{'invisible': [('generate_custom_declaration', '=', False)]}"/>
                     </group>
                     <footer>

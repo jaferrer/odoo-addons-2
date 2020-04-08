@@ -104,17 +104,33 @@ self.update_delivery_status(cr, uid, context.get('active_ids'), False, context)
             </field>
         </record>
 
-        <!-- New menu in inventory area -->
+        <record model="ir.ui.view" id="stock_delivery_tracking_transporter_form">
+            <field name="name">flux.tracking.transporter.form</field>
+            <field name="model">tracking.transporter</field>
+            <field name="inherit_id" ref="base_delivery_tracking.tracking_transporter_form"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <div class="oe_button_box" position="inside">
+                    <button class="oe_stat_button" type="object" name="open_pickings" icon="fa-tasks">
+                        <field  string="Picking" name="number_pickings" widget="statinfo"/>
+                    </button>
+                    <button class="oe_stat_button" type="object" name="open_packages" icon="fa-tasks">
+                        <field  string="Package" name="number_pickings" widget="statinfo"/>
+                    </button>
+                </div>
+            </field>
+        </record>
+
+        <!-- New menu for delivery tracking data-->
         <menuitem id="menu_delivery_tracking" name="Delivery tracking"
                   parent="stock.menu_stock_root" sequence="3"/>
 
-        <menuitem id="menu_tracking_numbers" name="Tracking numbers"
-                  action="base_delivery_tracking.act_window_tracking_number"
-                  parent="menu_delivery_tracking" sequence="20"/>
-
         <menuitem id="menu_tracking_by_transporter" name="Transporter"
-                  action="base_delivery_tracking.act_window_tracking_number_by_transporter"
-                  parent="base.menu_sale_config" sequence="30"/>
+                  action="base_delivery_tracking.act_window_delivery_tracking_transporter"
+                  parent="menu_delivery_tracking" sequence="30"/>
 
+        <menuitem id="menu_tracking_numbers" name="Tracking numbers"
+                  action="base_delivery_tracking.act_window_delivery_tracking_tracking_number"
+                  parent="menu_delivery_tracking" sequence="20"/>
     </data>
 </openerp>
