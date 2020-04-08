@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record model="output.printing.type" id="ups_pdf_a4">
+            <field name="name">PDF A4</field>
+            <field name="transporter_id" ref="base_delivery_tracking_ups.transporter_ups"/>
+            <field name="code">GIF</field>
+            <field name="print_on_a4" eval="True"/>
+        </record>
+
+        <record model="type.produit.expedition" id="mondial_24R">
+            <field name="name">UPS Classic</field>
+            <field name="transporter_id" ref="base_delivery_tracking_ups.transporter_ups"/>
+            <field name="code">11</field>
+            <field name="used_from_customer" eval="True"/>
+            <field name="used_to_customer" eval="False"/>
+            <field name="output_printing_type_default_id" ref="ups_pdf_a4"/>
+        </record>
+
+        <record model="transporter.content.type" id="ups_type_envoi_commercial">
+            <field name="name">Envoi commercial</field>
+            <field name="code">3</field>
+            <field name="transporter_id" ref="base_delivery_tracking_ups.transporter_ups"/>
+            <field name="used_by_default" eval="True"/>
+        </record>
+    </data>
+</openerp>

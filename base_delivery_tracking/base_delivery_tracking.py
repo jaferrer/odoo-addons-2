@@ -27,10 +27,17 @@ class TrackingTransporter(models.Model):
     _name = 'tracking.transporter'
     _description = u"Transporter"
 
-    name = fields.Char(u"Name")
+    name = fields.Char(u"Name", readonly=True)
     image = fields.Binary(u"Image")
+    transporter_code = fields.Char(u"Unique code for this transporter", readonly=True)
+    debug_mode = fields.Boolean(u"En mode Test")
     number_ids = fields.One2many('tracking.number', 'transporter_id', u"List of related tracking numbers")
     number_trackings = fields.Integer("Number of related tracking numbers", compute='_compute_number_trackings')
+
+    @api.multi
+    def _check_valid_credencial(self):
+        return True
+
 
     @api.multi
     def _compute_number_trackings(self):
