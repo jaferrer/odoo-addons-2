@@ -29,4 +29,3 @@ class ResCompany(models.Model):
                                              ('11', u"Abonnement tracking expéditeur")],
                                             string=u"Pre Alert Chronopost", default='0')
     account_number_chronopost = fields.Char("Account Number Chronopost")
-

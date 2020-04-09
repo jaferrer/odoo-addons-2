@@ -104,7 +104,7 @@ class DeliveryCarrier(models.Model):
         return {
             'customerAdress1': self.env.user.company_id.partner_id.street or '',
             'customerAdress2': (self.env.user.company_id.partner_id.street2 or '') + "-" +
-                              (self.env.user.company_id.partner_id.street3 or ''),
+                               (self.env.user.company_id.partner_id.street3 or ''),
             'customerCity': self.env.user.company_id.partner_id.city or '',
             'customerCivility': self.env.user.company_id.partner_id.title or 'M',
             'customerContactName': self.env.user.name or '',
@@ -218,7 +218,7 @@ class DeliveryCarrier(models.Model):
             label_name = "Colis %s" % reponse.labelResponse.parcelNumber
             self.env['ir.attachment'].create({
                 'name': label_name,
-                'datas': my_plugin.binary,
+                # 'datas': my_plugin.binary,
                 'datas_fname': label_name,
                 'type': 'binary',
                 'res_model': 'delivery.carrier.tracking.number',
