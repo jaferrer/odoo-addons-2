@@ -12,10 +12,10 @@
                 <page name="Chronopost" attrs="{'invisible': [('delivery_type', '!=', 'chronopost')]}">
                     <group>
                         <group>
-                            <field name="login_chronopost"/>
-                            <field name="password_chronopost"/>
-                            <field name="pre_alert_chronopost"/>
-                            <field name="account_number_chronopost"/>
+                            <field name="api_login_chronopost"/>
+                            <field name="api_password_chronopost"/>
+                            <field name="api_pre_alert_chronopost"/>
+                            <field name="api_account_number_chronopost"/>
                         </group>
                     </group>
                 </page>

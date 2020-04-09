@@ -28,8 +28,9 @@ class DeliveryCarrier(models.Model):
     delivery_type = fields.Selection(selection_add=[('chronopost', "Chronopost")])
     api_login_chronopost = fields.Char("Login Chronopost", related='company_id.login_chronopost')
     api_password_chronopost = fields.Char("Password Chronopost", related='company_id.password_chronopost')
-    api_pre_alert_chronopost = fields.Char("Password Chronopost", related='company_id.pre_alert_chronopost')
-    api_account_number_chronopost = fields.Char("Password Chronopost", related='company_id.account_number_chronopost')
+    api_pre_alert_chronopost = fields.Selection("Pre Alert Chronopost", related='company_id.pre_alert_chronopost')
+    api_account_number_chronopost = fields.Char("Account Number Chronopost",
+                                                related='company_id.account_number_chronopost')
 
     @api.model
     def chronopost_rate_shipment(self, order):
