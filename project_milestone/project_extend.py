@@ -18,7 +18,7 @@
 #
 
 from odoo import fields, models, api, _
-from odoo.exceptions import ValidationError, UserError
+from odoo.exceptions import ValidationError
 
 
 class ProjectMilestone(models.Model):
@@ -52,6 +52,10 @@ class ProjectMilestone(models.Model):
     qualif_should_be_livred_at_internal = fields.Date(u"Should be in technical test at (internal)")
     referent_id = fields.Many2one('res.users', string=u"Référent", required=True, default=lambda self: self.env.user)
 
+    @api.multi
+    def name_get(self):
+        return [(rec.id, u"%s (%s)" % (rec.name, rec.project_id.name)) for rec in self]
+
     @api.constrains('start_date', 'qualif_should_be_livred_at', 'should_be_closed_at')
     def check_dates_coherence(self):
         for rec in self:
@@ -68,11 +72,6 @@ class ProjectMilestone(models.Model):
 
     @api.multi
     def set_to_livred_in_prod(self):
-        self.ensure_one()
-
-        if self.child_id and any([o.state in ('open', 'in_qualif') for o in self.child_id]):
-            raise UserError(u"Toutes les sous milestons doivent être au moins en production ou fermées!")
-
         self.write({
             'livred_in_prod_at': fields.Datetime.now(),
             'livred_in_prod_by': self.env.user.id,
@@ -81,11 +80,6 @@ class ProjectMilestone(models.Model):
 
     @api.multi
     def set_to_livred_in_qualif(self):
-        self.ensure_one()
-
-        if self.child_id and any([o.state == 'open' for o in self.child_id]):
-            raise UserError(u"Toutes les sous milestons doivent être au moins en recette, production ou fermées!")
-
         self.write({
             'livred_in_qualif_at': fields.Datetime.now(),
             'livred_in_qualif_by': self.env.user.id,
@@ -94,7 +88,7 @@ class ProjectMilestone(models.Model):
 
     @api.multi
     def close_milestone(self):
-        self.ensure_one().write({
+        self.write({
             'closed_at': fields.Datetime.now(),
             'closed_by': self.env.user.id,
             'state': 'closed',
@@ -102,7 +96,7 @@ class ProjectMilestone(models.Model):
 
     @api.multi
     def reopen(self):
-        self.ensure_one().write({'state': 'open'})
+        self.write({'state': 'open'})
 
     @api.multi
     def see_tasks(self):

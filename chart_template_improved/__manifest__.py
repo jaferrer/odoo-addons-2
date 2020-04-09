@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,23 +18,19 @@
 #
 
 {
-    'name': 'Web Calendar Text Color',
-    'version': '0.1',
+    'name': 'Chart Template Improved',
+    'version': '1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'web',
-    'depends': [
-        'web',
-        'web_calendar'
-    ],
+    'category': 'Accounting',
+    'depends': ['account'],
     'description': """
-Web Calendar Text Color
+Chart Template Improved
 =======================
+Fix some errors in odoo's account.chart.template code
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [
-        'views/templates.xml',
-    ],
+    'data': [],
     'demo': [],
     'test': [],
     'installable': True,
