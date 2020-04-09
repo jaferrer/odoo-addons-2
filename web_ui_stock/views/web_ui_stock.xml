@@ -31,34 +31,37 @@
                     <link rel="stylesheet" href="/web/static/lib/jquery.ui/jquery-ui.css"/>
                     <link rel="stylesheet" href="/web/static/lib/fontawesome/css/font-awesome.css"/>
 
-                    <t t-call-assets="web.assets_common" t-css="false"/>
                     <script type="text/javascript">
-                        odoo.define('web.csrf', function (require) {
-                        var token = "<t t-esc="request.csrf_token(None)"/>";
-                        require('web.core').csrf_token = token;
-                        require('qweb').default_dict.csrf_token = token;
-                        });
+                        var odoo = {
+                            csrf_token: "<t t-esc="request.csrf_token(None)"/>",
+                            session_info: <t t-raw="session_info"/>,
+                        };
                     </script>
+
+                    <t t-call-assets="web.assets_common" t-css="false"/>
                     <t t-call-assets="web.assets_backend" t-css="false"/>
 
                     <script type="text/javascript" id="loading-script" t-raw="init">
-                        $(function() {
-                        odoo.define('web.web_client', function (require) {
-                        var WebClient = require('web.WebClient');
-                        var web_client = new WebClient();
-                        var pp = new URLSearchParams(window.location.search)
-                        web_client.show_application = function() {
-                        web_client.action_manager.do_action(pp.get("action"), {
-                                picking_type_id:pp.get("picking_type_id")
-                        });
-                        };
+                        odoo.define('web.web_ui_stock.web_client', function (require) {
+                            var WebClient = require('web.AbstractWebClient');
+                            var web_client = new WebClient();
 
-                        web_client.do_push_state = function(state){};
+                            var pp = new URLSearchParams(window.location.search)
 
-                        web_client.setElement($(document.body));
-                        web_client.start();
-                        return web_client;
-                        });
+                            web_client._title_changed = function() {};
+                            web_client.show_application = function() {
+                                web_client.action_manager.do_action(pp.get("action"), {
+                                        picking_type_id:pp.get("picking_type_id")
+                                });
+                            };
+
+                            web_client.do_push_state = function(state){};
+
+                            $(function () {
+                                web_client.setElement($(document.body));
+                                web_client.start();
+                            });
+                            return web_client;
                         });
                     </script>
 

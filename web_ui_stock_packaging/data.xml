@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+    <record model="stock.picking.type.web.ui.action" id="web_ui_action_packing">
+        <field name="name">Écran de colisage</field>
+        <field name="action">stock.ui.packaging</field>
+    </record>
+
+    </data>
+</odoo>
