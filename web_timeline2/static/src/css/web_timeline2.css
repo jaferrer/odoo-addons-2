@@ -1,14 +1,3 @@
-.vis-timeline::after{
-    content: "Date";
-    position: relative;
-    left: 0;
-    top: 0;
-    display: block;
-    padding: 16px;
-    width: 240px;
-    font-weight: bold;
-    color: #1d1d1d;
-}
 .labelBtn{
     transition: all 0.15s ease;
     background: #3bb4ff;

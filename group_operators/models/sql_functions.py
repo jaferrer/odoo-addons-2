@@ -27,6 +27,31 @@ class SQLfunctions(models.AbstractModel):
     @api.model_cr
     def init(self):
         self._cr.execute("""
+                CREATE OR REPLACE FUNCTION public.first_agg ( anyelement, anyelement )
+                RETURNS anyelement LANGUAGE sql IMMUTABLE STRICT AS $$
+                    SELECT $1;
+                $$;
+
+                DROP AGGREGATE IF EXISTS public.first(anyelement) CASCADE;
+                CREATE AGGREGATE public.first (
+                    sfunc    = public.first_agg,
+                    basetype = anyelement,
+                    stype    = anyelement
+                );
+
+                CREATE OR REPLACE FUNCTION public.last_agg ( anyelement, anyelement )
+                RETURNS anyelement LANGUAGE sql IMMUTABLE STRICT AS $$
+                    SELECT $2;
+                $$;
+
+                DROP AGGREGATE IF EXISTS public.last(anyelement) CASCADE;
+                CREATE AGGREGATE public.last (
+                    sfunc    = public.last_agg,
+                    basetype = anyelement,
+                    stype    = anyelement
+                );
+                """)
+        self._cr.execute("""
         CREATE OR REPLACE FUNCTION public.median_agg(anyarray)
         RETURNS FLOAT8 LANGUAGE SQL IMMUTABLE STRICT AS $$
             SELECT percentile_cont(0.5)
