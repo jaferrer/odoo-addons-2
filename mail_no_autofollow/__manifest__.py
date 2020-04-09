@@ -22,7 +22,7 @@
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Usability',
+    'category': 'Mail',
     'depends': ['mail'],
     'description': """
 No Auto-Subscription of Partners

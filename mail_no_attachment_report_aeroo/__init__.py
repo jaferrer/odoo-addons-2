@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,25 +17,4 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-{
-    'name': 'Mail Thread process Attachment',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Mail',
-    'depends': ['mail'],
-    'description': """
-Mail Thread process Attachment
-==============================
-Override of mail.thread.message_process() to read the email attachments, and to use any attached email as the main
-email, to comply to mail forwarding with attachment.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': [],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+from . import mail_template
