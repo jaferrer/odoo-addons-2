@@ -99,7 +99,7 @@
                     <group expand="0" string="Group By">
                         <filter string="Recipient" name="group_by_recipient" domain="[]" context="{'group_by':'recipient_id'}"/>
                         <filter string="BUS user name" domain="[]" context="{'group_by':'bus_username'}"/>
-                        <filter string="Type traitement" domain="[]" context="{'group_by':'treatment_type'}"/>
+                        <filter name="group_by_treatment_type" string="Type traitement" domain="[]" context="{'group_by':'treatment_type'}"/>
                     </group>
                 </search>
             </field>
