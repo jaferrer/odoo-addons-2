@@ -1,0 +1,68 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* hr_timesheet_sheet_reminder
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 10.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-05-03 08:56+0000\n"
+"PO-Revision-Date: 2018-05-03 08:56+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: hr_timesheet_sheet_reminder
+#: model:ir.model.fields,field_description:hr_timesheet_sheet_reminder.field_hr_employee_timesheet_sheet_required
+msgid "Timesheets required"
+msgstr "Feuilles de temps requises"
+
+#. module: hr_timesheet_sheet_reminder
+#: code:addons/hr_timesheet_sheet_reminder/hr_timesheet_sheet_reminder.py:46
+#, python-format
+msgid "No timesheet found for week from %s to %s."
+msgstr "Aucune feuille de temps trouvée pour la semaine qui va du %s au %s."
+
+#. module: hr_timesheet_sheet_reminder
+#: code:addons/hr_timesheet_sheet_reminder/hr_timesheet_sheet_reminder.py:49
+#, python-format
+msgid "Please validate your timesheet for week from %s to %s."
+msgstr "Veuillez valider votre feuille de temps pour la semaine qui va du %s au %s."
+
+#. module: hr_timesheet_sheet_reminder
+#: code:addons/hr_timesheet_sheet_reminder/hr_timesheet_sheet_reminder.py:49
+#, python-format
+msgid "List of missing or non-confirmed timesheets in history:"
+msgstr "Liste des feuilles de temps manquantes ou non confirmées dans l'historique :"
+
+#. module: hr_timesheet_sheet_reminder
+#: code:addons/hr_timesheet_sheet_reminder/hr_timesheet_sheet_reminder.py:96
+#, python-format
+msgid "Dear %s,"
+msgstr "Chèr(e) %s,"
+
+#. module: hr_timesheet_sheet_reminder
+#: code:addons/hr_timesheet_sheet_reminder/hr_timesheet_sheet_reminder.py:96
+#, python-format
+msgid "Best regards,"
+msgstr "Cordialement,"
+
+#. module: hr_timesheet_sheet_reminder
+#: code:addons/hr_timesheet_sheet_reminder/hr_timesheet_sheet_reminder.py:103
+#, python-format
+msgid "Update your timesheets"
+msgstr "Mettez à jour vos feuilles de temps"
+
+#. module: hr_timesheet_sheet_reminder
+#: code:addons/hr_timesheet_sheet_reminder/hr_timesheet_sheet_reminder.py:79
+#, python-format
+msgid "Week from %s to %s"
+msgstr "Semaine du %s au %s"
+
+#. module: hr_timesheet_sheet_reminder
+#: model:ir.ui.view,arch_db:hr_timesheet_sheet_reminder.hr_timesheet_sheet_sheet_search
+msgid "Employees with required timesheets"
+msgstr "Employés aux feuilles de temps requises"

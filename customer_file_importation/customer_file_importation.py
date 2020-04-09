@@ -125,13 +125,16 @@ class CustomerFileToImport(models.Model):
         return {}
 
     @api.model
-    def get_external_id_or_create_one(self, object):
+    def get_external_id_or_create_one(self, object, module=None):
         object.ensure_one()
         xlml_id = object.get_external_id()[object.id]
         if not xlml_id:
-            self.env['ir.model.data'].create({'name': object._name.replace('.', '_') + '_' + str(object.id),
-                                              'model': object._name,
-                                              'res_id': object.id})
+            self.env['ir.model.data'].create({
+                'module': module or '',
+                'name': object._name.replace('.', '_') + '_' + str(object.id),
+                'model': object._name,
+                'res_id': object.id
+            })
             xlml_id = object.get_external_id()[object.id]
         if not xlml_id:
             raise exceptions.UserError(u"Impossible de générer un ID XML pour l'objet %s" % object)
