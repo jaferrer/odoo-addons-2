@@ -176,3 +176,13 @@ msgstr "Vous ne pouvez créer une relance que pour les factures client"
 #, python-format
 msgid "You can't create a Dunning on an invoice with the state draft"
 msgstr "Vous ne pouvez pas créer une relance pour une facture Brouillon"
+
+#. module: account_invoice_dunning
+#: field:account.invoice,invoice_dunning_ids:0
+msgid "Dunnings"
+msgstr "Relances"
+
+#. module: account_invoice_dunning
+#: field:account.invoice,dunning_number:0
+msgid "Number of Dunning send"
+msgstr "Nombre de relances envoyées"
