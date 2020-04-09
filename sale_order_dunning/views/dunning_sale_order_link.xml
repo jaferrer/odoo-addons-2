@@ -31,15 +31,23 @@
             </field>
             <xpath expr="//notebook" position="inside">
                 <page string="Dunning">
-                    <field name="sale_order_dunning_ids" readonly="1">
+                    <field name="sale_order_dunning_ids" readonly="1"
+                           decoration-muted="state == 'done'"
+                           decoration-warning="not date_done and next_dunning_date == current_date"
+                           decoration-danger="not date_done and next_dunning_date &lt; current_date">
                         <tree>
                             <field name="name"/>
                             <field name="dunning_type_id"/>
+                            <field name="next_dunning_date"/>
                             <field name="date_done"/>
                             <field name="note"/>
                             <field name="state"/>
-                            <button name="action_send_mail" type="object" icon="fa-envelope-o"/>
-                            <button name="action_done" type="object"  icon="fa-check" style="color: green;"/>
+                            <field name="attachment_count" invisible="1"/>
+                            <button name="action_see_attachments" type="object" icon="fa-paperclip" attrs="{'invisible':[('attachment_count', '&lt;', 1)]}"/>
+                            <button name="action_print_dunning" type="object" icon="fa-print"/>
+                            <button name="action_send_mail" type="object" icon="fa-envelope-o" attrs="{'invisible':[('state', 'in', ['done', 'cancel'])]}"/>
+                            <button name="action_done" type="object"  icon="fa-check" style="color: green;" attrs="{'invisible':[('state', 'in', ['done', 'cancel'])]}"/>
+                            <button name="action_cancel" type="object" icon="fa-times" attrs="{'invisible':[('state', 'in', ['done', 'cancel'])]}"/>
                         </tree>
                     </field>
                 </page>
