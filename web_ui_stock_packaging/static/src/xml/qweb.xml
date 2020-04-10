@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+    <t t-name="NeedUserAttentionModal">
+        <div id="content_need_need_user_action" class="container">
+            <div class="row">
+                <button id="validate_need_user_action_modal" type="button" class="btn btn-primary">
+                    OK
+                </button>
+                <button type="button" id="exit_need_user_action_modal" class='btn btn-danger js_quit_detail fa fa-box pull-right'>
+                    Quitter
+                </button>
+            </div>
+            <t t-if="widget.display_cn23_message">
+                <div class="row">
+                    <div class="jumbotron">
+                        <p>Veuillez vérifier que l'imprimante A4 est allumée</p>
+                    </div>
+                </div>
+            </t>
+            <t t-if="widget.display_other_pickings">
+                <div class="row">
+                    <div class="jumbotron">
+                        <p>Veuillez rassembler les colis suivants</p>
+                        <ul>
+                            <t t-foreach="widget.other_pickings" t-as="other_picking">
+                                <li>
+                                    <t t-esc="other_picking"/>
+                                </li>
+                            </t>
+                        </ul>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="PackingMainWidget">
+
+        <nav class="navbar navbar-dark bg-dark" role="navigation" style="margin-bottom:20px;">
+            <div class="container">
+                <div class="navbar-header navbar-form navbar-left">
+                    <span id="view_title" style="color:white;"/>
+                </div>
+                <div class="navbar-header navbar-form navbar-left button-group" role="group"
+                     id="packing_printer_choice">
+                </div>
+                <div class="navbar-header navbar-form navbar-right">
+                    <button id="_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div id="big_helper" class="jumbotron">
+                <h1>Bienvenue dans l'ecran de Packing!</h1>
+                <p>Veuiller scanner un numéro de BBPICK pour commencer</p>
+                <p>Ou</p>
+                <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>
+            </div>
+            <div id="manual_scan" class="jumbotron">
+                <h4>Vous pouvez scanner un picking ou le saisir a la main!</h4>
+                <div class="input-group">
+                    <input id="search_picking" type="text" class="form-control"
+                           placeholder="Saisie picking manuel"/>
+                    <span class="input-group-btn">
+                        <button id="clear_search_picking" class="btn btn-danger" type="button">x</button>
+                    </span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="button-group col-lg-12" role="group" id="mass_btn">
+                    <button type="button" id="btn_delete_all_rows" class="btn btn-danger btn-lg fa fa-trash float-right">
+                        Vider la liste
+                    </button>
+                    <button type="button"
+                            id="btn_process_all_rows"
+                            class="btn btn-success btn-lg fa fa-print float-right"
+                            disabled="1">
+                        Tout Imprimer
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <table id="picking_table" class="table">
+                    <thead id="picking_table_header">
+                        <t t-call="PickingTableHeader"/>
+                    </thead>
+                    <tbody id="picking_table_body"/>
+                </table>
+            </div>
+            <div class="row d-none" id="picking_split_detail"/>
+            <div class="row d-none" id="need_user_action_modal_hook"/>
+        </div>
+    </t>
+    <t t-name="PickingTableHeader">
+        <tr>
+            <th>Nom</th>
+            <th>Transporteur</th>
+            <th>État</th>
+            <th>Nb colis</th>
+            <th>Multi Colis</th>
+            <th>Impr.</th>
+            <th>Suppr.</th>
+        </tr>
+    </t>
+    <t t-name="PickingTableRow">
+        <tr t-att-picking_id="widget.id">
+            <td>
+                <t t-esc="widget.picking.name"/>
+            </td>
+            <td t-att-transporter_id="widget.picking.transporter_id">
+                <t t-esc="widget.picking.transporter_id_name"/>
+            </td>
+            <td t-att-owner_id="widget.picking.owner_id">
+                <t t-esc="widget.picking.owner_id_name"/>
+            </td>
+            <td>
+                <t t-esc="widget.picking.other_picking"/>
+            </td>
+            <td t-att-state="widget.picking.state">
+                <t t-esc="widget.picking.state_label"/>
+            </td>
+            <td>
+                <t t-esc="widget.picking.package_count"/>
+            </td>
+            <td>
+                <t t-if="widget.picking.operations_todo > 0">
+                    <button type="button" class='btn btn-success js_cut_picking fa fa-cut'/>
+                </t>
+            </td>
+            <td>
+                <button type="button" class='btn btn-success js_print_picking fa fa-print' disabled="1"/>
+                <a role="button"
+                   tabindex="0"
+                   class="btn btn-warning d-none js_btn_info fa fa-question"
+                   title="Info"
+                   trigger="manual"
+                   data-container="body" data-toggle="popover" data-placement="right"/>
+            </td>
+            <td>
+                <button type="button" class='btn btn-danger js_delete_picking fa fa-trash'></button>
+            </td>
+        </tr>
+    </t>
+
+    <t t-name="PickingTableRow.Detail">
+        <div class="container">
+            <div class="row">
+                <button type="button" id="btn_put_in_pack" class='btn btn-success  btn-lg js_create_package fa fa-box'>
+                    Mettre en colis
+                </button>
+                <button type="button" id="btn_quit_detail" class='btn btn-danger js_quit_detail fa fa-box pull-right'>
+                    Quitter
+                </button>
+            </div>
+            <div class="row">
+                <table id="picking_operations_table" class="table">
+                    <thead id="picking_operations_table_header">
+                        <tr>
+                            <th>Article</th>
+                            <th>Quantité</th>
+                            <th>A Faire</th>
+                            <th>Tt prendre</th>
+                            <th>RAZ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="picking_operations_table_body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="PackingRow.Detail.Operation">
+        <tr t-att-picking_operation_id="operation.uuid">
+            <td t-att-product_id="operation.product_id">
+                <t t-esc="operation.product_name"/>
+            </td>
+            <td>
+                <div class="input-group">
+                    <span class="btn btn-success btn-lg input-group-addon js_minus"
+                          t-att-data-operation-id="operation.uuid">
+                        <a href="#">
+                            <i class="fa fa-minus"></i>
+                        </a>
+                    </span>
+                    <input type="text" class="form-control text-center js_qty input-lg" disabled="1"
+                           t-att-data-operation-id="operation.uuid" t-att-value="operation.qty_done"/>
+                    <span class="btn btn-success btn-lg input-group-addon js_plus"
+                          t-att-data-operation-id="operation.uuid">
+                        <a href="#">
+                            <i class="fa fa-plus"></i>
+                        </a>
+                    </span>
+                </div>
+            </td>
+            <td>
+                <t t-esc="operation.qty_todo"/>
+            </td>
+            <td>
+                <button type="button" class='btn btn-success btn-lg js_set_todo_in_done fa fa-arrow-circle-left'
+                        t-att-data-operation-id="operation.uuid"/>
+            </td>
+            <td>
+                <button type="button" class='btn btn-danger btn-lg js_raz fa fa-times'
+                        t-att-data-operation-id="operation.uuid"/>
+            </td>
+        </tr>
+    </t>
+
+    <t t-name="PackingRow.Error">
+        <tr class="danger" data-error-row="1">
+            <td>
+                <t t-esc="widget.error.title"/>
+            </td>
+            <td colspan="7">
+                <t t-esc="widget.error.message"/>
+            </td>
+            <td>
+                <button type="button" class='btn btn-danger js_delete_picking fa fa-trash'/>
+            </td>
+        </tr>
+    </t>
+</templates>

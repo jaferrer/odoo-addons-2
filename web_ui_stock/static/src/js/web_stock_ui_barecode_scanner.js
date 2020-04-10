@@ -1,5 +1,10 @@
 odoo.define('web_ui_stock.BarcodeScanner', function (require) {
-    return require('web.core').Class.extend({
+    "use strict";
+
+    var core = require('web.core');
+    var session = require('web.session');
+
+    return core.Class.extend({
         connect: function (callback) {
             var code = "";
             this.handler = function (e) {
