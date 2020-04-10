@@ -116,7 +116,7 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             file_format='GIF',
             shipping_service=shipping_service,
             description=self.picking_id.group_id.display_name,
-            reference_numbers=self.package_ids.mapped('name')
+            reference_numbers=self.package_ids.mapped('name')[:5]
         )
         trackings = []
         final_pdf = PdfFileWriter()
