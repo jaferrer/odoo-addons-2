@@ -40,9 +40,9 @@ odoo.define('web_ui_packing.PackingRow', function (require) {
 
             if (this.picking.not_allowed_reason){
                 this.$el.addClass('danger');
-                this.btn_print.toggleClass('hidden');
-                this.btn_cut_picking.toggleClass('hidden');
-                this.btn_info.toggleClass('hidden');
+                this.btn_print.toggleClass('d-none');
+                this.btn_cut_picking.toggleClass('d-none');
+                this.btn_info.toggleClass('d-none');
                 this.btn_info.attr('data-content', this.picking.not_allowed_reason);
             } else if (this.need_user_action){
                 this.$el.addClass('info');
@@ -55,7 +55,7 @@ odoo.define('web_ui_packing.PackingRow', function (require) {
         },
         on_error_print: function (error) {
             this.$el.addClass('warning');
-            this.btn_info.toggleClass('hidden');
+            this.btn_info.toggleClass('d-none');
             this.btn_info.attr('data-content', error.data.arguments.filter(Boolean).join("<br/>") || error.message)
         },
         on_success_print: function () {

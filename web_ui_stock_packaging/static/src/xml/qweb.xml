@@ -88,16 +88,14 @@
                     <tbody id="picking_table_body"/>
                 </table>
             </div>
-            <div class="row hidden" id="picking_split_detail"/>
-            <div class="row hidden" id="need_user_action_modal_hook"/>
+            <div class="row d-none" id="picking_split_detail"/>
+            <div class="row d-none" id="need_user_action_modal_hook"/>
         </div>
     </t>
     <t t-name="PickingTableHeader">
         <tr>
             <th>Nom</th>
             <th>Transporteur</th>
-            <th>Propietaire</th>
-            <th>Autre BPICK</th>
             <th>État</th>
             <th>Nb colis</th>
             <th>Multi Colis</th>
@@ -134,7 +132,7 @@
                 <button type="button" class='btn btn-success js_print_picking fa fa-print' disabled="1"/>
                 <a role="button"
                    tabindex="0"
-                   class="btn btn-warning hidden js_btn_info fa fa-question"
+                   class="btn btn-warning d-none js_btn_info fa fa-question"
                    title="Info"
                    trigger="manual"
                    data-container="body" data-toggle="popover" data-placement="right"/>

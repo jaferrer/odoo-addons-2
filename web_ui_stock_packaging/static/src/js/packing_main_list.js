@@ -150,8 +150,8 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
             };
             rpc.query(spt_picking_info_params)
                 .always(() => {
-                    if (!this.$('#big_helper').hasClass('hidden')) {
-                        this.$('#big_helper').addClass('hidden')
+                    if (!this.$('#big_helper').hasClass('d-none')) {
+                        this.$('#big_helper').addClass('d-none')
                     }
                 })
                 .then((pick) => {
@@ -199,14 +199,14 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
                     });
             });
             let need_action_rows = rows.filter(row => row.need_user_action);
-            if (need_action_rows.lenght > 0) {
+            if (need_action_rows.length > 0) {
                 this.need_user_action_view = new NeedUserAttentionModal(this, need_action_rows,
                     "Action à faire avant l'impression des étiquettes"
                 );
                 this.need_user_action_view.appendTo(this.need_user_action_modal_hook);
-                this.picking_table.toggleClass('hidden');
-                this.$('#mass_btn').toggleClass('hidden');
-                this.need_user_action_modal_hook.toggleClass('hidden');
+                this.picking_table.toggleClass('d-none');
+                this.$('#mass_btn').toggleClass('d-none');
+                this.need_user_action_modal_hook.toggleClass('d-none');
                 this._disconnect_scanner();
             }
         },
@@ -216,13 +216,13 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
         cut_picking_for_row: function (row) {
             let sp_stock_operation_todo_params = {
                 model: 'stock.picking',
-                method: 'web_ui_get_data_stock_operation_todo',
+                method: 'web_ui_get_data_move_lines_todo',
                 args: [[row.picking.id]],
             };
             rpc.query(sp_stock_operation_todo_params).then((result) => {
-                this.picking_table.toggleClass('hidden');
-                this.$('#mass_btn').toggleClass('hidden');
-                this.picking_split_detail.toggleClass('hidden');
+                this.picking_table.toggleClass('d-none');
+                this.$('#mass_btn').toggleClass('d-none');
+                this.picking_split_detail.toggleClass('d-none');
                 new PackingRow.Detail(this, row, result).appendTo(this.picking_split_detail);
             }).fail((errors, event) => {
                 console.log("Error print", errors, event);
@@ -234,9 +234,9 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
             });
         },
         exit_detail: function (detail) {
-            this.picking_table.toggleClass('hidden');
-            this.$('#mass_btn').toggleClass('hidden');
-            this.picking_split_detail.toggleClass('hidden');
+            this.picking_table.toggleClass('d-none');
+            this.$('#mass_btn').toggleClass('d-none');
+            this.picking_split_detail.toggleClass('d-none');
             this.picking_split_detail.empty();
             let sp_picking_info_one_params = {
                 model: 'stock.picking',
@@ -248,10 +248,10 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
             })
         },
         exit_need_action: function () {
-            this.picking_table.toggleClass('hidden');
-            this.$('#mass_btn').toggleClass('hidden');
+            this.picking_table.toggleClass('d-none');
+            this.$('#mass_btn').toggleClass('d-none');
             this.need_user_action_view = false;
-            this.need_user_action_modal_hook.toggleClass('hidden');
+            this.need_user_action_modal_hook.toggleClass('d-none');
             this.need_user_action_modal_hook.empty();
             this._connect_scanner()
         },

@@ -28,6 +28,9 @@ class StockPickingType(models.Model):
 
     @api.multi
     def web_ui_get_picking_info_by_name(self, name):
+        """
+        On peut rechercher un picking, soit par le nom de son groupe d'appro, soit par son nom.
+        """
         name = name.strip()
         picking = self.env['stock.picking'].search([('name', '=ilike', name)]).read(['group_id'], load='no_name')
         if not picking:
@@ -50,8 +53,8 @@ class StockPicking(models.Model):
     @api.multi
     def web_ui_check_action_allowed(self, action="faire cette action", raise_error=True, other_name=None):
         self.ensure_one()
-        not_allowed = self.pause or self.state == 'cancel'
-        reason = self.pause and "mis en attente" or "annulé"
+        not_allowed = self.state == 'cancel'
+        reason = "annulé"
         name = other_name or self.name
         msg = u"Vous ne pouvez pas %s le %s car il est %s" % (action, name, reason)
         if not_allowed and raise_error:
@@ -64,17 +67,14 @@ class StockPicking(models.Model):
         return {
             'id': self.id,
             'name': other_name or self.name,
-            'transporter_id': self.transporter_move_id.id,
-            'transporter_id_name': self.transporter_move_id.display_name,
+            'carrier_id': self.carrier_id.delivery_type,
             'owner_id': self.owner_id.id,
             'owner_id_name': self.owner_id.display_name,
             'state': self.state,
             'state_label': self._translate_state_label(),
-            'binary_label': bool(self.binary_label),
-            'package_count': len(self.pack_operation_product_ids.mapped('result_package_id').ids) or 1,
-            'operations_todo': len(self.pack_operation_product_ids.filtered(lambda it: not it.result_package_id).ids),
-            'country_need_cn23': self.country_need_cn23,
-            'other_picking': self._get_other_bpick_names(other_name)[self],
+            'package_count': len(self.move_line_ids_without_package.mapped('result_package_id').ids) or 1,
+            'operations_todo': len(
+                self.move_line_ids_without_package.filtered(lambda it: not it.result_package_id).ids),
             'not_allowed_reason': self.web_ui_check_action_allowed("mettre en colis", False, other_name=other_name),
         }
 
@@ -86,32 +86,31 @@ class StockPicking(models.Model):
         return self.env['ir.translation']._get_source("stock.picking,state", 'selection', self.env.user.lang, term)
 
     @api.multi
-    def web_ui_get_data_stock_operation_todo(self):
+    def web_ui_get_data_move_lines_todo(self):
         self.ensure_one()
-        domain = [('picking_id', '=', self.id), ("result_package_id", "=", False)]
+        domain = [('picking_id', '=', self.id), ('result_package_id', '=', False)]
         return {
-            'package_names': self.pack_operation_product_ids.mapped('result_package_id').name_get(),
+            'package_names': self.move_line_ids_without_package.mapped('result_package_id').name_get(),
             'operations': [{
-                'uuid': packop.id,
-                'product_id': packop.product_id.id,
-                'product_name': packop.product_id.display_name,
-                'unit_weight': packop.product_id.poids or packop.product_id.weight,
-                'qty_todo': packop.product_qty,
-                'qty_done': packop.qty_done,
-                'total_weight': packop.weight,
-            } for packop in self.env['stock.pack.operation'].search(domain)]
+                'uuid': move_line.id,
+                'product_id': move_line.product_id.id,
+                'product_name': move_line.product_id.display_name,
+                'unit_weight': move_line.product_id.weight,
+                'qty_todo': move_line.product_qty,
+                'qty_done': move_line.qty_done,
+            } for move_line in self.env['stock.move.line'].search(domain)]
         }
 
     @api.multi
-    def web_ui_set_operations_qty(self, operations):
+    def web_ui_set_operations_qty(self, move_lines):
         self.ensure_one()
         self.web_ui_check_action_allowed("mettre en colis")
-        for operation_id, qty in operations:
-            self.env['stock.pack.operation'].browse(operation_id).qty_done = qty
+        for move_line_id, qty in move_lines:
+            self.env['stock.move.line'].browse(move_line_id).qty_done = qty
 
         wizard = self._get_picking_pack_wizard(True)
         pack = wizard.pack_wizard_validate_button()
-        detail = self.web_ui_get_data_stock_operation_todo()
+        detail = self.web_ui_get_data_move_lines_todo()
         detail['new_pack'] = {
             'package_weight': wizard.poids,
             'package_name': pack.display_name,
