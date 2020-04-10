@@ -55,7 +55,7 @@ class SaleOrderRelance(models.Model):
 
     name = fields.Char(u"Name")
     date_done = fields.Date(u"Dunning date done", readonly=True)
-    next_dunning_date = fields.Date(u"Date de prochaine relance", compute='_compute_next_dunning_date')
+    next_dunning_date = fields.Date(u"Date de prochaine relance", compute='_compute_next_dunning_date', store=True)
     state = fields.Selection([
         ('draft', u"Draft"),
         ('send', u"Sent"),
@@ -129,9 +129,10 @@ class SaleOrderRelance(models.Model):
             rec.amount_total_signed = sum(rec.order_ids.mapped('amount_total'))
 
     @api.multi
+    @api.depends('order_ids', 'order_ids.next_dunning_date')
     def _compute_next_dunning_date(self):
         for rec in self:
-            if rec.state != 'done':
+            if rec.state not in ['done', 'cancel']:
                 nearest_next_dunning_date = False
                 for next_dunning_date in sorted(rec.order_ids.mapped('next_dunning_date'), reverse=True):
                     if next_dunning_date >= fields.Datetime.now():
@@ -239,8 +240,20 @@ class SaleOrderRelance(models.Model):
             ('next_dunning_date', '<=', fields.Date.today()),
         ]
 
+    @api.multi
+    def _orders_action_confirm(self):
+        for rec in self:
+            if rec.state == 'draft':
+                rec.action_cancel()
+                rec.order_ids.write({'next_dunning_date': False})
+            elif rec.state == 'sent':
+                rec.action_done()
+                rec.order_ids.write({'next_dunning_date': False})
+
     @api.model
     def cron_sale_order_dunning_update(self):
+        self.search([('state', 'not in', ['done', 'cancel'])])._compute_next_dunning_date()
+
         orders = self.env['sale.order'].search(self._get_sale_to_auto_create_dunning_domain())
         for order in orders:
             order._create_dunning(raise_if_not_valid=False)
@@ -256,6 +269,12 @@ class SaleOrder(models.Model):
     sale_order_dunning_ids = fields.Many2many('sale.order.dunning', string=u"Dunnings")
     dunning_number = fields.Integer(u"Number of Dunning send", compute='_compute_dunning_number')
     next_dunning_date = fields.Date(u"Date de prochaine relance", default=_get_default_next_dunning_date)
+
+    @api.multi
+    def action_confirm(self):
+        res = super(SaleOrder, self).action_confirm()
+        self.env['sale.order.dunning'].search([('order_ids', 'in', self.ids)])._orders_action_confirm()
+        return res
 
     @api.multi
     def _compute_dunning_number(self):
