@@ -27,7 +27,7 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <field name="date_order" position="after">
-                <field name="next_dunning_date" widget="date"/>
+                <field name="next_dunning_date" widget="date" attrs="{'invisible':[('state', 'not in', ['draft', 'sent'])]}"/>
             </field>
             <xpath expr="//notebook" position="inside">
                 <page string="Dunning">
