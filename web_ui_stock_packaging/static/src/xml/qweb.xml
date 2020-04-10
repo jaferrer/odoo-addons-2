@@ -36,7 +36,7 @@
 
     <t t-name="PackingMainWidget">
 
-        <div class="navbar navbar-inverse navbar-static-top" role="navigation">
+        <nav class="navbar navbar-dark bg-dark" role="navigation" style="margin-bottom:20px;">
             <div class="container">
                 <div class="navbar-header navbar-form navbar-left">
                     <span id="view_title" style="color:white;"/>
@@ -48,35 +48,37 @@
                     <button id="_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
                 </div>
             </div>
-        </div>
+        </nav>
+
         <div class="container">
-            <div class="row">
-                <div id="big_helper" class="jumbotron">
-                    <h1>Bienvenue dans l'ecran de Packing!</h1>
-                    <p>Veuiller scanner un numéro de BBPICK pour commencer</p>
-                    <p>Ou</p>
-                    <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>
+            <div id="big_helper" class="jumbotron">
+                <h1>Bienvenue dans l'ecran de Packing!</h1>
+                <p>Veuiller scanner un numéro de BBPICK pour commencer</p>
+                <p>Ou</p>
+                <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>
+            </div>
+            <div id="manual_scan" class="jumbotron">
+                <h4>Vous pouvez scanner un picking ou le saisir a la main!</h4>
+                <div class="input-group">
+                    <input id="search_picking" type="text" class="form-control"
+                           placeholder="Saisie picking manuel"/>
+                    <span class="input-group-btn">
+                        <button id="clear_search_picking" class="btn btn-danger" type="button">x</button>
+                    </span>
                 </div>
             </div>
             <div class="row">
-                <div id="manual_scan" class="jumbotron">
-                    <h4>Vous pouvez scanner un picking ou le saisir a la main!</h4>
-                    <div class="input-group">
-                        <input id="search_picking" type="text" class="form-control"
-                               placeholder="Saisie picking manuel"/>
-                        <span class="input-group-btn">
-                            <button id="clear_search_picking" class="btn btn-danger" type="button">x</button>
-                        </span>
-                    </div>
+                <div class="button-group col-lg-12" role="group" id="mass_btn">
+                    <button type="button" id="btn_delete_all_rows" class="btn btn-danger btn-lg fa fa-trash float-right">
+                        Vider la liste
+                    </button>
+                    <button type="button"
+                            id="btn_process_all_rows"
+                            class="btn btn-success btn-lg fa fa-print float-right"
+                            disabled="1">
+                        Tout Imprimer
+                    </button>
                 </div>
-            </div>
-            <div class="row button-group" role="group" id="mass_btn">
-                <button type="button" id="btn_delete_all_rows" class="btn btn-danger btn-lg fa fa-trash pull-right">
-                    Vider la liste
-                </button>
-                <button type="button" id="btn_process_all_rows" class="btn btn-success btn-lg fa fa-print pull-right"
-                        disabled="1">Tout Imprimer
-                </button>
             </div>
             <div class="row">
                 <table id="picking_table" class="table">

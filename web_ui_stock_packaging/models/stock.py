@@ -16,7 +16,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from openerp import models, api, _ as _t
+from openerp import models, api, fields
 
 
 class WebUiError(Exception):
@@ -31,15 +31,15 @@ class StockPickingType(models.Model):
         name = name.strip()
         picking = self.env['stock.picking'].search([('name', '=ilike', name)]).read(['group_id'], load='no_name')
         if not picking:
-            raise WebUiError(name, _t(u"Aucun transfert trouvé"))
+            raise WebUiError(name, "Aucun transfert trouvé")
         group_id = picking[0]['group_id']
         picking = self.env['stock.picking'].search([('group_id', '=', group_id), ('picking_type_id', '=', self.id)])
         if len(picking) > 1:
-            raise WebUiError(name, _t(u"Plusieurs transferts ont été trouvé: %s" % u", ".join(picking.mapped('name'))))
+            raise WebUiError(name, "Plusieurs transferts ont été trouvé: %s" % ", ".join(picking.mapped('name')))
         if picking.state not in ['assigned', 'done']:
             raise WebUiError(
                 name,
-                _t(u"L'état est %s alors que il devrait être Disponible ou Terminé" % picking._translate_state_label())
+                "L'état est %s alors que il devrait être Disponible ou Terminé" % picking._translate_state_label()
             )
         return picking.web_ui_get_picking_info_one(name)
 
@@ -48,15 +48,15 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     @api.multi
-    def web_ui_check_action_allowed(self, action=u"faire cette action", raise_error=True, other_name=None):
+    def web_ui_check_action_allowed(self, action="faire cette action", raise_error=True, other_name=None):
         self.ensure_one()
         not_allowed = self.pause or self.state == 'cancel'
-        reason = self.pause and u"mis en attente" or u"annulé"
+        reason = self.pause and "mis en attente" or "annulé"
         name = other_name or self.name
         msg = u"Vous ne pouvez pas %s le %s car il est %s" % (action, name, reason)
         if not_allowed and raise_error:
             raise WebUiError(name, msg)
-        return not_allowed and msg or u""
+        return not_allowed and msg or ""
 
     @api.multi
     def web_ui_get_picking_info_one(self, other_name=None):
@@ -75,7 +75,7 @@ class StockPicking(models.Model):
             'operations_todo': len(self.pack_operation_product_ids.filtered(lambda it: not it.result_package_id).ids),
             'country_need_cn23': self.country_need_cn23,
             'other_picking': self._get_other_bpick_names(other_name)[self],
-            'not_allowed_reason': self.web_ui_check_action_allowed(u"mettre en colis", False, other_name=other_name),
+            'not_allowed_reason': self.web_ui_check_action_allowed("mettre en colis", False, other_name=other_name),
         }
 
     @api.multi
@@ -105,7 +105,7 @@ class StockPicking(models.Model):
     @api.multi
     def web_ui_set_operations_qty(self, operations):
         self.ensure_one()
-        self.web_ui_check_action_allowed(u"mettre en colis")
+        self.web_ui_check_action_allowed("mettre en colis")
         for operation_id, qty in operations:
             self.env['stock.pack.operation'].browse(operation_id).qty_done = qty
 
@@ -122,7 +122,7 @@ class StockPicking(models.Model):
     @api.multi
     def web_ui_print_label(self, packaging_computer_id=None):
         self.ensure_one()
-        self.web_ui_check_action_allowed(u"imprimer l'étiquette")
+        self.web_ui_check_action_allowed("imprimer l'étiquette")
         packop_without_package = self.pack_operation_ids.filtered(lambda packop: not packop.result_package_id)
         if packop_without_package:
             packop_without_package._set_product_qty_in_qty_done()
@@ -183,3 +183,12 @@ class StockPicking(models.Model):
                     ])
 
             self.env['bus.bus'].sendmany(printer_bot_messages)
+
+
+class PostePacking(models.Model):
+    _name = 'poste.packing'
+    _description = "Poste Packing"
+
+    name = fields.Char("Nom")
+    description = fields.Char("Description")
+    code = fields.Char("Code")

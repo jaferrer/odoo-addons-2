@@ -2,19 +2,12 @@ odoo.define('web_ui_packing.PackingRow', function (require) {
     "use strict";
 
     var BarcodeScanner = require('web_ui_stock.BarcodeScanner');
-    var Class = require('web.Class');
-    var Model = require('web.Model');
     var Widget = require('web.Widget');
     var core = require('web.core');
     var data = require('web.data');
     var WebClient = require("web.WebClient");
     var Dialog = require('web.Dialog');
-    var _t = core._t;
     var QWeb = core.qweb;
-    var Model = require('web.DataModel');
-
-    let StockPickingType = new Model('stock.picking.type')
-    let StockPicking = new Model('stock.picking')
 
     return Widget.extend({
         template: 'PickingTableRow',

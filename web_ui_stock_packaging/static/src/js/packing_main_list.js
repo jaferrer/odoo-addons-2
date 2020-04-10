@@ -1,28 +1,18 @@
 odoo.define('web_ui_packing.PackingMainWidget', function (require) {
     "use strict";
 
+    var AbstractAction = require('web.AbstractAction');
     var BarcodeScanner = require('web_ui_stock.BarcodeScanner');
     var Widget = require('web.Widget');
     var core = require('web.core');
     var QWeb = core.qweb;
-    // var PackingRow = {
-    //     Row: require('web_ui_packing.PackingRow'),
-    //     Detail: require('web_ui_packing.PackingRow.Detail'),
-    //     Error: require('web_ui_packing.PackingRow.Error')
-    // };
-
+    var PackingRow = {
+        Row: require('web_ui_packing.PackingRow'),
+        Detail: require('web_ui_packing.PackingRow.Detail'),
+        Error: require('web_ui_packing.PackingRow.Error')
+    };
     var rpc = require('web.rpc');
-    let params = {
-        model: 'stock.picking.type',
-        method: 'name_get',
-        args: [[id]],
-    }
-    // rpc.query(params).then((res) => console.log(res));
 
-
-    let StockPickingType = new Model('stock.picking.type');
-    let PrinterComputer = new Model('poste.packing'); // à rajouter ce modèle
-    let StockPicking = new Model('stock.picking');
     var NeedUserAttentionModal = Widget.extend({
         template: 'NeedUserAttentionModal',
         init: function (parent, rows, title) {
@@ -49,7 +39,7 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
         },
     });
 
-    var PackingMainWidget = Widget.extend({
+    var PackingMainWidget = Widget.extend(AbstractAction.prototype, {
         template: 'PackingMainWidget',
         init: function (parent, action, options) {
             this._super(parent, action, options);
@@ -64,7 +54,12 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
             this.$('#_exit').click((ev) => window.history.back());
             this.picking_table_body = this.$('#picking_table_body');
             this.picking_split_detail = this.$('#picking_split_detail');
-            StockPickingType.call('name_get', [[this.pickingTypeId]]).then((res) => this._set_view_title(res[0][1]));
+            let spt_name_get_params = {
+                model: 'stock.picking.type',
+                method: 'name_get',
+                args: [[this.pickingTypeId]],
+            };
+            rpc.query(spt_name_get_params).then((res) => this._set_view_title(res[0][1]));
             this._init_packaging_computer();
             this._connect_scanner();
             this.need_user_action_modal_hook = this.$('#need_user_action_modal_hook');
@@ -98,7 +93,12 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
             });
         },
         _init_packaging_computer: function () {
-            PrinterComputer.call('search_read', [[]]).then((res) => {
+            let printer_computer_params = {
+                model: 'poste.packing',
+                method: 'search_read',
+                args: [[]],
+            };
+            rpc.query(printer_computer_params).then((res) => {
                 let packaging_section = this.$('#packing_printer_choice');
                 res.forEach(res => {
                     packaging_section.append($(document.createElement('button'))
@@ -129,7 +129,7 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
         },
         start: function () {
             this._super();
-            window.openerp.webclient.set_content_full_screen(true);
+            // window.openerp.webclient.set_content_full_screen(true);
         },
         _connect_scanner: function () {
             this.barcode_scanner.connect(this.scan.bind(this));
@@ -143,7 +143,12 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
         scan: function (ean) {
             console.log(ean);
             this.$('#search_picking').val('');
-            StockPickingType.call('web_ui_get_picking_info_by_name', [[this.pickingTypeId], ean])
+            let spt_picking_info_params = {
+                model: 'stock.picking.type',
+                method: 'web_ui_get_picking_info_by_name',
+                args: [[this.pickingTypeId], ean],
+            };
+            rpc.query(spt_picking_info_params)
                 .always(() => {
                     if (!this.$('#big_helper').hasClass('hidden')) {
                         this.$('#big_helper').addClass('hidden')
@@ -179,8 +184,13 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
                 alert("Veuiller selectionner un poste de packing")
             }
             this.$('[data-error-row]').remove();
+            let sp_print_label_params = {
+                model: 'stock.picking',
+                method: 'web_ui_print_label',
+                args: [[row.picking.id], this.selected_packaging_computer],
+            };
             rows.filter(row => !row.need_user_action).forEach((row) => {
-                StockPicking.call('web_ui_print_label', [row.picking.id, this.selected_packaging_computer])
+                rpc.query(sp_print_label_params)
                     .then(result => row.on_success_print())
                     .fail((error, event) => {
                         console.log("Error print", error, event);
@@ -204,7 +214,12 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
             this.print_label_for_rows([row])
         },
         cut_picking_for_row: function (row) {
-            StockPicking.call('web_ui_get_data_stock_operation_todo', [row.picking.id]).then((result) => {
+            let sp_stock_operation_todo_params = {
+                model: 'stock.picking',
+                method: 'web_ui_get_data_stock_operation_todo',
+                args: [[row.picking.id]],
+            };
+            rpc.query(sp_stock_operation_todo_params).then((result) => {
                 this.picking_table.toggleClass('hidden');
                 this.$('#mass_btn').toggleClass('hidden');
                 this.picking_split_detail.toggleClass('hidden');
@@ -223,7 +238,12 @@ odoo.define('web_ui_packing.PackingMainWidget', function (require) {
             this.$('#mass_btn').toggleClass('hidden');
             this.picking_split_detail.toggleClass('hidden');
             this.picking_split_detail.empty();
-            StockPicking.call('web_ui_get_picking_info_one', [[detail.pickingRow.id]]).then((result) => {
+            let sp_picking_info_one_params = {
+                model: 'stock.picking',
+                method: 'web_ui_get_picking_info_one',
+                args: [[detail.pickingRow.id]],
+            };
+            rpc.query(sp_picking_info_one_params).then((result) => {
                 detail.pickingRow._replace_picking(result)
             })
         },

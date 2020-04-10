@@ -2,19 +2,12 @@ odoo.define('web_ui_packing.PackingRow.Detail', function (require) {
     "use strict";
 
     var BarcodeScanner = require('web_ui_stock.BarcodeScanner');
-    var Class = require('web.Class');
-    var Model = require('web.Model');
     var Widget = require('web.Widget');
     var core = require('web.core');
     var data = require('web.data');
     var WebClient = require("web.WebClient");
     var Dialog = require('web.Dialog');
-    var _t = core._t;
     var QWeb = core.qweb;
-    var Model = require('web.DataModel');
-
-    let StockPickingType = new Model('stock.picking.type');
-    let StockPicking = new Model('stock.picking');
 
     return Widget.extend({
         template: 'PickingTableRow.Detail',
@@ -51,7 +44,12 @@ odoo.define('web_ui_packing.PackingRow.Detail', function (require) {
         put_in_pack: function (ev) {
             let payload = $.makeArray(this.$('.js_qty')).map((el, idx) => [$(el).data('operation-id'), $(el).val()]);
             console.log(payload);
-            StockPicking.call('web_ui_set_operations_qty', [this.pickingRow.id, payload]).then((result) => {
+            let sp_web_ui_set_operations_qty_params = {
+                model: 'stock.picking',
+                method: 'web_ui_set_operations_qty',
+                args: [[this.pickingRow.id, payload]],
+            };
+            rpc.query(sp_web_ui_set_operations_qty_params).then((result) => {
                 this.picking_operations_table_body.empty();
                 this.operations = result.operations;
                 this.package_names = result.package_names;

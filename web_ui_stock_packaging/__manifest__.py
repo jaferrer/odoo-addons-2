@@ -32,6 +32,7 @@ This modules allows to use the barcode scanner for the packing operation.
     'website': 'http://www.ndp-systemes.fr',
     'data': [
         'views/assets_backend.xml',
+        'security/ir.model.access.csv',
         'data.xml',
     ],
     'demo': [],

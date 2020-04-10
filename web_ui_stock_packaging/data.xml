@@ -2,10 +2,16 @@
 <odoo>
     <data>
 
-    <record model="stock.picking.type.web.ui.action" id="web_ui_action_packing">
-        <field name="name">Écran de colisage</field>
-        <field name="action">stock.ui.packaging</field>
-    </record>
+        <record model="stock.picking.type.web.ui.action" id="web_ui_action_packing">
+            <field name="name">Écran de colisage</field>
+            <field name="action">stock.ui.packaging</field>
+        </record>
+
+        <record id="packing_poste_1" model="poste.packing">
+            <field name="name">Poste de packing 1</field>
+            <field name="code">PACKING_POSTE_1</field>
+            <field name="description">Poste de packing 1</field>
+        </record>
 
     </data>
 </odoo>
