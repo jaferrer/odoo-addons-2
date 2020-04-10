@@ -18,22 +18,22 @@
 #
 
 {
-    'name': 'Stock Easy Packaging',
+    'name': 'Delivery Tracking Colissimo',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Delivery',
     'depends': [
-        'stock',
-        'delivery',
+        'delivery_tracking',
+        'stock_easy_packaging',
     ],
     'description': """
-Stock Easy Packaging
-====================
+Delivery Tracking Colissimo
+===========================
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'views/stock_easy_packaging.xml',
+        'views/delivery_tracking_colissimo.xml',
     ],
     'demo': [],
     'test': [],
