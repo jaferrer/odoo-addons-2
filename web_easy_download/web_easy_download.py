@@ -50,13 +50,13 @@ class Binary(http.Controller):
             res = record.read()[0]
         else:
             res = model_env.default_get(fields)
-        filecontent = base64.b64decode(res.get(field) or '')
-        if not filecontent:
+        file_contents = base64.b64decode(res.get(field) or '')
+        if not file_contents:
             return request.not_found()
-        else:
-            filename = '%s_%s' % (model.replace('.', '_'), id)
-            if filename_field:
-                filename = res.get(filename_field, '') or filename
-            return request.make_response(filecontent,
-                                         [('Content-Type', 'application/octet-stream'),
-                                          ('Content-Disposition', http.content_disposition(filename))])
+
+        filename = '%s_%s' % (model.replace('.', '_'), id)
+        if filename_field:
+            filename = res.get(filename_field, '') or filename
+        return request.make_response(file_contents,
+                                     [('Content-Type', 'application/octet-stream'),
+                                      ('Content-Disposition', http.content_disposition(filename))])

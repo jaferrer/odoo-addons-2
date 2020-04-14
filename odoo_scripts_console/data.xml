@@ -13,8 +13,8 @@
             <field name="numbercall">-1</field>
             <field name="doall"/>
             <field name="model_id" ref="model_odoo_script_watcher"/>
-            <field name="function">launch_jobs_watch_lines</field>
-            <field name="args"/>
+            <field name="state">code</field>
+            <field name="code">model.launch_jobs_watch_lines()</field>
         </record>
 
     </data>

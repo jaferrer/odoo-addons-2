@@ -15,6 +15,7 @@ FORBIDDEN_SQL_KEYWORDS = ["UPDATE", "INSERT", "ALTER", "DELETE", "GRANT", "DROP"
 
 class OdooScript(models.Model):
     _name = 'odoo.script'
+    _description = 'python/odoo script'
 
     name = fields.Char(string=u"Name", required=True)
     description = fields.Char(string=u"Description")
