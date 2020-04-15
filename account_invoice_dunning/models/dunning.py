@@ -167,7 +167,7 @@ class AccountInvoice(models.Model):
     _inherit = 'account.invoice'
 
     invoice_dunning_ids = fields.Many2many('account.invoice.dunning', string=u"Dunnings")
-    dunning_number = fields.Integer(u"Nomber of Dunning send", compute='_compute_dunning_number')
+    dunning_number = fields.Integer(u"Number of Dunning send", compute='_compute_dunning_number')
 
     @api.multi
     def _compute_dunning_number(self):
