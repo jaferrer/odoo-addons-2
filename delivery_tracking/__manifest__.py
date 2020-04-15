@@ -32,6 +32,7 @@ Delivery Tracking
     'data': [
         'views/delivery_carrier_tracking_number.xml',
         'views/delivery_tracking.xml',
+        'views/delivery_carrier_provider.xml',
         'security/ir.model.access.csv',
     ],
     'demo': [],

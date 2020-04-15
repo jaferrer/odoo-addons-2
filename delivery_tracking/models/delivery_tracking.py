@@ -17,6 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 from odoo import fields, models, api
+from odoo.addons.delivery_tracking.models.delivery_carrier_provider import _PROVIDER
 
 
 class DeliveryCarrierTrackingNumber(models.Model):
@@ -33,6 +34,17 @@ class ProductTemplateDeliveryTracking(models.Model):
     delivery_ok = fields.Boolean("Is a delivery mode")
 
 
+class ProductProductDeliveryTracking(models.Model):
+    _inherit = 'product.product'
+
+    default_code = fields.Boolean(readonly=True, compute='_compute_default_code')
+
+    @api.multi
+    def _compute_default_code(self):
+        for rec in self:
+            rec.default_code = rec.product_tmpl_id.delivery_ok
+
+
 class StockQuantPackageDeliveryTracking(models.Model):
     _inherit = 'stock.quant.package'
 
@@ -42,18 +54,31 @@ class StockQuantPackageDeliveryTracking(models.Model):
 class DeliveryCarrierDeliveryTracking(models.Model):
     _inherit = 'delivery.carrier'
 
-    image = fields.Binary("Image", compute='_compute_image')
+    image = fields.Binary("Image", related='carrier_id.image')
     number_trackings = fields.Integer("Tracking numbers", compute='_compute_number_trackings')
     sale_ids = fields.One2many('sale.order', 'carrier_id', string="Sale")
     number_sales = fields.Integer("Pales numbers", compute='_compute_number_sales')
     package_ids = fields.One2many('stock.quant.package', 'carrier_id', string="Package")
     number_package = fields.Integer("Packages numbers", compute='_compute_number_packages')
     product_id = fields.Many2one('product.product', string="Product", domain=[('delivery_ok', '=', True)])
+    delivery_type = fields.Selection(selection_add=_PROVIDER)
+    carrier_id = fields.Many2one('delivery.carrier.provider', string="Carrier", compute='_compute_carrier_id',
+                                 store=True)
 
     @api.multi
-    def _compute_image(self):
+    def name_get(self):
+        res = []
         for rec in self:
-            rec.image = False
+            if rec.carrier_id:
+                res.append((rec.id, "%s - %s" % (rec.carrier_id.name, rec.name)))
+            else:
+                res.append((rec.id, "%s" % rec.name))
+        return res
+
+    @api.multi
+    def _compute_carrier_id(self):
+        for rec in self:
+            rec.carrier_id = self.env['delivery.carrier.provider']._get_by_code(rec.delivery_type)
 
     @api.multi
     def _compute_number_trackings(self):
@@ -90,6 +115,10 @@ class DeliveryCarrierDeliveryTracking(models.Model):
 
         for rec in self:
             rec.number_package = res.get(rec.id, 0)
+
+    @api.model
+    def _get_by_code(self, code):
+        return self.search([('delivery_type', '=', code)])
 
     @api.multi
     def see_tracking_numbers(self):

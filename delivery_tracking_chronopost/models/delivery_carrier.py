@@ -20,12 +20,15 @@
 from suds.client import Client
 
 from odoo import models, api, fields
+from odoo.addons.delivery_tracking.models.delivery_carrier_provider import _PROVIDER
 
 
 class DeliveryCarrier(models.Model):
     _inherit = 'delivery.carrier'
 
-    delivery_type = fields.Selection(selection_add=[('chronopost', "Chronopost")])
+    def __init__(self, *args, **kwargs):
+        _PROVIDER.append(('chronopost', "Chronopost"))
+
     api_login_chronopost = fields.Char("Login Chronopost", related='company_id.login_chronopost')
     api_password_chronopost = fields.Char("Password Chronopost", related='company_id.password_chronopost')
     api_pre_alert_chronopost = fields.Selection("Pre Alert Chronopost", related='company_id.pre_alert_chronopost')

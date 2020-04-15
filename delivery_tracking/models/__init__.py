@@ -18,3 +18,4 @@
 #
 
 from . import delivery_tracking
+from . import delivery_carrier_provider
