@@ -37,7 +37,7 @@ class ProductTemplateDeliveryTracking(models.Model):
 class ProductProductDeliveryTracking(models.Model):
     _inherit = 'product.product'
 
-    default_code = fields.Boolean(readonly=True, compute='_compute_default_code')
+    default_code = fields.Boolean("Is a delivery mode", readonly=True, compute='_compute_default_code')
 
     @api.multi
     def _compute_default_code(self):
