@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--MAIL.MASS_MAILING-->
+
+    <record id="view_mail_mass_mailing_sendinblue_form" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_sendinblue_form</field>
+        <field name="model">mail.mass_mailing</field>
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page/group[group/field[@name='mass_mailing_campaign_id']]" position="after">
+                <group name="sendinblue" string="Sendinblue">
+                    <field name="id_sendinblue_tmpl" attrs="{'invisible': [('id_sendinblue_tmpl', '=', False)]}"/>
+                    <field name="write_date_sendinblue" attrs="{'invisible': [('id_sendinblue_tmpl', '=', False)]}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!--MAIL.MASS_MAILING.CONTACTS-->
+
+    <record id="view_mail_mass_mailing_contact_sendinblue_form" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_contact_sendinblue_form</field>
+        <field name="model">mail.mass_mailing.contact</field>
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_contact_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group/group/div/field[@name='email']" position="attributes">
+                <attribute name="attrs">{'readonly': [('id_sendinblue_contact', '!=', 0)]}</attribute>
+            </xpath>
+            <xpath expr="//sheet/group/group/field[@name='country_id']" position="after">
+                <field name="id_sendinblue_contact"/>
+                <field name="write_date_sendinblue"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

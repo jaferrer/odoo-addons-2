@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_mail_mass_mailing_provider_form" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_provider_form</field>
+        <field name="model">mail.mass_mailing</field>
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group/div[field[@name='mailing_model_id']]" position="after">
+                <field name="supplier"/>
+                <field name="is_odoo_mail"/>
+            </xpath>
+            <xpath expr="//notebook/page[field[@name='body_html']]" position="attributes">
+                <attribute name="attrs">{'invisible': [('is_odoo_mail', '=', False)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
