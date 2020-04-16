@@ -33,22 +33,18 @@ class IrAttachmentRename(models.TransientModel):
         ]
 
     @api.model
-    def default_get(self, fields_list):
-        line_ids = []
-        res = {}
-        attachment_domain = self.get_attachment_domain()
-        for att in self.env['ir.attachment'].search(attachment_domain):
-            att_record = self.env[att.res_model].browse(att.res_id)
-            folder_name = att_record._name == 'folder' and att_record.name or att_record.folder_id.name
-            line_ids.append((0, 0, {
-                'folder_name': folder_name,
-                'attachment_id': att.id,
-                'old_name': att.name,
-                'prefix_folder_name': True,
-            }))
+    def prepare_line_vals(self, att):
+        return {
+            'attachment_id': att.id,
+            'old_name': att.name,
+        }
 
-        res['line_ids'] = line_ids
-        return res
+    @api.model
+    def default_get(self, fields_list):
+        attachments = self.env['ir.attachment'].search(self.get_attachment_domain())
+        return {
+            'line_ids': [(0, 0, self.prepare_line_vals(att)) for att in attachments],
+        }
 
     @api.multi
     def action_change_all_name(self):
@@ -63,8 +59,11 @@ class IrAttachmentRenameLine(models.TransientModel):
     attachment_id = fields.Many2one('ir.attachment', required=True)
     old_name = fields.Char(u"Nom actuel du document", related='attachment_id.name', readonly=True, required=True)
     new_name = fields.Char(u"Nouveau nom")
-    folder_name = fields.Char(u"Nom du dossier")
-    prefix_folder_name = fields.Boolean(u"Préfixer par le numéro de dossier", default=True)
+
+    @api.multi
+    def get_final_name(self):
+        self.ensure_one()
+        return self.new_name
 
     @api.multi
     def change_name(self):
@@ -77,11 +76,7 @@ class IrAttachmentRenameLine(models.TransientModel):
                     rec.new_name += old_extension
                 elif new_extension != old_extension:
                     rec.new_name = new_filename + old_extension
-
-                final_name = rec.prefix_folder_name and u"-".join(
-                    [rec.folder_name, rec.new_name]) or rec.new_name
-
                 rec.attachment_id.write({
-                    'name': final_name,
+                    'name': rec.get_final_name(),
                     'fs_name': rec.new_name,
                 })
