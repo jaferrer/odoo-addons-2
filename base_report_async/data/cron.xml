@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="to_delete_temporary_report_files" model="ir.cron">
+        <field name="name">Delete Temporary report files</field>
+        <field name="model">ir.attachment</field>
+        <field name='interval_number'>1</field>
+        <field name='interval_type'>days</field>
+        <field name="numbercall">-1</field>
+        <field name="function">cron_delete_temporary_report_files</field>
+        <field name="args">()</field>
+    </record>
+
+</odoo>
