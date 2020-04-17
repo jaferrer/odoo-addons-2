@@ -31,11 +31,11 @@ class SendinblueSynchronisationWizard(models.TransientModel):
     _name = 'sendinblue.sync.wizard'
     _description = 'Sendinblue synchronisation wizard'
 
-    synchronize_mass_mailing = fields.Boolean("Mass mailings", default=False)
-    synchronize_contact = fields.Boolean("Contacts", default=False)
+    synchronize_mass_mailing = fields.Boolean("Mass mailings", default=True)
+    synchronize_contact = fields.Boolean("Contacts", default=True)
     synchronize_list = fields.Boolean("Lists", default=True)
-    synchronize_campaign = fields.Boolean("Campaigns", default=False)
-    synchronize_tags = fields.Boolean("Campaign tags", default=False)
+    synchronize_campaign = fields.Boolean("Campaigns", default=True)
+    synchronize_tags = fields.Boolean("Campaign tags", default=True)
 
     @api.model
     def get_sendinblue_api_configuration(self):
@@ -43,10 +43,10 @@ class SendinblueSynchronisationWizard(models.TransientModel):
         Configure API key authorization: api-key & partner-key.
         """
         configuration = sib_api_v3_sdk.Configuration()
-        configuration.api_key['api-key'] = \
-            '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'
-        configuration.api_key['partner-key'] = \
-            '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'
+        # test api_key : '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'
+        api_key = self.env['ir.config_parameter'].sudo().get_param('sendinblue_api_key')
+        configuration.api_key['api-key'] = api_key
+        configuration.api_key['partner-key'] = api_key
 
         return configuration
 
@@ -90,7 +90,7 @@ class SendinblueSynchronisationWizard(models.TransientModel):
         """
         api_instance = sib_api_v3_sdk.SMTPApi(sib_api_v3_sdk.ApiClient(self.get_sendinblue_api_configuration()))
 
-        for odoo_smtp in self.env['mail.mass_mailing'].search([]):
+        for odoo_smtp in self.env['mail.mass_mailing'].search(['supplier', '=', 'sendinblue']):
 
             # Sendinblue smtp creation from Odoo only (recreate if smtp suppressed in Sendinblue)
             try:
@@ -154,9 +154,8 @@ class SendinblueSynchronisationWizard(models.TransientModel):
                     odoo_contact.update_contact_odoo(sendinblue_contact_info, sendinblue_write_date_dt)
 
         # Odoo contact creation from Sendinblue
-        modified_since = '2020-01-01T00:00:01+01:00'
         try:
-            sendinblue_contacts = api_instance.get_contacts(limit=50, offset=0, modified_since=modified_since)
+            sendinblue_contacts = api_instance.get_contacts(limit=50, offset=0)
             for sib_contact in sendinblue_contacts.contacts:
                 # A Sendinblue contact with odoo_contact_id but without related Odoo contact is suppressed
                 if sib_contact.get('attributes').get('ODOO_CONTACT_ID'):

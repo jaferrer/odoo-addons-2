@@ -34,6 +34,7 @@ Communicate with sendinblue API.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
+        'data/data.xml',
         'views/mass_mailing_provider_sendinblue.xml',
         'views/sendinblue_synchronisation_wizard.xml',
     ],

@@ -18,3 +18,4 @@
 #
 
 from . import mass_mailing_provider_sendinblue
+from . import res_config_settings

@@ -89,6 +89,31 @@ class MassMailingProviderSendinblue(models.Model):
             'sendinblue_write_date': sendinblue_write_date,
         })
 
+    @api.multi
+    def action_test_mailing(self):
+        """
+        Override classic test to send a test email from Sendinblue and not Odoo to all the emails from the BAT test list
+        of Sendinblue.
+        """
+        self.ensure_one()
+        if self.supplier != 'sendinblue':
+            return super(MassMailingProviderSendinblue, self).action_test_mailing()
+        else:
+            configuration = sib_api_v3_sdk.Configuration()
+            api_key = self.env['ir.config_parameter'].sudo().get_param(
+                'sendinblue_api_key'
+            )
+            configuration.api_key['api-key'] = api_key
+            configuration.api_key['partner-key'] = api_key
+
+            api_instance = sib_api_v3_sdk.SMTPApi(sib_api_v3_sdk.ApiClient(configuration))
+            send_test_email = sib_api_v3_sdk.SendTestEmail()
+            try:
+                api_instance.send_test_template(self.id_sendinblue_tmpl, send_test_email)
+                print(api_instance)
+            except ApiException as error_msg:
+                print("Exception when calling SMTPApi -> send_test_template : %s\n" % error_msg)
+
 
 class MassMailingContactSendinblue(models.Model):
     _inherit = 'mail.mass_mailing.contact'
