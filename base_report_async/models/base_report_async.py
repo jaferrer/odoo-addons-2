@@ -12,28 +12,23 @@ from datetime import datetime as dt
 
 import unidecode
 from dateutil.relativedelta import relativedelta
-from odoo.addons.queue_job import job
+from odoo.addons.queue_job.job import job
 from odoo.addons.http_routing.models.ir_http import slugify
 
 from odoo.tools.mimetypes import guess_mimetype
 
-from odoo import api, fields, models, report, _
+from odoo import api, fields, models, _, exceptions
 from odoo import tools
 
 _logger = logging.getLogger(__name__)
 
 
-@job
-def job_asynchronous_report_generation(session, model_name, report_id, values, context):
-    return session.env[model_name].browse(report_id).with_context(context).asynchronous_report_generation(values)
-
-
 class DelayReport(models.Model):
-    _inherit = 'ir.actions.report.xml'
+    _inherit = 'ir.actions.report'
 
     async_report = fields.Boolean(u"Asynchronous generation")
 
-    def create_temporary_report_attachment(self, binary, name):
+    def _create_temporary_report_attachment(self, binary, name):
         if not binary:
             return False
         mimetype = guess_mimetype(binary.decode('base64'))
@@ -66,15 +61,13 @@ class DelayReport(models.Model):
         if running_job_for_user_and_report:
             return True
         description = u"Asynchronous generation of report %s" % self.name
-        job_uuid = job_asynchronous_report_generation.delay(ConnectorSession.from_env(self.env), self._name, self.id,
-                                                            values, context=dict(self.env.context),
-                                                            description=description)
-        job = self.env['queue.job'].search([('uuid', '=', job_uuid)])
-        job.write({'asynchronous_job_for_report_id': self.id})
+        job_uuid = self.with_context(description=description).job_asynchronous_report_generation(values)
+        new_job = self.env['queue.job'].search([('uuid', '=', job_uuid)])
+        new_job.write({'asynchronous_job_for_report_id': self.id})
         return False
 
-    @api.multi
-    def asynchronous_report_generation(self, values):
+    @job
+    def job_asynchronous_report_generation(self, values):
         self.ensure_one()
         active_ids = self.env.context.get('active_ids', [])
         active_model = self.env.context.get('active_model')
@@ -86,9 +79,9 @@ class DelayReport(models.Model):
                 index += 1
                 _logger.info(u"Generating report for ID %s (%s/%s)", active_id, index, nb_records)
                 try:
-                    new_attachment = self.save_attachement_for_one_record(active_model, [active_id])
+                    new_attachment = self.get_attachment_base64_encoded(active_model, active_id)
                     attachments_to_zip |= new_attachment
-                except Exception as error:
+                except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm) as error:
                     self.send_failure_mail(error)
                     return
             zip_file_name = '%s' % (slugify(values.get('name').replace('/', '-')) or 'documents')
@@ -99,26 +92,32 @@ class DelayReport(models.Model):
                     zip_file.writestr(att.datas_fname.replace(os.sep, '-'),
                                       base64.b64decode(att.with_context(bin_size=False).datas))
             with open(zip_file_path, 'r') as zf:
-                attachment = self.create_temporary_report_attachment(base64.b64encode(zf.read()), zip_file_name)
+                attachment = self._create_temporary_report_attachment(base64.b64encode(zf.read()), zip_file_name)
         else:
             try:
-                attachment = self.save_attachement_for_one_record(active_model, active_ids)
+                attachment = self.get_attachment_base64_encoded(active_model, active_ids[0])
             except Exception as error:
                 self.send_failure_mail(error)
                 return
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
         url = base_url + "/web/content/%s/%s" % (attachment.id, attachment.name)
         self.send_mail_report_async_to_user(url)
+        return u"report generated"
 
     @api.multi
-    def save_attachement_for_one_record(self, active_model, active_ids):
+    def get_attachment_base64_encoded(self, model, record_id):
         self.ensure_one()
         name = u"Report"
         if self.name_eval_report:
-            name = eval(self.name_eval_report, {'object': self.env[active_model].browse(active_ids[0]), 'time': time})
-        result = report.render_report(self.env.cr, self.env.uid, active_ids,
-                                      self.report_name, {'model': active_model})[0]
-        return self.create_temporary_report_attachment(base64.b64encode(result), name)
+            name = eval(self.name_eval_report, {'object': self.env[model].browse(record_id), 'time': time})
+        data = {
+            'model': model,
+            'ids': [record_id],
+        }
+        # todo : a tester report = self.env.ref('report_ref')
+        action_report = self.env['ir.action.report']
+        pdf_data = action_report.render_qweb_pdf([record_id], data)
+        return self._create_temporary_report_attachment(base64.b64encode(pdf_data), name)
 
     @api.multi
     def get_mail_data_report_async_success(self, url):
@@ -202,13 +201,14 @@ class IrAttachment(models.Model):
                      ('is_temporary_report_file', '=', True)]).unlink()
 
 
-class QuaueJob(models.Model):
+class QueueJob(models.Model):
     _inherit = 'queue.job'
 
-    asynchronous_job_for_report_id = fields.Many2one('ir.actions.report.xml', string=u"Job to generate report")
+    asynchronous_job_for_report_id = fields.Many2one('ir.actions.report', string=u"Job to generate report")
 
 
 class ReportAsynchronousGenerationMessage(models.TransientModel):
     _name = 'report.asynchronous.generation.message'
+    _description = u"Génération de rapports asynchrones"
 
     message = fields.Char(string=u"Message", readonly=True)

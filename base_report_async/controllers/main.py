@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo.addons.web.controllers.main import clean_action, Action
+from odoo.addons.web.controllers.main import Action, clean_action
 
 from odoo import fields, http
 from odoo.http import request
@@ -26,36 +26,37 @@ from odoo.http import request
 class ActionLoadExtend(Action):
 
     @http.route('/web/action/load', type='json', auth="user")
-    def load(self, action_id, do_not_eval=False, additional_context=None):
-        Actions = request.session.model('ir.actions.actions')
+    def load(self, action_id, additional_context=None):
         value = False
         try:
             action_id = int(action_id)
         except ValueError:
+            # pylint: disable=W0703
+            # noinspection PyBroadException
             try:
-                module, xmlid = action_id.split('.', 1)
-                model, action_id = request.session.model('ir.model.data').get_object_reference(module, xmlid)
-                assert model.startswith('ir.actions.')
+                action = request.env.ref(action_id)
+                assert action._name.startswith('ir.actions.')
+                action_id = action.id
             except Exception:
                 action_id = 0  # force failed read
 
-        base_action = Actions.read([action_id], ['type'], request.context)
+        base_action = request.env['ir.actions.actions'].browse([action_id]).read(['type'])
 
         if base_action:
-            ctx = request.context or {}
-            active_ids = ctx.get('active_ids', [])
+            ctx = dict(request.context)
             action_type = base_action[0]['type']
-            if action_type == 'ir.actions.report.xml':
+            if action_type == 'ir.actions.report':
                 ctx.update({'bin_size': True})
             if additional_context:
                 ctx.update(additional_context)
-
-            action = request.session.model(action_type).read([action_id], False, ctx)
+            request.context = ctx
+            action = request.env[action_type].browse([action_id]).read()
             if action:
                 value = clean_action(action[0])
+            active_ids = ctx.get('active_ids', [])
             date_start_for_job_creation = fields.Datetime.now()
-            if action_type == 'ir.actions.report.xml' and base_action[0].get('id'):
-                report = request.session.model('ir.actions.report.xml').browse(base_action[0]['id'])
+            if action_type == 'ir.actions.report' and base_action[0].get('id'):
+                report = http.request.env['ir.actions.report'].browse(base_action[0]['id'])
                 if report.async_report:
                     if active_ids and len(active_ids) > 100:
                         while active_ids:
