@@ -16,10 +16,8 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import base64
 
 from openerp.addons.connector_prestashop.models.product_image.common import ProductImageAdapter
-from openerp.addons.connector_prestashop.unit.backend_adapter import PrestaShopWebServiceImage
 
 from ..backend import prestashop_1_7
 
@@ -29,13 +27,9 @@ class ProductImageAdapterExtension(ProductImageAdapter):
     _model_name = 'prestashop.product.image'
 
     def create(self, attributes=None):
-        api = PrestaShopWebServiceImage(
-            self.prestashop.api_url, self.prestashop.webservice_key)
-        # TODO: odoo logic in the adapter? :-(
-        url = '{}/{}'.format(self._prestashop_model, attributes['id_product'])
-        res = api.add(url, files=[(
-            'image',
-            attributes['filename'].encode('utf-8'),
-            base64.b64decode(attributes['content'])
-        )])
+        res = super(ProductImageAdapterExtension, self).create(attributes)
+        return res['prestashop']['image']['id']
+
+    def write(self, id, attributes=None):
+        res = super(ProductImageAdapterExtension, self).write(id, attributes)
         return res['prestashop']['image']['id']
