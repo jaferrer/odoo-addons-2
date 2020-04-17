@@ -28,8 +28,48 @@
                 <attribute name="attrs">{'readonly': [('id_sendinblue_contact', '!=', 0)]}</attribute>
             </xpath>
             <xpath expr="//sheet/group/group/field[@name='country_id']" position="after">
-                <field name="id_sendinblue_contact"/>
-                <field name="write_date_sendinblue"/>
+                <field name="id_sendinblue_contact" attrs="{'invisible': [('id_sendinblue_contact', '=', False)]}"/>
+                <field name="write_date_sendinblue" attrs="{'invisible': [('id_sendinblue_contact', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--MAIL.MASS_MAILING.CAMPAIGN-->
+
+    <record id="view_mail_mass_mailing_campaign_sendinblue_form" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_campaign_sendinblue_form</field>
+        <field name="model">mail.mass_mailing.campaign</field>
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_campaign_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='unique_ab_testing']" position="after">
+                <field name="id_sendinblue_campaign" attrs="{'invisible': [('id_sendinblue_campaign', '=', False)]}"/>
+                <field name="write_date_sendinblue" attrs="{'invisible': [('id_sendinblue_campaign', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--MAIL.MASS_MAILING.LIST-->
+
+    <record id="view_mail_mass_mailing_list_sendinblue_form" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_list_sendinblue_form</field>
+        <field name="model">mail.mass_mailing.list</field>
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_list_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_public']" position="after">
+                <field name="id_sendinblue_list" attrs="{'invisible': [('id_sendinblue_list', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--MAIL.MASS_MAILING.TAG-->
+
+    <record id="mail_mass_mailing_tag_view_sendinblue_form" model="ir.ui.view">
+        <field name="name">mail_mass_mailing_tag_view_sendinblue_form</field>
+        <field name="model">mail.mass_mailing.tag</field>
+        <field name="inherit_id" ref="mass_mailing.mail_mass_mailing_tag_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="id_sendinblue_folder" attrs="{'invisible': [('id_sendinblue_folder', '=', False)]}"/>
             </xpath>
         </field>
     </record>

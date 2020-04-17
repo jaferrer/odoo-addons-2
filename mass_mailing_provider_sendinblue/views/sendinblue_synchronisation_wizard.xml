@@ -17,10 +17,10 @@
                 </group>
                 <footer>
                     <button name="button_do_send_infos_to_sendinblue"
-                            string="Mettre à jour Sendinblue"
+                            string="Update Sendinblue"
                             type="object"
                             class="oe_highlight"/>
-                    ou
+                    or
                     <button string="Annuler" class="oe_link" special="cancel"/>
                 </footer>
             </form>

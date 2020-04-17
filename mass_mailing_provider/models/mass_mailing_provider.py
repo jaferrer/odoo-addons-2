@@ -17,11 +17,11 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models, api
+from odoo import fields, models
 
 
 class MassMailingProvider(models.Model):
     _inherit = 'mail.mass_mailing'
 
-    supplier = fields.Selection([('odoo', "Odoo")], string="Fournisseur", default='odoo')
-    is_odoo_mail = fields.Boolean("Création du mail via Odoo", default=True)
+    supplier = fields.Selection([('odoo', "Odoo")], string="Supplier", default='odoo')
+    is_odoo_mail = fields.Boolean("mail creation by Odoo", default=True)

@@ -16,10 +16,11 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import sib_api_v3_sdk
-from sib_api_v3_sdk.rest import ApiException
+
 import dateutil
 import pytz
+import sib_api_v3_sdk
+from sib_api_v3_sdk.rest import ApiException
 
 from odoo.exceptions import UserError
 from odoo import fields, models, api
@@ -210,13 +211,13 @@ class MassMailingCampaignSendinblue(models.Model):
         return res
 
     @api.multi
-    def create_campaign_sendinblue(self, api_instance):
+    def create_campaign_sendinblue(self, api_instance, wizard):
         self.ensure_one()
         campaign_sender = sib_api_v3_sdk.CreateSmtpTemplateSender(email=self.user_id.login)
         # On prend soit le smtp renseigné dans la campagne Odoo, soit le premier smtp de Sendinblue
-        template_id = self.mass_mailing_ids[0].id_sendinblue_tmpl
+        template_id = self.mass_mailing_ids and self.mass_mailing_ids[0].id_sendinblue_tmpl or False
         if not template_id:
-            smtp_instance = sib_api_v3_sdk.SMTPApi(sib_api_v3_sdk.ApiClient(self.get_sendinblue_api_configuration()))
+            smtp_instance = sib_api_v3_sdk.SMTPApi(sib_api_v3_sdk.ApiClient(wizard.get_sendinblue_api_configuration()))
             sendinblue_smtps = smtp_instance.get_smtp_templates(template_status='true', limit=50, offset=0)
             template_id = sendinblue_smtps.templates[0].id
         email_campaigns = sib_api_v3_sdk.CreateEmailCampaign(
@@ -230,15 +231,15 @@ class MassMailingCampaignSendinblue(models.Model):
             api_response = api_instance.create_email_campaign(email_campaigns)
             self.id_sendinblue_campaign = api_response.id
         except ApiException as error_msg:
-            print("Exception when calling EmailCampaignsApi -> create_email_campaign : %s\n" % error_msg)
+            raise UserError("Exception when calling EmailCampaignsApi -> create_email_campaign : %s\n" % error_msg)
 
     @api.multi
-    def update_campaign_sendinblue(self, api_instance):
+    def update_campaign_sendinblue(self, api_instance, wizard):
         self.ensure_one()
         # On prend soit le smtp renseigné dans la campagne Odoo, soit le premier smtp de Sendinblue
         body_html = self.mass_mailing_ids[0].body_html
         if not body_html:
-            smtp_instance = sib_api_v3_sdk.SMTPApi(sib_api_v3_sdk.ApiClient(self.get_sendinblue_api_configuration()))
+            smtp_instance = sib_api_v3_sdk.SMTPApi(sib_api_v3_sdk.ApiClient(wizard.get_sendinblue_api_configuration()))
             sendinblue_smtps = smtp_instance.get_smtp_templates(template_status='true', limit=50, offset=0)
             body_html = sendinblue_smtps.templates[0].html_content
         email_campaign = sib_api_v3_sdk.UpdateEmailCampaign(
@@ -248,50 +249,111 @@ class MassMailingCampaignSendinblue(models.Model):
         )
 
         try:
-            api_instance.update_smtp_template(self.id_sendinblue_campaign, email_campaign)
+            api_instance.update_email_campaign(self.id_sendinblue_campaign, email_campaign)
             self.write_date_sendinblue = fields.Datetime.to_string(fields.Datetime.now())
         except ApiException as error_msg:
             raise UserError("Exception when calling EmailCampaignsApi -> update_email_campaign : %s\n" % error_msg)
 
-    # @api.multi
-    # def update_contact_odoo(self, sendinblue_contact_info, sendinblue_write_date_dt):
-    #     self.ensure_one()
-    #     title = self.env['res.partner.title'].search([
-    #         ('name', '=', sendinblue_contact_info.attributes.get('TITLE'))
-    #     ])
-    #     country = self.env['res.country'].search([
-    #         ('name', '=', sendinblue_contact_info.attributes.get('COUNTRY_NAME'))
-    #     ])
-    #     self.write({
-    #         'name': sendinblue_contact_info.attributes.get('LASTNAME'),
-    #         'title_id': title.id,
-    #         'company_name': sendinblue_contact_info.attributes.get('COMPANY_NAME'),
-    #         'country_id': country.id,
-    #         'write_date_sendinblue': fields.Datetime.to_string(sendinblue_write_date_dt),
-    #     })
-    #
-    # @api.model
-    # def create_contact_odoo(self, api_instance, sendinblue_contact):
-    #     title = self.env['res.partner.title'].search([
-    #         ('name', '=', sendinblue_contact.get('attributes').get('TITLE'))
-    #     ])
-    #     country = self.env['res.country'].search([
-    #         ('name', '=', sendinblue_contact.get('attributes').get('COUNTRY'))
-    #     ])
-    #     last_write_dt = dateutil.parser.parse(sendinblue_contact.get('modifiedAt'))
-    #     last_write_dt = last_write_dt.replace(
-    #         tzinfo=last_write_dt.tzinfo).astimezone(pytz.UTC).replace(tzinfo=None)
-    #     odoo_contact = self.create({
-    #         'name': sendinblue_contact.get('attributes').get('LASTNAME'),
-    #         'email': sendinblue_contact.get('email'),
-    #         'title_id': title.id,
-    #         'company_name': sendinblue_contact.get('attributes').get('COMPANY_NAME'),
-    #         'country_id': country.id,
-    #         'write_date_sendinblue': fields.Datetime.to_string(last_write_dt),
-    #         'id_sendinblue_contact': sendinblue_contact.get('id')
-    #     })
-    #
-    #     update_contact = sib_api_v3_sdk.UpdateContact({
-    #         'ODOO_CONTACT_ID': odoo_contact.id,
-    #     })
-    #     api_instance.update_contact(sendinblue_contact.get('email'), update_contact)
+    @api.multi
+    def update_campaign_odoo(self, sendinblue_campaign_info, sendinblue_write_date):
+        self.ensure_one()
+        self.write({
+            'name': sendinblue_campaign_info.get('name'),
+            'sendinblue_write_date': sendinblue_write_date,
+        })
+
+
+class MassMailingListSendinblue(models.Model):
+    _inherit = 'mail.mass_mailing.list'
+
+    id_sendinblue_list = fields.Integer("Id list Sendinblue", readonly=True, copy=False)
+
+    @api.multi
+    def write(self, vals):
+        """
+        La date de modification Outlook est une date de modification qui peut-être imposée.
+        """
+        res = super(MassMailingListSendinblue, self).write(vals)
+
+        if not vals.get('write_date_sendinblue') and not self.env.context.get('creation'):
+            for rec in self:
+                rec.write_date_sendinblue = rec.write_date
+
+        return res
+
+    @api.multi
+    def create_list_sendinblue(self, api_instance, wizard):
+        self.ensure_one()
+        folder_instance = sib_api_v3_sdk.FoldersApi(sib_api_v3_sdk.ApiClient(wizard.get_sendinblue_api_configuration()))
+        # On prend le premier dossier, s'il n'y en a pas, on en crée un
+        try:
+            sendinblue_folders = folder_instance.get_folders(limit=10, offset=0)
+            folder_id = sendinblue_folders.folders[0].get('id')
+        except ValueError:
+            new_tag = self.env['mail.mass_mailing.tag'].create({'name': "Dossier %s" % self.name})
+            new_tag.create_tag_sendinblue(folder_instance)
+            folder_id = new_tag.id_sendinblue_folder
+
+        create_list = sib_api_v3_sdk.CreateList(
+            name=self.name,
+            folder_id=folder_id
+        )
+
+        try:
+            api_response = api_instance.create_list(create_list)
+            self.id_sendinblue_list = api_response.id
+        except ApiException as error_msg:
+            raise UserError("Exception when calling ListsApi -> create_list : %s\n" % error_msg)
+
+    @api.multi
+    def update_list_sendinblue(self, api_instance):
+        self.ensure_one()
+        update_list = sib_api_v3_sdk.UpdateList(
+            name=self.name
+        )
+
+        try:
+            api_instance.update_list(self.id_sendinblue_list, update_list)
+            self.write_date_sendinblue = fields.Datetime.to_string(fields.Datetime.now())
+        except ApiException as error_msg:
+            raise UserError("Exception when calling ListsApi -> update_list : %s\n" % error_msg)
+
+
+class MassMailingTagSendinblue(models.Model):
+    _inherit = 'mail.mass_mailing.tag'
+
+    id_sendinblue_folder = fields.Integer("Id folder Sendinblue", readonly=True, copy=False)
+
+    @api.multi
+    def write(self, vals):
+        """
+        La date de modification Outlook est une date de modification qui peut-être imposée.
+        """
+        res = super(MassMailingTagSendinblue, self).write(vals)
+
+        if not vals.get('write_date_sendinblue') and not self.env.context.get('creation'):
+            for rec in self:
+                rec.write_date_sendinblue = rec.write_date
+
+        return res
+
+    @api.multi
+    def create_tag_sendinblue(self, api_instance):
+        self.ensure_one()
+        create_folder = sib_api_v3_sdk.CreateUpdateFolder(name=self.name)
+
+        try:
+            api_response = api_instance.create_folder(create_folder)
+            self.id_sendinblue_folder = api_response.id
+        except ApiException as error_msg:
+            raise UserError("Exception when calling FoldersApi -> create_folder : %s\n" % error_msg)
+
+    @api.multi
+    def update_tag_sendinblue(self, api_instance):
+        self.ensure_one()
+        update_folder = sib_api_v3_sdk.CreateUpdateFolder(name=self.name)
+
+        try:
+            api_instance.update_folder(self.id_sendinblue_folder, update_folder)
+        except ApiException as error_msg:
+            raise UserError("Exception when calling FoldersApi -> update_folder : %s\n" % error_msg)

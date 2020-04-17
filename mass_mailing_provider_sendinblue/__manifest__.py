@@ -26,7 +26,7 @@
     'depends': [
         'mass_mailing_provider',
         'base_odoo_utilities',
-                ],
+    ],
     'description': """
 Mass Mailing Provider Sendinblue
 ================================
