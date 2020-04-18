@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 12.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-07 09:55+0000\n"
-"PO-Revision-Date: 2020-04-07 09:55+0000\n"
+"POT-Creation-Date: 2020-04-19 17:01+0000\n"
+"PO-Revision-Date: 2020-04-19 17:01+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,19 +16,105 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__package_count
+msgid "#Packages"
+msgstr "#Colis"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__sale_count
+msgid "#Sales"
+msgstr "#Ventes"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__tracking_count
+msgid "#Tracking"
+msgstr "#Numéro de suivis"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__active
+msgid "Active"
+msgstr "Actif"
+
+#. module: delivery_tracking
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.carrier_provider_filter
+msgid "Archived"
+msgstr "Archivé"
+
+#. module: delivery_tracking
+#: selection:delivery.carrier,delivery_type:0
+msgid "Based on Rules"
+msgstr "Fondé sur des règles"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__cancel_shipment_ok
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__cancel_shipment_ok
+msgid "Can cancel tracking"
+msgstr "Support de l'annulation d'un transfert"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__used_from_customer_ok
+msgid "Can generate return label"
+msgstr "Étiquette transporteur de retour"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__used_to_customer_ok
+msgid "Can generate send label"
+msgstr "Étiquette transporteur d'envoi"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__get_tracking_link_ok
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__get_tracking_link_ok
+msgid "Can get tracking link"
+msgstr "Fournit un lien de pour suivre le(s) colis"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__rate_shipment_ok
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__rate_shipment_ok
+msgid "Can rate shipment"
+msgstr "Fournit une estimation du coût d'envoi"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__send_shipping_ok
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__send_shipping_ok
+msgid "Can send shipping"
+msgstr "Peut générer un étiquette transporter"
+
+#. module: delivery_tracking
+#: selection:delivery.carrier.tracking.number,state:0
+msgid "Cancel"
+msgstr "Annulé"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__provider_id
 #: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__carrier_id
+#: model:ir.model.fields,field_description:delivery_tracking.field_product_packaging__package_carrier_type
+#: model:ir.model.fields,field_description:delivery_tracking.field_stock_quant_package__provider_id
 msgid "Carrier"
 msgstr "Transporteur"
 
 #. module: delivery_tracking
-#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__create_uid
-msgid "Created by"
-msgstr "Créé par"
+#: model:ir.actions.act_window,name:delivery_tracking.carrier_provider_action
+#: model:ir.ui.menu,name:delivery_tracking.sale_menu_carrier_provider
+#: model:ir.ui.menu,name:delivery_tracking.stock_menu_carrier_provider
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_provider_form
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_provider_kanban
+msgid "Carrier management"
+msgstr "Gestion Transporteur"
 
 #. module: delivery_tracking
-#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__create_date
-msgid "Created on"
-msgstr "Créé le"
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__carrier_code
+msgid "Carrier product code"
+msgstr "Code produit transporteur"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__color
+msgid "Color"
+msgstr "Couleur"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__company_id
+msgid "Company"
+msgstr "Société"
 
 #. module: delivery_tracking
 #: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_tracking_number_search
@@ -36,29 +122,117 @@ msgid "Create date"
 msgstr "Date de création"
 
 #. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__create_uid
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__create_date
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__debug_logging
+msgid "Debug mode"
+msgstr "Mode debug"
+
+#. module: delivery_tracking
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_provider_form
+#: model:ir.model.fields,field_description:delivery_tracking.field_stock_quant_package__carrier_id
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_tracking_number_search
+msgid "Delivery Carrier"
+msgstr "Produit Transporteur"
+
+#. module: delivery
+#. openerp-web
+#: code:addons/delivery/static/src/js/delivery_translations.js:13
+#, python-format
+msgid "Debug requests"
+msgstr "Appel API avec detail"
+
+#. module: delivery
+#. openerp-web
+#: code:addons/delivery/static/src/js/delivery_translations.js:14
+#, python-format
+msgid "Disable debug"
+msgstr "Annuler les détails API"
+
+#. module: delivery
+#. openerp-web
+#: code:addons/delivery/static/src/js/delivery_translations.js:15
+#, python-format
+msgid "No debug"
+msgstr "API avec detail"
+
+#. module: delivery
+#. openerp-web
+#: code:addons/delivery/static/src/js/delivery_translations.js:16
+#, python-format
+msgid "Enable debug"
+msgstr "Activer les détails API"
+
+#. module: delivery_tracking
+#: model:ir.model,name:delivery_tracking.model_delivery_carrier_provider
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__name
+msgid "Delivery Carrier Provider"
+msgstr "Transporteur"
+
+#. module: delivery_tracking
 #: model:ir.model,name:delivery_tracking.model_delivery_carrier
 msgid "Delivery Methods"
 msgstr "Méthodes de livraison"
 
 #. module: delivery_tracking
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_tracking_number_search
+msgid "Delivery carrier"
+msgstr "Transporteur"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__delivery_carrier_ids
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_provider_form
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_tracking_view_delivery_carrier_kanban
+msgid "Delivery carriers"
+msgstr "Produit Transporteurs"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__display_name
 #: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__display_name
 msgid "Display Name"
 msgstr "Nom affiché"
 
 #. module: delivery_tracking
-#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_tracking_number_search
-msgid "Group by..."
-msgstr "Grouper par..."
+#: selection:delivery.carrier.tracking.number,state:0
+msgid "Draft"
+msgstr "Brouillon"
 
 #. module: delivery_tracking
+#: selection:delivery.carrier,delivery_type:0
+msgid "Fixed Price"
+msgstr "Forfait"
+
+#. module: delivery_tracking
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_tracking_number_search
+msgid "Group by..."
+msgstr "Regrouper par..."
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__id
 #: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__id
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 #. module: delivery_tracking
 #: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__image
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__image
 msgid "Image"
-msgstr "Image"
+msgstr ""
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_stock_quant_package__delivery_carrier_ok
+msgid "Is a delivery Carrier Package"
+msgstr "Est un colis transporteur"
 
 #. module: delivery_tracking
 #: model:ir.model.fields,field_description:delivery_tracking.field_product_product__delivery_ok
@@ -67,24 +241,37 @@ msgid "Is a delivery mode"
 msgstr "Est un mode de livraison"
 
 #. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider____last_update
 #: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number____last_update
 msgid "Last Modified on"
 msgstr "Dernière modification le"
 
 #. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__write_uid
 #: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__write_uid
 msgid "Last Updated by"
 msgstr "Dernière mise à jour par"
 
 #. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__write_date
 #: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__write_date
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
 
 #. module: delivery_tracking
-#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__package_id
-msgid "Package"
-msgstr "Colis"
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_provider_form
+msgid "Logging"
+msgstr ""
+
+#. module: delivery_tracking
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.carrier_provider_filter
+msgid "Name"
+msgstr "Nom"
+
+#. module: delivery_tracking
+#: selection:product.packaging,package_carrier_type:0
+msgid "No carrier integration"
+msgstr "Aucune intégration avec un transporteur"
 
 #. module: delivery_tracking
 #: model:ir.model,name:delivery_tracking.model_stock_quant_package
@@ -93,10 +280,19 @@ msgid "Packages"
 msgstr "Colis"
 
 #. module: delivery_tracking
-#: model:ir.model,name:delivery_tracking.model_product_product
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__picking_id
+msgid "Picking"
+msgstr "Opération de manutention"
+
+#. module: delivery_tracking
 #: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__product_id
 msgid "Product"
 msgstr "Article"
+
+#. module: delivery_tracking
+#: model:ir.model,name:delivery_tracking.model_product_packaging
+msgid "Product Packaging"
+msgstr "Emballage des produits"
 
 #. module: delivery_tracking
 #: model:ir.model,name:delivery_tracking.model_product_template
@@ -105,13 +301,11 @@ msgstr "Modèle d'article"
 
 #. module: delivery_tracking
 #: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__delivery_type
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__carrier
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__provider_id
+#: model:ir.model.fields,field_description:delivery_tracking.field_product_packaging__provider_id
 msgid "Provider"
 msgstr "Fournisseur"
-
-#. module: delivery_tracking
-#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__sale_id
-msgid "Sale"
-msgstr "Vente"
 
 #. module: delivery_tracking
 #: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_tracking_view_delivery_carrier_form
@@ -119,35 +313,40 @@ msgid "Sales"
 msgstr "Ventes"
 
 #. module: delivery_tracking
-#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_tracking_number_search
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.carrier_provider_filter
+msgid "Search"
+msgstr "Rechercher"
+
+#. module: delivery_tracking
+#: selection:delivery.carrier.tracking.number,state:0
+msgid "Send"
+msgstr "Envoyé"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__state
+msgid "State"
+msgstr "État"
+
+#. module: delivery_tracking
+#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_provider__prod_environment
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.carrier_provider_filter
+msgid "Test mode"
+msgstr "Mode Test"
+
+#. module: delivery_tracking
+#: sql_constraint:delivery.carrier.provider:0
+msgid "The Carrier Code must be unique"
+msgstr "Le code transporteur doit être unique"
+
+#. module: delivery_tracking
 #: model:ir.model,name:delivery_tracking.model_delivery_carrier_tracking_number
 #: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier_tracking_number__name
+#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_tracking_number_search
 msgid "Tracking number"
 msgstr "Numéro de suivi"
 
 #. module: delivery_tracking
 #: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_tracking_view_delivery_carrier_form
-#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__number_trackings
 msgid "Tracking numbers"
 msgstr "Numéros de suivi"
 
-#. module: delivery_tracking
-#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_tracking_view_delivery_carrier_kanban
-msgid "Delivery carriers"
-msgstr "Transporteurs"
-
-#. module: delivery_tracking
-#: model:ir.model.fields,field_description:delivery_tracking.field_stock_quant_package__carrier_id
-#: model_terms:ir.ui.view,arch_db:delivery_tracking.delivery_carrier_tracking_number_search
-msgid "Delivery carrier"
-msgstr "Transporteur"
-
-#. module: delivery_tracking
-#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__number_package
-msgid "Packages numbers"
-msgstr "Nombre de colis"
-
-#. module: delivery_tracking
-#: model:ir.model.fields,field_description:delivery_tracking.field_delivery_carrier__number_sales
-msgid "Sales numbers"
-msgstr "Nombre de ventes"

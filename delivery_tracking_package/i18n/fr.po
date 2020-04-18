@@ -1,0 +1,283 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* delivery_tracking_package
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-19 17:37+0000\n"
+"PO-Revision-Date: 2020-04-19 17:37+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: delivery_tracking_package
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.inherit_view_picking_form
+msgid "-> Put in a delivery package"
+msgstr "-> Mettre en palette"
+
+#. module: delivery_tracking_package
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_kanban
+msgid "<i class=\"fa fa-fw fa-cubes\" role=\"img\" aria-label=\"Packages\" title=\"Packages\"/>"
+msgstr "<i class=\"fa fa-fw fa-cubes\" role=\"img\" aria-label=\"Colis\" title=\"Packages\"/>"
+
+#. module: delivery_tracking_package
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_kanban
+msgid "<i class=\"fa fa-fw fa-truck\" role=\"img\" aria-label=\"Picking\" title=\"Pickings\"/>"
+msgstr "<i class=\"fa fa-fw fa-truck\" role=\"img\" aria-label=\"Transfert\" title=\"Pickings\"/>"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__message_needaction
+msgid "Action Needed"
+msgstr "Nécessite une action"
+
+#. module: delivery_tracking_package
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_form
+msgid "Add an internal note..."
+msgstr "Ajouter une note interne…"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__message_attachment_count
+msgid "Attachment Count"
+msgstr "Nombre de pièces jointes"
+
+#. module: delivery_tracking_package
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_form
+#: selection:delivery.carrier.provider.package,state:0
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: delivery_tracking_package
+#: code:addons/delivery_tracking_package/models/deliver_tracking_package.py:171
+#, python-format
+msgid "Cannot cancel a done package delivery."
+msgstr "Impossible d'annuler une palette terminée"
+
+#. module: delivery_tracking_package
+#: model_terms:ir.actions.act_window,help:delivery_tracking_package.delivery_carrier_provider_package_action
+msgid "Click to prepare a new delivery package."
+msgstr "Cliquer pour créer une nouvelle palette"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__comment
+msgid "Comment"
+msgstr "Commentaires"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__company_id
+msgid "Company"
+msgstr "Société"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: delivery_tracking_package
+#: model:ir.model,name:delivery_tracking_package.model_delivery_carrier_provider
+msgid "Delivery Carrier Provider"
+msgstr "Transporteur"
+
+#. module: delivery_tracking_package
+#: model:ir.actions.act_window,name:delivery_tracking_package.delivery_carrier_provider_package_action
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_stock_package_level__delivery_package_id
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_stock_picking__delivery_package_id
+#: model:ir.ui.menu,name:delivery_tracking_package.menu_stock_picking_package_preparation
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_kanban
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_tree
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_form
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_search
+msgid "Delivery Package"
+msgstr "Palette"
+
+#. module: delivery_tracking_package
+#: code:addons/delivery_tracking_package/models/deliver_tracking_package.py:75
+msgid "Default Delivery Package"
+msgstr "Palette par défaut"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider__delivery_packaging_ids
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.inherit_delivery_carrier_provider_form
+msgid "Delivery Packaging"
+msgstr "Type de Palettes"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: delivery_tracking_package
+#: selection:delivery.carrier.provider.package,state:0
+msgid "Done"
+msgstr "Fini"
+
+#. module: delivery_tracking_package
+#: selection:delivery.carrier.provider.package,state:0
+msgid "Draft"
+msgstr "Brouillon"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__message_follower_ids
+msgid "Followers"
+msgstr "Abonnés"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__message_channel_ids
+msgid "Followers (Channels)"
+msgstr "Abonnés (Canaux)"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Abonnés (Partenaires)"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__id
+msgid "ID"
+msgstr ""
+
+#. module: delivery_tracking_package
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_kanban
+msgid "Logo"
+msgstr ""
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__name
+msgid "Name"
+msgstr "Nom"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Nombre d'actions"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__message_has_error_counter
+msgid "Number of error"
+msgstr "Nombre d'erreurs"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,help:delivery_tracking_package.field_delivery_carrier_provider_package__message_needaction_counter
+msgid "Number of messages which requires an action"
+msgstr "Nombre de messages exigeant une action"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,help:delivery_tracking_package.field_delivery_carrier_provider_package__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Nombre de messages avec des erreurs d'envoi"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,help:delivery_tracking_package.field_delivery_carrier_provider_package__message_unread_counter
+msgid "Number of unread messages"
+msgstr "Nombre de messages non lus"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__package_level_ids
+msgid "Package Level"
+msgstr "Paquet"
+
+#. module: delivery_tracking_package
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_form
+msgid "Validate"
+msgstr "Valider"
+
+#. module: delivery_tracking_package
+#: model:ir.model,name:delivery_tracking_package.model_delivery_carrier_provider_package
+msgid "Package of Delivery Provider"
+msgstr "Palette Transporteur"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider__packaging_ids
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__packaging_id
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.inherit_delivery_carrier_provider_form
+msgid "Packaging"
+msgstr "Conditionnement"
+
+#. module: delivery_tracking_package
+#: selection:delivery.carrier.provider.package,state:0
+msgid "Pending"
+msgstr "En cours"
+
+#. module: delivery_tracking_package
+#: model:ir.model,name:delivery_tracking_package.model_stock_picking_type
+msgid "Picking Type"
+msgstr "Type de préparation"
+
+#. module: delivery_tracking_package
+#: model:ir.model,name:delivery_tracking_package.model_product_packaging
+msgid "Product Packaging"
+msgstr "Emballage des produits"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__carrier_code
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__provider_id
+msgid "Provider"
+msgstr "Fournisseur"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__provider_image
+msgid "Image"
+msgstr "Image"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__date_done
+msgid "Shipping Date"
+msgstr "Date d'envoi"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__state
+msgid "State"
+msgstr "État"
+
+#. module: delivery_tracking_package
+#: model:ir.model,name:delivery_tracking_package.model_stock_package_level
+msgid "Stock Package Level"
+msgstr "Niveau de Colisage"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,help:delivery_tracking_package.field_delivery_carrier_provider_package__weight
+msgid "The weight is computed when the preparation is done."
+msgstr "Le poids est calculé quant le transfert est terminé"
+
+#. module: delivery_tracking_package
+#: model:ir.model,name:delivery_tracking_package.model_stock_picking
+msgid "Transfer"
+msgstr "Transfert"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__picking_ids
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_form
+msgid "Transfers"
+msgstr "Transferts"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_stock_picking__picking_delivery_package_ok
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_stock_picking_type__delivery_package_ok
+msgid "Use Delivery Package"
+msgstr "Utilise la mise en palette"
+
+#. module: delivery_tracking_package
+#: model_terms:ir.ui.view,arch_db:delivery_tracking_package.delivery_carrier_provider_package_form
+msgid "Warning!! this button will cancel all the picking of this delivery package"
+msgstr "Attention!! cette action va annuler tous les transfert de cette palette"
+
+#. module: delivery_tracking_package
+#: model:ir.model.fields,field_description:delivery_tracking_package.field_delivery_carrier_provider_package__weight
+msgid "Weight"
+msgstr "Poids"
+
+#. module: delivery_tracking_package
+#: code:addons/delivery_tracking_package/models/deliver_tracking_package.py:89
+#, python-format
+msgid "Your Delivery Provider don't have any Delivery Package"
+msgstr "Votre transporteur ne possède pas de type de palette"
+

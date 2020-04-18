@@ -18,19 +18,19 @@
 #
 from odoo import fields, models, api
 
-_PROVIDER = [('chronopost', "Chronopost")]
+_PROVIDER = []
 
 
 class DeliveryCarrierProvider(models.Model):
     _name = 'delivery.carrier.provider'
     _description = 'Delivery Carrier Provider'
 
-    name = fields.Char("Delivery carrier provider")
+    name = fields.Char("Delivery Carrier Provider")
     active = fields.Boolean(default=True)
-    debug_mode = fields.Boolean("Debug mode")
-    test_mode = fields.Boolean("Test mode")
+    debug_logging = fields.Boolean("Debug mode", default=False)
+    prod_environment = fields.Boolean("Test mode", default=False)
     color = fields.Integer("Color", compute='_compute_color')
-    image = fields.Binary("Image", compute='_compute_image')
+    image = fields.Binary("Image")
     company_id = fields.Many2one('res.company', string="Company", required=True, groups='base.group_multi_company',
                                  default=lambda self: self.env.user.company_id)
     get_tracking_link_ok = fields.Boolean("Can get tracking link", compute='_compute_integration')
@@ -40,44 +40,59 @@ class DeliveryCarrierProvider(models.Model):
     get_default_custom_package_code_ok = fields.Boolean("Can get default custom package code",
                                                         compute='_compute_integration')
     carrier = fields.Selection(_PROVIDER, "Provider", required=True)
-    delivery_carrier_ids = fields.Many2many('delivery.carrier', string="Delivery carriers",
-                                            context={'active_test': False})
+    delivery_carrier_ids = fields.One2many('delivery.carrier', 'provider_id', string="Delivery carriers")
+
+    _sql_constraints = [
+        ('carrier_unique', 'UNIQUE(carrier)', 'The Carrier Code must be unique'),
+    ]
 
     @api.multi
-    def _compute_image(self):
-        for rec in self:
-            if hasattr(self.env['delivery.carrier'], '%s_compute_image' % rec.carrier):
-                rec.image = getattr(self, '%s_compute_image' % rec.carrier)
+    def write(self, vals):
+        res = super(DeliveryCarrierProvider, self).write(vals)
+        to_propagate = {}
+        if not vals.get('active', True):
+            to_propagate['active'] = False
+        if 'debug_logging' in vals:
+            to_propagate['debug_logging'] = vals['debug_logging']
+        if 'prod_environment' in vals:
+            to_propagate['prod_environment'] = vals['prod_environment']
+        if to_propagate:
+            print(to_propagate)
+            self.mapped('delivery_carrier_ids').write(to_propagate)
+        return res
 
     @api.multi
     def _compute_color(self):
         for rec in self:
-            rec.color = 0
-            if rec.test_mode:
+            rec.color = 10
+            if rec.prod_environment:
                 rec.color = 3
             if not rec.active:
                 rec.color = 7
 
     @api.multi
     def _compute_integration(self):
+        carrier = self.env['delivery.carrier']
         for rec in self:
-            rec.rate_shipment_ok = hasattr(self.env['delivery.carrier'], '%s_rate_shipment' % rec.carrier)
-            rec.send_shipping_ok = hasattr(self.env['delivery.carrier'], '%s_send_shipping' % rec.carrier)
-            rec.get_tracking_link_ok = hasattr(self.env['delivery.carrier'], '%s_get_tracking_link' % rec.carrier)
-            rec.cancel_shipment_ok = hasattr(self.env['delivery.carrier'], '%s_cancel_shipment' % rec.carrier)
-            rec.get_default_custom_package_code_ok = hasattr(self.env['delivery.carrier'],
-                                                             '%s_get_default_custom_package_code' % rec.carrier)
+            code = rec.carrier
+            rec.rate_shipment_ok = hasattr(carrier, '%s_rate_shipment' % code)
+            rec.send_shipping_ok = hasattr(carrier, '%s_send_shipping' % code)
+            rec.get_tracking_link_ok = hasattr(carrier, '%s_get_tracking_link' % code)
+            rec.cancel_shipment_ok = hasattr(carrier, '%s_cancel_shipment' % code)
+            rec.get_default_custom_package_code_ok = hasattr(carrier, '%s_get_default_custom_package_code' % code)
 
     @api.model
     def _get_by_code(self, code):
         return self.search([('carrier', '=', code)])
 
+    @api.multi
     def action_view_delivery_carrier(self):
         self.ensure_one()
         action = self.env.ref('delivery.action_delivery_carrier_form').read()[0]
-        action['domain'] = [('carrier_id', '=', self.id)]
+        action['domain'] = [('provider_id', '=', self.id)]
         return action
 
+    @api.multi
     def action_view_logging(self):
         self.ensure_one()
         action = self.env.ref('base.ir_logging_all_act').read()[0]
@@ -88,20 +103,11 @@ class DeliveryCarrierProvider(models.Model):
         return action
 
     @api.multi
-    def toggle_test_mode(self):
+    def toggle_prod_environment(self):
         for rec in self:
-            rec.test_mode = not rec.test_mode
-            for delivery_carrier_id in rec.delivery_carrier_ids:
-                delivery_carrier_id.prod_environment = rec.test_mode
+            rec.prod_environment = not rec.prod_environment
 
-    def toggle_debug_mode(self):
+    @api.multi
+    def toggle_debug(self):
         for rec in self:
-            rec.debug_mode = not rec.debug_mode
-            for delivery_carrier_id in rec.delivery_carrier_ids:
-                delivery_carrier_id.debug_logging = rec.debug_mode
-
-    def toggle_active(self):
-        for rec in self:
-            rec.active = not rec.active
-            for delivery_carrier_id in rec.delivery_carrier_ids:
-                delivery_carrier_id.active = rec.active
+            rec.debug_logging = not rec.debug_logging

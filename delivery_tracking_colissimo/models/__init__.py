@@ -18,3 +18,4 @@
 #
 
 from . import delivery_tracking_colissimo
+from . import deliver_carrier_provider

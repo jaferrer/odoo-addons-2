@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="inherit_package_level_tree_view_picking" model="ir.ui.view">
+        <field name="name">delivery_carrier_provider_package_package_level_tree_view_picking</field>
+        <field name="model">stock.package_level</field>
+        <field name="inherit_id" ref="stock.package_level_tree_view_picking"/>
+        <field name="arch" type="xml">
+            <field name="location_dest_id" position="after">
+                <field name="delivery_package_id" attrs="{'column_invisible': [('parent.picking_delivery_package_ok', '=', False)]}"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="inherit_view_picking_form" model="ir.ui.view">
+        <field name="name">inherit_view_picking_form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <field name="package_level_ids_details" position="before">
+                <field name="picking_delivery_package_ok" invisible="1"/>
+                <label for="delivery_package_id" attrs="{'invisible': [('picking_delivery_package_ok', '=', False)]}"/>
+                <field name="delivery_package_id" attrs="{'invisible': [('picking_delivery_package_ok', '=', False)]}"/>
+                <button name="action_put_in_package" type="object" class="oe_link" string="-> Put in a delivery package" attrs="{'invisible': ['|', ('delivery_package_id', '=', False), ('picking_delivery_package_ok', '=', False)]}"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="inherit_delivery_carrier_provider_form" model="ir.ui.view">
+        <field name="name">packaging_delivery_carrier_provider_form</field>
+        <field name="model">delivery.carrier.provider</field>
+        <field name="inherit_id" ref="delivery_tracking.delivery_carrier_provider_form"/>
+        <field name="arch" type="xml">
+            <page name="carrier" position="after">
+                <page name="packaging_delivery" string="Delivery Packaging">
+                    <field name="delivery_packaging_ids" context="{'default_delivery_carrier_ok':True}"/>
+                </page>
+                <page name="other_packaging_prover" string="Packaging">
+                    <field name="packaging_ids" context="{'default_delivery_carrier_ok':False}"/>
+                </page>
+            </page>
+        </field>
+    </record>
+
+    <record id="inherit_view_picking_type_form" model="ir.ui.view">
+        <field name="name">inherit_view_picking_type_form</field>
+        <field name="model">stock.picking.type</field>
+        <field name="inherit_id" ref="stock.view_picking_type_form"/>
+        <field name="arch" type="xml">
+            <field name="show_entire_packs" position="before">
+                <field name="delivery_package_ok"/>
+            </field>
+        </field>
+    </record>
+</odoo>

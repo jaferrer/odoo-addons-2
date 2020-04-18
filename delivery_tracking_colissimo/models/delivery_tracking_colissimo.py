@@ -16,16 +16,18 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-import base64
 import logging
 
 from suds.client import Client
 from suds.plugin import MessagePlugin
 
-from odoo import models, fields, api
-from odoo.modules.module import get_module_resource
+from odoo.addons.delivery_tracking.models.delivery_carrier_provider import _PROVIDER
+from odoo import models, api
 
 _logger = logging.getLogger(__name__)
+
+
+_PROVIDER.append(('colissimo', "Colissimo"))
 
 
 class MyPlugin(MessagePlugin):
@@ -67,20 +69,6 @@ class MyPlugin(MessagePlugin):
 
 class DeliveryCarrierColissimo(models.Model):
     _inherit = 'delivery.carrier'
-
-    delivery_type = fields.Selection(selection_add=[('colissimo', "Colissimo")])
-    api_login_colissimo = fields.Char("Login Colissimo", related='company_id.api_login_colissimo')
-    api_password_colissimo = fields.Char("Password Colissimo", related='company_id.api_password_colissimo')
-
-    @api.multi
-    def _compute_image(self):
-        super(DeliveryCarrierColissimo, self)._compute_image()
-        for rec in self:
-            if rec.delivery_type == 'colissimo':
-                img_path = get_module_resource('delivery_tracking_colissimo', 'static/img', 'colissimo_logo.png')
-                with open(img_path, 'rb') as file:
-                    image = file.read()
-                rec.image = base64.b64encode(image)
 
     @api.model
     def colissimo_rate_shipment(self, order):
@@ -253,8 +241,8 @@ class DeliveryCarrierColissimo(models.Model):
                 # on lance le webservice pour générer l'étiquette selon les paramètres
                 genere = True
                 if genere:
-                    login = picking.carrier_id.api_login_colissimo
-                    password = picking.carrier_id.api_password_colissimo
+                    login = picking.carrier_id.provider_id.api_login_colissimo
+                    password = picking.carrier_id.provider_id.api_password_colissimo
                     value_colis = {
                         'name': picking.partner_id.id,
                         'contract_number': login,
@@ -297,10 +285,3 @@ class DeliveryCarrierColissimo(models.Model):
         """
         picking = self.env['stock.picking'].browse(self.env.context.get('active_id'))
         return picking.carrier_id.product_id.default_code
-
-
-class ResCompanyColissmi(models.Model):
-    _inherit = 'res.company'
-
-    api_login_colissimo = fields.Char("Login Colissimo")
-    api_password_colissimo = fields.Char("Password Colissimo")
