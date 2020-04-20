@@ -96,8 +96,20 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             "email": self.email,
             "phone": self.phone_number,
         }
+        alternate_addr = None
         if self.id_relais:
             to_addr['location_id'] = self.id_relais
+            owner = self.picking_id.owner_id
+            alternate_addr = {
+                'name': owner.name,
+                'address1': owner.street,
+                'city': owner.city,
+                'country': owner.country_id.code,
+                'state': owner.state_id.name,
+                'postal_code': owner.zip,
+                'phone': owner.phone,
+                'email': owner.email,
+            }
         shipping_service = {
             'code': self.produit_expedition_id.code,
             'desc': self.produit_expedition_id.display_name,
@@ -112,6 +124,7 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
         shipment = ups.create_shipment(
             from_addr=from_addr,
             to_addr=to_addr,
+            alternate_addr=alternate_addr,
             package_infos=package_infos,
             file_format='GIF',
             shipping_service=shipping_service,
