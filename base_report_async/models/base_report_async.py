@@ -108,15 +108,13 @@ class DelayReport(models.Model):
     def get_attachment_base64_encoded(self, model, record_id):
         self.ensure_one()
         name = u"Report"
-        if self.name_eval_report:
-            name = eval(self.name_eval_report, {'object': self.env[model].browse(record_id), 'time': time})
+        if self.print_report_name:
+            name = eval(self.print_report_name, {'object': self.env[model].browse(record_id), 'time': time})
         data = {
             'model': model,
             'ids': [record_id],
         }
-        # todo : a tester report = self.env.ref('report_ref')
-        action_report = self.env['ir.action.report']
-        pdf_data = action_report.render_qweb_pdf([record_id], data)
+        pdf_data = self.render_qweb_pdf([record_id], data)
         return self._create_temporary_report_attachment(base64.b64encode(pdf_data), name)
 
     @api.multi
