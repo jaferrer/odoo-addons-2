@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo.addons.web.controllers.main import Action, clean_action
+from odoo.addons.web.controllers.main import Action
 
 from odoo import fields, http
 from odoo.http import request
@@ -27,46 +27,23 @@ class ActionLoadExtend(Action):
 
     @http.route('/web/action/load', type='json', auth="user")
     def load(self, action_id, additional_context=None):
-        value = False
-        try:
-            action_id = int(action_id)
-        except ValueError:
-            # pylint: disable=W0703
-            # noinspection PyBroadException
-            try:
-                action = request.env.ref(action_id)
-                assert action._name.startswith('ir.actions.')
-                action_id = action.id
-            except Exception:
-                action_id = 0  # force failed read
-
-        base_action = request.env['ir.actions.actions'].browse([action_id]).read(['type'])
-
-        if base_action:
-            ctx = dict(request.context)
-            action_type = base_action[0]['type']
-            if action_type == 'ir.actions.report':
-                ctx.update({'bin_size': True})
-            if additional_context:
-                ctx.update(additional_context)
-            request.context = ctx
-            action = request.env[action_type].browse([action_id]).read()
-            if action:
-                value = clean_action(action[0])
-            active_ids = ctx.get('active_ids', [])
-            date_start_for_job_creation = fields.Datetime.now()
-            if action_type == 'ir.actions.report' and base_action[0].get('id'):
-                report = http.request.env['ir.actions.report'].browse(base_action[0]['id'])
-                if report.async_report:
-                    if active_ids and len(active_ids) > 100:
-                        while active_ids:
-                            chunk_active_ids = active_ids[:100]
-                            active_ids = active_ids[100:]
-                            ctx['active_ids'] = chunk_active_ids
-                            running_job_for_user_and_report = report.with_context(ctx). \
-                                launch_asynchronous_report_generation(value, date_start_for_job_creation)
-                    else:
-                        running_job_for_user_and_report = report.with_context(ctx or {}). \
-                            launch_asynchronous_report_generation(value, date_start_for_job_creation)
-                    return report.notify_user_for_asynchronous_generation(running_job_for_user_and_report)
-        return value
+        action = super(ActionLoadExtend, self).load(action_id, additional_context)
+        if action.get('type') != 'ir.actions.report':
+            return action
+        report = http.request.env['ir.actions.report'].browse(action['id'])
+        if not report.async_report:
+            return action
+        running_job_for_user_and_report = False
+        ctx = dict(request.context)
+        active_ids = ctx.get('active_ids', [])
+        if active_ids and len(active_ids) > 100:
+            while active_ids:
+                chunk_active_ids = active_ids[:100]
+                active_ids = active_ids[100:]
+                ctx['active_ids'] = chunk_active_ids
+                running_job_for_user_and_report = report.with_context(ctx). \
+                    launch_asynchronous_report_generation(action, fields.Datetime.now())
+        else:
+            running_job_for_user_and_report = report.with_context(ctx or {}). \
+                launch_asynchronous_report_generation(action, fields.Datetime.now())
+        return report.notify_user_for_asynchronous_generation(running_job_for_user_and_report)

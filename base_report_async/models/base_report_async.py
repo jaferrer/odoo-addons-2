@@ -96,7 +96,7 @@ class DelayReport(models.Model):
         else:
             try:
                 attachment = self.get_attachment_base64_encoded(active_model, active_ids[0])
-            except Exception as error:
+            except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm) as error:
                 self.send_failure_mail(error)
                 return
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
