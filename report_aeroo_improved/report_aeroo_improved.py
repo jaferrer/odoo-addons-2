@@ -19,7 +19,7 @@
 # import base64
 import logging
 
-from odoo import models
+from odoo import models, api
 # from odoo.exceptions import UserError
 # from odoo.tools import pycompat
 
@@ -141,7 +141,7 @@ class Parser(models.AbstractModel):
     def display_address(self, address_record, without_company=False):
         return address_record._display_address(without_company)
 
-    # Pas de @api dans la method d'origine donc je ne sais pas si c'est model ou multi
+    @api.multi
     def complex_report(self, docids, data, report, ctx):
         ctx = dict(ctx) or {}
         ctx.update({
