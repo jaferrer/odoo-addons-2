@@ -19,18 +19,11 @@
 
 from suds.client import Client
 
-from odoo import models, api, fields
+from odoo import models, api
 
 
 class DeliveryCarrier(models.Model):
     _inherit = 'delivery.carrier'
-
-    delivery_type = fields.Selection(selection_add=[('chronopost', "Chronopost")])
-    api_login_chronopost = fields.Char("Login Chronopost", related='company_id.login_chronopost')
-    api_password_chronopost = fields.Char("Password Chronopost", related='company_id.password_chronopost')
-    api_pre_alert_chronopost = fields.Selection("Pre Alert Chronopost", related='company_id.pre_alert_chronopost')
-    api_account_number_chronopost = fields.Char("Account Number Chronopost",
-                                                related='company_id.account_number_chronopost')
 
     @api.model
     def chronopost_rate_shipment(self, order):
@@ -232,10 +225,8 @@ class DeliveryCarrier(models.Model):
         all_values = []
         for picking in pickings:
             for package in picking.package_ids:
-
                 if package.shipping_weight <= 0:
                     return False
-
                 value_letter = self._chronopost_get_letter(picking, package)
 
                 # on lance le webservice pour générer l'étiquette selon les paramètres

@@ -23,7 +23,7 @@
                <filter name="this_week" string="Create date" date="create_date" default_period="this_week"/>
                <group string="Group by...">
                    <filter name="group_by_carrier_id"
-                           string="Transporteur"
+                           string="Delivery Carrier"
                            context="{'group_by': 'carrier_id'}"/>
                </group>
            </search>

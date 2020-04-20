@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="delivery_carrier_provider_package_tree" model="ir.ui.view">
+        <field name="name">delivery_carrier_provider_package_tree</field>
+        <field name="model">delivery.carrier.provider.package</field>
+        <field name="arch" type="xml">
+            <tree colors="grey:state == 'cancel';" string="Delivery Package">
+                <field name="name"/>
+                <field name="provider_id"/>
+                <field name="date_done"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="delivery_carrier_provider_package_kanban" model="ir.ui.view">
+        <field name="name">delivery_carrier_provider_package_kanban</field>
+        <field name="model">delivery.carrier.provider.package</field>
+        <field name="arch" type="xml">
+            <kanban string="Delivery Package" class="o_kanban_mobile">
+                <field name="id"/>
+                <field name="provider_image"/>
+                <field name="provider_id"/>
+                <field name="picking_count"/>
+                <field name="package_count"/>
+                <field name="name"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_vignette oe_semantic_html_override oe_kanban_global_click_edit">
+                            <div class="o_kanban_image">
+                                <t t-if="record.provider_image.raw_value">
+                                    <div class="o_kanban_image_fill_left d-none d-md-block">
+                                        <img class="oe_kanban_avatar" width="48" height="48"
+                                             alt="Logo"
+                                             t-att-src="kanban_image('delivery.carrier.provider.image', 'provider_image', record.id.raw_value)"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="oe_kanban_details">
+                            <h4>
+                                <field name="name"/>
+                            </h4>
+                            <span>
+                                <field name="provider_id"/>
+                            </span>
+                            <span t-if="record.picking_count.value &gt; 0" class="badge badge-pill">
+                                <i class="fa fa-fw fa-truck" role="img" aria-label="Picking" title="Pickings"/>
+                                <t t-esc="record.picking_count.value"/>
+                            </span>
+                            <span t-if="record.package_count.value &gt; 0" class="badge badge-pill">
+                                <i class="fa fa-fw fa-cubes" role="img" aria-label="Packages" title="Packages"/>
+                                <t t-esc="record.package_count.value"/>
+                            </span>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="delivery_carrier_provider_package_form" model="ir.ui.view">
+        <field name="name">sdelivery_carrier_provider_package_form</field>
+        <field name="model">delivery.carrier.provider.package</field>
+        <field name="arch" type="xml">
+            <form string="Delivery Package">
+                <header>
+                    <button name="action_done" states="draft" string="Validate" type="object" class="oe_highlight"
+                            attrs="{'invisble':[('picking_ids', '!=', [])]}"
+                            groups="base.group_user"/>
+                    <button name="action_cancel" states="draft" string="Cancel" groups="base.group_user"
+                            confirm="Warning!! this button will cancel all the picking of this delivery package"
+                            attrs="{'invisble':[('picking_ids', '!=', [])]}"
+                            type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_right oe_button_box">
+                    </div>
+                    <h1>
+                        <field name="name" class="oe_inline"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="provider_id"/>
+                            <field name="packaging_id"/>
+                        </group>
+                        <group>
+                            <field name="date_done" attrs="{'invisible': [('state', '!=', 'done')]}"/>
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="main_info" string="Transfers">
+                            <field name="picking_ids" options="{'no_create': True}" widget="many2many_tags"/>
+                            <field name="package_level_ids" mode="kanban">
+                                <kanban create="false">
+                                    <field name="package_id"/>
+                                    <field name="picking_id"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div class="oe_kanban_details">
+                                                <h4>
+                                                    <field name="package_id"/>
+                                                </h4>
+                                                <span>
+                                                    <field name="picking_id"/>
+                                                </span>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                            <field name="comment" placeholder="Add an internal note..." class="oe_inline"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="delivery_carrier_provider_package_search" model="ir.ui.view">
+        <field name="name">delivery_carrier_provider_package_search</field>
+        <field name="model">delivery.carrier.provider.package</field>
+        <field name="arch" type="xml">
+            <search string="Delivery Package">
+                <field name="provider_id"/>
+                <field name="name"/>
+
+                <filter name="todo" domain="[('state', '!=', 'done')]"/>
+                <filter name="done" domain="[('state', '=', 'done')]"/>
+
+                <filter name="grp_state" context="{'group_by':'state'}"/>
+                <filter name="grp_date_month" context="{'group_by':'date_done:month'}"/>
+                <filter name="grp_date_week" context="{'group_by':'date_done:week'}"/>
+                <filter name="grp_provider" context="{'group_by':'provider_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="delivery_carrier_provider_package_action" model="ir.actions.act_window">
+        <field name="name">Delivery Package</field>
+        <field name="res_model">delivery.carrier.provider.package</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{'search_default_todo':True}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click to prepare a new delivery package.
+            </p>
+        </field>
+    </record>
+
+    <menuitem
+            action="delivery_carrier_provider_package_action"
+            id="menu_stock_picking_package_preparation"
+            parent="stock.menu_stock_warehouse_mgmt" sequence="3"/>
+
+</odoo>

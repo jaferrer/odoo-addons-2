@@ -32,19 +32,19 @@
                         type="object"
                         class="oe_stat_button"
                         icon="fa-qrcode">
-                    <field name="number_trackings" string="Tracking numbers" widget="statinfo"/>
+                    <field name="tracking_count" string="Tracking numbers" widget="statinfo"/>
                 </button>
                 <button name="see_sales"
                         type="object"
                         class="oe_stat_button"
                         icon="fa-eur">
-                    <field name="number_sales" string="Sales" widget="statinfo"/>
+                    <field name="sale_count" string="Sales" widget="statinfo"/>
                 </button>
                 <button name="see_packages"
                         type="object"
                         class="oe_stat_button"
                         icon="fa-cubes">
-                    <field name="number_package" string="Packages" widget="statinfo"/>
+                    <field name="package_count" string="Packages" widget="statinfo"/>
                 </button>
             </xpath>
         </field>
@@ -55,7 +55,6 @@
         <field name="model">delivery.carrier</field>
         <field name="arch" type="xml">
             <kanban string="Delivery carriers" create="false">
-                <field name="number_trackings"/>
                 <field name="image"/>
                 <field name="id"/>
                 <templates>

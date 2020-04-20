@@ -16,7 +16,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from odoo import fields, models, api
+
+from odoo import fields, models, api, _ as _t
+from .delivery_carrier_provider import _PROVIDER
 
 
 class DeliveryCarrierTrackingNumber(models.Model):
@@ -24,7 +26,15 @@ class DeliveryCarrierTrackingNumber(models.Model):
     _description = 'Tracking number'
 
     name = fields.Char("Tracking number")
-    carrier_id = fields.Many2one('delivery.carrier', string="Carrier")
+    picking_id = fields.Many2one('stock.picking', "Picking", required=True)
+    carrier_id = fields.Many2one('delivery.carrier', "Carrier")
+    provider_id = fields.Many2one('delivery.carrier.provider', "Provider", related='carrier_id.provider_id', store=True)
+    state = fields.Selection([('draft', "Draft"), ('send', "Send"), ('cancel', "Cancel")])
+
+    @api.multi
+    def action_cancel(self):
+        for rec in self:
+            rec.carrier_id.cancel_shipment(rec.picking_id)
 
 
 class ProductTemplateDeliveryTracking(models.Model):
@@ -36,102 +46,100 @@ class ProductTemplateDeliveryTracking(models.Model):
 class StockQuantPackageDeliveryTracking(models.Model):
     _inherit = 'stock.quant.package'
 
-    carrier_id = fields.Many2one('delivery.carrier', string="Transporteur")
+    carrier_id = fields.Many2one('delivery.carrier', "Delivery Carrier")
+    delivery_carrier_ok = fields.Boolean("Is a delivery Carrier Package")
+    provider_id = fields.Many2one('delivery.carrier.provider', "Carrier", related='carrier_id.provider_id', store=True)
+
+
+class ProductPackaging(models.Model):
+    _inherit = 'product.packaging'
+
+    package_carrier_type = fields.Selection(selection_add=_PROVIDER)
+    provider_id = fields.Many2one('delivery.carrier.provider', "Provider", compute='_compute_provider_id', store=True)
+
+    @api.multi
+    @api.depends('package_carrier_type')
+    def _compute_provider_id(self):
+        for rec in self:
+            rec.provider_id = self.env['delivery.carrier.provider']._get_by_code(rec.package_carrier_type)
 
 
 class DeliveryCarrierDeliveryTracking(models.Model):
     _inherit = 'delivery.carrier'
 
-    image = fields.Binary("Image", compute='_compute_image')
-    number_trackings = fields.Integer("Tracking numbers", compute='_compute_number_trackings')
-    sale_ids = fields.One2many('sale.order', 'carrier_id', string="Sale")
-    number_sales = fields.Integer("Pales numbers", compute='_compute_number_sales')
-    package_ids = fields.One2many('stock.quant.package', 'carrier_id', string="Package")
-    number_package = fields.Integer("Packages numbers", compute='_compute_number_packages')
+    provider_id = fields.Many2one('delivery.carrier.provider', "Carrier", compute='_compute_carrier_id', store=True)
+
+    image = fields.Binary("Image", related='provider_id.image', store=True)
     product_id = fields.Many2one('product.product', string="Product", domain=[('delivery_ok', '=', True)])
+    delivery_type = fields.Selection(selection_add=_PROVIDER)
+    used_from_customer_ok = fields.Boolean("Can generate return label")
+    used_to_customer_ok = fields.Boolean("Can generate send label")
+    carrier_code = fields.Char("Carrier product code")
+
+    tracking_count = fields.Integer("#Tracking", compute='_compute_number_related')
+    sale_count = fields.Integer("#Sales", compute='_compute_number_related')
+    package_count = fields.Integer("#Packages", compute='_compute_number_related')
+    get_tracking_link_ok = fields.Boolean("Can get tracking link", related='provider_id.get_tracking_link_ok')
+    cancel_shipment_ok = fields.Boolean("Can cancel tracking", related='provider_id.cancel_shipment_ok')
+    rate_shipment_ok = fields.Boolean("Can rate shipment", related='provider_id.rate_shipment_ok')
+    send_shipping_ok = fields.Boolean("Can send shipping", related='provider_id.send_shipping_ok')
 
     @api.multi
-    def _compute_image(self):
+    def name_get(self):
+        res = []
         for rec in self:
-            rec.image = False
+            res.append((rec.id, " - ".join([name for name in [rec.provider_id.name, rec.name] if name])))
+        return res
 
     @api.multi
-    def _compute_number_trackings(self):
-        res = self.env['delivery.carrier.tracking.number'].read_group(
-            [('carrier_id', 'in', self.ids)],
-            ['carrier_id'],
-            ['carrier_id']
-        )
-        res = {it['carrier_id'][0]: it['carrier_id_count'] for it in res if it['carrier_id']}
-
+    @api.depends('delivery_type')
+    def _compute_carrier_id(self):
         for rec in self:
-            rec.number_trackings = res.get(rec.id, 0)
+            rec.provider_id = self.env['delivery.carrier.provider']._get_by_code(rec.delivery_type)
 
     @api.multi
-    def _compute_number_sales(self):
-        res = self.env['sale.order'].read_group(
-            [('carrier_id', 'in', self.ids)],
-            ['carrier_id'],
-            ['carrier_id']
-        )
-        res = {it['carrier_id'][0]: it['carrier_id_count'] for it in res if it['carrier_id']}
+    def _compute_number_related(self):
+        def _query(ids, model):
+            fk = 'carrier_id'
+            return {it[fk][0]: it['%s_count' % fk] for it in model.read_group([(fk, 'in', ids)], [fk], [fk]) if it[fk]}
+
+        res_number = _query(self.ids, self.env['delivery.carrier.tracking.number'])
+        res_sale = _query(self.ids, self.env['sale.order'])
+        res_package = _query(self.ids, self.env['stock.quant.package'])
 
         for rec in self:
-            rec.number_sales = res.get(rec.id, 0)
+            rec.sale_count = res_sale.get(rec.id, 0)
+            rec.tracking_count = res_number.get(rec.id, 0)
+            rec.package_count = res_package.get(rec.id, 0)
 
-    @api.multi
-    def _compute_number_packages(self):
-        res = self.env['stock.quant.package'].read_group(
-            [('carrier_id', 'in', self.ids)],
-            ['carrier_id'],
-            ['carrier_id']
-        )
-        res = {it['carrier_id'][0]: it['carrier_id_count'] for it in res if it['carrier_id']}
-
-        for rec in self:
-            rec.number_package = res.get(rec.id, 0)
+    @api.model
+    def _get_by_code(self, code):
+        return self.search([('delivery_type', '=', code)])
 
     @api.multi
     def see_tracking_numbers(self):
         self.ensure_one()
-        ctx = dict(self.env.context)
-        ctx.update({'default_carrier_id': self.id})
-        return {
-            'name': "Tracking numbers",
-            'type': 'ir.actions.act_window',
-            'res_model': 'delivery.carrier.tracking.number',
-            'view_type': 'form',
-            'view_mode': 'tree,form',
-            'domain': [('carrier_id', '=', self.id)],
-            'context': ctx
-        }
+        return self._see_related('delivery.carrier.tracking.number')
 
     @api.multi
     def see_sales(self):
         self.ensure_one()
-        ctx = dict(self.env.context)
-        ctx.update({'default_carrier_id': self.id})
-        return {
-            'name': "sale orders",
-            'type': 'ir.actions.act_window',
-            'res_model': 'sale.order',
-            'view_type': 'form',
-            'view_mode': 'tree,form',
-            'domain': [('carrier_id', '=', self.id)],
-            'context': ctx
-        }
+        return self._see_related('sale.order')
 
     @api.multi
     def see_packages(self):
         self.ensure_one()
-        ctx = dict(self.env.context)
-        ctx.update({'default_carrier_id': self.id})
+        return self._see_related('stock.quant.package')
+
+    @api.multi
+    def _see_related(self, related_name):
+        self.ensure_one()
         return {
-            'name': "packages",
+            'name': _t(self.env[related_name]._descritpion),
             'type': 'ir.actions.act_window',
-            'res_model': 'stock.quant.package',
+            'res_model': related_name,
             'view_type': 'form',
             'view_mode': 'tree,form',
             'domain': [('carrier_id', '=', self.id)],
-            'context': ctx
+            'context': dict(self.env.context, default_carrier_id=self.id)
         }

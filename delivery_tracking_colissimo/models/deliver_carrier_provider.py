@@ -17,5 +17,14 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from . import delivery_carrier
-from . import deliver_carrier_provider
+from odoo.addons.delivery_tracking.models.delivery_carrier_provider import _PROVIDER
+from odoo import models, fields
+
+_PROVIDER.append(('colissimo', "Colissimo"))
+
+
+class DeliveryCarrierProvider(models.Model):
+    _inherit = 'delivery.carrier.provider'
+
+    api_login_colissimo = fields.Char("Login Colissimo")
+    api_password_colissimo = fields.Char("Password Colissimo")

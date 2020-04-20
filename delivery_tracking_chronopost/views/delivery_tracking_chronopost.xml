@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <!--DELIVERY.CARRIER-->
-
-    <record id="chronopost_view_delivery_carrier_form" model="ir.ui.view">
-        <field name="name">chronopost_view_delivery_carrier_form</field>
-        <field name="model">delivery.carrier</field>
-        <field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
+    <record id="chronopost_view_delivery_carrier_provider_form" model="ir.ui.view">
+        <field name="name">chronopost_view_delivery_carrier_provider_form</field>
+        <field name="model">delivery.carrier.provider</field>
+        <field name="inherit_id" ref="delivery_tracking.delivery_carrier_provider_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//notebook/page[@name='destination']" position="after">
-                <page name="Chronopost" attrs="{'invisible': [('delivery_type', '!=', 'chronopost')]}">
+            <xpath expr="//notebook" position="inside">
+                <page name="Chronopost" attrs="{'invisible': [('carrier', '!=', 'chronopost')]}" string="Credential">
                     <group>
                         <group>
                             <field name="api_login_chronopost"/>
                             <field name="api_password_chronopost"/>
+                        </group>
+                        <group>
                             <field name="api_pre_alert_chronopost"/>
                             <field name="api_account_number_chronopost"/>
                         </group>
@@ -22,5 +21,4 @@
             </xpath>
         </field>
     </record>
-
 </odoo>

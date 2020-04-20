@@ -18,14 +18,17 @@
 #
 
 from odoo import models, fields
+from odoo.addons.delivery_tracking.models.delivery_carrier_provider import _PROVIDER
+
+_PROVIDER.append(('chronopost', "Chronopost"))
 
 
-class ResCompany(models.Model):
-    _inherit = 'res.company'
+class DeliveryCarrierProvider(models.Model):
+    _inherit = 'delivery.carrier.provider'
 
-    login_chronopost = fields.Char("Login Chronopost")
-    password_chronopost = fields.Char("Password Chronopost")
-    pre_alert_chronopost = fields.Selection([('0', u"Pas de préalerte"),
-                                             ('11', u"Abonnement tracking expéditeur")],
-                                            string=u"Pre Alert Chronopost", default='0')
-    account_number_chronopost = fields.Char("Account Number Chronopost")
+    api_login_chronopost = fields.Char("Login Chronopost")
+    api_password_chronopost = fields.Char("Password Chronopost")
+    api_pre_alert_chronopost = fields.Selection([('0', u"Pas de préalerte"),
+                                                 ('11', u"Abonnement tracking expéditeur")],
+                                                string=u"Pre Alert Chronopost", default='0')
+    api_account_number_chronopost = fields.Char("Account Number Chronopost")
