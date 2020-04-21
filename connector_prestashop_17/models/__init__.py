@@ -20,4 +20,3 @@
 from . import product_template
 from . import product_image
 from . import prestashop_backend
-from . import account_tax
