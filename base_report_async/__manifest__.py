@@ -17,7 +17,7 @@ This modules allows to define asynchronous reports, which are generated in a job
     'maintainer': 'NDP Systèmes',
     'category': 'Technical',
     'website': 'http://www.ndp-systemes.fr',
-    'depends': ['web', 'http_routing', 'connector'],
+    'depends': ['web', 'http_routing', 'queue_job'],
     'data': [
         'views/reports.xml',
         'data/config_parameter.xml',
