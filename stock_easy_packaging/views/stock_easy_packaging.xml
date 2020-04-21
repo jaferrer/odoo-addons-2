@@ -54,25 +54,25 @@
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
             <xpath expr="//button[@name='button_validate']" position="attributes">
-                <attribute name="attrs">{'invisible': [('need_packaging', '=', True)]}</attribute>
+                <attribute name="attrs">{'invisible': ['|', '|', ('state', 'in', ('waiting','confirmed')), ('show_validate', '=', False), ('need_packaging', '=', True)]}</attribute>
             </xpath>
             <xpath expr="//button[@name='button_validate']" position="after">
                 <button name="put_in_pack"
-                        string="Tous dans un colis"
+                        string="All in package"
                         type="object"
                         class="oe_highlight"
                         attrs="{'invisible': [
-                        '|',
+                        '|','|',
                         ('state', 'in', ('waiting','confirmed')),
                         ('need_packaging', '=', False),
                         ('need_easy_packaging', '=', False)
                         ]}"/>
                 <button name="put_in_pack"
-                        string="Multi-colis"
+                        string="Multi package"
                         type="object"
                         class="oe_highlight"
                         attrs="{'invisible': [
-                        '|',
+                        '|','|',
                         ('state', 'in', ('waiting','confirmed')),
                         ('need_packaging', '=', False),
                         ('need_easy_packaging', '=', False)
@@ -85,13 +85,7 @@
             </xpath>
             <xpath expr="//notebook/page[field[@name='move_line_ids_without_package']]/button[@name='put_in_pack']"
                    position="after">
-                <field name="package_ids" attrs="{'invisible': [('display_packages', '=', False)]}">
-                    <tree>
-                        <field name="packaging_id"/>
-                        <field name="name"/>
-                        <field name="shipping_weight"/>
-                    </tree>
-                </field>
+                <field name="package_ids" widget="many2many_tags" attrs="{'invisible': [('display_packages', '=', False)]}"/>
             </xpath>
             <xpath expr="//notebook/page[field[@name='move_ids_without_package']]/button[@name='put_in_pack']"
                    position="attributes">
@@ -100,13 +94,7 @@
             <xpath expr="//notebook/page[field[@name='move_ids_without_package']]/button[@name='put_in_pack']"
                    position="after">
                 <field name="display_packages" invisible="1"/>
-                <field name="package_ids" attrs="{'invisible': [('display_packages', '=', False)]}">
-                    <tree>
-                        <field name="packaging_id"/>
-                        <field name="name"/>
-                        <field name="shipping_weight"/>
-                    </tree>
-                </field>
+                <field name="package_ids" widget="many2many_tags" attrs="{'invisible': [('display_packages', '=', False)]}"/>
             </xpath>
             <xpath expr="//notebook/page/group/group/field[@name='move_type']" position="after">
                 <field name="need_packaging" invisible="1"/>

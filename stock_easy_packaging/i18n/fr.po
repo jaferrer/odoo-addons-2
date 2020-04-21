@@ -1,0 +1,96 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_easy_packaging
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-22 07:30+0000\n"
+"PO-Revision-Date: 2020-04-22 07:30+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: stock_easy_packaging
+#: model_terms:ir.ui.view,arch_db:stock_easy_packaging.packaging_view_picking_form
+msgid "All in package"
+msgstr "Tous dans un colis"
+
+#. module: stock_easy_packaging
+#: model_terms:ir.ui.view,arch_db:stock_easy_packaging.packaging_choose_delivery_package_view_form
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: stock_easy_packaging
+#: model:ir.model,name:stock_easy_packaging.model_choose_delivery_package
+msgid "Delivery Package Selection Wizard"
+msgstr "Assistant de sélection d'emballage"
+
+#. module: stock_easy_packaging
+#: model:ir.model.fields,field_description:stock_easy_packaging.field_choose_delivery_package__carrier_id
+msgid "Delivery carrier"
+msgstr "Produit transporteur"
+
+#. module: stock_easy_packaging
+#: model:ir.model.fields,field_description:stock_easy_packaging.field_stock_picking__display_packages
+#: model:ir.model.fields,field_description:stock_easy_packaging.field_stock_picking_type__display_packages
+msgid "Display package"
+msgstr "Affichage d'un colis"
+
+#. module: stock_easy_packaging
+#: model:ir.model.fields,field_description:stock_easy_packaging.field_stock_picking__need_dest_package
+#: model:ir.model.fields,field_description:stock_easy_packaging.field_stock_picking_type__need_dest_package
+msgid "Mandatory destination package"
+msgstr "Colis de destination obligatoire"
+
+#. module: stock_easy_packaging
+#: model_terms:ir.ui.view,arch_db:stock_easy_packaging.packaging_view_picking_form
+msgid "Multi package"
+msgstr "Multi-colis"
+
+#. module: stock_easy_packaging
+#: model:ir.model.fields,field_description:stock_easy_packaging.field_stock_picking__need_easy_packaging
+#: model:ir.model.fields,field_description:stock_easy_packaging.field_stock_picking_type__need_easy_packaging
+msgid "Need easy packaging"
+msgstr "Mise en colis simplifiée"
+
+#. module: stock_easy_packaging
+#: model:ir.model.fields,field_description:stock_easy_packaging.field_stock_picking__need_packaging
+msgid "Need packaging"
+msgstr "A besoin d'une mise en colis"
+
+#. module: stock_easy_packaging
+#: model:ir.model.fields,field_description:stock_easy_packaging.field_choose_delivery_package__package_weight
+#: model:ir.model.fields,field_description:stock_easy_packaging.field_product_packaging__weight_empty
+msgid "Package weight out of charge (g)"
+msgstr "Poids du colis à vide (g)"
+
+#. module: stock_easy_packaging
+#: model:ir.model,name:stock_easy_packaging.model_stock_picking_type
+msgid "Picking Type"
+msgstr "Type de préparation"
+
+#. module: stock_easy_packaging
+#: model:ir.model,name:stock_easy_packaging.model_stock_move_line
+msgid "Product Moves (Stock Move Line)"
+msgstr "Mouvements d'articles (Ligne de mouvement de stock)"
+
+#. module: stock_easy_packaging
+#: model:ir.model,name:stock_easy_packaging.model_product_packaging
+msgid "Product Packaging"
+msgstr "Emballage des produits"
+
+#. module: stock_easy_packaging
+#: sql_constraint:product.packaging:0
+msgid "The Weight out of charge must be positive"
+msgstr "Le poids du colis à vide doit être positif"
+
+#. module: stock_easy_packaging
+#: model:ir.model,name:stock_easy_packaging.model_stock_picking
+msgid "Transfer"
+msgstr "Transfert"
+
