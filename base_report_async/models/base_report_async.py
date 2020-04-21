@@ -81,7 +81,8 @@ class DelayReport(models.Model):
                 try:
                     new_attachment = self.get_attachment_base64_encoded(active_model, active_id)
                     attachments_to_zip |= new_attachment
-                except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm) as error:
+                except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm,
+                        ValueError) as error:
                     self.send_failure_mail(error)
                     return
             zip_file_name = '%s' % (slugify(values.get('name').replace('/', '-')) or 'documents')
@@ -96,7 +97,7 @@ class DelayReport(models.Model):
         else:
             try:
                 attachment = self.get_attachment_base64_encoded(active_model, active_ids[0])
-            except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm) as error:
+            except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm, ValueError) as error:
                 self.send_failure_mail(error)
                 return
         base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url')
@@ -114,7 +115,7 @@ class DelayReport(models.Model):
             'model': model,
             'ids': [record_id],
         }
-        pdf_data = self.render_qweb_pdf([record_id], data)
+        pdf_data, _ = self.render([record_id], data)
         return self._create_temporary_report_attachment(base64.b64encode(pdf_data), name)
 
     @api.multi
@@ -161,6 +162,7 @@ This is an automated message please do not reply.</span></p>""").format(tools.us
     @api.multi
     def send_failure_mail(self, error):
         self.ensure_one()
+        _logger.error(error)
         mail = self.env['mail.mail'].create(self.get_mail_data_report_async_fail(error))
         mail.send()
 
