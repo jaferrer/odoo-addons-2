@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="assets_backend" inherit_id="website.assets_backend" name="Web progress bar colored assets">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/web_progressbar_colored/static/src/js/progressbar_colored.js"/>
+                <link rel="stylesheet" href="/web_progressbar_colored/static/src/css/progressbar_colored.css"/>
+            </xpath>
+        </template>
+    </data>
+</odoo>
