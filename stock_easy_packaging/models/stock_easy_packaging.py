@@ -22,7 +22,7 @@ from odoo import models, fields, api
 class ChooseDeliveryPackageEasyPackaging(models.TransientModel):
     _inherit = 'choose.delivery.package'
 
-    carrier_id = fields.Many2one('delivery.carrier', string="Produit transporteur")
+    carrier_id = fields.Many2one('delivery.carrier', string="Delivery carrier")
     package_weight = fields.Float("Package weight out of charge (g)",
                                   related='delivery_packaging_id.weight_empty')
 
@@ -53,18 +53,18 @@ class ChooseDeliveryPackageEasyPackaging(models.TransientModel):
 class StockPickingTypeEasyPackaging(models.Model):
     _inherit = 'stock.picking.type'
 
-    need_easy_packaging = fields.Boolean("Mise en colis simplifiée")
-    need_dest_package = fields.Boolean("Colis de destination obligatoire")
-    display_packages = fields.Boolean("Display packages")
+    need_easy_packaging = fields.Boolean("Need easy packaging")
+    need_dest_package = fields.Boolean("Mandatory destination package")
+    display_packages = fields.Boolean("Display package")
 
 
 class StockPickingEasyPackaging(models.Model):
     _inherit = 'stock.picking'
 
-    need_packaging = fields.Boolean("A besoin d'une mise en colis", compute='_compute_need_packaging')
-    need_easy_packaging = fields.Boolean("Mise en colis simplifiée", related='picking_type_id.need_easy_packaging')
-    need_dest_package = fields.Boolean("Colis de destination obligatoire", related='picking_type_id.need_dest_package')
-    display_packages = fields.Boolean("Display packages", related='picking_type_id.display_packages')
+    need_packaging = fields.Boolean("Need packaging", compute='_compute_need_packaging')
+    need_easy_packaging = fields.Boolean("Need easy packaging", related='picking_type_id.need_easy_packaging')
+    need_dest_package = fields.Boolean("Mandatory destination package", related='picking_type_id.need_dest_package')
+    display_packages = fields.Boolean("Display package", related='picking_type_id.display_packages')
 
     @api.multi
     def _compute_need_packaging(self):
