@@ -28,11 +28,11 @@ class DelayReport(models.Model):
 
     async_report = fields.Boolean(u"Asynchronous generation")
 
-    def _create_temporary_report_attachment(self, binary, name):
-        if not binary:
+    def _create_temporary_report_attachment(self, base64_file, name):
+        if not base64_file:
             return False
-        mimetype = guess_mimetype(binary.decode('base64'))
-        extension = mimetypes.guess_extension(mimetype)
+        mime_type = guess_mimetype(base64.b64decode(base64_file))
+        extension = mimetypes.guess_extension(mime_type)
         if extension == '.xlb':
             extension = '.xls'
         if extension:
@@ -43,9 +43,9 @@ class DelayReport(models.Model):
             'res_name': unaccented_name,
             'datas_fname': unaccented_name,
             'name': unaccented_name,
-            'mimetype': mimetype,
+            'mimetype': mime_type,
             'public': True,
-            'datas': binary,
+            'datas': base64_file,
             'is_temporary_report_file': True
         })
 
