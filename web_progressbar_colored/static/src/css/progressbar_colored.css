@@ -1,0 +1,9 @@
+.o_progressbar .o_progress .o_progressbar_color_normal {
+  background-color: #5cc98f;
+}
+.o_progressbar .o_progress .o_progressbar_color_warning {
+  background-color: #f4b940;
+}
+.o_progressbar .o_progress .o_progressbar_color_danger {
+  background-color: #ec5e42;
+}
