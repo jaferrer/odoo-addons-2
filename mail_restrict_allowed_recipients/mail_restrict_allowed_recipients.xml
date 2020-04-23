@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="mail_allowed_recipient_tree">
+            <field name="name">mail_allowed_recipient_tree</field>
+            <field name="model">mail.allowed.recipient</field>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <tree editable="top">
+                    <field name="partner_id"/>
+                    <field name="email"/>
+                </tree>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="act_window_mail_allowed_recipient">
+            <field name="name">Allowed recipients</field>
+            <field name="res_model">mail.allowed.recipient</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree</field>
+            <field name="domain">[]</field>
+            <field name="context">{}</field>
+        </record>
+
+        <menuitem id="menu_mail_allowed_recipient" name="Allowed recipients"
+                  action="act_window_mail_allowed_recipient"
+                  parent="base.menu_email" sequence="25"/>
+
+    </data>
+</openerp>
