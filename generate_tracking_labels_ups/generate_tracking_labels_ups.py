@@ -32,9 +32,14 @@ from PIL import PdfImagePlugin  # Force load of this plugin pylint: disable=unus
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from openerp import models, api, fields
 from openerp.exceptions import UserError
-from ClassicUPS import UPSConnection
 
 _logger = logging.getLogger(__name__)
+
+try:
+    from ClassicUPS import UPSConnection
+except ImportError:
+    _logger.error('no module name ClassicUPS')
+    UPSConnection = None
 
 
 class TrackingTransporter(models.Model):
@@ -66,6 +71,8 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
         self.transporter_id._check_valid_credencial()
         if self.transporter_id != self.env.ref('base_delivery_tracking_ups.transporter_ups'):
             return super(GenerateTrackingLabelsWizardMR, self).generate_label()
+        if not UPSConnection:
+            raise UserError(u"No module name ClassicUPS")
         ups = UPSConnection(
             license_number=self.transporter_id.api_token_ups,
             user_id=self.transporter_id.api_login_ups,
@@ -96,8 +103,20 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             "email": self.email,
             "phone": self.phone_number,
         }
+        alternate_addr = None
         if self.id_relais:
             to_addr['location_id'] = self.id_relais
+            owner = self.picking_id.owner_id
+            alternate_addr = {
+                'name': owner.name,
+                'address1': owner.street,
+                'city': owner.city,
+                'country': owner.country_id.code,
+                'state': owner.state_id.name,
+                'postal_code': owner.zip,
+                'phone': owner.phone,
+                'email': owner.email,
+            }
         shipping_service = {
             'code': self.produit_expedition_id.code,
             'desc': self.produit_expedition_id.display_name,
@@ -112,6 +131,7 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
         shipment = ups.create_shipment(
             from_addr=from_addr,
             to_addr=to_addr,
+            alternate_addr=alternate_addr,
             package_infos=package_infos,
             file_format='GIF',
             shipping_service=shipping_service,
