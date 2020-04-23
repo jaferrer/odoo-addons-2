@@ -42,9 +42,9 @@ class AllowedRecipientMailMail(models.Model):
         for mail in self:
             message_vals_dict = []
             if mail.email_to:
-                message_vals_dict.append(mail.send_get_email_dict())
+                message_vals_dict.append(mail._send_prepare_values())
             for partner in mail.recipient_ids:
-                message_vals_dict.append(mail.send_get_email_dict(partner=partner))
+                message_vals_dict.append(mail._send_prepare_values(partner=partner))
             for values in message_vals_dict:
                 for recipient_email in values.get('email_to', []):
                     is_recipient_allowed = False
