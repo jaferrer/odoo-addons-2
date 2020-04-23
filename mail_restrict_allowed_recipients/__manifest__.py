@@ -28,7 +28,7 @@
     'description': """
 Mail - Restrict Allowed Recipients
 ==================================
-This module creates a list of allowed recipients. If noting is filled, it is possible to send a mail to anybody.
+This module creates a list of allowed recipients. If nothing is filled, it is possible to send a mail to anybody.
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [

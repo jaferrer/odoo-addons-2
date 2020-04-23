@@ -17,11 +17,12 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from openerp import fields, models, api, _
+from odoo import fields, models, api, _
 
 
 class MailAllowedRecipient(models.Model):
     _name = 'mail.allowed.recipient'
+    _description = 'restricted recipient (partner)'
 
     partner_id = fields.Many2one('res.partner', string=u"Allowed recipient", required=True)
     email = fields.Char(string=u"Email", related='partner_id.email', readonly=True)
@@ -34,25 +35,28 @@ class AllowedRecipientMailMail(models.Model):
     def send(self, auto_commit=False, raise_exception=False):
         allowed_recipients = self.env['mail.allowed.recipient'].search([])
         allowed_recipient_emails = [recipient.email for recipient in allowed_recipients if recipient.email]
+        if not allowed_recipient_emails:
+            return super(AllowedRecipientMailMail, self).send(auto_commit, raise_exception)
+
         mails_to_send = self
-        if allowed_recipient_emails:
-            for mail in self:
-                message_vals_dict = []
-                if mail.email_to:
-                    message_vals_dict.append(mail.send_get_email_dict())
-                for partner in mail.recipient_ids:
-                    message_vals_dict.append(mail.send_get_email_dict(partner=partner))
-                for values in message_vals_dict:
-                    for recipient_email in values.get('email_to', []):
-                        is_recipient_allowed = False
-                        for allowed_email in allowed_recipient_emails:
-                            if allowed_email in recipient_email:
-                                is_recipient_allowed = True
-                                break
-                        if not is_recipient_allowed:
-                            mails_to_send -= mail
-                            mail.write({'state': 'exception',
-                                        'failure_reason': _(u"%s is not in the list of allowed recipients.") %
-                                                          recipient_email})
+        for mail in self:
+            message_vals_dict = []
+            if mail.email_to:
+                message_vals_dict.append(mail.send_get_email_dict())
+            for partner in mail.recipient_ids:
+                message_vals_dict.append(mail.send_get_email_dict(partner=partner))
+            for values in message_vals_dict:
+                for recipient_email in values.get('email_to', []):
+                    is_recipient_allowed = False
+                    for allowed_email in allowed_recipient_emails:
+                        if allowed_email in recipient_email:
+                            is_recipient_allowed = True
+                            break
+                    if not is_recipient_allowed:
+                        mails_to_send -= mail
+                        mail.write({
+                            'state': 'exception',
+                            'failure_reason': _(u"%s is not in the list of allowed recipients.") % recipient_email
+                        })
         return super(AllowedRecipientMailMail, mails_to_send).send(auto_commit=auto_commit,
                                                                    raise_exception=raise_exception)
