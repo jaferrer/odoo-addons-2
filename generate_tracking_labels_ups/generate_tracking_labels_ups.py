@@ -32,9 +32,14 @@ from PIL import PdfImagePlugin  # Force load of this plugin pylint: disable=unus
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from openerp import models, api, fields
 from openerp.exceptions import UserError
-from ClassicUPS import UPSConnection
 
 _logger = logging.getLogger(__name__)
+
+try:
+    from ClassicUPS import UPSConnection
+except ImportError:
+    _logger.error('no module name ClassicUPS')
+    UPSConnection = None
 
 
 class TrackingTransporter(models.Model):
@@ -66,6 +71,8 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
         self.transporter_id._check_valid_credencial()
         if self.transporter_id != self.env.ref('base_delivery_tracking_ups.transporter_ups'):
             return super(GenerateTrackingLabelsWizardMR, self).generate_label()
+        if not UPSConnection:
+            raise UserError(u"No module name ClassicUPS")
         ups = UPSConnection(
             license_number=self.transporter_id.api_token_ups,
             user_id=self.transporter_id.api_login_ups,
