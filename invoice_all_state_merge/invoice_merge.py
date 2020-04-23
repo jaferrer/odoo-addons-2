@@ -16,9 +16,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from openerp import models, fields, api
-from openerp.tools.translate import _
-from openerp import exceptions
+from odoo import models, fields, api
+from odoo.tools.translate import _
+from odoo import exceptions
 
 
 class InvoiceMergeExtends(models.TransientModel):
@@ -96,8 +96,9 @@ class InvoiceMergeExtends(models.TransientModel):
                     new_invoices |= rec
             res = super(InvoiceMergeExtends, self.with_context(active_ids=new_invoices.ids)).merge_invoices()
             merged_invoice_result = self.env['account.invoice'].browse(set(res['domain'][0][2]) - set(new_invoices.ids))
-            for id_invoice, dict_value in merged_invoice_result._prepare_data_post_merge(new_invoices).iteritems():
-                self.env['account.invoice'].browse(id_invoice).write(dict_value)
+            data_post_merge = merged_invoice_result._prepare_data_post_merge(new_invoices)
+            for id_invoice in data_post_merge.keys():
+                self.env['account.invoice'].browse(id_invoice).write(data_post_merge[id_invoice])
             # Let's unlink draft invoices created to generate the merged one
             new_invoices.unlink()
             if self.auto_set_payment and self.only_invoice:
