@@ -64,15 +64,23 @@
         <field name="name">sale.order.dunning.tree</field>
         <field name="model">sale.order.dunning</field>
         <field name="arch" type="xml">
-            <tree string="Dunning Tree">
+            <tree string="Dunning Tree"
+                  decoration-muted="state == 'done'"
+                  decoration-warning="not date_done and next_dunning_date == current_date"
+                  decoration-danger="not date_done and next_dunning_date &lt; current_date">
                 <field name="name"/>
                 <field name="dunning_type_id"/>
                 <field name="partner_id"/>
                 <field name="user_id"/>
+                <field name="next_dunning_date"/>
                 <field name="date_done"/>
                 <field name="state"/>
-                <button name="action_send_mail" type="object" icon="fa-envelope-o"/>
-                <button name="action_done" type="object"  icon="fa-check" style="color: green;"/>
+                <field name="attachment_count" invisible="1"/>
+                <button name="action_see_attachments" type="object" icon="fa-paperclip" attrs="{'invisible':[('attachment_count', '&lt;', 1)]}"/>
+                <button name="action_print_dunning" type="object" icon="fa-print"/>
+                <button name="action_send_mail" type="object" icon="fa-envelope-o" attrs="{'invisible':[('state', '=', 'done')]}"/>
+                <button name="action_done" type="object"  icon="fa-check" style="color: green;" attrs="{'invisible':[('state', '=', 'done')]}"/>
+                <button name="action_cancel" type="object" icon="fa-times" attrs="{'invisible':[('state', 'in', ['done', 'cancel'])]}"/>
             </tree>
         </field>
     </record>
@@ -86,6 +94,7 @@
                 <field name="dunning_type_id"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="state"/>
+                <filter name="to_do" string="À faire" domain="[('next_dunning_date', '&lt;=', context_today().strftime('%Y-%m-%d'))]"/>
                 <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
                 <filter name="sent" string="Sent" domain="[('state', '=', 'send')]"/>
                 <filter name="done" string="Done" domain="[('state', '=', 'done')]"/>
@@ -107,7 +116,7 @@
         <field name="res_model">sale.order.dunning</field>
         <field name="view_type">form</field>
         <field name="view_mode">tree,form</field>
-        <field name="context">{'search_default_draft':True, 'search_default_sent':True}</field>
+        <field name="context">{'search_default_draft':True, 'search_default_sent':True, 'search_default_to_do':True}</field>
     </record>
 
     <menuitem name="Dunnings"
