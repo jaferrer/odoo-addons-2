@@ -1,0 +1,17 @@
+#expand_icon {
+    border-left: 0;
+    display: none;
+}
+
+.o_main_content.groupby-list #expand_icon {
+    display: block;
+}
+
+#expand_icon.list-expand > span.fa.fa-expand-compress:before {
+    content: "\f065";
+}
+
+#expand_icon.list-compress > span.fa.fa-expand-compress:before {
+    content: "\f066";
+}
+
