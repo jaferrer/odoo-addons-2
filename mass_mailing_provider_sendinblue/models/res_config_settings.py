@@ -23,12 +23,27 @@ class ResConfigSettingsSendinblue(models.TransientModel):
     _inherit = 'res.config.settings'
 
     sendinblue_api_key = fields.Char("Sendinblue API key", config_parameter='sendinblue_api_key')
+    priorize_sendinblue_smtp = fields.Boolean("Sendinblue > Odoo (Mail templates)",
+                                              config_parameter='priorize_sendinblue_smtp')
+    priorize_sendinblue_contact = fields.Boolean("Sendinblue > Odoo (Contacts)",
+                                                 config_parameter='priorize_sendinblue_contact')
+    priorize_sendinblue_list = fields.Boolean("Sendinblue > Odoo (Lists)", config_parameter='priorize_sendinblue_list')
+    priorize_sendinblue_campaign = fields.Boolean("Sendinblue > Odoo (Campaigns)",
+                                                  config_parameter='priorize_sendinblue_campaign')
+    priorize_sendinblue_folder = fields.Boolean("Sendinblue > Odoo (Folders)",
+                                                config_parameter='priorize_sendinblue_folder')
 
     @api.model
     def get_values(self):
         res = super(ResConfigSettingsSendinblue, self).get_values()
         res.update(
             sendinblue_api_key=self.env['ir.config_parameter'].sudo().get_param('sendinblue_api_key'),
+            priorize_sendinblue_smtp=self.env['ir.config_parameter'].sudo().get_param('priorize_sendinblue_smtp'),
+            priorize_sendinblue_contact=self.env['ir.config_parameter'].sudo().get_param('priorize_sendinblue_contact'),
+            priorize_sendinblue_list=self.env['ir.config_parameter'].sudo().get_param('priorize_sendinblue_list'),
+            priorize_sendinblue_campaign=self.env['ir.config_parameter'].sudo().get_param(
+                'priorize_sendinblue_campaign'),
+            priorize_sendinblue_folder=self.env['ir.config_parameter'].sudo().get_param('priorize_sendinblue_folder'),
         )
         return res
 
@@ -38,3 +53,14 @@ class ResConfigSettingsSendinblue(models.TransientModel):
         param = self.env['ir.config_parameter'].sudo()
         sendinblue_api_key = self.sendinblue_api_key or False
         param.set_param('sendinblue_api_key', sendinblue_api_key)
+
+        priorize_sendinblue_smtp = self.priorize_sendinblue_smtp or False
+        param.set_param('priorize_sendinblue_smtp', priorize_sendinblue_smtp)
+        priorize_sendinblue_contact = self.priorize_sendinblue_contact or False
+        param.set_param('priorize_sendinblue_contact', priorize_sendinblue_contact)
+        priorize_sendinblue_list = self.priorize_sendinblue_list or False
+        param.set_param('priorize_sendinblue_list', priorize_sendinblue_list)
+        priorize_sendinblue_campaign = self.priorize_sendinblue_campaign or False
+        param.set_param('priorize_sendinblue_campaign', priorize_sendinblue_campaign)
+        priorize_sendinblue_folder = self.priorize_sendinblue_folder or False
+        param.set_param('priorize_sendinblue_folder', priorize_sendinblue_folder)

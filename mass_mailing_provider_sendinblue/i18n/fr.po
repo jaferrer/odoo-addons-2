@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 12.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-17 10:16+0000\n"
-"PO-Revision-Date: 2020-04-17 10:16+0000\n"
+"POT-Creation-Date: 2020-04-27 09:48+0000\n"
+"PO-Revision-Date: 2020-04-27 09:48+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -17,13 +17,13 @@ msgstr ""
 
 #. module: mass_mailing_provider_sendinblue
 #: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.sendinblue_synchronisation_wizard
-msgid "Annuler"
-msgstr "Cancel"
+msgid "Cancel"
+msgstr "Annuler"
 
 #. module: mass_mailing_provider_sendinblue
-#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__synchronize_tags
-msgid "Campaign tags"
-msgstr "Étiquettes de campagnes"
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__total_blacklisted
+msgid "Blacklisted amount"
+msgstr "Nombre de blacklistés"
 
 #. module: mass_mailing_provider_sendinblue
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__synchronize_campaign
@@ -31,31 +31,52 @@ msgid "Campaigns"
 msgstr "Campagnes"
 
 #. module: mass_mailing_provider_sendinblue
+#: model:ir.model,name:mass_mailing_provider_sendinblue.model_res_config_settings
+msgid "Config Settings"
+msgstr "Paramètres de configuration"
+
+#. module: mass_mailing_provider_sendinblue
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__synchronize_contact
 msgid "Contacts"
 msgstr "Contacts"
 
 #. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__create_uid
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__create_uid
 msgid "Created by"
 msgstr "Créé par"
 
 #. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__create_date
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__create_date
 msgid "Created on"
 msgstr "Créé le"
 
 #. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__display_name
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__display_name
 msgid "Display Name"
 msgstr "Nom affiché"
 
 #. module: mass_mailing_provider_sendinblue
-#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing__supplier
-msgid "Supplier"
-msgstr "Fournisseur"
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_list__folder_id
+msgid "Folder"
+msgstr "Dossier"
 
 #. module: mass_mailing_provider_sendinblue
+#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.res_config_settings_view_sendinblue_form
+msgid "Email Marketing"
+msgstr "Email Marketing"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.actions.act_window,name:mass_mailing_provider_sendinblue.view_mail_mass_mailing_folder_sendinblue_action
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__synchronize_folders
+#: model:ir.ui.menu,name:mass_mailing_provider_sendinblue.view_mail_mass_mailing_folder_sendinblue_menu
+msgid "Folders"
+msgstr "Dossiers"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__id
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__id
 msgid "ID"
 msgstr "ID"
@@ -63,7 +84,7 @@ msgstr "ID"
 #. module: mass_mailing_provider_sendinblue
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_campaign__id_sendinblue_campaign
 msgid "Id campaign Sendinblue"
-msgstr ""
+msgstr "Id campagne Sendinblue"
 
 #. module: mass_mailing_provider_sendinblue
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_contact__id_sendinblue_contact
@@ -71,7 +92,7 @@ msgid "Id contact Sendinblue"
 msgstr "Id contact Sendinblue"
 
 #. module: mass_mailing_provider_sendinblue
-#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_tag__id_sendinblue_folder
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__id_sendinblue_folder
 msgid "Id folder Sendinblue"
 msgstr "Id dossier Sendinblue"
 
@@ -86,27 +107,27 @@ msgid "Id mail template Sendinblue"
 msgstr "Id publipostage Sendinblue"
 
 #. module: mass_mailing_provider_sendinblue
+#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.res_config_settings_view_sendinblue_form
+msgid "Key to access your Sendinblue account's API"
+msgstr "Clef pour accéder à l'API Sendinblue"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder____last_update
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard____last_update
 msgid "Last Modified on"
 msgstr "Dernière modification le"
 
 #. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__write_uid
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__write_uid
 msgid "Last Updated by"
 msgstr "Dernière mise à jour par"
 
 #. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__write_date
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__write_date
 msgid "Last Updated on"
 msgstr "Dernière mise à jour le"
-
-#. module: mass_mailing_provider_sendinblue
-#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing__write_date_sendinblue
-#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_campaign__write_date_sendinblue
-#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_contact__write_date_sendinblue
-#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_list__write_date_sendinblue
-msgid "Last modification date Sendinblue"
-msgstr "Dernière date de modification Sendinblue"
 
 #. module: mass_mailing_provider_sendinblue
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__synchronize_list
@@ -114,9 +135,14 @@ msgid "Lists"
 msgstr "Listes"
 
 #. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_campaign__mass_mailing_id
+msgid "Mail template"
+msgstr "Publipostage"
+
+#. module: mass_mailing_provider_sendinblue
 #: model:ir.model,name:mass_mailing_provider_sendinblue.model_mail_mass_mailing_list
 msgid "Mailing List"
-msgstr "Mailing List"
+msgstr "Liste de diffusion"
 
 #. module: mass_mailing_provider_sendinblue
 #: model:ir.model,name:mass_mailing_provider_sendinblue.model_mail_mass_mailing
@@ -126,27 +152,27 @@ msgstr "Publipostage"
 #. module: mass_mailing_provider_sendinblue
 #: model:ir.model,name:mass_mailing_provider_sendinblue.model_mail_mass_mailing_campaign
 msgid "Mass Mailing Campaign"
-msgstr "Campagne de publipostage"
+msgstr "Campagne"
 
 #. module: mass_mailing_provider_sendinblue
 #: model:ir.model,name:mass_mailing_provider_sendinblue.model_mail_mass_mailing_contact
 msgid "Mass Mailing Contact"
-msgstr "Contact de publipostage"
+msgstr "Contact du courriel de masse"
 
 #. module: mass_mailing_provider_sendinblue
 #: model:ir.model,name:mass_mailing_provider_sendinblue.model_mail_mass_mailing_tag
 msgid "Mass Mailing Tag"
-msgstr "Étiquette de publipostage"
+msgstr "Tag du Courriel de Masse"
 
 #. module: mass_mailing_provider_sendinblue
 #: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_sendinblue_sync_wizard__synchronize_mass_mailing
 msgid "Mass mailings"
-msgstr "publipostages"
+msgstr "Publipostages"
 
 #. module: mass_mailing_provider_sendinblue
-#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.sendinblue_synchronisation_wizard
-msgid "Update Sendinblue"
-msgstr "Mettre à jour Sendinblue"
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__name
+msgid "Name"
+msgstr "Nom"
 
 #. module: mass_mailing_provider_sendinblue
 #: selection:mail.mass_mailing,supplier:0
@@ -154,10 +180,46 @@ msgid "Odoo"
 msgstr "Odoo"
 
 #. module: mass_mailing_provider_sendinblue
+#: model:ir.model,name:mass_mailing_provider_sendinblue.model_mail_mass_mailing_folder
+msgid "Related to Sendinblue folder's"
+msgstr "Lié aux dossiers Sendinblue"
+
+#. module: mass_mailing_provider_sendinblue
+#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.res_config_settings_view_sendinblue_form
 #: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.view_mail_mass_mailing_sendinblue_form
 #: selection:mail.mass_mailing,supplier:0
 msgid "Sendinblue"
 msgstr "Sendinblue"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_res_config_settings__priorize_sendinblue_campaign
+msgid "Sendinblue > Odoo (Campaigns)"
+msgstr "Sendinblue > Odoo (Campagnes)"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_res_config_settings__priorize_sendinblue_contact
+msgid "Sendinblue > Odoo (Contacts)"
+msgstr "Sendinblue > Odoo (Contacts)"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_res_config_settings__priorize_sendinblue_folder
+msgid "Sendinblue > Odoo (Folders)"
+msgstr "Sendinblue > Odoo (Dossiers)"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_res_config_settings__priorize_sendinblue_list
+msgid "Sendinblue > Odoo (Lists)"
+msgstr "Sendinblue > Odoo (Listes)"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_res_config_settings__priorize_sendinblue_smtp
+msgid "Sendinblue > Odoo (Mail templates)"
+msgstr "Sendinblue > Odoo (Publipostages)"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_res_config_settings__sendinblue_api_key
+msgid "Sendinblue API key"
+msgstr "Clef de l'API Sendinblue"
 
 #. module: mass_mailing_provider_sendinblue
 #: model:ir.model,name:mass_mailing_provider_sendinblue.model_sendinblue_sync_wizard
@@ -165,10 +227,60 @@ msgid "Sendinblue synchronisation wizard"
 msgstr "Wizard de synchronisation avec Sendinblue"
 
 #. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__total_subscribers
+msgid "Subscribers amount"
+msgstr "Quantité d'abonnés"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing__supplier
+msgid "Supplier"
+msgstr "Fournisseur"
+
+#. module: mass_mailing_provider_sendinblue
 #: model:ir.actions.act_window,name:mass_mailing_provider_sendinblue.sendinblue_synchronisation_wizard_action
 #: model:ir.ui.menu,name:mass_mailing_provider_sendinblue.sendinblue_synchronisation_wizard_menu
-msgid "Synchronisation Sendinblue"
+msgid "Sendinblue Synchronization"
 msgstr "Synchronisation Sendinblue"
+
+#. module: mass_mailing_provider_sendinblue
+#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.res_config_settings_view_sendinblue_form
+msgid "This tool is necessary if your marketing campaign uses Sendinblue."
+msgstr "Ce paramètre est nécessaire si vous utilisez Sendinblue pour vos campagnes de marketing"
+
+#. module: mass_mailing_provider_sendinblue
+#: model:ir.model.fields,field_description:mass_mailing_provider_sendinblue.field_mail_mass_mailing_folder__unique_subscribers
+msgid "Unique subscribers"
+msgstr "Abonné unique"
+
+#. module: mass_mailing_provider_sendinblue
+#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.sendinblue_synchronisation_wizard
+msgid "Update Sendinblue"
+msgstr "Mettre à jour Sendinblue"
+
+#. module: mass_mailing_provider_sendinblue
+#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.res_config_settings_view_sendinblue_form
+msgid "choose if Sendinblue (True) or Odoo (False) is used as template to update mass mailing campaigns"
+msgstr "Choisissez si Sendinblue (Vrai) ou Odoo (Faux) est prioritaire pour mettre à jour les campagnes de publipostage"
+
+#. module: mass_mailing_provider_sendinblue
+#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.res_config_settings_view_sendinblue_form
+msgid "choose if Sendinblue (True) or Odoo (False) is used as template to update mass mailing contacts"
+msgstr "Choisissez si Sendinblue (Vrai) ou Odoo (Faux) est prioritaire pour mettre à jour les contacts"
+
+#. module: mass_mailing_provider_sendinblue
+#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.res_config_settings_view_sendinblue_form
+msgid "choose if Sendinblue (True) or Odoo (False) is used as template to update mass mailing folders"
+msgstr "Choisissez si Sendinblue (Vrai) ou Odoo (Faux) est prioritaire pour mettre à jour les dossiers"
+
+#. module: mass_mailing_provider_sendinblue
+#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.res_config_settings_view_sendinblue_form
+msgid "choose if Sendinblue (True) or Odoo (False) is used as template to update mass mailing list"
+msgstr "Choisissez si Sendinblue (Vrai) ou Odoo (Faux) est prioritaire pour mettre à jour les listes de diffusion"
+
+#. module: mass_mailing_provider_sendinblue
+#: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.res_config_settings_view_sendinblue_form
+msgid "choose if Sendinblue (True) or Odoo (False) is used as template to update mass mailing mail templates"
+msgstr "Choisissez si Sendinblue (Vrai) ou Odoo (Faux) est prioritaire pour mettre à jour les publipostages"
 
 #. module: mass_mailing_provider_sendinblue
 #: model_terms:ir.ui.view,arch_db:mass_mailing_provider_sendinblue.sendinblue_synchronisation_wizard

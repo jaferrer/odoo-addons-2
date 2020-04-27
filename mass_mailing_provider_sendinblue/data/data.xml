@@ -16,14 +16,63 @@
                   <div class="row mt16 o_settings_container">
                       <div class="col-lg-6 o_setting_box col-12"
                            title="This tool is necessary if your marketing campaign uses Sendinblue.">
-                          <div class="o_setting_left_pane"
-                               title="This tool is necessary if your marketing campaign uses Sendinblue.">
+                          <div class="o_setting_left_pane">
                               <field name="sendinblue_api_key"/>
                           </div>
                           <div class="o_setting_right_pane">
                               <label for="sendinblue_api_key"/>
                               <div class="text-muted">
                                   Key to access your Sendinblue account's API
+                              </div>
+                          </div>
+                          <div class="o_setting_left_pane">
+                              <field name="priorize_sendinblue_smtp"/>
+                          </div>
+                          <div class="o_setting_right_pane">
+                              <label for="priorize_sendinblue_smtp"/>
+                              <div class="text-muted">
+                                  choose if Sendinblue (True) or Odoo (False) is used as template to update mass mailing
+                                  mail templates
+                              </div>
+                          </div>
+                          <div class="o_setting_left_pane">
+                              <field name="priorize_sendinblue_contact"/>
+                          </div>
+                          <div class="o_setting_right_pane">
+                              <label for="priorize_sendinblue_contact"/>
+                              <div class="text-muted">
+                                  choose if Sendinblue (True) or Odoo (False) is used as template to update mass mailing
+                                  contacts
+                              </div>
+                          </div>
+                          <div class="o_setting_left_pane">
+                              <field name="priorize_sendinblue_list"/>
+                          </div>
+                          <div class="o_setting_right_pane">
+                              <label for="priorize_sendinblue_list"/>
+                              <div class="text-muted">
+                                  choose if Sendinblue (True) or Odoo (False) is used as template to update mass mailing
+                                  list
+                              </div>
+                          </div>
+                          <div class="o_setting_left_pane">
+                              <field name="priorize_sendinblue_campaign"/>
+                          </div>
+                          <div class="o_setting_right_pane">
+                              <label for="priorize_sendinblue_campaign"/>
+                             <div class="text-muted">
+                                  choose if Sendinblue (True) or Odoo (False) is used as template to update mass mailing
+                                  campaigns
+                              </div>
+                          </div>
+                          <div class="o_setting_left_pane">
+                              <field name="priorize_sendinblue_folder"/>
+                          </div>
+                          <div class="o_setting_right_pane">
+                              <label for="priorize_sendinblue_folder"/>
+                              <div class="text-muted">
+                                  choose if Sendinblue (True) or Odoo (False) is used as template to update mass mailing
+                                  folders
                               </div>
                           </div>
                       </div>

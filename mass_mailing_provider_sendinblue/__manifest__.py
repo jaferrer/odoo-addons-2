@@ -37,6 +37,7 @@ Communicate with sendinblue API.
         'data/data.xml',
         'views/mass_mailing_provider_sendinblue.xml',
         'views/sendinblue_synchronisation_wizard.xml',
+        'security/ir.model.access.csv',
     ],
     'demo': [],
     'test': [],

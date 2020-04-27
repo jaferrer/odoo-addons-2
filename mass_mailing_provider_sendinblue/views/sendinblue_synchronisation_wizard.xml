@@ -12,7 +12,7 @@
                         <field name="synchronize_contact"/>
                         <field name="synchronize_list"/>
                         <field name="synchronize_campaign"/>
-                        <field name="synchronize_tags"/>
+                        <field name="synchronize_folders"/>
                     </group>
                 </group>
                 <footer>
@@ -21,14 +21,14 @@
                             type="object"
                             class="oe_highlight"/>
                     or
-                    <button string="Annuler" class="oe_link" special="cancel"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
                 </footer>
             </form>
         </field>
     </record>
 
     <record id="sendinblue_synchronisation_wizard_action" model="ir.actions.act_window">
-        <field name="name">Synchronisation Sendinblue</field>
+        <field name="name">Sendinblue synchronization</field>
         <field name="res_model">sendinblue.sync.wizard</field>
         <field name="view_type">form</field>
         <field name="view_mode">form</field>

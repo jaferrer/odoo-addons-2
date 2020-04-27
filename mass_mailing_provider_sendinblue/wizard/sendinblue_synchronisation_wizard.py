@@ -19,11 +19,9 @@
 
 from __future__ import print_function
 
-import dateutil
 import sib_api_v3_sdk
 from sib_api_v3_sdk.rest import ApiException
 
-from odoo.exceptions import UserError
 from odoo import fields, models, api
 
 
@@ -35,7 +33,7 @@ class SendinblueSynchronisationWizard(models.TransientModel):
     synchronize_contact = fields.Boolean("Contacts", default=True)
     synchronize_list = fields.Boolean("Lists", default=True)
     synchronize_campaign = fields.Boolean("Campaigns", default=True)
-    synchronize_tags = fields.Boolean("Campaign tags", default=True)
+    synchronize_folders = fields.Boolean("Folders", default=True)
 
     @api.model
     def get_sendinblue_api_configuration(self):
@@ -50,21 +48,6 @@ class SendinblueSynchronisationWizard(models.TransientModel):
 
         return configuration
 
-    @api.model
-    def create_contact_attributes(self):
-        api_instance = sib_api_v3_sdk.ContactsApi(sib_api_v3_sdk.ApiClient(self.get_sendinblue_api_configuration()))
-
-        create_attribute_text = sib_api_v3_sdk.CreateAttribute(type='text')
-        # create_attribute_date = sib_api_v3_sdk.CreateAttribute(type='date')
-        try:
-            api_instance.create_attribute("normal", "TITLE", create_attribute_text)
-            api_instance.create_attribute("normal", "COMPANY_NAME", create_attribute_text)
-            api_instance.create_attribute("normal", "COUNTRY", create_attribute_text)
-            api_instance.create_attribute("normal", "WRITE_DATE_SENDINBLUE", create_attribute_text)
-            api_instance.create_attribute("normal", "ODOO_CONTACT_ID", create_attribute_text)
-        except ApiException as error_msg:
-            raise UserError("Exception when calling ContactsApi -> create_attribute : %s\n" % error_msg)
-
     @api.multi
     def button_do_send_infos_to_sendinblue(self):
         self.ensure_one()
@@ -76,46 +59,47 @@ class SendinblueSynchronisationWizard(models.TransientModel):
             self.synchronize_lists_with_sendinblue()
         if self.synchronize_campaign:
             self.synchronize_campaign_with_sendinblue()
-        if self.synchronize_tags:
-            self.synchronize_tags_with_sendinblue()
+        if self.synchronize_folders:
+            self.synchronize_folders_with_sendinblue()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'reload',
+        }
 
     @api.model
     def synchronize_smtp_with_sendinblue(self):
         """
-        - Send new Odoo mail templates to Sendinblue.
-        - Update common mail templates depending on last modification date.
-        - Supress all new Sendinblue mail templates not related to an Odoo mail template.
-        -> Creation and suppression are unidirectionnal (Odoo > Sendinblue) because we can't add any parameter to a
-        Sendinblue smtp.
+        Synchronize Sendinblue mail templates with Odoo. Two cases depending on res config settings:
+        - Odoo > Sendinblue.
+        - Sendinblue > Odoo.
         """
         api_instance = sib_api_v3_sdk.SMTPApi(sib_api_v3_sdk.ApiClient(self.get_sendinblue_api_configuration()))
 
-        for odoo_smtp in self.env['mail.mass_mailing'].search(['supplier', '=', 'sendinblue']):
+        if not self.env['ir.config_parameter'].sudo().get_param('priorize_sendinblue_smtp'):
+            self.synchronize_smtp_odoo_priority(api_instance)
+        else:
+            self.synchronize_smtp_sendinblue_priority(api_instance)
 
-            # Sendinblue smtp creation from Odoo only (recreate if smtp suppressed in Sendinblue)
+    @api.model
+    def synchronize_smtp_odoo_priority(self, api_instance):
+        """
+        Odoo > Sendinblue.
+        """
+        for odoo_smtp in self.env['mail.mass_mailing'].search([('supplier', '=', 'sendinblue')]):
+            # Sendinblue smtp creation from Odoo (recreate if smtp suppressed in Sendinblue)
             try:
                 sendinblue_smtp_info = api_instance.get_smtp_template(odoo_smtp.id_sendinblue_tmpl)
             except ApiException:
                 sendinblue_smtp_info = False
+
             if not odoo_smtp.id_sendinblue_tmpl or not sendinblue_smtp_info:
                 odoo_smtp.create_smtp_sendinblue(api_instance, self)
             else:
-                sendinblue_write_date = fields.Datetime.to_string(sendinblue_smtp_info.modified_at)
-                odoo_correct_date = fields.Datetime.to_string(
-                    self.env.user.localize_date(odoo_smtp.write_date_sendinblue))
-
-                # Last update in Odoo
-                if odoo_correct_date > sendinblue_write_date:
-                    odoo_smtp.update_smtp_sendinblue(api_instance)
-
-                # Last update in Sendinblue
-                elif odoo_correct_date < sendinblue_write_date:
-                    odoo_smtp.update_smtp_odoo(sendinblue_smtp_info, sendinblue_write_date)
+                odoo_smtp.update_smtp_sendinblue(api_instance)
 
         # If no smtp in Sendinblue, it sends an error...
         try:
-            # Sendinblue smtp suppression from Odoo only
-            sendinblue_smtps = api_instance.get_smtp_templates(template_status='true', limit=50, offset=0)
+            sendinblue_smtps = api_instance.get_smtp_templates(template_status='true')
             for sib_smtp in sendinblue_smtps.templates:
                 if not self.env['mail.mass_mailing'].search([('id_sendinblue_tmpl', '=', sib_smtp.id)]):
                     smtp_template = sib_api_v3_sdk.UpdateSmtpTemplate(is_active=False)
@@ -125,67 +109,145 @@ class SendinblueSynchronisationWizard(models.TransientModel):
             pass
 
     @api.model
+    def synchronize_smtp_sendinblue_priority(self, api_instance):
+        """
+        Sendinblue > Odoo.
+        """
+        sendinblue_smtps = api_instance.get_smtp_templates(template_status='true')
+        already_treated_odoo_smtp = self.env['mail.mass_mailing']
+        # If no smtp Sendinblue, all Odoo's are suppressed
+        if not sendinblue_smtps.templates:
+            self.env['mail.mass_mailing'].search([]).unlink()
+        else:
+            for sib_smtp in sendinblue_smtps.templates:
+                odoo_smtp = self.env['mail.mass_mailing'].search([('id_sendinblue_tmpl', '=', sib_smtp.id)])
+                if not odoo_smtp:
+                    already_treated_odoo_smtp |= self.env['mail.mass_mailing'].create({
+                        'id_sendinblue_tmpl': sib_smtp.id,
+                        'name': sib_smtp.subject,
+                        'body_html': sib_smtp.html_content,
+                        'reply_to': sib_smtp.reply_to
+                    })
+                else:
+                    already_treated_odoo_smtp |= odoo_smtp
+                    odoo_smtp.write({
+                        'name': sib_smtp.subject,
+                        'body_html': sib_smtp.html_content,
+                        'reply_to': sib_smtp.reply_to,
+                    })
+
+        for odoo_smtp in self.env['mail.mass_mailing'].search([('id', 'not in', already_treated_odoo_smtp.ids)]):
+            if not odoo_smtp.id_sendinblue_tmpl:
+                odoo_smtp.unlink()
+            else:
+                try:
+                    api_instance.get_smtp_template(odoo_smtp.id_sendinblue_tmpl)
+                except ApiException:
+                    odoo_smtp.unlink()
+
+    @api.model
     def synchronize_contacts_with_sendinblue(self):
         """
-        - Send new Odoo contacts to Sendinblue.
-        - Update common contacts depending on last modification date.
-        - Send new Sendinblue contacts to Odoo.
+        Synchronize Sendinblue contacts with Odoo. Two cases depending on res config settings:
+        - Odoo > Sendinblue.
+        - Sendinblue > Odoo.
         """
         api_instance = sib_api_v3_sdk.ContactsApi(sib_api_v3_sdk.ApiClient(self.get_sendinblue_api_configuration()))
 
+        if not self.env['ir.config_parameter'].sudo().get_param('priorize_sendinblue_contact'):
+            self.synchronize_contact_odoo_priority(api_instance)
+        else:
+            self.synchronize_contact_sendinblue_priority(api_instance)
+
+    @api.model
+    def synchronize_contact_odoo_priority(self, api_instance):
+        """
+        Odoo > Sendinblue.
+        """
         for odoo_contact in self.env['mail.mass_mailing.contact'].search([]):
-
-            # Sendinblue contact creation from Odoo
-            if not odoo_contact.id_sendinblue_contact:
-                odoo_contact.create_contact_sendinblue(api_instance)
-
-            else:
+            # Sendinblue contacts creation from Odoo (recreate if contact suppressed in Sendinblue)
+            try:
                 sendinblue_contact_info = api_instance.get_contact_info(odoo_contact.email)
-                sendinblue_write_date = sendinblue_contact_info.attributes.get('WRITE_DATE_SENDINBLUE')
-                sendinblue_write_date_dt = dateutil.parser.parse(sendinblue_write_date)
-                odoo_correct_date = self.env.user.localize_date(odoo_contact.write_date_sendinblue)
+            except ApiException:
+                sendinblue_contact_info = False
 
-                # Last update in Odoo
-                if odoo_correct_date > sendinblue_write_date_dt:
-                    odoo_contact.update_contact_sendinblue(api_instance, odoo_correct_date)
+            if not odoo_contact.id_sendinblue_contact or not sendinblue_contact_info:
+                odoo_contact.create_contact_sendinblue(api_instance)
+            else:
+                odoo_contact.update_contact_sendinblue(api_instance)
 
-                # Last update in Sendinblue
-                elif odoo_correct_date < sendinblue_write_date_dt:
-                    odoo_contact.update_contact_odoo(sendinblue_contact_info, sendinblue_write_date_dt)
-
-        # Odoo contact creation from Sendinblue
-        try:
-            sendinblue_contacts = api_instance.get_contacts(limit=50, offset=0)
-            for sib_contact in sendinblue_contacts.contacts:
-                # A Sendinblue contact with odoo_contact_id but without related Odoo contact is suppressed
-                if sib_contact.get('attributes').get('ODOO_CONTACT_ID'):
-                    if not self.env['mail.mass_mailing.contact'].search([('email', '=', sib_contact.get('email'))]):
-                        api_instance.delete_contact(sib_contact.get('email'))
-                # New Sendinblue contacts should not have an odoo_contact_id (To handle contact suppression)
-                else:
-                    if not self.env['mail.mass_mailing.contact'].search([('email', '=', sib_contact.get('email'))]):
-                        self.env['mail.mass_mailing.contact'].create_contact_odoo(api_instance, sib_contact)
-                    else:
-                        raise UserError("Problème de synchronisation avec le contact %s. Il ne possède pas d'Odoo id "
-                                        "alors que ce contact existe dans Odoo" % sib_contact.get('email'))
         # If no contact in Sendinblue, it sends an error...
+        try:
+            sendinblue_contacts = api_instance.get_contacts()
+            for sib_contact in sendinblue_contacts.contacts:
+                # Attention au contact du compte, on ne peut pas le supprimer
+                if sib_contact.get('id') != 1 and not self.env['mail.mass_mailing.contact'].search([
+                    ('email', '=', sib_contact.get('email'))
+                ]):
+                    api_instance.delete_contact(sib_contact.get('email'))
         except ValueError:
             pass
 
     @api.model
+    def synchronize_contact_sendinblue_priority(self, api_instance):
+        """
+        Sendinblue > Odoo.
+        """
+        sendinblue_contacts = api_instance.get_contacts()
+        already_treated_odoo_contacts = self.env['mail.mass_mailing.contact']
+        # If no smtp Sendinblue, all Odoo's are suppressed
+        if not sendinblue_contacts.contacts:
+            self.env['mail.mass_mailing.contact'].search([]).unlink()
+        else:
+            for sib_contact in sendinblue_contacts.contacts:
+                odoo_contact = self.env['mail.mass_mailing.contact'].search([
+                    ('id_sendinblue_contact', '=', sib_contact.get('id'))
+                ])
+                if not odoo_contact:
+                    already_treated_odoo_contacts |= self.env['mail.mass_mailing.contact'].create({
+                        'id_sendinblue_contact': sib_contact.get('id'),
+                        'email': sib_contact.get('email'),
+                        'name': sib_contact.get('attributes').get('LASTNAME'),
+                    })
+                else:
+                    already_treated_odoo_contacts |= odoo_contact
+                    odoo_contact.write({
+                        'email': sib_contact.get('email'),
+                        'name': sib_contact.get('attributes').get('LASTNAME'),
+                    })
+
+        for odoo_contact in self.env['mail.mass_mailing.contact'].search([
+            ('id', 'not in', already_treated_odoo_contacts.ids)
+        ]):
+            if not odoo_contact.id_sendinblue_contact:
+                odoo_contact.unlink()
+            else:
+                try:
+                    api_instance.get_contact(odoo_contact.email)
+                except ApiException:
+                    odoo_contact.unlink()
+
+    @api.model
     def synchronize_lists_with_sendinblue(self):
         """
-        - Send new Odoo lists to Sendinblue.
-        - Update common lists depending on last modification date.
-        - Supress all new Sendinblue lists not related to an Odoo list.
-       -> Creation modification and suppression are unidirectionnal (Odoo > Sendinblue) because we can't add any
-        parameter to a Sendinblue list and there is not even a modification date.
+        Synchronize Sendinblue lists with Odoo. Two cases depending on res config settings:
+        - Odoo > Sendinblue.
+        - Sendinblue > Odoo.
         """
         api_instance = sib_api_v3_sdk.ListsApi(sib_api_v3_sdk.ApiClient(self.get_sendinblue_api_configuration()))
 
-        for odoo_list in self.env['mail.mass_mailing.list'].search([]):
+        if not self.env['ir.config_parameter'].sudo().get_param('priorize_sendinblue_list'):
+            self.synchronize_lists_odoo_priority(api_instance)
+        else:
+            self.synchronize_lists_sendinblue_priority(api_instance)
 
-            # Sendinblue list creation from Odoo only (recreate if list suppressed in Sendinblue)
+    @api.model
+    def synchronize_lists_odoo_priority(self, api_instance):
+        """
+        Odoo > Sendinblue.
+        """
+        for odoo_list in self.env['mail.mass_mailing.list'].search([]):
+            # Sendinblue list creation from Odoo (recreate if list suppressed in Sendinblue)
             try:
                 sendinblue_list_info = api_instance.get_list(odoo_list.id_sendinblue_list)
             except ApiException:
@@ -193,101 +255,246 @@ class SendinblueSynchronisationWizard(models.TransientModel):
             if not odoo_list.id_sendinblue_list or not sendinblue_list_info:
                 odoo_list.create_list_sendinblue(api_instance, self)
             else:
-                # No modification date in a Sendinblue list -> Can't compare date -> (Odoo > Sendinblue)
                 odoo_list.update_list_sendinblue(api_instance)
 
         # If no list in Sendinblue, it sends an error...
         try:
-            # Sendinblue list suppression from Odoo only
-            sendinblue_lists = api_instance.get_lists(limit=10, offset=0)
+            sendinblue_lists = api_instance.get_lists()
             for sib_list in sendinblue_lists.lists:
-                if not self.env['mail.mass_mailing.list'].search(
-                        [('id_sendinblue_list', '=', sib_list.get('id'))]):
+                if not self.env['mail.mass_mailing.list'].search([('id_sendinblue_list', '=', sib_list.get('id'))]):
                     api_instance.delete_list(sib_list.get('id'))
         except ValueError:
             pass
 
     @api.model
+    def synchronize_lists_sendinblue_priority(self, api_instance):
+        """
+        Sendinblue > Odoo.
+        """
+        try:
+            sendinblue_lists = api_instance.get_lists()
+        except ValueError:
+            # If no list in Sendinblue, all Odoo's are suppressed
+            sendinblue_lists = False
+            self.env['mail.mass_mailing.list'].search([]).unlink()
+        already_treated_odoo_lists = self.env['mail.mass_mailing.list']
+        if sendinblue_lists:
+            for sib_list in sendinblue_lists.lists:
+                odoo_list = self.env['mail.mass_mailing.list'].search([('id_sendinblue_list', '=', sib_list.get('id'))])
+                if not odoo_list:
+                    already_treated_odoo_lists |= self.env['mail.mass_mailing.list'].create({
+                        'id_sendinblue_list': sib_list.get('id'),
+                        'name': sib_list.get('name'),
+                        'folder_id': sib_list.get('folder_id'),
+                    })
+                else:
+                    already_treated_odoo_lists |= odoo_list
+                    odoo_list.write({
+                        'name': sib_list.get('name'),
+                        'folder_id': sib_list.get('folder_id'),
+                    })
+
+        for odoo_list in self.env['mail.mass_mailing.list'].search([('id', 'mot in', already_treated_odoo_lists.ids)]):
+            if not odoo_list.id_sendinblue_list:
+                odoo_list.unlink()
+            else:
+                try:
+                    api_instance.get_list(odoo_list.id_sendinblue_list)
+                except ValueError:
+                    odoo_list.unlink()
+
+    @api.model
     def synchronize_campaign_with_sendinblue(self):
         """
-        - Send new Odoo campaign to Sendinblue.
-        - Update common campaign depending on last modification date.
-        - Send new Sendinblue campaign to Odoo.
-        -> Creation and suppression are unidirectionnal (Odoo > Sendinblue) because we can't add any parameter to a
-        Sendinblue campaign.
+        Synchronize Sendinblue campaigns with Odoo. Two cases depending on res config settings:
+        - Odoo > Sendinblue.
+        - Sendinblue > Odoo.
         """
         api_instance = sib_api_v3_sdk.EmailCampaignsApi(
             sib_api_v3_sdk.ApiClient(self.get_sendinblue_api_configuration()))
 
-        for odoo_campaign in self.env['mail.mass_mailing.campaign'].search([
-            ('medium_id', '=', self.env.ref('utm.utm_medium_email').id)
-        ]):
-            # Sendinblue smtp creation from Odoo only (recreate if campaign suppressed in Sendinblue)
-            # get_email_campaign (for single campaign doesn't work properly)
-            # probably because scheduled_at is not set so it tries to convert "" into datetime
-            try:
-                sendinblue_campaigns = api_instance.get_email_campaigns()
-                sendinblue_campaign_info = False
-                for sib_campaign in sendinblue_campaigns.campaigns:
-                    if sib_campaign.get('id') == odoo_campaign.id_sendinblue_campaign:
-                        sendinblue_campaign_info = sib_campaign
-                        continue
-            except ValueError:
-                sendinblue_campaigns = False
-                sendinblue_campaign_info = False
-            if not odoo_campaign.id_sendinblue_campaign or not sendinblue_campaign_info:
-                odoo_campaign.create_campaign_sendinblue(api_instance, self)
-
-            else:
-                sendinblue_write_date_tz = dateutil.parser.parse(sendinblue_campaign_info.get('modifiedAt'))
-                sendinblue_write_date = fields.Datetime.from_string(fields.Datetime.to_string(sendinblue_write_date_tz))
-                odoo_correct_date = self.env.user.localize_date(odoo_campaign.write_date_sendinblue)
-
-                # Last update in Odoo
-                if odoo_correct_date > sendinblue_write_date:
-                    odoo_campaign.update_campaign_sendinblue(api_instance, self)
-
-                # Last update in Sendinblue
-                elif odoo_correct_date < sendinblue_write_date:
-                    odoo_campaign.update_campaign_odoo(sendinblue_campaign_info, sendinblue_write_date)
-
-        # Sendinblue campaign suppression from Odoo only
-        if sendinblue_campaigns:
-            for sib_campaign in sendinblue_campaigns.campaigns:
-                if not self.env['mail.mass_mailing.campaign'].search(
-                        [('id_sendinblue_campaign', '=', sib_campaign.get('id'))]):
-                    api_instance.delete_email_campaign(sib_campaign.get('id'))
+        if not self.env['ir.config_parameter'].sudo().get_param('priorize_sendinblue_campaign'):
+            self.synchronize_campaign_odoo_priority(api_instance)
+        else:
+            self.synchronize_campaign_sendinblue_priority(api_instance)
 
     @api.model
-    def synchronize_tags_with_sendinblue(self):
+    def synchronize_campaign_odoo_priority(self, api_instance):
         """
-        - Odoo tag = Sendinblue folder
-        - Send new Odoo tag to Sendinblue.
-        - Supress all new Sendinblue tag not related to an Odoo tag.
-        -> Creation modification and suppression are unidirectionnal (Odoo > Sendinblue) because we can't add any
-        parameter to a Sendinblue folder and there is not even a modification date.
+        Odoo > Sendinblue.
+        """
+        odoo_campaigns = self.env['mail.mass_mailing.campaign'].search([
+            ('medium_id', '=', self.env.ref('utm.utm_medium_email').id)
+        ])
+        if odoo_campaigns:
+            for odoo_campaign in odoo_campaigns:
+                # Sendinblue campaign creation from Odoo (recreate if campaign suppressed in Sendinblue)
+                # get_email_campaign (for single campaign doesn't work properly)
+                # probably because scheduled_at is not set so it tries to convert "" into datetime
+                try:
+                    sendinblue_campaigns = api_instance.get_email_campaigns()
+                    sendinblue_campaign_info = False
+                    for sib_campaign in sendinblue_campaigns.campaigns:
+                        if sib_campaign.get('id') == odoo_campaign.id_sendinblue_campaign:
+                            sendinblue_campaign_info = sib_campaign
+                            continue
+                except ValueError:
+                    sendinblue_campaigns = False
+                    sendinblue_campaign_info = False
+
+                if not odoo_campaign.id_sendinblue_campaign or not sendinblue_campaign_info:
+                    odoo_campaign.create_campaign_sendinblue(api_instance, self)
+                else:
+                    odoo_campaign.update_campaign_sendinblue(api_instance, self)
+
+            if sendinblue_campaigns:
+                for sib_campaign in sendinblue_campaigns.campaigns:
+                    if not self.env['mail.mass_mailing.campaign'].search([
+                        ('id_sendinblue_campaign', '=', sib_campaign.get('id'))
+                    ]):
+                        api_instance.delete_email_campaign(sib_campaign.get('id'))
+        else:
+            sendinblue_campaigns = api_instance.get_email_campaigns()
+            for sib_campaign in sendinblue_campaigns.campaigns:
+                api_instance.delete_email_campaign(sib_campaign.get('id'))
+
+    @api.model
+    def synchronize_campaign_sendinblue_priority(self, api_instance):
+        """
+        Sendinblue > Odoo.
+        """
+        try:
+            sendinblue_campaigns = api_instance.get_email_campaigns()
+        except ValueError:
+            # If no Sendinblue campaign, all Odoo's are suppressed
+            sendinblue_campaigns = False
+            self.env['mail.mass_mailing.campaign'].search([]).unlink()
+
+        already_treated_odoo_campaigns = self.env['mail.mass_mailing.campaign']
+        if sendinblue_campaigns:
+            for sib_campaign in sendinblue_campaigns.campaigns:
+                odoo_campaign = self.env['mail.mass_mailing.campaign'].search([
+                    ('id_sendinblue_campaign', '=', sib_campaign.get('id'))
+                ])
+                odoo_campaign_smtp = self.env['mail.mass_mailing'].search([
+                    ('body_html', '=', sib_campaign.get('htmlContent'))
+                ])
+                if not odoo_campaign:
+                    already_treated_odoo_campaigns |= self.env['mail.mass_mailing.campaign'].create({
+                        'id_sendinblue_campaign': sib_campaign.get('id'),
+                        'name': sib_campaign.get('subject'),
+                        'mass_mailing_id': odoo_campaign_smtp.id,
+                    })
+                else:
+                    already_treated_odoo_campaigns |= odoo_campaign
+                    odoo_campaign.write({
+                        'name': sib_campaign.get('subject'),
+                        'mass_mailing_id': odoo_campaign_smtp.id,
+                    })
+
+        for odoo_campaign in self.env['mail.mass_mailing.campaign'].search([
+            ('id', 'not in', already_treated_odoo_campaigns.ids)
+        ]):
+            if not odoo_campaign.id_sendinblue_campaign:
+                odoo_campaign.unlink()
+            else:
+                try:
+                    api_instance.get_email_campaign(odoo_campaign.id_sendinblue_campaign)
+                except ApiException:
+                    odoo_campaign.unlink()
+
+    @api.model
+    def synchronize_folders_with_sendinblue(self):
+        """
+        Synchronize Sendinblue folders with Odoo. Two cases depending on res config settings:
+        - Odoo > Sendinblue.
+        - Sendinblue > Odoo.
         """
         api_instance = sib_api_v3_sdk.FoldersApi(sib_api_v3_sdk.ApiClient(self.get_sendinblue_api_configuration()))
 
-        for odoo_tag in self.env['mail.mass_mailing.tag'].search([]):
+        if not self.env['ir.config_parameter'].sudo().get_param('priorize_sendinblue_folder'):
+            self.synchronize_folders_odoo_priority(api_instance)
+        else:
+            self.synchronize_folders_sendinblue_priority(api_instance)
 
-            # Sendinblue tag creation from Odoo only (recreate if tag suppressed in Sendinblue)
-            try:
-                sendinblue_folder_info = api_instance.get_folder(odoo_tag.id_sendinblue_folder)
-            except ApiException:
-                sendinblue_folder_info = False
-            if not odoo_tag.id_sendinblue_folder or not sendinblue_folder_info:
-                odoo_tag.create_tag_sendinblue(api_instance)
+    @api.model
+    def synchronize_folders_odoo_priority(self, api_instance):
+        """
+        Odoo > Sendinblue.
+        """
+        for odoo_folder in self.env['mail.mass_mailing.folder'].search([]):
+            # Sendinblue folder creation from Odoo (recreate if folder suppressed in Sendinblue)
+            if odoo_folder.id_sendinblue_folder:
+                try:
+                    sendinblue_folder_info = api_instance.get_folder(odoo_folder.id_sendinblue_folder)
+                except ApiException:
+                    sendinblue_folder_info = False
             else:
-                # No modification date in a Sendinblue folder -> Can't compare date -> (Odoo > Sendinblue)
-                odoo_tag.update_tag_sendinblue(api_instance)
+                sendinblue_folder_info = False
+
+            if not odoo_folder.id_sendinblue_folder or not sendinblue_folder_info:
+                odoo_folder.create_folder_sendinblue(api_instance)
+            else:
+                # Impossible de renommer un dossier Sendinblue à partir d'Odoo, il faut en créer un nouveau...
+                # Ces données sont propres à Sendinblue
+                odoo_folder.write({
+                    'name': sendinblue_folder_info.name,
+                    'total_blacklisted': sendinblue_folder_info.total_blacklisted,
+                    'total_subscribers': sendinblue_folder_info.total_subscribers,
+                    'unique_subscribers': sendinblue_folder_info.unique_subscribers,
+                })
 
         # If no folder in Sendinblue, it sends an error...
         try:
             # Sendinblue folder suppression from Odoo only
-            sendinblue_folders = api_instance.get_folders(limit=10, offset=0)
+            sendinblue_folders = api_instance.get_folders(limit=50, offset=0)
             for sib_folder in sendinblue_folders.folders:
-                if not self.env['mail.mass_mailing.tag'].search([('id_sendinblue_folder', '=', sib_folder.get('id'))]):
+                if not self.env['mail.mass_mailing.folder'].search([
+                    ('id_sendinblue_folder', '=', sib_folder.get('id'))
+                ]):
                     api_instance.delete_folder(sib_folder.get('id'))
         except ValueError:
             pass
+
+    @api.model
+    def synchronize_folders_sendinblue_priority(self, api_instance):
+        """
+        Sendinblue > Odoo.
+        """
+        sendinblue_folders = api_instance.get_folders(limit=50, offset=0)
+        already_treated_odoo_folder = self.env['mail.mass_mailing.folder']
+        # If no folder Sendinblue, all Odoo's are suppressed
+        if not sendinblue_folders.folders:
+            self.env['mail.mass_mailing.folder'].search([]).unlink()
+        else:
+            for sib_folder in sendinblue_folders.folders:
+                odoo_folder = self.env['mail.mass_mailing.folder'].search([
+                    ('id_sendinblue_folder', '=', sib_folder.get('id'))
+                ])
+                if not odoo_folder:
+                    already_treated_odoo_folder |= self.env['mail.mass_mailing.folder'].create({
+                        'id_sendinblue_folder': sib_folder.get('id'),
+                        'name': sib_folder.get('name'),
+                        'total_blacklisted': sib_folder.get('total_blacklisted'),
+                        'total_subscribers': sib_folder.get('total_subscribers'),
+                        'unique_subscribers': sib_folder.get('unique_subscribers'),
+                    })
+                else:
+                    already_treated_odoo_folder |= odoo_folder
+                    odoo_folder.write({
+                        'name': sib_folder.get('name'),
+                        'total_blacklisted': sib_folder.get('total_blacklisted'),
+                        'total_subscribers': sib_folder.get('total_subscribers'),
+                        'unique_subscribers': sib_folder.get('unique_subscribers'),
+                    })
+
+        for odoo_folder in self.env['mail.mass_mailing.folder'].search([
+            ('id', 'not in', already_treated_odoo_folder.ids)
+        ]):
+            if not odoo_folder.id_sendinblue_folder:
+                odoo_folder.unlink()
+            else:
+                try:
+                    api_instance.get_folder(odoo_folder.id_sendinblue_folder)
+                except ApiException:
+                    odoo_folder.unlink()
