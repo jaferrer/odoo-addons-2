@@ -11,7 +11,7 @@
             <field name="interval_type">minutes</field>
             <field name="nextcall">2019-01-04 00:00:00</field>
             <field name="numbercall">-1</field>
-            <field name="doall"/>
+            <field name="doall" eval="False"/>
             <field name="model_id" ref="customer_file_importation.model_customer_imported_csv_file"/>
             <field name="state">code</field>
             <field name="code">model.process_files_to_import()</field>
