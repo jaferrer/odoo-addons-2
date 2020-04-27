@@ -42,8 +42,8 @@ class ActionLoadExtend(Action):
                 active_ids = active_ids[100:]
                 ctx['active_ids'] = chunk_active_ids
                 running_job_for_user_and_report = report.with_context(ctx). \
-                    launch_asynchronous_report_generation(action, fields.Datetime.now())
+                    launch_asynchronous_report_generation(date_start_for_job_creation=fields.Datetime.now())
         else:
             running_job_for_user_and_report = report.with_context(ctx or {}). \
-                launch_asynchronous_report_generation(action, fields.Datetime.now())
+                launch_asynchronous_report_generation(date_start_for_job_creation=fields.Datetime.now())
         return report.notify_user_for_asynchronous_generation(running_job_for_user_and_report)
