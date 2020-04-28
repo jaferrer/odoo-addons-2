@@ -148,25 +148,3 @@ class Parser(models.AbstractModel):
             'display_address': self.display_address,
         })
         return super(Parser, self).complex_report(docids, data, report, ctx)
-
-
-class AerooIrModelImproved(models.Model):
-    _name = 'ir.model'
-    _inherit = 'ir.model'
-
-    def _add_manual_models(self):
-        """
-        Calls original function + loads Aeroo Reports 'location' reports
-        """
-        super(AerooIrModelImproved, self)._add_manual_models()
-        if 'report_aeroo' in self.pool._init_modules:
-            _logger.info('Adding aeroo reports location models')
-            self.env.cr.execute("""SELECT report_name, name, parser_loc, id
-                    FROM ir_act_report_xml WHERE
-                    report_type = 'aeroo'
-                    AND parser_state = 'loc'
-                    ORDER BY id
-                    """)
-            for report in self.env.cr.dictfetchall():
-                parser = self.env['ir.actions.report'].load_from_file(report['parser_loc'], report['id'])
-                parser._build_model(self.pool, self.env.cr)
