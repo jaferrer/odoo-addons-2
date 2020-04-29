@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record model="ir.ui.view" id="timesheet_reminder_hr_employee_form">
+            <field name="name">timesheet_reminder_hr_employee_form</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="sale_timesheet.hr_timesheet_employee_extd_form"/>
+            <field name="arch" type="xml">
+                <field name="timesheet_cost" position="before">
+                    <field name="timesheet_sheet_required"/>
+                </field>
+            </field>
+        </record>
+
+        <record model="ir.ui.view" id="hr_timesheet_sheet_sheet_search">
+            <field name="name">hr_timesheet_sheet_sheet_search</field>
+            <field name="model">hr_timesheet_sheet.sheet</field>
+            <field name="inherit_id" ref="hr_timesheet_sheet.view_hr_timesheet_sheet_filter"/>
+            <field name="priority" eval="16"/>
+            <field name="arch" type="xml">
+                <search position="inside">
+                    <separator/>
+                    <filter string="Employees with required timesheets" name="employee_required_timesheets" domain="[('employee_id.timesheet_sheet_required', '=', True)]"/>
+                </search>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="hr_timesheet_sheet.act_hr_timesheet_sheet_form">
+            <field name="context">{'search_default_to_approve': True, 'search_default_employee_required_timesheets': True}</field>
+        </record>
+
+    </data>
+</openerp>

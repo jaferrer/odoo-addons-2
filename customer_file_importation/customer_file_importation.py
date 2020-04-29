@@ -125,13 +125,16 @@ class CustomerFileToImport(models.Model):
         return {}
 
     @api.model
-    def get_external_id_or_create_one(self, object):
+    def get_external_id_or_create_one(self, object, module=None):
         object.ensure_one()
         xlml_id = object.get_external_id()[object.id]
         if not xlml_id:
-            self.env['ir.model.data'].create({'name': object._name.replace('.', '_') + '_' + str(object.id),
-                                              'model': object._name,
-                                              'res_id': object.id})
+            self.env['ir.model.data'].create({
+                'module': module or '',
+                'name': object._name.replace('.', '_') + '_' + str(object.id),
+                'model': object._name,
+                'res_id': object.id
+            })
             xlml_id = object.get_external_id()[object.id]
         if not xlml_id:
             raise exceptions.UserError(u"Impossible de générer un ID XML pour l'objet %s" % object)
@@ -149,10 +152,10 @@ class CustomerFileToImport(models.Model):
             out_file_csv = csv.writer(out_file)
             field_names = list(fields_to_import)
             if 'id' not in field_names:
-                field_names = ['id'] + fields_to_import
+                field_names = ['id'] + field_names
             out_file_csv.writerow(field_names)
             for record_id in table_dict_result:
-                row = [record_id]
+                row = []
                 if 'id' not in fields_to_import:
                     row = [record_id] + row
                 for field_name in fields_to_import:
@@ -296,7 +299,8 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
     sequence = fields.Integer(string=u"Sequence", readonly=True)
     datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
     fields_to_import = fields.Char(string=u"Fields to import", readonly=True)
-    original_file_id = fields.Many2one('customer.generated.csv.file', string=u"Original generated CSV file")
+    original_file_id = fields.Many2one('customer.generated.csv.file', string=u"Original generated CSV file",
+                                       ondelete='cascade')
     error = fields.Boolean(string=u"Error during importation")
     started = fields.Boolean(string=u"Importation started")
     done = fields.Boolean(string=u"Imported")

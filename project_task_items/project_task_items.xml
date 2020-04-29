@@ -10,6 +10,7 @@
                 <field name="description" position="after">
                     <field name="item_ids" no_label="1">
                         <tree editable="bottom">
+                            <field name="sequence" widget="handle"/>
                             <field name="done"/>
                             <field name="description"/>
                         </tree>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="1">
+
+        <record model="ir.config_parameter" id="max_nb_resend_before_raise">
+            <field name="key">auto_resend_email_limited_number.max_nb_resend_before_raise</field>
+            <field name="value">5</field>
+        </record>
+
+    </data>
+</openerp>
