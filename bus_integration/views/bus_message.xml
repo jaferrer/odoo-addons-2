@@ -66,6 +66,9 @@
                             <page string="dependencies" name="dependencies">
                                 <field name="body_dependencies_pretty_print"/>
                             </page>
+                            <page string="post dependencies" name="post dependencies">
+                                <field name="body_post_dependencies_pretty_print"/>
+                            </page>
                             <page string="raw message" name="raw_message">
                                 <field name="message"/>
                             </page>
