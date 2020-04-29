@@ -1,0 +1,54 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* pos_required_customer
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-29 18:08+0000\n"
+"PO-Revision-Date: 2020-04-29 18:08+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: pos_required_customer
+#. openerp-web
+#: code:addons/pos_required_customer/static/src/js/pos_required_customer.js:34
+#, python-format
+msgid " need a customer to be selled"
+msgstr " à besoin d'un client pour être vendu"
+
+#. module: pos_required_customer
+#: model:ir.model.fields,field_description:pos_required_customer.field_product_product__required_customer
+#: model:ir.model.fields,field_description:pos_required_customer.field_product_template__required_customer
+msgid "Customer in POS is required"
+msgstr "Un client est obligatoire dans le Pdv"
+
+#. module: pos_required_customer
+#: model:ir.model.fields,field_description:pos_required_customer.field_pos_category__need_a_customer
+#: model:ir.model.fields,field_description:pos_required_customer.field_product_product__need_a_customer
+#: model:ir.model.fields,field_description:pos_required_customer.field_product_template__need_a_customer
+msgid "Need a customer"
+msgstr "À besoin d'un client lors de la vente"
+
+#. module: pos_required_customer
+#: model:ir.model,name:pos_required_customer.model_pos_category
+msgid "Point of Sale Category"
+msgstr "Catégorie du point de vente"
+
+#. module: pos_required_customer
+#: model:ir.model,name:pos_required_customer.model_product_template
+msgid "Product Template"
+msgstr "Modèle d'article"
+
+#. module: pos_required_customer
+#. openerp-web
+#: code:addons/pos_required_customer/static/src/js/pos_required_customer.js:33
+#, python-format
+msgid "Required Customer"
+msgstr "Client Obligatoire"
+

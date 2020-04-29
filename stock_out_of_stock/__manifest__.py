@@ -33,7 +33,6 @@ Settle breaking point for products
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/update_point_of_break.xml',
         'security/ir.model.access.csv',
         'views/product_views.xml',
         'views/stock_quantity.xml',
