@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2015 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,24 +17,23 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+
 {
-    'name': 'Mrp Out Of Stock',
+    'name': 'POS Required Customer',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Stock',
-    'depends': [
-        'stock_out_of_stock',
-    ],
+    'category': 'Purchase',
+    'depends': ['point_of_sale'],
     'description': """
-Mrp out of stock
-================
-Order manufacturing orders by point of break date
+POS Required Customer
+=====================
+With this module you can choose product by product if a customer is required in the Point of Sale
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [
-        'data/update_point_of_break.xml',
-        'mrp_production.xml',
+        'views/pos_assets.xml',
+        'views/pos_required_customer.xml'
     ],
     'demo': [],
     'test': [],
