@@ -1,0 +1,41 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* mass_mailing_provider
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 12.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-04-17 10:20+0000\n"
+"PO-Revision-Date: 2020-04-17 10:20+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: mass_mailing_provider
+#: model:ir.model.fields,field_description:mass_mailing_provider.field_mail_mass_mailing__is_odoo_mail
+msgid "mail creation by Odoo"
+msgstr "Création du mail via Odoo"
+
+#. module: mass_mailing_provider
+#: model:ir.model.fields,field_description:mass_mailing_provider.field_mail_mass_mailing__supplier
+msgid "Supplier"
+msgstr "Fournisseur"
+
+#. module: mass_mailing_provider
+#: model:ir.model,name:mass_mailing_provider.model_mail_mass_mailing
+msgid "Mass Mailing"
+msgstr "Publipostage"
+
+#. module: mass_mailing_provider
+#: selection:mail.mass_mailing,supplier:0
+msgid "Odoo"
+msgstr "Odoo"
+
+#. module: mass_mailing_provider
+#: selection:mail.mass_mailing,supplier:0
+msgid "Sendinblue"
+msgstr "Sendinblue"

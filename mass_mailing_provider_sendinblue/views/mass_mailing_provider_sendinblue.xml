@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--MAIL.MASS_MAILING-->
+
+    <record id="view_mail_mass_mailing_sendinblue_form" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_sendinblue_form</field>
+        <field name="model">mail.mass_mailing</field>
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page/group[group/field[@name='mass_mailing_campaign_id']]" position="after">
+                <group name="sendinblue" string="Sendinblue">
+                    <field name="id_sendinblue_tmpl" attrs="{'invisible': [('id_sendinblue_tmpl', '=', False)]}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!--MAIL.MASS_MAILING.CONTACTS-->
+
+    <record id="view_mail_mass_mailing_contact_sendinblue_form" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_contact_sendinblue_form</field>
+        <field name="model">mail.mass_mailing.contact</field>
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_contact_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group/group/div/field[@name='email']" position="attributes">
+                <attribute name="attrs">{'readonly': [('id_sendinblue_contact', '!=', 0)]}</attribute>
+            </xpath>
+            <xpath expr="//sheet/group/group/field[@name='country_id']" position="after">
+                <field name="id_sendinblue_contact" attrs="{'invisible': [('id_sendinblue_contact', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--MAIL.MASS_MAILING.CAMPAIGN-->
+
+    <record id="view_mail_mass_mailing_campaign_sendinblue_form" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_campaign_sendinblue_form</field>
+        <field name="model">mail.mass_mailing.campaign</field>
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_campaign_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='unique_ab_testing']" position="after">
+                <field name="id_sendinblue_campaign" attrs="{'invisible': [('id_sendinblue_campaign', '=', False)]}"/>
+                <field name="mass_mailing_id"/>
+            </xpath>
+            <xpath expr="//notebook/page/field[@name='mass_mailing_ids']" position="replace">
+                <group>
+                    <group>
+                        <field name="mass_mailing_id"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!--MAIL.MASS_MAILING.LIST-->
+
+    <record id="view_mail_mass_mailing_list_sendinblue_form_simplified" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_list_sendinblue_form</field>
+        <field name="model">mail.mass_mailing.list</field>
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_list_form_simplified"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="folder_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_mail_mass_mailing_list_sendinblue_form" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_list_sendinblue_form</field>
+        <field name="model">mail.mass_mailing.list</field>
+        <field name="inherit_id" ref="mass_mailing.view_mail_mass_mailing_list_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_public']" position="after">
+                <field name="id_sendinblue_list" attrs="{'invisible': [('id_sendinblue_list', '=', False)]}"/>
+                <field name="folder_id"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!--MAIL.MASS_MAILING.FOLDER-->
+
+    <record id="view_mail_mass_mailing_folder_sendinblue_tree" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_folder_sendinblue_tree</field>
+        <field name="model">mail.mass_mailing.folder</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="id_sendinblue_folder"/>
+                <field name="total_blacklisted"/>
+                <field name="total_subscribers"/>
+                <field name="unique_subscribers"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_mail_mass_mailing_folder_sendinblue_form" model="ir.ui.view">
+        <field name="name">view_mail_mass_mailing_folder_sendinblue_form</field>
+        <field name="model">mail.mass_mailing.folder</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" attrs="{'readonly': [('create_date', '!=', False)]}"/>
+                            <field name="id_sendinblue_folder"/>
+                            <field name="total_blacklisted"/>
+                            <field name="total_subscribers"/>
+                            <field name="unique_subscribers"/>
+                            <field name="create_date" invisible="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_mail_mass_mailing_folder_sendinblue_action" model="ir.actions.act_window">
+        <field name="name">Folders</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mail.mass_mailing.folder</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="view_mail_mass_mailing_folder_sendinblue_menu"
+              name="Folders"
+              parent="mass_mailing.mass_mailing_mailing_list_menu"
+              action="view_mail_mass_mailing_folder_sendinblue_action"
+              sequence="5"/>
+
+</odoo>

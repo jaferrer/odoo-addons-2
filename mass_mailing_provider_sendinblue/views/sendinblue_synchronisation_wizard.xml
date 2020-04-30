@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="sendinblue_synchronisation_wizard" model="ir.ui.view">
+        <field name="name">sendinblue_synchronisation_wizard</field>
+        <field name="model">sendinblue.sync.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group name="Choisissez les éléments à synchroniser">
+                        <field name="synchronize_mass_mailing"/>
+                        <field name="synchronize_contact"/>
+                        <field name="synchronize_list"/>
+                        <field name="synchronize_campaign"/>
+                        <field name="synchronize_folders"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="button_do_send_infos_to_sendinblue"
+                            string="Update Sendinblue"
+                            type="object"
+                            class="oe_highlight"/>
+                    or
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="sendinblue_synchronisation_wizard_action" model="ir.actions.act_window">
+        <field name="name">Sendinblue synchronization</field>
+        <field name="res_model">sendinblue.sync.wizard</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="sendinblue_synchronisation_wizard_menu"
+              name="Synchronisation Sendinblue"
+              parent="mass_mailing.mass_mailing_menu_root"
+              action="sendinblue_synchronisation_wizard_action"
+              sequence="10"/>
+
+</odoo>
