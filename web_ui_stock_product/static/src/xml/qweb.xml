@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template">
+
+    <t t-name="ScanProductMainWidget">
+
+        <nav class="navbar navbar-dark bg-dark" role="navigation" style="margin-bottom:20px;">
+            <div class="container">
+                <div class="navbar-header navbar-form navbar-left">
+                    <span id="view_title" style="color:white;"/>
+                </div>
+                <div class="navbar-header navbar-form navbar-left button-group" role="group"
+                     id="scan_product_printer_choice">
+                </div>
+                <div class="navbar-header navbar-form navbar-right">
+                    <button id="_exit" type="button" class="btn btn-danger pull-right">Quitter</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div id="big_helper" class="jumbotron">
+                <h1>Bienvenue dans l'ecran de scanner d'article!</h1>
+                <p>Veuiller scanner un code barre pour commencer</p>
+                <p>Ou</p>
+                <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>
+            </div>
+            <div id="manual_scan" class="jumbotron">
+                <h4>Vous pouvez scanner un article ou le saisir a la main!</h4>
+                <div class="input-group">
+                    <input id="search_product" type="text" class="form-control"
+                           placeholder="Saisie article manuel"/>
+                    <span class="input-group-btn">
+                        <button id="clear_search_product" class="btn btn-danger" type="button">x</button>
+                    </span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="button-group col-lg-12" role="group" id="mass_btn">
+                    <button type="button" id="btn_delete_all_rows" class="btn btn-danger btn-lg fa fa-trash float-right">
+                        Vider la liste
+                    </button>
+                </div>
+            </div>
+            <div class="row">
+                <table id="product_table" class="table">
+                    <thead id="product_table_header">
+                        <t t-call="ProductTableHeader"/>
+                    </thead>
+                    <tbody id="product_table_body"/>
+                </table>
+            </div>
+            <div class="row d-none" id="product_split_detail"/>
+            <div class="row d-none" id="need_user_action_modal_hook"/>
+        </div>
+    </t>
+    <t t-name="ProductTableHeader">
+        <tr>
+            <th>Nom</th>
+            <th>Code</th>
+            <th>Quantité</th>
+            <th>Ajuster quantité</th>
+            <th id="quantity_numpad_header"/>
+            <th>Suppr.</th>
+        </tr>
+    </t>
+    <t t-name="ProductTableRow">
+        <tr t-att-product_id="widget.id">
+            <td>
+                <t t-esc="widget.product.name"/>
+            </td>
+            <td>
+                <t t-esc="widget.product.default_code"/>
+            </td>
+            <td id="product_quantity">
+                <t t-esc="widget.product.quantity"/>
+            </td>
+            <td>
+                <button type="button" class='btn btn-primary js_open_calculator fa fa-calculator'/>
+            </td>
+            <td class="d-none" id="quantity_numpad">
+                <t t-name="ProductTableRow.Numpad">
+                    <table id="numpad" class="table table-numpad">
+                        <thead>
+                            <tr>
+                                <th id="numpad_new_quantity" colspan="3">
+                                    <!--<t t-esc="widget.numpad.value"/>-->
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_1">1</button>
+                                </td>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_2">2</button>
+                                </td>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_3">3</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_4">4</button>
+                                </td>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_5">5</button>
+                                </td>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_6">6</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_7">7</button>
+                                </td>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_8">8</button>
+                                </td>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_9">9</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <button class="input-button numpad-char" data-action="CLEAR">C</button>
+                                </td>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_0">0</button>
+                                </td>
+                                <td>
+                                    <button class="input-button number-char js_numpad_add_coma">,</button>
+                                </td>
+                                <td>
+                                    <button class="input-button numpad-backspace" data-action="BACKSPACE">
+                                        <img alt="Retour arrière"
+                                             src="/point_of_sale/static/src/img/backspace.png"
+                                             width="24"
+                                             height="21"/>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+            </td>
+            <td>
+                <button type="button" class='btn btn-danger js_delete_product fa fa-trash'/>
+            </td>
+        </tr>
+    </t>
+
+    <t t-name="ProductTableRow.Detail">
+        <div class="container">
+            <div class="row">
+                <button type="button" id="btn_put_in_pack" class='btn btn-success  btn-lg js_create_package fa fa-box'>
+                    Mettre en colis
+                </button>
+                <button type="button" id="btn_quit_detail" class='btn btn-danger js_quit_detail fa fa-box pull-right'>
+                    Quitter
+                </button>
+            </div>
+            <div class="row">
+                <table id="products_table" class="table">
+                    <thead id="products_table_header">
+                        <tr>
+                            <th>Nom</th>
+                            <th>Quantité</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </t>
+
+    <!--<t t-name="ScanProductRow.Detail.Operation">-->
+        <!--<tr t-att-picking_operation_id="operation.uuid">-->
+            <!--<td t-att-product_id="operation.product_id">-->
+                <!--<t t-esc="operation.product_name"/>-->
+            <!--</td>-->
+            <!--<td>-->
+                <!--<div class="input-group">-->
+                    <!--<span class="btn btn-success btn-lg input-group-addon js_minus"-->
+                          <!--t-att-data-operation-id="operation.uuid">-->
+                        <!--<a href="#">-->
+                            <!--<i class="fa fa-minus"></i>-->
+                        <!--</a>-->
+                    <!--</span>-->
+                    <!--<input type="text" class="form-control text-center js_qty input-lg" disabled="1"-->
+                           <!--t-att-data-operation-id="operation.uuid" t-att-value="operation.qty_done"/>-->
+                    <!--<span class="btn btn-success btn-lg input-group-addon js_plus"-->
+                          <!--t-att-data-operation-id="operation.uuid">-->
+                        <!--<a href="#">-->
+                            <!--<i class="fa fa-plus"></i>-->
+                        <!--</a>-->
+                    <!--</span>-->
+                <!--</div>-->
+            <!--</td>-->
+            <!--<td>-->
+                <!--<t t-esc="operation.qty_todo"/>-->
+            <!--</td>-->
+            <!--<td>-->
+                <!--<button type="button" class='btn btn-success btn-lg js_set_todo_in_done fa fa-arrow-circle-left'-->
+                        <!--t-att-data-operation-id="operation.uuid"/>-->
+            <!--</td>-->
+            <!--<td>-->
+                <!--<button type="button" class='btn btn-danger btn-lg js_raz fa fa-times'-->
+                        <!--t-att-data-operation-id="operation.uuid"/>-->
+            <!--</td>-->
+        <!--</tr>-->
+    <!--</t>-->
+
+    <t t-name="ScanProductRow.Error">
+        <tr class="danger" data-error-row="1">
+            <td>
+                <t t-esc="widget.error.title"/>
+            </td>
+            <td colspan="7">
+                <t t-esc="widget.error.message"/>
+            </td>
+            <td>
+                <button type="button" class='btn btn-danger js_delete_product fa fa-trash'/>
+            </td>
+        </tr>
+    </t>
+
+</templates>
