@@ -26,7 +26,8 @@ from openerp.tools import ustr
 
 CHRONO_RELAIS = [
     '86',
-    '80'
+    '80',
+    '49'
 ]
 
 
