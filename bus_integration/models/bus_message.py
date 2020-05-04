@@ -337,10 +337,20 @@ class BusMessage(models.Model):
 
     @api.multi
     def is_error(self):
+        """
+        We use a SQL request instead of ORM because of memory issue when too much info logs message ratached to this
+        message, also we use LIMIT 1 and retrieve only id because we are only interested in the existence of error
+         or not
+        """
         self.ensure_one()
-        log_errors = self.env['bus.message.log'].search([('message_id', '=', self.id), ('type', '=', 'error')])
+        request = """
+        SELECT id FROM bus_message_log
+        WHERE message_id = %s AND type = 'error'
+        LIMIT 1;"""
+        self.env.cr.execute(request, (self.id,))
+        log_errors = self.env.cr.fetchall()
         state = json.loads(self.message).get('body', {}).get('return', {}).get('state', False)
-        return log_errors or state == "error"
+        return bool(log_errors) or state == "error"
 
     @api.multi
     def add_log(self, message, log_type='info'):
