@@ -104,7 +104,7 @@ msgstr "Liste des types de relance"
 #. module: sale_order_dunning
 #: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_date_done
 msgid "Dunning date done"
-msgstr "Date de fin de la relance"
+msgstr "Relance traitée le"
 
 #. module: sale_order_dunning
 #: model:ir.model.fields,field_description:sale_order_dunning.field_sale_order_dunning_type_number

@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,24 +18,22 @@
 #
 
 {
-    'name': 'Mail Thread process Attachment',
+    'name': 'Mail No Attachement',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Mail',
-    'depends': ['mail'],
+    'depends': ['mail', 'report_aeroo'],
     'description': """
-Mail Thread process Attachment
-==============================
-Override of mail.thread.message_process() to read the email attachments, and to use any attached email as the main
-email, to comply to mail forwarding with attachment.
+Mail No Attachement
+===================
+Do not save the attachement of the mail template before the mail compose message is validate
 """,
     'website': 'http://www.ndp-systemes.fr',
     'data': [],
     'demo': [],
     'test': [],
     'installable': True,
-    'auto_install': False,
+    'auto_install': True,
     'license': 'AGPL-3',
-    'application': False,
 }

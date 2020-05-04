@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="assets_backend" name="hr_timesheet_sheet assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/project_resource_planning/static/src/js/resource_planning.js"/>
+        </xpath>
+    </template>
+</odoo>

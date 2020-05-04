@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2018 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -18,22 +18,25 @@
 #
 
 {
-    'name': 'Mail Thread process Attachment',
+    'name': 'Project Resource Planning',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Mail',
-    'depends': ['mail'],
+    'category': 'Project',
+    'depends': ['project', 'web_timeline2'],
     'description': """
-Mail Thread process Attachment
-==============================
-Override of mail.thread.message_process() to read the email attachments, and to use any attached email as the main
-email, to comply to mail forwarding with attachment.
+Project Resource Planning
+=========================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
+    'data': [
+        'security/ir.model.access.csv',
+        'project_resource_planning_form.xml',
+        'project_resource_planning_templates.xml',
+    ],
     'demo': [],
     'test': [],
+    'qweb': ['static/src/xml/resource_planning.xml', ],
     'installable': True,
     'auto_install': False,
     'license': 'AGPL-3',

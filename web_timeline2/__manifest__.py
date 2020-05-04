@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2019 NDP Systèmes (<http://www.ndp-systemes.fr>).
+# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -17,22 +17,25 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+
 {
-    'name': 'Mail Thread process Attachment',
+    'name': 'Timeline widget for MRP',
     'version': '0.1',
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
-    'category': 'Mail',
-    'depends': ['mail'],
+    'category': 'Manufacture',
     'description': """
-Mail Thread process Attachment
-==============================
-Override of mail.thread.message_process() to read the email attachments, and to use any attached email as the main
-email, to comply to mail forwarding with attachment.
+New Timeline widget for Odoo
+============================
 """,
     'website': 'http://www.ndp-systemes.fr',
-    'data': [],
-    'demo': [],
+    'depends': ['web'],
+    'qweb': [
+        'static/src/xml/qweb.xml',
+    ],
+    'data': [
+        'views/assets.xml',
+    ],
     'test': [],
     'installable': True,
     'auto_install': False,

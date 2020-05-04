@@ -299,7 +299,8 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
     sequence = fields.Integer(string=u"Sequence", readonly=True)
     datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
     fields_to_import = fields.Char(string=u"Fields to import", readonly=True)
-    original_file_id = fields.Many2one('customer.generated.csv.file', string=u"Original generated CSV file")
+    original_file_id = fields.Many2one('customer.generated.csv.file', string=u"Original generated CSV file",
+                                       ondelete='cascade')
     error = fields.Boolean(string=u"Error during importation")
     started = fields.Boolean(string=u"Importation started")
     done = fields.Boolean(string=u"Imported")
