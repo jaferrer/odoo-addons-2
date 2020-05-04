@@ -14,6 +14,7 @@
                                 <tree editable="top">
                                     <field name="name" readonly="0" required="1"/>
                                     <field name="code" readonly="0" required="1"/>
+                                    <field name="is_relais"/>
                                     <field name="used_from_customer"/>
                                     <field name="used_to_customer"/>
                                     <field name="used_on_demand" readonly="0"/>
