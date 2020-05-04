@@ -127,9 +127,9 @@ class BusSynchronizationImporter(models.AbstractModel):
 
     def check_needed_post_dependencies(self, message):
         post_dependencies = message.get_json_post_dependencies()
-        return self.check_for_dependencies(post_dependencies, message)
+        return self.check_for_dependencies(post_dependencies, message, with_log=False)
 
-    def check_for_dependencies(self, dependencies, message, demand=None):
+    def check_for_dependencies(self, dependencies, message, demand=None, with_log=True):
         demand = demand if demand else {}
         for model in dependencies.keys():
             for record_id in dependencies[model].keys():
@@ -139,8 +139,9 @@ class BusSynchronizationImporter(models.AbstractModel):
                     if needed_model not in demand:
                         demand[needed_model] = {}
                     demand[needed_model][record_id] = {'external_key': needed.get('external_key')}
-                    log = message.add_log(u"Record needed", 'info')
-                    log.write({'sender_record_id': record_id, 'model': needed_model})
+                    if with_log:
+                        log = message.add_log(u"Record needed", 'info')
+                        log.write({'sender_record_id': record_id, 'model': needed_model})
         return demand
 
     def check_needed_dependency(self, record, model):
