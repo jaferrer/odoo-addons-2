@@ -52,16 +52,21 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 if (!attrs.date_start) {
                     throw new Error(_t("Timeline view has not defined 'date_start' attribute."));
                 }
+                this.headerOrientation = attrs['headerOrientation']
                 this.overlap_field = attrs['overlap_field']
                 this.readonly_field = attrs['readonly_field']
                 this.delegate_model_field = attrs['delegate_model_field']
 
                 this.parse_colors(attrs.colors)
 
+                this.stack = utils.toBoolElse(attrs.stack || '', true);
+                this.stackSubgroups = utils.toBoolElse(attrs.stackSubgroups || '', true);
                 this.date_start = attrs.date_start;
                 this.date_stop = attrs.date_stop;
                 this.date_delay = attrs.date_delay;
                 this.no_period = this.date_start === this.date_stop;
+                this.display_scale_button = utils.toBoolElse(attrs.scale_button || '', true);
+
 
                 this.event_type = attrs.field_event_type; //The field used to determine the type of the timeline event
 
@@ -71,16 +76,24 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 this.create = utils.toBoolElse(attrs.create || '', true);
                 this.unlink = utils.toBoolElse(attrs.unlink || '', true);
                 this.editable = utils.toBoolElse(attrs.editable || '', true);
+                this.swap_element = utils.toBoolElse(attrs.swap_enable || '', false);
 
                 this.zoomKey = attrs.zoomKey || '';
                 this.mode = attrs.mode || attrs.default_window || 'fit';
-                this.snapTime = attrs.minute_snap;
-                this.min_zoom = attrs.min_zoom;
-                this.max_zoom = attrs.max_zoom;
+                this.snapTime = attrs.minute_snap ? Function('"use strict";return (' + attrs.minute_snap + ')')() : 0;
+                this.min_zoom = attrs.min_zoom ? Function('"use strict";return (' + attrs.min_zoom + ')')() : null;
+                this.max_zoom = attrs.max_zoom ? Function('"use strict";return (' + attrs.max_zoom + ')')() : null;
                 this.axis = attrs.axis;
+                if (attrs.drag_data) {
+                    this.dragData = py.eval(attrs.drag_data);
+                } else {
+                    this.dragData = [];
+                }
+                this.current_drag_data = null;
+                this.default_group_by = attrs.default_group_by;
 
-                this.visibleFrameQweb = true;
-                this.tooltipOnItemUpdateTimeFormat = true;
+                this.visibleFrameQweb = utils.toBoolElse(attrs.visibleFrameQweb || '', false);
+                this.tooltipOnItemUpdateTimeFormat = utils.toBoolElse(attrs.visibleFrameQweb || '', true);
 
                 if (!isNullOrUndef(attrs.quick_create_instance)) {
                     this.quick_create_instance = 'instance.' + attrs.quick_create_instance;
@@ -130,10 +143,16 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 this.parse_colors();
                 this.$timeline = this.$el.find(".oe_timeline2_widget");
                 this.$(".oe_timeline_button_today").click(this.proxy(this.on_today_clicked));
-                this.$(".oe_timeline_button_scale_day").click(this.proxy(this.on_scale_day_clicked));
-                this.$(".oe_timeline_button_scale_week").click(this.proxy(this.on_scale_week_clicked));
-                this.$(".oe_timeline_button_scale_month").click(this.proxy(this.on_scale_month_clicked));
-                this.$(".oe_timeline_button_scale_year").click(this.proxy(this.on_scale_year_clicked));
+                if (this.display_scale_button) {
+                    this.$(".oe_timeline_button_scale_day").click(() => this.scale_current_window('day'));
+                    this.$(".oe_timeline_button_scale_week").click(() => this.scale_current_window('week'));
+                    this.$(".oe_timeline_button_scale_month").click(() => this.scale_current_window('month'));
+                    this.$(".oe_timeline_button_scale_year").click(() => this.scale_current_window('year'));
+                } else {
+                    this.$(".scale_button").addClass('o_hidden')
+                }
+                this.$('#swap_button').click(() => this.swap_action())
+
                 this.current_window = {
                     start: new moment(),
                     end: new moment().add(24, 'hours')
@@ -152,7 +171,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 return new Model(this.dataset.model)
                     .call('fields_get')
                     .then((fields) => {
-                        self.fields = fields;
+                        this.fields = fields;
                         this.perm_model = this.dataset.model
                         if (this.delegate_model_field) {
                             const field_def = this.fields[this.delegate_model_field]
@@ -171,6 +190,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
 
                     });
             },
+
             _get_option_timeline: function () {
                 let options = {
                     groupOrder: this.group_order,
@@ -183,9 +203,16 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     onUpdate: this.on_update,
                     onRemove: this.on_remove,
                     zoomKey: this.zoomKey,
-                    stack: true,
-                    stackSubgroups: true,
+                    stack: this.stack,
+                    stackSubgroups: this.stackSubgroups,
+                    moment: function (date) {
+                        return vis.moment(date).utc();
+                    },
+                    // onDropObjectOnItem: this.on_drop_object
                 };
+                if (this.swap_element) {
+                    options.multiselect = true;
+                }
                 if (this.axis) {
                     const axis = this.axis.split(':')
                     options.timeAxis = {
@@ -209,8 +236,8 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 }
                 if (this.snapTime) {
                     options.snap = (date, scale, step) => {
-                        const hour = parseInt(this.snapTime) * 60 * 1000;
-                        return Math.round(date / hour) * hour;
+                        const hour = this.snapTime * 60 * 1000;
+                        return new moment(Math.round(date / hour) * hour).toDate();
                     }
                 }
                 if (this.visibleFrameQweb) {
@@ -276,7 +303,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     }
                 }
                 if (this.min_zoom) {
-                    options.zoomMin = this.min_zoom * 60000;
+                    options.zoomMin = this.min_zoom * 60 * 1000;
                 }
                 if (this.max_zoom) {
                     options.zoomMax = this.max_zoom * 60000;
@@ -293,6 +320,74 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     this['on_scale_' + this.mode + '_clicked']();
                 }
                 this.timeline.on('click', this.on_click.bind(this));
+                this.timeline.on('drop', this._on_drop.bind(this));
+                this.timeline.on('select', this._on_select.bind(this));
+                if (this.default_group_by) {
+                    this._init_drap_and_drop(this.dragData.find(el => el.group_by === this.default_group_by))
+                }
+
+            },
+
+            _init_drap_and_drop: function (drag_data) {
+                const $drag_item = this.$('#timeline2_drag_item')
+                if (!this.dragData || !drag_data) {
+                    this.current_drag_data = null;
+                    $drag_item.empty().addClass('o_hidden');
+                    return false;
+                }
+                if (this.current_drag_data && this.current_drag_data.field === drag_data.field) {
+                    return true;
+                }
+
+                const field_def = this.fields[drag_data.field]
+                if (!field_def.relation) {
+                    $drag_item.empty().addClass('o_hidden');
+                    return false;
+                }
+                this.current_drag_data = drag_data;
+
+                $drag_item.empty().removeClass('o_hidden');
+                const fieldsToRead = ['display_name', ...this.current_drag_data.other_fields || []]
+                if (this.current_drag_data.color_field) {
+                    fieldsToRead.push(this.current_drag_data.color_field)
+                }
+                new Model(field_def.relation)
+                    .query(fieldsToRead)
+                    .filter(this.current_drag_data.domain || field_def.domain || [])
+                    .context(this.dataset.get_context())
+                    .limit(this.current_drag_data.limit || 80)
+                    .all()
+                    .then((records) => {
+
+                        for (const record of records) {
+                            const $div = $(document.createElement('div'))
+                            $div.addClass("badge");
+                            $div.css("background-color", record[this.current_drag_data.color_field]);
+                            $div.text(record.display_name);
+                            $div.attr('data-id', record.id);
+                            $div.attr('draggable', true);
+                            $div.on('dragstart', this.handleObjectItemDragStart.bind(this));
+                            $drag_item.append($div);
+                        }
+                    });
+                return true;
+
+            },
+
+            handleObjectItemDragStart: function (event) {
+                const dragSrcEl = $(event.target);
+                event.dataTransfer = event.originalEvent.dataTransfer;
+                event.dataTransfer.effectAllowed = "move";
+                const objectItem = {
+                    id: dragSrcEl.attr('data-id'),
+                    content: dragSrcEl.text(),
+                    target: this.dragTarget,
+                    comeFromDrag: true,
+                    // target: "item",
+                };
+                objectItem[this.current_drag_data.field] = dragSrcEl.attr('data-id')
+                console.log("handleObjectItemDragStart", event, objectItem);
+                event.dataTransfer.setData("text", JSON.stringify(objectItem));
             },
 
             group_order: function (grp1, grp2) {
@@ -350,7 +445,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 let color = this._get_color_for_item(evt);
                 var r = {
                     'start': date_start,
-                    'content': evt.display_name,
+                    'content':  evt.display_name,
                     'title': evt.display_name,
                     'id': evt.id,
                     'evt': evt,
@@ -362,7 +457,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 // Check if the event is instantaneous, if so, display it with a point on the timeline (no 'end')
                 if (date_stop && !moment(date_start).isSame(date_stop)) {
                     r.end = date_stop;
-                    if (r.type !== 'background') {
+                    if (this.visibleFrameQweb && r.type !== 'background') {
                         r.content = moment(date_start).format('HH:mm') + ' - ' + moment(date_stop).format('HH:mm')
                         r.title += ' : ' + r.content
                     }
@@ -391,7 +486,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             do_search: function (domains, contexts, group_bys) {
-                var self = this;
                 this.visData.clear();
                 this.visGroups.clear();
                 this.groups = {};
@@ -400,28 +494,26 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     content: "-"
                 })
 
-                self.last_domains = domains;
-                self.last_contexts = contexts;
+                this.last_domains = domains;
+                this.last_contexts = contexts;
                 // select the group by
-                var n_group_bys = [];
-                if (this.fields_view.arch.attrs.default_group_by) {
-                    n_group_bys = this.fields_view.arch.attrs.default_group_by.split(',');
-                }
+                let n_group_bys = [this.default_group_by];
                 if (group_bys.length) {
                     n_group_bys = group_bys;
                 }
                 // self.convert_data_to_timeline(res, ...it)
-                self.last_group_bys = n_group_bys;
+                this.last_group_by = _.first(n_group_bys);
+                this._init_drap_and_drop(this.dragData.find(el => el.group_by === this.last_group_by))
                 this.fields_used = this.get_fields_to_read(n_group_bys);
-                return this._internal_do_search(this.last_domains, this.last_contexts, this.last_group_bys, false);
+                return this._internal_do_search(this.last_domains, this.last_contexts, this.last_group_by, false);
             },
 
-            _internal_do_search: function (domains, contexts, group_bys, updating) {
+            _internal_do_search: function (domains, contexts, group_by, updating) {
                 return this.dataset._model.query(this.fields_used)
                     .filter(domains)
-                    .context({...contexts, group_by_no_leaf: true})
+                    .context({...contexts, group_by_no_leaf: true, "grouped_on": group_by})
                     .lazy(false)
-                    .group_by(_.first(group_bys))
+                    .group_by([group_by])
                     .then(result => {
                         $.when.apply(this, result.map(res => {
                             return this.dataset._model
@@ -432,16 +524,19 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                                 .then((events) => {
                                     return this.convert_data_to_timeline(res, events, updating);
                                 })
-                        })).then(function () {
-                        })
+                        })).then(this._all_record_done.bind(this))
                     });
+            },
+
+            _all_record_done: function () {
+                //    Unused but can be override in sub view
             },
 
             reload: function () {
                 var self = this;
                 if (this.last_domains !== undefined) {
                     self.current_window = self.timeline.getWindow();
-                    return this.do_search(this.last_domains, this.last_contexts, this.last_group_bys);
+                    return this.do_search(this.last_domains, this.last_contexts, [this.last_group_by]);
                 }
             },
 
@@ -467,7 +562,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 const dataVisGrp = {
                     ...this.groups[grp_id] || {},
                     id: grp_id,
-                    content: value ? label : _t("Undefined"),
+                    content: label ? label : _t("Undefined"),
                 }
                 if (this.overlap_field) {
                     dataVisGrp['subgroupStack'] = subgroupStack;
@@ -479,8 +574,8 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     this.visGroups.add(dataVisGrp)
                 }
 
-                events.filter(evt => evt[self.date_start]).forEach((evt) => {
-                        const data = self.event_data_transform(evt)
+                events.filter(evt => evt[this.date_start]).forEach((evt) => {
+                        const data = this.event_data_transform(evt)
                         const data_type = (data.type || 'range')
                         const suffix = evt[this.overlap_field] ? "stacked" : "unstacked"
                         const subgroup = data_type + "_" + suffix;
@@ -519,147 +614,228 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 var self = this;
                 this.dataset.ids = this.dataset.ids.concat([id]);
                 this.dataset.trigger("dataset_changed", id);
-                this.dataset.read_ids([id], Object.keys(this.fields)).done(function (records) {
-                    var new_event = self.event_data_transform(records[0]);
-                    this.visData.add(new_event)
+                this.dataset.read_ids([id], Object.keys(this.fields)).done((records) => {
+                    this.visData.add(self.event_data_transform(records[0]))
                 });
             },
 
+            _on_drop: function (event) {
+                const dropData = JSON.parse(event.event.dataTransfer.getData("text"));
+                console.log(event);
+                console.log(dropData);
+                switch (event.what) {
+                    case "background":
+                        const toCreate = {
+                            start: event.snappedTime,
+                            group: event.group,
+                            end: moment(event.time).add(this.snapTime, 'minutes'),
+                        };
+                        const snap = this.timeline.itemSet.options.snap || null;
+                        const scale = this.timeline.body.util.getScale();
+                        const step = this.timeline.body.util.getStep();
+                        if (this.current_drag_data.range_full) {
+                            toCreate.start = snap(moment(event.time).startOf(this.current_drag_data.range_full).utc().toDate(), scale, step);
+                            toCreate.end = snap(moment(event.time).endOf(this.current_drag_data.range_full).utc().toDate(), scale, step);
+                        } else if (snap) {
+                            const m_time = moment(event.time);
+                            toCreate.end = snap(moment(m_time).add(this.snapTime, 'minutes'), scale, step);
+                        }
+                        toCreate[this.current_drag_data.field] = dropData[this.current_drag_data.field]
+                        this.on_add(toCreate, (item) => {
+                        })
+                        break;
+                    case "item":
+                        const to_write = {};
+                        to_write[this.current_drag_data.field] = dropData[this.current_drag_data.field];
+                        const item = this.visData.get(event.item);
+                        if (this.delegate_model_field) {
+                            const field_def = this.fields[this.delegate_model_field]
+                            if (field_def.type !== 'many2one') return;
+                            this._write_delegate(item.evt.id, to_write, field_def);
+                        } else {
+                            this._write(item.evt.id, to_write, {});
+                        }
+                        break;
+                    default:
+                        console.log("default", event);
+                }
+            },
+
             on_add: function (item, callback) {
-                var self = this;
+                console.log("on_add", item);
+                if (item.comeFromDrag) {
+                    console.log("on add from drag and drop", item);
+                    return callback(null);
+                }
                 var context = this.dataset.get_context();
                 // Initialize default values for creation
                 var default_context = {};
                 default_context['default_'.concat(this.date_start)] = item.start;
+
                 if (this.date_delay) {
                     default_context['default_'.concat(this.date_delay)] = 1;
                 }
                 if (this.date_stop) {
-                    default_context['default_'.concat(this.date_stop)] = moment(item.start).add(1, 'hours').toDate();
+                    let stop = item.end;
+                    if (!stop) {
+                        stop = moment(item.start).add(this.snapTime, 'minutes').toDate();
+                    }
+                    default_context['default_'.concat(this.date_stop)] = stop;
                 }
                 if (item.group > 0) {
-                    default_context['default_'.concat(this.last_group_bys[0])] = item.group;
+                    default_context['default_'.concat(this.last_group_by)] = item.group;
+                }
+                if (this.current_drag_data && item[this.current_drag_data.field]) {
+                    default_context['default_'.concat(this.current_drag_data.field)] = parseInt(item[this.current_drag_data.field]);
                 }
                 context.add(default_context);
                 // Show popup
+                const dialogOption = {
+                    res_model: this.dataset.model,
+                    res_id: null,
+                    context: context,
+                    view_id: parseInt(this.open_popup_action)
+                }
                 if (this.delegate_model_field) {
                     const field_def = this.fields[this.delegate_model_field]
                     if (field_def.type !== 'many2one') return callback(null);
-                    const dialog = new form_common.FormViewDialog(this, {
-                        res_model: field_def.relation,
-                        context: {...this.dataset.get_context(), ...context},
-                        view_id: parseInt(this.open_popup_action),
-                        create_function: function (data, options) {
-                            return this.dataset._model.call('delegate_create', [
-                                {
-                                    'delegate_field': this.delegate_model_field,
-                                    'field_used': this.fields_used,
-                                    'delegate_relation': field_def.relation,
-                                    'delegate_data': data,
-                                }
-                            ], {context: context}).then(result => {
-                                if (!result || !Array.isArray(result) || !result.length) return callback(null)
-                                this.visData.remove(result);
-                                return this._internal_do_search(
-                                    [...this.last_domains, [this.delegate_model_field, '=', id]],
-                                    this.last_contexts,
-                                    this.last_group_bys,
-                                    true
-                                )
-                            }).fail(error => callback(null));
-                        }.bind(this),
-                    }).open();
-                    dialog.on('create_completed', this, () => dialog.destroy());
+
+                    dialogOption.res_model = field_def.relation;
+                    dialogOption.create_function = function (data, options) {
+                        return this._delegate_create(data, options).fail(error => callback(null));
+                    }.bind(this);
                 } else {
-                    var dialog = new form_common.FormViewDialog(this, {
-                        res_model: this.dataset.model,
-                        res_id: null,
-                        context: context,
-                        view_id: +this.open_popup_action
-                    }).open();
-                    dialog.on('create_completed', this, this.create_completed);
-                    dialog.on('create_completed', this, () => dialog.destroy());
+                    dialogOption.create_function = function (data, options) {
+                        return this._create(data, options).fail(error => callback(null));
+                    }.bind(this);
                 }
+                const dialog = new form_common.FormViewDialog(this, dialogOption)
+                dialog.on('create_completed', this, () => {
+                    callback(null);
+                    dialog.destroy();
+                });
+                dialog.open();
                 return false;
             },
 
-            write_completed: function (id) {
-                this.dataset.trigger("dataset_changed", id);
-                this.current_window = this.timeline.getWindow();
-                this.reload();
-                this.timeline.setWindow(this.current_window);
+            _create: function (data, options) {
+                return this.dataset.create(data, options)
+                    .then(result => {
+                        return this._internal_do_search(
+                            [['id', '=', result]],
+                            this.last_contexts,
+                            this.last_group_by,
+                            true
+                        )
+                    })
+            },
+            _delegate_create: function (data, options) {
+                return this.dataset._model.call('delegate_create', [
+                    {
+                        'delegate_field': this.delegate_model_field,
+                        'field_used': this.fields_used,
+                        'delegate_relation': field_def.relation,
+                        'delegate_data': data,
+                    }
+                ], {context: context}).then(result => {
+                    if (!result || !Array.isArray(result) || !result.length) return callback(null)
+                    this.visData.remove(result);
+                    return this._internal_do_search(
+                        [...this.last_domains, [this.delegate_model_field, 'in', result]],
+                        this.last_contexts,
+                        this.last_group_by,
+                        true
+                    )
+                })
             },
 
             on_update: function (item, callback) {
-                var id = item.evt.id;
-                var title = item.evt.__name;
-
-                if (this.delegate_model_field) {
-                    const field_def = this.fields[this.delegate_model_field]
-                    if (field_def.type !== 'many2one') return callback(null);
-                    id = item.evt[this.delegate_model_field][0]
-                    title = item.evt[this.delegate_model_field][1]
-
-                    const dialog = new form_common.FormViewDialog(this, {
-                        res_model: field_def.relation,
-                        res_id: id,
-                        context: this.dataset.get_context(),
-                        title: title,
-                        view_id: parseInt(this.open_popup_action),
-                        write_function: function (id, data, options) {
-                            return this.dataset._model.call('delegate_write', [
-                                [item.evt.id],
-                                {
-                                    'delegate_field': this.delegate_model_field,
-                                    'delegate_id': id,
-                                    'field_used': this.fields_used,
-                                    'delegate_relation': field_def.relation,
-                                    'delegate_data': data,
-                                }
-                            ]).then(result => {
-                                if (!result || !Array.isArray(result) || !result.length) return callback(null);
-                                this.visData.remove(result);
-                                return this._internal_do_search(
-                                    [...this.last_domains, [this.delegate_model_field, '=', id]],
-                                    this.last_contexts,
-                                    this.last_group_bys,
-                                    true
-                                )
-                            }).fail(error => callback(null));
-                        }.bind(this),
-                    }).open();
-                    dialog.on('write_completed', this, () => dialog.destroy());
-                } else if (this.open_popup_action) {
-                    var dialog = new form_common.FormViewDialog(this, {
-                        res_model: this.dataset.model,
-                        res_id: parseInt(id).toString() == id ? parseInt(id) : id,
-                        context: this.dataset.get_context(),
-                        title: title,
-                        view_id: +this.open_popup_action
-                    }).open();
-                    dialog.on('write_completed', this, this.write_completed);
-                    dialog.on('write_completed', this, () => dialog.destroy());
-                } else {
-                    var index = this.dataset.get_id_index(id);
-                    this.dataset.index = index;
+                console.log("on update from drag and drop", item);
+                if (!this.delegate_model_field && !this.open_popup_action) {
+                    this.dataset.index = this.dataset.get_id_index(item.evt.id);
                     if (this.write_right) {
                         this.do_switch_view('form', null, {mode: "edit"});
                     } else {
                         this.do_switch_view('form', null, {mode: "view"});
                     }
                 }
+                const dialogOption = {
+                    res_model: this.dataset.model,
+                    title: item.content,
+                    res_id: item.evt.id,
+                    context: this.dataset.get_context(),
+                    view_id: parseInt(this.open_popup_action),
+                }
+                if (this.delegate_model_field) {
+                    const field_def = this.fields[this.delegate_model_field]
+                    if (field_def.type !== 'many2one') return callback(null);
+
+                    dialogOption.res_model = field_def.relation
+                    dialogOption.res_id = item.evt[this.delegate_model_field][0]
+                    dialogOption.title = item.evt[this.delegate_model_field][1]
+
+                    dialogOption.write_function = function (ids, data, options) {
+                        return this._write_delegate(ids, data, field_def).fail(error => callback(null));
+                    }.bind(this);
+                } else {
+                    dialogOption.write_function = function (id, data, options) {
+                        return this._write(id, data, options).fail(error => callback(null));
+                    }.bind(this);
+                }
+                const dialog = new form_common.FormViewDialog(this, dialogOption)
+                dialog.on('write_completed', this, () => dialog.destroy());
+                dialog.open();
                 return false;
+            },
+
+            _write: function (id, data, options = {}, auto_reload = true) {
+                const defered = this.dataset.write(id, data, options)
+                if (auto_reload) {
+                    defered.then(result => {
+                        return this._internal_do_search(
+                            [['id', '=', id]],
+                            this.last_contexts,
+                            this.last_group_by,
+                            true
+                        )
+                    })
+                }
+                return defered;
+            },
+            _write_delegate: function (ids, data, field_def, auto_reload = true) {
+                const defered = this.dataset._model.call('delegate_write', [
+                    [item.evt.id],
+                    {
+                        'delegate_field': this.delegate_model_field,
+                        'delegate_ids': ids,
+                        'field_used': this.fields_used,
+                        'delegate_relation': field_def.relation,
+                        'delegate_data': data,
+                    }
+                ])
+                if (auto_reload) {
+                    defered.then(result => {
+                        if (!result || !Array.isArray(result) || !result.length) return callback(null);
+                        this.visData.remove(result);
+                        return this._internal_do_search(
+                            [...this.last_domains, [this.delegate_model_field, '=', id]],
+                            this.last_contexts,
+                            this.last_group_by,
+                            true
+                        )
+                    })
+                }
+                return defered;
             },
 
             on_move: function (item, callback) {
                 var self = this;
                 var event_start = item.start;
                 var event_end = item.end;
-                var group = false;
-                if (item.group != -1) {
-                    group = item.group;
-                }
                 var data = {};
+                if (item.group != -1) {
+                    data[self.last_group_by] = item.group;
+                }
                 // In case of a move event, the date_delay stay the same, only date_start and stop must be updated
                 data[this.date_start] = time.auto_date_to_str(event_start, self.fields[this.date_start].type);
                 if (this.date_stop) {
@@ -674,35 +850,12 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     var diff_seconds = Math.round((event_end.getTime() - event_start.getTime()) / 1000);
                     data[this.date_delay] = diff_seconds / 3600;
                 }
-                if (self.grouped_by) {
-                    data[self.grouped_by[0]] = group;
-                }
-                var id = item.evt.id;
                 if (this.delegate_model_field) {
                     const field_def = this.fields[this.delegate_model_field]
                     if (field_def.type !== 'many2one') return callback(null);
-
-                    id = item.evt[this.delegate_model_field][0]
-                    this.dataset._model.call('delegate_write', [[id], {
-                        'delegate_field': this.delegate_model_field,
-                        'delegate_id': id,
-                        'field_used': this.fields_used,
-                        'delegate_relation': field_def.relation,
-                        'delegate_data': data,
-                    }]).then(result => {
-                        if (!result || !Array.isArray(result) || !result.length) return callback(null);
-
-                        this.visData.remove(result);
-                        return this._internal_do_search(
-                            [...this.last_domains, [this.delegate_model_field, '=', id]],
-                            this.last_contexts,
-                            this.last_group_bys,
-                            true
-                        )
-                    });
+                    this._write_delegate(item.evt[this.delegate_model_field][0], data, field_def);
                 } else {
-                    var id = item.evt.id;
-                    this.dataset.write(id, data);
+                    this._write(item.evt.id, data)
                 }
             },
 
@@ -725,6 +878,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
 
             on_click: function (e) {
                 // handle a click on a group header
+                console.log(e, e.what);
                 if (e.what == 'group-label') {
                     return this.on_group_click(e);
                 }
@@ -736,24 +890,22 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 }
                 return this.do_action({
                     type: 'ir.actions.act_window',
-                    res_model: this.fields[this.last_group_bys[0]].relation,
+                    res_model: this.fields[this.last_group_by].relation,
                     res_id: e.group,
                     target: 'new',
                     views: [[false, 'form']]
                 });
             },
-            scale_current_window: function (factor) {
-                if (this.timeline) {
-                    this.current_window = this.timeline.getWindow();
-                    this.current_window.end = moment(this.current_window.start).add(factor, 'hours');
-                    this.timeline.setWindow(this.current_window);
-                }
-            },
+
             on_today_clicked: function () {
                 this.current_window = {
                     start: new moment(),
                     end: new moment().add(24, 'hours')
                 };
+                if (!this.display_scale_button && this.mode !== 'fit') {
+                    this.current_window.start = new moment().startOf(this.mode);
+                    this.current_window.end = moment().endOf(this.mode);
+                }
 
                 if (this.timeline) {
                     this.timeline.setWindow(this.current_window);
@@ -761,19 +913,55 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             on_scale_day_clicked: function () {
-                this.scale_current_window(24);
+                this.scale_current_window('day');
             },
 
             on_scale_week_clicked: function () {
-                this.scale_current_window(24 * 7);
+                this.scale_current_window('week');
             },
 
             on_scale_month_clicked: function () {
-                this.scale_current_window(24 * 30);
+                this.scale_current_window('month');
             },
 
             on_scale_year_clicked: function () {
-                this.scale_current_window(24 * 365);
+                this.scale_current_window('year');
+            },
+
+            scale_current_window: function (factor) {
+                if (this.timeline) {
+                    this.current_window = this.timeline.getWindow();
+                    this.current_window.end = moment(this.current_window.start).add(1, factor);
+                    this.timeline.setWindow(this.current_window);
+                }
+            },
+
+            _on_select: function (evt) {
+                console.log(evt, evt.items.length === 2);
+                this.$('#swap_button').toggleClass('o_hidden', evt.items.length !== 2)
+            },
+
+            _swap_write_data: function (group_by_field_def, source, target) {
+                let data = {
+                    [this.last_group_by]: target.evt[this.last_group_by],
+                    [this.date_start]: target.evt[this.date_start],
+                    [this.date_stop]: target.evt[this.date_stop],
+                }
+                if (group_by_field_def.type === 'many2one' && Array.isArray(target.evt[this.last_group_by])) {
+                    data[this.last_group_by] = target.evt[this.last_group_by][0]
+                }
+                return data;
+            },
+            swap_action: function () {
+                const selected = this.timeline.getSelection()
+                if (selected.length !== 2) {
+                    return false;
+                }
+                const [el1, el2] = this.visData.get(selected);
+                const field_def = this.fields[this.last_group_by];
+                this._write(el1.evt.id, this._swap_write_data(field_def, el1, el2), {}, false);
+                this._write(el2.evt.id, this._swap_write_data(field_def, el2, el1), {}, false);
+                this._internal_do_search([['id', 'in', [el1.evt.id, el2.evt.id]]], this.last_contexts, this.last_group_by, true)
             }
         })
     ;
