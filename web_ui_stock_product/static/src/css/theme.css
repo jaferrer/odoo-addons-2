@@ -1,8 +1,42 @@
-.table-numpad {
+table.table-numpad {
     width: auto;
+    border-collapse: unset;
 }
 
-.table-numpad > tbody > tr > td {
+table.table-numpad > tbody > tr > td {
     padding: 1px;
 }
 
+td.td-button-resize {
+    position: relative;
+}
+
+td.td-button-resize > button {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    right: 0px;
+    left: 2px;
+}
+
+button.numpad-clear-resize {
+    width: 35px;
+}
+
+tbody.numpad-body {
+    border-collapse: revert;
+}
+
+button.numpad-coma-resize {
+    width: 100%;
+}
+
+button.btn-margin-left {
+    margin-left: 10px;
+}
+
+button.numpad-button {
+    font-size: 24px;
+    width: 74px;
+    height: 74px;
+}

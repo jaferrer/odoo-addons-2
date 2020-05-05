@@ -39,6 +39,29 @@ class StockPickingTypeWebUiStockProduct(models.Model):
             raise WebUiError(name, "Plusieurs articles ont été trouvés : %s" % ", ".join(product.mapped('name')))
         return product.web_ui_get_product_info_one()
 
+    @api.multi
+    def do_validate_scan(self, product_infos):
+        """
+        Crée un stock.picking dont les stock.move sont remplies grâce aux lignes de scan.
+        - stock.picking.type de la vue de scan d'articles.
+        - procurement.group commun pour les grouper.
+        """
+        proc_group = self.env['procurement.group'].create({})
+        moves = self.env['stock.move']
+        for product_info in product_infos:
+            product = self.env['product.product'].browse(product_info.get('id'))
+            moves |= self.env['stock.move'].create({
+                'name': "%s (Scanné)" % product.name,
+                'picking_type_id': self.id,
+                'group_id': proc_group.id,
+                'product_id': product.id,
+                'product_uom_qty': product_info.get('quantity'),
+                'product_uom': product.uom_id.id,
+                'location_id': self.env.ref('radiscapucine_data.rc_stock_location_sorting').id,
+                'location_dest_id': self.env.ref('stock.stock_location_stock').id,
+            })
+        moves._action_confirm()
+
 
 class ProductProductWebUiStockProduct(models.Model):
     _inherit = 'product.product'
@@ -51,6 +74,15 @@ class ProductProductWebUiStockProduct(models.Model):
             'name': self.name,
             'default_code': self.default_code,
             'quantity': 1,
+        }
+
+    @api.multi
+    def web_ui_get_product_info(self):
+        self.ensure_one()
+        return {
+            'id': self.id,
+            'name': self.name,
+            'default_code': self.default_code,
         }
 
 

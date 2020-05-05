@@ -8,7 +8,6 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
     var QWeb = core.qweb;
     var ScanProductRow = {
         Row: require('web_ui_stock_product.ScanProductRow'),
-        Detail: require('web_ui_stock_product.ScanProductRow.Detail'),
         Error: require('web_ui_stock_product.ScanProductRow.Error'),
         Numpad: require('web_ui_stock_product.ScanProductRow.Numpad')
     };
@@ -28,7 +27,7 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
             this.product_table = this.$('#product_table');
             this.$('#_exit').click((ev) => window.history.back());
             this.product_table_body = this.$('#product_table_body');
-            this.product_split_detail = this.$('#product_split_detail');
+            this.quantity_numpad = this.$('#quantity_numpad');
             let spt_name_get_params = {
                 model: 'stock.picking.type',
                 method: 'name_get',
@@ -65,6 +64,7 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
                 console.log('btn_process_all_rows');
                 this.$('[data-error-row]').remove();
             });
+            this.$('button.js_validate_scan').click(ev => { this.validate_scan() });
         },
         _init_scan_product_computer: function () {
             let printer_computer_params = {
@@ -154,27 +154,46 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
             this.rows.splice(this.rows.indexOf(row), 1);
             console.log('delete_row', this.rows);
         },
-        exit_detail: function (detail) {
-            this.product_table.toggleClass('d-none');
-            this.$('#mass_btn').toggleClass('d-none');
-            this.product_split_detail.toggleClass('d-none');
-            this.product_split_detail.empty();
-            let pp_product_info_one_params = {
+        open_numpad: function (row) {
+            let pp_product_info_params = {
                 model: 'product.product',
-                method: 'web_ui_get_product_info_one',
-                args: [[detail.productRow.id]],
+                method: 'web_ui_get_product_info',
+                args: [[row.product.id]],
             };
-            rpc.query(pp_product_info_one_params).then((result) => {
-                detail.productRow._replace_product(result)
-            })
+            rpc.query(pp_product_info_params).then((result) => {
+                this.product_table.toggleClass('d-none');
+                this.$('#mass_btn').toggleClass('d-none');
+                this.$('#manual_scan').toggleClass('d-none');
+                this.quantity_numpad.toggleClass('d-none');
+                new ScanProductRow.Numpad(this, row).appendTo(this.quantity_numpad);
+            }).fail((errors, event) => {
+                console.log("Error print", errors, event);
+                new ScanProductRow.Error(this, {
+                    'title': row.product.name,
+                    'message': errors.data.arguments[1]
+                }).replace(row.$el);
+                event.preventDefault();
+            });
         },
-        exit_need_action: function () {
+        exit_numpad: function (numpad) {
             this.product_table.toggleClass('d-none');
             this.$('#mass_btn').toggleClass('d-none');
-            this.need_user_action_view = false;
-            this.need_user_action_modal_hook.toggleClass('d-none');
-            this.need_user_action_modal_hook.empty();
-            this._connect_scanner()
+            this.$('#manual_scan').toggleClass('d-none');
+            this.quantity_numpad.toggleClass('d-none');
+            this.quantity_numpad.empty();
+        },
+        validate_scan: function () {
+            let product_infos = [];
+            this.rows.forEach(row => product_infos.push({
+                'id': row.product.id,
+                'quantity': row.product.quantity}
+                ));
+            let do_validate_scan_params = {
+                model: 'stock.picking.type',
+                method: 'do_validate_scan',
+                args: [[this.pickingTypeId], product_infos],
+            };
+            rpc.query(do_validate_scan_params).then(() => { window.history.back() })
         },
     });
 

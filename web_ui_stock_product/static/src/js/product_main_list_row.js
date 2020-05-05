@@ -24,7 +24,7 @@ odoo.define('web_ui_stock_product.ScanProductRow', function (require) {
             this._super();
             console.log("ProductTableRow renderElement");
             this.$('button.js_delete_product').click(ev => { this.productMainList.delete_row(this) });
-            this.$('button.js_open_calculator').click(ev => { this._open_calculator() });
+            this.$('button.js_open_numpad').click(ev => { this.productMainList.open_numpad(this) });
 
             this.btn_info = this.$('a.js_btn_info');
             this.btn_info.popover();
@@ -35,21 +35,14 @@ odoo.define('web_ui_stock_product.ScanProductRow', function (require) {
                 this.$el.addClass('info');
             }
         },
-
         _update_quantity: function () {
             this.product.quantity += 1;
             this.$('#product_quantity').text(this.product.quantity);
         },
-
-        _open_calculator: function () {
-            this.$('#quantity_numpad').toggleClass('d-none')
-            this.$('#quantity_numpad_header').toggleClass('d-none')
-        },
-
-        _replace_product:function(product){
-            this.id = product.id;
-            this.product = product;
-            this.renderElement();
+        validate_new_qty: function (numpad) {
+            this.product.quantity = numpad.quantity;
+            this.$('#product_quantity').text(this.product.quantity);
+            this.productMainList.exit_numpad(numpad)
         },
         on_error_print: function (error) {
             this.$el.addClass('warning');
