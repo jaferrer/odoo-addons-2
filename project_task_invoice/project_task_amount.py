@@ -56,7 +56,7 @@ class ProjectTaskInvoice(models.Model):
                 raise UserError(u"The task {} has no linked order.".format(rec.name))
             if not rec.initial_sale_line_id:
                 raise UserError(u"The task {} has the linked order {}, but has no linked order line."
-                                  u"".format(rec.name, rec.initial_sale_id.name))
+                                u"".format(rec.name, rec.initial_sale_id.name))
             rec.date_delivered = rec.initial_sale_id and rec.initial_sale_id.date_order
             rec.initial_sale_line_id.qty_delivered = rec.time_spent
 
