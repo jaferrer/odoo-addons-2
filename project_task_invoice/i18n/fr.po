@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-05 18:53+0000\n"
-"PO-Revision-Date: 2019-05-05 18:53+0000\n"
+"POT-Creation-Date: 2020-05-06 14:29+0000\n"
+"PO-Revision-Date: 2020-05-06 14:29+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,18 +16,24 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: project_task_invoice
-#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_project_partner_id
-msgid "Client du projet"
-msgstr "Client du projet"
+#: model:ir.actions.server,name:project_task_invoice.action_cancel_task_delivery
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "Cancel delivery"
+msgstr "Annuler la livraison"
 
 #. module: project_task_invoice
-#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_initial_sale_id
-msgid "Sale order"
-msgstr "Commande de vente"
+#: model:ir.model.fields,field_description:project_task_invoice.field_sale_order_line_is_self_qty_equal_task_qty
+msgid "Check Qty"
+msgstr "Contrôle des quantités"
 
 #. module: project_task_invoice
-#: model:ir.ui.view,arch_db:project_task_invoice.project_task_search
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_date_delivered
+msgid "Date delivered"
+msgstr "Date de livraison"
+
+#. module: project_task_invoice
 #: model:ir.model.fields,field_description:project_task_invoice.field_project_task_date_invoiced
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_search
 msgid "Invoice Date"
 msgstr "Date de facturation"
 
@@ -37,9 +43,20 @@ msgid "Invoicing"
 msgstr "Facturation"
 
 #. module: project_task_invoice
-#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_initial_sale_line_id
-msgid "Sale order line"
-msgstr "Ligne de vente"
+#: model:ir.actions.server,name:project_task_invoice.action_mark_task_as_delivered
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "Mark as delivered"
+msgstr "Marquer comme livrée au client"
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_sale_order
+msgid "Sales Order"
+msgstr "Bon de commande"
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_sale_order_line
+msgid "Sales Order Line"
+msgstr "Ligne de bons de commande"
 
 #. module: project_task_invoice
 #: model:ir.model,name:project_task_invoice.model_project_task
@@ -51,3 +68,19 @@ msgstr "Tâche"
 msgid "Time sold"
 msgstr "Temps vendu"
 
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_tree
+msgid "Total temps vendu"
+msgstr "Total temps vendu"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_initial_sale_line_id
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "Sale Order Line"
+msgstr "Ligne de vente"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_initial_sale_id
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_form_invoicing
+msgid "Sale Order"
+msgstr "Devis"

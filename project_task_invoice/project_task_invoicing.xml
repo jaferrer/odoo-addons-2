@@ -86,14 +86,14 @@
                     <group>
                         <field name="time_spent"/>
                         <field name="project_partner_id" invisible="1"/>
-                        <field name="initial_sale_id"
+                        <field name="initial_sale_id" string="Sale Order"
                                context="{'default_partner_id': project_partner_id}"
                                domain="[('state', '!=', 'cancel'), ('partner_id', '=', project_partner_id)]"/>
-                        <field name="initial_sale_line_id"
+                        <field name="initial_sale_line_id" string="Sale Order Line"
                                context="{
                                    'default_order_id': initial_sale_id,
                                    'default_product_uom_qty': time_spent or planned_days,
-                                   'default_product_uom': %(product.product_uom_day)d,
+                                   'default_product_uom': %(product.product_uom_unit)d,
                                    }"
                                domain="[('order_id.state', '!=', 'cancel'), ('order_id.partner_id', '=', project_partner_id)]"/>
                         <field name="date_invoiced"/>

@@ -35,10 +35,10 @@ class ProjectTaskInvoice(models.Model):
     )
     initial_sale_line_id = fields.Many2one(
         'sale.order.line',
-        u"Sale order line",
+        u"Sale Order Line",
         domain=[('order_id.state', '!=', 'cancel')]
     )
-    initial_sale_id = fields.Many2one('sale.order', u"Sale order")
+    initial_sale_id = fields.Many2one('sale.order', u"Sale Order")
 
     @api.onchange('initial_sale_line_id')
     def _onchange_initial_sale_line_id(self):
