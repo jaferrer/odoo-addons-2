@@ -1,5 +1,5 @@
 table.table-numpad {
-    width: auto;
+    width: 100%;
     border-collapse: unset;
 }
 
@@ -16,27 +16,23 @@ td.td-button-resize > button {
     top: 1px;
     bottom: 1px;
     right: 0px;
-    left: 2px;
+    left: 0px;
 }
 
-button.numpad-clear-resize {
-    width: 35px;
+button.numpad-button {
+    font-size: 24px;
+    width: 100%;
+    height: 74px;
+}
+
+button.numpad-resize {
+    width: 100%;
 }
 
 tbody.numpad-body {
     border-collapse: revert;
 }
 
-button.numpad-coma-resize {
-    width: 100%;
-}
-
 button.btn-margin-left {
     margin-left: 10px;
-}
-
-button.numpad-button {
-    font-size: 24px;
-    width: 74px;
-    height: 74px;
 }

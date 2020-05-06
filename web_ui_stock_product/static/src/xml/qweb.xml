@@ -88,115 +88,127 @@
     </t>
 
     <t t-name="ProductTableRow.Numpad">
-        <div class="container">
-            <div class="row">
-                <div class="col align-self-end">
-                    <button type="button" id="btn_exit_numpad" class='btn btn-danger js_exit_numpad'>
-                        Annuler
-                    </button>
-                    <button type="button"
-                            id="btn_validate_new_qty"
-                            class="btn btn-success js_validate_new_qty pull-right">
-                        Confirmer
-                    </button>
-                </div>
+
+        <div class="col-sm-6">
+            <div class="align-self-end">
+                <button type="button" id="btn_exit_numpad" class='btn btn-danger js_exit_numpad'>
+                    Annuler
+                </button>
+                <button type="button"
+                        id="btn_validate_new_qty"
+                        class="btn btn-success js_validate_new_qty pull-right">
+                    Confirmer
+                </button>
             </div>
-            <div class="row">
-                <table id="product_numpad_table" class="table">
-                    <thead id="product_numpad_table_header">
+
+            <table id="product_numpad_table" class="table">
+                <thead id="product_numpad_table_header">
+                    <tr>
+                        <th>Nom</th>
+                        <th>Quantité actuelle</th>
+                    </tr>
+                </thead>
+                <tbody id="product_numpad_table_body">
+                    <tr>
+                        <td>
+                            <t t-esc="widget.productRow.product.name"/>
+                        </td>
+                        <td id="numpad_quantity">
+                            <t t-esc="widget.quantity"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-sm-6">
+            <div class="d-flex justify-content-center">
+                <table id="numpad" class="table table-numpad">
+                    <thead>
                         <tr>
-                            <th>Nom</th>
-                            <th>Quantité actuelle</th>
+                            <th id="numpad_new_quantity"
+                                class="table-bordered rounded border-secondary"
+                                colspan="4"
+                                style="color: #6c757d;">
+                                <t t-esc="widget.value"/>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody id="product_numpad_table_body">
+                    <tbody class="numpad-body">
                         <tr>
-                            <td>
-                                <t t-esc="widget.productRow.product.name"/>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_1">1
+                                </button>
                             </td>
-                            <td id="numpad_quantity">
-                                <t t-esc="widget.quantity"/>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_2">2
+                                </button>
+                            </td>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_3">3
+                                </button>
+                            </td>
+                            <td class="border-0 td-button-resize" rowspan="3">
+                                <button class="btn btn-outline-secondary js_numpad_validate numpad-resize">OK</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_4">4
+                                </button>
+                            </td>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_5">5
+                                </button>
+                            </td>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_6">6
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_7">7
+                                </button>
+                            </td>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_8">8
+                                </button>
+                            </td>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_9">9
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_clear numpad-resize">
+                                    C
+                                </button>
+                            </td>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_0">0
+                                </button>
+                            </td>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_add_coma numpad-resize">
+                                    ,
+                                </button>
+                            </td>
+                            <td class="border-0">
+                                <button class="btn numpad-button btn-outline-secondary js_numpad_backspace">
+                                    <img alt="Retour arrière"
+                                         src="/web_ui_stock_product/static/src/img/backspace.png"
+                                         width="24"
+                                         height="21"/>
+                                </button>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
-        <div class="container d-flex justify-content-center">
-            <table id="numpad" class="table table-numpad">
-                <thead>
-                    <tr>
-                        <th id="numpad_new_quantity"
-                            class="table-bordered rounded border-secondary"
-                            colspan="4"
-                            style="color: #6c757d;">
-                            <t t-esc="widget.value"/>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody class="numpad-body">
-                    <tr>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_1">1</button>
-                        </td>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_2">2</button>
-                        </td>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_3">3</button>
-                        </td>
-                        <td class="border-0 td-button-resize" rowspan="3">
-                            <button class="btn btn-outline-secondary js_numpad_validate">OK</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_4">4</button>
-                        </td>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_5">5</button>
-                        </td>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_6">6</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_7">7</button>
-                        </td>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_8">8</button>
-                        </td>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_9">9</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_clear numpad-clear-resize">
-                                C
-                            </button>
-                        </td>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_0">0</button>
-                        </td>
-                        <td class="border-0">
-                            <button class="btn numpad-button btn-outline-secondary js_numpad_add_coma numpad-coma-resize">
-                                ,
-                            </button>
-                        </td>
-                        <td class="border-0">
-                            <button class="btn btn-outline-secondary js_numpad_backspace" style="height:74px;">
-                                <img alt="Retour arrière"
-                                     src="/web_ui_stock_product/static/src/img/backspace.png"
-                                     width="24"
-                                     height="21"/>
-                            </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+
+
     </t>
 
     <t t-name="ScanProductRow.Error">
