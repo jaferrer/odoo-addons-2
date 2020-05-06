@@ -100,4 +100,3 @@ class ProjectTaskInvoiceSaleOrderLine(models.Model):
         tasks = self.env['project.task'].search([('initial_sale_line_id', '=', self.id)])
         for rec in self:
             rec.is_self_qty_equal_task_qty = all(task.time_spent == rec.product_uom_qty for task in tasks)
-
