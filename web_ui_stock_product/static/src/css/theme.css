@@ -40,3 +40,10 @@ tbody.numpad-body {
 button.btn-margin-left {
     margin-left: 10px;
 }
+
+@media (orientation:portrait) {
+    .portrait-column-alignment {
+         max-width: 100%;
+         flex: 0 0 100%;
+    }
+}
