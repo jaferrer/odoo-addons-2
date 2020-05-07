@@ -1,51 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<openerp>
-    <data>
+<odoo>
 
-        <record model="ir.ui.view" id="project_task_tree">
-            <field name="name">project_task_tree</field>
-            <field name="model">project.task</field>
-            <field name="inherit_id" ref="project.view_task_tree2"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <tree position="inside">
-                    <field name="time_spent" sum="Total temps vendu"/>
-                    <field name="date_invoiced"/>
-                </tree>
-            </field>
-        </record>
+    <record model="ir.ui.view" id="project_task_tree">
+        <field name="name">project_task_tree</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="priority" eval="16"/>
+        <field name="arch" type="xml">
+            <tree position="inside">
+                <field name="time_spent" sum="Total temps vendu"/>
+                <field name="date_invoiced"/>
+            </tree>
+        </field>
+    </record>
 
-        <record model="ir.ui.view" id="project_task_search">
-            <field name="name">project_task_search</field>
-            <field name="model">project.task</field>
-            <field name="inherit_id" ref="project.view_task_search_form"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <group expand="0" position="inside">
-                    <filter string="Invoice Date" name="group_date_invoiced" context="{'group_by':'date_invoiced:month'}"/>
+    <record model="ir.ui.view" id="project_task_search">
+        <field name="name">project_task_search</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_search_form"/>
+        <field name="priority" eval="16"/>
+        <field name="arch" type="xml">
+            <group expand="0" position="inside">
+                <filter string="Invoice Date" name="group_date_invoiced"
+                        context="{'group_by':'date_invoiced:month'}"/>
+            </group>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="project_task_form_invoicing">
+        <field name="name">project_task_form_invoicing</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="priority" eval="16"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Invoicing">
+                    <group>
+                        <field name="time_spent"/>
+                        <field name="date_invoiced"/>
+                        <field name="project_partner_id" invisible="1"/>
+                        <field name="initial_sale_line_id"
+                               domain="[('order_id.state', '!=', 'cancel'), ('order_id.partner_id', '=', project_partner_id)]"/>
+                        <field name="initial_sale_id"
+                               domain="[('state', '!=', 'cancel'), ('partner_id', '=', project_partner_id)]"/>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+    <record id="action_invoice_project_task" model="ir.actions.server">
+        <field name="name">To invoice those lines</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.browse(context['active_ids']).invoice_project_task()
+        </field>
+    </record>
+
+    <record id="value_invoice_project_task" model="ir.values">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">project.task</field>
+        <field name="name">To invoice those lines</field>
+        <field name="value" eval="'ir.actions.server,' + str(action_invoice_project_task)"/>
+    </record>
+
+    <record id="invoice_project_task_wizard_form_view" model="ir.ui.view">
+        <field name="name">invoice_project_task_wizard_form_view</field>
+        <field name="model">invoice.project.task.wizard</field>
+        <field name="arch" type="xml">
+            <form string="To Invoice Tasks">
+                <group>
+                    <field name="date_invoiced" widget="date"/>
+                    <field name="has_new_date"/>
                 </group>
-            </field>
-        </record>
+                <label for="task_ids"/>
+                <field name="task_ids">
+                    <tree>
+                        <field name="project_id"/>
+                        <field name="name"/>
+                        <field name="stage_id"/>
+                        <field name="time_spent"/>
+                        <field name="date_invoiced"/>
+                    </tree>
+                </field>
+                <footer>
+                    <button name="to_invoice_tasks" type="object" string="To Invoice" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-default"/>
+                </footer>
+            </form>
+        </field>
+    </record>
 
-        <record model="ir.ui.view" id="project_task_form_invoicing">
-            <field name="name">project_task_form_invoicing</field>
-            <field name="model">project.task</field>
-            <field name="inherit_id" ref="project.view_task_form2"/>
-            <field name="priority" eval="16"/>
-            <field name="arch" type="xml">
-                <notebook position="inside">
-                    <page string="Invoicing">
-                        <group>
-                            <field name="time_spent"/>
-                            <field name="date_invoiced"/>
-                            <field name="project_partner_id" invisible="1"/>
-                            <field name="initial_sale_line_id" domain="[('order_id.state', '!=', 'cancel'), ('order_id.partner_id', '=', project_partner_id)]"/>
-                            <field name="initial_sale_id" domain="[('state', '!=', 'cancel'), ('partner_id', '=', project_partner_id)]"/>
-                        </group>
-                    </page>
-                </notebook>
-            </field>
-        </record>
-
-    </data>
-</openerp>
+</odoo>

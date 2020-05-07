@@ -46,3 +46,29 @@ class ProjectTaskInvoice(models.Model):
     def _onchange_initial_sale_id(self):
         if self.initial_sale_line_id.order_id != self.initial_sale_id:
             self.initial_sale_line_id = False
+
+    @api.multi
+    def invoice_project_task(self):
+        ctx = dict(self.env.context)
+        ctx.update({'default_task_ids': self.env.context.get('active_ids')})
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'To Invoice Tasks',
+            'res_model': 'invoice.project.task.wizard',
+            'views': [(False, 'form')],
+            'target': 'new',
+            'context': ctx,
+        }
+
+
+class InvoiceProjectTask(models.TransientModel):
+    _name = 'invoice.project.task.wizard'
+
+    date_invoiced = fields.Date(u"Billing Date", default=fields.Date.today())
+    has_new_date = fields.Boolean(u"Overwrite Billing Date in Tasks", default=True)
+    task_ids = fields.Many2many('project.task', string=u"Tasks to Invoice")
+
+    @api.multi
+    def to_invoice_tasks(self):
+        if self.has_new_date:
+            self.task_ids.write({'date_invoiced': self.date_invoiced})
