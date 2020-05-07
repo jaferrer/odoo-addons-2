@@ -124,7 +124,7 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             raise UserError(_t(u"Pas de point relais fournit"))
         if self.id_relais and self.produit_expedition_id.is_relais:
             alternate_addr = dict(ship_to_address, access_point_id=self.id_relais)
-            to_addr = dict(owner_address, attn=self.partner_id.name, phone=self.partner_id.name)
+            to_addr = dict(owner_address, attn=self.partner_id.name, phone=self.partner_id.phone)
 
         shipping_service = {
             'code': self.produit_expedition_id.code,
