@@ -8,6 +8,7 @@
                 <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_main_list_row.js"/>
                 <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_main_list_row_error.js"/>
                 <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_main_list_row_numpad.js"/>
+                <script type="text/javascript" src="/web_ui_stock_product/static/src/js/product_main_list_row_lot.js"/>
             </xpath>
         </template>
 
