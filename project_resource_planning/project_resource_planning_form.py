@@ -73,7 +73,8 @@ class ProjectResourcePlanningSheet(models.Model):
     project_color = fields.Char(u"Color Code", related='project_id.color_code', store=True)
     datetime_start = fields.Datetime(u"Start Datetime", required=True)
     datetime_end = fields.Datetime(u"End Datetime", required=True)
-    project_id = fields.Many2one('project.project', u"Project", domain=[('used_in_resource_planning', '=', True)], required=True)
+    project_id = fields.Many2one('project.project', u"Project", domain=[('used_in_resource_planning', '=', True)],
+                                 required=True)
     overlap = fields.Boolean(u"Overlap", compute='_compute_overlap')
     date_start = fields.Date(u"Start Date")
     date_end = fields.Date(u"End Date")

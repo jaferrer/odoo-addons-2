@@ -266,6 +266,9 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 if (this.visibleFrameQweb) {
                     const template = 'Timeline2.DefaultItemTemplate';
                     options.visibleFrameTemplate = function (item, element, data) {
+                        if (!item) {
+                            return '';
+                        }
                         return core.qweb.render(template, {
                             item: item,
                             element: element,
@@ -604,31 +607,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     })
             },
 
-            _convert_result_grouping: function (grouping) {
-                let value = grouping.get('value')
-                let label = value;
-                if (Array.isArray(value)) {
-                    label = value[1];
-                    value = value[0];
-                }
-                let current_group = {
-                    id: grouping.get('grouped_on') + '_' + value,
-                    content: label,
-                    _id: value,
-                    _name: label,
-                    field: grouping.get('grouped_on'),
-                    nb_element: grouping.get('length'),
-                    showNested: grouping.get("folded"),
-                }
-                if (this.overlap_field) {
-                    current_group['subgroupStack'] = this.subgroupStack;
-                    current_group['subgroupOrder'] = function (a, b) {
-                        return a.subgroupOrder - b.subgroupOrder;
-                    };
-                }
-                return current_group;
-            },
-
             _populate_vis_group: function (grouping) {
                 let grouped_ons = grouping.get('grouped_on')
                 let values = grouping.get('value')
@@ -645,14 +623,16 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         value = value[0];
                     }
                     let grp_id = grouped_on + '_' + value;
-
                     if (previous_grouped_on) {
+
                         grp_id = previous_grouped_on + "_" + grp_id;
                     }
+                    console.log(label, grp_id);
+                    label = label || "Sans " + this.fields[grouped_on].string;
                     if (!this.visGroups.get(grp_id)) {
                         let current_group = {
                             id: grp_id,
-                            content: label,
+                            content: label || this.fields[grouped_on].string,
                             _id: value,
                             _name: label,
                             field: grouped_on,
@@ -699,6 +679,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 };
                 if (this.current_search.groupBys) {
                     visEvt.group = this.current_search.groupBys.map(grp => grp + '_' + this._get_id(evt[grp])).join("_")
+                    console.log(visEvt.group);
                 }
                 if (data_type !== 'background' && this.overlap_field) {
                     visEvt["subgroup"] = subgroup;
@@ -798,7 +779,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 }
                 var context = this.dataset.get_context();
                 let group = null;
-                if (item.group) {
+                if (item.evt && item.group) {
                     group = this.visGroups.get(item.group)
                     if (group.field !== this.current_search.lastGroupBy) {
                         return callback(null);
@@ -835,7 +816,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     if (field_def.type !== 'many2one') return callback(null);
                     dialogOption.res_model = field_def.relation;
                     dialogOption.create_function = function (data, options) {
-                        return this._delegate_create(data, options).fail(error => callback(null));
+                        return this._create_delegate(data, field_def).fail(error => callback(null));
                     }.bind(this);
                 } else {
                     dialogOption.create_function = function (data, options) {
@@ -866,22 +847,26 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         )
                     })
             },
-            _delegate_create: function (data, options) {
-                return this.dataset._model.call('delegate_create', [
+            _create_delegate: function (data, field_def, auto_reload = true) {
+                const deferred = this.dataset._model.call('delegate_create', [
                     {
                         'delegate_field': this.delegate_model_field,
                         'field_used': this.fields_used,
                         'delegate_relation': field_def.relation,
                         'delegate_data': data,
                     }
-                ], {context: context}).then(result => {
-                    if (!result || !Array.isArray(result) || !result.length) return;
-                    this.visData.remove(result);
-                    return this._internal_do_search(
-                        [...this.current_search.domain, [this.delegate_model_field, 'in', result]],
-                        this.current_search.context
-                    )
-                })
+                ], {context: this.current_search.context})
+                if (auto_reload) {
+                    deferred.then(result => {
+                        if (!result || !Array.isArray(result) || !result.length) return;
+                        this.visData.remove(result);
+                        return this._internal_do_search(
+                            [...this.current_search.domain, [this.delegate_model_field, 'in', result]],
+                            this.current_search.context,
+                        )
+                    })
+                }
+                return deferred;
             },
 
             on_update: function (item, callback) {
@@ -940,12 +925,13 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 }
                 return defered;
             },
-            _write_delegate: function (ids, data, field_def, auto_reload = true) {
+
+            _write_delegate: function (id, data, field_def, auto_reload = true) {
                 const defered = this.dataset._model.call('delegate_write', [
-                    [item.evt.id],
+                    [id],
                     {
                         'delegate_field': this.delegate_model_field,
-                        'delegate_ids': ids,
+                        'delegate_id': id,
                         'field_used': this.fields_used,
                         'delegate_relation': field_def.relation,
                         'delegate_data': data,
@@ -956,7 +942,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         if (!result || !Array.isArray(result) || !result.length) return;
                         this.visData.remove(result);
                         return this._internal_do_search(
-                            [...this.current_search.domain, [this.delegate_model_field, '=', id]],
+                            [...this.current_search.domain, [this.delegate_model_field, 'in', result]],
                             this.current_search.context,
                         )
                     })
@@ -1005,20 +991,35 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             on_remove: function (item, callback) {
-                var self = this;
-
-                function do_it() {
-                    return $.when(self.dataset.unlink([item.evt.id])).then(function () {
-                        callback(item);
-                    });
+                if(!item.evt){
+                    return callback(item);
                 }
-
                 if (this.options.confirm_on_delete) {
                     if (confirm(_t("Are you sure you want to delete this record ?"))) {
-                        return do_it();
+                        return this._unlink(item.evt);
                     }
-                } else
-                    return do_it();
+                    return callback(null);
+                }
+                return this._unlink(item.evt).then(res => res ? callback(item) : callback(null));
+            },
+
+            _unlink: function (evt) {
+                if (this.delegate_model_field) {
+                    const field_def = this.fields[this.delegate_model_field]
+                    if (field_def.type !== 'many2one') return callback(null);
+                    return this.dataset._model.call('delegate_unlink', [
+                        [evt.id],
+                        {
+                            'delegate_field': this.delegate_model_field,
+                            'delegate_id': evt[this.delegate_model_field][0],
+                            'delegate_relation': field_def.relation,
+                        }
+                    ]).then((result) => {
+                        result.forEach(it => this.visData.remove(it))
+                        return result.length > 0;
+                    })
+                }
+                return $.when(self.dataset.unlink([evt.id]));
             },
 
             on_click: function (e) {
