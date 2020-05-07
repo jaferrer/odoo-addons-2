@@ -2,14 +2,6 @@
  * Copyright 2020 Ndp Systemes
  * License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl). */
 
-_.str.toBoolElse = function (str, elseValues, trueValues, falseValues) {
-    var ret = _.str.toBool(str, trueValues, falseValues);
-    if (_.isUndefined(ret)) {
-        return elseValues;
-    }
-    return ret;
-};
-
 odoo.define('web_timeline2.TimelineView', function (require) {
     "use strict";
 
@@ -21,7 +13,8 @@ odoo.define('web_timeline2.TimelineView', function (require) {
     var View = require('web.View');
     var widgets = require('web_calendar.widgets');
     var session = require('web.session');
-    const formats = require('web.formats')
+    const formats = require('web.formats');
+    var data_manager = require('web.data_manager');
 
     var _t = core._t;
     var _lt = core._lt;
@@ -41,9 +34,27 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 this.permissions = {};
                 this.grouped_by = false;
                 this.colors = [];
-                this.groups = {};
+                this.elementType = [];
                 this.visGroups = new vis.DataSet()
                 this.visData = new vis.DataSet()
+                this.current_search = {
+                    domain: [],
+                    groupBys: [],
+                    context: {},
+                    lastGroupBy: {},
+                    view: {
+                        groupBys: [],
+                        domain: [],
+                    }
+                }
+                this.subgroupStack = {
+                    other: true,
+                    background_unstacked: false,
+                    range_unstacked: false,
+                    box_unstacked: false,
+                    point_unstacked: false,
+                }
+                this.searchDeferred = true;
                 this._parse_attrs(this.fields_view.arch.attrs);
                 return result
             },
@@ -52,12 +63,24 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 if (!attrs.date_start) {
                     throw new Error(_t("Timeline view has not defined 'date_start' attribute."));
                 }
+                this.displayNumberOnGroup = utils.toBoolElse(attrs.number_on_group || '', false);
+                this.showCurrentTime = utils.toBoolElse(attrs.show_current_time || '', true);
+                this.showMinorLabels = utils.toBoolElse(attrs.show_minor_labels || '', true);
+                this.showMajorLabels = utils.toBoolElse(attrs.show_major_labels || '', true);
+                this.showWeekScale = utils.toBoolElse(attrs.show_week_scale || '', false);
+                this.horizontalScroll = utils.toBoolElse(attrs.horizontal_scroll || '', false);
                 this.headerOrientation = attrs['headerOrientation']
                 this.overlap_field = attrs['overlap_field']
                 this.readonly_field = attrs['readonly_field']
                 this.delegate_model_field = attrs['delegate_model_field']
 
-                this.parse_colors(attrs.colors)
+                this.defaultColor = attrs.default_color_code; //Default value, same as colors="'#COLOR_CODE':True"
+                this.parse_colors(attrs.colors) //or a python expression '#COLOR_CODE1': expr;'#COLOR_CODE2':expr2; ...
+                this.color_field = attrs.color_field; //The field used to determine the color code of the timeline event
+
+                this.defaultType = attrs.item_type; //Default value, same as colors="'DEFAULT_TYPE':True"
+                this.event_type = attrs.field_event_type; //The field used to determine the type of the timeline event
+                this.parse_element_type(attrs.item_types) //or a python expression 'range': expr;'point' expr2; ...
 
                 this.stack = utils.toBoolElse(attrs.stack || '', true);
                 this.stackSubgroups = utils.toBoolElse(attrs.stackSubgroups || '', true);
@@ -67,16 +90,13 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 this.no_period = this.date_start === this.date_stop;
                 this.display_scale_button = utils.toBoolElse(attrs.scale_button || '', true);
 
-
-                this.event_type = attrs.field_event_type; //The field used to determine the type of the timeline event
-
-                this.color_field = attrs.color_field;
                 this.update_group = utils.toBoolElse(attrs.update_group || '', true);
                 this.update_time = utils.toBoolElse(attrs.update_time || '', true);
                 this.create = utils.toBoolElse(attrs.create || '', true);
                 this.unlink = utils.toBoolElse(attrs.unlink || '', true);
                 this.editable = utils.toBoolElse(attrs.editable || '', true);
                 this.swap_element = utils.toBoolElse(attrs.swap_enable || '', false);
+                this.disableClickOnGroup = utils.toBoolElse(attrs.disable_click_on_group || '', false);
 
                 this.zoomKey = attrs.zoomKey || '';
                 this.mode = attrs.mode || attrs.default_window || 'fit';
@@ -90,7 +110,8 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     this.dragData = [];
                 }
                 this.current_drag_data = null;
-                this.default_group_by = attrs.default_group_by;
+                this.current_search.view.groupBys = attrs.default_group_by.split(',');
+                this.current_search.groupBys = attrs.default_group_by.split(',');
 
                 this.visibleFrameQweb = utils.toBoolElse(attrs.visibleFrameQweb || '', false);
                 this.tooltipOnItemUpdateTimeFormat = utils.toBoolElse(attrs.visibleFrameQweb || '', true);
@@ -101,7 +122,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
 
                 // If this field is set ot true, we don't open the event in form
                 // view, but in a popup with the view_id passed by this parameter
-                if (isNullOrUndef(attrs.event_open_popup) || !_.str.toBoolElse(attrs.event_open_popup, true)) {
+                if (isNullOrUndef(attrs.event_open_popup) || !utils.toBoolElse(attrs.event_open_popup, true)) {
                     this.open_popup_action = false;
                 } else {
                     this.open_popup_action = attrs.event_open_popup;
@@ -134,13 +155,21 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         }).value();
                 }
             },
+            parse_element_type: function (element_type) {
+                if (element_type) {
+                    this.elementType = _(element_type.split(';')).chain()
+                        .compact()
+                        .map(color_pair => {
+                            const pair = color_pair.split(':');
+                            const color = pair[0];
+                            const expr = pair[1];
+                            return [color, py.parse(py.tokenize(expr)), expr];
+                        }).value();
+                }
+            },
 
             start: function () {
-                var self = this;
-                var attrs = this.fields_view.arch.attrs;
-                var fv = this.fields_view;
-
-                this.parse_colors();
+                const attrs = this.fields_view.arch.attrs;
                 this.$timeline = this.$el.find(".oe_timeline2_widget");
                 this.$(".oe_timeline_button_today").click(this.proxy(this.on_today_clicked));
                 if (this.display_scale_button) {
@@ -159,17 +188,8 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 };
 
                 this.$el.addClass(attrs['class']);
-
-                this.info_fields = [];
-                this.fields = fv.fields;
-
-                for (var fld = 0; fld < fv.arch.children.length; fld++) {
-                    this.info_fields.push(fv.arch.children[fld].attrs.name);
-                }
-                this._super.apply(this, self);
-
-                return new Model(this.dataset.model)
-                    .call('fields_get')
+                this._super();
+                return data_manager.load_fields(this.dataset)
                     .then((fields) => {
                         this.fields = fields;
                         this.perm_model = this.dataset.model
@@ -179,24 +199,27 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                             this.perm_model = field_def.relation
                         }
                         return $.when(
-                            self.get_perm('unlink'),
-                            self.get_perm('write'),
-                            self.get_perm('create')
-                        ).then(function () {
-                            self.init_timeline();
+                            this.get_perm('unlink'),
+                            this.get_perm('write'),
+                            this.get_perm('create')
+                        ).then(() => {
+                            this.init_timeline();
                             $(window).trigger('resize');
-                            self.trigger('timeline_view_loaded', fv);
                         })
 
                     });
             },
 
             _get_option_timeline: function () {
+                // const height = $(window).height() - this.$timeline.offset().top;
                 let options = {
                     groupOrder: this.group_order,
                     selectable: true,
-                    showCurrentTime: true,
-                    showMinorLabels: true,
+                    // height: 700,
+                    showCurrentTime: this.showCurrentTime,
+                    showMinorLabels: this.showMinorLabels,
+                    showMajorLabels: this.showMajorLabels,
+                    horizontalScroll: this.horizontalScroll,
                     orientation: this.headerOrientation || 'both',
                     onAdd: this.on_add,
                     onMove: this.on_move,
@@ -205,10 +228,10 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     zoomKey: this.zoomKey,
                     stack: this.stack,
                     stackSubgroups: this.stackSubgroups,
+                    showWeekScale: this.showWeekScale,
                     moment: function (date) {
                         return vis.moment(date).utc();
                     },
-                    // onDropObjectOnItem: this.on_drop_object
                 };
                 if (this.swap_element) {
                     options.multiselect = true;
@@ -243,6 +266,9 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 if (this.visibleFrameQweb) {
                     const template = 'Timeline2.DefaultItemTemplate';
                     options.visibleFrameTemplate = function (item, element, data) {
+                        if (!item) {
+                            return '';
+                        }
                         return core.qweb.render(template, {
                             item: item,
                             element: element,
@@ -386,7 +412,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     // target: "item",
                 };
                 objectItem[this.current_drag_data.field] = dragSrcEl.attr('data-id')
-                console.log("handleObjectItemDragStart", event, objectItem);
                 event.dataTransfer.setData("text", JSON.stringify(objectItem));
             },
 
@@ -410,12 +435,27 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     uid: session.uid,
                     current_date: moment().format('YYYY-MM-DD')
                 });
-                for (let i = 0, len = this.colors.length; i < len; ++i) {
-                    if (py.PY_isTrue(py.evaluate(pair[1], context))) {
-                        color = pair[0];
+                for (const [color, expr] of this.colors) {
+                    if (py.PY_isTrue(py.evaluate(expr, context))) {
+                        return type;
                     }
                 }
-                return color;
+                return this.defaultColor;
+            },
+            _get_type_for_item(evt) {
+                if (this.event_type && evt.hasOwnProperty(this.event_type)) {
+                    return evt[this.event_type];
+                }
+                const context = _.extend({}, evt, {
+                    uid: session.uid,
+                    current_date: moment().format('YYYY-MM-DD')
+                });
+                for (const [type, expr] of this.elementType) {
+                    if (py.PY_isTrue(py.evaluate(expr, context))) {
+                        return type;
+                    }
+                }
+                return this.defaultType
             },
             /* Transform Odoo event object to timeline event object */
             event_data_transform: function (evt) {
@@ -443,17 +483,17 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     date_stop = moment(date_start).add(date_delay, 'hours').toDate();
                 }
                 let color = this._get_color_for_item(evt);
+                const type = this._get_type_for_item(evt);
                 var r = {
                     'start': date_start,
-                    'content':  evt.display_name,
+                    'content': evt.display_name,
                     'title': evt.display_name,
                     'id': evt.id,
+                    'type': type,
                     'evt': evt,
                     'style': 'background-color: ' + color + ';'
                 };
-                if (this.event_type && evt.hasOwnProperty(this.event_type)) {
-                    r.type = evt[this.event_type];
-                }
+
                 // Check if the event is instantaneous, if so, display it with a point on the timeline (no 'end')
                 if (date_stop && !moment(date_start).isSame(date_stop)) {
                     r.end = date_stop;
@@ -472,6 +512,9 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 var fields = _.map(base_field, function (key) {
                     return self.fields_view.arch.attrs[key] || '';
                 });
+                if (!Array.isArray(n_group_bys)) {
+                    n_group_bys = [n_group_bys]
+                }
 
                 fields = _.compact(_.uniq(fields
                     .concat(["display_name"])
@@ -486,116 +529,163 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             do_search: function (domains, contexts, group_bys) {
-                this.visData.clear();
-                this.visGroups.clear();
-                this.groups = {};
-                this.visGroups.add({
-                    id: -1,
-                    content: "-"
-                })
-
-                this.last_domains = domains;
-                this.last_contexts = contexts;
-                // select the group by
-                let n_group_bys = [this.default_group_by];
-                if (group_bys.length) {
-                    n_group_bys = group_bys;
-                }
-                // self.convert_data_to_timeline(res, ...it)
-                this.last_group_by = _.first(n_group_bys);
-                this._init_drap_and_drop(this.dragData.find(el => el.group_by === this.last_group_by))
-                this.fields_used = this.get_fields_to_read(n_group_bys);
-                return this._internal_do_search(this.last_domains, this.last_contexts, this.last_group_by, false);
-            },
-
-            _internal_do_search: function (domains, contexts, group_by, updating) {
-                return this.dataset._model.query(this.fields_used)
-                    .filter(domains)
-                    .context({...contexts, group_by_no_leaf: true, "grouped_on": group_by})
-                    .lazy(false)
-                    .group_by([group_by])
-                    .then(result => {
-                        $.when.apply(this, result.map(res => {
-                            return this.dataset._model
-                                .query(this.fields_used)
-                                .context(res.model.context())
-                                .filter(res.model.domain())
-                                .all()
-                                .then((events) => {
-                                    return this.convert_data_to_timeline(res, events, updating);
-                                })
-                        })).then(this._all_record_done.bind(this))
-                    });
-            },
-
-            _all_record_done: function () {
-                //    Unused but can be override in sub view
+                console.log('do_search', domains, contexts, group_bys);
+                return $.when(this.searchDeferred).then(() => {
+                    this.visData.clear();
+                    this.visGroups.clear();
+                    this.visGroups.add({
+                        id: -1,
+                        content: "-"
+                    })
+                    this.current_search.domain = domains;
+                    this.current_search.context = contexts;
+                    this.current_search.context = contexts;
+                    // select the group by
+                    this.current_search.groupBys = this.current_search.view.groupBys;
+                    if (group_bys.length) {
+                        this.current_search.groupBys = group_bys;
+                    }
+                    // self.convert_data_to_timeline(res, ...it)
+                    this.current_search.lastGroupBy = _.last(this.current_search.groupBys);
+                    this._init_drap_and_drop(this.dragData.find(el => el.group_by === this.current_search.lastGroupBy));
+                    this.searchDeferred = this._load_all_data();
+                    return this.searchDeferred;
+                });
             },
 
             reload: function () {
-                var self = this;
-                if (this.last_domains !== undefined) {
-                    self.current_window = self.timeline.getWindow();
-                    return this.do_search(this.last_domains, this.last_contexts, [this.last_group_by]);
+                if (this.current_search.domain !== undefined) {
+                    this.current_window = this.timeline.getWindow();
+                    return this.do_search(this.current_search.domain, this.current_search.context, this.current_search.groupBys);
                 }
             },
 
-            convert_data_to_timeline(grouping, events, updating) {
+            _load_all_data: function () {
+                if (this.current_search.groupBys) {
+                    return this._load_all_data_with_group();
+                }
+                return this._load_all_data_without_group()
+            },
+            _load_all_data_without_group: function () {
+                return this._internal_do_search(this.current_search.domain, this.current_search.context)
+            },
+            _load_all_data_with_group: function () {
+                return this.dataset._model
+                    .query(this.get_fields_to_read(this.current_search.groupBys))
+                    .filter(this.current_search.domain)
+                    .context({
+                        ...this.current_search.context,
+                        grouped_on: this.current_search.lastGroupBy,
+                        group_by_no_leaf: true
+                    }).lazy(false).group_by(this.current_search.groupBys).then(result => {
+                        return $.when.apply($,
+                            result.map(grouping => {
+                                this._populate_vis_group(grouping);
+                                return this._internal_do_search(grouping.model.domain(), grouping.model.context().eval())
+                            })
+                        )
+                    });
+            },
 
-                let grouped_on = grouping.attributes.grouped_on;
-                let value = grouping.attributes.value;
-                let label = value;
-                if (Array.isArray(grouping.attributes.grouped_on)) {
-                    grouped_on = grouping.attributes.grouped_on[0]
-                }
-                let grp_id = value || -1
-                if (Array.isArray(value)) {
-                    grp_id = value[0];
-                    label = value[1];
-                }
-                this.groups[grp_id] = {...grouping};
-                const subgroupStack = {}
-                subgroupStack["backgroud_stacked"] = true;
-                subgroupStack["backgroud_unstacked"] = false;
-                subgroupStack["range_stacked"] = true;
-                subgroupStack["range_unstacked"] = false;
-                const dataVisGrp = {
-                    ...this.groups[grp_id] || {},
-                    id: grp_id,
-                    content: label ? label : _t("Undefined"),
-                }
-                if (this.overlap_field) {
-                    dataVisGrp['subgroupStack'] = subgroupStack;
-                    dataVisGrp['subgroupOrder'] = function (a, b) {
-                        return a.subgroupOrder - b.subgroupOrder;
-                    };
-                }
-                if (!this.visGroups.get(grp_id)) {
-                    this.visGroups.add(dataVisGrp)
-                }
+            _internal_do_search: function (domains = this.current_search.domain, contexts = this.current_search.context) {
+                const fields_used = this.get_fields_to_read(this.current_search.groupBys);
+                return this.dataset._model.query(fields_used)
+                    .filter(domains)
+                    .context({...contexts, "grouped_on": this.current_search.lastGroupBy})
+                    .all()
+                    .then(events => {
+                        return events.filter(evt => evt[this.date_start]).map(evt => {
+                            const el = this.convert_data_to_timeline(evt);
+                            if (this.visData.get(el.id)) {
+                                this.visData.update(el);
+                            } else {
+                                this.dataset.ids.push(el.id);
+                                this.visData.add(el);
+                            }
+                            return el;
+                        })
+                    })
+            },
 
-                events.filter(evt => evt[this.date_start]).forEach((evt) => {
-                        const data = this.event_data_transform(evt)
-                        const data_type = (data.type || 'range')
-                        const suffix = evt[this.overlap_field] ? "stacked" : "unstacked"
-                        const subgroup = data_type + "_" + suffix;
-                        const visEvt = {
-                            ...data,
-                            group: grp_id,
-                        };
-                        if (data_type !== 'background' && this.overlap_field) {
-                            visEvt["subgroup"] = subgroup;
-                            visEvt["subgroupOrder"] = suffix === 'stacked' ? 10 : 100;
-                        }
-                        if (!updating) {
-                            this.visData.add(visEvt);
-                        } else {
-                            this.visData.update(visEvt);
-                        }
+            _populate_vis_group: function (grouping) {
+                let grouped_ons = grouping.get('grouped_on')
+                let values = grouping.get('value')
+                if (!Array.isArray(grouped_ons)) {
+                    grouped_ons = [grouped_ons];
+                    values = [values];
+                }
+                let previous_grouped_on = null;
+                for (const [idx, grouped_on] of grouped_ons.entries()) {
+                    let value = values[idx];
+                    let label = value;
+                    if (Array.isArray(value)) {
+                        label = value[1];
+                        value = value[0];
                     }
-                );
+                    let grp_id = grouped_on + '_' + value;
+                    if (previous_grouped_on) {
 
+                        grp_id = previous_grouped_on + "_" + grp_id;
+                    }
+                    console.log(label, grp_id);
+                    label = label || "Sans " + this.fields[grouped_on].string;
+                    if (!this.visGroups.get(grp_id)) {
+                        let current_group = {
+                            id: grp_id,
+                            content: label || this.fields[grouped_on].string,
+                            _id: value,
+                            _name: label,
+                            field: grouped_on,
+                            treeLevel: idx,
+                        }
+                        if (idx === grouped_ons.length - 1) {
+                            if (this.overlap_field) {
+                                current_group['subgroupStack'] = this.subgroupStack;
+                                current_group['subgroupOrder'] = function (a, b) {
+                                    return a.subgroupOrder - b.subgroupOrder;
+                                };
+                            }
+                            if (this.displayNumberOnGroup) {
+                                current_group.content += " (" + grouping.get('length') + ")"
+                            }
+                        }
+                        this.visGroups.add(current_group);
+                    }
+                    if (previous_grouped_on !== null) {
+                        const previous_vis_group = this.visGroups.get(previous_grouped_on);
+                        this.visGroups.update({
+                            id: previous_grouped_on,
+                            nestedGroups: [...previous_vis_group.nestedGroups || [], grp_id]
+                        })
+                    }
+                    previous_grouped_on = grp_id;
+                }
+            },
+            _get_id: function (value) {
+                if (Array.isArray(value)) {
+                    return value[0];
+                }
+                return value;
+            },
 
+            convert_data_to_timeline(evt) {
+                const data = this.event_data_transform(evt)
+                const data_type = (data.type || 'box')
+                const suffix = evt[this.overlap_field] ? "stacked_" + data.id : "unstacked"
+                const subgroup = data_type + "_" + suffix;
+
+                const visEvt = {
+                    ...data,
+                };
+                if (this.current_search.groupBys) {
+                    visEvt.group = this.current_search.groupBys.map(grp => grp + '_' + this._get_id(evt[grp])).join("_")
+                    console.log(visEvt.group);
+                }
+                if (data_type !== 'background' && this.overlap_field) {
+                    visEvt["subgroup"] = subgroup;
+                    visEvt["subgroupOrder"] = suffix.includes('stacked') ? 10 : 100;
+                }
+                return visEvt;
             },
 
             do_show: function () {
@@ -621,8 +711,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
 
             _on_drop: function (event) {
                 const dropData = JSON.parse(event.event.dataTransfer.getData("text"));
-                console.log(event);
-                console.log(dropData);
                 switch (event.what) {
                     case "background":
                         const toCreate = {
@@ -642,7 +730,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         }
                         toCreate[this.current_drag_data.field] = dropData[this.current_drag_data.field]
                         this.on_add(toCreate, (item) => {
-                        })
+                        }, this.current_drag_data.create_auto)
                         break;
                     case "item":
                         const to_write = {};
@@ -657,18 +745,11 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         }
                         break;
                     default:
-                        console.log("default", event);
+                        console.debug("default", event);
                 }
             },
 
-            on_add: function (item, callback) {
-                console.log("on_add", item);
-                if (item.comeFromDrag) {
-                    console.log("on add from drag and drop", item);
-                    return callback(null);
-                }
-                var context = this.dataset.get_context();
-                // Initialize default values for creation
+            _get_default_values: function (group, item) {
                 var default_context = {};
                 default_context['default_'.concat(this.date_start)] = item.start;
 
@@ -682,27 +763,60 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     }
                     default_context['default_'.concat(this.date_stop)] = stop;
                 }
-                if (item.group > 0) {
-                    default_context['default_'.concat(this.last_group_by)] = item.group;
+                if (group) {
+                    default_context['default_'.concat(group.field)] = group._id;
                 }
                 if (this.current_drag_data && item[this.current_drag_data.field]) {
                     default_context['default_'.concat(this.current_drag_data.field)] = parseInt(item[this.current_drag_data.field]);
                 }
+                return default_context;
+            },
+
+            on_add: function (item, callback, auto_create = false) {
+                console.log("add", item);
+                if (item.comeFromDrag) {
+                    return callback(null);
+                }
+                var context = this.dataset.get_context();
+                let group = null;
+                if (item.evt && item.group) {
+                    group = this.visGroups.get(item.group)
+                    if (group.field !== this.current_search.lastGroupBy) {
+                        return callback(null);
+                    }
+                }
+                // Initialize default values for creation
+                var default_context = this._get_default_values(group, item);
                 context.add(default_context);
+
+                if (auto_create) {
+                    if (this.delegate_model_field) {
+                        console.debug('Auto create on delegate model is not supported')
+                    } else {
+                        return this.dataset.default_get(this.get_fields_to_read(this.current_search.groupBys), {
+                            context: context
+                        }).then(data => {
+                            this._create(data).fail((error, event) => {
+                                event.preventDefault();
+                                this.on_add(item, callback, false);
+                            });
+                        })
+                    }
+                }
                 // Show popup
                 const dialogOption = {
                     res_model: this.dataset.model,
                     res_id: null,
                     context: context,
-                    view_id: parseInt(this.open_popup_action)
+                    view_id: parseInt(this.open_popup_action),
+                    disable_multiple_selection: true,
                 }
                 if (this.delegate_model_field) {
                     const field_def = this.fields[this.delegate_model_field]
                     if (field_def.type !== 'many2one') return callback(null);
-
                     dialogOption.res_model = field_def.relation;
                     dialogOption.create_function = function (data, options) {
-                        return this._delegate_create(data, options).fail(error => callback(null));
+                        return this._create_delegate(data, field_def).fail(error => callback(null));
                     }.bind(this);
                 } else {
                     dialogOption.create_function = function (data, options) {
@@ -714,49 +828,56 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     callback(null);
                     dialog.destroy();
                 });
+                dialog.on('on_button_cancel', this, () => {
+                    dialog.destroy();
+                    callback(null)
+                })
                 dialog.open();
+
+
                 return false;
             },
 
-            _create: function (data, options) {
+            _create: function (data, options = {}) {
                 return this.dataset.create(data, options)
                     .then(result => {
                         return this._internal_do_search(
                             [['id', '=', result]],
-                            this.last_contexts,
-                            this.last_group_by,
-                            true
+                            this.current_search.context
                         )
                     })
             },
-            _delegate_create: function (data, options) {
-                return this.dataset._model.call('delegate_create', [
+            _create_delegate: function (data, field_def, auto_reload = true) {
+                const deferred = this.dataset._model.call('delegate_create', [
                     {
                         'delegate_field': this.delegate_model_field,
                         'field_used': this.fields_used,
                         'delegate_relation': field_def.relation,
                         'delegate_data': data,
                     }
-                ], {context: context}).then(result => {
-                    if (!result || !Array.isArray(result) || !result.length) return callback(null)
-                    this.visData.remove(result);
-                    return this._internal_do_search(
-                        [...this.last_domains, [this.delegate_model_field, 'in', result]],
-                        this.last_contexts,
-                        this.last_group_by,
-                        true
-                    )
-                })
+                ], {context: this.current_search.context})
+                if (auto_reload) {
+                    deferred.then(result => {
+                        if (!result || !Array.isArray(result) || !result.length) return;
+                        this.visData.remove(result);
+                        return this._internal_do_search(
+                            [...this.current_search.domain, [this.delegate_model_field, 'in', result]],
+                            this.current_search.context,
+                        )
+                    })
+                }
+                return deferred;
             },
 
             on_update: function (item, callback) {
-                console.log("on update from drag and drop", item);
+                console.log("update", item);
                 if (!this.delegate_model_field && !this.open_popup_action) {
-                    this.dataset.index = this.dataset.get_id_index(item.evt.id);
-                    if (this.write_right) {
-                        this.do_switch_view('form', null, {mode: "edit"});
+                    console.log(item.evt.id, item.evt, this.permissions['write'], this.dataset.get_id_index(item.evt.id));
+                    this.dataset.select_id(item.evt.id);
+                    if (this.permissions['write']) {
+                        return this.do_switch_view('form', {mode: "edit"});
                     } else {
-                        this.do_switch_view('form', null, {mode: "view"});
+                        return this.do_switch_view('form', {mode: "view"});
                     }
                 }
                 const dialogOption = {
@@ -784,6 +905,10 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 }
                 const dialog = new form_common.FormViewDialog(this, dialogOption)
                 dialog.on('write_completed', this, () => dialog.destroy());
+                dialog.on('on_button_cancel', this, () => {
+                    dialog.destroy();
+                    callback(null)
+                })
                 dialog.open();
                 return false;
             },
@@ -793,21 +918,20 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 if (auto_reload) {
                     defered.then(result => {
                         return this._internal_do_search(
-                            [['id', '=', id]],
-                            this.last_contexts,
-                            this.last_group_by,
-                            true
+                            [...this.current_search.domain, ['id', '=', id]],
+                            this.current_search.context,
                         )
                     })
                 }
                 return defered;
             },
-            _write_delegate: function (ids, data, field_def, auto_reload = true) {
+
+            _write_delegate: function (id, data, field_def, auto_reload = true) {
                 const defered = this.dataset._model.call('delegate_write', [
-                    [item.evt.id],
+                    [id],
                     {
                         'delegate_field': this.delegate_model_field,
-                        'delegate_ids': ids,
+                        'delegate_id': id,
                         'field_used': this.fields_used,
                         'delegate_relation': field_def.relation,
                         'delegate_data': data,
@@ -815,13 +939,11 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 ])
                 if (auto_reload) {
                     defered.then(result => {
-                        if (!result || !Array.isArray(result) || !result.length) return callback(null);
+                        if (!result || !Array.isArray(result) || !result.length) return;
                         this.visData.remove(result);
                         return this._internal_do_search(
-                            [...this.last_domains, [this.delegate_model_field, '=', id]],
-                            this.last_contexts,
-                            this.last_group_by,
-                            true
+                            [...this.current_search.domain, [this.delegate_model_field, 'in', result]],
+                            this.current_search.context,
                         )
                     })
                 }
@@ -833,8 +955,17 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 var event_start = item.start;
                 var event_end = item.end;
                 var data = {};
-                if (item.group != -1) {
-                    data[self.last_group_by] = item.group;
+                const group = this.visGroups.get(item.group)
+                if (item.group !== -1) {
+                    data[group.field] = group._id;
+                    if (group.field !== this.current_search.lastGroupBy) {
+                        return callback(null); //Moving element on group only allowed on final group
+                    }
+                } else {
+                    if (this.fields[this.current_search.lastGroupBy].required) {
+                        return callback(null);
+                    }
+                    data[this.current_search.lastGroupBy] = false;
                 }
                 // In case of a move event, the date_delay stay the same, only date_start and stop must be updated
                 data[this.date_start] = time.auto_date_to_str(event_start, self.fields[this.date_start].type);
@@ -860,38 +991,53 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             on_remove: function (item, callback) {
-                var self = this;
-
-                function do_it() {
-                    return $.when(self.dataset.unlink([item.evt.id])).then(function () {
-                        callback(item);
-                    });
+                if(!item.evt){
+                    return callback(item);
                 }
-
                 if (this.options.confirm_on_delete) {
                     if (confirm(_t("Are you sure you want to delete this record ?"))) {
-                        return do_it();
+                        return this._unlink(item.evt);
                     }
-                } else
-                    return do_it();
+                    return callback(null);
+                }
+                return this._unlink(item.evt).then(res => res ? callback(item) : callback(null));
+            },
+
+            _unlink: function (evt) {
+                if (this.delegate_model_field) {
+                    const field_def = this.fields[this.delegate_model_field]
+                    if (field_def.type !== 'many2one') return callback(null);
+                    return this.dataset._model.call('delegate_unlink', [
+                        [evt.id],
+                        {
+                            'delegate_field': this.delegate_model_field,
+                            'delegate_id': evt[this.delegate_model_field][0],
+                            'delegate_relation': field_def.relation,
+                        }
+                    ]).then((result) => {
+                        result.forEach(it => this.visData.remove(it))
+                        return result.length > 0;
+                    })
+                }
+                return $.when(self.dataset.unlink([evt.id]));
             },
 
             on_click: function (e) {
                 // handle a click on a group header
-                console.log(e, e.what);
                 if (e.what == 'group-label') {
                     return this.on_group_click(e);
                 }
             },
 
             on_group_click: function (e) {
-                if (e.group == -1) {
+                const grp = this.visGroups.get(e.group)
+                if (grp.id == -1 || grp.field !== this.current_search.lastGroupBy || this.disableClickOnGroup) {
                     return;
                 }
                 return this.do_action({
                     type: 'ir.actions.act_window',
-                    res_model: this.fields[this.last_group_by].relation,
-                    res_id: e.group,
+                    res_model: this.fields[grp.field].relation,
+                    res_id: grp._id,
                     target: 'new',
                     views: [[false, 'form']]
                 });
@@ -937,18 +1083,17 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             _on_select: function (evt) {
-                console.log(evt, evt.items.length === 2);
                 this.$('#swap_button').toggleClass('o_hidden', evt.items.length !== 2)
             },
 
             _swap_write_data: function (group_by_field_def, source, target) {
                 let data = {
-                    [this.last_group_by]: target.evt[this.last_group_by],
+                    [this.current_search.lastGroupBy]: target.evt[this.current_search.lastGroupBy],
                     [this.date_start]: target.evt[this.date_start],
                     [this.date_stop]: target.evt[this.date_stop],
                 }
-                if (group_by_field_def.type === 'many2one' && Array.isArray(target.evt[this.last_group_by])) {
-                    data[this.last_group_by] = target.evt[this.last_group_by][0]
+                if (group_by_field_def.type === 'many2one' && Array.isArray(target.evt[this.current_search.lastGroupBy])) {
+                    data[this.current_search.lastGroupBy] = target.evt[this.current_search.lastGroupBy][0]
                 }
                 return data;
             },
@@ -958,10 +1103,10 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     return false;
                 }
                 const [el1, el2] = this.visData.get(selected);
-                const field_def = this.fields[this.last_group_by];
+                const field_def = this.fields[this.current_search.lastGroupBy];
                 this._write(el1.evt.id, this._swap_write_data(field_def, el1, el2), {}, false);
                 this._write(el2.evt.id, this._swap_write_data(field_def, el2, el1), {}, false);
-                this._internal_do_search([['id', 'in', [el1.evt.id, el2.evt.id]]], this.last_contexts, this.last_group_by, true)
+                this._internal_do_search([['id', 'in', [el1.evt.id, el2.evt.id]]], this.this.current_search.context)
             }
         })
     ;

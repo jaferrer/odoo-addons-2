@@ -7,6 +7,19 @@ odoo.define('resource_planning.Planning', function (require) {
     let PlanningView = TimelineView.extend({
         display_name: core._lt('Planning'),
         icon: 'fa-hourglass-o',
+        _get_option_timeline: function () {
+            const options = this._super.apply(this, arguments);
+            options.format = {
+                minorLabels: function(date, scale, step){
+                    if(date.isSame(moment(date).startOf('week'))){
+                        return date.format('[S]ww');
+                    }
+                    return date.format('ddd D');
+                },
+            }
+            return options;
+        }
+
     });
     core.view_registry.add('planning', PlanningView);
     return PlanningView
