@@ -35,3 +35,5 @@ class PrestashopBackend(models.Model):
         _select_versions,
         string='Version',
         required=True)
+    taxes_included = fields.Boolean(help="Check here if Prestahop send their prices tax included, which should not "
+                                         "be the case most of the time.")

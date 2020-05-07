@@ -30,16 +30,18 @@ from PIL import Image
 from PIL import PdfImagePlugin  # Force load of this plugin pylint: disable=unused-import
 
 from PyPDF2 import PdfFileWriter, PdfFileReader
-from openerp import models, api, fields
+from openerp import models, api, fields, _ as _t
 from openerp.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
 try:
     from ClassicUPS import UPSConnection
+    from ClassicUPS import UpsException
 except ImportError:
     _logger.error('no module name ClassicUPS')
     UPSConnection = None
+    UpsException = None
 
 
 class TrackingTransporter(models.Model):
@@ -78,19 +80,20 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             user_id=self.transporter_id.api_login_ups,
             password=self.transporter_id.api_password_ups,
             shipper_number=self.transporter_id.api_account_number_ups,
-            debug=self.transporter_id.debug_mode
+            debug=self.transporter_id.debug_mode,
+            raise_on_warn=self.transporter_id.debug_mode
         )
         from_addr = {
             'name': self.partner_orig_id.company_id.name,
             'address1': self.partner_orig_id.street,
             'city': self.partner_orig_id.city,
             'country': self.partner_orig_id.country_id.code,
-            'state': self.partner_orig_id.state_id.name,
+            'state': self.partner_orig_id.state_id.name or '',
             'postal_code': self.partner_orig_id.zip,
             'phone': self.partner_orig_id.phone,
             'email': self.partner_orig_id.email
         }
-        to_addr = {
+        ship_to_address = {
             "attn": self.last_name,
             "name": self.company_name,
             "address1": self.line2,
@@ -103,20 +106,26 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             "email": self.email,
             "phone": self.phone_number,
         }
+        owner = self.picking_id.owner_id
+        owner_address = {
+            'name': owner.name,
+            'address1': owner.street,
+            'city': owner.city,
+            'country': owner.country_id.code,
+            'state': owner.state_id.name or '',
+            'postal_code': owner.zip,
+            'phone': owner.phone,
+            'email': owner.email,
+        }
+
+        to_addr = dict(ship_to_address)
         alternate_addr = None
-        if self.id_relais:
-            to_addr['location_id'] = self.id_relais
-            owner = self.picking_id.owner_id
-            alternate_addr = {
-                'name': owner.name,
-                'address1': owner.street,
-                'city': owner.city,
-                'country': owner.country_id.code,
-                'state': owner.state_id.name,
-                'postal_code': owner.zip,
-                'phone': owner.phone,
-                'email': owner.email,
-            }
+        if self.produit_expedition_id.is_relais and not self.id_relais:
+            raise UserError(_t(u"Pas de point relais fournit"))
+        if self.id_relais and self.produit_expedition_id.is_relais:
+            alternate_addr = dict(ship_to_address, access_point_id=self.id_relais)
+            to_addr = dict(owner_address, attn=self.partner_id.name, phone=self.partner_id.name)
+
         shipping_service = {
             'code': self.produit_expedition_id.code,
             'desc': self.produit_expedition_id.display_name,
@@ -128,15 +137,19 @@ class GenerateTrackingLabelsWizardMR(models.TransientModel):
             'weight': package.delivery_weight,
         } for package in self.package_ids]
 
-        shipment = ups.create_shipment(
-            from_addr=from_addr,
-            to_addr=to_addr,
-            alternate_addr=alternate_addr,
-            package_infos=package_infos,
-            file_format='GIF',
-            shipping_service=shipping_service,
-            description=self.picking_id.group_id.display_name
-        )
+        try:
+            shipment = ups.create_shipment(
+                from_addr=from_addr,
+                to_addr=to_addr,
+                alternate_addr=alternate_addr,
+                package_infos=package_infos,
+                file_format='GIF',
+                shipping_service=shipping_service,
+                description=self.picking_id.group_id.display_name
+            )
+        except UpsException as e:
+            raise UserError(u"%s - %s - %s" % (e.type or u"Unknown", e.code, e.message))
+
         trackings = []
         final_pdf = PdfFileWriter()
         myobj = StringIO()

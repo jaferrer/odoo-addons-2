@@ -252,6 +252,7 @@ class TypeProduitExpedition(models.Model):
     name = fields.Char(u"Type de bordereau", readonly=True)
     transporter_id = fields.Many2one('tracking.transporter', u"Transporteur")
     code = fields.Char(u"Code Transporteur", readonly=True)
+    is_relais = fields.Boolean(u"Point relais")
     used_from_customer = fields.Boolean(u"Utilisé pour les retours depuis le client")
     used_to_customer = fields.Boolean(u"Utilisé pour les envois vers le client")
     used_on_demand = fields.Boolean(u"Utilisé à la carte", compute='_compute_used_on_demand', store=True)
