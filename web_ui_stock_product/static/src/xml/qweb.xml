@@ -105,7 +105,7 @@
     </t>
 
     <t t-name="ProductTableRow.Numpad">
-        <div class="col-sm-6">
+        <div class="col-sm-6 portrait-column-alignment">
             <div class="align-self-end">
                 <button type="button" id="btn_exit_numpad" class='btn btn-danger js_exit_numpad'>
                     Annuler
@@ -135,7 +135,7 @@
                 </tbody>
             </table>
         </div>
-        <div class="col-sm-6">
+        <div class="col-sm-6 portrait-column-alignment">
             <div class="d-flex justify-content-center">
                 <table id="numpad" class="table table-numpad">
                     <thead>
