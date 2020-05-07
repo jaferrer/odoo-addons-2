@@ -52,6 +52,6 @@ class MailThread(models.AbstractModel):
             else:
                 super(MailThread, self).message_track(public_tracked_fields, initial_values)
         if private_tracked_fields:
-            super(MailThread, self.with_context(force_subtype_xmlid='mail.mt_note')). \
+            super(MailThread, self.with_context(force_subtype_xmlid='mail.mt_note').suspend_security()). \
                 message_track(private_tracked_fields, initial_values)
         return True
