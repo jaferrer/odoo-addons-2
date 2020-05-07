@@ -1,3 +1,7 @@
+.warning-background {
+    background-color: #dc3545;
+}
+
 table.table-numpad {
     width: 100%;
     border-collapse: unset;

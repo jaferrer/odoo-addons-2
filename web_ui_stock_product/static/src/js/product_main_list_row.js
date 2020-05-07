@@ -26,23 +26,27 @@ odoo.define('web_ui_stock_product.ScanProductRow', function (require) {
             this.$('button.js_delete_product').click(ev => { this.productMainList.delete_row(this) });
             this.$('button.js_open_numpad').click(ev => { this.productMainList.open_numpad(this) });
 
-            this.btn_info = this.$('a.js_btn_info');
-            this.btn_info.popover();
-            this.btn_info.click(ev => this.btn_info.popover('show'));
-            this.btn_info.blur(ev => this.btn_info.popover('destroy'));
-
-            if (this.need_user_action){
-                this.$el.addClass('info');
+            if (this.product.tracking === 'serial') {
+                this.$('button.js_open_numpad').addClass('d-none');
+            }
+            if (this.product.tracking === "lot" || this.product.tracking === "serial" &&
+                this.product.lot_id === false) {
+                this.productMainList.open_need_num_lot(this);
             }
         },
         _update_quantity: function () {
             this.product.quantity += 1;
             this.$('#product_quantity').text(this.product.quantity);
         },
+        _update_num_lot: function (product_infos) {
+            this.product.lot_id = product_infos.lot_id;
+            this.product.lot_name = product_infos.lot_name;
+            this.$('#lot_name').text(this.product.lot_name);
+        },
         validate_new_qty: function (numpad) {
             this.product.quantity = numpad.quantity;
             this.$('#product_quantity').text(this.product.quantity);
-            this.productMainList.exit_numpad(numpad)
+            this.productMainList.exit_numpad(numpad);
         },
         on_error_print: function (error) {
             this.$el.addClass('warning');

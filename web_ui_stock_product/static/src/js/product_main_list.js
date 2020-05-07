@@ -9,7 +9,8 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
     var ScanProductRow = {
         Row: require('web_ui_stock_product.ScanProductRow'),
         Error: require('web_ui_stock_product.ScanProductRow.Error'),
-        Numpad: require('web_ui_stock_product.ScanProductRow.Numpad')
+        Numpad: require('web_ui_stock_product.ScanProductRow.Numpad'),
+        Lot: require('web_ui_stock_product.ScanProductRow.Lot')
     };
     var rpc = require('web.rpc');
 
@@ -19,6 +20,7 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
             this._super(parent, action, options);
             this.pickingTypeId = parseInt(options.picking_type_id || "0");
             this.rows = [];
+            this.lot_row = false;
             this.selected_scan_product_computer = 0;
             this.barcode_scanner = new BarcodeScanner();
         },
@@ -28,6 +30,7 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
             this.$('#_exit').click((ev) => window.history.back());
             this.product_table_body = this.$('#product_table_body');
             this.quantity_numpad = this.$('#quantity_numpad');
+            this.need_for_lot = this.$('#need_for_lot');
             let spt_name_get_params = {
                 model: 'stock.picking.type',
                 method: 'name_get',
@@ -36,7 +39,6 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
             rpc.query(spt_name_get_params).then((res) => this._set_view_title(res[0][1]));
             this._init_scan_product_computer();
             this._connect_scanner();
-            this.need_user_action_modal_hook = this.$('#need_user_action_modal_hook');
             this.$('#search_product').focus(() => {
                 this._disconnect_scanner();
                 this.$('#search_product').on('keyup', (e) => {
@@ -65,6 +67,25 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
                 this.$('[data-error-row]').remove();
             });
             this.$('button.js_validate_scan').click(ev => { this.validate_scan() });
+
+            this.$('#search_product_lot').focus(() => {
+                this._disconnect_scanner();
+                this.$('#search_product_lot').on('keyup', (e) => {
+                    if (e.key == 'Enter') {
+                        this.scan_lot(this.$('#search_product_lot').val())
+                    }
+                })
+            });
+            this.$('#search_product_lot').blur(() => {
+                this.$('#search_product_lot').off('keyup');
+                this._connect_scanner();
+            });
+            this.$('#clear_search_product_lot').click(() => {
+                console.log('clear_search_product_lot');
+                this.$('#search_product_lot').val('');
+                this.$('#search_product_lot').focus()
+            });
+
         },
         _init_scan_product_computer: function () {
             let printer_computer_params = {
@@ -136,7 +157,9 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
                     }
                     else {
                         let row = this.rows.find(it => it.product.id == produ.id);
-                        row._update_quantity();
+                        if (row.product.tracking !== 'serial') {
+                            row._update_quantity();
+                        }
                     }
                 })
                 .fail((errors, event) => {
@@ -146,6 +169,36 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
                         'message': errors.data.arguments[1]
                     }).appendTo(this.product_table_body);
                     event.preventDefault();
+                });
+        },
+        scan_lot: function (name) {
+            console.log(name);
+            this.$('#search_product_lot').val('');
+            let pp_product_info_params = {
+                model: 'stock.picking.type',
+                method: 'web_ui_get_production_info_for_product',
+                args: [[this.pickingTypeId], name, this.lot_row.productRow.product.id],
+            };
+            rpc.query(pp_product_info_params)
+                .then((produ) => {
+                    let row = this.rows.find(it => it.product.id == produ.id);
+                    if (row) {
+                        row._update_num_lot(produ);
+                        this.exit_need_num_lot();
+                    }
+                    else if (row === undefined) {
+                        this.lot_row.$('#invalid_lot_number_col').removeClass('d-none');
+                        this.lot_row.$('#invalid_lot_number_header').removeClass('d-none');
+                        this.lot_row.invalid_number = name;
+                    }
+                })
+                .fail((errors, event) => {
+                    console.log("Error print", errors, event);
+                    this.lot_row.invalid_number = name;
+                    event.preventDefault();
+                    this.lot_row.$('#invalid_lot_number_col').text(name);
+                    this.lot_row.$('#invalid_lot_number_col').removeClass('d-none');
+                    this.lot_row.$('#invalid_lot_number_header').removeClass('d-none');
                 });
         },
         delete_row: function (row) {
@@ -160,20 +213,14 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
                 method: 'web_ui_get_product_info',
                 args: [[row.product.id]],
             };
-            rpc.query(pp_product_info_params).then((result) => {
-                this.product_table.toggleClass('d-none');
-                this.$('#mass_btn').toggleClass('d-none');
-                this.$('#manual_scan').toggleClass('d-none');
-                this.quantity_numpad.toggleClass('d-none');
-                new ScanProductRow.Numpad(this, row).appendTo(this.quantity_numpad);
-            }).fail((errors, event) => {
-                console.log("Error print", errors, event);
-                new ScanProductRow.Error(this, {
-                    'title': row.product.name,
-                    'message': errors.data.arguments[1]
-                }).replace(row.$el);
-                event.preventDefault();
-            });
+            rpc.query(pp_product_info_params)
+                .then((result) => {
+                    this.product_table.toggleClass('d-none');
+                    this.$('#mass_btn').toggleClass('d-none');
+                    this.$('#manual_scan').toggleClass('d-none');
+                    this.quantity_numpad.toggleClass('d-none');
+                    new ScanProductRow.Numpad(this, row).appendTo(this.quantity_numpad);
+                });
         },
         exit_numpad: function (numpad) {
             this.product_table.toggleClass('d-none');
@@ -181,6 +228,32 @@ odoo.define('web_ui_stock_product.ScanProductMainWidget', function (require) {
             this.$('#manual_scan').toggleClass('d-none');
             this.quantity_numpad.toggleClass('d-none');
             this.quantity_numpad.empty();
+        },
+        open_need_num_lot: function (row) {
+            let pp_product_info_params = {
+                model: 'product.product',
+                method: 'web_ui_get_product_info',
+                args: [[row.product.id]],
+            };
+            rpc.query(pp_product_info_params)
+                .then((result) => {
+                    this.product_table.toggleClass('d-none');
+                    this.$('#mass_btn').toggleClass('d-none');
+                    this.$('#manual_scan').toggleClass('d-none');
+                    this.$('#need_num_lot_scan').toggleClass('d-none');
+                    this.need_for_lot.toggleClass('d-none');
+                    let lot_row = new ScanProductRow.Lot(this, row);
+                    this.lot_row = lot_row;
+                    lot_row.appendTo(this.need_for_lot);
+                });
+        },
+        exit_need_num_lot: function () {
+            this.product_table.toggleClass('d-none');
+            this.$('#mass_btn').toggleClass('d-none');
+            this.$('#manual_scan').toggleClass('d-none');
+            this.$('#need_num_lot_scan').toggleClass('d-none');
+            this.need_for_lot.toggleClass('d-none');
+            this.need_for_lot.empty();
         },
         validate_scan: function () {
             let product_infos = [];

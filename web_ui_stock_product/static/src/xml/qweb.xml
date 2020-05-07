@@ -39,6 +39,19 @@
                     </span>
                 </div>
             </div>
+            <div id="need_num_lot_scan" class="jumbotron warning-background d-none">
+                <h4>
+                    Cet article est rattaché à un numéro de lot/série\nmerci de scanner ce numéro ou de supprimer
+                    l'article pour continuer
+                </h4>
+                <div class="input-group">
+                    <input id="search_product_lot" type="text" class="form-control"
+                           placeholder="Saisie numéro de lot/série manuel"/>
+                    <span class="input-group-btn">
+                        <button id="clear_search_product_lot" class="btn btn-danger" type="button">x</button>
+                    </span>
+                </div>
+            </div>
             <div class="row">
                 <div class="button-group col-lg-12" role="group" id="mass_btn">
                     <button type="button" id="btn_delete_all_rows" class="btn btn-danger btn-lg fa fa-trash float-right">
@@ -55,25 +68,29 @@
                 </table>
             </div>
             <div class="row d-none" id="quantity_numpad"/>
-            <div class="row d-none" id="need_user_action_modal_hook"/>
+            <div class="row d-none" id="need_for_lot"/>
         </div>
     </t>
+
     <t t-name="ProductTableHeader">
         <tr>
             <th>Nom</th>
             <th>Code</th>
+            <th>N° de lot/série</th>
             <th>Quantité</th>
             <th>Ajuster la quantité</th>
-            <th id="quantity_numpad_header"/>
         </tr>
     </t>
     <t t-name="ProductTableRow">
-        <tr t-att-product_id="widget.id">
+        <tr t-att-product_id="widget.id" id="product_row">
             <td>
                 <t t-esc="widget.product.name"/>
             </td>
             <td>
                 <t t-esc="widget.product.default_code"/>
+            </td>
+            <td id="lot_name">
+                <t t-esc="widget.product.lot_name"/>
             </td>
             <td id="product_quantity">
                 <t t-esc="widget.product.quantity"/>
@@ -88,7 +105,6 @@
     </t>
 
     <t t-name="ProductTableRow.Numpad">
-
         <div class="col-sm-6">
             <div class="align-self-end">
                 <button type="button" id="btn_exit_numpad" class='btn btn-danger js_exit_numpad'>
@@ -100,7 +116,6 @@
                     Confirmer
                 </button>
             </div>
-
             <table id="product_numpad_table" class="table">
                 <thead id="product_numpad_table_header">
                     <tr>
@@ -207,8 +222,40 @@
                 </table>
             </div>
         </div>
+    </t>
 
-
+    <t t-name="ProductTableRow.Lot" class="d-none" id="need_for_lot_view">
+        <div>
+            <table id="product_lot_table" class="table">
+                <thead id="product_lot_table_header">
+                    <tr>
+                        <th>Nom</th>
+                        <th>Code</th>
+                        <th>Méthode de suivi</th>
+                        <th id="invalid_lot_number_header" class="d-none text-danger">Numéro de lot/série invalide</th>
+                    </tr>
+                </thead>
+                <tbody id="product_lot_table_body">
+                    <tr>
+                        <td>
+                            <t t-esc="widget.productRow.product.name"/>
+                        </td>
+                        <td>
+                            <t t-esc="widget.productRow.product.default_code"/>
+                        </td>
+                        <td>
+                            <t t-esc="widget.productRow.product.tracking"/>
+                        </td>
+                        <td id="invalid_lot_number_col" class="d-none text-danger">
+                            <t t-esc="widget.invalid_number"/>
+                        </td>
+                        <td>
+                            <button type="button" class='btn btn-danger js_delete_product_lot fa fa-trash'/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </t>
 
     <t t-name="ScanProductRow.Error">
@@ -216,7 +263,7 @@
             <td>
                 <t t-esc="widget.error.title"/>
             </td>
-            <td colspan="3">
+            <td colspan="4">
                 <t t-esc="widget.error.message"/>
             </td>
             <td>

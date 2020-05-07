@@ -26,18 +26,52 @@ class WebUiError(Exception):
 class StockPickingTypeWebUiStockProduct(models.Model):
     _inherit = 'stock.picking.type'
 
+    @api.model
+    def web_ui_get_production_lot_by_name(self, name):
+        production_lot = self.env['stock.production.lot'].search([('name', '=ilike', name)])
+        if not production_lot:
+            raise WebUiError(name, "Aucun article ou numéro de lot/série trouvé")
+
+        return production_lot
+
     @api.multi
     def web_ui_get_product_info_by_name(self, name):
+        """
+        On peut rechercher un article, soit par le nom de son code, soit par son nom, soit par son numéro de série/lot.
+        """
+        name = name.strip()
+        product = self.env['product.product'].search(['|', ('name', '=ilike', name), ('default_code', '=ilike', name)])
+        production_lot = self.env['stock.production.lot']
+        if not product:
+            production_lot = self.web_ui_get_production_lot_by_name(name)
+            product = production_lot.product_id
+
+        if len(product) > 1:
+            raise WebUiError(name, "Plusieurs articles ont été trouvés : %s" % ", ".join(product.mapped('name')))
+        if len(production_lot) > 1:
+            raise WebUiError(name, "Plusieurs lots ont été trouvés : %s" % ", ".join(production_lot.mapped('name')))
+
+        return product.web_ui_get_product_info_one(production_lot)
+
+    @api.multi
+    def web_ui_get_production_info_for_product(self, name, product_id):
         """
         On peut rechercher un article, soit par le nom de son code, soit par son nom.
         """
         name = name.strip()
-        product = self.env['product.product'].search(['|', ('name', '=ilike', name), ('default_code', '=ilike', name)])
-        if not product:
-            raise WebUiError(name, "Aucun article trouvé")
-        if len(product) > 1:
-            raise WebUiError(name, "Plusieurs articles ont été trouvés : %s" % ", ".join(product.mapped('name')))
-        return product.web_ui_get_product_info_one()
+        production_lot = self.env['stock.production.lot'].search([
+            ('name', '=ilike', name),
+            ('product_id', '=', product_id)
+        ])
+
+        if not production_lot:
+            raise WebUiError(name, "Aucun article ou numéro de lot/série trouvé")
+        if len(production_lot) > 1:
+            raise WebUiError(name, "Plusieurs lots ont été trouvés : %s" % ", ".join(production_lot.mapped('name')))
+
+        product = self.env['product.product'].browse(product_id)
+
+        return product.web_ui_get_product_info_one(production_lot)
 
     @api.multi
     def do_validate_scan(self, product_infos):
@@ -67,13 +101,16 @@ class ProductProductWebUiStockProduct(models.Model):
     _inherit = 'product.product'
 
     @api.multi
-    def web_ui_get_product_info_one(self):
+    def web_ui_get_product_info_one(self, production_lot):
         self.ensure_one()
         return {
             'id': self.id,
             'name': self.name,
-            'default_code': self.default_code,
+            'default_code': self.default_code or "-",
             'quantity': 1,
+            'lot_id': production_lot.id,
+            'lot_name': production_lot.name or "-",
+            'tracking': self.tracking,
         }
 
     @api.multi
@@ -83,6 +120,7 @@ class ProductProductWebUiStockProduct(models.Model):
             'id': self.id,
             'name': self.name,
             'default_code': self.default_code,
+            'tracking': self.tracking,
         }
 
 
