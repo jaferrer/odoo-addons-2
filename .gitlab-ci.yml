@@ -1,5 +1,13 @@
 include: "https://gitlab.ndp-systemes.fr/odoo-addons/ci-files/raw/master/default-gitlab-ci.yml"
 
+stages:
+  - lint
+  - test
+  - commit
+  - runbot_triggers
+  - preview
+  - deploy
+
 variables:
   ODOO_VERSION: "8.0"
   ODOO_DEPENDS: "odoo-addons/community-addons"
@@ -14,6 +22,124 @@ runbot_depends:
     - /run.sh
   tags:
     - runbot
+
+airsoft_entrepot:
+  stage: runbot_triggers
+  script:
+    - sh $PATH_WORK/ci/test/runbot_depends/run.sh
+  tags:
+    - runbot_triggers
+  variables:
+    ODOO_VERSION: "8.0"
+    ODOO_IMG: "8.0"
+    GIT_STRATEGY: none
+    BEFORE_ODOO_MODULE: ""
+    ODOO_DEPENDS: "odoo-addons/common-modules,odoo-addons/community-addons,odoo-addons/entrepot"
+    ODOO_MODULE: "entrepot_config"
+
+sirail_master:
+  stage: runbot_triggers
+  script:
+    - sh $PATH_WORK/ci/test/runbot_depends/run.sh
+  tags:
+    - runbot_triggers
+  variables:
+    ODOO_VERSION: "8.0"
+    ODOO_IMG: "8.0"
+    BEFORE_ODOO_MODULE: "sale_mrp"
+    ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-MERE"
+    ODOO_MODULE: "sirail_master"
+
+sirail_fr_sk_de:
+  stage: runbot_triggers
+  script:
+    - sh $PATH_WORK/ci/test/runbot_depends/run.sh
+  tags:
+    - runbot_triggers
+  variables:
+    ODOO_VERSION: "8.0"
+    ODOO_IMG: "8.0"
+    BEFORE_ODOO_MODULE: "sale_mrp"
+    ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-FILLE"
+    ODOO_MODULE: "sirail_base_fr"
+
+sirail_allemagne:
+  stage: runbot_triggers
+  script:
+    - sh $PATH_WORK/ci/test/runbot_depends/run.sh
+  tags:
+    - runbot_triggers
+  variables:
+    ODOO_VERSION: "8.0"
+    ODOO_IMG: "8.0"
+    BEFORE_ODOO_MODULE: "sale_mrp"
+    ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-FILLE,odoo-addons/sirail-erp/sirail-allemagne"
+    ODOO_MODULE: "sirail_base_de"
+
+sirail_france_nord_pms:
+  stage: runbot_triggers
+  script:
+    - sh $PATH_WORK/ci/test/runbot_depends/run.sh
+  tags:
+    - runbot_triggers
+  variables:
+    ODOO_VERSION: "8.0"
+    ODOO_IMG: "8.0"
+    BEFORE_ODOO_MODULE: "sale_mrp"
+    ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-FILLE,odoo-addons/sirail-erp/sirail-france-nord"
+    ODOO_MODULE: "sirail_base_fr_nord"
+
+sirail_france_sud_pms:
+  stage: runbot_triggers
+  script:
+    - sh $PATH_WORK/ci/test/runbot_depends/run.sh
+  tags:
+    - runbot_triggers
+  variables:
+    ODOO_VERSION: "8.0"
+    ODOO_IMG: "8.0"
+    BEFORE_ODOO_MODULE: "sale_mrp"
+    ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-FILLE,odoo-addons/sirail-erp/sirail-france-sud"
+    ODOO_MODULE: "sirail_base_fr_sud"
+
+sirail_tunisie_pms:
+  stage: runbot_triggers
+  script:
+    - sh $PATH_WORK/ci/test/runbot_depends/run.sh
+  tags:
+    - runbot_triggers
+  variables:
+    ODOO_VERSION: "8.0"
+    ODOO_IMG: "8.0"
+    BEFORE_ODOO_MODULE: "sale_mrp"
+    ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-FILLE,odoo-addons/sirail-erp/sirail-tunisie"
+    ODOO_MODULE: "sirail_base_tn"
+
+sirail_slovaquie_pms:
+  stage: runbot_triggers
+  script:
+    - sh $PATH_WORK/ci/test/runbot_depends/run.sh
+  tags:
+    - runbot_triggers
+  variables:
+    ODOO_VERSION: "8.0"
+    ODOO_IMG: "8.0"
+    BEFORE_ODOO_MODULE: "sale_mrp"
+    ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-FILLE,odoo-addons/sirail-erp/sirail-slovaquie"
+    ODOO_MODULE: "sirail_base_sk"
+
+sirail_maroc_pms:
+  stage: runbot_triggers
+  script:
+    - sh $PATH_WORK/ci/test/runbot_depends/run.sh
+  tags:
+    - runbot_triggers
+  variables:
+    ODOO_VERSION: "8.0"
+    ODOO_IMG: "8.0"
+    BEFORE_ODOO_MODULE: "sale_mrp"
+    ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-FILLE,odoo-addons/sirail-erp/sirail-maroc"
+    ODOO_MODULE: "sirail_base_ma"
 
 runbot:
   when: manual
