@@ -76,10 +76,10 @@ class ProjectResourcePlanningSheet(models.Model):
     project_id = fields.Many2one('project.project', u"Project", domain=[('used_in_resource_planning', '=', True)],
                                  required=True)
     overlap = fields.Boolean(u"Overlap", compute='_compute_overlap')
-    date_start = fields.Date(u"Start Date")
-    date_end = fields.Date(u"End Date")
-    period_start = fields.Selection(PERIOD, u"Period Start")
-    period_end = fields.Selection(PERIOD, u"Period End")
+    date_start = fields.Date(u"Start Date", required=True)
+    date_end = fields.Date(u"End Date", required=True)
+    period_start = fields.Selection(PERIOD, u"Period Start", required=True)
+    period_end = fields.Selection(PERIOD, u"Period End", required=True)
 
     @api.model
     def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
