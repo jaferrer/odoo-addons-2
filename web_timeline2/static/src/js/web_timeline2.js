@@ -779,7 +779,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 }
                 var context = this.dataset.get_context();
                 let group = null;
-                if (item.evt && item.group) {
+                if (item.group) {
                     group = this.visGroups.get(item.group)
                     if (group.field !== this.current_search.lastGroupBy) {
                         return callback(null);
