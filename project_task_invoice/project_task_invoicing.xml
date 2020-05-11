@@ -103,4 +103,19 @@
         </field>
     </record>
 
+    <record id="sale_order_check_qty_alert_form_view" model="ir.ui.view">
+        <field name="name">sale_order_check_qty_alert_form_view</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <header position="after">
+                <field name="is_lines_qty_equal_tasks_qty" invisible="1"/>
+                <div class="alert alert-warning oe_read_only" role="alert" style="margin-bottom:0px;"
+                     attrs="{'invisible':[('is_lines_qty_equal_tasks_qty', '=', True)]}">
+                    <bold>La quantité d'une ligne de vente n'est pas égale à la somme des quantités vendues des tâches liées</bold>
+                </div>
+            </header>
+        </field>
+    </record>
+
 </odoo>

@@ -58,7 +58,7 @@ class ProjectTaskInvoice(models.Model):
                 raise UserError(u"The task {} has the linked order {}, but has no linked order line."
                                 u"".format(rec.name, rec.initial_sale_id.name))
             rec.date_delivered = rec.initial_sale_id and rec.initial_sale_id.date_order
-            rec.initial_sale_line_id.qty_delivered = rec.time_spent
+            rec.initial_sale_line_id.qty_delivered += rec.time_spent
 
     @api.multi
     def action_cancel_delivery(self):
@@ -74,18 +74,27 @@ class ProjectTaskInvoice(models.Model):
 class ProjectTaskInvoiceSaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    is_lines_qty_equal_tasks_qty = fields.Boolean(u"Check Qty", compute='_compute_is_lines_qty_equal_tasks_qty')
+
+    @api.multi
+    def _compute_is_lines_qty_equal_tasks_qty(self):
+        for rec in self:
+            rec.is_lines_qty_equal_tasks_qty = all(line.is_self_qty_equal_tasks_qty for line in rec.order_line)
+
     @api.multi
     def action_invoice_create(self, grouped=False, final=False):
-        res = super(ProjectTaskInvoiceSaleOrder, self).action_invoice_create(grouped=False, final=False)
+        res = super(ProjectTaskInvoiceSaleOrder, self).action_invoice_create(grouped=grouped, final=final)
 
         # Valorisation de la date de facturation des tâches liées au lignes facturées
         invoices = self.env['account.invoice'].search([('id', '=', res[0])])
         date_invoice = invoices[0].date
         if not date_invoice:
             date_invoice = fields.Date.today()
-        sale_order_lines = self.env['sale.order.line'].search([('order_id', '=', self.id)])
-        tasks = self.env['project.task'].search([('initial_sale_line_id', 'in', sale_order_lines.ids)])
-        tasks.write({'date_invoiced': date_invoice})
+        for invoice in invoices:
+            for invoice_line in invoice.invoice_line_ids:
+                for sale_line in invoice_line.sale_line_ids:
+                    tasks = self.env['project.task'].search([('initial_sale_line_id', '=', sale_line.id)])
+                    tasks.write({'date_invoiced': date_invoice})
 
         return res
 
@@ -93,10 +102,10 @@ class ProjectTaskInvoiceSaleOrder(models.Model):
 class ProjectTaskInvoiceSaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    is_self_qty_equal_task_qty = fields.Boolean(u"Check Qty", compute='_compute_is_self_qty_equal_task_qty')
+    is_self_qty_equal_tasks_qty = fields.Boolean(u"Check Qty", compute='_compute_is_self_qty_equal_tasks_qty')
 
     @api.multi
-    def _compute_is_self_qty_equal_task_qty(self):
-        tasks = self.env['project.task'].search([('initial_sale_line_id', '=', self.id)])
+    def _compute_is_self_qty_equal_tasks_qty(self):
         for rec in self:
-            rec.is_self_qty_equal_task_qty = all(task.time_spent == rec.product_uom_qty for task in tasks)
+            isl_tasks = self.env['project.task'].search([('initial_sale_line_id', '=', rec.id)])
+            rec.is_self_qty_equal_tasks_qty = rec.product_uom_qty == sum(isl_tasks.mapped('time_spent'))

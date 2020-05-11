@@ -22,7 +22,7 @@ msgid "Cancel delivery"
 msgstr "Annuler la livraison"
 
 #. module: project_task_invoice
-#: model:ir.model.fields,field_description:project_task_invoice.field_sale_order_line_is_self_qty_equal_task_qty
+#: model:ir.model.fields,field_description:project_task_invoice.field_sale_order_line_is_self_qty_equal_tasks_qty
 msgid "Check Qty"
 msgstr "Contrôle des quantités"
 
