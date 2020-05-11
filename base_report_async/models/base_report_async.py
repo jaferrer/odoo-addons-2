@@ -23,7 +23,7 @@ from odoo import tools
 _logger = logging.getLogger(__name__)
 
 
-class DelayReport(models.Model):
+class IrActionsReport(models.Model):
     _inherit = 'ir.actions.report'
 
     async_report = fields.Boolean(u"Asynchronous generation")
@@ -49,9 +49,14 @@ class DelayReport(models.Model):
             'is_temporary_report_file': True
         })
 
-    @api.multi
-    def launch_asynchronous_report_generation(self, values, date_start_for_job_creation=None):
+    @api.model
+    def launch_asynchronous_report_generation(self, date_start_for_job_creation=None):
         self.ensure_one()
+        active_model = self.env.context.get('active_model')
+        active_ids = self.env.context.get('active_ids')
+        if not active_model or not active_ids:
+            raise exceptions.except_orm("Context must provide model and ids for report generation")
+
         running_jobs_domain = [('user_id', '=', self.env.user.id),
                                ('asynchronous_job_for_report_id', '=', self.id),
                                ('state', 'not in', ['done', 'failed'])]
@@ -61,31 +66,34 @@ class DelayReport(models.Model):
         if running_job_for_user_and_report:
             return True
         description = u"Asynchronous generation of report %s" % self.name
-        job_uuid = self.with_context(description=description).job_asynchronous_report_generation(values)
-        new_job = self.env['queue.job'].search([('uuid', '=', job_uuid)])
-        new_job.write({'asynchronous_job_for_report_id': self.id})
+        records_to_print = self.env[active_model].browse(active_ids)
+        job_dict = self\
+            .with_delay(description=description)\
+            .job_asynchronous_report_generation(records_to_print)
+        self.env['queue.job']\
+            .search([('uuid', '=', job_dict.uuid)])\
+            .write({'asynchronous_job_for_report_id': self.id})
         return False
 
     @job
-    def job_asynchronous_report_generation(self, values):
+    @api.multi
+    def job_asynchronous_report_generation(self, records_to_print):
         self.ensure_one()
-        active_ids = self.env.context.get('active_ids', [])
-        active_model = self.env.context.get('active_model')
-        if values.get('type_multi_print') == 'zip' and len(active_ids) > 1:
+        # needs module web_report_improved
+        if 'type_multi_print' in self._fields and self.type_multi_print == 'zip' and len(records_to_print) > 1:
             attachments_to_zip = self.env['ir.attachment']
-            nb_records = len(active_ids)
             index = 0
-            for active_id in active_ids:
+            for record_to_print in records_to_print:
                 index += 1
-                _logger.info(u"Generating report for ID %s (%s/%s)", active_id, index, nb_records)
+                _logger.info(u"Generating report for ID %s (%s/%s)", record_to_print.id, index, len(records_to_print))
                 try:
-                    new_attachment = self.get_attachment_base64_encoded(active_model, active_id)
+                    new_attachment = self.get_attachment_base64_encoded(record_to_print)
                     attachments_to_zip |= new_attachment
                 except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm,
                         ValueError) as error:
                     self.send_failure_mail(error)
                     return
-            zip_file_name = '%s' % (slugify(values.get('name').replace('/', '-')) or 'documents')
+            zip_file_name = '%s' % (slugify(self.name.replace('/', '-')) or 'documents')
             temp_dir = tempfile.mkdtemp()
             zip_file_path = '%s/%s' % (temp_dir, zip_file_name)
             with zipfile.ZipFile(zip_file_path, 'w', zipfile.ZIP_DEFLATED) as zip_file:
@@ -96,7 +104,7 @@ class DelayReport(models.Model):
                 attachment = self._create_temporary_report_attachment(base64.b64encode(zf.read()), zip_file_name)
         else:
             try:
-                attachment = self.get_attachment_base64_encoded(active_model, active_ids[0])
+                attachment = self.get_attachment_base64_encoded(records_to_print)
             except (exceptions.ValidationError, exceptions.MissingError, exceptions.except_orm, ValueError) as error:
                 self.send_failure_mail(error)
                 return
@@ -106,16 +114,16 @@ class DelayReport(models.Model):
         return u"report generated"
 
     @api.multi
-    def get_attachment_base64_encoded(self, model, record_id):
+    def get_attachment_base64_encoded(self, record):
         self.ensure_one()
         name = u"Report"
         if self.print_report_name:
-            name = eval(self.print_report_name, {'object': self.env[model].browse(record_id), 'time': time})
+            name = eval(self.print_report_name, {'object': record, 'time': time})
         data = {
-            'model': model,
-            'ids': [record_id],
+            'model': record._name,
+            'ids': record.ids,
         }
-        pdf_data, _ = self.render([record_id], data)
+        pdf_data, _ = self.render(record.ids, data)
         return self._create_temporary_report_attachment(base64.b64encode(pdf_data), name)
 
     @api.multi
@@ -209,6 +217,6 @@ class QueueJob(models.Model):
 
 class ReportAsynchronousGenerationMessage(models.TransientModel):
     _name = 'report.asynchronous.generation.message'
-    _description = u"Génération de rapports asynchrones"
+    _description = u"Generation de rapports asynchrones"
 
     message = fields.Char(string=u"Message", readonly=True)

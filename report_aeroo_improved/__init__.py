@@ -16,4 +16,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-from . import report_aeroo_improved
+from . import parser_display_address
+from . import parser_html_parse
+from . import ir_model
