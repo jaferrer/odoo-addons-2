@@ -1,6 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <record id="action_mark_task_as_delivered" model="ir.actions.server">
+        <field name="name">Mark as delivered</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.browse(context['active_ids']).action_mark_as_delivered()
+        </field>
+    </record>
+
+    <record id="value_mark_task_as_delivered" model="ir.values">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">project.task</field>
+        <field name="name">Mark as delivered</field>
+        <field name="value" eval="'ir.actions.server,' + str(action_mark_task_as_delivered)"/>
+    </record>
+
+    <record id="action_cancel_task_delivery" model="ir.actions.server">
+        <field name="name">Cancel delivery</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.browse(context['active_ids']).action_cancel_delivery()
+        </field>
+    </record>
+
+    <record id="value_cancel_task_delivery" model="ir.values">
+        <field name="key">action</field>
+        <field name="key2">client_action_multi</field>
+        <field name="model">project.task</field>
+        <field name="name">Cancel delivery</field>
+        <field name="value" eval="'ir.actions.server,' + str(action_cancel_task_delivery)"/>
+    </record>
+
     <record model="ir.ui.view" id="project_task_tree">
         <field name="name">project_task_tree</field>
         <field name="model">project.task</field>
@@ -33,19 +67,57 @@
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="priority" eval="16"/>
         <field name="arch" type="xml">
+            <header position="inside">
+                <button string="Mark as delivered"
+                        name="action_mark_as_delivered"
+                        type="object"
+                        attrs="{'invisible': [('initial_sale_id', '=', False)]}"
+                        class="oe_highlight"/>
+                <button string="Cancel delivery"
+                        name="action_cancel_delivery"
+                        type="object"
+                        attrs="{'invisible': [('date_delivered', '=', False)]}"
+                        class="oe_highlight"/>
+            </header>
+            <field name="date_deadline" position="after">
+                <field name="date_delivered"/>
+            </field>
             <notebook position="inside">
                 <page string="Invoicing">
                     <group>
                         <field name="time_spent"/>
-                        <field name="date_invoiced"/>
                         <field name="project_partner_id" invisible="1"/>
-                        <field name="initial_sale_line_id"
-                               domain="[('order_id.state', '!=', 'cancel'), ('order_id.partner_id', '=', project_partner_id)]"/>
-                        <field name="initial_sale_id"
+                        <field name="initial_sale_id" string="Sale Order"
+                               context="{'default_partner_id': project_partner_id}"
                                domain="[('state', '!=', 'cancel'), ('partner_id', '=', project_partner_id)]"/>
+                        <field name="initial_sale_line_id" string="Sale Order Line"
+                               context="{
+                                   'default_order_id': initial_sale_id,
+                                   'default_product_uom_qty': time_spent or planned_days,
+                                   'default_product_uom': %(product.product_uom_unit)d,
+                                   }"
+                               domain="[('order_id.state', '!=', 'cancel'), ('order_id.partner_id', '=', project_partner_id)]"/>
+                        <field name="date_invoiced"/>
                     </group>
                 </page>
             </notebook>
+        </field>
+    </record>
+
+    <record id="sale_order_check_qty_alert_form_view" model="ir.ui.view">
+        <field name="name">sale_order_check_qty_alert_form_view</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <header position="after">
+                <field name="is_lines_qty_equal_tasks_qty" invisible="1"/>
+                <div class="alert alert-warning oe_read_only" role="alert" style="margin-bottom:0px;"
+                     attrs="{'invisible':[('is_lines_qty_equal_tasks_qty', '=', True)]}">
+                    <bold>La quantité d'une ligne de vente n'est pas égale à la somme des quantités vendues des tâches
+                        liées
+                    </bold>
+                </div>
+            </header>
         </field>
     </record>
 

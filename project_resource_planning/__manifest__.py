@@ -23,7 +23,7 @@
     'author': 'NDP Systèmes',
     'maintainer': 'NDP Systèmes',
     'category': 'Project',
-    'depends': ['project', 'web_timeline2'],
+    'depends': ['project', 'web_timeline2', 'web_widget_color'],
     'description': """
 Project Resource Planning
 =========================
