@@ -93,4 +93,9 @@
         </field>
     </record>
 
+    <record id="ndp_product_product_other" model="product.product">
+        <field name="name">Other</field>
+        <field name="sale_ok">True</field>
+    </record>
+
 </odoo>
