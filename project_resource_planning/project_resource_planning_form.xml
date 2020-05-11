@@ -10,7 +10,9 @@
                           date_stop="datetime_end"
                           headerOrientation="top"
                           mode="month"
-                          default_group_by="employee_id"
+                          default_group_by="department_id,employee_id"
+                          show_current_time="false"
+                          show_week_scale="true"
                           color_field="project_color"
                           event_open_popup="true"
                           min_zoom="7 * 24 * 60 /**Js expr for 1 week in minutes**/"
@@ -20,8 +22,8 @@
                           overlap_field="overlap"
                           visibleFrameQweb="false"
                           drag_data="[
-                          {'field': 'project_id', 'color_field': 'color_code', 'range_full': 'day', 'group_by': 'employee_id'},
-                          {'field': 'employee_id', 'range_full': 'day', 'group_by': 'project_id',  }
+                          {'field': 'project_id', 'color_field': 'color_code', 'range_full': 'day', 'group_by': 'employee_id', 'create_auto': True},
+                          {'field': 'employee_id', 'range_full': 'day', 'group_by': 'project_id',  'create_auto': True}
                           ]"
                           axis="1:day"
                           scale_button="false"
@@ -44,7 +46,6 @@
                         <field name="datetime_end" invisible="1"/>
                         <group>
                             <field name="project_id"/>
-                            <field name="project_color"/>
                             <group>
                                 <field name="date_start"/>
                                 <field name="date_end"/>
@@ -84,7 +85,7 @@
                 <xpath expr="//group[@name='misc']" position="inside">
                     <group string="Resource Planning">
                         <field name="used_in_resource_planning"/>
-                        <field name="color_code"/>
+                        <field name="color_code" widget="color"/>
                     </group>
                 </xpath>
             </field>
