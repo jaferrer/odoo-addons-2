@@ -19,7 +19,13 @@
     transition: all 0.15s ease;
     background: #2797dd;
 }
-
+.badge.timeline2_draggable:before {
+    content: "≣";
+    font-family: Arial, sans-serif;
+    display: inline-block;
+    font-size: inherit;
+    cursor: move;
+}
 .vis-timeline{
     border: 2px solid #dddddd;
     border-top: 0;

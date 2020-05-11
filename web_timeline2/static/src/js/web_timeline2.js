@@ -54,7 +54,12 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                     box_unstacked: false,
                     point_unstacked: false,
                 }
-                this.searchDeferred = true;
+                this.searchDeferred = $.Deferred().resolve([]);
+                this.ViewManager.on('switch_mode', this, (n_mode) => {
+                    if (n_mode === "timeline2") {
+                        this.timeline.redraw()
+                    }
+                });
                 this._parse_attrs(this.fields_view.arch.attrs);
                 return result
             },
@@ -208,6 +213,11 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         })
 
                     });
+            },
+
+            destroy: function () {
+                console.log('destroy')
+                return this._super.apply(this, arguments);
             },
 
             _get_option_timeline: function () {
@@ -387,7 +397,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
 
                         for (const record of records) {
                             const $div = $(document.createElement('div'))
-                            $div.addClass("badge");
+                            $div.addClass("badge timeline2_draggable");
                             $div.css("background-color", record[this.current_drag_data.color_field]);
                             $div.text(record.display_name);
                             $div.attr('data-id', record.id);
@@ -529,14 +539,9 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             do_search: function (domains, contexts, group_bys) {
-                console.log('do_search', domains, contexts, group_bys);
+                console.log('do_search', this.timeline.getWindow(), domains, contexts, group_bys);
                 return $.when(this.searchDeferred).then(() => {
-                    this.visData.clear();
-                    this.visGroups.clear();
-                    this.visGroups.add({
-                        id: -1,
-                        content: "-"
-                    })
+
                     this.current_search.domain = domains;
                     this.current_search.context = contexts;
                     this.current_search.context = contexts;
@@ -554,6 +559,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             reload: function () {
+                console.log('reload')
                 if (this.current_search.domain !== undefined) {
                     this.current_window = this.timeline.getWindow();
                     return this.do_search(this.current_search.domain, this.current_search.context, this.current_search.groupBys);
@@ -561,6 +567,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             _load_all_data: function () {
+                this.visData.clear();
                 if (this.current_search.groupBys) {
                     return this._load_all_data_with_group();
                 }
@@ -578,8 +585,13 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                         grouped_on: this.current_search.lastGroupBy,
                         group_by_no_leaf: true
                     }).lazy(false).group_by(this.current_search.groupBys).then(result => {
+                        this.visGroups.clear();
+                        this.visGroups.add({
+                            id: -1,
+                            content: "-"
+                        })
                         return $.when.apply($,
-                            result.map(grouping => {
+                            result.flatMap(grouping => {
                                 this._populate_vis_group(grouping);
                                 return this._internal_do_search(grouping.model.domain(), grouping.model.context().eval())
                             })
@@ -627,7 +639,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
 
                         grp_id = previous_grouped_on + "_" + grp_id;
                     }
-                    console.log(label, grp_id);
                     label = label || "Sans " + this.fields[grouped_on].string;
                     if (!this.visGroups.get(grp_id)) {
                         let current_group = {
@@ -679,7 +690,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
                 };
                 if (this.current_search.groupBys) {
                     visEvt.group = this.current_search.groupBys.map(grp => grp + '_' + this._get_id(evt[grp])).join("_")
-                    console.log(visEvt.group);
                 }
                 if (data_type !== 'background' && this.overlap_field) {
                     visEvt["subgroup"] = subgroup;
@@ -773,7 +783,6 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             on_add: function (item, callback, auto_create = false) {
-                console.log("add", item);
                 if (item.comeFromDrag) {
                     return callback(null);
                 }
@@ -870,9 +879,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             on_update: function (item, callback) {
-                console.log("update", item);
                 if (!this.delegate_model_field && !this.open_popup_action) {
-                    console.log(item.evt.id, item.evt, this.permissions['write'], this.dataset.get_id_index(item.evt.id));
                     this.dataset.select_id(item.evt.id);
                     if (this.permissions['write']) {
                         return this.do_switch_view('form', {mode: "edit"});
@@ -991,7 +998,7 @@ odoo.define('web_timeline2.TimelineView', function (require) {
             },
 
             on_remove: function (item, callback) {
-                if(!item.evt){
+                if (!item.evt) {
                     return callback(item);
                 }
                 if (this.options.confirm_on_delete) {
