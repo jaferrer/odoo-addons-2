@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 10.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-05 18:53+0000\n"
-"PO-Revision-Date: 2019-05-05 18:53+0000\n"
+"POT-Creation-Date: 2020-05-11 14:59+0000\n"
+"PO-Revision-Date: 2020-05-11 14:59+0000\n"
 "Last-Translator: <>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,18 +16,38 @@ msgstr ""
 "Plural-Forms: \n"
 
 #. module: project_task_invoice
-#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_project_partner_id
-msgid "Client du projet"
-msgstr "Client du projet"
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_date_invoiced
+msgid "Billing Date"
+msgstr "Date de facturation"
 
 #. module: project_task_invoice
-#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_initial_sale_id
-msgid "Sale order"
-msgstr "Commande de vente"
+#: model:ir.ui.view,arch_db:project_task_invoice.invoice_project_task_wizard_form_view
+msgid "Cancel"
+msgstr "Annuler"
 
 #. module: project_task_invoice
-#: model:ir.ui.view,arch_db:project_task_invoice.project_task_search
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_id
+msgid "ID"
+msgstr "ID"
+
+#. module: project_task_invoice
 #: model:ir.model.fields,field_description:project_task_invoice.field_project_task_date_invoiced
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_search
 msgid "Invoice Date"
 msgstr "Date de facturation"
 
@@ -37,9 +57,30 @@ msgid "Invoicing"
 msgstr "Facturation"
 
 #. module: project_task_invoice
-#: model:ir.model.fields,field_description:project_task_invoice.field_project_task_initial_sale_line_id
-msgid "Sale order line"
-msgstr "Ligne de vente"
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard___last_update
+msgid "Last Modified on"
+msgstr "Dernière Modification le"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_write_uid
+msgid "Last Updated by"
+msgstr "Dernière mise à jour par"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_write_date
+msgid "Last Updated on"
+msgstr "Dernière mise à jour le"
+
+#. module: project_task_invoice
+#: model:product.product,name:project_task_invoice.ndp_product_product_other
+#: model:product.template,name:project_task_invoice.ndp_product_product_other_product_template
+msgid "Other"
+msgstr "Autres"
+
+#. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_has_new_date
+msgid "Overwrite Billing Date in Tasks"
+msgstr "Remplacer la date de facturation dans les tâches"
 
 #. module: project_task_invoice
 #: model:ir.model,name:project_task_invoice.model_project_task
@@ -47,7 +88,55 @@ msgid "Task"
 msgstr "Tâche"
 
 #. module: project_task_invoice
+#: model:ir.model.fields,field_description:project_task_invoice.field_invoice_project_task_wizard_task_ids
+msgid "Tasks to Invoice"
+msgstr "Tâches à facturer"
+
+#. module: project_task_invoice
 #: model:ir.model.fields,field_description:project_task_invoice.field_project_task_time_spent
 msgid "Time sold"
 msgstr "Temps vendu"
 
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.invoice_project_task_wizard_form_view
+msgid "To Invoice"
+msgstr "À facturer"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.invoice_project_task_wizard_form_view
+msgid "To Invoice Tasks"
+msgstr "Facturer des tâches"
+
+#. module: project_task_invoice
+#: model:ir.actions.server,name:project_task_invoice.action_invoice_project_task
+msgid "To invoice those lines"
+msgstr "Facturer ces lignes"
+
+#. module: project_task_invoice
+#: model:ir.ui.view,arch_db:project_task_invoice.project_task_tree
+msgid "Total temps vendu"
+msgstr "Total temps vendu"
+
+#. module: project_task_invoice
+#: code:addons/project_task_invoice/project_task_amount.py:58
+#, python-format
+msgid "You can't create an invoice for several customers"
+msgstr "Vous ne pouvez pas créer une facture pour plusieurs clients."
+
+#. module: project_task_invoice
+#: code:addons/project_task_invoice/project_task_amount.py:56
+#: code:addons/project_task_invoice/project_task_amount.py:126
+#, python-format
+msgid "You can't create an invoice from a task if the task's customer isn't filled"
+msgstr "Vous ne pouvez pas créer une facture depuis une tâche, si le client de cette tâche n'est pas saisi."
+
+#. module: project_task_invoice
+#: code:addons/project_task_invoice/project_task_amount.py:129
+#, python-format
+msgid "You can't create one invoice for several customers"
+msgstr "Vous ne pouvez pas créer une facture pour plusieurs clients."
+
+#. module: project_task_invoice
+#: model:ir.model,name:project_task_invoice.model_invoice_project_task_wizard
+msgid "invoice.project.task.wizard"
+msgstr "invoice.project.task.wizard"

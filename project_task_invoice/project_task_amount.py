@@ -17,7 +17,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-from odoo import fields, models, api
+from odoo import fields, models, api, _
 from odoo.exceptions import UserError
 
 
@@ -53,9 +53,9 @@ class ProjectTaskInvoice(models.Model):
         ctx = dict(self.env.context)
         ctx.update({'default_task_ids': self.env.context.get('active_ids')})
         if any(not rec.partner_id for rec in self):
-            raise UserError(u"You can't create an invoice from a task if the task's customer isn't filled")
+            raise UserError(_(u"You can't create an invoice from a task if the task's customer isn't filled"))
         if len(self.mapped('partner_id')) > 1:
-            raise UserError(u"You can't create an invoice for several customers")
+            raise UserError(_(u"You can't create an invoice for several customers"))
         return {
             'type': 'ir.actions.act_window',
             'name': 'To Invoice Tasks',
@@ -123,10 +123,10 @@ class InvoiceProjectTask(models.TransientModel):
             self.task_ids.write({'date_invoiced': self.date_invoiced})
 
         if any(not task.partner_id for task in self.task_ids):
-            raise UserError(u"You can't create an invoice from a task if the task's customer isn't filled")
+            raise UserError(_(u"You can't create an invoice from a task if the task's customer isn't filled"))
         partner = self.task_ids.mapped('partner_id')
         if len(partner) > 1:
-            raise UserError(u"You can't create one invoice for several customers")
+            raise UserError(_(u"You can't create one invoice for several customers"))
 
         vals = {
             'date_invoice': self.date_invoiced,
