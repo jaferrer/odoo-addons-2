@@ -34,7 +34,7 @@ airsoft_entrepot:
     ODOO_IMG: "8.0"
     GIT_STRATEGY: none
     BEFORE_ODOO_MODULE: ""
-    ODOO_DEPENDS: "odoo-addons/common-modules,odoo-addons/community-addons,odoo-addons/entrepot"
+    ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/entrepot"
     ODOO_MODULE: "entrepot_config"
 
 sirail_master:
