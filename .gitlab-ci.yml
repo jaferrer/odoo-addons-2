@@ -50,7 +50,7 @@ sirail_master:
     ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-MERE"
     ODOO_MODULE: "sirail_master"
 
-sirial_fr_tn_sk:
+sirail_fr_tn_sk:
   stage: runbot_triggers
   script:
     - sh $PATH_WORK/ci/test/runbot_depends/run.sh
@@ -61,7 +61,7 @@ sirial_fr_tn_sk:
     ODOO_IMG: "8.0"
     BEFORE_ODOO_MODULE: "sale_mrp"
     ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-FILLE"
-    ODOO_MODULE: "sirail_base_fr"
+    ODOO_MODULE: "fr_tests"
 
 sirail_allemagne:
   stage: runbot_triggers
