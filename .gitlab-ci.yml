@@ -50,7 +50,7 @@ sirail_master:
     ODOO_DEPENDS: "odoo-addons/community-addons,odoo-addons/sirail,odoo-addons/sirail-erp/BUS-MERE"
     ODOO_MODULE: "sirail_master"
 
-sirail_fr_sk_de:
+sirial_fr_tn_sk:
   stage: runbot_triggers
   script:
     - sh $PATH_WORK/ci/test/runbot_depends/run.sh
