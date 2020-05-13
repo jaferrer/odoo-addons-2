@@ -26,7 +26,7 @@ class WebUiError(Exception):
 class StockPickingTypeWebUiStockProduct(models.Model):
     _inherit = 'stock.picking.type'
 
-    @api.model
+    @api.multi
     def web_ui_get_production_lot_by_name(self, name):
         production_lot = self.env['stock.production.lot'].search([('name', '=ilike', name)])
         if not production_lot:
@@ -56,7 +56,7 @@ class StockPickingTypeWebUiStockProduct(models.Model):
     @api.multi
     def web_ui_get_production_info_for_product(self, name, product_id):
         """
-        On peut rechercher un article, soit par le nom de son code, soit par son nom.
+        Récupère les infos d'un article via son lot de production.
         """
         name = name.strip()
         production_lot = self.env['stock.production.lot'].search([
@@ -105,7 +105,7 @@ class ProductProductWebUiStockProduct(models.Model):
         self.ensure_one()
         return {
             'id': self.id,
-            'name': self.name,
+            'name': self.display_name,
             'default_code': self.default_code or "-",
             'quantity': 1,
             'lot_id': production_lot.id,
@@ -118,7 +118,7 @@ class ProductProductWebUiStockProduct(models.Model):
         self.ensure_one()
         return {
             'id': self.id,
-            'name': self.name,
+            'name': self.display_name,
             'default_code': self.default_code,
             'tracking': self.tracking,
         }

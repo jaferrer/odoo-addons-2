@@ -9,7 +9,8 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
     var BatchSelectionTable = require('web_ui_stock_batch.BatchSelectionTable');
     var BatchMoveLine = {
         Row: require('web_ui_stock_batch.BatchMoveLineRow'),
-        Numpad: require('web_ui_stock_batch.BatchMoveLineNumpad'),
+        Lot: require('web_ui_stock_batch.BatchMoveLineLot'),
+        Numpad: require('web_ui_stock_batch.BatchMoveLineNumpad')
     };
     var rpc = require('web.rpc');
 
@@ -21,6 +22,7 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
             this.selection_rows = [];
             this.selected_batch = false;
             this.move_line_rows = [];
+            this.changing_location = false;
             this.selected_scan_batch_computer = 0;
             this.barcode_scanner = new BarcodeScanner();
             this.scanned_row = false;
@@ -31,6 +33,8 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
             this.$('button.js_validate_batch').click((ev) => { this.do_validate_batch() });
             this.batch_selection_table_body = this.$('#batch_selection_table_body');
             this.move_line_table_body = this.$('#move_line_table_body');
+            this.need_for_lot = this.$('#need_for_lot');
+            this.lot_row = false;
             this.quantity_numpad = this.$('#quantity_numpad');
             let spt_name_get_params = {
                 model: 'stock.picking.type',
@@ -46,7 +50,7 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
                 this._disconnect_scanner();
                 this.$('#search_location').on('keyup', (e) => {
                     if (e.key == 'Enter') {
-                        this.scan_location(this.$('#search_location').val(), this.scanned_row)
+                        this.scan_location(this.$('#search_location').val(), this.changing_location)
                     }
                 })
             });
@@ -64,7 +68,7 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
                 this._disconnect_scanner();
                 this.$('#search_product').on('keyup', (e) => {
                     if (e.key == 'Enter') {
-                        this.scan_product(this.$('#search_product').val(), this.scanned_row)
+                        this.scan_product(this.$('#search_product').val())
                     }
                 })
             });
@@ -78,11 +82,29 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
                 this.$('#search_product').focus()
             });
 
+            this.$('#search_product_lot').focus(() => {
+                this._disconnect_scanner();
+                this.$('#search_product_lot').on('keyup', (e) => {
+                    if (e.key == 'Enter') {
+                        this.scan_lot(this.$('#search_product_lot').val())
+                    }
+                })
+            });
+            this.$('#search_product_lot').blur(() => {
+                this.$('#search_product_lot').off('keyup');
+                this._connect_scanner_lot();
+            });
+            this.$('#clear_search_product_lot').click(() => {
+                console.log('clear_search_product_lot');
+                this.$('#search_product_lot').val('');
+                this.$('#search_product_lot').focus()
+            });
+
             this.$('#search_picking').focus(() => {
                 this._disconnect_scanner();
                 this.$('#search_picking').on('keyup', (e) => {
                     if (e.key == 'Enter') {
-                        this.scan_picking(this.$('#search_picking').val(), this.scanned_row)
+                        this.scan_picking(this.$('#search_picking').val())
                     }
                 })
             });
@@ -95,6 +117,7 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
                 this.$('#search_picking').val('');
                 this.$('#search_picking').focus()
             });
+
         },
         _init_scan_batch_computer: function () {
             let printer_computer_params = {
@@ -138,6 +161,9 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
         _connect_scanner_product: function () {
             this.barcode_scanner.connect(this.scan_product.bind(this));
         },
+        _connect_scanner_lot: function () {
+            this.barcode_scanner.connect(this.scan_lot.bind(this));
+        },
         _connect_scanner_picking: function () {
             this.barcode_scanner.connect(this.scan_picking.bind(this));
         },
@@ -147,6 +173,7 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
         get_header: function () {
             return this.getParent().get_header();
         },
+
         _set_all_picking_batches: function () {
             let spb_batch_info_params = {
                 model: 'stock.picking.batch',
@@ -178,7 +205,8 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
                   this.scanned_row = this.move_line_rows[0];
               });
         },
-        scan_location: function (name, scanned_row) {
+
+        scan_location: function (name, changing_location) {
             console.log(name);
             this.$('#search_location').val('');
             let sl_location_info_params = {
@@ -187,34 +215,92 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
                 args: [[this.pickingTypeId], name],
             };
             rpc.query(sl_location_info_params)
-                .then((location_barcode) => {
-                    if (scanned_row.move_line.location_barcode === location_barcode) {
-                        this.scanned_row.$('#move_line_location').removeClass('font-weight-bold');
-                        this.scanned_row.$('#move_line_location').removeClass('text-warning');
-                        this.scanned_row.$('#move_line_location').removeClass('text-danger');
-                        this.scanned_row.$('#move_line_location').addClass('text-success');
-                        this.scanned_row.$('#move_line_product').addClass('font-weight-bold');
-                        this.scanned_row.$('#move_line_product').addClass('text-warning');
-                        this.$('#manual_scan_location').toggleClass('d-none');
-                        this.$('#manual_scan_product').toggleClass('d-none');
+                .then((location) => {
+                    if (!changing_location) {
+                        if (this.scanned_row.move_line.location_barcode === location.barcode) {
+                            this.scanned_row.$('#move_line_location').removeClass('font-weight-bold');
+                            this.scanned_row.$('#move_line_location').removeClass('text-warning');
+                            this.scanned_row.$('#move_line_location').removeClass('text-danger');
+                            this.scanned_row.$('#move_line_location').addClass('text-success');
+                            this.$('#manual_scan_location').toggleClass('d-none');
+                            this.show_or_hide_change_location();
+                            this.$('#helper_location').toggleClass('d-none');
+                        }
+                        else {
+                            this.scanned_row.$('#move_line_location').removeClass('text-warning');
+                            this.scanned_row.$('#move_line_location').addClass('text-danger');
+                        }
                     }
                     else {
-                        this.scanned_row.$('#move_line_location').removeClass('text-warning');
-                        this.scanned_row.$('#move_line_location').addClass('text-danger');
+                        this.scanned_row.$('#move_line_location').removeClass('font-weight-bold');
+                        this.scanned_row.$('#move_line_location').removeClass('text-danger');
+                        this.scanned_row.$('#move_line_location').addClass('text-success');
+                        this.scanned_row.update_location(location);
+                        this.forbid_change_location();
+                        this.$('#confirm_location_header').removeClass('d-none');
+                        this.move_line_rows.forEach((move_line_row) => {
+                            move_line_row.$('#confirm_location_body').removeClass('d-none')
+                        });
+                        this.scanned_row.$('button.js_confirm_location').removeClass('d-none')
                     }
+                })
+                .fail((errors, event) => {
+                    console.log("Error print", errors, event);
+                        this.scanned_row.$('#move_line_location').removeClass('text-warning');
+                        this.scanned_row.$('#move_line_location').removeClass('text-success');
+                        this.scanned_row.$('#move_line_location').addClass('font-weight-bold');
+                        this.scanned_row.$('#move_line_location').addClass('text-danger');
+                        if (changing_location) {
+                            this.$('#manual_scan_location').addClass('warning-background');
+                            this.$('#confirm_location_header').addClass('d-none');
+                            this.move_line_rows.forEach((move_line_row) => {
+                                move_line_row.$('#confirm_location_body').addClass('d-none')
+                            });
+                            this.scanned_row.$('button.js_confirm_location').addClass('d-none')
+                        }
+                    event.preventDefault();
                 });
         },
-        scan_product: function (name, scanned_row) {
+        // Permet de changer l'emplacement si nécessaire
+        show_or_hide_change_location: function () {
+            this.$('#change_location_header').toggleClass('d-none');
+            this.$('#confirm_location_header').toggleClass('d-none');
+            this.move_line_rows.forEach((move_line_row) => {
+                move_line_row.$('#change_location_body').toggleClass('d-none');
+                move_line_row.$('#confirm_location_body').toggleClass('d-none')
+            });
+            this.scanned_row.$('button.js_change_location').toggleClass('d-none');
+            this.scanned_row.$('button.js_confirm_location').toggleClass('d-none');
+        },
+        allow_change_location: function () {
+            this.changing_location = true;
+            this.$('#helper_location').addClass('d-none');
+            this.$('#manual_scan_location').removeClass('d-none');
+            this.$('#manual_scan_location').addClass('waiting-background');
+            this.$('#scan_location_classic').addClass('d-none');
+            this.$('#scan_location_change').removeClass('d-none');
+        },
+        forbid_change_location: function () {
+            this.changing_location = false;
+            this.$('#helper_location').removeClass('d-none');
+            this.$('#manual_scan_location').addClass('d-none');
+            this.$('#manual_scan_location').removeClass('waiting-background');
+            this.$('#scan_location_classic').removeClass('d-none');
+            this.$('#scan_location_change').addClass('d-none');
+        },
+
+        scan_product: function (name) {
             console.log(name);
             this.$('#search_product').val('');
-            let pp_product_info_params = {
+            let spt_product_info_params = {
                 model: 'stock.picking.type',
-                method: 'web_ui_get_product_info_by_name_batch',
+                method: 'web_ui_get_product_info_by_name',
                 args: [[this.pickingTypeId], name],
             };
-            rpc.query(pp_product_info_params)
-                .then((display_name) => {
-                    if (scanned_row.move_line.product === display_name && scanned_row.quantity_done === 0) {
+            rpc.query(spt_product_info_params)
+                .then((product) => {
+                    if
+                    (this.scanned_row.move_line.product.name === product.name && this.scanned_row.quantity_done === 0) {
                         this.scanned_row.$('#move_line_product').removeClass('font-weight-bold');
                         this.scanned_row.$('#move_line_product').removeClass('text-warning');
                         this.scanned_row.$('#move_line_product').removeClass('text-danger');
@@ -234,22 +320,80 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
                             this.scanned_row.$('button.js_open_numpad').removeClass('d-none');
                         }
                         this.scanned_row.update_quantity();
+
+                        // Prend en charge les numéros de série/lot des articles
+                        if ((product.tracking === "lot" || product.tracking === "serial") &&
+                            product.lot_id === false) {
+                            this.open_need_num_lot(this.scanned_row);
+                        }
+                        else {
+                            this.scanned_row.$('#move_line_lot').addClass('text-success');
+                        }
                     }
-                    else if (scanned_row.move_line.product === display_name && scanned_row.quantity_done > 0) {
+                    else if
+                    (this.scanned_row.move_line.product.name === product.name && this.scanned_row.quantity_done > 0) {
                         this.scanned_row.update_quantity();
                         if (this.$('#manual_scan_product').hasClass('warning-background')) {
                             this.$('#manual_scan_product').toggleClass('warning-background');
                         }
                     }
-                    else if (scanned_row.move_line.product !== display_name && scanned_row.quantity_done === 0) {
+                })
+                .fail((errors, event) => {
+                    console.log("Error print", errors, event);
+                    if (this.scanned_row.quantity_done === 0) {
                         this.scanned_row.$('#move_line_product').removeClass('text-warning');
                         this.scanned_row.$('#move_line_product').addClass('text-danger');
                     }
-                    else if (scanned_row.move_line.product !== display_name && scanned_row.quantity_done > 0) {
+                    if (this.scanned_row.quantity_done > 0) {
                         this.$('#manual_scan_product').toggleClass('warning-background');
                     }
+                    event.preventDefault();
                 });
         },
+
+        open_need_num_lot: function (scanned_row) {
+            this.$('#move_line_table').addClass('d-none');
+            this.$('#manual_scan_product').addClass('d-none');
+            this.$('#manual_scan_lot').removeClass('d-none');
+            this.need_for_lot.removeClass('d-none');
+            let lot_row = new BatchMoveLine.Lot(this, scanned_row);
+            this.lot_row = lot_row;
+            lot_row.appendTo(this.need_for_lot);
+        },
+        scan_lot: function (name) {
+            console.log(name);
+            this.$('#search_product_lot').val('');
+            let spt_product_info_params = {
+                model: 'stock.picking.type',
+                method: 'web_ui_get_production_info_for_product',
+                args: [[this.pickingTypeId], name, this.lot_row.product.id],
+            };
+            rpc.query(spt_product_info_params)
+                .then((product) => {
+                    if (this.lot_row.product.id === product.id) {
+                        this.lot_row.batchMoveLineRow.update_num_lot(product);
+                        this.exit_need_num_lot();
+                    }
+                })
+                .fail((errors, event) => {
+                    console.log("Error print", errors, event);
+                    this.$('#manual_scan_lot').removeClass('waiting-background');
+                    this.$('#manual_scan_lot').addClass('warning-background');
+                    this.lot_row.$('#invalid_lot_number_col').removeClass('d-none');
+                    this.lot_row.$('#invalid_lot_number_header').removeClass('d-none');
+                    this.lot_row.invalid_number = name;
+                    this.lot_row.$('#invalid_lot_number_col').text(this.lot_row.invalid_number);
+                    event.preventDefault();
+                });
+        },
+        exit_need_num_lot: function () {
+            this.$('#move_line_table').removeClass('d-none');
+            this.$('#manual_scan_product').removeClass('d-none');
+            this.$('#manual_scan_lot').addClass('d-none');
+            this.need_for_lot.addClass('d-none');
+            this.need_for_lot.empty();
+        },
+
         open_numpad: function (scanned_row) {
             let scanned_row_numpad = new BatchMoveLine.Numpad(this, scanned_row);
             scanned_row_numpad.appendTo(this.quantity_numpad);
@@ -277,7 +421,8 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
                     new_move_line_row.appendTo(this.move_line_table_body);
             })
         },
-        scan_picking: function (name, scanned_row) {
+
+        scan_picking: function (name) {
             console.log(name);
             this.$('#search_picking').val('');
             let sp_picking_info_params = {
@@ -287,7 +432,7 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
             };
             rpc.query(sp_picking_info_params)
                 .then((picking) => {
-                    if (scanned_row.move_line.picking === picking) {
+                    if (this.scanned_row.move_line.picking === picking) {
                         this.scanned_row.$('#move_line_picking').removeClass('font-weight-bold');
                         this.scanned_row.$('#move_line_picking').removeClass('text-warning');
                         this.scanned_row.$('#move_line_picking').removeClass('text-danger');
@@ -295,7 +440,7 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
                         this.$('#manual_scan_picking').toggleClass('d-none');
                         this.scanned_row.send_qty_done_to_odoo();
                         this.move_line_rows.shift();
-                        scanned_row.destroy();
+                        this.scanned_row.destroy();
                         if (this.move_line_rows[0]) {
                             this.$('#manual_scan_location').toggleClass('d-none');
                             this.scanned_row = this.move_line_rows[0];
@@ -311,6 +456,7 @@ odoo.define('web_ui_stock_batch.BatchMainWidget', function (require) {
                     }
                 });
         },
+
         do_validate_batch: function () {
             let do_validate_batch_params = {
                 model: 'stock.picking.batch',

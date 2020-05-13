@@ -50,11 +50,12 @@ class StockPickingBatch(models.Model):
         batch_move_lines = picking_batch.mapped('picking_ids').mapped('move_line_ids_without_package').filtered(
             lambda x: x.product_uom_qty != x.qty_done).sorted(key=lambda x: (x.location_id.name, x.product_id.name))
         for move_line in batch_move_lines:
+            product_infos = self.env['stock.picking.type'].web_ui_get_product_info_by_name(move_line.product_id.name)
             list_move_lines.append({
                 'id': move_line.id,
                 'location': move_line.location_id.name,
                 'location_barcode': move_line.location_id.barcode,
-                'product': move_line.product_id.display_name,
+                'product': product_infos,
                 'quantity': move_line.product_uom_qty,
                 'product_uom': move_line.product_uom_id.name,
                 'picking': move_line.picking_id.name,
@@ -73,23 +74,17 @@ class StockPickingTypeScanBatch(models.Model):
         """
         name = name.strip()
         location = self.env['stock.location'].search([('barcode', '=ilike', name)])
+        if not location:
+            raise WebUiError(name, "Aucun emplacement n'a été trouvé : %s" % ", ".join(location.mapped('barcode')))
         if len(location) > 1:
             raise WebUiError(name, "Plusieurs emplacements ont été trouvés : %s" % ", ".join(
                 location.mapped('barcode')))
 
-        return location.barcode
-
-    @api.multi
-    def web_ui_get_product_info_by_name_batch(self, name):
-        """
-        On peut rechercher un article par son code ou par son nom.
-        """
-        name = name.strip()
-        product = self.env['product.product'].search(['|', ('name', '=ilike', name), ('default_code', '=ilike', name)])
-        if len(product) > 1:
-            raise WebUiError(name, "Plusieurs articles ont été trouvés : %s" % ", ".join(product.mapped('name')))
-
-        return product.display_name
+        return {
+            'id': location.id,
+            'name': location.name,
+            'barcode': location.barcode
+        }
 
     @api.multi
     def web_ui_get_picking_info_by_name_batch(self, name):
@@ -98,6 +93,8 @@ class StockPickingTypeScanBatch(models.Model):
         """
         name = name.strip()
         picking = self.env['stock.picking'].search([('name', '=ilike', name)])
+        if not picking:
+            raise WebUiError(name, "Aucun transfert n'a été trouvé : %s" % ", ".join(picking.mapped('name')))
         if len(picking) > 1:
             raise WebUiError(name, "Plusieurs transferts ont été trouvés : %s" % ", ".join(picking.mapped('name')))
 
@@ -115,6 +112,14 @@ class StockPickingBatchScanBatch(models.Model):
 
 class StockMoveLineScanBatch(models.Model):
     _inherit = 'stock.move.line'
+
+    @api.multi
+    def change_location_from_scan_batch(self, location_id):
+        """
+        Modifie l'emplacement d'origine du move line.
+        """
+        self.ensure_one()
+        self.location_id = self.env['stock.location'].browse(location_id)
 
     @api.multi
     def change_qty_to_do_from_scan_batch(self, new_qty_to_do):

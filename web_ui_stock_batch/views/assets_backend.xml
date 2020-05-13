@@ -5,8 +5,9 @@
         <template id="assets_backend" name="stock assets" inherit_id="web.assets_backend">
             <xpath expr="." position="inside">
                 <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_main_list.js"/>
-                <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_main_list_move_line_numpad.js"/>
                 <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_main_list_move_line_row.js"/>
+                <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_main_list_move_line_lot.js"/>
+                <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_main_list_move_line_numpad.js"/>
                 <script type="text/javascript" src="/web_ui_stock_batch/static/src/js/batch_main_list_selection.js"/>
             </xpath>
         </template>

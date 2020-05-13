@@ -25,13 +25,14 @@
         <div class="container">
             <div id="big_helper" class="jumbotron">
                 <h1>Bienvenue dans l'écran de scanner de préparations par lots</h1>
-                <p>Veuiller sélectionner un lot de pickings pour commencer</p>
+                <p>Veuillez sélectionner un lot de pickings pour commencer</p>
                 <p>Ou</p>
                 <p>Cliquer sur le bouton Quitter pour revenir sur l'écran Odoo</p>
             </div>
 
             <div id="manual_scan_location" class="jumbotron d-none">
-                <h4>Veuillez scanner l'emplacement demandé</h4>
+                <h4 id="#scan_location_classic">Veuillez scanner l'emplacement demandé</h4>
+                <h4 id="#scan_location_change" class="d-none">Veuillez scanner l'emplacement souhaité</h4>
                 <div class="input-group">
                     <input id="search_location" type="text" class="form-control"
                            placeholder="Saisie emplacement manuel"/>
@@ -39,6 +40,12 @@
                         <button id="clear_search_location" class="btn btn-danger" type="button">x</button>
                     </span>
                 </div>
+            </div>
+
+            <div id="helper_location" class="jumbotron d-none waiting-background">
+                <h4>Veuillez valider l'emplacement pour continuer</h4>
+                <h4>Ou</h4>
+                <h4>Vous pouvez le modifier s'il y a une erreur d'inventaire</h4>
             </div>
 
             <div id="manual_scan_product" class="jumbotron d-none">
@@ -53,6 +60,19 @@
                            placeholder="Saisie article manuel"/>
                     <span class="input-group-btn">
                         <button id="clear_search_product" class="btn btn-danger" type="button">x</button>
+                    </span>
+                </div>
+            </div>
+
+            <div id="manual_scan_lot" class="jumbotron waiting-background d-none">
+                <h4>
+                    Cet article est rattaché à un numéro de lot/série\nmerci de scanner ce numéro pour continuer
+                </h4>
+                <div class="input-group">
+                    <input id="search_product_lot" type="text" class="form-control"
+                           placeholder="Saisie numéro de lot/série manuel"/>
+                    <span class="input-group-btn">
+                        <button id="clear_search_product_lot" class="btn btn-danger" type="button">x</button>
                     </span>
                 </div>
             </div>
@@ -90,7 +110,10 @@
                 </table>
             </div>
 
+            <div class="row d-none" id="need_for_lot"/>
+
             <div class="row d-none" id="quantity_numpad"/>
+
         </div>
     </t>
 
@@ -121,7 +144,10 @@
     <t t-name="BatchMoveLineTableHeader">
         <tr>
             <th>Emplacement</th>
+            <th id="change_location_header" class="d-none">Modifier</th>
+            <th id="confirm_location_header" class="d-none">Valider</th>
             <th>Article</th>
+            <th>N° de lot/série</th>
             <th>Quantité</th>
             <th>Unité</th>
             <th id="change_qty_header" class="d-none">Ajuster</th>
@@ -134,8 +160,17 @@
             <td id="move_line_location" class="text-warning font-weight-bold">
                 <t t-esc="widget.move_line.location"/>
             </td>
+            <td id="change_location_body" class="d-none">
+                <button type="button" class="btn btn-primary js_change_location fa fa-cubes d-none"/>
+            </td>
+            <td id="confirm_location_body" class="d-none">
+                <button type="button" class="btn btn-success js_confirm_location fa fa-check d-none"/>
+            </td>
             <td id="move_line_product">
-                <t t-esc="widget.move_line.product"/>
+                <t t-esc="widget.product.name"/>
+            </td>
+            <td id="move_line_lot">
+                <t t-esc="widget.product.lot_name"/>
             </td>
             <td id="move_line_quantity">
                 <t t-esc="widget.display_qty"/>
@@ -153,6 +188,37 @@
                 <t t-esc="widget.move_line.picking"/>
             </td>
         </tr>
+    </t>
+
+    <t t-name="BatchMoveLineLot" class="d-none" id="need_for_lot_view">
+        <div>
+            <table id="product_lot_table" class="table">
+                <thead id="product_lot_table_header">
+                    <tr>
+                        <th>Nom</th>
+                        <th>Code</th>
+                        <th>Méthode de suivi</th>
+                        <th id="invalid_lot_number_header" class="d-none text-danger">Numéro de lot/série invalide</th>
+                    </tr>
+                </thead>
+                <tbody id="product_lot_table_body">
+                    <tr>
+                        <td>
+                            <t t-esc="widget.batchMoveLineRow.product.name"/>
+                        </td>
+                        <td>
+                            <t t-esc="widget.batchMoveLineRow.product.default_code"/>
+                        </td>
+                        <td>
+                            <t t-esc="widget.batchMoveLineRow.product.tracking"/>
+                        </td>
+                        <td id="invalid_lot_number_col" class="d-none text-danger">
+                            <t t-esc="widget.invalid_number"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </t>
 
     <t t-name="BatchMoveLineNumpad">

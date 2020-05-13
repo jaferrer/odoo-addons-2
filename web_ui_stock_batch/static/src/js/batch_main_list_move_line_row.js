@@ -11,6 +11,7 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
             this.batchMainList = batchMainList;
             this.id = move_line.id;
             this.move_line = move_line;
+            this.product = move_line.product;
             this.quantity_to_do = move_line.quantity;
             this.quantity_done = 0;
             this.display_qty = this.quantity_done + "/" + this.quantity_to_do;
@@ -21,8 +22,37 @@ odoo.define('web_ui_stock_batch.BatchMoveLineRow', function (require) {
         renderElement: function () {
             this._super();
             console.log("ProductTableRow renderElement");
+            this.$('button.js_change_location').click(ev => { this.batchMainList.allow_change_location(this) });
+            this.$('button.js_confirm_location').click(ev => { this.confirm_location() });
             this.$('button.js_open_numpad').click(ev => { this.batchMainList.open_numpad(this) });
             this.$('button.js_confirm_qty').click(ev => { this.confirm_qty() });
+        },
+        update_location: function (location) {
+            let sml_update_move_line_info_params = {
+                model: 'stock.move.line',
+                method: 'change_location_from_scan_batch',
+                args: [[this.id], location.id],
+            };
+            rpc.query(sml_update_move_line_info_params)
+                .then(() => {
+                    this.move_line.location_name = location.name;
+                    this.move_line.location_barcode = location.barcode;
+                    this.$('#move_line_location').text(this.move_line.location_name);
+            });
+        },
+        confirm_location: function () {
+            this.batchMainList.forbid_change_location();
+            this.batchMainList.$('#helper_location').addClass('d-none');
+            this.batchMainList.show_or_hide_change_location();
+            this.$('#move_line_product').addClass('font-weight-bold');
+            this.$('#move_line_product').addClass('text-warning');
+            this.batchMainList.$('#manual_scan_product').toggleClass('d-none');
+        },
+        update_num_lot: function (product_infos) {
+            this.product.lot_id = product_infos.lot_id;
+            this.product.lot_name = product_infos.lot_name;
+            this.$('#move_line_lot').text(this.product.lot_name);
+            this.$('#move_line_lot').addClass('text-success');
         },
         update_quantity: function () {
             this.quantity_done += 1;
