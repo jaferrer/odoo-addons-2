@@ -21,6 +21,8 @@ import base64
 import json
 import logging
 import tempfile
+import io
+
 import unicodecsv as csv
 
 from odoo.exceptions import UserError
@@ -35,6 +37,7 @@ _logger = logging.getLogger(__name__)
 
 class CustomerFileToImport(models.Model):
     _name = 'customer.file.to.import'
+    _description = "Customer file to import"
     _order = 'sequence,id'
 
     name = fields.Char(string=u"Nom", required=True, readonly=True)
@@ -141,6 +144,11 @@ class CustomerFileToImport(models.Model):
         return xlml_id
 
     @api.multi
+    def save_data(self, model, data, fields_to_import=None, sequence=0):
+        fields_to_import = fields_to_import or list(list(data.values())[0].keys())
+        self.save_generated_csv_file(model, fields_to_import, data, sequence=sequence)
+
+    @api.multi
     def save_generated_csv_file(self, model, fields_to_import, table_dict_result, sequence=0):
         self.ensure_one()
         file_path = str(tempfile.NamedTemporaryFile().name) + '.csv'
@@ -217,6 +225,7 @@ class CustomerFileToImport(models.Model):
 
 class CustomerImportationLogLine(models.Model):
     _name = 'customer.importation.log.line'
+    _description = "Customer importation log line"
     _order = 'type'
 
     import_id = fields.Many2one('customer.file.to.import', string=u"File to import", readonly=True, required=True)
@@ -227,6 +236,7 @@ class CustomerImportationLogLine(models.Model):
 
 class CustomerGeneratedCsvFile(models.Model):
     _name = 'customer.generated.csv.file'
+    _description = "Customer generated CSV file"
     _order = 'sequence, id'
 
     import_id = fields.Many2one('customer.file.to.import', string=u"File to import", readonly=True, required=True)
@@ -290,6 +300,7 @@ class CustomerGeneratedCsvFile(models.Model):
 
 class CustomerGeneratedCsvFileSequenced(models.Model):
     _name = 'customer.imported.csv.file'
+    _description = "Customer imported CSV file"
     _order = 'id desc'
 
     model = fields.Char(string=u"Model", readonly=True, required=True)
@@ -299,8 +310,7 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
     sequence = fields.Integer(string=u"Sequence", readonly=True)
     datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
     fields_to_import = fields.Char(string=u"Fields to import", readonly=True)
-    original_file_id = fields.Many2one('customer.generated.csv.file', string=u"Original generated CSV file",
-                                       ondelete='cascade')
+    original_file_id = fields.Many2one('customer.generated.csv.file', string=u"Original generated CSV file")
     error = fields.Boolean(string=u"Error during importation")
     started = fields.Boolean(string=u"Importation started")
     done = fields.Boolean(string=u"Imported")
@@ -407,13 +417,6 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
         files_to_process.launch_importation()
 
 
-class CustomerFileImportationQueueJob(models.Model):
-    _inherit = 'queue.job'
-
-    imported_file_id = fields.Many2one('customer.imported.csv.file', string=u"Job généré pour le fichier",
-                                       readonly=True)
-
-
 class CustomerFileImportationIrAttachment(models.Model):
     _inherit = 'ir.attachment'
 
@@ -449,6 +452,9 @@ class BaseImportImport(models.TransientModel):
 
 class CustomerFileQueueJob(models.Model):
     _inherit = 'queue.job'
+
+    imported_file_id = fields.Many2one('customer.imported.csv.file', string=u"Job généré pour le fichier",
+                                       readonly=True)
 
     @api.multi
     def update_importation_file_states(self):
