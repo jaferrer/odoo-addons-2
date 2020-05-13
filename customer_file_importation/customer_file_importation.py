@@ -18,11 +18,15 @@
 #
 
 import base64
+import json
 import logging
-import tempfile
-import os
+import io
 
 import unicodecsv as csv
+
+from odoo.exceptions import UserError
+from odoo.tools.safe_eval import safe_eval
+
 from odoo import exceptions
 from odoo import models, fields, api
 from odoo.addons.queue_job.job import job, related_action
@@ -81,14 +85,23 @@ class CustomerFileToImport(models.Model):
     def generate_out_csv_files(self):
         """Method to overwrite for each model"""
         self.ensure_one()
+
+    @api.multi
+    def action_generate_out_csv_files(self):
+        self.ensure_one()
         self.log_info(u"Generating CSV file for %s" % self.name)
         self.state = 'draft'
         self.log_line_ids.unlink()
         self.csv_file_ids.unlink()
+        self.generate_out_csv_files()
 
     @api.multi
     def import_actual_files(self):
         self.csv_file_ids.action_import()
+
+    @api.multi
+    def log(self, type, msg):
+        self._log(msg=msg, type=type)
 
     @api.multi
     def _log(self, msg, type='INFO'):
@@ -99,6 +112,8 @@ class CustomerFileToImport(models.Model):
             _logger.warning(msg)
         elif type == 'ERROR':
             _logger.error(msg)
+        else:
+            _logger.info(type + " : " + msg)
         self.env['customer.importation.log.line'].create({
             'import_id': self.id,
             'type': type,
@@ -117,46 +132,65 @@ class CustomerFileToImport(models.Model):
     def log_error(self, msg):
         self._log(msg, type='ERROR')
 
+    @api.multi
+    def get_context_to_add(self):
+        self.ensure_one()
+        return {}
+
     @api.model
-    def get_external_id_or_create_one(self, object):
+    def get_external_id_or_create_one(self, object, module=None):
         object.ensure_one()
         xlml_id = object.get_external_id()[object.id]
         if not xlml_id:
-            self.env['ir.model.data'].create({'name': object._name.replace('.', '_') + '_' + str(object.id),
-                                              'model': object._name,
-                                              'res_id': object.id})
+            self.env['ir.model.data'].create({
+                'module': module or '',
+                'name': object._name.replace('.', '_') + '_' + str(object.id),
+                'model': object._name,
+                'res_id': object.id
+            })
             xlml_id = object.get_external_id()[object.id]
         if not xlml_id:
             raise exceptions.UserError(u"Impossible de générer un ID XML pour l'objet %s" % object)
         return xlml_id
 
     @api.multi
+    def save_data(self, model, data, fields_to_import=None, sequence=0):
+        fields_to_import = fields_to_import or list(list(data.values())[0].keys())
+        self.save_generated_csv_file(model, fields_to_import, data, sequence=sequence)
+
+    @api.multi
     def save_generated_csv_file(self, model, fields_to_import, table_dict_result, sequence=0):
         self.ensure_one()
-        file_path = tempfile.gettempdir() + os.sep + 'temporary_file.csv'
-        _logger.info(u"Importation file opened at path %s", file_path)
         model_obj = self.env['ir.model'].search([('model', '=', model)])
         if len(model_obj) != 1:
             raise exceptions.UserError(u"Model %s not found." % model)
-        with open(file_path, 'wb') as out_file:
-            out_file_csv = csv.writer(out_file)
-            out_file_csv.writerow(['id'] + fields_to_import)
-            for record_id in table_dict_result:
-                row = [record_id]
-                for field_name in fields_to_import:
-                    field_name_formated = field_name.replace('/id', '').replace(':id', '')
-                    field = self.env['ir.model.fields'].search([('model_id', '=', model_obj.id),
-                                                                ('name', '=', field_name_formated)])
-                    if len(field) != 1:
+        out_file = io.BytesIO()
+        _logger.info("Creating and fill csv odoo from data")
+        # with open(file_path, 'wb') as out_file:
+        out_file_csv = csv.writer(out_file)
+        out_file_csv.writerow(['id'] + fields_to_import)
+        cache_field = set()
+        for record_id in table_dict_result:
+            row = [record_id]
+            for field_name in fields_to_import:
+                field_name_formated = field_name.replace('/id', '').replace(':id', '')
+                if field_name_formated not in cache_field:
+                    cache_field.add(field_name_formated)
+                    if self.env['ir.model.fields'].search_count([
+                        ('model_id', '=', model_obj.id), ('name', '=', field_name_formated)
+                    ]) != 1:
                         raise exceptions.UserError(u"Field %s not found in model %s." % (field_name_formated, model))
-                    row += [table_dict_result[record_id].get(field_name, '')]
-                out_file_csv.writerow(row)
-        with open(file_path, 'rb') as tmpfile:
-            self.env['customer.generated.csv.file'].create({'import_id': self.id,
-                                                            'model': model,
-                                                            'sequence': sequence,
-                                                            'generated_csv_file': base64.b64encode(tmpfile.read()),
-                                                            'fields_to_import': str(['id'] + fields_to_import)})
+                row += [table_dict_result[record_id].get(field_name, '')]
+            out_file_csv.writerow(row)
+        _logger.info("Save csv odoo from data")
+        # with open(file_path, 'rb') as tmpfile:
+        self.env['customer.generated.csv.file'].create({
+            'import_id': self.id,
+            'model': model,
+            'sequence': sequence,
+            'generated_csv_file': base64.encodebytes(out_file.getvalue()),
+            'fields_to_import': str(['id'] + fields_to_import)
+        })
 
     @api.multi
     def check_line_length(self, iterable):
@@ -221,6 +255,7 @@ class CustomerGeneratedCsvFile(models.Model):
     model = fields.Char(string=u"Model", readonly=True, required=True)
     sequence = fields.Integer(string=u"Sequence", readonly=True)
     datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
+    context_to_add = fields.Char(string=u"Context To add")
     fields_to_import = fields.Char(string=u"Fields to import", readonly=True)
     state = fields.Selection([('draft', u"To import"),
                               ('importing', u"Importing"),
@@ -258,7 +293,7 @@ class CustomerGeneratedCsvFile(models.Model):
     @api.multi
     def action_import(self):
         for rec in self:
-            self.env['customer.imported.csv.file'].create({
+            imported = self.env['customer.imported.csv.file'].create({
                 'model': rec.model,
                 'csv_file': rec.generated_csv_file,
                 'asynchronous': rec.import_id.asynchronous,
@@ -266,8 +301,11 @@ class CustomerGeneratedCsvFile(models.Model):
                 'fields_to_import': rec.fields_to_import,
                 'original_file_id': rec.id,
                 'chunk_size': rec.import_id.chunk_size,
+                'context_to_add': rec.context_to_add
             })
             if not rec.import_id.asynchronous:
+                if imported.error_msg:
+                    raise UserError(imported.error_msg)
                 rec.imported = True
 
 
@@ -283,13 +321,14 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
     sequence = fields.Integer(string=u"Sequence", readonly=True)
     datas_fname = fields.Char(string=u"Donloaded file name", compute='_compute_datas_fname')
     fields_to_import = fields.Char(string=u"Fields to import", readonly=True)
-    original_file_id = fields.Many2one('customer.generated.csv.file', string=u"Original generated CSV file")
+    original_file_id = fields.Many2one('customer.generated.csv.file', u"Original generated file", ondelete='cascade')
     error = fields.Boolean(string=u"Error during importation")
     started = fields.Boolean(string=u"Importation started")
     done = fields.Boolean(string=u"Imported")
     error_msg = fields.Text(string=u"Message d'erreur")
     generated_job_ids = fields.One2many('queue.job', 'imported_file_id', string=u"Generated jobs")
     processed = fields.Boolean(string=u"Traité")
+    context_to_add = fields.Char("Additional Context tu use in the import")
 
     @api.multi
     def _compute_datas_fname(self):
@@ -348,16 +387,20 @@ class CustomerGeneratedCsvFileSequenced(models.Model):
     @api.multi
     def launch_importation(self):
         for rec in self:
+            fields_to_import = safe_eval(rec.fields_to_import)
             rec.started = True
             default_values_for_importation_wizard = rec.get_default_values_for_importation_wizard()
-            wizard = self.env['base_import.import'].create(default_values_for_importation_wizard)
+            context_to_add = json.loads(rec.context_to_add or "{}")
+            ctx = dict(self.env.context)
+            ctx.update(context_to_add)
+            wizard = self.env['base_import.import'].with_context(ctx).create(default_values_for_importation_wizard)
             options = rec.get_default_importation_options()
             existing_attachment_ids = []
             if rec.asynchronous:
                 options[u'use_queue'] = True
                 options[u'chunk_size'] = rec.chunk_size
                 existing_attachment_ids = self.env['ir.attachment'].search([('res_model', '=', 'queue.job')]).ids
-            importation_result = wizard.do(eval(rec.fields_to_import), eval(rec.fields_to_import), options=options)
+            importation_result = wizard.do(fields_to_import, fields_to_import, options=options)
             if rec.asynchronous:
                 new_attachments = self.env['ir.attachment'].search([('res_model', '=', 'queue.job'),
                                                                     ('id', 'not in', existing_attachment_ids)])
