@@ -28,7 +28,7 @@ class ActionLoadExtend(Action):
     @http.route('/web/action/load', type='json', auth="user")
     def load(self, action_id, additional_context=None):
         action = super(ActionLoadExtend, self).load(action_id, additional_context)
-        if action.get('type') != 'ir.actions.report':
+        if not action or action.get('type') != 'ir.actions.report':
             return action
         report = http.request.env['ir.actions.report'].browse(action['id'])
         if not report.async_report:
