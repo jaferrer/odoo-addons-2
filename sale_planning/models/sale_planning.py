@@ -63,3 +63,12 @@ class SalePlanning(models.Model):
         for vals in vals_list:
             vals['sale_last_year'] = result.get((vals['period_id'], vals['product_id']), 0)
         return super(SalePlanning, self).create(vals_list)
+
+    @api.multi
+    def confirm_forecast(self):
+        """
+        Confirm selected Sale Plannings via the Sale Confirm Forecast Wizard.
+        """
+        for rec in self:
+            wizard = self.env['confirm.period.wizard'].create({'period_id': rec.period_id.id})
+            wizard.confirm_sale_forecast()

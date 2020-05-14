@@ -30,6 +30,7 @@ class PurchasePlanning(models.Model):
     def _default_suggest_qty(self):
         return self.suggest_qty
 
+    name = fields.Char(u"Name")
     product_id = fields.Many2one('product.product', u"Product", required=True, readonly=True)
     stock_qty = fields.Float(u"Quantity in stock", related='product_id.qty_available', readonly=True)
     forecast_qty = fields.Float(u"Forecast quantity", related='product_id.virtual_available', readonly=True)
@@ -49,6 +50,15 @@ class PurchasePlanning(models.Model):
         ('draft', u"Draft"),
         ('done', u"Done"),
     ], required=True, readonly=True, default='draft')
+
+    @api.multi
+    def name_get(self):
+        res = []
+        for rec in self:
+            name = "%s from %s %s" % (
+                rec.product_id.name, rec.period_id.season_id.name, str(rec.period_id.year_id.number))
+            res.append((rec.id, name))
+        return res
 
     @api.multi
     def write(self, vals):
