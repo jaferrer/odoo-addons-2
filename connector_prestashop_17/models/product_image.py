@@ -16,8 +16,9 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
-
+from openerp.addons.connector.unit.mapper import mapping
 from openerp.addons.connector_prestashop.models.product_image.common import ProductImageAdapter
+from openerp.addons.connector_prestashop_catalog_manager.models.product_image.exporter import ProductImageExportMapper
 
 from ..backend import prestashop_1_7
 
@@ -33,3 +34,15 @@ class ProductImageAdapterExtension(ProductImageAdapter):
     def write(self, id, attributes=None):
         res = super(ProductImageAdapterExtension, self).write(id, attributes)
         return res['prestashop']['image']['id']
+
+
+@prestashop_1_7
+class ProductImageExportMapperExtension(ProductImageExportMapper):
+    _model_name = 'prestashop.product.image'
+
+    @mapping
+    def filename(self, record):
+        file_name = record.filename
+        if not file_name:
+            file_name = self._get_file_name(record)
+        return {'filename': file_name}
