@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #
-# Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
+#    Copyright (C) 2020 NDP Systèmes (<http://www.ndp-systemes.fr>).
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -16,25 +16,16 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
+from odoo import fields, models
 
-{
-    'name': 'L10n - French Company',
-    'version': '0.1',
-    'author': 'NDP Systèmes',
-    'maintainer': 'NDP Systèmes',
-    'category': 'Account',
-    'depends': ['base', 'l10n_fr'],
-    'description': """
-L10n - French Company
-=====================
-This modules switches main company to France. If it is not done, l10n_us and l10n_generic_coa will be installed.
-""",
-    'website': 'http://www.ndp-systemes.fr',
-    'data': ['data.xml'],
-    'demo': [],
-    'test': [],
-    'installable': True,
-    'auto_install': False,
-    'license': 'AGPL-3',
-    'application': False,
-}
+
+class ResCompany(models.Model):
+    _inherit = 'res.company'
+
+    ape = fields.Char(related='partner_id.ape')
+
+
+class ResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    ape = fields.Char('APE')

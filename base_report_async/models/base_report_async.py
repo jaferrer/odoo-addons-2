@@ -6,12 +6,13 @@ import logging
 import mimetypes
 import os
 import tempfile
-import time
 import zipfile
-from datetime import datetime as dt
+import time
 
-import unidecode
+from datetime import datetime as dt
 from dateutil.relativedelta import relativedelta
+from unidecode import unidecode
+
 from odoo.addons.queue_job.job import job
 from odoo.addons.http_routing.models.ir_http import slugify
 
@@ -37,7 +38,7 @@ class IrActionsReport(models.Model):
             extension = '.xls'
         if extension:
             name += extension
-        unaccented_name = unidecode.unidecode(name)
+        unaccented_name = unidecode(name)
         return self.env['ir.attachment'].create({
             'type': 'binary',
             'res_name': unaccented_name,
